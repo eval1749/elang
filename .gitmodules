@@ -1,0 +1,21 @@
+[submodule "tools/deps2git"]
+	path = tools/deps2git
+	url = https://chromium.googlesource.com/chromium/tools/deps2git.git
+[submodule "third_party/icu"]
+	path = third_party/icu
+	url = https://chromium.googlesource.com/chromium/deps/icu.git
+[submodule "testing/gtest"]
+	path = testing/gtest
+	url = https://chromium.googlesource.com//external/googletest.git
+[submodule "testing/gmock"]
+	path = testing/gmock
+	url = https://chromium.googlesource.com/external/googlemock.git
+[submodule "third_party/cygwin"]
+	path = third_party/cygwin
+	url = https://chromium.googlesource.com/chromium/deps/cygwin.git
+[submodule "buildtools"]
+	path = buildtools
+	url = https://chromium.googlesource.com/chromium/buildtools.git
+[submodule "tools/gyp"]
+	path = tools/gyp
+	url = https://chromium.googlesource.com/external/gyp.git
