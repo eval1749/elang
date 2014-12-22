@@ -1,0 +1,55 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+static_library("compiler") {
+  sources = [
+    "character_stream.h",
+    "character_stream.cc",
+    "compilation_session.cc",
+    "compilation_session.h",
+    "compilation_unit.cc",
+    "compilation_unit.h",
+    "lexer.cc",
+    "lexer.h",
+    "public/compiler_error_code.h",
+    "public/compiler_error_data.cc",
+    "public/compiler_error_data.h",
+    "source_code.cc",
+    "source_code.h",
+    "source_code_position.cc",
+    "source_code_position.h",
+    "source_code_range.cc",
+    "source_code_range.h",
+    "string_source_code.cc",
+    "string_source_code.h",
+    "string_stream.h",
+    "string_stream.cc",
+    "token.cc",
+    "token.h",
+    "token_type.h",
+  ]
+
+  deps = [
+    "//base",
+  ]
+}
+
+source_set("compiler_test") {
+  testonly = true
+  public_deps = [
+    ":compiler",
+    "//testing/gtest",
+  ]
+}
+
+test("compiler_unittests") {
+  sources = [
+    "lexer_unittest.cc"
+  ]
+
+  deps = [
+    ":compiler_test",
+    "//base/test:run_all_unittests",
+  ]
+}
