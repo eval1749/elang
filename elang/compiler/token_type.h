@@ -19,8 +19,9 @@ namespace compiler {
 //  'L' literal
 //  'K' keyword
 //  'N' name
-//  'O' operator followed by precedence from 'a' highest to 'm' lowest.
+//  'O' binary operator followed by precedence from 'a' highest to 'm' lowest.
 //  'P' punctuation
+//  'U' unary operator
 // Second character of details ::=
 //  'C' character data
 //  'F' float data
@@ -43,6 +44,7 @@ namespace compiler {
     /* Appeared just after name, e.g. |GenericType<|, |Type?|. */ \
     T(LeftAngleBracket, "<", "P") \
     T(OptionalType, "?", "P") \
+    T(Arrow, "=>", "P") \
 \
     /* Operators */ \
     T(Comma, ",", "Oa") \
@@ -86,11 +88,11 @@ namespace compiler {
     T(Div, "/", "Om") \
     T(Mod, "%", "Om") \
     /* Unary operators */ \
-    T(Decrement, "--", "O") \
-    T(Increment, "++", "O") \
-    T(Dot, ".", "O") \
-    T(Not, "!", "O") \
-    T(BitNot, "~", "O") \
+    T(Decrement, "--", "U") \
+    T(Increment, "++", "U") \
+    T(Dot, ".", "P") \
+    T(Not, "!", "U") \
+    T(BitNot, "~", "U") \
     /* Keywords */ \
     /* A */ \
         K(Abstract, "abstract", "KS") \
@@ -173,17 +175,17 @@ namespace compiler {
     K(NullLiteral, "null", "KS") \
     K(TrueLiteral, "true", "KS") \
     K(FalseLiteral, "false", "KS") \
-    T(Float32Literal, "3.14f", "LF") \
-    T(Float64Literal, "3.14", "LF") \
-    T(Int32Literal, "42", "LI") \
-    T(Int64Literal, "42l", "LI") \
-    T(UInt32Literal, "42u", "LU") \
-    T(UInt64Literal, "42lu", "LU") \
+    T(Float32Literal, "f32", "LF") \
+    T(Float64Literal, "f64", "LF") \
+    T(Int32Literal, "I32", "LI") \
+    T(Int64Literal, "I64", "LI") \
+    T(UInt32Literal, "U32", "LU") \
+    T(UInt64Literal, "U64", "LU") \
     T(CharacterLiteral, "'c'", "LC") \
     T(StringLiteral, "\"string\"", "LS") \
 \
     T(SimpleName, "name", "NS") \
-    T(Illegal, "?ILLIEGAL", "?")
+    T(Illegal, "ILLIEGAL", "?")
 
 //////////////////////////////////////////////////////////////////////
 //

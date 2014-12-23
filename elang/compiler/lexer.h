@@ -57,7 +57,6 @@ class Lexer final {
   private: Token HandleMayBeEq(TokenType with_eq, TokenType without_eq);
   private: Token HandleName(base::char16 char_code);
   private: Token HandleOneChar(TokenType token_type);
-  private: Token HandleString(TokenType token_type);
   private: Token HandleStringLiteral(base::char16 quote_code);
   private: Token HandleZero();
   private: bool IsAtEndOfStream();

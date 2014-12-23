@@ -60,17 +60,42 @@ Token& Token::operator=(const Token& other) {
   return *this;
 }
 
+bool Token::has_int_data() const {
+  auto const detail = kTokenDetails[static_cast<size_t>(type_)][1];
+  return detail == 'I' || detail == 'U' || detail == 'C';
+}
+
+bool Token::has_string_data() const {
+  return kTokenDetails[static_cast<size_t>(type_)][1] == 'S';
+}
+
+float32_t Token::f32_data() const {
+  DCHECK(type_ == TokenType::Float32Literal);
+  return data_.f32;
+}
+
+float64_t Token::f64_data() const {
+  DCHECK(type_ == TokenType::Float64Literal);
+  return data_.f64;
+}
+
+int64_t Token::int64_data() const {
+  DCHECK(has_int_data());
+  return static_cast<int64_t>(data_.u64);
+}
+
 bool Token::is_contextual_keyword() const {
   return kTokenDetails[static_cast<size_t>(type_)][0] == 'C';
+}
+
+bool Token::is_keyword() const {
+  auto const detail = kTokenDetails[static_cast<size_t>(type_)][0];
+  return detail == 'C' || detail == 'K';
 }
 
 bool Token::is_name() const {
   auto const detail = kTokenDetails[static_cast<size_t>(type_)][0];
   return detail == 'C' || detail == 'N';
-}
-
-bool Token::has_string_data() const {
-  return kTokenDetails[static_cast<size_t>(type_)][1] == 'S';
 }
 
 base::StringPiece16 Token::string_data() const {

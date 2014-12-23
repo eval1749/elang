@@ -54,8 +54,13 @@ class Token final {
 
   public: Token& operator=(const Token& other);
 
+  private: bool has_int_data() const;
   private: bool has_string_data() const;
+  public: float32_t f32_data() const;
+  public: float64_t f64_data() const;
+  public: int64_t int64_data() const;
   public: bool is_contextual_keyword() const;
+  public: bool is_keyword() const;
   public: bool is_name() const;
   public: const SourceCodeRange& location() const { return location_; }
   public: base::StringPiece16 string_data() const;
