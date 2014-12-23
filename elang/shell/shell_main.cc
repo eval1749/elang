@@ -9,7 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/lexer.h"
+#include "elang/compiler/parser.h"
 #include "elang/compiler/string_source_code.h"
 
 namespace elang {
@@ -31,7 +31,8 @@ extern "C" int main() {
     std::cout << "Compile: " << file_name << std::endl;
     compiler::StringSourceCode source_code(file_name, L"namespace foo");
     auto const compilation_unit = session.NewCompilationUnit(&source_code);
-    compiler::Lexer lexer(&session, compilation_unit);
+    compiler::Parser parser(&session, compilation_unit);
+    parser.Run();
   }
 
   return 0;

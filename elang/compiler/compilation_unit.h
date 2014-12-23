@@ -5,19 +5,34 @@
 #if !defined(elang_compiler_compilation_unit_h)
 #define elang_compiler_compilation_unit_h
 
+#include <memory>
+
 #include "base/macros.h"
 
 namespace elang {
 namespace compiler {
 
+namespace ast {
+class Namespace;
+}
+
+class CompilationSession;
 class SourceCode;
 
+//////////////////////////////////////////////////////////////////////
+//
+// CompilationUnit
+//
 class CompilationUnit {
-  private: SourceCode* source_code_;
+  private: ast::Namespace* const global_namespace_;
+  private: SourceCode* const source_code_;
 
-  public: CompilationUnit(SourceCode* source_code);
+  public: CompilationUnit(CompilationSession* session, SourceCode* source_code);
   public: ~CompilationUnit();
 
+  public: ast::Namespace* global_namespace() const {
+    return global_namespace_;
+  }
   public: SourceCode* source_code() const { return source_code_; }
 
   DISALLOW_COPY_AND_ASSIGN(CompilationUnit);

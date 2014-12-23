@@ -16,6 +16,10 @@ SourceCodeRange::SourceCodeRange(SourceCode* source_code, int start, int end)
   DCHECK_LE(start, end);
 }
 
+SourceCodeRange::SourceCodeRange()
+    : end_offset_(0), source_code_(nullptr), start_offset_(0) {
+}
+
 SourceCodeRange::~SourceCodeRange() {
 }
 

@@ -4,6 +4,20 @@
 
 static_library("compiler") {
   sources = [
+    "ast/class.cc",
+    "ast/class.h",
+    "ast/enum.cc",
+    "ast/enum.h",
+    "ast/enum_member.cc",
+    "ast/enum_member.h",
+    "ast/namespace.cc",
+    "ast/namespace.h",
+    "ast/namespace_member.cc",
+    "ast/namespace_member.h",
+    "ast/node.cc",
+    "ast/node.h",
+    "ast/node_factory.cc",
+    "ast/node_factory.h",
     "character_stream.h",
     "character_stream.cc",
     "compilation_session.cc",
@@ -12,9 +26,13 @@ static_library("compiler") {
     "compilation_unit.h",
     "lexer.cc",
     "lexer.h",
+    "parser.cc",
+    "parser.h",
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",
     "public/compiler_error_data.h",
+    "qualified_name.cc",
+    "qualified_name.h",
     "source_code.cc",
     "source_code.h",
     "source_code_position.cc",
@@ -27,6 +45,7 @@ static_library("compiler") {
     "string_stream.cc",
     "token.cc",
     "token.h",
+    "token_type.cc",
     "token_type.h",
   ]
 
@@ -45,7 +64,8 @@ source_set("compiler_test") {
 
 test("compiler_unittests") {
   sources = [
-    "lexer_unittest.cc"
+    "lexer_unittest.cc",
+    "parser_unittest.cc",
   ]
 
   deps = [

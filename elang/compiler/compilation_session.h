@@ -14,6 +14,10 @@
 namespace elang {
 namespace compiler {
 
+namespace ast {
+class NodeFactory;
+}
+
 class CompilationUnit;
 enum class ErrorCode;
 class ErrorData;
@@ -29,12 +33,18 @@ class CompilationSession final {
   private: std::unordered_map<base::StringPiece16, base::StringPiece16*>
       atomic_strings_;
   private: std::vector<std::unique_ptr<ErrorData>> errors_;
-  private: std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   private: std::vector<base::string16*> strings_;
   private: std::vector<base::StringPiece16*> string_pieces_;
 
+  private: const std::unique_ptr<ast::NodeFactory> ast_factory_;
+  private: std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
+
   public: CompilationSession();
   public: ~CompilationSession();
+
+  public: ast::NodeFactory* ast_factory() const {
+    return ast_factory_.get();
+  }
 
   public: void AddError(const SourceCodeRange& location, ErrorCode error_code);
   public: void AddError(const SourceCodeRange& location, ErrorCode error_code,

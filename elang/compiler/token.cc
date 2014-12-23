@@ -50,6 +50,10 @@ Token::Token(const Token& other)
     : data_(other.data_.u64), location_(other.location_), type_(other.type_) {
 }
 
+Token::Token()
+  : Token(SourceCodeRange(), TokenType::None) {
+}
+
 Token::~Token() {
 }
 
@@ -77,6 +81,11 @@ float32_t Token::f32_data() const {
 float64_t Token::f64_data() const {
   DCHECK(type_ == TokenType::Float64Literal);
   return data_.f64;
+}
+
+Token::SimpleNameId Token::id() const {
+  DCHECK(is_name());
+  return data_.str;
 }
 
 int64_t Token::int64_data() const {

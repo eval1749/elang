@@ -5,6 +5,10 @@
 #if !defined(elang_compiler_token_type_h)
 #define elang_compiler_token_type_h
 
+#if _DEBUG
+#include <ostream>
+#endif
+
 namespace elang {
 namespace compiler {
 
@@ -32,6 +36,7 @@ namespace compiler {
 //  'm' operator precedence (highest)
 #define TOKEN_LIST(T, K) \
     T(EndOfSource, "EOS", "?") \
+    T(None, "None", "?") \
 \
     T(Colon, ":", "P") \
     T(SemiColon, ";", "P") \
@@ -184,7 +189,7 @@ namespace compiler {
     T(CharacterLiteral, "'c'", "LC") \
     T(StringLiteral, "\"string\"", "LS") \
 \
-    T(SimpleName, "name", "NS") \
+    T(SimpleName, "SimpleName", "NS") \
     T(Illegal, "ILLIEGAL", "?")
 
 //////////////////////////////////////////////////////////////////////
@@ -196,6 +201,10 @@ enum class TokenType {
   TOKEN_LIST(T, T)
   #undef T
 };
+
+#if _DEBUG
+std::ostream& operator<<(std::ostream& ostream, TokenType token_type);
+#endif
 
 }  // namespace compiler
 }  // namespace elang

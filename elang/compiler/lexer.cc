@@ -247,7 +247,7 @@ Token Lexer::GetToken() {
       case '/':
         if (AdvanceIf('*')) {
           if (!SkipBlockComment())
-            return Error(ErrorCode::LexerUnterminatedBlockComment);
+            return Error(ErrorCode::TokenBlockCommentUnclosed);
           just_after_name = false;
           continue;
         }
@@ -318,7 +318,7 @@ Token Lexer::HandleAfterDecimalPoint(uint64_t u64) {
     if (char_code >= '0' && char_code <= '9') {
       Advance();
       if (u64 >= std::numeric_limits<uint64_t>::max() / 10)
-        return Error(ErrorCode::LexerTooManyDigits);
+        return Error(ErrorCode::TokenRealTooManyDigits);
       u64 *= 10;
       u64 += char_code - '0';
       ++digit_count;
@@ -343,7 +343,7 @@ Token Lexer::HandleAfterDecimalPoint(uint64_t u64) {
 // 
 Token Lexer::HandleAtMark() {
   if (IsAtEndOfStream())
-    return Error(ErrorCode::LexerBadAtMark);
+    return Error(ErrorCode::TokenAtMarkInvalid);
 
   if (AdvanceIf('"')) {
     enum class State {
@@ -373,7 +373,7 @@ Token Lexer::HandleAtMark() {
           break;
       }
     }
-    return Error(ErrorCode::LexerBadAtMark);
+    return Error(ErrorCode::TokenAtMarkStringUnclosed);
   }
 
   if (IsNameStartChar(PeekChar())) {
@@ -388,10 +388,10 @@ Token Lexer::HandleAtMark() {
       Advance();
       char_sink_->AddChar(char_code);
     }
-    return Error(ErrorCode::LexerBadAtMark);
+    return Error(ErrorCode::TokenAtMarkInvalid);
   }
 
-  return Error(ErrorCode::LexerBadAtMark);
+  return Error(ErrorCode::TokenAtMarkInvalid);
 }
 
 Token Lexer::HandleExponent(uint64_t u64, int exponent_offset) {
@@ -414,7 +414,7 @@ Token Lexer::HandleExponent(uint64_t u64, int exponent_offset) {
       break;
     Advance();
     if (exponent > std::numeric_limits<uint64_t>::max() / 10) {
-      return Error(ErrorCode::LexerExponentOverflow);
+      return Error(ErrorCode::TokenFloatExponentOverflow);
     }
     exponent *= 10;
     exponent += char_code - '0';
@@ -433,18 +433,18 @@ Token Lexer::HandleInteger(int base) {
     if (digit < 0) {
       if (!digit_count) {
         Advance();
-        return Error(ErrorCode::LexerBadInteger);
+        break;
       }
       return HandleIntegerSuffix(u64);
     }
     Advance();
     if (u64 >= std::numeric_limits<uint64_t>::max() / 10)
-      return Error(ErrorCode::LexerIntegerOverflow);
+      return Error(ErrorCode::TokenIntegerOverflow);
     u64 *= base;
     u64 += digit;
     ++digit_count;
   }
-  return Error(ErrorCode::LexerBadInteger);
+  return Error(ErrorCode::TokenIntegerInvalid);
 }
 
 Token Lexer::HandleIntegerOrReal(int digit) {
@@ -454,7 +454,7 @@ Token Lexer::HandleIntegerOrReal(int digit) {
     if (char_code >= '0' && char_code <= '9') {
       Advance();
       if (u64 >= std::numeric_limits<uint64_t>::max() / 10)
-        return Error(ErrorCode::LexerIntegerOverflow);
+        return Error(ErrorCode::TokenIntegerOverflow);
       u64 *= 10;
       u64 += char_code - '0';
       continue;
@@ -474,7 +474,7 @@ Token Lexer::HandleIntegerOrReal(int digit) {
     break;
   }
   if (u64 >= std::numeric_limits<int32_t>::max())
-    return Error(ErrorCode::LexerIntegerOverflow);
+    return Error(ErrorCode::TokenIntegerOverflow);
   return Token(ComputeLocation(), TokenType::Int32Literal, u64);
 }
 
@@ -500,11 +500,11 @@ Token Lexer::HandleIntegerSuffix(uint64_t u64) {
                    TokenType::UInt64Literal, u64);
     }
     if (u64 > static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()))
-      return Error(ErrorCode::LexerIntegerOverflow);
+      return Error(ErrorCode::TokenIntegerOverflow);
     return Token(ComputeLocation(), TokenType::UInt32Literal, u64);
   }
   if (u64 > static_cast<uint64_t>(std::numeric_limits<int32_t>::max()))
-    return Error(ErrorCode::LexerIntegerOverflow);
+    return Error(ErrorCode::TokenIntegerOverflow);
   return Token(ComputeLocation(), TokenType::Int32Literal, u64);
 }
 
@@ -585,7 +585,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
             char_code = static_cast<base::char16>(0x000B);
             break;
           default:
-            return Error(ErrorCode::LexerInvalidBackslash);
+            return Error(ErrorCode::TokenBackslashInvalid);
         }
         char_sink_->AddChar(char_code);
         state = State::Normal;
@@ -593,7 +593,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
       case State::BackslashU: {
         auto const digit = DigitToInt(char_code, 16);
         if (digit < 0)
-          return Error(ErrorCode::LexerInvalidBackslashU);
+          return Error(ErrorCode::TokenBackslashUInvalid);
         accumulator <<= 4;
         accumulator += digit;
         ++digit_count;
@@ -605,7 +605,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
       }
       case State::Normal:
         if (char_code == '\n')
-          return Error(ErrorCode::LexerNewlineInStringLiteral);
+          return Error(ErrorCode::TokenStringHasNewline);
         if (char_code == '\\') {
           state = State::Backslash;
           break;
@@ -617,7 +617,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
             return token;
           if (token.string_data().size() != 1) {
             session_->AddError(token.location(),
-                               ErrorCode::LexerBadCharLiteral,
+                               ErrorCode::TokenCharacterInvalid,
                                std::vector<Token> { token });
             return Token(token.location(), TokenType::Illegal);
           }
@@ -628,7 +628,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
         break;
     }
   }
-  return Error(ErrorCode::LexerUnterminatedString);
+  return Error(ErrorCode::TokenStringUnclosed);
 }
 
 // Handles following numeric literals:

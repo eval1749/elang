@@ -22,6 +22,7 @@ class SourceCodeRange {
 
   public: SourceCodeRange(SourceCode* source_code, int start, int end);
   public: SourceCodeRange(const SourceCodeRange& other) = default;
+  public: SourceCodeRange();
   public: ~SourceCodeRange();
 
   public: SourceCodeRange& operator=(const SourceCodeRange& other) = default;

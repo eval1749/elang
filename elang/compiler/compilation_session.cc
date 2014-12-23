@@ -4,13 +4,16 @@
 
 #include "elang/compiler/compilation_session.h"
 
+#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_data.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 
-CompilationSession::CompilationSession() {
+CompilationSession::CompilationSession()
+    : ast_factory_(new ast::NodeFactory()) {
 }
 
 CompilationSession::~CompilationSession() {
@@ -44,7 +47,7 @@ base::StringPiece16* CompilationSession::GetOrNewAtomicString(
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
     SourceCode* source_code) {
-  auto unit = std::make_unique<CompilationUnit>(source_code);
+  auto unit = std::make_unique<CompilationUnit>(this, source_code);
   compilation_units_.push_back(std::move(unit));
   return compilation_units_.back().get();
 }

@@ -19,7 +19,12 @@ namespace elang {
 namespace compiler {
 
 namespace {
-class TestLexer {
+
+//////////////////////////////////////////////////////////////////////
+//
+// TestLexer
+//
+class TestLexer final {
   private: CompilationSession session_;
   private: StringSourceCode source_code_;
   private: CompilationUnit compilation_unit_;
@@ -38,7 +43,7 @@ class TestLexer {
 
 TestLexer::TestLexer(const base::string16& string)
     : source_code_(L"sample", string),
-      compilation_unit_(&source_code_),
+      compilation_unit_(&session_, &source_code_),
       lexer_(&session_, &compilation_unit_) {
 }
 
@@ -65,7 +70,7 @@ Token TestLexer::MakeToken(TokenType type, int start, int end,
 }
 
 Token TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
-  DCHECK(type != TokenType::SimpleName);
+  DCHECK_NE(type, TokenType::SimpleName);
   auto location = SourceCodeRange(&source_code_, start, end);
   switch (type){
     case TokenType::CharacterLiteral:

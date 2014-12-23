@@ -6,6 +6,7 @@
 #define elang_compiler_token_h
 
 #include <memory>
+
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
 #include "elang/compiler/source_code_range.h"
@@ -20,6 +21,8 @@ enum class TokenType;
 // Token
 //
 class Token final {
+  public: typedef const base::StringPiece16* SimpleNameId;
+
   private: union Data {
     base::char16 ch;
     float32_t f32;
@@ -50,6 +53,7 @@ class Token final {
   public: Token(const SourceCodeRange& source_range, TokenType type,
                 uint64_t u64);
   public: Token(const Token& token);
+  public: Token();
   public: ~Token();
 
   public: Token& operator=(const Token& other);
@@ -62,6 +66,7 @@ class Token final {
   public: bool is_contextual_keyword() const;
   public: bool is_keyword() const;
   public: bool is_name() const;
+  public: SimpleNameId id() const;
   public: const SourceCodeRange& location() const { return location_; }
   public: base::StringPiece16 string_data() const;
   public: TokenType type() const { return type_; }
