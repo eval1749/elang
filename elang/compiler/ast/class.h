@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/qualified_name.h"
 
 namespace elang {
 namespace compiler {

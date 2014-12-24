@@ -31,7 +31,7 @@ class Alias final : public NamespaceMember {
                  const QualifiedName& reference_name);
   public: ~Alias() final;
 
-  const QualifiedName& target_name() const { return target_name_; }
+  public: const QualifiedName& target_name() const { return target_name_; }
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };

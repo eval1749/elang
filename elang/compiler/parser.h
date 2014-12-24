@@ -16,7 +16,6 @@ namespace compiler {
 namespace ast {
 class Expression;
 class Namespace;
-class Namespace;
 class NodeFactory;
 }
 

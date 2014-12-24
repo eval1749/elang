@@ -24,15 +24,11 @@ class SourceCode;
 // CompilationUnit
 //
 class CompilationUnit {
-  private: ast::Namespace* const global_namespace_;
   private: SourceCode* const source_code_;
 
   public: CompilationUnit(CompilationSession* session, SourceCode* source_code);
   public: ~CompilationUnit();
 
-  public: ast::Namespace* global_namespace() const {
-    return global_namespace_;
-  }
   public: SourceCode* source_code() const { return source_code_; }
 
   DISALLOW_COPY_AND_ASSIGN(CompilationUnit);

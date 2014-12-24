@@ -55,10 +55,14 @@ EnumMember* NodeFactory::NewEnumMember(Enum* owner, const Token& simple_name,
 }
 
 Namespace* NodeFactory::NewNamespace(Namespace* outer, const Token& keyword,
-                                     QualifiedName&& name) {
-  auto const node = new Namespace(outer, keyword, std::move(name));
+                                     const Token& simple_name) {
+  auto const node = new Namespace(outer, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
+}
+
+void NodeFactory::RemoveAll() {
+  nodes_.clear();
 }
 
 }   // namespace ast

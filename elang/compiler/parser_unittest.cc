@@ -11,6 +11,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -86,16 +87,17 @@ void Formatter::Print(const ast::Alias* alias) {
 }
 
 void Formatter::Print(const ast::Namespace* ns) {
-  Indent();
-  stream_ << Thing(ns->token()) << " ";
-  Print(ns->name());
-  stream_ << " {" << std::endl;
-  ++depth_;
-  for (auto const member : ns->members())
-    Print(member);
-  --depth_;
-  Indent();
-  stream_ << "}" << std::endl;
+  for (auto const namespace_body : ns->bodies()) {
+    Indent();
+    stream_ << Thing(ns->token()) << " " << Thing(ns->simple_name()) <<
+        " {" << std::endl;
+    ++depth_;
+    for (auto const member : namespace_body->members())
+      Print(member);
+    --depth_;
+    Indent();
+    stream_ << "}" << std::endl;
+  }
 }
 
 void Formatter::Print(const ast::NamespaceMember* member) {
@@ -124,8 +126,9 @@ void Formatter::Print(const QualifiedName& name) {
 std::string Formatter::Run(const ast::Namespace* ns) {
   stream_.clear();
   depth_ = 0;
-  for (auto member : ns->members()) {
-    Print(member);
+  for (auto const namespace_body : ns->bodies()) {
+    for (auto const member : namespace_body->members())
+      Print(member);
   }
   return stream_.str();
 }
@@ -158,7 +161,7 @@ std::string TestParser::Run() {
     return std::string();
   }
   Formatter formatter;
-  return formatter.Run(compilation_unit_.global_namespace());
+  return formatter.Run(session_.global_namespace());
 }
 
 char ToHexDigit(int n) {

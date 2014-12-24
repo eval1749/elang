@@ -45,6 +45,7 @@ namespace compiler {
   E(Syntax, Modifier, Duplicate) \
   /* NamespaceDecl */ \
   E(Syntax, NamespaceDecl, LeftCurryBracket) \
+  E(Syntax, NamespaceDecl, NameDuplicate) \
   E(Syntax, NamespaceDecl, RightCurryBracket) \
   /* UsingDirective */ \
   E(Syntax, UsingDirective, Invalid) \

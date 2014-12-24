@@ -46,7 +46,8 @@ class NodeFactory final {
   public: EnumMember* NewEnumMember(Enum* owner, const Token& simple_name,
                                     Expression* expression);
   public: Namespace* NewNamespace(Namespace* outer, const Token& keyword,
-                                  QualifiedName&& simple_name);
+                                  const Token& simple_name);
+  public: void RemoveAll();
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };

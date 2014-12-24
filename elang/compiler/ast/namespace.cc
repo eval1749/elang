@@ -5,6 +5,8 @@
 #include "elang/compiler/ast/namespace.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -13,56 +15,49 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace::ImportDef
-//
-struct Namespace::ImportDef {
-    Token keyword;
-    QualifiedName name;
-    ImportDef(const Token& keyword, const QualifiedName& real_name);
-};
-
-Namespace::ImportDef::ImportDef(const Token& keyword,
-                                const QualifiedName& name)
-    : keyword(keyword), name(name) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // Namespace
 //
 Namespace::Namespace(Namespace* outer, const Token& keyword,
                      const Token& simple_name)
-    : NamespaceMember(outer, keyword, simple_name),
-      name_(QualifiedName(simple_name)) {
-  DCHECK_EQ(keyword.type(), TokenType::Namespace);
-}
-
-Namespace::Namespace(Namespace* outer, const Token& keyword,
-                     QualifiedName&& name)
-    : NamespaceMember(outer, keyword, name.simple_name()),
-      name_(std::move(name)) {
+    : NamespaceMember(outer, keyword, simple_name), body_(nullptr) {
   DCHECK_EQ(keyword.type(), TokenType::Namespace);
 }
 
 Namespace::~Namespace() {
-  for (auto const import_def : import_defs_)
-    delete import_def;
+  DCHECK(!body_);
 }
 
 void Namespace::AddImport(const Token& keyword, const QualifiedName& name) {
   DCHECK_EQ(keyword.type(), TokenType::Using);
-  import_defs_.push_back(new ImportDef(keyword, name));
+  DCHECK_EQ(token().type(), TokenType::Namespace);
+  DCHECK_EQ(body_, bodies_.back());
+  body_->AddImport(keyword, name);
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
+  DCHECK(body_);
+  // We keep first member declaration.
   if (!FindMember(member->simple_name()))
     map_[member->simple_name().id()] = member;
-  members_.push_back(member);
+  bodies_.back()->AddMember(member);
+}
+
+void Namespace::Close() {
+  DCHECK_EQ(body_, bodies_.back());
+  for (auto const alias : body_->aliases())
+    map_.erase(map_.find(alias->simple_name().id()));
+  body_ = nullptr;
 }
 
 NamespaceMember* Namespace::FindMember(const Token& simple_name) {
   auto const it = map_.find(simple_name.id());
   return it == map_.end() ? nullptr : it->second;
+}
+
+void Namespace::Open(SourceCode* source_code) {
+  DCHECK(!body_);
+  body_ = new NamespaceBody(this, source_code);
+  bodies_.push_back(body_);
 }
 
 }  // namespace ast

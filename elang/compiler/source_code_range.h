@@ -31,6 +31,7 @@ class SourceCodeRange {
   public: bool operator!=(const SourceCodeRange& other) const;
 
   public: SourceCodePosition end() const;
+  public: SourceCode* source_code() const { return source_code_; }
   public: SourceCodePosition start() const;
 };
 

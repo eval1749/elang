@@ -9,12 +9,12 @@
 
 #include "elang/compiler/ast/namespace_member.h"
 
-#include "elang/compiler/qualified_name.h"
-
 namespace elang {
 namespace compiler {
+class QualifiedName;
 namespace ast {
 
+class NamespaceBody;
 class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
@@ -27,26 +27,24 @@ class Namespace : public NamespaceMember {
   friend class NodeFactory;
   private: struct ImportDef;
 
-  private: std::vector<ImportDef*> import_defs_;
+  private: NamespaceBody* body_;
+  private: std::vector<NamespaceBody*> bodies_;
   private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
-  private: std::vector<NamespaceMember*> members_;
-  private: QualifiedName name_;
 
   protected: Namespace(Namespace* outer, const Token& keyword,
                        const Token& simple_name);
-  private: Namespace(Namespace* outer, const Token& keyword,
-                     QualifiedName&& name);
   public: ~Namespace() override;
 
-  public: std::vector<NamespaceMember*> members() const {
-    return members_;
+  public: const std::vector<NamespaceBody*> bodies() const {
+    return bodies_;
   }
-  public: const QualifiedName& name() const { return name_; }
 
   public: void AddImport(const Token& import_keyword,
                          const QualifiedName& name);
   public: void AddMember(NamespaceMember* member);
+  public: void Close();
   public: NamespaceMember* FindMember(const Token& simple_name);
+  public: void Open(SourceCode* source_code);
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

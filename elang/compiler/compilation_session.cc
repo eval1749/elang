@@ -7,16 +7,34 @@
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_data.h"
+#include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 
+namespace {
+
+ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
+                                      SourceCode* source_code) {
+  return session->ast_factory()->NewNamespace(nullptr,
+      Token(SourceCodeRange(source_code, 0, 0), TokenType::Namespace,
+            session->GetOrNewAtomicString(L"namespace")),
+      Token(SourceCodeRange(source_code, 0, 0), TokenType::SimpleName,
+            session->GetOrNewAtomicString(L"::")));
+}
+
+}  // namespace
+
 CompilationSession::CompilationSession()
-    : ast_factory_(new ast::NodeFactory()) {
+    : ast_factory_(new ast::NodeFactory()),
+      source_code_(new StringSourceCode(L"-", L"")),
+      global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {
 }
 
 CompilationSession::~CompilationSession() {
+  // For ease of debugging AST, we delete AST factory before string pool.
+  ast_factory_->RemoveAll();
   for (auto string_piece : string_pieces_)
     delete string_piece;
   for (auto string : strings_)

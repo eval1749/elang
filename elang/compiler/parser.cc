@@ -90,10 +90,13 @@ class Parser::NamespaceScope {
 
 Parser::NamespaceScope::NamespaceScope(Parser* parser, ast::Namespace* ns)
     : namespace_(parser->namespace_), parser_(parser) {
+  DCHECK_NE(ns, parser_->namespace_);
   parser_->namespace_ = ns;
 }
 
 Parser::NamespaceScope::~NamespaceScope() {
+  for (auto ns = parser_->namespace_; ns != namespace_; ns = ns->outer())
+    ns->Close();
   parser_->namespace_ = namespace_;
 }
 
@@ -144,12 +147,15 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       expression_(nullptr),
       modifiers_(new ModifierBuilder(this)),
       name_builder_(new QualifiedNameBuilder()),
-      namespace_(compilation_unit->global_namespace()),
+      namespace_(session->global_namespace()),
       session_(session),
       lexer_(new Lexer(session, compilation_unit)) {
+  namespace_->Open(compilation_unit->source_code());
 }
 
 Parser::~Parser() {
+  for (auto runner = namespace_; runner; runner = runner->outer())
+    runner->Close();
 }
 
 ast::NodeFactory* Parser::factory() const {
@@ -231,6 +237,7 @@ bool Parser::ParseClassDecl() {
   auto const klass = factory()->NewClass(namespace_, class_keyword,
                                          simple_name);
   NamespaceScope member_scope(this, klass);
+  klass->Open(simple_name.location().source_code());
 
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket)) {
@@ -377,10 +384,23 @@ bool Parser::ParseNamespaceDecl() {
   Advance();
   if (!ParseQualifiedName())
     return false;
-  auto const ns = factory()->NewNamespace(namespace_, namespace_keyword,
-                                          name_builder_->Get());
-  namespace_->AddMember(ns);
-  NamespaceScope namespace_scope(this, ns);
+  auto this_namespace = namespace_;
+  for (auto const simple_name : name_builder_->simple_names()) {
+    if (auto const present = this_namespace->FindMember(simple_name)) {
+      if (auto const present_ns = present->as<ast::Namespace>()) {
+        this_namespace = present_ns;
+        this_namespace->Open(simple_name.location().source_code());
+        continue;
+      }
+      Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
+    }
+    auto const new_namespace = factory()->NewNamespace(
+        this_namespace, namespace_keyword, simple_name);
+    this_namespace->AddMember(new_namespace);
+    this_namespace = new_namespace;
+    this_namespace->Open(simple_name.location().source_code());
+  }
+  NamespaceScope namespace_scope(this, this_namespace);
   // TODO(eval1749) Record position of left bracket for error message
   // when there is no matching right bracket.
   if (!AdvanceIf(TokenType::LeftCurryBracket))
