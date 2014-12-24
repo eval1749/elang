@@ -35,7 +35,7 @@ class CompilationSession final {
       atomic_strings_;
   private: const std::unique_ptr<ast::NodeFactory> ast_factory_;
   private: std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
-  private: std::vector<std::unique_ptr<ErrorData>> errors_;
+  private: std::vector<ErrorData*> errors_;
   private: std::vector<base::string16*> strings_;
   private: std::vector<base::StringPiece16*> string_pieces_;
 
@@ -47,6 +47,10 @@ class CompilationSession final {
 
   public: ast::NodeFactory* ast_factory() const {
     return ast_factory_.get();
+  }
+
+  public: const std::vector<ErrorData*>& errors() const {
+    return errors_;
   }
 
   public: ast::Namespace* global_namespace() const {

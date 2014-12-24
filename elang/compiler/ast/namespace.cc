@@ -20,7 +20,6 @@ namespace ast {
 Namespace::Namespace(Namespace* outer, const Token& keyword,
                      const Token& simple_name)
     : NamespaceMember(outer, keyword, simple_name), body_(nullptr) {
-  DCHECK_EQ(keyword.type(), TokenType::Namespace);
 }
 
 Namespace::~Namespace() {

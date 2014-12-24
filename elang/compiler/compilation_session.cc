@@ -35,9 +35,11 @@ CompilationSession::CompilationSession()
 CompilationSession::~CompilationSession() {
   // For ease of debugging AST, we delete AST factory before string pool.
   ast_factory_->RemoveAll();
-  for (auto string_piece : string_pieces_)
+  for (auto const error : errors_)
+    delete error;
+  for (auto const string_piece : string_pieces_)
     delete string_piece;
-  for (auto string : strings_)
+  for (auto const string : strings_)
     delete string;
 }
 
@@ -49,8 +51,7 @@ void CompilationSession::AddError(const SourceCodeRange& location,
 void CompilationSession::AddError(const SourceCodeRange& location,
                                   ErrorCode error_code,
                                   const std::vector<Token>& tokens) {
-  auto error_data = std::make_unique<ErrorData>(location, error_code, tokens);
-  errors_.push_back(std::move(error_data));
+  errors_.push_back(new ErrorData(location, error_code, tokens));
 }
 
 base::StringPiece16* CompilationSession::GetOrNewAtomicString(

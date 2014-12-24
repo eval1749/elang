@@ -233,9 +233,12 @@ bool Parser::ParseClassDecl() {
   auto simple_name = token_;
   if (!simple_name.is_name())
     return Error(ErrorCode::SyntaxClassDeclName);
-
+  Advance();
+  if (auto const present = namespace_->FindMember(simple_name))
+    Error(ErrorCode::SyntaxClassDeclNameDuplicate);
   auto const klass = factory()->NewClass(namespace_, class_keyword,
                                          simple_name);
+  namespace_->AddMember(klass);
   NamespaceScope member_scope(this, klass);
   klass->Open(simple_name.location().source_code());
 
@@ -258,6 +261,12 @@ bool Parser::ParseClassDecl() {
       if (AdvanceIf(TokenType::Comma))
         break;
     }
+  }
+
+  if (modifiers_->HasExtern()) {
+    if (!AdvanceIf(TokenType::SemiColon))
+      Error(ErrorCode::SyntaxClassDeclSemiColon);
+    return true;
   }
 
   // ClassBody ::= "{" ClassMemberDeclaration* "}"

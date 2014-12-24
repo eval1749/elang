@@ -31,6 +31,10 @@ class Class final : public Namespace {
                  const Token& simple_name);
   public: ~Class() final;
 
+  public: const std::vector<QualifiedName>& base_class_names() const {
+    return base_class_names_;
+  }
+
   public: void AddBaseClassName(const QualifiedName& class_name);
 
   DISALLOW_COPY_AND_ASSIGN(Class);

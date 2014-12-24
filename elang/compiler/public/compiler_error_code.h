@@ -36,11 +36,16 @@ namespace compiler {
   E(Syntax, FieldDecl, Name) \
   E(Syntax, FieldDecl, SemiColon) \
   /* ClassDecl */ \
-  E(Syntax, ClassDecl, LeftCurryBracket) \
-  E(Syntax, ClassDecl, Modifier) \
-  E(Syntax, ClassDecl, Name) \
-  E(Syntax, ClassDecl, RightCurryBracket) \
-  E(Syntax, ClassDecl, TypeParamInvalid) \
+    E(Syntax, ClassDecl, LeftCurryBracket) \
+    E(Syntax, ClassDecl, Modifier) \
+    /* Expect name for class. */ \
+    E(Syntax, ClassDecl, Name) \
+    /* Class name is already defined. */ \
+    E(Syntax, ClassDecl, NameDuplicate) \
+    E(Syntax, ClassDecl, RightCurryBracket) \
+    /* Expect ";" for |extern| class. */ \
+    E(Syntax, ClassDecl, SemiColon) \
+    E(Syntax, ClassDecl, TypeParamInvalid) \
   /* Modifier */ \
   E(Syntax, Modifier, Duplicate) \
   /* NamespaceDecl */ \

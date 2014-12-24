@@ -4,12 +4,14 @@
 
 #include "elang/compiler/ast/node_factory.h"
 
+#include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -56,6 +58,7 @@ EnumMember* NodeFactory::NewEnumMember(Enum* owner, const Token& simple_name,
 
 Namespace* NodeFactory::NewNamespace(Namespace* outer, const Token& keyword,
                                      const Token& simple_name) {
+  DCHECK_EQ(keyword.type(), TokenType::Namespace);
   auto const node = new Namespace(outer, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
