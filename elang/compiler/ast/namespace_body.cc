@@ -32,8 +32,9 @@ NamespaceBody::ImportDef::ImportDef(const Token& keyword,
 //
 // NamespaceBody
 //
-NamespaceBody::NamespaceBody(Namespace* owner, SourceCode* source_code)
-    : owner_(owner), source_code_(source_code) {
+NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner,
+                             SourceCode* source_code)
+    : outer_(outer), owner_(owner), source_code_(source_code) {
 }
 
 NamespaceBody::~NamespaceBody() {
@@ -47,9 +48,16 @@ void NamespaceBody::AddImport(const Token& keyword, const QualifiedName& name) {
 }
 
 void NamespaceBody::AddMember(NamespaceMember* member) {
-  if (auto const alias = member->as<Alias>())
+  if (auto const alias = member->as<Alias>()) {
     aliases_.push_back(alias);
+    alias_map_[alias->simple_name().id()] = alias;
+  }
   members_.push_back(member);
+}
+
+Alias* NamespaceBody::FindAlias(const Token& simple_name) {
+  auto const it = alias_map_.find(simple_name.id());
+  return it == alias_map_.end() ? nullptr : it->second;
 }
 
 }  // namespace ast

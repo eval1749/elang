@@ -30,6 +30,8 @@ static_library("compiler") {
     "compilation_unit.h",
     "lexer.cc",
     "lexer.h",
+    "name_resolver.cc",
+    "name_resolver.h",
     "parser.cc",
     "parser.h",
     "public/compiler_error_code.h",
@@ -56,11 +58,16 @@ static_library("compiler") {
   deps = [
     "//base",
     "//elang/base",
+    "//elang/hir",
   ]
 }
 
 source_set("compiler_test") {
   testonly = true
+  sources = [
+    "testing/test_driver.cc",
+    "testing/test_driver.h",
+  ]
   public_deps = [
     ":compiler",
     "//testing/gtest",
@@ -70,6 +77,7 @@ source_set("compiler_test") {
 test("compiler_unittests") {
   sources = [
     "lexer_unittest.cc",
+    "name_resolver_unittest.cc",
     "parser_unittest.cc",
   ]
 

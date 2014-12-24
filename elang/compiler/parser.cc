@@ -150,7 +150,7 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       namespace_(session->global_namespace()),
       session_(session),
       lexer_(new Lexer(session, compilation_unit)) {
-  namespace_->Open(compilation_unit->source_code());
+  namespace_->Open(nullptr, compilation_unit->source_code());
 }
 
 Parser::~Parser() {
@@ -175,8 +175,7 @@ bool Parser::AdvanceIf(TokenType type) {
 
 bool Parser::Error(ErrorCode error_code, const Token& token) {
   DCHECK_NE(token.type(), TokenType::None);
-  session_->AddError(token_.location(), error_code,
-                     std::vector<Token> { token });
+  session_->AddError(error_code, token);
   return false;
 }
 
@@ -236,11 +235,12 @@ bool Parser::ParseClassDecl() {
   Advance();
   if (auto const present = namespace_->FindMember(simple_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate);
-  auto const klass = factory()->NewClass(namespace_, class_keyword,
+  auto const clazz = factory()->NewClass(namespace_, class_keyword,
                                          simple_name);
-  namespace_->AddMember(klass);
-  NamespaceScope member_scope(this, klass);
-  klass->Open(simple_name.location().source_code());
+  namespace_->AddMember(clazz);
+  NamespaceScope member_scope(this, clazz);
+  clazz->Open(namespace_->namespace_body(),
+              simple_name.location().source_code());
 
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket)) {
@@ -257,7 +257,7 @@ bool Parser::ParseClassDecl() {
   // ClassBase
   if (AdvanceIf(TokenType::Colon)) {
     while (ParseQualifiedName()) {
-      klass->AddBaseClassName(name_builder_->Get());
+      clazz->AddBaseClassName(name_builder_->Get());
       if (AdvanceIf(TokenType::Comma))
         break;
     }
@@ -397,8 +397,9 @@ bool Parser::ParseNamespaceDecl() {
   for (auto const simple_name : name_builder_->simple_names()) {
     if (auto const present = this_namespace->FindMember(simple_name)) {
       if (auto const present_ns = present->as<ast::Namespace>()) {
+        present_ns->Open(this_namespace->namespace_body(),
+                         simple_name.location().source_code());
         this_namespace = present_ns;
-        this_namespace->Open(simple_name.location().source_code());
         continue;
       }
       Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
@@ -406,8 +407,9 @@ bool Parser::ParseNamespaceDecl() {
     auto const new_namespace = factory()->NewNamespace(
         this_namespace, namespace_keyword, simple_name);
     this_namespace->AddMember(new_namespace);
+    new_namespace->Open(this_namespace->namespace_body(),
+                        simple_name.location().source_code());
     this_namespace = new_namespace;
-    this_namespace->Open(simple_name.location().source_code());
   }
   NamespaceScope namespace_scope(this, this_namespace);
   // TODO(eval1749) Record position of left bracket for error message

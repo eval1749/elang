@@ -19,22 +19,31 @@ namespace ast {
 //
 Namespace::Namespace(Namespace* outer, const Token& keyword,
                      const Token& simple_name)
-    : NamespaceMember(outer, keyword, simple_name), body_(nullptr) {
+    : NamespaceMember(outer, keyword, simple_name), namespace_body_(nullptr) {
 }
 
 Namespace::~Namespace() {
-  DCHECK(!body_);
+  DCHECK(!namespace_body_);
+}
+
+NamespaceBody* Namespace::namespace_body() const {
+  for (auto runner = this; runner; runner = runner->outer()) {
+    if (runner->token().type() == TokenType::Namespace)
+      return runner->namespace_body_;
+  }
+  NOTREACHED();
+  return nullptr;
 }
 
 void Namespace::AddImport(const Token& keyword, const QualifiedName& name) {
   DCHECK_EQ(keyword.type(), TokenType::Using);
   DCHECK_EQ(token().type(), TokenType::Namespace);
-  DCHECK_EQ(body_, bodies_.back());
-  body_->AddImport(keyword, name);
+  DCHECK_EQ(namespace_body_, bodies_.back());
+  namespace_body_->AddImport(keyword, name);
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
-  DCHECK(body_);
+  DCHECK(namespace_body_);
   // We keep first member declaration.
   if (!FindMember(member->simple_name()))
     map_[member->simple_name().id()] = member;
@@ -42,10 +51,10 @@ void Namespace::AddMember(NamespaceMember* member) {
 }
 
 void Namespace::Close() {
-  DCHECK_EQ(body_, bodies_.back());
-  for (auto const alias : body_->aliases())
+  DCHECK_EQ(namespace_body_, bodies_.back());
+  for (auto const alias : namespace_body_->aliases())
     map_.erase(map_.find(alias->simple_name().id()));
-  body_ = nullptr;
+  namespace_body_ = nullptr;
 }
 
 NamespaceMember* Namespace::FindMember(const Token& simple_name) {
@@ -53,10 +62,10 @@ NamespaceMember* Namespace::FindMember(const Token& simple_name) {
   return it == map_.end() ? nullptr : it->second;
 }
 
-void Namespace::Open(SourceCode* source_code) {
-  DCHECK(!body_);
-  body_ = new NamespaceBody(this, source_code);
-  bodies_.push_back(body_);
+void Namespace::Open(NamespaceBody* outer, SourceCode* source_code) {
+  DCHECK(!namespace_body_);
+  namespace_body_ = new NamespaceBody(outer, this, source_code);
+  bodies_.push_back(namespace_body_);
 }
 
 }  // namespace ast

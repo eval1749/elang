@@ -27,7 +27,7 @@ class Namespace : public NamespaceMember {
   friend class NodeFactory;
   private: struct ImportDef;
 
-  private: NamespaceBody* body_;
+  private: NamespaceBody* namespace_body_;
   private: std::vector<NamespaceBody*> bodies_;
   private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
 
@@ -35,6 +35,7 @@ class Namespace : public NamespaceMember {
                        const Token& simple_name);
   public: ~Namespace() override;
 
+  public: NamespaceBody* namespace_body() const;
   public: const std::vector<NamespaceBody*> bodies() const {
     return bodies_;
   }
@@ -44,7 +45,7 @@ class Namespace : public NamespaceMember {
   public: void AddMember(NamespaceMember* member);
   public: void Close();
   public: NamespaceMember* FindMember(const Token& simple_name);
-  public: void Open(SourceCode* source_code);
+  public: void Open(NamespaceBody* outer, SourceCode* source_code);
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

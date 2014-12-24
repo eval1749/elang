@@ -29,6 +29,8 @@ class Token final {
     float32_t f32;
     float64_t f64;
     int64_t i64;
+    // TODO(eval1749) We should use |hir::SimpleName| for
+    // |TokenType::SimapleName| to make |NameResolver| simpler.
     base::StringPiece16* str;
     uint64_t u64;
 

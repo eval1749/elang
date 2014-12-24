@@ -1,0 +1,25 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+static_library("hir") {
+  sources = [
+    "class.cc",
+    "class.h",
+    "factory.cc",
+    "factory.h",
+    "namespace.cc",
+    "namespace.h",
+    "namespace_member.cc",
+    "namespace_member.h",
+    "node.cc",
+    "node.h",
+    "simple_name.cc",
+    "simple_name.h",
+  ]
+
+  deps = [
+    "//base",
+    "//elang/base",
+  ]
+}

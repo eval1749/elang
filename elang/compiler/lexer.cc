@@ -616,9 +616,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
           if (delimiter == '"')
             return token;
           if (token.string_data().size() != 1) {
-            session_->AddError(token.location(),
-                               ErrorCode::TokenCharacterInvalid,
-                               std::vector<Token> { token });
+            session_->AddError(ErrorCode::TokenCharacterInvalid, token);
             return Token(token.location(), TokenType::Illegal);
           }
           return Token(token.location(), TokenType::CharacterLiteral,

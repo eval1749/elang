@@ -9,6 +9,7 @@
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_type.h"
+#include "elang/hir/factory.h"
 
 namespace elang {
 namespace compiler {
@@ -28,6 +29,7 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 
 CompilationSession::CompilationSession()
     : ast_factory_(new ast::NodeFactory()),
+      hir_factory_(new hir::Factory()),
       source_code_(new StringSourceCode(L"-", L"")),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {
 }
@@ -41,6 +43,16 @@ CompilationSession::~CompilationSession() {
     delete string_piece;
   for (auto const string : strings_)
     delete string;
+}
+
+void CompilationSession::AddError(ErrorCode error_code, const Token& token) {
+  AddError(token.location(), error_code, std::vector<Token> { token });
+}
+
+void CompilationSession::AddError(ErrorCode error_code, const Token& token1,
+                                  const Token& token2) {
+  AddError(token1.location(), error_code,
+           std::vector<Token> { token1, token2 });
 }
 
 void CompilationSession::AddError(const SourceCodeRange& location,
