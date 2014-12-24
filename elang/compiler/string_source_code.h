@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(elang_compiler_string_code_h)
-#define elang_compiler_string_code_h
+#if !defined(INCLUDE_elang_compiler_string_code_h)
+#define INCLUDE_elang_compiler_string_code_h
 
 #include <memory>
 
@@ -35,5 +35,5 @@ class StringSourceCode final : public SourceCode {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(elang_compiler_string_code_h)
+#endif // !defined(INCLUDE_elang_compiler_string_code_h)
 

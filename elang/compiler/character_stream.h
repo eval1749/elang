@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(elang_compiler_character_stream_h)
-#define elang_compiler_character_stream_h
+#if !defined(INCLUDE_elang_compiler_character_stream_h)
+#define INCLUDE_elang_compiler_character_stream_h
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
@@ -29,5 +29,5 @@ class CharacterStream {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(elang_compiler_character_stream_h)
+#endif // !defined(INCLUDE_elang_compiler_character_stream_h)
 

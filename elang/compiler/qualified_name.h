@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(elang_compiler_qualified_name_h)
-#define elang_compiler_qualified_name_h
+#if !defined(INCLUDE_elang_compiler_qualified_name_h)
+#define INCLUDE_elang_compiler_qualified_name_h
 
 #include <vector>
 
@@ -37,5 +37,5 @@ class QualifiedName final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(elang_compiler_qualified_name_h)
+#endif // !defined(INCLUDE_elang_compiler_qualified_name_h)
 
