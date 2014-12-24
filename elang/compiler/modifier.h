@@ -15,6 +15,7 @@ namespace compiler {
 
 #define MODIFIER_LIST(V) \
   V(Abstract, "I") \
+  V(Extern, "I") \
   V(Final, "I") \
   V(New, "M") \
   V(Private, "A") \
