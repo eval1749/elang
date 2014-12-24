@@ -20,6 +20,8 @@ class NodeFactory;
 // Class
 //
 class Class final : public Namespace {
+  DECLARE_CASTABLE_CLASS(Class, Namespace);
+
   friend class NodeFactory;
 
   private: std::vector<QualifiedName> base_class_names_;

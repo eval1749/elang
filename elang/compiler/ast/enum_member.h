@@ -22,6 +22,8 @@ class NodeFactory;
 // EnumMember
 //
 class EnumMember final : public Node {
+  DECLARE_CASTABLE_CLASS(EnumMember, Node);
+
   friend class NodeFactory;
 
   private: Expression* expression_;

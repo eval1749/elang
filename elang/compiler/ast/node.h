@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "elang/base/castable.h"
 #include "elang/base/types.h"
 #include "elang/compiler/token.h"
 
@@ -18,7 +19,9 @@ namespace ast {
 //
 // Node
 //
-class Node {
+class Node : public Castable {
+  DECLARE_CASTABLE_CLASS(Node, Castable);
+
   private: const Token token_;
 
   protected: Node(const Token& token);

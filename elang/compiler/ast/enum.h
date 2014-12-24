@@ -22,6 +22,8 @@ class NodeFactory;
 // Enum
 //
 class Enum final : public NamespaceMember {
+  DECLARE_CASTABLE_CLASS(Enum, NamespaceMember);
+
   friend class NodeFactory;
 
   private: std::unordered_map<Token::SimpleNameId, EnumMember*> map_;

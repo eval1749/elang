@@ -66,10 +66,9 @@ void Formatter::Print(const ast::Namespace* ns) {
 }
 
 void Formatter::Print(const ast::NamespaceMember* member) {
-  switch (member->token().type()) {
-    case TokenType::Namespace:
-      Print(reinterpret_cast<const ast::Namespace*>(member));
-      return;
+  if (auto const ns = member->as<ast::Namespace>()) {
+    Print(ns);
+    return;
   }
   Indent();
   stream_ << "NYI" << member->token().type() << std::endl;

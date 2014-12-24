@@ -23,6 +23,8 @@ class NodeFactory;
 // Namespace
 //
 class Namespace : public NamespaceMember {
+  DECLARE_CASTABLE_CLASS(Namespace, NamespaceMember);
+
   friend class NodeFactory;
 
   public: struct AliasDef {

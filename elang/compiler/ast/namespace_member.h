@@ -20,6 +20,8 @@ class Namespace;
 // NamespaceMember
 //
 class NamespaceMember : public Node {
+  DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
+
   private: Namespace* const outer_;
   private: const Token simple_name_;
 
