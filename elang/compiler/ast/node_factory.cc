@@ -4,6 +4,7 @@
 
 #include "elang/compiler/ast/node_factory.h"
 
+#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
@@ -24,13 +25,20 @@ NodeFactory::NodeFactory() {
 NodeFactory::~NodeFactory() {
 }
 
+Alias* NodeFactory::NewAlias(Namespace* outer, const Token& keyword,
+                             const Token& simple_name,
+                             const QualifiedName& target_name) {
+  auto const node = new Alias(outer, keyword, simple_name, target_name);
+  nodes_.push_back(std::unique_ptr<Node>(node));
+  return node;
+}
+
 Class* NodeFactory::NewClass(Namespace* outer, const Token& keyword,
                              const Token& simple_name) {
   auto const node = new Class(outer, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
 }
-
 
 Enum* NodeFactory::NewEnum(Namespace* outer, const Token& keyword,
                            const Token& simple_name) {

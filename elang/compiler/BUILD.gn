@@ -4,6 +4,8 @@
 
 static_library("compiler") {
   sources = [
+    "ast/alias.cc",
+    "ast/alias.h",
     "ast/class.cc",
     "ast/class.h",
     "ast/enum.cc",

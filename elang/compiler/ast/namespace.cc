@@ -13,15 +13,6 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace::AliasDef
-//
-Namespace::AliasDef::AliasDef(const Token& alias_name,
-                              QualifiedName&& real_name)
-    : alias_name(alias_name), real_name(std::move(real_name)) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // Namespace::ImportDef
 //
 Namespace::ImportDef::ImportDef(const Token& keyword,
@@ -48,10 +39,6 @@ Namespace::Namespace(Namespace* outer, const Token& keyword,
 }
 
 Namespace::~Namespace() {
-}
-
-void Namespace::AddAlias(const Token& alias_name, QualifiedName&& real_name) {
-  alias_defs_.push_back(AliasDef(alias_name, std::move(real_name)));
 }
 
 void Namespace::AddImport(const Token& keyword, QualifiedName&& name) {

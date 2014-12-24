@@ -18,6 +18,7 @@ class QualifiedName;
 class Token;
 
 namespace ast {
+class Alias;
 class Class;
 class Enum;
 class EnumMember;
@@ -35,6 +36,9 @@ class NodeFactory final {
   public: NodeFactory();
   public: ~NodeFactory();
 
+  public: Alias* NewAlias(Namespace* outer, const Token& keyword,
+                          const Token& simple_name,
+                          const QualifiedName& target_name);
   public: Class* NewClass(Namespace* outer, const Token& keyword,
                           const Token& simple_name);
   public: Enum* NewEnum(Namespace* outer, const Token& keyword,

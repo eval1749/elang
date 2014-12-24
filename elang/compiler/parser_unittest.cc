@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/compilation_session.h"
@@ -27,6 +28,29 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Thing
+//
+class Thing final {
+  private: const Token* token_;
+  public: Thing(const Token& token) : token_(&token) {
+  }
+  public: ~Thing() = default;
+  public: const Token& token() const { return *token_; }
+
+  DISALLOW_COPY_AND_ASSIGN(Thing);
+};
+
+std::ostream& operator<<(std::ostream& ostream, const Thing& thing) {
+  if (thing.token().is_name() || thing.token().is_keyword()) {
+    base::string16 string;
+    thing.token().string_data().CopyToString(&string);
+    return ostream << string;
+  }
+  return ostream << "NYI";
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Formatter
 //
 class Formatter final {
@@ -37,6 +61,7 @@ class Formatter final {
   public: ~Formatter() = default;
 
   private: void Indent();
+  private: void Print(const ast::Alias* ns);
   private: void Print(const ast::Namespace* ns);
   private: void Print(const ast::NamespaceMember* member);
   private: void Print(const QualifiedName& ns);
@@ -52,9 +77,17 @@ void Formatter::Indent() {
   stream_ << std::string(depth_ * 2, ' ');
 }
 
+void Formatter::Print(const ast::Alias* alias) {
+  Indent();
+  stream_ << Thing(alias->token()) << " " << Thing(alias->simple_name()) <<
+      " = ";
+  Print(alias->target_name());
+  stream_ << ";" << std::endl;
+}
+
 void Formatter::Print(const ast::Namespace* ns) {
   Indent();
-  stream_ << "namespace ";
+  stream_ << Thing(ns->token()) << " ";
   Print(ns->name());
   stream_ << " {" << std::endl;
   ++depth_;
@@ -66,6 +99,10 @@ void Formatter::Print(const ast::Namespace* ns) {
 }
 
 void Formatter::Print(const ast::NamespaceMember* member) {
+  if (auto const alias = member->as<ast::Alias>()) {
+    Print(alias);
+    return;
+  }
   if (auto const ns = member->as<ast::Namespace>()) {
     Print(ns);
     return;
@@ -184,6 +221,15 @@ void PrintTo(const Token& token, ::std::ostream* ostream) {
 }
 
 }  // namespace
+
+TEST(ParserTest, NamespaceAlias) {
+  TestParser parser(
+    L"namespace A { using B = N1.N2; }");
+  EXPECT_EQ(
+    "namespace A {\n"
+    "  using B = N1.N2;\n"
+    "}\n", parser.Run());
+}
 
 TEST(ParserTest, NamespaceBasic) {
   TestParser parser(

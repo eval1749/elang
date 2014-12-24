@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "base/logging.h"
+#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/namespace.h"
@@ -38,7 +39,7 @@ class Parser::ModifierBuilder final {
   public: bool Add(const Token& token);
   public: void Reset();
 
-  #define T(name, detaisl) \
+  #define T(name, details) \
     bool Has ## name() const { \
       return (modifiers_ & (1 << static_cast<int>(Modifier::name))) != 0; \
     }
@@ -460,13 +461,14 @@ bool Parser::ParseUsingDirectives() {
     Advance();
     if (!ParseQualifiedName())
       return Error(ErrorCode::SyntaxUsingDirectiveName);
-    if (AdvanceIf(TokenType::Eq)) {
+    if (AdvanceIf(TokenType::Assign)) {
       if (!name_builder_->IsSimpleName())
         return Error(ErrorCode::SyntaxAliasDefAliasName);
       auto alias_name = name_builder_->simple_names().front();
       if (!ParseQualifiedName())
         return Error(ErrorCode::SyntaxAliasDefRealName);
-      namespace_->AddAlias(alias_name, std::move(name_builder_->Get()));
+      namespace_->AddMember(factory()->NewAlias(
+          namespace_, using_keyword, alias_name, name_builder_->Get()));
     } else {
       namespace_->AddImport(using_keyword, std::move(name_builder_->Get()));
     }
