@@ -1,0 +1,26 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+test("elang_base_unittests") {
+  sources = [
+    "castable_unittest.cc",
+  ]
+
+  deps = [
+    "//base/test:run_all_unittests",
+  ]
+}
+
+source_set("base_files") {
+  sources = [
+    "castable.h",
+    "types.h",
+  ]
+}
+
+group("base") {
+  deps = [
+    ":base_files",
+  ]
+}
