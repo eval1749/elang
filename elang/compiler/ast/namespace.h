@@ -15,7 +15,6 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NamespaceBody;
 class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
@@ -26,14 +25,9 @@ class Namespace : public NamespaceMember {
   DECLARE_CASTABLE_CLASS(Namespace, NamespaceMember);
 
   friend class NodeFactory;
+  private: struct ImportDef;
 
-  public: struct ImportDef {
-    Token keyword;
-    QualifiedName name;
-    ImportDef(const Token& keyword, QualifiedName&& real_name);
-  };
-
-  private: std::vector<ImportDef> import_defs_;
+  private: std::vector<ImportDef*> import_defs_;
   private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
   private: std::vector<NamespaceMember*> members_;
   private: QualifiedName name_;
@@ -49,7 +43,8 @@ class Namespace : public NamespaceMember {
   }
   public: const QualifiedName& name() const { return name_; }
 
-  public: void AddImport(const Token& import_keyword, QualifiedName&& name);
+  public: void AddImport(const Token& import_keyword,
+                         const QualifiedName& name);
   public: void AddMember(NamespaceMember* member);
   public: NamespaceMember* FindMember(const Token& simple_name);
 

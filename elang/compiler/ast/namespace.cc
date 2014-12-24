@@ -15,9 +15,15 @@ namespace ast {
 //
 // Namespace::ImportDef
 //
+struct Namespace::ImportDef {
+    Token keyword;
+    QualifiedName name;
+    ImportDef(const Token& keyword, const QualifiedName& real_name);
+};
+
 Namespace::ImportDef::ImportDef(const Token& keyword,
-                                QualifiedName&& name)
-    : keyword(keyword), name(std::move(name)) {
+                                const QualifiedName& name)
+    : keyword(keyword), name(name) {
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -39,11 +45,13 @@ Namespace::Namespace(Namespace* outer, const Token& keyword,
 }
 
 Namespace::~Namespace() {
+  for (auto const import_def : import_defs_)
+    delete import_def;
 }
 
-void Namespace::AddImport(const Token& keyword, QualifiedName&& name) {
+void Namespace::AddImport(const Token& keyword, const QualifiedName& name) {
   DCHECK_EQ(keyword.type(), TokenType::Using);
-  import_defs_.push_back(ImportDef(keyword, std::move(name)));
+  import_defs_.push_back(new ImportDef(keyword, name));
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
