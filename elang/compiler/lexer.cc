@@ -698,7 +698,7 @@ Token Lexer::NewFloatLiteral(TokenType token_type, uint64_t u64, int exponent) {
     return Token(ComputeLocation(), f32);
   }
 
-  DCHECK(token_type == TokenType::Float64Literal);
+  DCHECK_EQ(token_type, TokenType::Float64Literal);
   auto const int_part = static_cast<float64_t>(u64);
   if (exponent >= 0) {
     auto const f64 = int_part * std::pow(10.0, exponent);

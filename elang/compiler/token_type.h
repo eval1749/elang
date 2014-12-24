@@ -5,9 +5,7 @@
 #if !defined(INCLUDE_elang_compiler_token_type_h)
 #define INCLUDE_elang_compiler_token_type_h
 
-#if _DEBUG
 #include <ostream>
-#endif
 
 namespace elang {
 namespace compiler {
@@ -202,9 +200,7 @@ enum class TokenType {
   #undef T
 };
 
-#if _DEBUG
 std::ostream& operator<<(std::ostream& ostream, TokenType token_type);
-#endif
 
 }  // namespace compiler
 }  // namespace elang

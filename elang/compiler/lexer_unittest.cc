@@ -6,7 +6,6 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/source_code_position.h"
@@ -112,54 +111,7 @@ char ToHexDigit(int n) {
 }
 
 void PrintTo(const Token& token, ::std::ostream* ostream) {
-  static const char* kTokenTypeString[] = {
-    #define V(name, string, details) string,
-    TOKEN_LIST(V, V)
-  };
-  *ostream << "Token(" << kTokenTypeString[static_cast<int>(token.type())];
-  switch (token.type()) {
-    case TokenType::Float32Literal:
-      *ostream << " " << token.f32_data();
-      break;
-    case TokenType::Float64Literal:
-      *ostream << " " << token.f64_data();
-      break;
-    case TokenType::Int32Literal:
-    case TokenType::Int64Literal:
-    case TokenType::UInt32Literal:
-    case TokenType::UInt64Literal:
-      *ostream << " " << token.int64_data();
-      break;
-    case TokenType::StringLiteral:
-      *ostream << " \"";
-      for (auto const ch : token.string_data()) {
-        char buffer[7];
-        if (ch < ' ' || ch >= 0x7F) {
-          buffer[0] = '\\';
-          buffer[1] = 'u';
-          buffer[2] = ToHexDigit(ch >> 12);
-          buffer[3] = ToHexDigit(ch >> 8);
-          buffer[4] = ToHexDigit(ch >> 4);
-          buffer[5] = ToHexDigit(ch);
-          buffer[6] = 0;
-        } else {
-          buffer[0] = ch;
-          buffer[1] = 0;
-        }
-        *ostream << buffer;
-      }
-      *ostream << "\"";
-      break;
-
-    default:
-      if (token.is_name()) {
-        base::string16 string;
-        token.string_data().CopyToString(&string);
-        *ostream << " " << base::UTF16ToUTF8(string);
-      }
-      break;
-  }
-  *ostream << " " << token.location().start().offset() <<
+  *ostream << token << "(" << token.location().start().offset() <<
       " " << token.location().end().offset() << ")";
 }
 

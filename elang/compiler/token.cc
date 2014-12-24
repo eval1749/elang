@@ -5,6 +5,7 @@
 #include "elang/compiler/token.h"
 
 #include "base/logging.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -16,6 +17,7 @@ const char* const kTokenDetails[] = {
   TOKEN_LIST(T, T)
   #undef T
 };
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -64,6 +66,11 @@ Token& Token::operator=(const Token& other) {
   return *this;
 }
 
+base::char16 Token::char_data() const {
+  DCHECK_EQ(type_, TokenType::CharacterLiteral);
+  return data_.ch;
+}
+
 bool Token::has_int_data() const {
   auto const detail = kTokenDetails[static_cast<size_t>(type_)][1];
   return detail == 'I' || detail == 'U' || detail == 'C';
@@ -74,12 +81,12 @@ bool Token::has_string_data() const {
 }
 
 float32_t Token::f32_data() const {
-  DCHECK(type_ == TokenType::Float32Literal);
+  DCHECK_EQ(type_, TokenType::Float32Literal);
   return data_.f32;
 }
 
 float64_t Token::f64_data() const {
-  DCHECK(type_ == TokenType::Float64Literal);
+  DCHECK_EQ(type_, TokenType::Float64Literal);
   return data_.f64;
 }
 
@@ -110,6 +117,74 @@ bool Token::is_name() const {
 base::StringPiece16 Token::string_data() const {
   DCHECK(has_string_data());
   return *data_.str;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Token& token) {
+  static const char* const kTokenTypeString[] = {
+    #define V(name, string, details) string,
+    TOKEN_LIST(V, V)
+  };
+
+  static char const xdigits[] = "0123456789ABCDEF";
+
+  switch (token.type()) {
+    case TokenType::CharacterLiteral: {
+      auto const ch = token.char_data();
+      char buffer[7];
+      if (ch < ' ' || ch >= 0x7F || ch == '\\' || ch == '\'') {
+          buffer[0] = '\\';
+          buffer[1] = 'u';
+          buffer[2] = xdigits[(ch >> 12) & 15];
+          buffer[3] = xdigits[(ch >> 8) & 15];
+          buffer[4] = xdigits[(ch >> 4) & 15];
+          buffer[5] = xdigits[ch & 15];
+          buffer[6] = 0;
+      } else {
+         buffer[0] = ch;
+         buffer[1] = 0;
+      }
+      return ostream << "'" << buffer << "'";
+    }
+    case TokenType::Float32Literal:
+      return ostream << token.f32_data() << "f";
+    case TokenType::Float64Literal:
+      return ostream << token.f64_data();
+    case TokenType::Int32Literal:
+      return ostream << token.int64_data();
+    case TokenType::Int64Literal:
+      return ostream << token.int64_data() << "l";
+    case TokenType::UInt32Literal:
+      return ostream << token.int64_data() << "u";
+    case TokenType::UInt64Literal:
+      return ostream << token.int64_data() << "lu";
+    case TokenType::StringLiteral:
+      ostream << " \"";
+      for (auto const ch : token.string_data()) {
+        char buffer[7];
+        if (ch < ' ' || ch >= 0x7F || ch == '\\' || ch == '\"') {
+          buffer[0] = '\\';
+          buffer[1] = 'u';
+          buffer[2] = xdigits[(ch >> 12) & 15];
+          buffer[3] = xdigits[(ch >> 8) & 15];
+          buffer[4] = xdigits[(ch >> 4) & 15];
+          buffer[5] = xdigits[ch & 15];
+          buffer[6] = 0;
+        } else {
+          buffer[0] = ch;
+          buffer[1] = 0;
+        }
+        ostream << buffer;
+      }
+      return ostream << "\"";
+
+    default:
+      if (token.is_name() || token.is_keyword()) {
+        base::string16 string;
+        token.string_data().CopyToString(&string);
+        return ostream << base::UTF16ToUTF8(string);
+      }
+      return ostream << kTokenTypeString[static_cast<int>(token.type())];
+  }
 }
 
 }  // namespace compiler

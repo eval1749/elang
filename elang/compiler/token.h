@@ -6,6 +6,7 @@
 #define INCLUDE_elang_compiler_token_h
 
 #include <memory>
+#include <ostream>
 
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
@@ -58,6 +59,7 @@ class Token final {
 
   public: Token& operator=(const Token& other);
 
+  public: base::char16 char_data() const;
   private: bool has_int_data() const;
   private: bool has_string_data() const;
   public: float32_t f32_data() const;
@@ -71,6 +73,8 @@ class Token final {
   public: base::StringPiece16 string_data() const;
   public: TokenType type() const { return type_; }
 };
+
+std::ostream& operator<<(std::ostream& ostream, const Token& token);
 
 }  // namespace compiler
 }  // namespace elang

@@ -8,7 +8,6 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
@@ -26,29 +25,6 @@ namespace elang {
 namespace compiler {
 
 namespace {
-
-//////////////////////////////////////////////////////////////////////
-//
-// Thing
-//
-class Thing final {
-  private: const Token* token_;
-  public: Thing(const Token& token) : token_(&token) {
-  }
-  public: ~Thing() = default;
-  public: const Token& token() const { return *token_; }
-
-  DISALLOW_COPY_AND_ASSIGN(Thing);
-};
-
-std::ostream& operator<<(std::ostream& ostream, const Thing& thing) {
-  if (thing.token().is_name() || thing.token().is_keyword()) {
-    base::string16 string;
-    thing.token().string_data().CopyToString(&string);
-    return ostream << string;
-  }
-  return ostream << "NYI";
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -80,7 +56,7 @@ void Formatter::Indent() {
 
 void Formatter::Print(const ast::Alias* alias) {
   Indent();
-  stream_ << Thing(alias->token()) << " " << Thing(alias->simple_name()) <<
+  stream_ << alias->token() << " " << alias->simple_name() <<
       " = ";
   Print(alias->target_name());
   stream_ << ";" << std::endl;
@@ -89,7 +65,7 @@ void Formatter::Print(const ast::Alias* alias) {
 void Formatter::Print(const ast::Namespace* ns) {
   for (auto const namespace_body : ns->bodies()) {
     Indent();
-    stream_ << Thing(ns->token()) << " " << Thing(ns->simple_name()) <<
+    stream_ << ns->token() << " " << ns->simple_name() <<
         " {" << std::endl;
     ++depth_;
     for (auto const member : namespace_body->members())
@@ -110,15 +86,13 @@ void Formatter::Print(const ast::NamespaceMember* member) {
     return;
   }
   Indent();
-  stream_ << "NYI" << member->token().type() << std::endl;
+  stream_ << "NYI" << member->token() << std::endl;
 }
 
 void Formatter::Print(const QualifiedName& name) {
   const char* dot = "";
   for (const auto& simple_name : name.simple_names()) {
-    base::string16 string;
-    simple_name.string_data().CopyToString(&string);
-    stream_ << dot << base::UTF16ToUTF8(string);
+    stream_ << dot << simple_name;
     dot = ".";
   }
 }
@@ -162,65 +136,6 @@ std::string TestParser::Run() {
   }
   Formatter formatter;
   return formatter.Run(session_.global_namespace());
-}
-
-char ToHexDigit(int n) {
-  auto const n4 = n & 15;
-  if (n4 < 10)
-    return '0' + n4;
-  return n4 + 'A' - 10;
-}
-
-void PrintTo(const Token& token, ::std::ostream* ostream) {
-  static const char* kTokenTypeString[] = {
-    #define V(name, string, details) string,
-    TOKEN_LIST(V, V)
-  };
-  *ostream << "Token(" << kTokenTypeString[static_cast<int>(token.type())];
-  switch (token.type()) {
-    case TokenType::Float32Literal:
-      *ostream << " " << token.f32_data();
-      break;
-    case TokenType::Float64Literal:
-      *ostream << " " << token.f64_data();
-      break;
-    case TokenType::Int32Literal:
-    case TokenType::Int64Literal:
-    case TokenType::UInt32Literal:
-    case TokenType::UInt64Literal:
-      *ostream << " " << token.int64_data();
-      break;
-    case TokenType::StringLiteral:
-      *ostream << " \"";
-      for (auto const ch : token.string_data()) {
-        char buffer[7];
-        if (ch < ' ' || ch >= 0x7F) {
-          buffer[0] = '\\';
-          buffer[1] = 'u';
-          buffer[2] = ToHexDigit(ch >> 12);
-          buffer[3] = ToHexDigit(ch >> 8);
-          buffer[4] = ToHexDigit(ch >> 4);
-          buffer[5] = ToHexDigit(ch);
-          buffer[6] = 0;
-        } else {
-          buffer[0] = ch;
-          buffer[1] = 0;
-        }
-        *ostream << buffer;
-      }
-      *ostream << "\"";
-      break;
-
-    default:
-      if (token.is_name()) {
-        base::string16 string;
-        token.string_data().CopyToString(&string);
-        *ostream << " " << base::UTF16ToUTF8(string);
-      }
-      break;
-  }
-  *ostream << " " << token.location().start().offset() <<
-      " " << token.location().end().offset() << ")";
 }
 
 }  // namespace
