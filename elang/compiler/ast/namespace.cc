@@ -44,6 +44,11 @@ void Namespace::AddImport(const Token& keyword, const QualifiedName& name) {
 
 void Namespace::AddMember(NamespaceMember* member) {
   DCHECK(namespace_body_);
+  if (auto const alias = member->as<Alias>()) {
+    DCHECK(ToNamespace());
+    namespace_body_->AddAlias(alias);
+    return;
+  }
   // We keep first member declaration.
   if (!FindMember(member->simple_name()))
     map_[member->simple_name().id()] = member;
@@ -53,14 +58,16 @@ void Namespace::AddMember(NamespaceMember* member) {
 
 void Namespace::Close() {
   DCHECK_EQ(namespace_body_, bodies_.back());
-  for (auto const alias : namespace_body_->aliases())
-    map_.erase(map_.find(alias->simple_name().id()));
   namespace_body_ = nullptr;
 }
 
 NamespaceMember* Namespace::FindMember(const Token& simple_name) {
   auto const it = map_.find(simple_name.id());
-  return it == map_.end() ? nullptr : it->second;
+  if (it != map_.end())
+    return it->second;
+  if (namespace_body_)
+    return namespace_body_->FindAlias(simple_name);
+  return nullptr;
 }
 
 void Namespace::Open(NamespaceBody* outer, SourceCode* source_code) {

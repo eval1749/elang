@@ -32,7 +32,6 @@ class TestDriver final {
   private: const std::unique_ptr<CompilationSession> session_;
   private: const std::unique_ptr<StringSourceCode> source_code_;
   private: const std::unique_ptr<CompilationUnit> compilation_unit_;
-  private: const std::unique_ptr<Parser> parser_;
 
   public: TestDriver(base::StringPiece source_text);
   public: ~TestDriver();

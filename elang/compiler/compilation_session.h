@@ -58,6 +58,8 @@ class CompilationSession final {
     return ast_factory_.get();
   }
   public: hir::Factory* hir_factory() const { return hir_factory_.get(); }
+
+  // TODO(eval1749) We should sort error list by source code offset.
   public: const std::vector<ErrorData*>& errors() const {
     return errors_;
   }

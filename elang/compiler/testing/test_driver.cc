@@ -149,8 +149,7 @@ TestDriver::TestDriver(base::StringPiece source_text)
       source_code_(new StringSourceCode(L"testing",
                                         base::UTF8ToUTF16(source_text))),
       compilation_unit_(new CompilationUnit(session_.get(),
-                                            source_code_.get())),
-      parser_(new Parser(session_.get(), compilation_unit_.get())) {
+                                            source_code_.get())) {
 }
 
 TestDriver::~TestDriver() {
@@ -201,14 +200,18 @@ std::string TestDriver::GetErrors() {
 }
 
 std::string TestDriver::RunNameResolver() {
-  if (!parser_->Run())
-    return GetErrors();
+  {
+    Parser parser(session_.get(), compilation_unit_.get());
+    if (!parser.Run())
+      return GetErrors();
+  }
   NameResolver resolver(session_.get(), session_->hir_factory());
   return resolver.Run() ? "" : GetErrors();
 }
 
 std::string TestDriver::RunParser() {
-  if (parser_->Run()) {
+  Parser parser(session_.get(), compilation_unit_.get());
+  if (parser.Run()) {
     Formatter formatter;
     return formatter.Run(session_->global_namespace());
   }

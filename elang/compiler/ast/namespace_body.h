@@ -51,6 +51,7 @@ class NamespaceBody final {
 
   public: void AddImport(const Token& import_keyword,
                          const QualifiedName& name);
+  public: void AddAlias(Alias* alias);
   public: void AddMember(NamespaceMember* member);
   public: Alias* FindAlias(const Token& simple_name);
 

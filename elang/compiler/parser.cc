@@ -154,8 +154,6 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
 }
 
 Parser::~Parser() {
-  for (auto runner = namespace_; runner; runner = runner->outer())
-    runner->Close();
 }
 
 ast::NodeFactory* Parser::factory() const {
@@ -517,7 +515,10 @@ TokenType Parser::PeekToken() {
 }
 
 bool Parser::Run() {
-  return ParseCompilationUnit();
+  auto const result = ParseCompilationUnit();
+  for (auto runner = namespace_; runner; runner = runner->outer())
+    runner->Close();
+  return result;
 }
 
 }  // namespace compiler

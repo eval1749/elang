@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/base/types.h"
 
 namespace elang {
 namespace hir {
@@ -58,13 +59,13 @@ class NameResolver final {
                                ast::Namespace* ast_Namespace);
   private: void BuildNamespaceTree(hir::Namespace* enclosing_namespace,
                                    ast::Namespace* ast_Namespace);
-  private: hir::NamespaceMember* Resolve(ast::NamespaceMember* member);
-  private: hir::NamespaceMember* ResolveAlias(ast::Alias* alias);
-  private: hir::Class* ResolveClass(ast::Class* clazz);
-  private: hir::NamespaceMember* ResolveLeftMostName(
+  private: Maybe<hir::NamespaceMember*> Resolve(ast::NamespaceMember* member);
+  private: Maybe<hir::NamespaceMember*> ResolveAlias(ast::Alias* alias);
+  private: Maybe<hir::NamespaceMember*> ResolveClass(ast::Class* clazz);
+  private: Maybe<ast::NamespaceMember*> ResolveLeftMostName(
       ast::Namespace* outer, ast::NamespaceBody* namespace_body,
       const Token& simple_name_token);
-  private: hir::NamespaceMember* ResolveQualifiedName(
+  private: Maybe<ast::NamespaceMember*> ResolveQualifiedName(
       ast::Namespace* outer, ast::NamespaceBody* namespace_body,
       const QualifiedName& name);
   public: bool Run();

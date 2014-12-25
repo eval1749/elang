@@ -14,11 +14,13 @@ namespace compiler {
   /*
    * Name Resolver
    */ \
+    E(NameResolution, Alias, NoTarget) \
     E(NameResolution, Class, Containing) \
-    E(NameResolution, Name, Conflict) \
-    E(NameResolution, Name, Cyclic) \
+    E(NameResolution, Name, Ambiguous) \
+    E(NameResolution, Name, Cycle) \
     E(NameResolution, Name, NeitherNamespaceOrType) \
     E(NameResolution, Name, NotClass) \
+    E(NameResolution, Name, NotFound) \
     E(NameResolution, Name, NotNamespace) \
   /*
    * Parser

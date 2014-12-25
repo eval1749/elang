@@ -47,11 +47,14 @@ void NamespaceBody::AddImport(const Token& keyword, const QualifiedName& name) {
   import_defs_.push_back(new ImportDef(keyword, name));
 }
 
+void NamespaceBody::AddAlias(Alias* alias) {
+  aliases_.push_back(alias);
+  alias_map_[alias->simple_name().id()] = alias;
+  members_.push_back(alias);
+}
+
 void NamespaceBody::AddMember(NamespaceMember* member) {
-  if (auto const alias = member->as<Alias>()) {
-    aliases_.push_back(alias);
-    alias_map_[alias->simple_name().id()] = alias;
-  }
+  DCHECK(!member->as<Alias>());
   members_.push_back(member);
 }
 
