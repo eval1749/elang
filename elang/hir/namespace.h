@@ -30,6 +30,9 @@ class Namespace : public NamespaceMember {
   public: void AddMember(NamespaceMember* member);
   public: NamespaceMember* FindMember(SimpleName* simple_name);
 
+  // NamespaceMember
+  private: Namespace* ToNamespace() override;
+
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
 

@@ -41,34 +41,50 @@ class NameResolver::ScopedResolver final {
 NameResolver::ScopedResolver::ScopedResolver(NameResolver* resolver,
                                              ast::NamespaceMember* member)
     : member_(member), resolved_(nullptr), resolver_(resolver) {
+  if (resolver_->running_set_.find(member_) == resolver_->running_set_.end()) {
+    resolver_->running_stack_.push_back(member_);
+    resolver_->running_set_.insert(member_);
+    return;
+  }
+
+  auto const another_member = resolver_->running_stack_.size() == 1 ?
+      resolver_->running_stack_.front() :
+      resolver_->running_stack_[resolver_->running_stack_.size() - 2];
+  resolver_->session_->AddError(
+      ErrorCode::NameResolutionNameCyclic,
+      another_member->simple_name(),
+      member_->simple_name());
+  member_ = nullptr;
 }
 
 NameResolver::ScopedResolver::~ScopedResolver() {
+  if (!member_)
+    return;
   resolver_->running_stack_.pop_back();
   resolver_->running_set_.erase(member_);
   if (resolved_)
     return;
-  resolver_->pending_set_.insert(member_);
-  resolver_->pending_members_.push_back(member_);
+  resolver_->Schedule(member_);
 }
 
 hir::NamespaceMember* NameResolver::ScopedResolver::Resolve() {
-  if (resolver_->running_set_.find(member_) != resolver_->running_set_.end()) {
-    auto const another_member = resolver_->running_stack_.front();
-    resolver_->session_->AddError(
-        ErrorCode::NameResolutionNameCyclic,
-        another_member->simple_name(),
-        member_->simple_name());
+  if (!member_)
     return nullptr;
-  }
-  resolver_->running_stack_.push_back(member_);
-  resolver_->running_set_.insert(member_);
+  auto const it = resolver_->resolve_map_.find(member_);
+  if (it != resolver_->resolve_map_.end())
+    return resolved_ = it->second->as<hir::NamespaceMember>();
+#if 0
+  if (resolver_->pending_set_.find(member_) != resolver_->pending_set_.end())
+    return nullptr;
+  if (resolver_->waiting_set_.find(member_) != resolver_->waiting_set_.end())
+    return nullptr;
+#endif
   if (auto const clazz = member_->as<ast::Class>())
     return resolved_ = resolver_->ResolveClass(clazz);
   if (auto const alias = member_->as<ast::Alias>())
     return resolved_ = resolver_->ResolveAlias(alias);
-  if (member_->is<ast::Namespace>()) {
-    // |member| is declared as namespace, but it is also declared as type.
+  if (member_->ToNamespace()) {
+    // |member_| is declared as namespace, but it is also declared as type.
     return nullptr;
   }
   NOTREACHED();
@@ -86,75 +102,58 @@ NameResolver::NameResolver(CompilationSession* session, hir::Factory* factory)
 NameResolver::~NameResolver() {
 }
 
+// Build HIR namespace object and schedule namespace members to resolve.
+void NameResolver::BuildNamespace(hir::Namespace* hir_enclosing_namespace,
+                                  ast::Namespace* namespaze) {
+  auto const simple_name = factory_->GetOrCreateSimpleName(
+      namespaze->simple_name().string_data());
+  auto const hir_member = hir_enclosing_namespace->FindMember(simple_name);
+  if (hir_member) {
+    if (auto const hir_namespace = hir_member->ToNamespace()) {
+      BuildNamespaceTree(hir_namespace, namespaze);
+      return;
+    }
+    session_->AddError(ErrorCode::NameResolutionNameNotNamespace,
+                       namespaze->simple_name());
+    return;
+  }
+
+  auto const new_namespace = factory_->NewNamespace(
+      hir_enclosing_namespace, simple_name);
+  hir_enclosing_namespace->AddMember(new_namespace);
+  BuildNamespaceTree(new_namespace, namespaze);
+}
+
+// Builds namespace tree and schedule members to resolve.
 void NameResolver::BuildNamespaceTree(
     hir::Namespace* hir_enclosing_namespace,
     ast::Namespace* enclosing_namespace) {
+  resolve_map_[enclosing_namespace] = hir_enclosing_namespace;
   for (auto const body : enclosing_namespace->bodies()) {
     // TODO(eval1749) We should check alias name confliction.
     for (auto const member : body->members()) {
-      auto const namespaze = member->as<ast::Namespace>();
-      if (!namespaze) {
-        pending_members_.push_back(member);
-        pending_set_.insert(member);
+      if (auto const clazz = member->as<ast::Class>()) {
+        ScheduleClassTree(clazz);
         continue;
       }
-      auto const simple_name = factory_->GetOrCreateSimpleName(
-          namespaze->simple_name().string_data());
-      if (auto const hir_member =
-              hir_enclosing_namespace->FindMember(simple_name)) {
-        if (auto const hir_namespace = hir_member->as<hir::Namespace>()) {
-          BuildNamespaceTree(hir_namespace, namespaze);
-          continue;
-        }
-        session_->AddError(ErrorCode::NameResolutionNameNotNamespace,
-                           namespaze->simple_name());
-        return;
-      }
-
-      auto const new_namespace = factory_->NewNamespace(
-          hir_enclosing_namespace, simple_name);
-      hir_enclosing_namespace->AddMember(new_namespace);
-      BuildNamespaceTree(new_namespace, namespaze);
+      if (auto const namespaze = member->ToNamespace())
+        BuildNamespace(hir_enclosing_namespace, namespaze);
     }
   }
 }
 
 hir::NamespaceMember* NameResolver::Resolve(ast::NamespaceMember* member) {
-  if (pending_set_.find(member) != pending_set_.end())
-    return nullptr;
-  if (waiting_set_.find(member) != waiting_set_.end())
-    return nullptr;
-  auto const it = resolve_map_.find(member);
-  if (it != resolve_map_.end())
-    return it->second->as<hir::NamespaceMember>();
   ScopedResolver resolver(this, member);
   return resolver.Resolve();
 }
 
 hir::NamespaceMember* NameResolver::ResolveAlias(ast::Alias* alias) {
-  return ResolveQualifiedName(alias->outer(), alias->namespace_body(),
+  return ResolveQualifiedName(alias->outer(), alias->alias_declaration_space(),
                               alias->target_name());
 }
 
 hir::Class* NameResolver::ResolveClass(ast::Class* clazz) {
-  // TODO(eval1749) We should check cycle in class declration. Outer classes
-  // and base classes must not refer the class.
-  std::vector<hir::Class*> base_classes;
-  for (auto const base_class_name : clazz->base_class_names()) {
-    auto const hir_member = ResolveQualifiedName(
-        clazz->outer(), clazz->namespace_body(), base_class_name);
-    if (!hir_member)
-      return nullptr;
-    auto const hir_base_class = hir_member->as<hir::Class>();
-    if (!hir_base_class) {
-      session_->AddError(ErrorCode::NameResolutionNameNotClass,
-                         base_class_name.simple_name());
-      return nullptr;
-    }
-    // TODO(eval1749) We should check accessibility of |hir_base_class|.
-    base_classes.push_back(hir_base_class);
-  }
-
+  // Resolve enclosing namespace or class.
   auto const hir_present = Resolve(clazz->outer());
   if (!hir_present)
     return nullptr;
@@ -166,6 +165,37 @@ hir::Class* NameResolver::ResolveClass(ast::Class* clazz) {
     return nullptr;
   }
 
+  // Resolve base classes
+  auto is_base_classes_valid = true;
+  std::vector<hir::Class*> base_classes;
+  for (auto const base_class_name : clazz->base_class_names()) {
+    auto const hir_member = ResolveQualifiedName(
+        clazz->outer(), clazz->alias_declaration_space(), base_class_name);
+    if (!hir_member)
+      return nullptr;
+    auto const hir_base_class = hir_member->as<hir::Class>();
+    if (!hir_base_class) {
+      session_->AddError(ErrorCode::NameResolutionNameNotClass,
+                         base_class_name.simple_name());
+      is_base_classes_valid = false;
+      continue;
+    }
+    if (hir_base_class == hir_outer ||
+        hir_outer->IsDescendantOf(hir_base_class)) {
+      session_->AddError(ErrorCode::NameResolutionClassContaining,
+          base_class_name.simple_name(),
+          clazz->simple_name());
+      is_base_classes_valid = false;
+      continue;
+    }
+    // TODO(eval1749) Check |hir_base_class| isn't |final|.
+    // TODO(eval1749) We should check accessibility of |hir_base_class|.
+    base_classes.push_back(hir_base_class);
+  }
+
+  if (!is_base_classes_valid)
+    return nullptr;
+
   // TODO(eval1749) We should check |base_classes.first()| is proper class
   // rather than |struct|, |interface|.
   // TODO(eval1749) We should record source code location into |hir::Class|.
@@ -174,23 +204,26 @@ hir::Class* NameResolver::ResolveClass(ast::Class* clazz) {
     factory_->GetOrCreateSimpleName(clazz->simple_name().string_data()),
     base_classes);
   resolve_map_[clazz] = new_class;
+  hir_outer->AddMember(new_class);
   return new_class;
 }
 
 hir::NamespaceMember* NameResolver::ResolveLeftMostName(
-    ast::Namespace* outer, ast::NamespaceBody* namespace_body,
+    ast::Namespace* outer, ast::NamespaceBody* alias_declaration_space,
     const Token& simple_name_token) {
+  DCHECK(outer);
+  DCHECK(alias_declaration_space) << "outer is " << outer->simple_name();
   while (outer) {
     // TODO(eval1749) We should implement import.
     auto const present = outer->FindMember(simple_name_token);
-    auto const alias = namespace_body->owner() == outer ?
-        namespace_body->FindAlias(simple_name_token) : nullptr;
+    auto const alias = alias_declaration_space->owner() == outer ?
+        alias_declaration_space->FindAlias(simple_name_token) : nullptr;
     if (present && alias) {
       auto const resolved1 = Resolve(present);
       if (!resolved1)
         return nullptr;
       auto const resolved2 = ResolveQualifiedName(
-          outer, namespace_body, alias->target_name());
+          outer, alias_declaration_space, alias->target_name());
       if (!resolved2)
         return nullptr;
       if (resolved1 == resolved2)
@@ -200,10 +233,12 @@ hir::NamespaceMember* NameResolver::ResolveLeftMostName(
     }
     if (present)
       return Resolve(present);
-    if (alias)
-      return ResolveQualifiedName(outer, namespace_body, alias->target_name());
-    if (namespace_body->owner() == outer)
-      namespace_body = namespace_body->outer();
+    if (alias) {
+      return ResolveQualifiedName(outer, alias_declaration_space,
+                                  alias->target_name());
+    }
+    if (alias_declaration_space && alias_declaration_space->owner() == outer)
+      alias_declaration_space = alias_declaration_space->outer();
     outer = outer->outer();
   }
   return nullptr;
@@ -212,6 +247,8 @@ hir::NamespaceMember* NameResolver::ResolveLeftMostName(
 hir::NamespaceMember* NameResolver::ResolveQualifiedName(
     ast::Namespace* outer, ast::NamespaceBody* namespace_body,
     const QualifiedName& name) {
+  DCHECK(outer);
+  DCHECK(namespace_body) << "outer is " << outer->simple_name();
   auto resolved = static_cast<hir::NamespaceMember*>(nullptr);
   for (auto const simple_name_token : name.simple_names()) {
     if (!resolved) {
@@ -220,7 +257,7 @@ hir::NamespaceMember* NameResolver::ResolveQualifiedName(
         return nullptr;
       continue;
     }
-    auto const namespaze = resolved->as<hir::Namespace>();
+    auto const namespaze = resolved->ToNamespace();
     if (!namespaze) {
       session_->AddError(
           ErrorCode::NameResolutionNameNeitherNamespaceOrType,
@@ -253,6 +290,23 @@ bool NameResolver::Run() {
       return false;
   } while (!pending_set_.empty());
   return true;
+}
+
+void NameResolver::ScheduleClassTree(ast::Class* clazz) {
+  Schedule(clazz);
+  for (auto const member : clazz->members()) {
+    if (auto const inner_class = member->as<ast::Class>())
+      ScheduleClassTree(inner_class);
+    else
+      Schedule(member);
+  }
+}
+
+void NameResolver::Schedule(ast::NamespaceMember* member) {
+  if (!member->is<ast::Class>() && !member->is<ast::Alias>())
+    return;
+  pending_set_.insert(member);
+  pending_members_.push_back(member);
 }
 
 }  // namespace compiler

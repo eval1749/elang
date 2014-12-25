@@ -7,6 +7,8 @@
 
 #include "elang/hir/namespace.h"
 
+#include <vector>
+
 namespace elang {
 namespace hir {
 
@@ -16,12 +18,22 @@ class Factory;
 //
 // Class
 //
-class Class final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Class, NamespaceMember);
+class Class final : public Namespace {
+  DECLARE_CASTABLE_CLASS(Class, Namespace);
   friend class Factory;
 
-  private: Class(Namespace* outer, SimpleName* simple_name);
+  private: std::vector<Class*> base_classes_;
+
+  private: Class(Namespace* outer, SimpleName* simple_name,
+                 const std::vector<Class*>& base_classes);
   private: ~Class() override;
+
+  public: const std::vector<Class*>& base_classes() const {
+    return base_classes_;
+  }
+
+  // NamespaceMember
+  private: Namespace* ToNamespace() final;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };

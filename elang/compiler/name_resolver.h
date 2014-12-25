@@ -54,7 +54,9 @@ class NameResolver final {
   public: NameResolver(CompilationSession* session, hir::Factory* factory);
   public: ~NameResolver();
 
-  private: void BuildNamespaceTree(hir::Namespace* hir_namespace,
+  private: void BuildNamespace(hir::Namespace* enclosing_namespace,
+                               ast::Namespace* ast_Namespace);
+  private: void BuildNamespaceTree(hir::Namespace* enclosing_namespace,
                                    ast::Namespace* ast_Namespace);
   private: hir::NamespaceMember* Resolve(ast::NamespaceMember* member);
   private: hir::NamespaceMember* ResolveAlias(ast::Alias* alias);
@@ -66,6 +68,8 @@ class NameResolver final {
       ast::Namespace* outer, ast::NamespaceBody* namespace_body,
       const QualifiedName& name);
   public: bool Run();
+  private: void ScheduleClassTree(ast::Class* clazz);
+  private: void Schedule(ast::NamespaceMember* member);
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };

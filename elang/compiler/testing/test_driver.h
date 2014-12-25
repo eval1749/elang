@@ -14,6 +14,7 @@ namespace elang {
 
 namespace hir {
 class Class;
+class NamespaceMember;
 }
 
 namespace compiler {
@@ -37,7 +38,9 @@ class TestDriver final {
   public: ~TestDriver();
 
   public: hir::Class* FindClass(base::StringPiece name);
-  public: bool RunNameResolver();
+  public: hir::NamespaceMember* FindMember(base::StringPiece name);
+  public: std::string GetErrors();
+  public: std::string RunNameResolver();
   public: std::string RunParser();
 
   DISALLOW_COPY_AND_ASSIGN(TestDriver);

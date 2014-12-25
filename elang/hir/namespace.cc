@@ -30,5 +30,10 @@ NamespaceMember* Namespace::FindMember(SimpleName* simple_name) {
   return it == map_.end() ? nullptr : it->second;
 }
 
+// NamespaceMember
+Namespace* Namespace::ToNamespace() {
+  return this;
+}
+
 }  // namespace hir
 }  // namespace elang

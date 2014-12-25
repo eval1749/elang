@@ -23,7 +23,7 @@ class NamespaceBody;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
-  private: NamespaceBody* const namespace_body_;
+  private: NamespaceBody* const alias_declaration_space_;
   private: Namespace* const outer_;
   private: const Token simple_name_;
 
@@ -31,9 +31,13 @@ class NamespaceMember : public Node {
                           const Token& simple_name);
   public: ~NamespaceMember() override;
 
-  public: NamespaceBody* namespace_body() const { return namespace_body_; }
+  public: NamespaceBody* alias_declaration_space() const {
+    return alias_declaration_space_;
+  }
   public: Namespace* outer() const { return outer_; }
   public: const Token& simple_name() const { return simple_name_; }
+
+  public: virtual Namespace* ToNamespace();
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);
 };

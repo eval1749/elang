@@ -28,6 +28,7 @@
 #include "elang/hir/class.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/namespace.h"
+#include "elang/hir/namespace_member.h"
 
 namespace elang {
 namespace compiler {
@@ -155,27 +156,32 @@ TestDriver::TestDriver(base::StringPiece source_text)
 TestDriver::~TestDriver() {
 }
 
-// TODO(eval1749) We should have qualified name.
 hir::Class* TestDriver::FindClass(base::StringPiece name) {
-  auto const simple_name = session_->hir_factory()->GetOrCreateSimpleName(
-      base::UTF8ToUTF16(name));
-  auto const member = session_->hir_factory()->global_namespace()->FindMember(
-      simple_name);
+  auto const member = FindMember(name);
   return member ? member->as<hir::Class>() : nullptr;
 }
 
-bool TestDriver::RunNameResolver() {
-  parser_->Run();
-  NameResolver resolver(session_.get(), session_->hir_factory());
-  return resolver.Run();
+hir::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
+  auto enclosing = session_->hir_factory()->global_namespace();
+  auto found = static_cast<hir::NamespaceMember*>(nullptr);
+  for (size_t pos = 0u; pos < name.length(); ++pos) {
+    auto dot_pos = name.find('.', pos);
+    if (dot_pos == base::StringPiece::npos)
+      dot_pos = name.length();
+    auto const simple_name = session_->hir_factory()->GetOrCreateSimpleName(
+        base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
+    found = enclosing->FindMember(simple_name);
+    if (!found)
+      return nullptr;
+    enclosing = found->as<hir::Namespace>();
+    if (!enclosing)
+      return nullptr;
+    pos = dot_pos;
+  }
+  return found;
 }
 
-std::string TestDriver::RunParser() {
-  if (parser_->Run()) {
-    Formatter formatter;
-    return formatter.Run(session_->global_namespace());
-  }
-
+std::string TestDriver::GetErrors() {
   static const char* const error_messages[] = {
     #define E(category, subcategory, name) \
         #category "." #subcategory "." #name,
@@ -186,9 +192,27 @@ std::string TestDriver::RunParser() {
   std::stringstream stream;
   for (auto const error : session_->errors()) {
     stream << error_messages[static_cast<int>(error->error_code())] << "(" <<
-        error->location().start().offset() << ")" << std::endl;
+        error->location().start().offset() << ")";
+    for (auto token : error->tokens())
+      stream << " " << token;
+    stream << std::endl;
   }
   return stream.str();
+}
+
+std::string TestDriver::RunNameResolver() {
+  if (!parser_->Run())
+    return GetErrors();
+  NameResolver resolver(session_.get(), session_->hir_factory());
+  return resolver.Run() ? "" : GetErrors();
+}
+
+std::string TestDriver::RunParser() {
+  if (parser_->Run()) {
+    Formatter formatter;
+    return formatter.Run(session_->global_namespace());
+  }
+  return GetErrors();
 }
 
 }  // namespace compiler

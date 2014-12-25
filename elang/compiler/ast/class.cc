@@ -29,6 +29,11 @@ void Class::AddBaseClassName(const QualifiedName& class_name) {
   base_class_names_.push_back(class_name);
 }
 
+// NamespaceMember
+Namespace* Class::ToNamespace() {
+  return nullptr;
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

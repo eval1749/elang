@@ -48,6 +48,7 @@ void Namespace::AddMember(NamespaceMember* member) {
   if (!FindMember(member->simple_name()))
     map_[member->simple_name().id()] = member;
   bodies_.back()->AddMember(member);
+  members_.push_back(member);
 }
 
 void Namespace::Close() {
@@ -66,6 +67,11 @@ void Namespace::Open(NamespaceBody* outer, SourceCode* source_code) {
   DCHECK(!namespace_body_);
   namespace_body_ = new NamespaceBody(outer, this, source_code);
   bodies_.push_back(namespace_body_);
+}
+
+// NamespaceMember
+Namespace* Namespace::ToNamespace() {
+  return this;
 }
 
 }  // namespace ast

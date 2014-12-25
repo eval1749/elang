@@ -4,6 +4,8 @@
 
 #include "elang/hir/namespace_member.h"
 
+#include "elang/hir/namespace.h"
+
 namespace elang {
 namespace hir {
 
@@ -16,6 +18,18 @@ NamespaceMember::NamespaceMember(Namespace* outer, SimpleName* simple_name)
 }
 
 NamespaceMember::~NamespaceMember() {
+}
+
+Namespace* NamespaceMember::ToNamespace() {
+  return nullptr;
+}
+
+bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {
+  for (auto runner = outer_; runner; runner = runner->outer_) {
+    if (runner == other)
+      return true;
+  }
+  return false;
 }
 
 }  // namespace hir

@@ -30,14 +30,16 @@ class Namespace : public NamespaceMember {
   private: NamespaceBody* namespace_body_;
   private: std::vector<NamespaceBody*> bodies_;
   private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
+  private: std::vector<NamespaceMember*> members_;
 
   protected: Namespace(Namespace* outer, const Token& keyword,
                        const Token& simple_name);
   public: ~Namespace() override;
 
   public: NamespaceBody* namespace_body() const;
-  public: const std::vector<NamespaceBody*> bodies() const {
-    return bodies_;
+  public: const std::vector<NamespaceBody*> bodies() const { return bodies_; }
+  public: const std::vector<NamespaceMember*> members() const {
+    return members_;
   }
 
   public: void AddImport(const Token& import_keyword,
@@ -46,6 +48,9 @@ class Namespace : public NamespaceMember {
   public: void Close();
   public: NamespaceMember* FindMember(const Token& simple_name);
   public: void Open(NamespaceBody* outer, SourceCode* source_code);
+
+  // NamespaceMember
+  public: Namespace* ToNamespace() override;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

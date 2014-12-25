@@ -37,6 +37,9 @@ class Class final : public Namespace {
 
   public: void AddBaseClassName(const QualifiedName& class_name);
 
+  // NamespaceMember
+  public: Namespace* ToNamespace() final;
+
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 

@@ -40,6 +40,13 @@ SimpleName* Factory::GetOrCreateSimpleName(base::StringPiece16 string) {
   return simple_name;
 }
 
+Class* Factory::NewClass(Namespace* outer, SimpleName* simple_name,
+                          const std::vector<Class*>& base_classes) {
+  auto const node = new Class(outer, simple_name, base_classes);
+  nodes_.push_back(node);
+  return node;
+}
+
 Namespace* Factory::NewNamespace(Namespace* outer, SimpleName* simple_name) {
   auto const node = new Namespace(outer, simple_name);
   nodes_.push_back(node);

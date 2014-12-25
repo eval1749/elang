@@ -14,6 +14,7 @@ namespace compiler {
   /*
    * Name Resolver
    */ \
+    E(NameResolution, Class, Containing) \
     E(NameResolution, Name, Conflict) \
     E(NameResolution, Name, Cyclic) \
     E(NameResolution, Name, NeitherNamespaceOrType) \

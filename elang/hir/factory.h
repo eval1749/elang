@@ -26,10 +26,13 @@ class SimpleName;
 // Factory
 //
 class Factory final {
-  private: Namespace* const global_namespace_;
   private: std::vector<Node*> nodes_;
   private: std::unordered_map<base::StringPiece16, SimpleName*> simple_names_;
   private: std::vector<base::string16*> strings_;
+
+  // |global_namespace_| must be initialized after node pool and string pool
+  // are created.
+  private: Namespace* const global_namespace_;
 
   public: Factory();
   public: ~Factory();

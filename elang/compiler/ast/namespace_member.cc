@@ -20,13 +20,22 @@ NamespaceMember::NamespaceMember(Namespace* outer,
                                  const Token& keyword_or_name,
                                  const Token& simple_name)
     : Node(keyword_or_name),
-      namespace_body_(outer ? outer->namespace_body() : nullptr),
+      alias_declaration_space_(outer ? outer->namespace_body() :
+                                       nullptr),
       outer_(outer), simple_name_(simple_name) {
   DCHECK(simple_name.is_name());
-  DCHECK(outer || keyword_or_name.type() == TokenType::Namespace);
+  if (outer) {
+    DCHECK(alias_declaration_space_);
+  } else {
+    DCHECK(keyword_or_name.type() == TokenType::Namespace);
+  }
 }
 
 NamespaceMember::~NamespaceMember() {
+}
+
+Namespace* NamespaceMember::ToNamespace() {
+  return nullptr;
 }
 
 }  // namespace ast
