@@ -61,7 +61,7 @@ bool Parser::ModifierBuilder::Add(const Token& token) {
           parser_->Error(ErrorCode::SyntaxModifierDuplicate); \
           return true; \
         } \
-        modifiers_ |= static_cast<int>(Modifier::name); \
+        modifiers_ |= 1 << static_cast<int>(Modifier::name); \
         tokens_.push_back(token); \
         return true;
     MODIFIER_LIST(CASE_CLAUSE)
