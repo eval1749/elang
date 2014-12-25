@@ -43,6 +43,18 @@ TEST(ParserTest, NamespaceBasic) {
     "}\n", driver.RunParser());
 }
 
+TEST(ParserTest, NamespaceNestedShortcut) {
+  TestDriver driver(
+    "namespace N1.N2 { class A {} }");
+  EXPECT_EQ(
+    "namespace N1 {\n"
+    "  namespace N2 {\n"
+    "    class A {\n"
+    "    }\n"
+    "  }\n"
+    "}\n", driver.RunParser());
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang
