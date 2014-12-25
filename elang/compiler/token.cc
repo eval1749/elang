@@ -178,11 +178,8 @@ std::ostream& operator<<(std::ostream& ostream, const Token& token) {
       return ostream << "\"";
 
     default:
-      if (token.is_name() || token.is_keyword()) {
-        base::string16 string;
-        token.string_data().CopyToString(&string);
-        return ostream << base::UTF16ToUTF8(string);
-      }
+      if (token.is_name() || token.is_keyword())
+        return ostream << base::UTF16ToUTF8(token.string_data().as_string());
       return ostream << kTokenTypeString[static_cast<int>(token.type())];
   }
 }

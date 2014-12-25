@@ -10,7 +10,7 @@ namespace elang {
 namespace compiler {
 
 StringStream::StringStream(const base::StringPiece16& string)
-    : position_(0u), string_(string.data(), string.size()) {
+    : position_(0u), string_(string.as_string()) {
 }
 
 StringStream::~StringStream() {
