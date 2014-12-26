@@ -55,18 +55,24 @@ class NameResolver final {
   public: NameResolver(CompilationSession* session, hir::Factory* factory);
   public: ~NameResolver();
 
+  private: Maybe<hir::NamespaceMember*> BindAlias(ast::Alias* alias);
+  private: Maybe<hir::NamespaceMember*> BindClass(ast::Class* clazz);
   private: void BuildNamespace(hir::Namespace* enclosing_namespace,
                                ast::Namespace* ast_Namespace);
   private: void BuildNamespaceTree(hir::Namespace* enclosing_namespace,
                                    ast::Namespace* ast_Namespace);
   private: Maybe<hir::NamespaceMember*> Resolve(ast::NamespaceMember* member);
-  private: Maybe<hir::NamespaceMember*> ResolveAlias(ast::Alias* alias);
-  private: Maybe<hir::NamespaceMember*> ResolveClass(ast::Class* clazz);
-  private: Maybe<ast::NamespaceMember*> ResolveLeftMostName(
-      ast::Namespace* outer, ast::NamespaceBody* namespace_body,
-      const Token& simple_name_token);
-  private: Maybe<ast::NamespaceMember*> ResolveQualifiedName(
-      ast::Namespace* outer, ast::NamespaceBody* namespace_body,
+
+  // Resolves left most simple name of |name| in
+  // |enclosing_namespace| and |alias_namespace|.
+  private: ast::NamespaceMember* ResolveLeftMostName(
+      ast::Namespace* enclosing_namespace,
+      ast::NamespaceBody* alias_namespace,
+      const QualifiedName& name);
+  // Resolves |name| in |enclosing_namespace| and |alias_namespace|.
+  private: ast::NamespaceMember* ResolveQualifiedName(
+      ast::Namespace* enclosing_namespace,
+      ast::NamespaceBody* alias_namespace,
       const QualifiedName& name);
   public: bool Run();
   private: void ScheduleClassTree(ast::Class* clazz);

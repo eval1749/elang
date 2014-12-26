@@ -29,7 +29,7 @@ class QualifiedName final {
   public: QualifiedName& operator=(QualifiedName&& other);
 
   public: const Token& simple_name() const { return simple_names_.back(); }
-  public: const std::vector<Token> simple_names() const {
+  public: const std::vector<Token>& simple_names() const {
     return simple_names_;
   }
 };
