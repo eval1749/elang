@@ -12,9 +12,8 @@
 namespace elang {
 namespace compiler {
 class QualifiedName;
-class SourceCode;
-namespace ast {
 
+namespace ast {
 class Alias;
 class NamespaceMember;
 class NodeFactory;
@@ -33,27 +32,23 @@ class NamespaceBody final {
   private: std::vector<NamespaceMember*> members_;
   private: NamespaceBody* const outer_;
   private: Namespace* const owner_;
-  private: SourceCode* const source_code_;
 
-  public: NamespaceBody(NamespaceBody* outer, Namespace* owner,
-                        SourceCode* source_code);
+  public: NamespaceBody(NamespaceBody* outer, Namespace* owner);
   public: ~NamespaceBody();
 
-  public: const std::vector<Alias*>& aliases() const {
-    return aliases_;
-  }
+  public: const std::vector<Alias*>& aliases() const;
   public: const std::vector<NamespaceMember*>& members() const {
     return members_;
   }
   public: NamespaceBody* outer() const { return outer_; }
   public: Namespace* owner() const { return owner_; }
-  public: SourceCode* source_code() const { return source_code_; }
 
   public: void AddImport(const Token& import_keyword,
                          const QualifiedName& name);
   public: void AddAlias(Alias* alias);
   public: void AddMember(NamespaceMember* member);
   public: Alias* FindAlias(const Token& simple_name);
+  public: NamespaceMember* FindMember(const Token& simple_name);
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };

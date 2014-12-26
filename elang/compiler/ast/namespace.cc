@@ -17,63 +17,29 @@ namespace ast {
 //
 // Namespace
 //
-Namespace::Namespace(Namespace* outer, const Token& keyword,
+Namespace::Namespace(NamespaceBody* namespace_body, const Token& keyword,
                      const Token& simple_name)
-    : NamespaceMember(outer, keyword, simple_name), namespace_body_(nullptr) {
+    : NamespaceMember(namespace_body, keyword, simple_name) {
 }
 
 Namespace::~Namespace() {
-  DCHECK(!namespace_body_);
-}
-
-NamespaceBody* Namespace::namespace_body() const {
-  for (auto runner = this; runner; runner = runner->outer()) {
-    if (runner->token().type() == TokenType::Namespace)
-      return runner->namespace_body_;
-  }
-  NOTREACHED();
-  return nullptr;
-}
-
-void Namespace::AddImport(const Token& keyword, const QualifiedName& name) {
-  DCHECK_EQ(keyword.type(), TokenType::Using);
-  DCHECK_EQ(token().type(), TokenType::Namespace);
-  DCHECK_EQ(namespace_body_, bodies_.back());
-  namespace_body_->AddImport(keyword, name);
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
-  DCHECK(namespace_body_);
-  if (auto const alias = member->as<Alias>()) {
-    DCHECK(ToNamespace());
-    namespace_body_->AddAlias(alias);
-    return;
-  }
+  DCHECK(!member->is<Alias>());
   // We keep first member declaration.
-  if (!FindMember(member->simple_name()))
-    map_[member->simple_name().id()] = member;
-  bodies_.back()->AddMember(member);
-  members_.push_back(member);
+  if (FindMember(member->simple_name()))
+    return;
+  map_[member->simple_name().id()] = member;
 }
 
-void Namespace::Close() {
-  DCHECK_EQ(namespace_body_, bodies_.back());
-  namespace_body_ = nullptr;
+void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
+  bodies_.push_back(namespace_body);
 }
 
 NamespaceMember* Namespace::FindMember(const Token& simple_name) {
   auto const it = map_.find(simple_name.id());
-  if (it != map_.end())
-    return it->second;
-  if (namespace_body_)
-    return namespace_body_->FindAlias(simple_name);
-  return nullptr;
-}
-
-void Namespace::Open(NamespaceBody* outer, SourceCode* source_code) {
-  DCHECK(!namespace_body_);
-  namespace_body_ = new NamespaceBody(outer, this, source_code);
-  bodies_.push_back(namespace_body_);
+  return it == map_.end() ? nullptr : it->second;
 }
 
 // NamespaceMember

@@ -23,18 +23,16 @@ class NamespaceBody;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
-  private: NamespaceBody* const alias_declaration_space_;
-  private: Namespace* const outer_;
+  private: NamespaceBody* const namespace_body_;
   private: const Token simple_name_;
 
-  public: NamespaceMember(Namespace* owner, const Token& keyword_or_name,
+  public: NamespaceMember(NamespaceBody* namespace_body,
+                          const Token& keyword_or_name,
                           const Token& simple_name);
   public: ~NamespaceMember() override;
 
-  public: NamespaceBody* alias_declaration_space() const {
-    return alias_declaration_space_;
-  }
-  public: Namespace* outer() const { return outer_; }
+  public: NamespaceBody* namespace_body() const { return namespace_body_; }
+  public: Namespace* outer() const;
   public: const Token& simple_name() const { return simple_name_; }
 
   public: bool IsDescendantOf(const NamespaceMember* other) const;

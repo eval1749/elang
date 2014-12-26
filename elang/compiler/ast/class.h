@@ -29,7 +29,7 @@ class Class final : public Namespace {
   private: std::vector<QualifiedName> base_class_names_;
   private: bool is_fixed_;
 
-  private: Class(Namespace* outer, const Token& keyword,
+  private: Class(NamespaceBody* namespace_body, const Token& keyword,
                  const Token& simple_name);
   public: ~Class() final;
 

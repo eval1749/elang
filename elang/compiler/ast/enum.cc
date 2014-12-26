@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/enum_member.h"
+#include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -17,16 +18,15 @@ namespace ast {
 //
 // Enum
 //
-Enum::Enum(Namespace* outer, const Token& keyword,
+Enum::Enum(NamespaceBody* namespace_body, const Token& keyword,
            const Token& simple_name)
-    : NamespaceMember(outer, keyword, simple_name) {
+    : NamespaceMember(namespace_body, keyword, simple_name) {
   DCHECK_EQ(keyword.type(), TokenType::Enum);
   DCHECK(simple_name.is_name());
 }
 
 Enum::~Enum() {
 }
-
 
 void Enum::AddMember(EnumMember* member) {
   if (!FindMember(member->simple_name()))

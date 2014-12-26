@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -16,26 +17,25 @@ namespace ast {
 //
 // NamespaceMember
 //
-NamespaceMember::NamespaceMember(Namespace* outer,
+NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
                                  const Token& keyword_or_name,
                                  const Token& simple_name)
     : Node(keyword_or_name),
-      alias_declaration_space_(outer ? outer->namespace_body() :
-                                       nullptr),
-      outer_(outer), simple_name_(simple_name) {
+      namespace_body_(namespace_body),
+      simple_name_(simple_name) {
   DCHECK(simple_name.is_name());
-  if (outer) {
-    DCHECK(alias_declaration_space_);
-  } else {
-    DCHECK(keyword_or_name.type() == TokenType::Namespace);
-  }
+  DCHECK(namespace_body_ || keyword_or_name.type() == TokenType::Namespace);
 }
 
 NamespaceMember::~NamespaceMember() {
 }
 
+Namespace* NamespaceMember::outer() const {
+  return namespace_body_ ? namespace_body_->owner() : nullptr;
+}
+
 bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {
-  for (auto runner = outer_; runner; runner = runner->outer_) {
+  for (auto runner = outer(); runner; runner = runner->outer()) {
     if (runner == other)
       return true;
   }

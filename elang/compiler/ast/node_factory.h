@@ -24,6 +24,7 @@ class Enum;
 class EnumMember;
 class Expression;
 class Namespace;
+class NamespaceBody;
 class Node;
 
 //////////////////////////////////////////////////////////////////////
@@ -36,16 +37,17 @@ class NodeFactory final {
   public: NodeFactory();
   public: ~NodeFactory();
 
-  public: Alias* NewAlias(Namespace* outer, const Token& keyword,
+  public: Alias* NewAlias(NamespaceBody* namespace_body, const Token& keyword,
                           const Token& simple_name,
                           const QualifiedName& target_name);
-  public: Class* NewClass(Namespace* outer, const Token& keyword,
+  public: Class* NewClass(NamespaceBody* namespace_body, const Token& keyword,
                           const Token& simple_name);
-  public: Enum* NewEnum(Namespace* outer, const Token& keyword,
+  public: Enum* NewEnum(NamespaceBody* namespace_body, const Token& keyword,
                         const Token& simple_name);
   public: EnumMember* NewEnumMember(Enum* owner, const Token& simple_name,
                                     Expression* expression);
-  public: Namespace* NewNamespace(Namespace* outer, const Token& keyword,
+  public: Namespace* NewNamespace(NamespaceBody* namespace_body,
+                                  const Token& keyword,
                                   const Token& simple_name);
   public: void RemoveAll();
 

@@ -103,7 +103,7 @@ NameResolver::~NameResolver() {
 void NameResolver::BindAlias(ast::Alias* alias) {
   DCHECK(!alias->target());
   auto const target = ResolveQualifiedName(
-      alias->outer(), alias->alias_declaration_space()->outer(),
+      alias->outer(), alias->namespace_body()->outer(),
       alias->target_name());
   if (!target) {
     session_->AddError(ErrorCode::NameResolutionAliasNoTarget,
@@ -139,7 +139,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
   std::vector<ast::Class*> base_classes;
   for (auto const base_class_name : clazz->base_class_names()) {
     auto const found = ResolveQualifiedName(
-        clazz->outer(), clazz->alias_declaration_space(), base_class_name);
+        clazz->outer(), clazz->namespace_body(), base_class_name);
     if (!found) {
       is_base_classes_valid = false;
       continue;
@@ -230,7 +230,7 @@ ast::NamespaceMember* NameResolver::ResolveLeftMostName(
   const auto& simple_name = name.simple_names()[0];
   while (outer) {
     auto const present = outer->FindMember(simple_name);
-    if (alias_namespace && alias_namespace->owner() == outer) {
+    if (alias_namespace && alias_namespace->owner() == outer->ToNamespace()) {
       // TODO(eval1749) We should implement import.
       if (auto const alias = alias_namespace->FindAlias(simple_name)) {
         auto const target = alias->target();
@@ -304,11 +304,13 @@ bool NameResolver::Run() {
 void NameResolver::ScheduleClassTree(ast::Class* clazz) {
   if (!clazz->is_fixed())
     Schedule(clazz);
-  for (auto const member : clazz->members()) {
-    if (auto const inner_class = member->as<ast::Class>())
-      ScheduleClassTree(inner_class);
-    else
-      Schedule(member);
+  for (auto const body : clazz->bodies()) {
+    for (auto const member : body->members()) {
+      if (auto const inner_class = member->as<ast::Class>())
+        ScheduleClassTree(inner_class);
+      else
+        Schedule(member);
+    }
   }
 }
 

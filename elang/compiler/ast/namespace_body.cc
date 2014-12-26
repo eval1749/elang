@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
 
@@ -32,9 +33,14 @@ NamespaceBody::ImportDef::ImportDef(const Token& keyword,
 //
 // NamespaceBody
 //
-NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner,
-                             SourceCode* source_code)
-    : outer_(outer), owner_(owner), source_code_(source_code) {
+NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
+    : outer_(outer), owner_(owner) {
+  if (outer_) {
+    DCHECK_EQ(outer_->owner(), owner->outer());
+  } else {
+    DCHECK(!owner->outer());
+    DCHECK(owner->token().type() == TokenType::Namespace);
+  }
 }
 
 NamespaceBody::~NamespaceBody() {
@@ -42,12 +48,19 @@ NamespaceBody::~NamespaceBody() {
     delete import_def;
 }
 
+const std::vector<Alias*>& NamespaceBody::aliases() const {
+  DCHECK(owner_->ToNamespace());
+  return aliases_;
+}
+
 void NamespaceBody::AddImport(const Token& keyword, const QualifiedName& name) {
+  DCHECK(owner_->ToNamespace());
   DCHECK_EQ(keyword.type(), TokenType::Using);
   import_defs_.push_back(new ImportDef(keyword, name));
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
+  DCHECK(owner_->ToNamespace());
   aliases_.push_back(alias);
   alias_map_[alias->simple_name().id()] = alias;
   members_.push_back(alias);
@@ -55,12 +68,18 @@ void NamespaceBody::AddAlias(Alias* alias) {
 
 void NamespaceBody::AddMember(NamespaceMember* member) {
   DCHECK(!member->as<Alias>());
+  owner()->AddMember(member);
   members_.push_back(member);
 }
 
 Alias* NamespaceBody::FindAlias(const Token& simple_name) {
+  DCHECK(owner_->ToNamespace());
   auto const it = alias_map_.find(simple_name.id());
   return it == alias_map_.end() ? nullptr : it->second;
+}
+
+NamespaceMember* NamespaceBody::FindMember(const Token& simple_name) {
+  return owner_->FindMember(simple_name);
 }
 
 }  // namespace ast

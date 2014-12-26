@@ -15,9 +15,10 @@ namespace ast {
 //
 // Alias
 //
-Alias::Alias(Namespace* outer, const Token& keyword, const Token& simple_name,
-             const QualifiedName& target_name)
-    : NamespaceMember(outer, keyword, simple_name), target_(nullptr),
+Alias::Alias(NamespaceBody* namespace_body, const Token& keyword,
+             const Token& simple_name, const QualifiedName& target_name)
+    : NamespaceMember(namespace_body, keyword, simple_name),
+      target_(nullptr),
       target_name_(target_name) {
   DCHECK_EQ(keyword.type(), TokenType::Using);
 }

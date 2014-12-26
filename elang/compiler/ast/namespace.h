@@ -27,27 +27,18 @@ class Namespace : public NamespaceMember {
   friend class NodeFactory;
   private: struct ImportDef;
 
-  private: NamespaceBody* namespace_body_;
   private: std::vector<NamespaceBody*> bodies_;
   private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
-  private: std::vector<NamespaceMember*> members_;
 
-  protected: Namespace(Namespace* outer, const Token& keyword,
-                       const Token& simple_name);
+  protected: Namespace(NamespaceBody* namespace_body,
+                       const Token& keyword, const Token& simple_name);
   public: ~Namespace() override;
 
-  public: NamespaceBody* namespace_body() const;
   public: const std::vector<NamespaceBody*> bodies() const { return bodies_; }
-  public: const std::vector<NamespaceMember*> members() const {
-    return members_;
-  }
 
-  public: void AddImport(const Token& import_keyword,
-                         const QualifiedName& name);
   public: void AddMember(NamespaceMember* member);
-  public: void Close();
+  public: void AddNamespaceBody(NamespaceBody* outer);
   public: NamespaceMember* FindMember(const Token& simple_name);
-  public: void Open(NamespaceBody* outer, SourceCode* source_code);
 
   // NamespaceMember
   public: Namespace* ToNamespace() override;

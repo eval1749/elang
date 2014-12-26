@@ -15,8 +15,10 @@ namespace ast {
 //
 // Class
 //
-Class::Class(Namespace* outer, const Token& keyword, const Token& simple_name)
-    : Namespace(outer, keyword, simple_name), is_fixed_(false) {
+Class::Class(NamespaceBody* namespace_body, const Token& keyword,
+             const Token& simple_name)
+    : Namespace(namespace_body, keyword, simple_name),
+      is_fixed_(false) {
   DCHECK(keyword.type() == TokenType::Class ||
          keyword.type() == TokenType::Interface ||
          keyword.type() == TokenType::Struct);

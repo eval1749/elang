@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -76,28 +77,29 @@ void Parser::ModifierBuilder::Reset() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NamespaceScope
+// NamespaceBodyScope
 //
-class Parser::NamespaceScope {
+class Parser::NamespaceBodyScope {
   private: Parser* const parser_;
-  private: ast::Namespace* const namespace_;
+  private: ast::NamespaceBody* const namespace_body_;
 
-  public: NamespaceScope(Parser* parser, ast::Namespace* ns);
-  public: ~NamespaceScope();
+  public: NamespaceBodyScope(Parser* parser, ast::Namespace* new_namespace);
+  public: ~NamespaceBodyScope();
 
-  DISALLOW_COPY_AND_ASSIGN(NamespaceScope);
+  DISALLOW_COPY_AND_ASSIGN(NamespaceBodyScope);
 };
 
-Parser::NamespaceScope::NamespaceScope(Parser* parser, ast::Namespace* ns)
-    : namespace_(parser->namespace_), parser_(parser) {
-  DCHECK_NE(ns, parser_->namespace_);
-  parser_->namespace_ = ns;
+Parser::NamespaceBodyScope::NamespaceBodyScope(Parser* parser,
+                                               ast::Namespace* new_namespace)
+    : namespace_body_(parser->namespace_body_), parser_(parser) {
+  auto const namespace_body = new ast::NamespaceBody(namespace_body_,
+                                                     new_namespace);
+  new_namespace->AddNamespaceBody(namespace_body);
+  parser->namespace_body_ = namespace_body;
 }
 
-Parser::NamespaceScope::~NamespaceScope() {
-  for (auto ns = parser_->namespace_; ns != namespace_; ns = ns->outer())
-    ns->Close();
-  parser_->namespace_ = namespace_;
+Parser::NamespaceBodyScope::~NamespaceBodyScope() {
+  parser_->namespace_body_ = namespace_body_;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -147,10 +149,11 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       expression_(nullptr),
       modifiers_(new ModifierBuilder(this)),
       name_builder_(new QualifiedNameBuilder()),
-      namespace_(session->global_namespace()),
+      namespace_body_(new ast::NamespaceBody(nullptr,
+                                             session->global_namespace())),
       session_(session),
       lexer_(new Lexer(session, compilation_unit)) {
-  namespace_->Open(nullptr, compilation_unit->source_code());
+  namespace_body_->owner()->AddNamespaceBody(namespace_body_);
 }
 
 Parser::~Parser() {
@@ -158,6 +161,11 @@ Parser::~Parser() {
 
 ast::NodeFactory* Parser::factory() const {
   return session_->ast_factory();
+}
+
+void Parser::AddMember(ast::NamespaceMember* member) {
+  DCHECK(!member->is<ast::Alias>());
+  namespace_body_->AddMember(member);
 }
 
 void Parser::Advance() {
@@ -179,6 +187,10 @@ bool Parser::Error(ErrorCode error_code, const Token& token) {
 
 bool Parser::Error(ErrorCode error_code) {
   return Error(error_code, token_);
+}
+
+ast::NamespaceMember* Parser::FindMember(const Token& simple_name) {
+  return namespace_body_->FindMember(simple_name);
 }
 
 // ClassDecl ::= Attribute* ClassModifier* "partial"? "class"
@@ -230,15 +242,13 @@ bool Parser::ParseClassDecl() {
   auto simple_name = token_;
   if (!simple_name.is_name())
     return Error(ErrorCode::SyntaxClassDeclName);
-  Advance();
-  if (auto const present = namespace_->FindMember(simple_name))
+  if (FindMember(simple_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate);
-  auto const clazz = factory()->NewClass(namespace_, class_keyword,
+  Advance();
+  auto const clazz = factory()->NewClass(namespace_body_, class_keyword,
                                          simple_name);
-  namespace_->AddMember(clazz);
-  NamespaceScope member_scope(this, clazz);
-  clazz->Open(namespace_->namespace_body(),
-              simple_name.location().source_code());
+  AddMember(clazz);
+  NamespaceBodyScope namespace_body_scope(this, clazz);
 
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket)) {
@@ -341,11 +351,11 @@ bool Parser::ParseEnumDecl() {
   if (!token_.is_name())
     return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
   auto enum_name = token_;
-  if (namespace_->FindMember(enum_name))
+  if (FindMember(enum_name))
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
-  auto const enum_decl = factory()->NewEnum(namespace_, enum_keyword,
+  auto const enum_decl = factory()->NewEnum(namespace_body_, enum_keyword,
                                             enum_name);
-  namespace_->AddMember(enum_decl);
+  AddMember(enum_decl);
   Advance();
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
@@ -391,25 +401,28 @@ bool Parser::ParseNamespaceDecl() {
   Advance();
   if (!ParseQualifiedName())
     return false;
-  auto this_namespace = namespace_;
-  for (auto const simple_name : name_builder_->simple_names()) {
-    if (auto const present = this_namespace->FindMember(simple_name)) {
-      if (auto const present_ns = present->as<ast::Namespace>()) {
-        present_ns->Open(this_namespace->namespace_body(),
-                         simple_name.location().source_code());
-        this_namespace = present_ns;
-        continue;
-      }
+  const auto name = name_builder_->Get();
+  return ParseNamespaceDecl(namespace_keyword, name.simple_names(), 0);
+}
+
+bool Parser::ParseNamespaceDecl(const Token& namespace_keyword,
+                                const std::vector<Token>& names,
+                                size_t index) {
+  auto const simple_name = names[index];
+  ast::Namespace* new_namespace = nullptr;
+  if (auto const present = FindMember(simple_name)) {
+    new_namespace = present->ToNamespace();
+    if (!new_namespace)
       Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
-    }
-    auto const new_namespace = factory()->NewNamespace(
-        this_namespace, namespace_keyword, simple_name);
-    this_namespace->AddMember(new_namespace);
-    new_namespace->Open(this_namespace->namespace_body(),
-                        simple_name.location().source_code());
-    this_namespace = new_namespace;
   }
-  NamespaceScope namespace_scope(this, this_namespace);
+  if (!new_namespace) {
+    new_namespace = factory()->NewNamespace(namespace_body_,
+                                            namespace_keyword, simple_name);
+    AddMember(new_namespace);
+  }
+  NamespaceBodyScope namespace_body_scope(this, new_namespace);
+  if (index + 1 < names.size())
+    return ParseNamespaceDecl(namespace_keyword, names, index + 1);
   // TODO(eval1749) Record position of left bracket for error message
   // when there is no matching right bracket.
   if (!AdvanceIf(TokenType::LeftCurryBracket))
@@ -485,6 +498,7 @@ bool Parser::ParseTypeParameter() {
 // AliasDef ::= "using" Name "="  QualfiedName ";"
 // ImportNamespace ::= "using" QualfiedName ";"
 bool Parser::ParseUsingDirectives() {
+  DCHECK(namespace_body_->owner()->ToNamespace());
   while (PeekToken() == TokenType::Using) {
     auto using_keyword = token_;
     Advance();
@@ -496,10 +510,10 @@ bool Parser::ParseUsingDirectives() {
       auto alias_name = name_builder_->simple_names().front();
       if (!ParseQualifiedName())
         return Error(ErrorCode::SyntaxAliasDefRealName);
-      namespace_->AddMember(factory()->NewAlias(
-          namespace_, using_keyword, alias_name, name_builder_->Get()));
+      namespace_body_->AddAlias(factory()->NewAlias(
+          namespace_body_, using_keyword, alias_name, name_builder_->Get()));
     } else {
-      namespace_->AddImport(using_keyword, std::move(name_builder_->Get()));
+      namespace_body_->AddImport(using_keyword, name_builder_->Get());
     }
     if (!AdvanceIf(TokenType::SemiColon))
       return Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
@@ -515,10 +529,7 @@ TokenType Parser::PeekToken() {
 }
 
 bool Parser::Run() {
-  auto const result = ParseCompilationUnit();
-  for (auto runner = namespace_; runner; runner = runner->outer())
-    runner->Close();
-  return result;
+  return ParseCompilationUnit();
 }
 
 }  // namespace compiler

@@ -14,6 +14,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
+class Class;
 class EnumMember;
 class NodeFactory;
 
@@ -29,7 +30,7 @@ class Enum final : public NamespaceMember {
   private: std::unordered_map<Token::SimpleNameId, EnumMember*> map_;
   private: std::vector<EnumMember*> members_;
 
-  public: Enum(Namespace* outer, const Token& keyword,
+  public: Enum(NamespaceBody* namespace_body, const Token& keyword,
                const Token& simple_name);
   public: ~Enum() final;
 
