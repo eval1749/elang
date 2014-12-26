@@ -9,6 +9,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
+#include "elang/compiler/ast/expression.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
@@ -53,6 +54,34 @@ Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
 EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* simple_name,
                                        Expression* expression) {
   auto const node = new EnumMember(owner, simple_name, expression);
+  nodes_.push_back(std::unique_ptr<Node>(node));
+  return node;
+}
+
+Expression* NodeFactory::NewExpression(Token* operator_token,
+                                       std::vector<Expression*> operands) {
+  auto const node = new Expression(operator_token, operands);
+  nodes_.push_back(std::unique_ptr<Node>(node));
+  return node;
+}
+
+Expression* NodeFactory::NewExpression(Token* operator_token,
+                                    Expression* operand0,
+                                    Expression* operand1) {
+  auto const node = new Expression(operator_token, operand0, operand1);
+  nodes_.push_back(std::unique_ptr<Node>(node));
+  return node;
+}
+
+Expression* NodeFactory::NewExpression(Token* operator_token,
+                                    Expression* operand0) {
+  auto const node = new Expression(operator_token, operand0);
+  nodes_.push_back(std::unique_ptr<Node>(node));
+  return node;
+}
+
+Expression* NodeFactory::NewExpression(Token* operator_token) {
+  auto const node = new Expression(operator_token);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
 }

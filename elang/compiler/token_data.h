@@ -64,7 +64,10 @@ class TokenData {
   public: hir::SimpleName* id() const { return simple_name(); }
   public: bool is_contextual_keyword() const;
   public: bool is_keyword() const;
+  public: bool is_literal() const;
   public: bool is_name() const;
+  public: bool is_operator() const;
+  public: int precedence() const;
   public: hir::SimpleName* simple_name() const;
   public: base::StringPiece16 string_data() const;
   public: TokenType type() const { return type_; }

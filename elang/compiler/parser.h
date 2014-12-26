@@ -32,6 +32,10 @@ class QualifiedName;
 // Parser
 //
 class Parser final {
+  // |ExpressionCategory| representing precedence of operator.
+  // Note: To implement operation of |ExpressionCategory| in "parser.cc"
+  // it is marked |public|, but other modules can't use it.
+  public: enum class ExpressionCategory;
   private: class ModifierBuilder;
   private: class NamespaceBodyScope;
   friend class NamespaceBodyScope;
@@ -56,13 +60,22 @@ class Parser final {
   private: void AddMember(ast::NamespaceMember* member);
   private: void Advance();
   private: bool AdvanceIf(TokenType type);
+  // Returns last produced expression.
+  private: ast::Expression* ConsumeExpression();
+  // Returns current token and advance to next token.
+  private: Token* ConsumeToken();
+  // Returns current token as |type| and advance to next token. This function
+  // is used for handling unary '+','-' and post '++', '--'.
+  private: Token* ConsumeTokenAs(TokenType type);
   // Always returns false for simplify error processing.
   private: bool Error(ErrorCode error_code);
   private: bool Error(ErrorCode error_code, Token* token);
   private: ast::NamespaceMember* FindMember(Token* token);
+  private: bool ParseAfterPrimaryExpression();
   private: bool ParseClassDecl();
   private: bool ParseEnumDecl();
-  private: void ParseExpression();
+  private: bool ParseExpression();
+  private: bool ParseExpressionSub(ExpressionCategory category);
   private: bool ParseFunctionDecl();
   private: bool ParseCompilationUnit();
   private: bool ParseMaybeType();
@@ -71,11 +84,24 @@ class Parser final {
                                    const std::vector<Token*>& names,
                                    size_t index);
   private: bool ParseNamespaceMemberDecls();
+  private: bool ParsePrimaryExpression();
+  private: bool ParsePrimaryExpressionPost();
   // Returns false if no name, otherwise true.
   private: bool ParseQualifiedName();
   private: bool ParseTypeParameter();
   private: bool ParseUsingDirectives();
   private: TokenType PeekToken();
+  private: ExpressionCategory PeekTokenCategory();
+  private: ast::Expression* ProduceExpression(Token* op_token,
+                                              ast::Expression* operand0,
+                                              ast::Expression* operand1,
+                                              ast::Expression* operand2);
+  private: ast::Expression* ProduceExpression(Token* op_token,
+                                              ast::Expression* operand0,
+                                              ast::Expression* operand1);
+  private: ast::Expression* ProduceExpression(Token* op_token,
+                                              ast::Expression* operand0);
+  private: ast::Expression* ProduceExpression(Token* op_token);
   public: bool Run();
 
   DISALLOW_COPY_AND_ASSIGN(Parser);

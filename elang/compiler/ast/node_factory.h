@@ -46,6 +46,15 @@ class NodeFactory final {
                         Token* simple_name);
   public: EnumMember* NewEnumMember(Enum* owner, Token* simple_name,
                                     Expression* expression);
+
+  public: Expression* NewExpression(Token* operator_token,
+                                    std::vector<Expression*> operands);
+  public: Expression* NewExpression(Token* operator_token,
+                                    Expression* operand0,
+                                    Expression* operand1);
+  public: Expression* NewExpression(Token* operator_token,
+                                    Expression* operand0);
+  public: Expression* NewExpression(Token* operator_token);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
                                   Token* keyword,
                                   Token* simple_name);

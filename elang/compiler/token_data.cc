@@ -19,6 +19,10 @@ const char* const kTokenDetails[] = {
   #undef T
 };
 
+const char* GetTokenDetails(TokenType type) {
+  return kTokenDetails[static_cast<size_t>(type)];
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -96,12 +100,13 @@ base::char16 TokenData::char_data() const {
 }
 
 bool TokenData::has_int_data() const {
-  auto const detail = kTokenDetails[static_cast<size_t>(type_)][1];
+  auto const detail = GetTokenDetails(type_)[1];
   return detail == 'I' || detail == 'U' || detail == 'C';
 }
 
 bool TokenData::has_simple_name() const {
-  return kTokenDetails[static_cast<size_t>(type_)][1] == 'N';
+  auto const detail = GetTokenDetails(type_)[0];
+  return detail == 'N' || detail == 'K';
 }
 
 bool TokenData::has_string_data() const {
@@ -124,17 +129,38 @@ int64_t TokenData::int64_data() const {
 }
 
 bool TokenData::is_contextual_keyword() const {
-  return kTokenDetails[static_cast<size_t>(type_)][0] == 'C';
+  return GetTokenDetails(type_)[0] == 'C';
 }
 
 bool TokenData::is_keyword() const {
-  auto const detail = kTokenDetails[static_cast<size_t>(type_)][0];
+  auto const detail = GetTokenDetails(type_)[0];
   return detail == 'C' || detail == 'K';
 }
 
+bool TokenData::is_literal() const {
+  return GetTokenDetails(type_)[0] == 'L';
+}
+
 bool TokenData::is_name() const {
-  auto const detail = kTokenDetails[static_cast<size_t>(type_)][0];
+  auto const detail = GetTokenDetails(type_)[0];
   return detail == 'C' || detail == 'N';
+}
+
+bool TokenData::is_operator() const {
+  return GetTokenDetails(type_)[0] == 'O';
+}
+
+// '0', '1', and '2' come from |ExpressionCategory::Unary| in
+// "parser_expression.cc".
+int TokenData::precedence() const {
+  auto const details = kTokenDetails[static_cast<size_t>(type_)];
+  if (is_operator())
+    return details[1] - 'a' + 2;
+  if (is_name() || is_literal())
+    return 1;
+  if (is_keyword() && details[1] == 'P')
+    return 1;
+  return 0;
 }
 
 hir::SimpleName* TokenData::simple_name() const {

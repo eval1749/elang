@@ -10,6 +10,7 @@
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
+#include "elang/compiler/ast/expression.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -25,7 +26,7 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ModifierBuilder
+// Parser::ModifierBuilder
 //
 class Parser::ModifierBuilder final {
   private: int modifiers_;
@@ -181,8 +182,16 @@ bool Parser::AdvanceIf(TokenType type) {
   return true;
 }
 
+Token* Parser::ConsumeToken() {
+  DCHECK(token_);
+  auto const result = token_;
+  Advance();
+  return result;
+}
+
 bool Parser::Error(ErrorCode error_code, Token* token) {
   DCHECK(token);
+  expression_ = nullptr;
   session_->AddError(error_code, token);
   return false;
 }
@@ -365,13 +374,16 @@ bool Parser::ParseEnumDecl() {
     PeekToken();
     if (!token_->is_name())
       break;
-    auto const member_name = token_;
-    Advance();
-    DCHECK(!expression_);
-    if (AdvanceIf(TokenType::Assign))
-      ParseExpression();
+    auto const member_name = ConsumeToken();
+    auto member_value = static_cast<ast::Expression*>(nullptr);
+    if (AdvanceIf(TokenType::Assign)) {
+      if (ParseExpression())
+        member_value = ConsumeExpression();
+      else
+        Error(ErrorCode::SyntaxEnumDeclExpression);
+    }
     enum_decl->AddMember(factory()->NewEnumMember(enum_decl, member_name,
-                                                  expression_));
+                                                  member_value));
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
     if (AdvanceIf(TokenType::Comma))
@@ -380,10 +392,6 @@ bool Parser::ParseEnumDecl() {
   if (!AdvanceIf(TokenType::RightCurryBracket))
     return Error(ErrorCode::SyntaxEnumDeclRightCurryBracket);
   return true;
-}
-
-void Parser::ParseExpression() {
-  expression_ = nullptr;
 }
 
 bool Parser::ParseFunctionDecl() {
@@ -398,9 +406,8 @@ bool Parser::ParseMaybeType() {
 //  Namespace ::= "{" ExternAliasDirective* UsingDirective*
 //                        NamespaceMemberDecl* "}"
 bool Parser::ParseNamespaceDecl() {
-  DCHECK_EQ(token_->type(), TokenType::Namespace);
-  auto namespace_keyword = token_;
-  Advance();
+  auto const namespace_keyword = ConsumeToken();
+  DCHECK_EQ(namespace_keyword->type(), TokenType::Namespace);
   if (!ParseQualifiedName())
     return false;
   const auto name = name_builder_->Get();
@@ -484,8 +491,7 @@ bool Parser::ParseQualifiedName() {
     PeekToken();
     if (!token_->is_name())
       break;
-    name_builder_->Add(token_);
-    Advance();
+    name_builder_->Add(ConsumeToken());
     if (!AdvanceIf(TokenType::Dot))
       return true;
   }
@@ -502,8 +508,7 @@ bool Parser::ParseTypeParameter() {
 bool Parser::ParseUsingDirectives() {
   DCHECK(namespace_body_->owner()->ToNamespace());
   while (PeekToken() == TokenType::Using) {
-    auto using_keyword = token_;
-    Advance();
+    auto const using_keyword = ConsumeToken();
     if (!ParseQualifiedName())
       return Error(ErrorCode::SyntaxUsingDirectiveName);
     if (AdvanceIf(TokenType::Assign)) {

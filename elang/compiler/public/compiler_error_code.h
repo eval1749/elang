@@ -12,6 +12,11 @@ namespace compiler {
 
 #define COMPILER_ERROR_CODE_LIST(E, W) \
   /*
+   * Parser Expression
+   */ \
+    E(Expression, Conditional, Colon) \
+    E(Expression, Primary, RightParenthesis) \
+  /*
    * Name Resolver
    */ \
     E(NameResolution, Alias, NoTarget) \
@@ -31,6 +36,7 @@ namespace compiler {
       E(Syntax, AliasDef, AliasName) \
       E(Syntax, AliasDef, RealName) \
     /* EnumDecl */ \
+      E(Syntax, EnumDecl, Expression) \
       E(Syntax, EnumDecl, LeftCurryBracket) \
       E(Syntax, EnumDecl, Modifier) \
       E(Syntax, EnumDecl, NameDuplicate) \

@@ -20,7 +20,7 @@ namespace compiler {
 //  'C' contextual keyword
 //  'L' literal
 //  'K' keyword
-//  'N' name
+//  'N' simple name
 //  'O' binary operator followed by precedence from 'a' highest to 'm' lowest.
 //  'P' punctuation
 //  'U' unary operator
@@ -28,11 +28,17 @@ namespace compiler {
 //  'C' character data
 //  'F' float data
 //  'I' integer data
-//  'N' simple name
 //  'S' string data
-//  'a' operator precedence (lowest)
+//
+// Operatos
+//  'a' operator precedence (highest)
 //  ...
-//  'm' operator precedence (highest)
+//  'm' operator precedence (lowest)
+//
+// Keywords
+//  'M' modifier
+//  'P' primary expression
+//  'T' type
 #define TOKEN_LIST(T, K) \
     T(EndOfSource, "EOS", "?") \
 \
@@ -47,137 +53,142 @@ namespace compiler {
     /* Appeared just after name, e.g. |GenericType<|, |Type?|. */ \
     T(LeftAngleBracket, "<", "P") \
     T(OptionalType, "?", "P") \
+    T(Dot, ".", "P") \
+    T(Comma, ",", "P") \
     T(Arrow, "=>", "P") \
 \
     /* Operators */ \
-    T(Comma, ",", "Oa") \
-    T(Assign, "=", "Ob") \
-    T(BitOrAssign, "|=", "Ob") \
-    T(BitAndAssign, "&=", "Ob") \
-    T(BitXorAssign, "&=", "Ob") \
-    T(ShiftLeftAssign, "<<=", "Ob") \
-    T(ShiftRightAssign, ">>=", "Ob") \
-    T(AddAssign, "+=", "Ob") \
-    T(SubAssign, "-=", "Ob") \
-    T(MulAssign, "*=", "Ob") \
-    T(DivAssign, "/=", "Ob") \
-    T(ModAssign, "%=", "Ob") \
-    T(ShlAssign, "<<=", "Ob") \
-    T(ShrAssign, ">>=", "Ob") \
+    T(Assign, "=", "On") \
+    T(BitOrAssign, "|=", "On") \
+    T(BitAndAssign, "&=", "On") \
+    T(BitXorAssign, "&=", "On") \
+    T(ShiftLeftAssign, "<<=", "On") \
+    T(ShiftRightAssign, ">>=", "On") \
+    T(AddAssign, "+=", "On") \
+    T(SubAssign, "-=", "On") \
+    T(MulAssign, "*=", "On") \
+    T(DivAssign, "/=", "On") \
+    T(ModAssign, "%=", "On") \
+    T(ShlAssign, "<<=", "On") \
+    T(ShrAssign, ">>=", "On") \
     /* tenary operations */ \
-    T(QuestionMark, "?", "Oc") \
-    T(NullOr, "??", "Od") \
-    /* logical operations */ \
-    T(Or, "||", "Od") \
-    T(And, "&&", "Oe") \
-    /* bit operations */ \
-    T(BitOr, "|", "Of") \
-    T(BitXor, "^", "Og") \
-    T(BitAnd, "&", "Oh") \
-    /* equality */ \
-    T(Eq, "==", "Oi") \
-    T(Ne, "!=", "Oi") \
-    /* comparison */ \
-    T(Lt, "<", "Oj") \
-    T(Le, "<=", "Oj") \
-    T(Gt, ">", "Oj") \
-    T(Ge, ">=", "Oj") \
-    K(as, "as", "Oj") \
-    T(Shl, "<<", "Ok") \
-    T(Shr, ">>", "Ok") \
-    T(Add, "+", "Ol") \
-    T(Sub, "-", "Ol") \
-    T(Mul, "*", "Om") \
-    T(Div, "/", "Om") \
-    T(Mod, "%", "Om") \
+    T(QuestionMark, "?", "Om") \
+    T(NullOr, "??", "Ol") \
+    T(Or, "||", "Ok") \
+    T(And, "&&", "Oj") \
+    T(BitOr, "|", "Oi") \
+    T(BitXor, "^", "Oh") \
+    T(BitAnd, "&", "Og") \
+    T(Lt, "<", "Of") \
+    T(Le, "<=", "Of") \
+    T(Gt, ">", "Of") \
+    T(Ge, ">=", "Of") \
+    T(Eq, "==", "Oe") \
+    T(Ne, "!=", "Oe") \
+    T(Shl, "<<", "Od") \
+    T(Shr, ">>", "Od") \
+    T(Add, "+", "Oc") \
+    T(Sub, "-", "Oc") \
+    T(Mul, "*", "Ob") \
+    T(Div, "/", "Ob") \
+    T(Mod, "%", "Ob") \
     /* Unary operators */ \
-    T(Decrement, "--", "U") \
-    T(Increment, "++", "U") \
-    T(Dot, ".", "P") \
-    T(Not, "!", "U") \
-    T(BitNot, "~", "U") \
+    T(Decrement, "--", "Oa") \
+    T(Increment, "++", "Oa") \
+    T(Not, "!", "Oa") \
+    T(BitNot, "~", "Oa") \
+    /* |PostDecrement| and |PostIncrment| tokens are produced by parser
+     * rather than lexer.
+     */ \
+    T(PostDecrement, "--", "P") \
+    T(PostIncrement, "++", "P") \
+    /* |UnaryAdd| and |UnarySub| tokens are produced by parser
+     * rather than lexer.
+     */ \
+    T(UnaryAdd, "+", "+") \
+    T(UnarySub, "-", "-") \
     /* Keywords */ \
     /* A */ \
-        K(Abstract, "abstract", "KN") \
+        K(Abstract, "abstract", "KM") \
     /* B */ \
-        K(Break, "break", "KN") \
+        K(Break, "break", "K-") \
     /* C */ \
-        K(Case, "case", "KN") \
-        K(Catch, "catch", "KN") \
-        K(Class, "class", "KN") \
-        K(Const, "const", "KN") \
-        K(Continue, "continue", "KN") \
+        K(Case, "case", "K-") \
+        K(Catch, "catch", "K-") \
+        K(Class, "class", "K-") \
+        K(Const, "const", "K-") \
+        K(Continue, "continue", "K-") \
     /* D */ \
-        K(Default, "default", "KN") \
-        K(Do, "do", "KN") \
+        K(Default, "default", "K-") \
+        K(Do, "do", "K-") \
+        K(DynamicCast, "dynamic_cast", "K-") \
     /* E */ \
-        K(Else, "else", "KN") \
-        K(Enum, "enum", "KN") \
-        K(Explicit, "explicit", "KN") \
-        K(Extends, "extends", "KN") \
-        K(Extern, "extern", "KN") \
+        K(Else, "else", "K-") \
+        K(Enum, "enum", "K-") \
+        K(Explicit, "explicit", "K-") \
+        K(Extern, "extern", "KM") \
     /* F */ \
-        K(Final, "final", "KN") \
-        K(Finally, "finally", "KN") \
-        K(For, "for", "KN") \
-        K(Function, "function", "KN") \
+        K(Final, "final", "KM") \
+        K(Finally, "finally", "K-") \
+        K(For, "for", "K-") \
+        K(Function, "function", "K-") \
     /* G */ \
-        K(Goto, "goto", "KN") \
+        K(Goto, "goto", "K-") \
     /* I */ \
-        K(If, "if", "KN") \
-        K(Implicit, "implicit", "CS") \
-        K(Implements, "implements", "CS") \
-        K(Interface, "interface", "KN") \
+        K(If, "if", "K-") \
+        K(Implicit, "implicit", "C-") \
+        K(Interface, "interface", "K-") \
     /* N */ \
-        K(Namespace, "namespace", "KN") \
-        K(New, "new", "KN") \
+        K(Namespace, "namespace", "K-") \
+        K(New, "new", "K-") \
     /* O */ \
-        K(Override, "override", "KN") \
+        K(Override, "override", "KM") \
     /* P */ \
-        K(Private, "private", "KN") \
-        K(Protected, "protected", "KN") \
-        K(Public, "public", "KN") \
+        K(Private, "private", "KM") \
+        K(Protected, "protected", "KM") \
+        K(Public, "public", "KM") \
     /* R */ \
-        K(Return, "return", "KN") \
+        K(Return, "return", "K-") \
     /* S */ \
-        K(SizeOf, "sizeof", "KN") \
-        K(Static, "static", "KN") \
-        K(Struct, "struct", "KN") \
-        K(Super, "super", "KN") \
-        K(Switch, "switch", "KN") \
+        K(SizeOf, "sizeof", "K-") \
+        K(Static, "static", "KM") \
+        K(StaticCast, "static_cast", "K-") \
+        K(Struct, "struct", "K-") \
+        K(Super, "super", "KP") \
+        K(Switch, "switch", "K-") \
     /* T */ \
-        K(This, "this", "KN") \
-        K(Throw, "throw", "KN") \
-        K(Try, "try", "KN") \
-        K(TypeOf, "typeof", "KN") \
+        K(This, "this", "KP") \
+        K(Throw, "throw", "K-") \
+        K(Try, "try", "K-") \
+        K(TypeOf, "typeof", "K-") \
     /* U */ \
-        K(Using, "using", "KN") \
+        K(Using, "using", "K-") \
     /* V */ \
-        K(Var, "var", "KN") \
-        K(Virtual, "virtual", "KN") \
-        K(Void, "void", "KN") \
-    K(Volatile, "volatile", "KN") \
+        K(Var, "var", "K-") \
+        K(Virtual, "virtual", "KM") \
+        K(Void, "void", "KT") \
+    K(Volatile, "volatile", "KM") \
     /* W */ \
-        K(Where, "where", "CS") \
-        K(While, "while", "KN") \
+        K(Where, "where", "C-") \
+        K(While, "while", "K-") \
     /* Y */ \
-        K(Yield, "yield", "KN") \
+        K(Yield, "yield", "K-") \
     /* known types */ \
-    K(Bool, "bool", "KN") \
-    K(Float32, "float32", "KN") \
-    K(Float64, "float64", "KN") \
-    K(Int8, "int8", "KN") \
-    K(Int16, "int16", "KN") \
-    K(Int32, "int32", "KN") \
-    K(Int64, "int64", "KN") \
-    K(UInt8, "uint8", "KN") \
-    K(UInt16, "uint16", "KN") \
-    K(UInt32, "uint32", "KN") \
-    K(UInt64, "uint64", "KN") \
+    K(Bool, "bool", "KT") \
+    K(Float32, "float32", "KT") \
+    K(Float64, "float64", "KT") \
+    K(Int8, "int8", "KT") \
+    K(Int16, "int16", "KT") \
+    K(Int32, "int32", "KT") \
+    K(Int64, "int64", "KT") \
+    K(UInt8, "uint8", "KT") \
+    K(UInt16, "uint16", "KT") \
+    K(UInt32, "uint32", "KT") \
+    K(UInt64, "uint64", "KT") \
     /* literals */ \
-    K(NullLiteral, "null", "KN") \
-    K(TrueLiteral, "true", "KN") \
-    K(FalseLiteral, "false", "KN") \
+    K(NullLiteral, "null", "KPL") \
+    K(TrueLiteral, "true", "KPL") \
+    K(FalseLiteral, "false", "KPL") \
     T(Float32Literal, "f32", "LF") \
     T(Float64Literal, "f64", "LF") \
     T(Int32Literal, "I32", "LI") \
