@@ -12,6 +12,7 @@
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -110,7 +111,7 @@ void NameResolver::BindAlias(ast::Alias* alias) {
     return;
   }
   if (!target->as<ast::Namespace>()) {
-    session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceOrType,
+    session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
                        alias->target_name().simple_name());
   }
   alias->BindTo(target);
@@ -127,7 +128,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
 
   auto const outer = resolution.value->as<ast::Namespace>();
   if (!outer) {
-    session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceOrType,
+    session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
                        clazz->outer()->simple_name());
     return Maybe<ast::NamespaceMember*>(nullptr);
   }
@@ -159,6 +160,25 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
       is_base_classes_valid = false;
       continue;
     }
+
+    // |base_class| must be an interface except for first one.
+    if (base_class->token().type() == TokenType::Class) {
+      if (!base_classes.empty()) {
+        session_->AddError(ErrorCode::NameResolutionNameNotInterface,
+                           base_class_name.simple_name());
+        is_base_classes_valid = false;
+        continue;
+      }
+    } else if (base_class->token().type() != TokenType::Interface) {
+      session_->AddError(
+        base_classes.empty() ?
+            ErrorCode::NameResolutionNameNeitherClassNortInterface :
+            ErrorCode::NameResolutionNameNotInterface,
+        base_class_name.simple_name());
+      is_base_classes_valid = false;
+      continue;
+    }
+
     if (base_class == outer || outer->IsDescendantOf(base_class)) {
       session_->AddError(ErrorCode::NameResolutionClassContaining,
           base_class_name.simple_name(),
@@ -166,6 +186,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
       is_base_classes_valid = false;
       continue;
     }
+
     // TODO(eval1749) Check |base_class| isn't |final|.
     // TODO(eval1749) We should check accessibility of |base_class|.
     base_classes.push_back(base_class);
@@ -176,8 +197,6 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
   if (!has_value)
     return Maybe<ast::NamespaceMember*>();
 
-  // TODO(eval1749) We should check |base_classes.first()| is proper class
-  // rather than |struct|, |interface|.
   clazz->BindBaseClasses(base_classes);
   return Maybe<ast::NamespaceMember*>(clazz);
 }
@@ -251,7 +270,7 @@ ast::NamespaceMember* NameResolver::ResolveQualifiedName(
     auto const namespaze = resolved->as<ast::Namespace>();
     if (!namespaze) {
       session_->AddError(
-          ErrorCode::NameResolutionNameNeitherNamespaceOrType,
+          ErrorCode::NameResolutionNameNeitherNamespaceNorType,
           simple_name);
       return nullptr;
     }

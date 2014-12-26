@@ -39,8 +39,20 @@ void Class::BindBaseClasses(const std::vector<Class*>& base_classes) {
   DCHECK(!is_fixed_);
   DCHECK(base_classes_.empty());
   DCHECK_EQ(base_classes.size(), base_class_names_.size());
-  // TODO(eval1749) We should check |base_classes.first()| is proper class
-  // rather than |struct|, |interface|.
+#if _DEBUG
+  // We check |base_classes[0]| is proper class rather than |struct|,
+  // |interface|.
+  auto first = true;
+  for (auto const base_class : base_classes) {
+    if (first) {
+      DCHECK(base_class->token().type() == TokenType::Class ||
+             base_class->token().type() == TokenType::Interface);
+      first = false;
+      continue;
+    }
+    DCHECK_EQ(base_class->token().type(), TokenType::Interface);
+  }
+#endif
   base_classes_ = base_classes;
   is_fixed_ = true;
 }

@@ -139,7 +139,33 @@ TEST(NameResolverTest, ClassNested) {
   EXPECT_TRUE(class_b) << "Not found: class A.B";
 }
 
-TEST(NameResolverTest, ErrorClassBaseClass) {
+TEST(NameResolverTest, ErrorClassBaseNotInterface) {
+  TestDriver driver(
+    "class A : B, C {}" // C must be an interface.
+    "class B {}"
+    "class C {}");
+  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
+            driver.RunNameResolver());
+}
+
+TEST(NameResolverTest, ErrorClassBaseClassIsInterface) {
+  TestDriver driver(
+    "class A : B, C {}"
+    "interface B {}"
+    "class C {}");
+  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
+            driver.RunNameResolver());
+}
+
+TEST(NameResolverTest, ErrorClassBaseClassIsStruct) {
+  TestDriver driver(
+    "class A : B {}"
+    "struct B {}");
+  EXPECT_EQ("NameResolution.Name.NeitherClassNortInterface(10) B\n",
+            driver.RunNameResolver());
+}
+
+TEST(NameResolverTest, ErrorClassBaseClassIsNamespace) {
   TestDriver driver(
     "namespace N1 { class A : N1 {} }");
   EXPECT_EQ("NameResolution.Name.NotClass(25) N1\n", driver.RunNameResolver());

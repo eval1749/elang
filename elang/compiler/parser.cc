@@ -256,7 +256,7 @@ bool Parser::ParseClassDecl() {
   if (AdvanceIf(TokenType::Colon)) {
     while (ParseQualifiedName()) {
       clazz->AddBaseClassName(name_builder_->Get());
-      if (AdvanceIf(TokenType::Comma))
+      if (!AdvanceIf(TokenType::Comma))
         break;
     }
   }

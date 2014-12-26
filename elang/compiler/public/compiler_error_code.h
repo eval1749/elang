@@ -18,9 +18,11 @@ namespace compiler {
     E(NameResolution, Class, Containing) \
     E(NameResolution, Name, Ambiguous) \
     E(NameResolution, Name, Cycle) \
-    E(NameResolution, Name, NeitherNamespaceOrType) \
+    E(NameResolution, Name, NeitherClassNortInterface) \
+    E(NameResolution, Name, NeitherNamespaceNorType) \
     E(NameResolution, Name, NotClass) \
     E(NameResolution, Name, NotFound) \
+    E(NameResolution, Name, NotInterface) \
     E(NameResolution, Name, NotNamespace) \
   /*
    * Parser
