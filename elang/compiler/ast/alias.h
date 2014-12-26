@@ -27,8 +27,8 @@ class Alias final : public NamespaceMember {
   private: const QualifiedName target_name_;
   private: NamespaceMember* target_;
 
-  private: Alias(NamespaceBody* namespace_body, const Token& keyword,
-                 const Token& simple_name,
+  private: Alias(NamespaceBody* namespace_body, Token* keyword,
+                 Token* simple_name,
                  const QualifiedName& reference_name);
   public: ~Alias() final;
 

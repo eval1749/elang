@@ -33,12 +33,12 @@ class Enum final : public NamespaceMember {
   private: std::unordered_map<hir::SimpleName*, EnumMember*> map_;
   private: std::vector<EnumMember*> members_;
 
-  public: Enum(NamespaceBody* namespace_body, const Token& keyword,
-               const Token& simple_name);
+  public: Enum(NamespaceBody* namespace_body, Token* keyword,
+               Token* simple_name);
   public: ~Enum() final;
 
   public: void AddMember(EnumMember* member);
-  public: EnumMember* FindMember(const Token& simple_name);
+  public: EnumMember* FindMember(Token* simple_name);
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };

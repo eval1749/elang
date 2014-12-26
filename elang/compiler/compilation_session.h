@@ -11,6 +11,7 @@
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
+#include "elang/compiler/token_data.h"
 
 namespace elang {
 
@@ -32,6 +33,8 @@ class ErrorData;
 class SourceCode;
 class SourceCodeRange;
 class Token;
+class TokenFactory;
+enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -43,6 +46,7 @@ class CompilationSession final {
   private: std::vector<ErrorData*> errors_;
   private: const std::unique_ptr<hir::Factory> hir_factory_;
   private: std::vector<base::StringPiece16*> string_pool_;
+  private: std::unique_ptr<TokenFactory> token_factory_;
 
   private: std::unique_ptr<SourceCode> source_code_;
   private: ast::Namespace* const global_namespace_;
@@ -64,16 +68,18 @@ class CompilationSession final {
     return global_namespace_;
   }
 
-  public: void AddError(ErrorCode error_code, const Token& token);
-  public: void AddError(ErrorCode error_code, const Token& token1,
-                        const Token& token2);
+  public: void AddError(ErrorCode error_code, Token* token);
+  public: void AddError(ErrorCode error_code, Token* token1,
+                        Token* token2);
   // Lexer uses this.
   public: void AddError(const SourceCodeRange& location, ErrorCode error_code);
   private: void AddError(const SourceCodeRange& location, ErrorCode error_code,
-                         const std::vector<Token>& tokens);
+                         const std::vector<Token*>& tokens);
   public: hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
   public: CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   public: base::StringPiece16* NewString(base::StringPiece16 string);
+  public: Token* NewToken(const SourceCodeRange& source_range,
+                          const TokenData& data);
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);
 };

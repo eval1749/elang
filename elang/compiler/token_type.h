@@ -35,7 +35,6 @@ namespace compiler {
 //  'm' operator precedence (highest)
 #define TOKEN_LIST(T, K) \
     T(EndOfSource, "EOS", "?") \
-    T(None, "None", "?") \
 \
     T(Colon, ":", "P") \
     T(SemiColon, ";", "P") \

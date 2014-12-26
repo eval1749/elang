@@ -29,15 +29,15 @@ namespace compiler {
 //
 class Parser::ModifierBuilder final {
   private: int modifiers_;
-  private: std::vector<Token> tokens_;
+  private: std::vector<Token*> tokens_;
   private: Parser* const parser_;
 
   public: ModifierBuilder(Parser* parser);
   public: ~ModifierBuilder() = default;
 
-  public: const std::vector<Token>& tokens() const { return tokens_; }
+  public: const std::vector<Token*>& tokens() const { return tokens_; }
 
-  public: bool Add(const Token& token);
+  public: bool Add(Token* token);
   public: void Reset();
 
   #define T(name, details) \
@@ -54,8 +54,8 @@ Parser::ModifierBuilder::ModifierBuilder(Parser* parser)
     : modifiers_(0), parser_(parser) {
 }
 
-bool Parser::ModifierBuilder::Add(const Token& token) {
-  switch (token.type()) {
+bool Parser::ModifierBuilder::Add(Token* token) {
+  switch (token->type()) {
     #define CASE_CLAUSE(name, details) \
       case TokenType::name: \
         if (Has ## name()) { \
@@ -107,15 +107,15 @@ Parser::NamespaceBodyScope::~NamespaceBodyScope() {
 // QualifiedNameBuilder
 //
 class Parser::QualifiedNameBuilder final {
-  private: std::vector<Token> simple_names_;
+  private: std::vector<Token*> simple_names_;
   public: QualifiedNameBuilder();
   public: ~QualifiedNameBuilder() = default;
 
-  public: const std::vector<Token> simple_names() const {
+  public: const std::vector<Token*> simple_names() const {
     return simple_names_;
   }
 
-  public: void Add(const Token& simple_name);
+  public: void Add(Token* simple_name);
   public: QualifiedName Get() const;
   public: bool IsSimpleName() const { return simple_names_.size() == 1u; }
   public: void Reset();
@@ -126,8 +126,8 @@ class Parser::QualifiedNameBuilder final {
 Parser::QualifiedNameBuilder::QualifiedNameBuilder() : simple_names_(20) {
 }
 
-void Parser::QualifiedNameBuilder::Add(const Token& simple_name) {
-  DCHECK(simple_name.is_name());
+void Parser::QualifiedNameBuilder::Add(Token* simple_name) {
+  DCHECK(simple_name->is_name());
   simple_names_.push_back(simple_name);
 }
 
@@ -147,12 +147,13 @@ void Parser::QualifiedNameBuilder::Reset() {
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
       expression_(nullptr),
+      lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierBuilder(this)),
       name_builder_(new QualifiedNameBuilder()),
       namespace_body_(new ast::NamespaceBody(nullptr,
                                              session->global_namespace())),
       session_(session),
-      lexer_(new Lexer(session, compilation_unit)) {
+      token_(nullptr) {
   namespace_body_->owner()->AddNamespaceBody(namespace_body_);
 }
 
@@ -169,7 +170,8 @@ void Parser::AddMember(ast::NamespaceMember* member) {
 }
 
 void Parser::Advance() {
- token_ = Token();
+ DCHECK(token_);
+ token_ = nullptr;
 }
 
 bool Parser::AdvanceIf(TokenType type) {
@@ -179,8 +181,8 @@ bool Parser::AdvanceIf(TokenType type) {
   return true;
 }
 
-bool Parser::Error(ErrorCode error_code, const Token& token) {
-  DCHECK_NE(token.type(), TokenType::None);
+bool Parser::Error(ErrorCode error_code, Token* token) {
+  DCHECK(token);
   session_->AddError(error_code, token);
   return false;
 }
@@ -189,7 +191,7 @@ bool Parser::Error(ErrorCode error_code) {
   return Error(error_code, token_);
 }
 
-ast::NamespaceMember* Parser::FindMember(const Token& simple_name) {
+ast::NamespaceMember* Parser::FindMember(Token* simple_name) {
   return namespace_body_->FindMember(simple_name);
 }
 
@@ -212,7 +214,7 @@ bool Parser::ParseClassDecl() {
     auto has_accessibility = false;
     auto has_inheritance = false;
     for (const auto& token : modifiers_->tokens()) {
-      switch (token.type()) {
+      switch (token->type()) {
         case TokenType::Abstract:
         case TokenType::New:
         case TokenType::Static:
@@ -240,7 +242,7 @@ bool Parser::ParseClassDecl() {
   Advance();
   PeekToken();
   auto simple_name = token_;
-  if (!simple_name.is_name())
+  if (!simple_name->is_name())
     return Error(ErrorCode::SyntaxClassDeclName);
   if (FindMember(simple_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate);
@@ -318,7 +320,7 @@ bool Parser::ParseClassDecl() {
     if (!ParseMaybeType())
       break;
     PeekToken();
-    if (!token_.is_name())
+    if (!token_->is_name())
       return Error(ErrorCode::SyntaxFieldDeclName);
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxFieldDeclSemiColon);
@@ -344,11 +346,11 @@ bool Parser::ParseCompilationUnit() {
 // EnumDecl := EnumModifier* "enum" Name "{" EnumField* "}"
 // EnumField ::= Name ("=" Expression)? ","?
 bool Parser::ParseEnumDecl() {
-  DCHECK_EQ(token_.type(), TokenType::Enum);
+  DCHECK_EQ(token_->type(), TokenType::Enum);
   auto enum_keyword = token_;
   Advance();
   PeekToken();
-  if (!token_.is_name())
+  if (!token_->is_name())
     return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
   auto enum_name = token_;
   if (FindMember(enum_name))
@@ -361,14 +363,14 @@ bool Parser::ParseEnumDecl() {
     return Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
   for (;;) {
     PeekToken();
-    if (!token_.is_name())
+    if (!token_->is_name())
       break;
-    auto member_name = token_;
+    auto const member_name = token_;
     Advance();
     DCHECK(!expression_);
     if (AdvanceIf(TokenType::Assign))
       ParseExpression();
-    enum_decl->AddMember(factory()->NewEnumMember(enum_decl, enum_name,
+    enum_decl->AddMember(factory()->NewEnumMember(enum_decl, member_name,
                                                   expression_));
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
@@ -396,7 +398,7 @@ bool Parser::ParseMaybeType() {
 //  Namespace ::= "{" ExternAliasDirective* UsingDirective*
 //                        NamespaceMemberDecl* "}"
 bool Parser::ParseNamespaceDecl() {
-  DCHECK_EQ(token_.type(), TokenType::Namespace);
+  DCHECK_EQ(token_->type(), TokenType::Namespace);
   auto namespace_keyword = token_;
   Advance();
   if (!ParseQualifiedName())
@@ -405,8 +407,8 @@ bool Parser::ParseNamespaceDecl() {
   return ParseNamespaceDecl(namespace_keyword, name.simple_names(), 0);
 }
 
-bool Parser::ParseNamespaceDecl(const Token& namespace_keyword,
-                                const std::vector<Token>& names,
+bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
+                                const std::vector<Token*>& names,
                                 size_t index) {
   auto const simple_name = names[index];
   ast::Namespace* new_namespace = nullptr;
@@ -480,7 +482,7 @@ bool Parser::ParseQualifiedName() {
   name_builder_->Reset();
   for (;;) {
     PeekToken();
-    if (!token_.is_name())
+    if (!token_->is_name())
       break;
     name_builder_->Add(token_);
     Advance();
@@ -522,10 +524,10 @@ bool Parser::ParseUsingDirectives() {
 }
 
 TokenType Parser::PeekToken() {
-  if (token_.type() != TokenType::None)
-    return token_.type();
+  if (token_)
+    return token_->type();
   token_ = lexer_->GetToken();
-  return token_.type();
+  return token_->type();
 }
 
 bool Parser::Run() {

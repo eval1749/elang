@@ -17,10 +17,10 @@ namespace compiler {
 // QualifiedName
 //
 class QualifiedName final {
-  private: std::vector<Token> simple_names_;
+  private: std::vector<Token*> simple_names_;
 
-  public: explicit QualifiedName(const std::vector<Token>& simple_names);
-  public: explicit QualifiedName(const Token& simple_name);
+  public: explicit QualifiedName(const std::vector<Token*>& simple_names);
+  public: explicit QualifiedName(Token* simple_name);
   public: QualifiedName(const QualifiedName& other);
   public: QualifiedName(QualifiedName&& other);
   public: ~QualifiedName();
@@ -28,8 +28,8 @@ class QualifiedName final {
   public: QualifiedName& operator=(const QualifiedName& other);
   public: QualifiedName& operator=(QualifiedName&& other);
 
-  public: const Token& simple_name() const { return simple_names_.back(); }
-  public: const std::vector<Token>& simple_names() const {
+  public: Token* simple_name() const { return simple_names_.back(); }
+  public: const std::vector<Token*>& simple_names() const {
     return simple_names_;
   }
 };

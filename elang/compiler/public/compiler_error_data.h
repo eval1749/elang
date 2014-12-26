@@ -24,17 +24,17 @@ class Token;
 class ErrorData final {
   private: SourceCodeRange source_code_location_;
   private: ErrorCode error_code_;
-  private: std::vector<Token> tokens_;
+  private: std::vector<Token*> tokens_;
 
   public: ErrorData(const SourceCodeRange& location, ErrorCode error_code,
-                    const std::vector<Token>& tokens_);
+                    const std::vector<Token*>& tokens_);
   public: ~ErrorData();
 
   public: ErrorCode error_code() const { return error_code_; }
   public: const SourceCodeRange& location() const {
     return source_code_location_;
   }
-  public: const std::vector<Token>& tokens() const { return tokens_; }
+  public: const std::vector<Token*>& tokens() const { return tokens_; }
 
   DISALLOW_COPY_AND_ASSIGN(ErrorData);
 };

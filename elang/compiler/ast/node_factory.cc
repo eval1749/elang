@@ -28,7 +28,7 @@ NodeFactory::~NodeFactory() {
 }
 
 Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
-                             const Token& keyword, const Token& simple_name,
+                             Token* keyword, Token* simple_name,
                              const QualifiedName& target_name) {
   auto const node = new Alias(namespace_body, keyword, simple_name,
                               target_name);
@@ -37,20 +37,20 @@ Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
 }
 
 Class* NodeFactory::NewClass(NamespaceBody* namespace_body,
-                             const Token& keyword, const Token& simple_name) {
+                             Token* keyword, Token* simple_name) {
   auto const node = new Class(namespace_body, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
 }
 
 Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
-                           const Token& keyword, const Token& simple_name) {
+                           Token* keyword, Token* simple_name) {
   auto const node = new Enum(namespace_body, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;
 }
 
-EnumMember* NodeFactory::NewEnumMember(Enum* owner, const Token& simple_name,
+EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* simple_name,
                                        Expression* expression) {
   auto const node = new EnumMember(owner, simple_name, expression);
   nodes_.push_back(std::unique_ptr<Node>(node));
@@ -58,9 +58,9 @@ EnumMember* NodeFactory::NewEnumMember(Enum* owner, const Token& simple_name,
 }
 
 Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
-                                     const Token& keyword,
-                                     const Token& simple_name) {
-  DCHECK_EQ(keyword.type(), TokenType::Namespace);
+                                     Token* keyword,
+                                     Token* simple_name) {
+  DCHECK_EQ(keyword->type(), TokenType::Namespace);
   auto const node = new Namespace(namespace_body, keyword, simple_name);
   nodes_.push_back(std::unique_ptr<Node>(node));
   return node;

@@ -12,7 +12,7 @@ namespace ast {
 //
 // Node
 //
-Node::Node(const Token& token) : token_(token) {
+Node::Node(Token* token) : token_(token) {
 }
 
 Node::~Node() {

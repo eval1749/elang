@@ -30,12 +30,12 @@ class TestLexer final {
   private: Lexer lexer_;
 
   public: TestLexer(const base::string16& source);
-  public: Token Get();
-  public: Token MakeToken(int start, int end, float32_t f32);
-  public: Token MakeToken(int start, int end, float64_t f64);
-  public: Token MakeToken(TokenType type, int start, int end,
+  public: Token* Get();
+  public: Token* MakeToken(int start, int end, float32_t f32);
+  public: Token* MakeToken(int start, int end, float64_t f64);
+  public: Token* MakeToken(TokenType type, int start, int end,
                           const base::StringPiece16& data);
-  public: Token MakeToken(TokenType type, int start, int end, uint64_t u64);
+  public: Token* MakeToken(TokenType type, int start, int end, uint64_t u64);
 
   DISALLOW_COPY_AND_ASSIGN(TestLexer);
 };
@@ -46,29 +46,30 @@ TestLexer::TestLexer(const base::string16& string)
       lexer_(&session_, &compilation_unit_) {
 }
 
-Token TestLexer::Get() {
+Token* TestLexer::Get() {
   return lexer_.GetToken();
 }
 
-Token TestLexer::MakeToken(int start, int end, float32_t f32) {
+Token* TestLexer::MakeToken(int start, int end, float32_t f32) {
   auto location = SourceCodeRange(&source_code_, start, end);
-  return Token(location, f32);
+  return session_.NewToken(location, TokenData(f32));
 }
 
-Token TestLexer::MakeToken(int start, int end, float64_t f64) {
+Token* TestLexer::MakeToken(int start, int end, float64_t f64) {
   auto location = SourceCodeRange(&source_code_, start, end);
-  return Token(location, f64);
+  return session_.NewToken(location, TokenData(f64));
 }
 
-Token TestLexer::MakeToken(TokenType type, int start, int end,
+Token* TestLexer::MakeToken(TokenType type, int start, int end,
                            const base::StringPiece16& data) {
   auto location = SourceCodeRange(&source_code_, start, end);
   if (type == TokenType::StringLiteral)
-    return Token(location, session_.NewString(data));
-  return Token(location, type, session_.GetOrCreateSimpleName(data));
+    return session_.NewToken(location, TokenData(session_.NewString(data)));
+  auto const simple_name = session_.GetOrCreateSimpleName(data);
+  return session_.NewToken(location, TokenData(type, simple_name));
 }
 
-Token TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
+Token* TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
   DCHECK_NE(type, TokenType::SimpleName);
   auto location = SourceCodeRange(&source_code_, start, end);
   switch (type){
@@ -77,29 +78,12 @@ Token TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
     case TokenType::Int64Literal:
     case TokenType::UInt32Literal:
     case TokenType::UInt64Literal:
-      return Token(location, type, u64);
+      return session_.NewToken(location, TokenData(type, u64));
   }
-  return Token(location, type);
+  return session_.NewToken(location, TokenData(type));
 }
 
 }  // namespace
-
-bool operator==(const Token& token1, const Token& token2) {
-  if (token1.type() != token2.type() || token1.location() != token2.location())
-    return false;
-  switch (token1.type()) {
-    case TokenType::Int32Literal:
-    case TokenType::Int64Literal:
-    case TokenType::UInt32Literal:
-    case TokenType::UInt64Literal:
-      return token1.int64_data() == token2.int64_data();
-    case TokenType::SimpleName:
-      return token1.simple_name() == token2.simple_name();
-    case TokenType::StringLiteral:
-      return token1.string_data() == token2.string_data();
-  }
-  return true;
-}
 
 char ToHexDigit(int n) {
   auto const n4 = n & 15;
@@ -109,18 +93,18 @@ char ToHexDigit(int n) {
 }
 
 void PrintTo(const Token& token, ::std::ostream* ostream) {
-  *ostream << token << "(" << token.location().start().offset() <<
+  *ostream << token.data() << "(" << token.location().start().offset() <<
       " " << token.location().end().offset() << ")";
 }
 
 #define EXPECT_FLOAT_TOKEN(start, end, data) \
-  EXPECT_EQ(lexer.MakeToken(start, end, data), lexer.Get())
+  EXPECT_EQ(*lexer.MakeToken(start, end, data), *lexer.Get())
 
 #define EXPECT_OPERATOR_TOKEN(type, start, end) \
-  EXPECT_EQ(lexer.MakeToken(TokenType::type, start, end, 1), lexer.Get())
+  EXPECT_EQ(*lexer.MakeToken(TokenType::type, start, end, 1), *lexer.Get())
 
 #define EXPECT_TOKEN(type, start, end, data) \
-  EXPECT_EQ(lexer.MakeToken(TokenType::type, start, end, data), lexer.Get())
+  EXPECT_EQ(*lexer.MakeToken(TokenType::type, start, end, data), *lexer.Get())
 
 TEST(LexerTest, Basic) {
   TestLexer lexer(
@@ -212,15 +196,15 @@ TEST(LexerTest, Integers) {
   EXPECT_TOKEN(UInt32Literal, 97,  103, 127);
   EXPECT_TOKEN(UInt32Literal, 105, 112, 0x7FE5);
 
-  EXPECT_TOKEN(UInt64Literal, 121, 128, 1234);
-  EXPECT_TOKEN(UInt64Literal, 128, 137, 5);
-  EXPECT_TOKEN(UInt64Literal, 137, 145, 127);
-  EXPECT_TOKEN(UInt64Literal, 145, 154, 0x7FE5);
+  EXPECT_TOKEN(UInt64Literal, 121, 127, 1234);
+  EXPECT_TOKEN(UInt64Literal, 128, 136, 5);
+  EXPECT_TOKEN(UInt64Literal, 137, 144, 127);
+  EXPECT_TOKEN(UInt64Literal, 145, 153, 0x7FE5);
 
-  EXPECT_TOKEN(UInt64Literal, 161, 168, 1234);
-  EXPECT_TOKEN(UInt64Literal, 168, 177, 5);
-  EXPECT_TOKEN(UInt64Literal, 177, 185, 127);
-  EXPECT_TOKEN(UInt64Literal, 185, 194, 0x7FE5);
+  EXPECT_TOKEN(UInt64Literal, 161, 167, 1234);
+  EXPECT_TOKEN(UInt64Literal, 168, 176, 5);
+  EXPECT_TOKEN(UInt64Literal, 177, 184, 127);
+  EXPECT_TOKEN(UInt64Literal, 185, 193, 0x7FE5);
 }
 
 TEST(LexerTest, Operators) {
@@ -293,20 +277,20 @@ TEST(LexerTest, Operators) {
 TEST(LexerTest, Reals) {
   TestLexer lexer(
   //  0123456789012345678901234567890123456789
-    L"    0.0  1.34  2.5E10  3.5e+10  46E-109 "
-    L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-109f"
+    L"    0.0  1.34  2.5E10  3.5e+10  46E-11  "
+    L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-11f "
   );
   EXPECT_FLOAT_TOKEN(4, 7, 0.0);
   EXPECT_FLOAT_TOKEN(9, 13, 1.34);
   EXPECT_FLOAT_TOKEN(15, 21, 2.5E10);
   EXPECT_FLOAT_TOKEN(23, 30, 3.5E10);
-  EXPECT_FLOAT_TOKEN(32, 39, 46E-109);
+  EXPECT_FLOAT_TOKEN(32, 38, 46E-11);
 
   EXPECT_FLOAT_TOKEN(44, 48, 0.0f);
   EXPECT_FLOAT_TOKEN(49, 54, 1.34f);
   EXPECT_FLOAT_TOKEN(55, 62, 2.5E10f);
   EXPECT_FLOAT_TOKEN(63, 71, 3.5E10f);
-  EXPECT_FLOAT_TOKEN(72, 80, 46E-109f);
+  EXPECT_FLOAT_TOKEN(72, 79, 46E-11f);
 }
 
 TEST(LexerTest, Strings) {

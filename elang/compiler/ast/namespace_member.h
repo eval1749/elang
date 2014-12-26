@@ -24,16 +24,16 @@ class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
   private: NamespaceBody* const namespace_body_;
-  private: const Token simple_name_;
+  private: Token* const simple_name_;
 
   public: NamespaceMember(NamespaceBody* namespace_body,
-                          const Token& keyword_or_name,
-                          const Token& simple_name);
+                          Token* keyword_or_name,
+                          Token* simple_name);
   public: ~NamespaceMember() override;
 
   public: NamespaceBody* namespace_body() const { return namespace_body_; }
   public: Namespace* outer() const;
-  public: const Token& simple_name() const { return simple_name_; }
+  public: Token* simple_name() const { return simple_name_; }
 
   public: bool IsDescendantOf(const NamespaceMember* other) const;
   public: virtual Namespace* ToNamespace();

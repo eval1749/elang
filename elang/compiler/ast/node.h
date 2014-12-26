@@ -22,12 +22,12 @@ namespace ast {
 class Node : public Castable {
   DECLARE_CASTABLE_CLASS(Node, Castable);
 
-  private: const Token token_;
+  private: Token* const token_;
 
-  protected: Node(const Token& token);
+  protected: Node(Token* token);
   public: virtual ~Node();
 
-  public: const Token& token() const { return token_; }
+  public: Token* token() const { return token_; }
 
   DISALLOW_COPY_AND_ASSIGN(Node);
 };

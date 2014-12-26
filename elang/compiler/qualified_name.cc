@@ -13,7 +13,7 @@ namespace compiler {
 //
 // QualifiedName
 //
-QualifiedName::QualifiedName(const std::vector<Token>& simple_names)
+QualifiedName::QualifiedName(const std::vector<Token*>& simple_names)
     : simple_names_(simple_names) {
 #if DEBUG
   for (const auto& name : simple_names_)
@@ -25,9 +25,9 @@ QualifiedName::QualifiedName(const QualifiedName& other)
     : simple_names_(other.simple_names_) {
 }
 
-QualifiedName::QualifiedName(const Token& simple_name)
-    : simple_names_(std::vector<Token> { simple_name }) {
-  DCHECK(simple_name.is_name());
+QualifiedName::QualifiedName(Token* simple_name)
+    : simple_names_(std::vector<Token*> { simple_name }) {
+  DCHECK(simple_name->is_name());
 }
 
 QualifiedName::QualifiedName(QualifiedName&& other)

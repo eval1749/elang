@@ -19,12 +19,12 @@ namespace ast {
 // NamespaceBody::ImportDef
 //
 struct NamespaceBody::ImportDef {
-    Token keyword;
+    Token* keyword;
     QualifiedName name;
-    ImportDef(const Token& keyword, const QualifiedName& real_name);
+    ImportDef(Token* keyword, const QualifiedName& real_name);
 };
 
-NamespaceBody::ImportDef::ImportDef(const Token& keyword,
+NamespaceBody::ImportDef::ImportDef(Token* keyword,
                                     const QualifiedName& name)
     : keyword(keyword), name(name) {
 }
@@ -39,7 +39,7 @@ NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
     DCHECK_EQ(outer_->owner(), owner->outer());
   } else {
     DCHECK(!owner->outer());
-    DCHECK(owner->token().type() == TokenType::Namespace);
+    DCHECK(owner->token()->type() == TokenType::Namespace);
   }
 }
 
@@ -53,16 +53,16 @@ const std::vector<Alias*>& NamespaceBody::aliases() const {
   return aliases_;
 }
 
-void NamespaceBody::AddImport(const Token& keyword, const QualifiedName& name) {
+void NamespaceBody::AddImport(Token* keyword, const QualifiedName& name) {
   DCHECK(owner_->ToNamespace());
-  DCHECK_EQ(keyword.type(), TokenType::Using);
+  DCHECK_EQ(keyword->type(), TokenType::Using);
   import_defs_.push_back(new ImportDef(keyword, name));
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
   DCHECK(owner_->ToNamespace());
   aliases_.push_back(alias);
-  alias_map_[alias->simple_name().id()] = alias;
+  alias_map_[alias->simple_name()->simple_name()] = alias;
   members_.push_back(alias);
 }
 
@@ -72,13 +72,13 @@ void NamespaceBody::AddMember(NamespaceMember* member) {
   members_.push_back(member);
 }
 
-Alias* NamespaceBody::FindAlias(const Token& simple_name) {
+Alias* NamespaceBody::FindAlias(Token* simple_name) {
   DCHECK(owner_->ToNamespace());
-  auto const it = alias_map_.find(simple_name.id());
+  auto const it = alias_map_.find(simple_name->simple_name());
   return it == alias_map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* NamespaceBody::FindMember(const Token& simple_name) {
+NamespaceMember* NamespaceBody::FindMember(Token* simple_name) {
   return owner_->FindMember(simple_name);
 }
 

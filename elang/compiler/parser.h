@@ -39,12 +39,12 @@ class Parser final {
 
   private: CompilationUnit* compilation_unit_;
   private: ast::Expression* expression_;
-  private: ast::NamespaceBody* namespace_body_;
+  private: const std::unique_ptr<Lexer> lexer_;
   private: std::unique_ptr<ModifierBuilder> modifiers_;
+  private: ast::NamespaceBody* namespace_body_;
   private: std::unique_ptr<QualifiedNameBuilder> name_builder_;
   private: CompilationSession* session_;
-  private: Token token_;
-  private: const std::unique_ptr<Lexer> lexer_;
+  private: Token* token_;
 
   public: Parser(CompilationSession* session,
                  CompilationUnit* compilation_unit);
@@ -58,8 +58,8 @@ class Parser final {
   private: bool AdvanceIf(TokenType type);
   // Always returns false for simplify error processing.
   private: bool Error(ErrorCode error_code);
-  private: bool Error(ErrorCode error_code, const Token& token);
-  private: ast::NamespaceMember* FindMember(const Token& token);
+  private: bool Error(ErrorCode error_code, Token* token);
+  private: ast::NamespaceMember* FindMember(Token* token);
   private: bool ParseClassDecl();
   private: bool ParseEnumDecl();
   private: void ParseExpression();
@@ -67,8 +67,8 @@ class Parser final {
   private: bool ParseCompilationUnit();
   private: bool ParseMaybeType();
   private: bool ParseNamespaceDecl();
-  private: bool ParseNamespaceDecl(const Token& namespace_keyword,
-                                   const std::vector<Token>& names,
+  private: bool ParseNamespaceDecl(Token* namespace_keyword,
+                                   const std::vector<Token*>& names,
                                    size_t index);
   private: bool ParseNamespaceMemberDecls();
   // Returns false if no name, otherwise true.

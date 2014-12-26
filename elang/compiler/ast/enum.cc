@@ -18,11 +18,11 @@ namespace ast {
 //
 // Enum
 //
-Enum::Enum(NamespaceBody* namespace_body, const Token& keyword,
-           const Token& simple_name)
+Enum::Enum(NamespaceBody* namespace_body, Token* keyword,
+           Token* simple_name)
     : NamespaceMember(namespace_body, keyword, simple_name) {
-  DCHECK_EQ(keyword.type(), TokenType::Enum);
-  DCHECK(simple_name.is_name());
+  DCHECK_EQ(keyword->type(), TokenType::Enum);
+  DCHECK(simple_name->is_name());
 }
 
 Enum::~Enum() {
@@ -30,12 +30,12 @@ Enum::~Enum() {
 
 void Enum::AddMember(EnumMember* member) {
   if (!FindMember(member->simple_name()))
-    map_[member->simple_name().id()] = member;
+    map_[member->simple_name()->simple_name()] = member;
   members_.push_back(member);
 }
 
-EnumMember* Enum::FindMember(const Token& simple_name) {
-  auto const it = map_.find(simple_name.id());
+EnumMember* Enum::FindMember(Token* simple_name) {
+  auto const it = map_.find(simple_name->simple_name());
   return it == map_.end() ? nullptr : it->second;
 }
 

@@ -17,8 +17,8 @@ namespace ast {
 //
 // Namespace
 //
-Namespace::Namespace(NamespaceBody* namespace_body, const Token& keyword,
-                     const Token& simple_name)
+Namespace::Namespace(NamespaceBody* namespace_body, Token* keyword,
+                     Token* simple_name)
     : NamespaceMember(namespace_body, keyword, simple_name) {
 }
 
@@ -30,7 +30,7 @@ void Namespace::AddMember(NamespaceMember* member) {
   // We keep first member declaration.
   if (FindMember(member->simple_name()))
     return;
-  map_[member->simple_name().id()] = member;
+  map_[member->simple_name()->simple_name()] = member;
 }
 
 void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
@@ -42,8 +42,8 @@ NamespaceMember* Namespace::FindMember(hir::SimpleName* simple_name) {
   return it == map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* Namespace::FindMember(const Token& simple_name) {
-  return FindMember(simple_name.id());
+NamespaceMember* Namespace::FindMember(Token* simple_name) {
+  return FindMember(simple_name->simple_name());
 }
 
 // NamespaceMember

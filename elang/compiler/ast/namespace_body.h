@@ -46,12 +46,12 @@ class NamespaceBody final {
   public: NamespaceBody* outer() const { return outer_; }
   public: Namespace* owner() const { return owner_; }
 
-  public: void AddImport(const Token& import_keyword,
+  public: void AddImport(Token* import_keyword,
                          const QualifiedName& name);
   public: void AddAlias(Alias* alias);
   public: void AddMember(NamespaceMember* member);
-  public: Alias* FindAlias(const Token& simple_name);
-  public: NamespaceMember* FindMember(const Token& simple_name);
+  public: Alias* FindAlias(Token* simple_name);
+  public: NamespaceMember* FindMember(Token* simple_name);
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };

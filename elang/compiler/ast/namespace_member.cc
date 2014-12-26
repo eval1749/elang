@@ -18,13 +18,13 @@ namespace ast {
 // NamespaceMember
 //
 NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
-                                 const Token& keyword_or_name,
-                                 const Token& simple_name)
+                                 Token* keyword_or_name,
+                                 Token* simple_name)
     : Node(keyword_or_name),
       namespace_body_(namespace_body),
       simple_name_(simple_name) {
-  DCHECK(simple_name.is_name());
-  DCHECK(namespace_body_ || keyword_or_name.type() == TokenType::Namespace);
+  DCHECK(simple_name->is_name());
+  DCHECK(namespace_body_ || keyword_or_name->type() == TokenType::Namespace);
 }
 
 NamespaceMember::~NamespaceMember() {

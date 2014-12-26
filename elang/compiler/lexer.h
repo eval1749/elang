@@ -9,6 +9,7 @@
 
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
+#include "elang/base/types.h"
 #include "elang/compiler/character_stream.h"
 
 namespace elang {
@@ -19,6 +20,7 @@ class CompilationUnit;
 enum class ErrorCode;
 class SourceCodeRange;
 class Token;
+class TokenData;
 enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
@@ -44,24 +46,28 @@ class Lexer final {
 
   private: void Advance();
   private: bool AdvanceIf(base::char16 char_code);
+  private: bool AdvanceIfEither(base::char16 char_code1, base::char16 char_code2);
   private: SourceCodeRange ComputeLocation();
   private: SourceCodeRange ComputeLocation(int length);
-  private: Token Error(ErrorCode error_code);
-  public: Token GetToken();
-  private: Token HandleAfterDecimalPoint(uint64_t int_part);
-  private: Token HandleAtMark();
-  private: Token HandleExponent(uint64_t u64, int exponent_offset);
-  private: Token HandleInteger(int base);
-  private: Token HandleIntegerOrReal(int digit);
-  private: Token HandleIntegerSuffix(uint64_t value);
-  private: Token HandleMayBeEq(TokenType with_eq, TokenType without_eq);
-  private: Token HandleName(base::char16 char_code);
-  private: Token HandleOneChar(TokenType token_type);
-  private: Token HandleStringLiteral(base::char16 quote_code);
-  private: Token HandleZero();
+  private: Token* Error(ErrorCode error_code);
+  public: Token* GetToken();
+  private: Token* HandleAfterDecimalPoint(uint64_t int_part);
+  private: Token* HandleAtMark();
+  private: Token* HandleExponent(uint64_t u64, int exponent_offset);
+  private: Token* HandleInteger(int base);
+  private: Token* HandleIntegerOrReal(int digit);
+  private: Token* HandleIntegerSuffix(uint64_t value);
+  private: Token* HandleMayBeEq(TokenType with_eq, TokenType without_eq);
+  private: Token* HandleName(base::char16 char_code);
+  private: Token* HandleOneChar(TokenType token_type);
+  private: Token* HandleStringLiteral(base::char16 quote_code);
+  private: Token* HandleZero();
   private: bool IsAtEndOfStream();
-  private: Token NewFloatLiteral(TokenType token_type, uint64_t u64,
+  private: Token* NewFloatLiteral(TokenType token_type, uint64_t u64,
                                  int exponent);
+  private: Token* NewIntLiteral(TokenType token_type, uint64_t u64);
+  private: Token* NewToken(TokenType token_type);
+  private: Token* NewToken(const TokenData& token_data);
   private: base::char16 PeekChar();
   private: void SkipLineComment();
   private: bool SkipBlockComment();
@@ -74,4 +80,3 @@ class Lexer final {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_lexer_h)
-

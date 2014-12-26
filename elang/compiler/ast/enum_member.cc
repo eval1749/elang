@@ -14,10 +14,10 @@ namespace ast {
 //
 // EnumMember
 //
-EnumMember::EnumMember(Enum* owner, const Token& simple_name,
+EnumMember::EnumMember(Enum* owner, Token* simple_name,
                        Expression* expression)
     : Node(simple_name), expression_(expression) {
-  DCHECK(simple_name.is_name());
+  DCHECK(simple_name->is_name());
 }
 
 EnumMember::~EnumMember() {

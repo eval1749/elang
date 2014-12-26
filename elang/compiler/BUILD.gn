@@ -51,6 +51,10 @@ static_library("compiler") {
     "string_stream.cc",
     "token.cc",
     "token.h",
+    "token_data.cc",
+    "token_data.h",
+    "token_factory.cc",
+    "token_factory.h",
     "token_type.cc",
     "token_type.h",
   ]

@@ -15,13 +15,13 @@ namespace ast {
 //
 // Class
 //
-Class::Class(NamespaceBody* namespace_body, const Token& keyword,
-             const Token& simple_name)
+Class::Class(NamespaceBody* namespace_body, Token* keyword,
+             Token* simple_name)
     : Namespace(namespace_body, keyword, simple_name),
       is_fixed_(false) {
-  DCHECK(keyword.type() == TokenType::Class ||
-         keyword.type() == TokenType::Interface ||
-         keyword.type() == TokenType::Struct);
+  DCHECK(keyword->type() == TokenType::Class ||
+         keyword->type() == TokenType::Interface ||
+         keyword->type() == TokenType::Struct);
 }
 
 Class::~Class() {
@@ -47,12 +47,12 @@ void Class::BindBaseClasses(const std::vector<Class*>& base_classes) {
   auto first = true;
   for (auto const base_class : base_classes) {
     if (first) {
-      DCHECK(base_class->token().type() == TokenType::Class ||
-             base_class->token().type() == TokenType::Interface);
+      DCHECK(base_class->token()->type() == TokenType::Class ||
+             base_class->token()->type() == TokenType::Interface);
       first = false;
       continue;
     }
-    DCHECK_EQ(base_class->token().type(), TokenType::Interface);
+    DCHECK_EQ(base_class->token()->type(), TokenType::Interface);
   }
 #endif
   base_classes_ = base_classes;

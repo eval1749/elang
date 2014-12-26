@@ -37,18 +37,18 @@ class NodeFactory final {
   public: NodeFactory();
   public: ~NodeFactory();
 
-  public: Alias* NewAlias(NamespaceBody* namespace_body, const Token& keyword,
-                          const Token& simple_name,
+  public: Alias* NewAlias(NamespaceBody* namespace_body, Token* keyword,
+                          Token* simple_name,
                           const QualifiedName& target_name);
-  public: Class* NewClass(NamespaceBody* namespace_body, const Token& keyword,
-                          const Token& simple_name);
-  public: Enum* NewEnum(NamespaceBody* namespace_body, const Token& keyword,
-                        const Token& simple_name);
-  public: EnumMember* NewEnumMember(Enum* owner, const Token& simple_name,
+  public: Class* NewClass(NamespaceBody* namespace_body, Token* keyword,
+                          Token* simple_name);
+  public: Enum* NewEnum(NamespaceBody* namespace_body, Token* keyword,
+                        Token* simple_name);
+  public: EnumMember* NewEnumMember(Enum* owner, Token* simple_name,
                                     Expression* expression);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
-                                  const Token& keyword,
-                                  const Token& simple_name);
+                                  Token* keyword,
+                                  Token* simple_name);
   public: void RemoveAll();
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);

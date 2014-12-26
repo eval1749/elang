@@ -34,7 +34,7 @@ class Namespace : public NamespaceMember {
   private: std::unordered_map<hir::SimpleName*, NamespaceMember*> map_;
 
   protected: Namespace(NamespaceBody* namespace_body,
-                       const Token& keyword, const Token& simple_name);
+                       Token* keyword, Token* simple_name);
   public: ~Namespace() override;
 
   public: const std::vector<NamespaceBody*> bodies() const { return bodies_; }
@@ -42,7 +42,7 @@ class Namespace : public NamespaceMember {
   public: void AddMember(NamespaceMember* member);
   public: void AddNamespaceBody(NamespaceBody* outer);
   public: NamespaceMember* FindMember(hir::SimpleName* simple_name);
-  public: NamespaceMember* FindMember(const Token& simple_name);
+  public: NamespaceMember* FindMember(Token* simple_name);
 
   // NamespaceMember
   public: Namespace* ToNamespace() override;
