@@ -23,7 +23,7 @@ struct Maybe {
 
 // Convenience wrapper.
 template<typename T>
-Maybe<T> maybe(T t) {
+Maybe<T> make_maybe(T t) {
   return Maybe<T>(t);
 }
 
