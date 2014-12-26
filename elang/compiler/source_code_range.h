@@ -33,6 +33,7 @@ class SourceCodeRange {
   public: SourceCodePosition end() const;
   public: SourceCode* source_code() const { return source_code_; }
   public: SourceCodePosition start() const;
+  public: int start_offset() const { return start_offset_; }
 };
 
 }  // namespace compiler

@@ -99,9 +99,9 @@ TEST(NameResolverTest, ErrorAliasScopeResolution) {
     "  using R2 = N1.N2;"
     "  using R3 = R1.N2;" // Error: R1 is unknown.
     "}");
-  EXPECT_EQ("NameResolution.Name.NotFound(80) R1\n"
-            "NameResolution.Alias.NoTarget(75) R3\n",
-             driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Alias.NoTarget(75) R3\n"
+            "NameResolution.Name.NotFound(80) R1\n",
+            driver.RunNameResolver());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -150,9 +150,9 @@ TEST(NameResolverTest, ErrorClassCircularlyDependency) {
     "class A : B {}"
     "class B : C {}"
     "class C : A {}");
-  EXPECT_EQ("NameResolution.Name.Cycle(20) B A\n"
-            "NameResolution.Name.Cycle(34) C B\n"
-            "NameResolution.Name.Cycle(6) A C\n",
+  EXPECT_EQ("NameResolution.Name.Cycle(6) A C\n"
+            "NameResolution.Name.Cycle(20) B A\n"
+            "NameResolution.Name.Cycle(34) C B\n",
             driver.RunNameResolver());
 }
 
@@ -162,9 +162,9 @@ TEST(NameResolverTest, ErrorClassCircularlyDependencyNested) {
     "class B : A {" // B depends on A.
     "  public class C {}" // C depends on B.
     "}");
-  EXPECT_EQ("NameResolution.Name.Cycle(44) C A\n"
-            "NameResolution.Name.Cycle(6) A B\n"
-            "NameResolution.Name.Cycle(22) B C\n",
+  EXPECT_EQ("NameResolution.Name.Cycle(6) A B\n"
+            "NameResolution.Name.Cycle(22) B C\n"
+            "NameResolution.Name.Cycle(44) C A\n",
             driver.RunNameResolver());
 }
 

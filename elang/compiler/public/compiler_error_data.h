@@ -31,7 +31,9 @@ class ErrorData final {
   public: ~ErrorData();
 
   public: ErrorCode error_code() const { return error_code_; }
-  public: const SourceCodeRange& location() { return source_code_location_; }
+  public: const SourceCodeRange& location() const {
+    return source_code_location_;
+  }
   public: const std::vector<Token>& tokens() const { return tokens_; }
 
   DISALLOW_COPY_AND_ASSIGN(ErrorData);

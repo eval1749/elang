@@ -2,11 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+
 #include "elang/compiler/compilation_session.h"
 
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_data.h"
+#include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_type.h"
 #include "elang/hir/factory.h"
@@ -64,6 +67,10 @@ void CompilationSession::AddError(const SourceCodeRange& location,
                                   ErrorCode error_code,
                                   const std::vector<Token>& tokens) {
   errors_.push_back(new ErrorData(location, error_code, tokens));
+  std::sort(errors_.begin(), errors_.end(),
+            [](const ErrorData* a, const ErrorData* b) {
+              return a->location().start_offset() < b->location().start_offset();
+            });
 }
 
 base::StringPiece16* CompilationSession::GetOrNewAtomicString(
