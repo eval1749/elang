@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/testing/test_driver.h"
-#include "elang/hir/class.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace elang {

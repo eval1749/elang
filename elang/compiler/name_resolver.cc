@@ -12,11 +12,6 @@
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
-#include "elang/hir/class.h"
-#include "elang/hir/factory.h"
-#include "elang/hir/namespace.h"
-#include "elang/hir/namespace_member.h"
-#include "elang/hir/simple_name.h"
 
 namespace elang {
 namespace compiler {
@@ -32,8 +27,8 @@ class NameResolver::ScopedResolver final {
   public: ScopedResolver(NameResolver* resolver, ast::NamespaceMember* member);
   public: ~ScopedResolver();
 
-  public: Maybe<hir::NamespaceMember*> Resolve();
-  public: Maybe<hir::NamespaceMember*> ResolveInternal();
+  public: Maybe<ast::NamespaceMember*> Resolve();
+  public: Maybe<ast::NamespaceMember*> ResolveInternal();
 
   DISALLOW_COPY_AND_ASSIGN(ScopedResolver);
 };
@@ -64,46 +59,41 @@ NameResolver::ScopedResolver::~ScopedResolver() {
   resolver_->running_set_.erase(member_);
 }
 
-Maybe<hir::NamespaceMember*> NameResolver::ScopedResolver::Resolve() {
+Maybe<ast::NamespaceMember*> NameResolver::ScopedResolver::Resolve() {
   auto const result = ResolveInternal();
   if (!result.has_value)
     resolver_->Schedule(member_);
   return result;
 }
 
-Maybe<hir::NamespaceMember*> NameResolver::ScopedResolver::ResolveInternal() {
+Maybe<ast::NamespaceMember*> NameResolver::ScopedResolver::ResolveInternal() {
   if (!member_)
-    return Maybe<hir::NamespaceMember*>(nullptr);
-  auto const it = resolver_->resolve_map_.find(member_);
-  if (it != resolver_->resolve_map_.end())
-    return maybe(it->second->as<hir::NamespaceMember>());
+    return Maybe<ast::NamespaceMember*>(nullptr);
 #if 0
   if (resolver_->pending_set_.find(member_) != resolver_->pending_set_.end())
-    return Maybe<hir::NamespaceMember*>();
+    return Maybe<ast::NamespaceMember*>();
   if (resolver_->waiting_set_.find(member_) != resolver_->waiting_set_.end())
-    return Maybe<hir::NamespaceMember*>();
+    return Maybe<ast::NamespaceMember*>();
 #endif
   if (auto const clazz = member_->as<ast::Class>())
-    return resolver_->BindClass(clazz);
+    return resolver_->FixClass(clazz);
   if (auto const alias = member_->as<ast::Alias>()) {
     if (auto const target = alias->target())
       return resolver_->Resolve(target);
-    return Maybe<hir::NamespaceMember*>(nullptr);
+    return Maybe<ast::NamespaceMember*>(nullptr);
   }
   if (member_->ToNamespace()) {
-    // |member_| is declared as namespace, but it is also declared as type.
-    return Maybe<hir::NamespaceMember*>(nullptr);
+    return Maybe<ast::NamespaceMember*>(member_);
   }
   NOTREACHED();
-  return Maybe<hir::NamespaceMember*>(nullptr);
+  return Maybe<ast::NamespaceMember*>(nullptr);
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // NameResolver
 //
-NameResolver::NameResolver(CompilationSession* session, hir::Factory* factory)
-    : factory_(factory), session_(session) {
+NameResolver::NameResolver(CompilationSession* session) : session_(session) {
 }
 
 NameResolver::~NameResolver() {
@@ -126,23 +116,26 @@ void NameResolver::BindAlias(ast::Alias* alias) {
   alias->BindTo(target);
 }
 
-Maybe<hir::NamespaceMember*> NameResolver::BindClass(ast::Class* clazz) {
+Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
+  if (clazz->is_fixed())
+    return Maybe<ast::NamespaceMember*>(clazz);
+
   // Resolve enclosing namespace or class.
   auto const resolution = Resolve(clazz->outer());
   if (!resolution.has_value || !resolution.value)
     return resolution;
 
-  auto const hir_outer = resolution.value->as<hir::Namespace>();
-  if (!hir_outer) {
+  auto const outer = resolution.value->as<ast::Namespace>();
+  if (!outer) {
     session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceOrType,
                        clazz->outer()->simple_name());
-    return Maybe<hir::NamespaceMember*>(nullptr);
+    return Maybe<ast::NamespaceMember*>(nullptr);
   }
 
   // Resolve base classes
   auto has_value = true;
   auto is_base_classes_valid = true;
-  std::vector<hir::Class*> base_classes;
+  std::vector<ast::Class*> base_classes;
   for (auto const base_class_name : clazz->base_class_names()) {
     auto const found = ResolveQualifiedName(
         clazz->outer(), clazz->alias_declaration_space(), base_class_name);
@@ -159,70 +152,38 @@ Maybe<hir::NamespaceMember*> NameResolver::BindClass(ast::Class* clazz) {
       is_base_classes_valid = false;
       continue;
     }
-    auto const hir_base_class = resolution.value->as<hir::Class>();
-    if (!hir_base_class) {
+    auto const base_class = resolution.value->as<ast::Class>();
+    if (!base_class) {
       session_->AddError(ErrorCode::NameResolutionNameNotClass,
                          base_class_name.simple_name());
       is_base_classes_valid = false;
       continue;
     }
-    if (hir_base_class == hir_outer ||
-        hir_outer->IsDescendantOf(hir_base_class)) {
+    if (base_class == outer || outer->IsDescendantOf(base_class)) {
       session_->AddError(ErrorCode::NameResolutionClassContaining,
           base_class_name.simple_name(),
           clazz->simple_name());
       is_base_classes_valid = false;
       continue;
     }
-    // TODO(eval1749) Check |hir_base_class| isn't |final|.
-    // TODO(eval1749) We should check accessibility of |hir_base_class|.
-    base_classes.push_back(hir_base_class);
+    // TODO(eval1749) Check |base_class| isn't |final|.
+    // TODO(eval1749) We should check accessibility of |base_class|.
+    base_classes.push_back(base_class);
   }
 
   if (!is_base_classes_valid)
-    return Maybe<hir::NamespaceMember*>(nullptr);
+    return Maybe<ast::NamespaceMember*>(nullptr);
   if (!has_value)
-    return Maybe<hir::NamespaceMember*>();
+    return Maybe<ast::NamespaceMember*>();
 
   // TODO(eval1749) We should check |base_classes.first()| is proper class
   // rather than |struct|, |interface|.
-  // TODO(eval1749) We should record source code location into |hir::Class|.
-  auto const new_class = factory_->NewClass(
-    hir_outer,
-    factory_->GetOrCreateSimpleName(clazz->simple_name().string_data()),
-    base_classes);
-  resolve_map_[clazz] = new_class;
-  hir_outer->AddMember(new_class);
-  return Maybe<hir::NamespaceMember*>(new_class);
-}
-
-// Build HIR namespace object and schedule namespace members to resolve.
-void NameResolver::BuildNamespace(hir::Namespace* hir_enclosing_namespace,
-                                  ast::Namespace* namespaze) {
-  auto const simple_name = factory_->GetOrCreateSimpleName(
-      namespaze->simple_name().string_data());
-  auto const hir_member = hir_enclosing_namespace->FindMember(simple_name);
-  if (hir_member) {
-    if (auto const hir_namespace = hir_member->ToNamespace()) {
-      BuildNamespaceTree(hir_namespace, namespaze);
-      return;
-    }
-    session_->AddError(ErrorCode::NameResolutionNameNotNamespace,
-                       namespaze->simple_name());
-    return;
-  }
-
-  auto const new_namespace = factory_->NewNamespace(
-      hir_enclosing_namespace, simple_name);
-  hir_enclosing_namespace->AddMember(new_namespace);
-  BuildNamespaceTree(new_namespace, namespaze);
+  clazz->BindBaseClasses(base_classes);
+  return Maybe<ast::NamespaceMember*>(clazz);
 }
 
 // Builds namespace tree and schedule members to resolve.
-void NameResolver::BuildNamespaceTree(
-    hir::Namespace* hir_enclosing_namespace,
-    ast::Namespace* enclosing_namespace) {
-  resolve_map_[enclosing_namespace] = hir_enclosing_namespace;
+void NameResolver::BindMembers(ast::Namespace* enclosing_namespace) {
   for (auto const body : enclosing_namespace->bodies()) {
     for (auto const alias : body->aliases())
       BindAlias(alias);
@@ -232,12 +193,12 @@ void NameResolver::BuildNamespaceTree(
         continue;
       }
       if (auto const namespaze = member->ToNamespace())
-        BuildNamespace(hir_enclosing_namespace, namespaze);
+        BindMembers(namespaze);
     }
   }
 }
 
-Maybe<hir::NamespaceMember*> NameResolver::Resolve(
+Maybe<ast::NamespaceMember*> NameResolver::Resolve(
     ast::NamespaceMember* member) {
   ScopedResolver resolver(this, member);
   return resolver.Resolve();
@@ -305,8 +266,7 @@ ast::NamespaceMember* NameResolver::ResolveQualifiedName(
 }
 
 bool NameResolver::Run() {
-  BuildNamespaceTree(factory_->global_namespace(),
-                     session_->global_namespace());
+  BindMembers(session_->global_namespace());
   do {
     DCHECK(waiting_set_.empty());
     waiting_set_.swap(pending_set_);
@@ -323,7 +283,8 @@ bool NameResolver::Run() {
 }
 
 void NameResolver::ScheduleClassTree(ast::Class* clazz) {
-  Schedule(clazz);
+  if (!clazz->is_fixed())
+    Schedule(clazz);
   for (auto const member : clazz->members()) {
     if (auto const inner_class = member->as<ast::Class>())
       ScheduleClassTree(inner_class);

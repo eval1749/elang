@@ -37,6 +37,7 @@ class NamespaceMember : public Node {
   public: Namespace* outer() const { return outer_; }
   public: const Token& simple_name() const { return simple_name_; }
 
+  public: bool IsDescendantOf(const NamespaceMember* other) const;
   public: virtual Namespace* ToNamespace();
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);

@@ -16,7 +16,7 @@ namespace ast {
 // Class
 //
 Class::Class(Namespace* outer, const Token& keyword, const Token& simple_name)
-    : Namespace(outer, keyword, simple_name) {
+    : Namespace(outer, keyword, simple_name), is_fixed_(false) {
   DCHECK(keyword.type() == TokenType::Class ||
          keyword.type() == TokenType::Interface ||
          keyword.type() == TokenType::Struct);
@@ -25,8 +25,24 @@ Class::Class(Namespace* outer, const Token& keyword, const Token& simple_name)
 Class::~Class() {
 }
 
+const std::vector<Class*>& Class::base_classes() const {
+  DCHECK(is_fixed_);
+  return base_classes_;
+}
+
 void Class::AddBaseClassName(const QualifiedName& class_name) {
+  DCHECK(!is_fixed_);
   base_class_names_.push_back(class_name);
+}
+
+void Class::BindBaseClasses(const std::vector<Class*>& base_classes) {
+  DCHECK(!is_fixed_);
+  DCHECK(base_classes_.empty());
+  DCHECK_EQ(base_classes.size(), base_class_names_.size());
+  // TODO(eval1749) We should check |base_classes.first()| is proper class
+  // rather than |struct|, |interface|.
+  base_classes_ = base_classes;
+  is_fixed_ = true;
 }
 
 // NamespaceMember

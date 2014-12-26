@@ -12,12 +12,12 @@
 
 namespace elang {
 
-namespace hir {
+namespace compiler {
+
+namespace ast {
 class Class;
 class NamespaceMember;
 }
-
-namespace compiler {
 
 class CompilationSession;
 class CompilationUnit;
@@ -36,8 +36,8 @@ class TestDriver final {
   public: TestDriver(base::StringPiece source_text);
   public: ~TestDriver();
 
-  public: hir::Class* FindClass(base::StringPiece name);
-  public: hir::NamespaceMember* FindMember(base::StringPiece name);
+  public: ast::Class* FindClass(base::StringPiece name);
+  public: ast::NamespaceMember* FindMember(base::StringPiece name);
   public: std::string GetErrors();
   public: std::string RunNameResolver();
   public: std::string RunParser();

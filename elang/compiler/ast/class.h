@@ -25,17 +25,23 @@ class Class final : public Namespace {
 
   friend class NodeFactory;
 
+  private: std::vector<Class*> base_classes_;
   private: std::vector<QualifiedName> base_class_names_;
+  private: bool is_fixed_;
 
   private: Class(Namespace* outer, const Token& keyword,
                  const Token& simple_name);
   public: ~Class() final;
 
+  public: const std::vector<Class*>& base_classes() const;
   public: const std::vector<QualifiedName>& base_class_names() const {
     return base_class_names_;
   }
+  public: bool is_fixed() const {return is_fixed_; }
 
   public: void AddBaseClassName(const QualifiedName& class_name);
+
+  public: void BindBaseClasses(const std::vector<Class*>& base_classes);
 
   // NamespaceMember
   public: Namespace* ToNamespace() final;

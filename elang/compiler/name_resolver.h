@@ -13,14 +13,6 @@
 #include "elang/base/types.h"
 
 namespace elang {
-namespace hir {
-class Class;
-class Factory;
-class Namespace;
-class NamespaceMember;
-class Node;
-class SimpleName;
-}
 namespace compiler {
 class CompilationSession;
 class QualifiedName;
@@ -43,25 +35,20 @@ class NameResolver final {
   private: class ScopedResolver;
   friend class ScopedResolver;
 
-  private: hir::Factory* const factory_;
   private: std::vector<ast::NamespaceMember*> pending_members_;
   private: std::unordered_set<ast::NamespaceMember*> pending_set_;
   private: std::unordered_set<ast::NamespaceMember*> running_set_;
   private: std::vector<ast::NamespaceMember*> running_stack_;
   private: std::unordered_set<ast::NamespaceMember*> waiting_set_;
-  private: std::unordered_map<ast::Node*, hir::Node*> resolve_map_;
   private: CompilationSession* const session_;
 
-  public: NameResolver(CompilationSession* session, hir::Factory* factory);
+  public: NameResolver(CompilationSession* session);
   public: ~NameResolver();
 
   private: void BindAlias(ast::Alias* alias);
-  private: Maybe<hir::NamespaceMember*> BindClass(ast::Class* clazz);
-  private: void BuildNamespace(hir::Namespace* enclosing_namespace,
-                               ast::Namespace* ast_Namespace);
-  private: void BuildNamespaceTree(hir::Namespace* enclosing_namespace,
-                                   ast::Namespace* ast_Namespace);
-  private: Maybe<hir::NamespaceMember*> Resolve(ast::NamespaceMember* member);
+  private: Maybe<ast::NamespaceMember*> FixClass(ast::Class* clazz);
+  private: void BindMembers(ast::Namespace* ast_Namespace);
+  private: Maybe<ast::NamespaceMember*> Resolve(ast::NamespaceMember* member);
 
   // Resolves left most simple name of |name| in
   // |enclosing_namespace| and |alias_namespace|.

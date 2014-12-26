@@ -25,10 +25,6 @@
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
-#include "elang/hir/class.h"
-#include "elang/hir/factory.h"
-#include "elang/hir/namespace.h"
-#include "elang/hir/namespace_member.h"
 
 namespace elang {
 namespace compiler {
@@ -155,24 +151,26 @@ TestDriver::TestDriver(base::StringPiece source_text)
 TestDriver::~TestDriver() {
 }
 
-hir::Class* TestDriver::FindClass(base::StringPiece name) {
+ast::Class* TestDriver::FindClass(base::StringPiece name) {
   auto const member = FindMember(name);
-  return member ? member->as<hir::Class>() : nullptr;
+  return member ? member->as<ast::Class>() : nullptr;
 }
 
-hir::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
-  auto enclosing = session_->hir_factory()->global_namespace();
-  auto found = static_cast<hir::NamespaceMember*>(nullptr);
+ast::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
+  auto enclosing = session_->global_namespace();
+  auto found = static_cast<ast::NamespaceMember*>(nullptr);
   for (size_t pos = 0u; pos < name.length(); ++pos) {
     auto dot_pos = name.find('.', pos);
     if (dot_pos == base::StringPiece::npos)
       dot_pos = name.length();
-    auto const simple_name = session_->hir_factory()->GetOrCreateSimpleName(
+    auto const atomic_string = session_->GetOrNewAtomicString(
         base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
+    Token simple_name(SourceCodeRange(), TokenType::SimpleName,
+                      atomic_string);
     found = enclosing->FindMember(simple_name);
     if (!found)
       return nullptr;
-    enclosing = found->as<hir::Namespace>();
+    enclosing = found->as<ast::Namespace>();
     if (!enclosing)
       return nullptr;
     pos = dot_pos;
@@ -205,7 +203,7 @@ std::string TestDriver::RunNameResolver() {
     if (!parser.Run())
       return GetErrors();
   }
-  NameResolver resolver(session_.get(), session_->hir_factory());
+  NameResolver resolver(session_.get());
   return resolver.Run() ? "" : GetErrors();
 }
 

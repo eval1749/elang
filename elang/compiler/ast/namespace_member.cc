@@ -34,6 +34,14 @@ NamespaceMember::NamespaceMember(Namespace* outer,
 NamespaceMember::~NamespaceMember() {
 }
 
+bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {
+  for (auto runner = outer_; runner; runner = runner->outer_) {
+    if (runner == other)
+      return true;
+  }
+  return false;
+}
+
 Namespace* NamespaceMember::ToNamespace() {
   return nullptr;
 }
