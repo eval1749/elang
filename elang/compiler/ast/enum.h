@@ -11,6 +11,9 @@
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
+namespace hir {
+class SimpleName;
+}
 namespace compiler {
 namespace ast {
 
@@ -27,7 +30,7 @@ class Enum final : public NamespaceMember {
 
   friend class NodeFactory;
 
-  private: std::unordered_map<Token::SimpleNameId, EnumMember*> map_;
+  private: std::unordered_map<hir::SimpleName*, EnumMember*> map_;
   private: std::vector<EnumMember*> members_;
 
   public: Enum(NamespaceBody* namespace_body, const Token& keyword,

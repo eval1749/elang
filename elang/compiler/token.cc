@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/token_type.h"
+#include "elang/hir/simple_name.h"
 
 namespace elang {
 namespace compiler {
@@ -37,10 +38,16 @@ Token::Token(const SourceCodeRange& location, float64_t f64)
 }
 
 Token::Token(const SourceCodeRange& location, TokenType type,
-             base::StringPiece16* string)
-    : data_(reinterpret_cast<uintptr_t>(string)),
+             hir::SimpleName* simple_name)
+    : data_(reinterpret_cast<uintptr_t>(simple_name)),
       location_(location),
       type_(type) {
+}
+
+Token::Token(const SourceCodeRange& location, base::StringPiece16* string)
+    : data_(reinterpret_cast<uintptr_t>(string)),
+      location_(location),
+      type_(TokenType::StringLiteral) {
   DCHECK(has_string_data());
 }
 
@@ -76,8 +83,12 @@ bool Token::has_int_data() const {
   return detail == 'I' || detail == 'U' || detail == 'C';
 }
 
+bool Token::has_simple_name() const {
+  return kTokenDetails[static_cast<size_t>(type_)][1] == 'N';
+}
+
 bool Token::has_string_data() const {
-  return kTokenDetails[static_cast<size_t>(type_)][1] == 'S';
+  return type_ == TokenType::StringLiteral;
 }
 
 float32_t Token::f32_data() const {
@@ -88,11 +99,6 @@ float32_t Token::f32_data() const {
 float64_t Token::f64_data() const {
   DCHECK_EQ(type_, TokenType::Float64Literal);
   return data_.f64;
-}
-
-Token::SimpleNameId Token::id() const {
-  DCHECK(is_name());
-  return data_.str;
 }
 
 int64_t Token::int64_data() const {
@@ -112,6 +118,11 @@ bool Token::is_keyword() const {
 bool Token::is_name() const {
   auto const detail = kTokenDetails[static_cast<size_t>(type_)][0];
   return detail == 'C' || detail == 'N';
+}
+
+hir::SimpleName* Token::simple_name() const {
+  DCHECK(has_simple_name());
+  return data_.name;
 }
 
 base::StringPiece16 Token::string_data() const {
@@ -179,7 +190,7 @@ std::ostream& operator<<(std::ostream& ostream, const Token& token) {
 
     default:
       if (token.is_name() || token.is_keyword())
-        return ostream << base::UTF16ToUTF8(token.string_data().as_string());
+        return ostream << *token.simple_name();
       return ostream << kTokenTypeString[static_cast<int>(token.type())];
   }
 }

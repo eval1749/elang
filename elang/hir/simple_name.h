@@ -5,6 +5,8 @@
 #if !defined(INCLUDE_elang_hir_simple_name_h)
 #define INCLUDE_elang_hir_simple_name_h
 
+#include <ostream>
+
 #include "base/strings/string_piece.h"
 
 namespace elang {
@@ -28,6 +30,8 @@ class SimpleName final {
 
   DISALLOW_COPY_AND_ASSIGN(SimpleName);
 };
+
+std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name);
 
 }  // namespace hir
 }  // namespace elang

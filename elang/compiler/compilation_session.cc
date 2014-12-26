@@ -23,9 +23,9 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
                                       SourceCode* source_code) {
   return session->ast_factory()->NewNamespace(nullptr,
       Token(SourceCodeRange(source_code, 0, 0), TokenType::Namespace,
-            session->GetOrNewAtomicString(L"namespace")),
+            session->GetOrCreateSimpleName(L"namespace")),
       Token(SourceCodeRange(source_code, 0, 0), TokenType::SimpleName,
-            session->GetOrNewAtomicString(L"::")));
+            session->GetOrCreateSimpleName(L"::")));
 }
 
 }  // namespace
@@ -42,9 +42,7 @@ CompilationSession::~CompilationSession() {
   ast_factory_->RemoveAll();
   for (auto const error : errors_)
     delete error;
-  for (auto const string_piece : string_pieces_)
-    delete string_piece;
-  for (auto const string : strings_)
+  for (auto const string : string_pool_)
     delete string;
 }
 
@@ -73,14 +71,9 @@ void CompilationSession::AddError(const SourceCodeRange& location,
             });
 }
 
-base::StringPiece16* CompilationSession::GetOrNewAtomicString(
+hir::SimpleName* CompilationSession::GetOrCreateSimpleName(
     base::StringPiece16 string) {
-  auto present = atomic_strings_.find(string);
-  if (present != atomic_strings_.end())
-    return present->second;
-  auto const result = NewString(string);
-  atomic_strings_[*result] = result;
-  return result;
+  return hir_factory()->GetOrCreateSimpleName(string);
 }
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
@@ -90,14 +83,10 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
   return compilation_units_.back().get();
 }
 
-base::StringPiece16* CompilationSession::NewString(
-    base::StringPiece16 string_piece) {
-  auto const string = new base::string16(string_piece.data(),
-                                         string_piece.size());
-  strings_.push_back(string);
-  auto const result = new base::StringPiece16(string->data(), string->size());
-  string_pieces_.push_back(result);
-  return result;
+base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
+  string_pool_.push_back(new base::StringPiece16(
+      hir_factory()->NewString(string)));
+  return string_pool_.back();
 }
 
 }  // namespace compiler

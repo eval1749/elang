@@ -163,10 +163,8 @@ ast::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
     auto dot_pos = name.find('.', pos);
     if (dot_pos == base::StringPiece::npos)
       dot_pos = name.length();
-    auto const atomic_string = session_->GetOrNewAtomicString(
+    auto const simple_name = session_->GetOrCreateSimpleName(
         base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
-    Token simple_name(SourceCodeRange(), TokenType::SimpleName,
-                      atomic_string);
     found = enclosing->FindMember(simple_name);
     if (!found)
       return nullptr;

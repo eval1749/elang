@@ -28,6 +28,7 @@ namespace compiler {
 //  'C' character data
 //  'F' float data
 //  'I' integer data
+//  'N' simple name
 //  'S' string data
 //  'a' operator precedence (lowest)
 //  ...
@@ -98,86 +99,86 @@ namespace compiler {
     T(BitNot, "~", "U") \
     /* Keywords */ \
     /* A */ \
-        K(Abstract, "abstract", "KS") \
+        K(Abstract, "abstract", "KN") \
     /* B */ \
-        K(Break, "break", "KS") \
+        K(Break, "break", "KN") \
     /* C */ \
-        K(Case, "case", "KS") \
-        K(Catch, "catch", "KS") \
-        K(Class, "class", "KS") \
-        K(Const, "const", "KS") \
-        K(Continue, "continue", "KS") \
+        K(Case, "case", "KN") \
+        K(Catch, "catch", "KN") \
+        K(Class, "class", "KN") \
+        K(Const, "const", "KN") \
+        K(Continue, "continue", "KN") \
     /* D */ \
-        K(Default, "default", "KS") \
-        K(Do, "do", "KS") \
+        K(Default, "default", "KN") \
+        K(Do, "do", "KN") \
     /* E */ \
-        K(Else, "else", "KS") \
-        K(Enum, "enum", "KS") \
-        K(Explicit, "explicit", "KS") \
-        K(Extends, "extends", "KS") \
-        K(Extern, "extern", "KS") \
+        K(Else, "else", "KN") \
+        K(Enum, "enum", "KN") \
+        K(Explicit, "explicit", "KN") \
+        K(Extends, "extends", "KN") \
+        K(Extern, "extern", "KN") \
     /* F */ \
-        K(Final, "final", "KS") \
-        K(Finally, "finally", "KS") \
-        K(For, "for", "KS") \
-        K(Function, "function", "KS") \
+        K(Final, "final", "KN") \
+        K(Finally, "finally", "KN") \
+        K(For, "for", "KN") \
+        K(Function, "function", "KN") \
     /* G */ \
-        K(Goto, "goto", "KS") \
+        K(Goto, "goto", "KN") \
     /* I */ \
-        K(If, "if", "KS") \
+        K(If, "if", "KN") \
         K(Implicit, "implicit", "CS") \
         K(Implements, "implements", "CS") \
-        K(Interface, "interface", "KS") \
+        K(Interface, "interface", "KN") \
     /* N */ \
-        K(Namespace, "namespace", "KS") \
-        K(New, "new", "KS") \
+        K(Namespace, "namespace", "KN") \
+        K(New, "new", "KN") \
     /* O */ \
-        K(Override, "override", "KS") \
+        K(Override, "override", "KN") \
     /* P */ \
-        K(Private, "private", "KS") \
-        K(Protected, "protected", "KS") \
-        K(Public, "public", "KS") \
+        K(Private, "private", "KN") \
+        K(Protected, "protected", "KN") \
+        K(Public, "public", "KN") \
     /* R */ \
-        K(Return, "return", "KS") \
+        K(Return, "return", "KN") \
     /* S */ \
-        K(SizeOf, "sizeof", "KS") \
-        K(Static, "static", "KS") \
-        K(Struct, "struct", "KS") \
-        K(Super, "super", "KS") \
-        K(Switch, "switch", "KS") \
+        K(SizeOf, "sizeof", "KN") \
+        K(Static, "static", "KN") \
+        K(Struct, "struct", "KN") \
+        K(Super, "super", "KN") \
+        K(Switch, "switch", "KN") \
     /* T */ \
-        K(This, "this", "KS") \
-        K(Throw, "throw", "KS") \
-        K(Try, "try", "KS") \
-        K(TypeOf, "typeof", "KS") \
+        K(This, "this", "KN") \
+        K(Throw, "throw", "KN") \
+        K(Try, "try", "KN") \
+        K(TypeOf, "typeof", "KN") \
     /* U */ \
-        K(Using, "using", "KS") \
+        K(Using, "using", "KN") \
     /* V */ \
-        K(Var, "var", "KS") \
-        K(Virtual, "virtual", "KS") \
-        K(Void, "void", "KS") \
-    K(Volatile, "volatile", "KS") \
+        K(Var, "var", "KN") \
+        K(Virtual, "virtual", "KN") \
+        K(Void, "void", "KN") \
+    K(Volatile, "volatile", "KN") \
     /* W */ \
         K(Where, "where", "CS") \
-        K(While, "while", "KS") \
+        K(While, "while", "KN") \
     /* Y */ \
-        K(Yield, "yield", "KS") \
+        K(Yield, "yield", "KN") \
     /* known types */ \
-    K(Bool, "bool", "KS") \
-    K(Float32, "float32", "KS") \
-    K(Float64, "float64", "KS") \
-    K(Int8, "int8", "KS") \
-    K(Int16, "int16", "KS") \
-    K(Int32, "int32", "KS") \
-    K(Int64, "int64", "KS") \
-    K(UInt8, "uint8", "KS") \
-    K(UInt16, "uint16", "KS") \
-    K(UInt32, "uint32", "KS") \
-    K(UInt64, "uint64", "KS") \
+    K(Bool, "bool", "KN") \
+    K(Float32, "float32", "KN") \
+    K(Float64, "float64", "KN") \
+    K(Int8, "int8", "KN") \
+    K(Int16, "int16", "KN") \
+    K(Int32, "int32", "KN") \
+    K(Int64, "int64", "KN") \
+    K(UInt8, "uint8", "KN") \
+    K(UInt16, "uint16", "KN") \
+    K(UInt32, "uint32", "KN") \
+    K(UInt64, "uint64", "KN") \
     /* literals */ \
-    K(NullLiteral, "null", "KS") \
-    K(TrueLiteral, "true", "KS") \
-    K(FalseLiteral, "false", "KS") \
+    K(NullLiteral, "null", "KN") \
+    K(TrueLiteral, "true", "KN") \
+    K(FalseLiteral, "false", "KN") \
     T(Float32Literal, "f32", "LF") \
     T(Float64Literal, "f64", "LF") \
     T(Int32Literal, "I32", "LI") \
@@ -187,7 +188,7 @@ namespace compiler {
     T(CharacterLiteral, "'c'", "LC") \
     T(StringLiteral, "\"string\"", "LS") \
 \
-    T(SimpleName, "SimpleName", "NS") \
+    T(SimpleName, "SimpleName", "NN") \
     T(Illegal, "ILLIEGAL", "?")
 
 //////////////////////////////////////////////////////////////////////

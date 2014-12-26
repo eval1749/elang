@@ -13,6 +13,9 @@
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
+namespace hir {
+class SimpleName;
+}
 namespace compiler {
 
 enum class TokenType;
@@ -22,15 +25,12 @@ enum class TokenType;
 // Token
 //
 class Token final {
-  public: typedef const base::StringPiece16* SimpleNameId;
-
   private: union Data {
     base::char16 ch;
     float32_t f32;
     float64_t f64;
     int64_t i64;
-    // TODO(eval1749) We should use |hir::SimpleName| for
-    // |TokenType::SimapleName| to make |NameResolver| simpler.
+    hir::SimpleName* name;
     base::StringPiece16* str;
     uint64_t u64;
 
@@ -52,6 +52,8 @@ class Token final {
   public: Token(const SourceCodeRange& source_range, float32_t f32);
   public: Token(const SourceCodeRange& source_range, float64_t f64);
   public: Token(const SourceCodeRange& source_range, TokenType type,
+                hir::SimpleName* simple_name);
+  public: Token(const SourceCodeRange& source_range,
                 base::StringPiece16* string);
   public: Token(const SourceCodeRange& source_range, TokenType type,
                 uint64_t u64);
@@ -63,15 +65,17 @@ class Token final {
 
   public: base::char16 char_data() const;
   private: bool has_int_data() const;
+  private: bool has_simple_name() const;
   private: bool has_string_data() const;
   public: float32_t f32_data() const;
   public: float64_t f64_data() const;
   public: int64_t int64_data() const;
+  public: hir::SimpleName* id() const { return simple_name(); }
   public: bool is_contextual_keyword() const;
   public: bool is_keyword() const;
   public: bool is_name() const;
-  public: SimpleNameId id() const;
   public: const SourceCodeRange& location() const { return location_; }
+  public: hir::SimpleName* simple_name() const;
   public: base::StringPiece16 string_data() const;
   public: TokenType type() const { return type_; }
 };

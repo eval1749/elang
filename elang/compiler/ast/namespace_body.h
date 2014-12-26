@@ -10,6 +10,9 @@
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
+namespace hir {
+class SimpleName;
+}
 namespace compiler {
 class QualifiedName;
 
@@ -27,7 +30,7 @@ class NamespaceBody final {
 
   // TODO(eval1749) Use |AstVector| instead of |std::vector|
   private: std::vector<Alias*> aliases_;
-  private: std::unordered_map<Token::SimpleNameId, Alias*> alias_map_;
+  private: std::unordered_map<hir::SimpleName*, Alias*> alias_map_;
   private: std::vector<ImportDef*> import_defs_;
   private: std::vector<NamespaceMember*> members_;
   private: NamespaceBody* const outer_;

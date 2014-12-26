@@ -64,8 +64,8 @@ Token TestLexer::MakeToken(TokenType type, int start, int end,
                            const base::StringPiece16& data) {
   auto location = SourceCodeRange(&source_code_, start, end);
   if (type == TokenType::StringLiteral)
-    return Token(location, type, session_.NewString(data));
-  return Token(location, type, session_.GetOrNewAtomicString(data));
+    return Token(location, session_.NewString(data));
+  return Token(location, type, session_.GetOrCreateSimpleName(data));
 }
 
 Token TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
@@ -94,12 +94,10 @@ bool operator==(const Token& token1, const Token& token2) {
     case TokenType::UInt64Literal:
       return token1.int64_data() == token2.int64_data();
     case TokenType::SimpleName:
-      return token1.string_data() == token2.string_data();
+      return token1.simple_name() == token2.simple_name();
     case TokenType::StringLiteral:
       return token1.string_data() == token2.string_data();
   }
-  if (token1.is_keyword())
-    return token1.string_data().data() == token2.string_data().data();
   return true;
 }
 

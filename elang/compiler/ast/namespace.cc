@@ -37,9 +37,13 @@ void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
   bodies_.push_back(namespace_body);
 }
 
-NamespaceMember* Namespace::FindMember(const Token& simple_name) {
-  auto const it = map_.find(simple_name.id());
+NamespaceMember* Namespace::FindMember(hir::SimpleName* simple_name) {
+  auto const it = map_.find(simple_name);
   return it == map_.end() ? nullptr : it->second;
+}
+
+NamespaceMember* Namespace::FindMember(const Token& simple_name) {
+  return FindMember(simple_name.id());
 }
 
 // NamespaceMember

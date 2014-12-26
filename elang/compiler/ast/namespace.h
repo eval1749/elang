@@ -10,6 +10,9 @@
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
+namespace hir {
+class SimpleName;
+}
 namespace compiler {
 class QualifiedName;
 namespace ast {
@@ -28,7 +31,7 @@ class Namespace : public NamespaceMember {
   private: struct ImportDef;
 
   private: std::vector<NamespaceBody*> bodies_;
-  private: std::unordered_map<Token::SimpleNameId, NamespaceMember*> map_;
+  private: std::unordered_map<hir::SimpleName*, NamespaceMember*> map_;
 
   protected: Namespace(NamespaceBody* namespace_body,
                        const Token& keyword, const Token& simple_name);
@@ -38,6 +41,7 @@ class Namespace : public NamespaceMember {
 
   public: void AddMember(NamespaceMember* member);
   public: void AddNamespaceBody(NamespaceBody* outer);
+  public: NamespaceMember* FindMember(hir::SimpleName* simple_name);
   public: NamespaceMember* FindMember(const Token& simple_name);
 
   // NamespaceMember

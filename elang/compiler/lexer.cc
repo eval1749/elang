@@ -16,13 +16,14 @@
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
+#include "elang/hir/simple_name.h"
 
 namespace elang {
 namespace compiler {
 
 namespace {
 
-TokenType ComputeToken(base::StringPiece16 name) {
+TokenType ComputeToken(hir::SimpleName* name) {
   typedef std::unordered_map<base::StringPiece16, TokenType> KeywordMap;
   CR_DEFINE_STATIC_LOCAL(KeywordMap*, keyword_map, ());
   if (!keyword_map) {
@@ -32,7 +33,7 @@ TokenType ComputeToken(base::StringPiece16 name) {
     TOKEN_LIST(IGNORE_TOKEN, K)
     #undef K
   }
-  auto it = keyword_map->find(name);
+  auto it = keyword_map->find(name->string());
   return it == keyword_map->end() ? TokenType::SimpleName : it->second;
 }
 
@@ -340,7 +341,7 @@ Token Lexer::HandleAfterDecimalPoint(uint64_t u64) {
 // Handle raw string or raw name
 //   - raw string: '@' '"' (CharNotQuote | '""')* '"'
 //   - raw name: '@' NameStartChar NameChar*
-// 
+//
 Token Lexer::HandleAtMark() {
   if (IsAtEndOfStream())
     return Error(ErrorCode::TokenAtMarkInvalid);
@@ -361,7 +362,7 @@ Token Lexer::HandleAtMark() {
             state = State::Normal;
             break;
           }
-          return Token(ComputeLocation(), TokenType::StringLiteral,
+          return Token(ComputeLocation(),
                        session_->NewString(char_sink_->End()));
         case State::Normal:
           Advance();
@@ -383,7 +384,7 @@ Token Lexer::HandleAtMark() {
       auto const char_code = PeekChar();
       if (!IsNameChar(char_code)) {
         return Token(ComputeLocation(), TokenType::SimpleName,
-                     session_->GetOrNewAtomicString(char_sink_->End()));
+                     session_->GetOrCreateSimpleName(char_sink_->End()));
       }
       Advance();
       char_sink_->AddChar(char_code);
@@ -526,8 +527,8 @@ Token Lexer::HandleName(base::char16 first_char_code) {
     Advance();
     char_sink_->AddChar(char_code);
   }
-  auto const name = session_->GetOrNewAtomicString(char_sink_->End());
-  return Token(ComputeLocation(), ComputeToken(*name), name);
+  auto const name = session_->GetOrCreateSimpleName(char_sink_->End());
+  return Token(ComputeLocation(), ComputeToken(name), name);
 }
 
 Token Lexer::HandleOneChar(TokenType token_type) {
@@ -611,7 +612,7 @@ Token Lexer::HandleStringLiteral(base::char16 delimiter) {
           break;
         }
         if (char_code == delimiter) {
-          auto token = Token(ComputeLocation(), TokenType::StringLiteral,
+          auto token = Token(ComputeLocation(),
                              session_->NewString(char_sink_->End()));
           if (delimiter == '"')
             return token;

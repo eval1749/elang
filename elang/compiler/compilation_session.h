@@ -16,6 +16,7 @@ namespace elang {
 
 namespace hir {
 class Factory;
+class SimpleName;
 }
 
 namespace compiler {
@@ -37,16 +38,11 @@ class Token;
 // CompilationSession
 //
 class CompilationSession final {
-  private: std::unordered_map<base::StringPiece16, base::StringPiece16*>
-      atomic_strings_;
   private: const std::unique_ptr<ast::NodeFactory> ast_factory_;
   private: std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   private: std::vector<ErrorData*> errors_;
   private: const std::unique_ptr<hir::Factory> hir_factory_;
-  // TODO(eval1749) We should use |hir::Factory| for string allocation.
-  // Because we want to record local variable name into HIR.
-  private: std::vector<base::string16*> strings_;
-  private: std::vector<base::StringPiece16*> string_pieces_;
+  private: std::vector<base::StringPiece16*> string_pool_;
 
   private: std::unique_ptr<SourceCode> source_code_;
   private: ast::Namespace* const global_namespace_;
@@ -75,7 +71,7 @@ class CompilationSession final {
   public: void AddError(const SourceCodeRange& location, ErrorCode error_code);
   private: void AddError(const SourceCodeRange& location, ErrorCode error_code,
                          const std::vector<Token>& tokens);
-  public: base::StringPiece16* GetOrNewAtomicString(base::StringPiece16 string);
+  public: hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
   public: CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   public: base::StringPiece16* NewString(base::StringPiece16 string);
 
