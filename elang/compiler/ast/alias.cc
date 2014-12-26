@@ -17,11 +17,18 @@ namespace ast {
 //
 Alias::Alias(Namespace* outer, const Token& keyword, const Token& simple_name,
              const QualifiedName& target_name)
-    : NamespaceMember(outer, keyword, simple_name), target_name_(target_name) {
+    : NamespaceMember(outer, keyword, simple_name), target_(nullptr),
+      target_name_(target_name) {
   DCHECK_EQ(keyword.type(), TokenType::Using);
 }
 
 Alias::~Alias() {
+}
+
+void Alias::BindTo(NamespaceMember* target) {
+  DCHECK(target);
+  DCHECK(!target_);
+  target_ = target;
 }
 
 }  // namespace ast

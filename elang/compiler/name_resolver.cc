@@ -85,8 +85,11 @@ Maybe<hir::NamespaceMember*> NameResolver::ScopedResolver::ResolveInternal() {
 #endif
   if (auto const clazz = member_->as<ast::Class>())
     return resolver_->BindClass(clazz);
-  if (auto const alias = member_->as<ast::Alias>())
-    return resolver_->BindAlias(alias);
+  if (auto const alias = member_->as<ast::Alias>()) {
+    if (auto const target = alias->target())
+      return resolver_->Resolve(target);
+    return Maybe<hir::NamespaceMember*>(nullptr);
+  }
   if (member_->ToNamespace()) {
     // |member_| is declared as namespace, but it is also declared as type.
     return Maybe<hir::NamespaceMember*>(nullptr);
@@ -106,21 +109,21 @@ NameResolver::NameResolver(CompilationSession* session, hir::Factory* factory)
 NameResolver::~NameResolver() {
 }
 
-Maybe<hir::NamespaceMember*> NameResolver::BindAlias(ast::Alias* alias) {
-  auto const found = ResolveQualifiedName(
+void NameResolver::BindAlias(ast::Alias* alias) {
+  DCHECK(!alias->target());
+  auto const target = ResolveQualifiedName(
       alias->outer(), alias->alias_declaration_space()->outer(),
       alias->target_name());
-  if (!found) {
+  if (!target) {
     session_->AddError(ErrorCode::NameResolutionAliasNoTarget,
                        alias->simple_name());
-    return Maybe<hir::NamespaceMember*>(nullptr);
+    return;
   }
-  auto const resolution = Resolve(found);
-  if (resolution.has_value && !resolution.value->as<hir::Namespace>()) {
+  if (!target->as<ast::Namespace>()) {
     session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceOrType,
                        alias->target_name().simple_name());
   }
-  return resolution;
+  alias->BindTo(target);
 }
 
 Maybe<hir::NamespaceMember*> NameResolver::BindClass(ast::Class* clazz) {
@@ -221,6 +224,8 @@ void NameResolver::BuildNamespaceTree(
     ast::Namespace* enclosing_namespace) {
   resolve_map_[enclosing_namespace] = hir_enclosing_namespace;
   for (auto const body : enclosing_namespace->bodies()) {
+    for (auto const alias : body->aliases())
+      BindAlias(alias);
     for (auto const member : body->members()) {
       if (auto const clazz = member->as<ast::Class>()) {
         ScheduleClassTree(clazz);
@@ -229,8 +234,6 @@ void NameResolver::BuildNamespaceTree(
       if (auto const namespaze = member->ToNamespace())
         BuildNamespace(hir_enclosing_namespace, namespaze);
     }
-    for (auto const alias : body->aliases())
-      Schedule(alias);
   }
 }
 
@@ -250,8 +253,7 @@ ast::NamespaceMember* NameResolver::ResolveLeftMostName(
     if (alias_namespace && alias_namespace->owner() == outer) {
       // TODO(eval1749) We should implement import.
       if (auto const alias = alias_namespace->FindAlias(simple_name)) {
-        auto const target = ResolveQualifiedName(outer, alias_namespace,
-                                                 alias->target_name());
+        auto const target = alias->target();
         if (!target)
           return nullptr;
         if (present && target != present) {

@@ -55,7 +55,7 @@ class NameResolver final {
   public: NameResolver(CompilationSession* session, hir::Factory* factory);
   public: ~NameResolver();
 
-  private: Maybe<hir::NamespaceMember*> BindAlias(ast::Alias* alias);
+  private: void BindAlias(ast::Alias* alias);
   private: Maybe<hir::NamespaceMember*> BindClass(ast::Class* clazz);
   private: void BuildNamespace(hir::Namespace* enclosing_namespace,
                                ast::Namespace* ast_Namespace);

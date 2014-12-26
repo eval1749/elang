@@ -25,13 +25,17 @@ class Alias final : public NamespaceMember {
   friend class NodeFactory;
 
   private: const QualifiedName target_name_;
+  private: NamespaceMember* target_;
 
   private: Alias(Namespace* outer, const Token& keyword,
                  const Token& simple_name,
                  const QualifiedName& reference_name);
   public: ~Alias() final;
 
+  public: NamespaceMember* target() const { return target_; }
   public: const QualifiedName& target_name() const { return target_name_; }
+
+  public: void BindTo(NamespaceMember* target);
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };
