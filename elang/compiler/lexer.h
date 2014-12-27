@@ -35,8 +35,6 @@ class Lexer final {
   private: const std::unique_ptr<CharSink> char_sink_;
   private: CompilationUnit* const compilation_unit_;
   private: std::unique_ptr<InputStream> input_stream_;
-  // For handling of |GenericType<T>| and |Type?|.
-  private: bool just_after_name_;
   private: int token_end_;
   private: int token_start_;
   private: CompilationSession* const session_;

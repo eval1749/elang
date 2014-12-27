@@ -165,8 +165,7 @@ base::char16 Lexer::InputStream::ReadChar() {
 Lexer::Lexer(CompilationSession* session, CompilationUnit* compilation_unit)
     : char_sink_(new CharSink()), compilation_unit_(compilation_unit),
       input_stream_(new InputStream(compilation_unit->source_code())),
-      just_after_name_(false), session_(session), token_end_(0),
-      token_start_(0) {
+      session_(session), token_end_(0), token_start_(0) {
 }
 
 Lexer::~Lexer() {
@@ -210,15 +209,14 @@ Token* Lexer::Error(ErrorCode error_code) {
 }
 
 Token* Lexer::GetToken() {
-  auto just_after_name = just_after_name_;
-  just_after_name_ = false;
+  auto just_after_whitespace = false;
   for (;;) {
     if (IsAtEndOfStream())
       return HandleOneChar(TokenType::EndOfSource);
     auto const char_code = PeekChar();
     Advance();
     if (char_code == ' ' || char_code == 0x0D || char_code == 0x0A) {
-      just_after_name = false;
+      just_after_whitespace = true;
       continue;
     }
     token_start_ = token_end_ - 1;
@@ -258,12 +256,12 @@ Token* Lexer::GetToken() {
         if (AdvanceIf('*')) {
           if (!SkipBlockComment())
             return Error(ErrorCode::TokenBlockCommentUnclosed);
-          just_after_name = false;
+          just_after_whitespace = true;
           continue;
         }
         if (AdvanceIf('/')) {
           SkipLineComment();
-          just_after_name = false;
+          just_after_whitespace = true;
           continue;
         }
         return HandleMayBeEq(TokenType::DivAssign, TokenType::Div);
@@ -274,7 +272,7 @@ Token* Lexer::GetToken() {
       case ';':
         return HandleOneChar(TokenType::SemiColon);
       case '<':
-        if (just_after_name)
+        if (!just_after_whitespace)
           return HandleOneChar(TokenType::LeftAngleBracket);
         if (AdvanceIf('<'))
           return HandleMayBeEq(TokenType::ShlAssign, TokenType::Shl);
@@ -284,15 +282,20 @@ Token* Lexer::GetToken() {
           return NewToken(TokenType::Arrow);
         return HandleMayBeEq(TokenType::Eq, TokenType::Assign);
       case '>':
+        if (!just_after_whitespace)
+          return HandleOneChar(TokenType::RightAngleBracket);
         if (AdvanceIf('>'))
           return HandleMayBeEq(TokenType::ShrAssign, TokenType::Shr);
         return HandleMayBeEq(TokenType::Ge, TokenType::Gt);
       case '?':
-        if (just_after_name)
-          return HandleOneChar(TokenType::OptionalType);
-        if (AdvanceIf('?'))
-            return NewToken(TokenType::NullOr);
-        return HandleOneChar(TokenType::QuestionMark);
+        if (just_after_whitespace) {
+          if (AdvanceIf('?'))
+              return NewToken(TokenType::NullOr);
+           return HandleOneChar(TokenType::QuestionMark);
+        }
+        if (AdvanceIf('.'))
+          return NewToken(TokenType::OptionalDot);
+        return HandleOneChar(TokenType::OptionalType);
       case '@':
         return HandleAtMark();
       case '[':
@@ -513,10 +516,8 @@ Token* Lexer::HandleName(base::char16 first_char_code) {
   char_sink_->AddChar(first_char_code);
   while (!IsAtEndOfStream()) {
     auto const char_code = PeekChar();
-    if (!IsNameChar(char_code)) {
-      just_after_name_ = true;
+    if (!IsNameChar(char_code))
       break;
-    }
     Advance();
     char_sink_->AddChar(char_code);
   }

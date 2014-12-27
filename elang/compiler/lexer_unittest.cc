@@ -125,7 +125,7 @@ TEST(LexerTest, Basic) {
   EXPECT_TOKEN(SimpleName, 6, 9, L"Foo");
   EXPECT_TOKEN(LeftAngleBracket, 9, 10, '<');
   EXPECT_TOKEN(SimpleName, 10, 11, L"T");
-  EXPECT_TOKEN(Gt, 11, 12, '>');
+  EXPECT_TOKEN(RightAngleBracket, 11, 12, '>');
   EXPECT_TOKEN(LeftCurryBracket, 13, 14, '{');
 
   // Line 1

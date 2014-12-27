@@ -30,15 +30,13 @@ namespace compiler {
 //  'I' integer data
 //  'S' string data
 //
-// Operatos
-//  'a' operator precedence (highest)
-//  ...
-//  'm' operator precedence (lowest)
-//
-// Keywords
+// Second characters are
 //  'M' modifier
 //  'P' primary expression
 //  'T' type
+//  'a' operator precedence (highest)
+//  ...
+//  'm' operator precedence (lowest)
 #define TOKEN_LIST(T, K) \
     T(EndOfSource, "EOS", "?") \
 \
@@ -50,10 +48,13 @@ namespace compiler {
     T(RightSquareBracket, "]", "P") \
     T(LeftCurryBracket, "{", "P") \
     T(RightCurryBracket, "}", "P") \
-    /* Appeared just after name, e.g. |GenericType<|, |Type?|. */ \
+    /* For type arguments |G<T>| */ \
     T(LeftAngleBracket, "<", "P") \
+    T(RightAngleBracket, ">", "P") \
+    /* For nullable type, e.g. |int?| */ \
     T(OptionalType, "?", "P") \
     T(Dot, ".", "P") \
+    T(OptionalDot, "?.", "P") \
     T(Comma, ",", "P") \
     T(Arrow, "=>", "P") \
 \
@@ -79,6 +80,7 @@ namespace compiler {
     T(BitOr, "|", "Oi") \
     T(BitXor, "^", "Oh") \
     T(BitAnd, "&", "Og") \
+    /* '<' and '>' are recognized just after whitespace. */ \
     T(Lt, "<", "Of") \
     T(Le, "<=", "Of") \
     T(Gt, ">", "Of") \
