@@ -144,6 +144,7 @@ namespace compiler {
     /* O */ \
         K(Override, "override", "KM") \
     /* P */ \
+        K(Partial, "partial", "KM") \
         K(Private, "private", "KM") \
         K(Protected, "protected", "KM") \
         K(Public, "public", "KM") \

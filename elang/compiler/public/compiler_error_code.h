@@ -58,6 +58,8 @@ namespace compiler {
       E(Syntax, ClassDecl, TypeParamInvalid) \
     /* Modifier */ \
       E(Syntax, Modifier, Duplicate) \
+      /* 'partial' modifier must be the last modifier. */ \
+      E(Syntax, Modifier, Partial) \
     /* NamespaceDecl */ \
       E(Syntax, NamespaceDecl, LeftCurryBracket) \
       E(Syntax, NamespaceDecl, NameDuplicate) \

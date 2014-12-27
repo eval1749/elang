@@ -56,6 +56,8 @@ Parser::ModifierBuilder::ModifierBuilder(Parser* parser)
 }
 
 bool Parser::ModifierBuilder::Add(Token* token) {
+  if (HasPartial())
+    parser_->Error(ErrorCode::SyntaxModifierPartial);
   switch (token->type()) {
     #define CASE_CLAUSE(name, details) \
       case TokenType::name: \
@@ -210,19 +212,18 @@ ast::NamespaceMember* Parser::FindMember(Token* simple_name) {
   return namespace_body_->FindMember(simple_name);
 }
 
-// ClassDecl ::= Attribute* ClassModifier* "partial"? "class"
+// ClassDecl ::= Attribute* ClassModifier* 'partial'? 'class'
 //               Name TypeParamereList? ClassBase?
 //               TypeParameterConstraintsClasses?
-//               ClassBody ";"?
+//               ClassBody ';'?
 // ClassModifier ::= ClassModifierAccessibility |
 //                   ClassModifierKind |
-//                   "new"
-// ClassModifierAccessibility := "private" | "protected" | "public"
-// ClassModifierKind := "abstract" | "static" | "final"
+//                   'new'
+// ClassModifierAccessibility := 'private' | 'protected' | 'public'
+// ClassModifierKind := 'abstract' | 'static' | 'final'
 //
-// ClassBody ::= "{" ClassMemberDecl* "}"
-// 
-
+// ClassBody ::= '{' ClassMemberDecl* '}'
+//
 bool Parser::ParseClassDecl() {
   // Check class modifiers
   {
@@ -253,10 +254,9 @@ bool Parser::ParseClassDecl() {
       }
     }
   }
-  auto class_keyword = token_;
-  Advance();
+  auto const class_keyword = ConsumeToken();
   PeekToken();
-  auto simple_name = token_;
+  auto const simple_name = token_;
   if (!simple_name->is_name())
     return Error(ErrorCode::SyntaxClassDeclName);
   if (FindMember(simple_name))
@@ -358,21 +358,24 @@ bool Parser::ParseCompilationUnit() {
   return PeekToken() == TokenType::EndOfSource;
 }
 
-// EnumDecl := EnumModifier* "enum" Name "{" EnumField* "}"
+// EnumDecl := EnumModifier* "enum" Name EnumBase? "{" EnumField* "}"
+// EnumBase ::= ':' IntegralType
 // EnumField ::= Name ("=" Expression)? ","?
+// EnumModifier ::= 'new' | 'public' | 'protected' | 'private'
 bool Parser::ParseEnumDecl() {
+  // TODO(eval1749) Validate EnumModifier
   auto const enum_keyword = ConsumeToken();
   DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
   PeekToken();
   if (!token_->is_name())
     return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
-  auto enum_name = token_;
+  auto const enum_name = ConsumeToken();
   if (FindMember(enum_name))
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
   auto const enum_decl = factory()->NewEnum(namespace_body_, enum_keyword,
                                             enum_name);
   AddMember(enum_decl);
-  Advance();
+  // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
   for (;;) {

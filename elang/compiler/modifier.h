@@ -18,6 +18,8 @@ namespace compiler {
   V(Extern, "I") \
   V(Final, "I") \
   V(New, "M") \
+  /* 'partial' modifier must be the last modifier */ \
+  V(Partial, "D") \
   V(Private, "A") \
   V(Protected, "A") \
   V(Public, "A") \
