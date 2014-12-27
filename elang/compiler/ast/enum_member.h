@@ -5,8 +5,6 @@
 #if !defined(INCLUDE_elang_compiler_ast_enum_member_h)
 #define INCLUDE_elang_compiler_ast_enum_member_h
 
-#include <unordered_map>
-
 #include "elang/compiler/ast/node.h"
 
 namespace elang {

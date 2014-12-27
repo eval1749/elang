@@ -2,10 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/conditional.h"
 
 #include "base/logging.h"
-#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -13,12 +12,14 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Expression
+// Conditional
 //
-Expression::Expression(Token* op) : Node(op) {
+Conditional::Conditional(Token* op, Expression* cond_expr,
+                         Expression* then_expr, Expression* else_expr)
+    : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
 }
 
-Expression::~Expression() {
+Conditional::~Conditional() {
 }
 
 }  // namespace ast

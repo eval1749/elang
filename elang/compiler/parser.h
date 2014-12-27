@@ -99,16 +99,12 @@ class Parser final {
   private: bool ParseUsingDirectives();
   private: TokenType PeekToken();
   private: ExpressionCategory PeekTokenCategory();
-  private: ast::Expression* ProduceExpression(Token* op_token,
-                                              ast::Expression* operand0,
-                                              ast::Expression* operand1,
-                                              ast::Expression* operand2);
-  private: ast::Expression* ProduceExpression(Token* op_token,
-                                              ast::Expression* operand0,
-                                              ast::Expression* operand1);
-  private: ast::Expression* ProduceExpression(Token* op_token,
-                                              ast::Expression* operand0);
-  private: ast::Expression* ProduceExpression(Token* op_token);
+  private: void ProduceBinaryOperation(Token* op_token,
+                                       ast::Expression* left,
+                                       ast::Expression* right);
+  private: void ProduceExpression(ast::Expression* expression);
+  private: void ProduceUnaryOperation(Token* op_token,
+                                      ast::Expression* expression);
 
   // Parser entry point. Returns true if parsing succeeded, otherwise false.
   public: bool Run();

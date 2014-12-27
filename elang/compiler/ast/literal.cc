@@ -2,10 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/expression.h"
-
-#include "base/logging.h"
-#include "elang/compiler/token_type.h"
+#include "elang/compiler/ast/literal.h"
 
 namespace elang {
 namespace compiler {
@@ -13,12 +10,12 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Expression
+// Literal
 //
-Expression::Expression(Token* op) : Node(op) {
+Literal::Literal(Token* literal) : Expression(literal) {
 }
 
-Expression::~Expression() {
+Literal::~Literal() {
 }
 
 }  // namespace ast

@@ -15,6 +15,24 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
+#define DECLARATION_NODE_LIST(V) \
+  V(Alias) \
+  V(Enum) \
+  V(Class) \
+  V(Namespace)
+
+#define EXPRESSION_NODE_LIST(V) \
+  V(Assignment) \
+  V(BinaryOperation) \
+  V(Conditional) \
+  V(Literal) \
+  V(NameReference) \
+  V(UnaryOperation)
+
+#define AST_NODE_LIST(V) \
+  DECLARATION_NODE_LIST(V) \
+  EXPRESSION_NODE_LIST(V)
+
 //////////////////////////////////////////////////////////////////////
 //
 // Node

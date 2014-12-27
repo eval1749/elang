@@ -7,8 +7,13 @@
 #include "elang/compiler/parser.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/assignment.h"
+#include "elang/compiler/ast/binary_operation.h"
+#include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
+#include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"
@@ -96,7 +101,9 @@ bool Parser::ParseExpression() {
       return Error(ErrorCode::ExpressionConditionalColon);
     if (ParseExpression())
       return false;
-    ProduceExpression(op_question, cond_part, then_part, ConsumeExpression());
+    auto const else_part = ConsumeExpression();
+    ProduceExpression(factory()->NewConditional(op_question, cond_part,
+                                                then_part, else_part));
     return true;
   }
 
@@ -105,10 +112,11 @@ bool Parser::ParseExpression() {
     // AssignmentOperator ::= '=' | '+=' | '*=' | '/=' | '/=' ...
     // Note: Assignment is right-associative |a = b = c| == |a = (b = c)|.
     auto const op_assign = ConsumeToken();
-    auto const left_part = ConsumeExpression();
+    auto const lhs = ConsumeExpression();
     if (!ParseExpression())
       return false;
-    ProduceExpression(op_assign, left_part, ConsumeExpression());
+    auto const rhs = ConsumeExpression();
+    ProduceExpression(factory()->NewAssignment(op_assign, lhs, rhs));
     return true;
   }
 
@@ -127,7 +135,7 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
       auto const op_token = ConsumeToken();
       if (!ParsePrimaryExpression())
         return false;
-      ProduceExpression(op_token, ConsumeExpression());
+      ProduceUnaryOperation(op_token, ConsumeExpression());
       return true;
     }
 
@@ -135,7 +143,7 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
       auto const op_token = ConsumeTokenAs(TokenType::UnaryAdd);
       if (!ParsePrimaryExpression())
         return false;
-      ProduceExpression(op_token, ConsumeExpression());
+      ProduceUnaryOperation(op_token, ConsumeExpression());
       return true;
     }
 
@@ -143,7 +151,7 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
       auto const op_token = ConsumeTokenAs(TokenType::UnarySub);
       if (!ParsePrimaryExpression())
         return false;
-      ProduceExpression(op_token, ConsumeExpression());
+      ProduceUnaryOperation(op_token, ConsumeExpression());
       return true;
     }
 
@@ -159,7 +167,7 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
     auto const left = ConsumeExpression();
     if (!ParseExpressionSub(category))
       return false;
-    ProduceExpression(op_token, left, ConsumeExpression());
+    ProduceBinaryOperation(op_token, left, ConsumeExpression());
   }
   return true;
 }
@@ -185,15 +193,20 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
 //    default-value-expression
 //    anonymous-method-expression
 bool Parser::ParsePrimaryExpression() {
-  if (PeekTokenCategory() == ExpressionCategory::Primary) {
-    ProduceExpression(ConsumeToken());
+  PeekToken();
+  if (token_->is_literal()) {
+    ProduceExpression(factory()->NewLiteral(ConsumeToken()));
     return ParsePrimaryExpressionPost();
   }
 
-  if (PeekToken() == TokenType::LeftParenthesis) {
+  if (token_->is_name()) {
+    ProduceExpression(factory()->NewNameReference(ConsumeToken()));
+    return ParsePrimaryExpressionPost();
+  }
+
+  if (AdvanceIf(TokenType::LeftParenthesis)) {
     // ParenthesizedExpression:
     // '(' Expression ')'
-    Advance();
     ParseExpression();
     if (!ParsePrimaryExpressionPost())
       return false;
@@ -212,7 +225,7 @@ bool Parser::ParsePrimaryExpressionPost() {
       // PostIncrementExpression ::=
       //    PrimeryExpression '++'
       auto const op_token = ConsumeTokenAs(TokenType::PostIncrement);
-      ProduceExpression(op_token, ConsumeExpression());
+      ProduceUnaryOperation(op_token, ConsumeExpression());
       continue;
      }
 
@@ -220,7 +233,7 @@ bool Parser::ParsePrimaryExpressionPost() {
       // PostDecrementExpression ::=
       //    PrimeryExpression '--'
       auto const op_token = ConsumeTokenAs(TokenType::PostDecrement);
-      ProduceExpression(op_token, ConsumeExpression());
+      ProduceUnaryOperation(op_token, ConsumeExpression());
       continue;
     }
   }
@@ -233,31 +246,20 @@ Parser::ExpressionCategory Parser::PeekTokenCategory() {
   return static_cast<ExpressionCategory>(token_->precedence());
 }
 
-ast::Expression* Parser::ProduceExpression(Token* op_token,
-                                           ast::Expression* first,
-                                           ast::Expression* second,
-                                           ast::Expression* third) {
+void Parser::ProduceExpression(ast::Expression* expression) {
   DCHECK(!expression_);
-  return expression_ = factory()->NewExpression(op_token,
-                                                { first, second, third });
+  expression_ = expression;
 }
 
-ast::Expression* Parser::ProduceExpression(Token* op_token,
-                                           ast::Expression* first,
-                                           ast::Expression* second) {
-  DCHECK(!expression_);
-  return expression_ = factory()->NewExpression(op_token, first, second);
+void Parser::ProduceBinaryOperation(Token* op_token,
+                                    ast::Expression* left,
+                                    ast::Expression* right) {
+  ProduceExpression(factory()->NewBinaryOperation(op_token, left, right));
 }
 
-ast::Expression* Parser::ProduceExpression(Token* op_token,
-                                           ast::Expression* first) {
-  DCHECK(!expression_);
-  return expression_ = factory()->NewExpression(op_token, first);
-}
-
-ast::Expression* Parser::ProduceExpression(Token* op_token) {
-  DCHECK(!expression_);
-  return expression_ = factory()->NewExpression(op_token);
+void Parser::ProduceUnaryOperation(Token* op_token,
+                                   ast::Expression* expression) {
+  ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
 }
 
 }  // namespace compiler

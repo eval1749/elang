@@ -10,6 +10,7 @@
 
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
+#include "elang/compiler/ast/node.h"
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
@@ -18,14 +19,13 @@ class QualifiedName;
 class Token;
 
 namespace ast {
-class Alias;
-class Class;
-class Enum;
-class EnumMember;
+#define FORWARD_DECLARATION(type) class type;
+AST_NODE_LIST(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
+
 class Expression;
-class Namespace;
+class EnumMember;
 class NamespaceBody;
-class Node;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -37,6 +37,7 @@ class NodeFactory final {
   public: NodeFactory();
   public: ~NodeFactory();
 
+  // Declaration related nodes
   public: Alias* NewAlias(NamespaceBody* namespace_body, Token* keyword,
                           Token* simple_name,
                           const QualifiedName& target_name);
@@ -46,18 +47,24 @@ class NodeFactory final {
                         Token* simple_name);
   public: EnumMember* NewEnumMember(Enum* owner, Token* simple_name,
                                     Expression* expression);
-
-  public: Expression* NewExpression(Token* operator_token,
-                                    std::vector<Expression*> operands);
-  public: Expression* NewExpression(Token* operator_token,
-                                    Expression* operand0,
-                                    Expression* operand1);
-  public: Expression* NewExpression(Token* operator_token,
-                                    Expression* operand0);
-  public: Expression* NewExpression(Token* operator_token);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
                                   Token* keyword,
                                   Token* simple_name);
+
+  // Expression nodes
+  public: Assignment* NewAssignment(Token* op, Expression* left,
+                                    Expression* right);
+  public: BinaryOperation* NewBinaryOperation(Token* op, Expression* left,
+                                              Expression* right);
+  public: Conditional* NewConditional(Token* op, Expression* cond_expr,
+                                      Expression* then_expr,
+                                      Expression* else_expr);
+  public: Literal* NewLiteral(Token* literal);
+  public: NameReference* NewNameReference(Token* literal);
+  public: UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
+
+  // Utility
+  private: Node* RememberNode(Node* node);
   public: void RemoveAll();
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);

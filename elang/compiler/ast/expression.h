@@ -19,23 +19,15 @@ class NodeFactory;
 //
 // Expression
 //
-class Expression final : public Node {
+class Expression : public Node {
   DECLARE_CASTABLE_CLASS(Expression, Node);
 
   friend class NodeFactory;
 
-  private: std::vector<Expression*> operands_;
-
-  private: Expression(Token* operator_token,
-                      const std::vector<Expression*>& operands);
-  private: Expression(Token* operator_token, Expression* operand0,
-                      Expression* operand1);
-  private: Expression(Token* operator_token, Expression* operand0);
-  private: explicit Expression(Token* operator_token);
-  public: ~Expression() final;
+  protected: Expression(Token* op);
+  public: ~Expression() override;
 
   public: Token* op() const { return token(); }
-  public: const std::vector<Expression*> operands() const { return operands_; }
 
   DISALLOW_COPY_AND_ASSIGN(Expression);
 };
