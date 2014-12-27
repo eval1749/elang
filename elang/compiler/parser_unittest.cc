@@ -55,6 +55,21 @@ TEST(ParserTest, NamespaceNestedShortcut) {
     "}\n", driver.RunParser());
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// enum
+//
+TEST(ParserTest, EnumBasic) {
+  TestDriver driver(
+    "enum Color { Red, Green, Blue}");
+  EXPECT_EQ(
+    "enum Color {\n"
+    "  Red,\n"
+    "  Green,\n"
+    "  Blue,\n"
+    "}\n", driver.RunParser());
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang

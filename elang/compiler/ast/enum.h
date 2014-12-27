@@ -37,6 +37,8 @@ class Enum final : public NamespaceMember {
                Token* simple_name);
   public: ~Enum() final;
 
+  public: const std::vector<EnumMember*> members() const { return members_; }
+
   public: void AddMember(EnumMember* member);
   public: EnumMember* FindMember(Token* simple_name);
 

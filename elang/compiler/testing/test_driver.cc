@@ -11,6 +11,9 @@
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/enum.h"
+#include "elang/compiler/ast/enum_member.h"
+#include "elang/compiler/ast/expression.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
@@ -45,6 +48,16 @@ namespace {
 // Formatter
 //
 class Formatter final {
+  private: class FormatBlock {
+    private: Formatter* formatter_;
+
+    public: FormatBlock(Formatter* formatter);
+    public: ~FormatBlock();
+
+    DISALLOW_COPY_AND_ASSIGN(FormatBlock);
+  };
+  friend class FormatBlock;
+
   private: std::stringstream stream_;
   private: int depth_;
 
@@ -52,15 +65,37 @@ class Formatter final {
   public: ~Formatter() = default;
 
   private: void Indent();
-  private: void Print(const ast::Alias* alias);
-  private: void Print(const ast::Class* klass);
-  private: void Print(const ast::Namespace* ns);
-  private: void Print(const ast::NamespaceMember* member);
+  private: void PrintAlias(const ast::Alias* alias);
+  private: void PrintClass(const ast::Class* klass);
+  private: void PrintEnum(const ast::Enum* enumx);
+  private: void PrintExpression(const ast::Expression* expression);
+  private: void PrintNamespace(const ast::Namespace* ns);
+  private: void PrintNamespaceMember(const ast::NamespaceMember* member);
   public: std::string Run(const ast::Namespace* ns);
 
   DISALLOW_COPY_AND_ASSIGN(Formatter);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// Formatter::FormatBlock
+//
+Formatter::FormatBlock::FormatBlock(Formatter* formatter)
+    : formatter_(formatter) {
+  formatter_->stream_ << " {" << std::endl;
+  ++formatter_->depth_;
+}
+
+Formatter::FormatBlock::~FormatBlock() {
+  --formatter_->depth_;
+  formatter_->Indent();
+  formatter_->stream_ << "}" << std::endl;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Formatter
+//
 Formatter::Formatter() : depth_(0) {
 }
 
@@ -68,13 +103,13 @@ void Formatter::Indent() {
   stream_ << std::string(depth_ * 2, ' ');
 }
 
-void Formatter::Print(const ast::Alias* alias) {
+void Formatter::PrintAlias(const ast::Alias* alias) {
   Indent();
   stream_ << alias->token() << " " << alias->simple_name() <<
       " = " << alias->target_name() << ";" << std::endl;
 }
 
-void Formatter::Print(const ast::Class* klass) {
+void Formatter::PrintClass(const ast::Class* klass) {
   for (auto const body : klass->bodies()) {
     Indent();
     stream_ << klass->token() << " " << klass->simple_name();
@@ -83,41 +118,57 @@ void Formatter::Print(const ast::Class* klass) {
       stream_ << separator << base_class_name;
       separator = ", ";
     }
-    stream_ << " {" << std::endl;
-    ++depth_;
+
+    FormatBlock block(this);
     for (auto const member : body->members())
-      Print(member);
-    --depth_;
-    Indent();
-    stream_ << "}" << std::endl;
+      PrintNamespaceMember(member);
   }
 }
 
-void Formatter::Print(const ast::Namespace* ns) {
+void Formatter::PrintEnum(const ast::Enum* enumx) {
+  Indent();
+  stream_ << "enum " << enumx->simple_name();
+  FormatBlock block(this);
+  for (auto const member : enumx->members()) {
+    Indent();
+    stream_ << member->name();
+    if (auto const expression = member->expression()) {
+      stream_ << " = ";
+      PrintExpression(expression);
+    }
+    stream_ << "," << std::endl;
+  }
+}
+
+void Formatter::PrintExpression(const ast::Expression* expression) {
+  stream_ << "NYI expression " << expression;
+}
+
+void Formatter::PrintNamespace(const ast::Namespace* ns) {
   for (auto const body : ns->bodies()) {
     Indent();
-    stream_ << ns->token() << " " << ns->simple_name() <<
-        " {" << std::endl;
-    ++depth_;
+    stream_ << ns->token() << " " << ns->simple_name();
+    FormatBlock block(this);
     for (auto const member : body->members())
-      Print(member);
-    --depth_;
-    Indent();
-    stream_ << "}" << std::endl;
+      PrintNamespaceMember(member);
   }
 }
 
-void Formatter::Print(const ast::NamespaceMember* member) {
+void Formatter::PrintNamespaceMember(const ast::NamespaceMember* member) {
   if (auto const alias = member->as<ast::Alias>()) {
-    Print(alias);
+    PrintAlias(alias);
     return;
   }
   if (auto const klass = member->as<ast::Class>()) {
-    Print(klass);
+    PrintClass(klass);
+    return;
+  }
+  if (auto const enumx = member->as<ast::Enum>()) {
+    PrintEnum(enumx);
     return;
   }
   if (auto const ns = member->as<ast::Namespace>()) {
-    Print(ns);
+    PrintNamespace(ns);
     return;
   }
   Indent();
@@ -129,7 +180,7 @@ std::string Formatter::Run(const ast::Namespace* ns) {
   depth_ = 0;
   for (auto const namespace_body : ns->bodies()) {
     for (auto const member : namespace_body->members())
-      Print(member);
+      PrintNamespaceMember(member);
   }
   return stream_.str();
 }

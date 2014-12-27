@@ -26,11 +26,12 @@ class EnumMember final : public Node {
 
   private: Expression* expression_;
 
-  private: EnumMember(Enum* owner, Token* simple_name,
+  private: EnumMember(Enum* owner, Token* name,
                       Expression* expression);
   public: ~EnumMember() final;
 
-  public: Token* simple_name() const { return token(); }
+  public: Expression* expression() const { return expression_; }
+  public: Token* name() const { return token(); }
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };
