@@ -543,7 +543,8 @@ TokenType Parser::PeekToken() {
 }
 
 bool Parser::Run() {
-  return ParseCompilationUnit();
+  ParseCompilationUnit();
+  return session_->errors().empty();
 }
 
 }  // namespace compiler

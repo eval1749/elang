@@ -120,7 +120,7 @@ bool Parser::ParseExpression() {
     return true;
   }
 
-  return false;
+  return !!expression_;
 }
 
 // Null-Coalescing-Expression ::=
@@ -163,7 +163,6 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
     return false;
   while (PeekTokenCategory() == category) {
     auto const op_token = ConsumeToken();
-    Advance();
     auto const left = ConsumeExpression();
     if (!ParseExpressionSub(category))
       return false;
@@ -236,6 +235,8 @@ bool Parser::ParsePrimaryExpressionPost() {
       ProduceUnaryOperation(op_token, ConsumeExpression());
       continue;
     }
+
+    return true;
   }
 }
 

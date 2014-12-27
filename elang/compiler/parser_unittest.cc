@@ -61,11 +61,33 @@ TEST(ParserTest, NamespaceNestedShortcut) {
 //
 TEST(ParserTest, EnumBasic) {
   TestDriver driver(
-    "enum Color { Red, Green, Blue}");
+    "enum Color { Red, Green, Blue }");
   EXPECT_EQ(
     "enum Color {\n"
     "  Red,\n"
     "  Green,\n"
+    "  Blue,\n"
+    "}\n", driver.RunParser());
+}
+
+TEST(ParserTest, EnumComma) {
+  TestDriver driver(
+    "enum Color { Red, Green, Blue, }");
+  EXPECT_EQ(
+    "enum Color {\n"
+    "  Red,\n"
+    "  Green,\n"
+    "  Blue,\n"
+    "}\n", driver.RunParser()) << "Comma following last member";
+}
+
+TEST(ParserTest, EnumValue) {
+  TestDriver driver(
+    "enum Color { Red = 3, Green = Red + 10, Blue }");
+  EXPECT_EQ(
+    "enum Color {\n"
+    "  Red = 3,\n"
+    "  Green = Red + 10,\n"
     "  Blue,\n"
     "}\n", driver.RunParser());
 }

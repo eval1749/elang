@@ -10,13 +10,19 @@
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/assignment.h"
+#include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/name_reference.h"
+#include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/name_resolver.h"
@@ -47,7 +53,7 @@ namespace {
 //
 // Formatter
 //
-class Formatter final {
+class Formatter final : public ast::Visitor {
   private: class FormatBlock {
     private: Formatter* formatter_;
 
@@ -65,13 +71,15 @@ class Formatter final {
   public: ~Formatter() = default;
 
   private: void Indent();
-  private: void PrintAlias(const ast::Alias* alias);
-  private: void PrintClass(const ast::Class* klass);
-  private: void PrintEnum(const ast::Enum* enumx);
-  private: void PrintExpression(const ast::Expression* expression);
-  private: void PrintNamespace(const ast::Namespace* ns);
-  private: void PrintNamespaceMember(const ast::NamespaceMember* member);
-  public: std::string Run(const ast::Namespace* ns);
+  public: std::string Run(ast::Namespace* ns);
+
+  // ast::Visitor
+  private: void Visit(ast::Node* node) final;
+
+  #define DECLARE_VISIT(type) \
+    private: void Visit##type(ast::type* node) final;
+  AST_NODE_LIST(DECLARE_VISIT)
+  #undef DECLARE_VISIT
 
   DISALLOW_COPY_AND_ASSIGN(Formatter);
 };
@@ -103,13 +111,48 @@ void Formatter::Indent() {
   stream_ << std::string(depth_ * 2, ' ');
 }
 
-void Formatter::PrintAlias(const ast::Alias* alias) {
+std::string Formatter::Run(ast::Namespace* ns) {
+  stream_.clear();
+  depth_ = 0;
+  for (auto const namespace_body : ns->bodies()) {
+    for (auto const member : namespace_body->members())
+      Visit(member);
+  }
+  return stream_.str();
+}
+
+// ast::Vistior
+void Formatter::Visit(ast::Node* node) {
+  node->Accept(this);
+}
+
+void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
   stream_ << alias->token() << " " << alias->simple_name() <<
       " = " << alias->target_name() << ";" << std::endl;
 }
 
-void Formatter::PrintClass(const ast::Class* klass) {
+void Formatter::VisitAssignment(ast::Assignment* assignment) {
+  Visit(assignment->left());
+  stream_ << " " << assignment->op() << " ";
+  Visit(assignment->right());
+}
+
+void Formatter::VisitBinaryOperation(ast::BinaryOperation* operation) {
+  Visit(operation->left());
+  stream_ << " " << operation->op() << " ";
+  Visit(operation->right());
+}
+
+void Formatter::VisitConditional(ast::Conditional* cond) {
+  Visit(cond->conditional());
+  stream_ << " ? ";
+  Visit(cond->then_expression());
+  stream_ << " : ";
+  Visit(cond->else_expression());
+}
+
+void Formatter::VisitClass(ast::Class* klass) {
   for (auto const body : klass->bodies()) {
     Indent();
     stream_ << klass->token() << " " << klass->simple_name();
@@ -121,11 +164,11 @@ void Formatter::PrintClass(const ast::Class* klass) {
 
     FormatBlock block(this);
     for (auto const member : body->members())
-      PrintNamespaceMember(member);
+      Visit(member);
   }
 }
 
-void Formatter::PrintEnum(const ast::Enum* enumx) {
+void Formatter::VisitEnum(ast::Enum* enumx) {
   Indent();
   stream_ << "enum " << enumx->simple_name();
   FormatBlock block(this);
@@ -134,55 +177,39 @@ void Formatter::PrintEnum(const ast::Enum* enumx) {
     stream_ << member->name();
     if (auto const expression = member->expression()) {
       stream_ << " = ";
-      PrintExpression(expression);
+      Visit(expression);
     }
     stream_ << "," << std::endl;
   }
 }
 
-void Formatter::PrintExpression(const ast::Expression* expression) {
-  stream_ << "NYI expression " << expression;
+void Formatter::VisitLiteral(ast::Literal* operation) {
+  stream_ << operation->token();
 }
 
-void Formatter::PrintNamespace(const ast::Namespace* ns) {
+void Formatter::VisitNameReference(ast::NameReference* operation) {
+  stream_ << operation->token();
+}
+
+void Formatter::VisitNamespace(ast::Namespace* ns) {
   for (auto const body : ns->bodies()) {
     Indent();
     stream_ << ns->token() << " " << ns->simple_name();
     FormatBlock block(this);
     for (auto const member : body->members())
-      PrintNamespaceMember(member);
+      Visit(member);
   }
 }
 
-void Formatter::PrintNamespaceMember(const ast::NamespaceMember* member) {
-  if (auto const alias = member->as<ast::Alias>()) {
-    PrintAlias(alias);
+void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
+  if (operation->op()->type() == TokenType::PostDecrement ||
+      operation->op()->type() == TokenType::PostIncrement) {
+    Visit(operation->expression());
+    stream_ << operation->op();
     return;
   }
-  if (auto const klass = member->as<ast::Class>()) {
-    PrintClass(klass);
-    return;
-  }
-  if (auto const enumx = member->as<ast::Enum>()) {
-    PrintEnum(enumx);
-    return;
-  }
-  if (auto const ns = member->as<ast::Namespace>()) {
-    PrintNamespace(ns);
-    return;
-  }
-  Indent();
-  stream_ << "NYI" << member->token() << std::endl;
-}
-
-std::string Formatter::Run(const ast::Namespace* ns) {
-  stream_.clear();
-  depth_ = 0;
-  for (auto const namespace_body : ns->bodies()) {
-    for (auto const member : namespace_body->members())
-      PrintNamespaceMember(member);
-  }
-  return stream_.str();
+  stream_ << operation->op();
+  Visit(operation->expression());
 }
 
 }  // namespace

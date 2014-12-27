@@ -26,6 +26,9 @@ class Assignment final : public Expression {
   private: Assignment(Token* op, Expression* left, Expression* right);
   public: ~Assignment() final;
 
+  public: Expression* left() const { return left_; }
+  public: Expression* right() const { return right_; }
+
   // Node
   private: void Accept(Visitor* visitor) override;
 

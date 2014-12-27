@@ -29,6 +29,10 @@ class Conditional final : public Expression {
                        Expression* else_expression);
   public: ~Conditional() final;
 
+  public: Expression* conditional() const { return cond_; }
+  public: Expression* else_expression() const { return else_; }
+  public: Expression* then_expression() const { return then_; }
+
   // Node
   private: void Accept(Visitor* visitor) override;
 

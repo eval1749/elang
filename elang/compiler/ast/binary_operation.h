@@ -28,6 +28,9 @@ class BinaryOperation final : public Expression {
   private: BinaryOperation(Token* op, Expression* left, Expression* right);
   public: ~BinaryOperation() final;
 
+  public: Expression* left() const { return left_; }
+  public: Expression* right() const { return right_; }
+
   // Node
   private: void Accept(Visitor* visitor) override;
 
