@@ -38,6 +38,7 @@ class SourceCodePosition {
   public: int column() const { return column_; }
   public: int line() const { return line_; }
   public: int offset() const { return offset_; }
+  public: SourceCode* source_code() const { return source_code_; }
 };
 
 }  // namespace compiler
