@@ -23,7 +23,7 @@ class ModifiersBuilder final {
   public: Modifiers Get() const;
   public: void Reset();
 
-  #define DECL_ACCESSOR(name, details) \
+  #define DECL_ACCESSOR(name, string, details) \
     bool Has ## name() const; \
     void Set ## name();
   MODIFIER_LIST(DECL_ACCESSOR)

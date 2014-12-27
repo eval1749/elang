@@ -30,5 +30,25 @@ Modifiers& Modifiers::operator=(const Modifiers& other) {
   return *this;
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers) {
+  static const char* const strings[] = {
+    #define STRING(name, string, details) string,
+    MODIFIER_LIST(STRING)
+    #undef STRING
+  };
+  const char* separator = "";
+  const char* const* name = strings;
+  auto value = modifiers.value();
+  while (value) {
+    if (value & 1) {
+      ostream << separator << *name;
+      separator = " ";
+    }
+    value >>= 1;
+    ++name;
+  }
+  return ostream;
+}
+
 }  // namespace compiler
 }  // namespace elang

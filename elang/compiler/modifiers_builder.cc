@@ -25,7 +25,7 @@ void ModifiersBuilder::Reset() {
   flags_ = 0;
 }
 
-#define DEFINE_ACCESSOR(name, details) \
+#define DEFINE_ACCESSOR(name, string, details) \
   bool ModifiersBuilder::Has ## name() const { \
     return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
   } \

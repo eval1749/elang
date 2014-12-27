@@ -5,6 +5,8 @@
 #if !defined(INCLUDE_elang_compiler_modifier_h)
 #define INCLUDE_elang_compiler_modifier_h
 
+#include <ostream>
+
 #include "base/macros.h"
 
 namespace elang {
@@ -13,28 +15,28 @@ namespace compiler {
 // IGNORE_MODIFIER is a convenience macro that can be supplied as
 // an argument (at any position) for a TOKEN_LIST call. It does
 // nothing with tokens belonging to the respective category.
-#define IGNORE_MODIFIER(name, details)
+#define IGNORE_MODIFIER(name, string, details)
 
 #define MODIFIER_LIST(V) \
-  V(Abstract, "I") \
-  V(Extern, "I") \
-  V(Final, "I") \
-  V(New, "M") \
+  V(Abstract, "abstract", "I") \
+  V(Extern, "extern", "I") \
+  V(Final, "final", "I") \
+  V(New, "new", "M") \
   /* 'partial' modifier must be the last modifier */ \
-  V(Partial, "D") \
-  V(Private, "A") \
-  V(Protected, "A") \
-  V(Public, "A") \
-  V(Static, "I") \
-  V(Virtual, "I") \
-  V(Volatile, "V")
+  V(Partial, "partial", "D") \
+  V(Private, "private", "A") \
+  V(Protected, "protected", "A") \
+  V(Public, "public", "A") \
+  V(Static, "static", "I") \
+  V(Virtual, "virtual", "I") \
+  V(Volatile, "volatile", "V")
 
 //////////////////////////////////////////////////////////////////////
 //
 // Modifier
 //
 enum class Modifier {
-  #define T(name, details) name,
+  #define T(name, string, details) name,
   MODIFIER_LIST(T)
   #undef T
 };
@@ -57,7 +59,7 @@ class Modifiers final {
 
   public: int value() const { return flags_; }
 
-  #define DEFINE_HAS(name, details) \
+  #define DEFINE_HAS(name, string, details) \
     bool Has ## name() const { \
       return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
     }
@@ -67,6 +69,8 @@ class Modifiers final {
 
 static_assert(sizeof(Modifiers) == sizeof(int),
               "Instance of Modifiers should be small.");
+
+std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers);
 
 }  // namespace compiler
 }  // namespace elang
