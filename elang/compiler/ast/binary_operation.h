@@ -22,8 +22,8 @@ class BinaryOperation final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* left_;
-  private: Expression* right_;
+  private: Expression* const left_;
+  private: Expression* const right_;
 
   private: BinaryOperation(Token* op, Expression* left, Expression* right);
   public: ~BinaryOperation() final;
@@ -42,4 +42,3 @@ class BinaryOperation final : public Expression {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_binary_operation_h)
-

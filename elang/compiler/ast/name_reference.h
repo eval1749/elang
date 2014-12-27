@@ -25,6 +25,8 @@ class NameReference final : public Expression {
   private: NameReference(Token* name);
   public: ~NameReference() final;
 
+  public: Token* name() const { return token(); }
+
   // Node
   private: void Accept(Visitor* visitor) override;
 

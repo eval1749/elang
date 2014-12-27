@@ -42,9 +42,6 @@ namespace compiler {
       E(Syntax, EnumDecl, NameDuplicate) \
       E(Syntax, EnumDecl, NameInvalid) \
       E(Syntax, EnumDecl, RightCurryBracket) \
-    /* FieldDecl */ \
-      E(Syntax, FieldDecl, Name) \
-      E(Syntax, FieldDecl, SemiColon) \
     /* ClassDecl */ \
       E(Syntax, ClassDecl, LeftCurryBracket) \
       E(Syntax, ClassDecl, Modifier) \
@@ -56,6 +53,11 @@ namespace compiler {
       /* Expect ";" for |extern| class. */ \
       E(Syntax, ClassDecl, SemiColon) \
       E(Syntax, ClassDecl, TypeParamInvalid) \
+    /* ClassMember */ \
+      E(Syntax, ClassMember, Duplicate) \
+      E(Syntax, ClassMember, Name) \
+      E(Syntax, ClassMember, SemiColon) \
+      E(Syntax, ClassMember, VarField) \
     /* Modifier */ \
       E(Syntax, Modifier, Duplicate) \
       /* 'partial' modifier must be the last modifier. */ \
@@ -64,6 +66,10 @@ namespace compiler {
       E(Syntax, NamespaceDecl, LeftCurryBracket) \
       E(Syntax, NamespaceDecl, NameDuplicate) \
       E(Syntax, NamespaceDecl, RightCurryBracket) \
+    /* Type */ \
+      E(Syntax, Type, Comma) \
+      E(Syntax, Type, DotNotName) \
+      E(Syntax, Type, RightSquareBracket) \
     /* UsingDirective */ \
       E(Syntax, UsingDirective, Invalid) \
       E(Syntax, UsingDirective, Name) \

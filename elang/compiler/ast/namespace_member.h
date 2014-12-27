@@ -23,16 +23,19 @@ class NamespaceBody;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
+  // We use |namespace_body_| for name resolution to look up alias and
+  // import.
   private: NamespaceBody* const namespace_body_;
   private: Token* const simple_name_;
 
-  public: NamespaceMember(NamespaceBody* namespace_body,
-                          Token* keyword_or_name,
-                          Token* simple_name);
-  public: ~NamespaceMember() override;
+  protected: NamespaceMember(NamespaceBody* namespace_body,
+                             Token* keyword_or_name,
+                             Token* simple_name);
+  protected: ~NamespaceMember() override;
 
   public: NamespaceBody* namespace_body() const { return namespace_body_; }
   public: Namespace* outer() const;
+  public: Namespace* owner() const { return outer(); }
   public: Token* simple_name() const { return simple_name_; }
 
   public: bool IsDescendantOf(const NamespaceMember* other) const;

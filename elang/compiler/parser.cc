@@ -10,9 +10,9 @@
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
-#include "elang/compiler/ast/expression.h"
-#include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -36,17 +36,18 @@ class Parser::ModifierBuilder final {
   public: ModifierBuilder(Parser* parser);
   public: ~ModifierBuilder() = default;
 
+  public: int modifiers() const { return modifiers_; }
   public: const std::vector<Token*>& tokens() const { return tokens_; }
 
   public: bool Add(Token* token);
   public: void Reset();
 
-  #define T(name, details) \
+  #define DEFINE_HAS(name, details) \
     bool Has ## name() const { \
       return (modifiers_ & (1 << static_cast<int>(Modifier::name))) != 0; \
     }
-  MODIFIER_LIST(T)
-  #undef T
+  MODIFIER_LIST(DEFINE_HAS)
+  #undef DEFINE_HAS
 
   DISALLOW_COPY_AND_ASSIGN(ModifierBuilder);
 };
@@ -173,8 +174,9 @@ void Parser::AddMember(ast::NamespaceMember* member) {
 }
 
 void Parser::Advance() {
- DCHECK(token_);
- token_ = nullptr;
+  DCHECK(token_);
+  token_ = nullptr;
+  PeekToken();
 }
 
 bool Parser::AdvanceIf(TokenType type) {
@@ -254,6 +256,8 @@ bool Parser::ParseClassDecl() {
       }
     }
   }
+
+  // TODO(eval1749) Support partail class.
   auto const class_keyword = ConsumeToken();
   PeekToken();
   auto const simple_name = token_;
@@ -319,6 +323,8 @@ bool Parser::ParseClassDecl() {
 
     switch (PeekToken()) {
       case TokenType::Class:
+      case TokenType::Interface:
+      case TokenType::Struct:
         ParseClassDecl();
         continue;
       case TokenType::Enum:
@@ -327,24 +333,46 @@ bool Parser::ParseClassDecl() {
       case TokenType::Function:
         ParseFunctionDecl();
         continue;
+      case TokenType::RightCurryBracket:
+        Advance();
+        return true;
     }
 
     // FieldDecl ::= Type Name ("=" Expression)? ";"
     // MethodDecl ::= Type Name ParameterDecl ";"
     //                Type Name ParameterDecl "{" Statement* "}"
-    if (!ParseMaybeType())
-      break;
-    auto const field_name = ConsumeToken();
-    if (!field_name->is_name())
-      return Error(ErrorCode::SyntaxFieldDeclName);
-    if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxFieldDeclSemiColon);
-    break;
-  }
+    if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
+      ProduceType(factory()->NewNameReference(var_keyword));
+    } else if (!ParseType()) {
+      return Error(ErrorCode::SyntaxClassDeclRightCurryBracket);
+    }
+    auto const member_type = ConsumeExpression();
+    auto const member_name = ConsumeToken();
+    if (!member_name->is_name())
+      return Error(ErrorCode::SyntaxClassMemberName);
+    if (FindMember(member_name))
+      Error(ErrorCode::SyntaxClassMemberDuplicate, member_name);
+    if (AdvanceIf(TokenType::Assign)) {
+      if (!ParseExpression())
+        return false;
+      AddMember(factory()->NewField(namespace_body_, member_type,
+                                    member_name, ConsumeExpression()));
+      if (!AdvanceIf(TokenType::SemiColon))
+        Error(ErrorCode::SyntaxClassMemberSemiColon);
+      continue;
+    }
 
-  if (!AdvanceIf(TokenType::RightCurryBracket))
-    return Error(ErrorCode::SyntaxClassDeclRightCurryBracket);
-  return true;
+    // |var| field must have initial value.
+    if (auto const name_ref = member_type->as<ast::NameReference>()) {
+      if (name_ref->name()->type() == TokenType::Var)
+        Error(ErrorCode::SyntaxClassMemberVarField, member_name);
+    }
+
+    AddMember(factory()->NewField(namespace_body_, member_type,
+                                  member_name, nullptr));
+    if (!AdvanceIf(TokenType::SemiColon))
+      Error(ErrorCode::SyntaxClassMemberSemiColon);
+  }
 }
 
 // CompilationUnit ::=
@@ -403,10 +431,6 @@ bool Parser::ParseEnumDecl() {
 }
 
 bool Parser::ParseFunctionDecl() {
-  return false;
-}
-
-bool Parser::ParseMaybeType() {
   return false;
 }
 
@@ -503,10 +527,6 @@ bool Parser::ParseQualifiedName() {
     if (!AdvanceIf(TokenType::Dot))
       return true;
   }
-  return false;
-}
-
-bool Parser::ParseTypeParameter() {
   return false;
 }
 

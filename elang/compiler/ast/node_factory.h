@@ -38,13 +38,19 @@ class NodeFactory final {
                           Token* simple_name);
   public: Enum* NewEnum(NamespaceBody* namespace_body, Token* keyword,
                         Token* simple_name);
-  public: EnumMember* NewEnumMember(Enum* owner, Token* simple_name,
+  public: EnumMember* NewEnumMember(Enum* owner, Token* name,
                                     Expression* expression);
+  public: Field* NewField(NamespaceBody* namespace_body, Expression* type,
+                          Token* name, Expression* expression);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
                                   Token* keyword,
                                   Token* simple_name);
 
   // Expression nodes
+  public: ArrayType* NewArrayType(
+      Token* op,
+      Expression* element_type,
+      const std::vector<int>& ranks);
   public: Assignment* NewAssignment(Token* op, Expression* left,
                                     Expression* right);
   public: BinaryOperation* NewBinaryOperation(Token* op, Expression* left,
@@ -52,7 +58,13 @@ class NodeFactory final {
   public: Conditional* NewConditional(Token* op, Expression* cond_expr,
                                       Expression* then_expr,
                                       Expression* else_expr);
+  public: ConstructedType* NewConstructedType(
+      Token* op,
+      Expression* blueprint_type,
+      const std::vector<Expression*>& arguments);
   public: Literal* NewLiteral(Token* literal);
+  public: MemberAccess* NewMemberAccess(
+      const std::vector<Expression*>& members);
   public: NameReference* NewNameReference(Token* literal);
   public: UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
 

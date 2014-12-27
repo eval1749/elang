@@ -85,7 +85,6 @@ class Parser final {
   private: bool ParseExpressionSub(ExpressionCategory category);
   private: bool ParseFunctionDecl();
   private: bool ParseCompilationUnit();
-  private: bool ParseMaybeType();
   private: bool ParseNamespaceDecl();
   private: bool ParseNamespaceDecl(Token* namespace_keyword,
                                    const std::vector<Token*>& names,
@@ -95,6 +94,8 @@ class Parser final {
   private: bool ParsePrimaryExpressionPost();
   // Returns false if no name, otherwise true.
   private: bool ParseQualifiedName();
+  private: bool ParseType();
+  private: bool ParseTypePost();
   private: bool ParseTypeParameter();
   private: bool ParseUsingDirectives();
   private: TokenType PeekToken();
@@ -103,6 +104,7 @@ class Parser final {
                                        ast::Expression* left,
                                        ast::Expression* right);
   private: void ProduceExpression(ast::Expression* expression);
+  private: void ProduceType(ast::Expression* expression);
   private: void ProduceUnaryOperation(Token* op_token,
                                       ast::Expression* expression);
 

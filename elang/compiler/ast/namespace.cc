@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/token_type.h"
 
@@ -26,6 +27,7 @@ Namespace::~Namespace() {
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
+  DCHECK_EQ(this, member->owner());
   DCHECK(!member->is<Alias>());
   // We keep first member declaration.
   if (FindMember(member->simple_name()))

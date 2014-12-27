@@ -17,15 +17,19 @@ namespace ast {
 
 #define DECLARATION_NODE_LIST(V) \
   V(Alias) \
-  V(Enum) \
   V(Class) \
+  V(Enum) \
+  V(Field) \
   V(Namespace)
 
 #define EXPRESSION_NODE_LIST(V) \
+  V(ArrayType) \
   V(Assignment) \
   V(BinaryOperation) \
   V(Conditional) \
+  V(ConstructedType) \
   V(Literal) \
+  V(MemberAccess) \
   V(NameReference) \
   V(UnaryOperation)
 

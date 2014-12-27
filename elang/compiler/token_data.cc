@@ -138,7 +138,8 @@ bool TokenData::is_keyword() const {
 }
 
 bool TokenData::is_literal() const {
-  return GetTokenDetails(type_)[0] == 'L';
+  auto const details = GetTokenDetails(type_);
+  return details[0] == 'L' || details[1] == 'L';
 }
 
 bool TokenData::is_name() const {
@@ -150,6 +151,10 @@ bool TokenData::is_operator() const {
   return GetTokenDetails(type_)[0] == 'O';
 }
 
+bool TokenData::is_type_name() const {
+  return GetTokenDetails(type_)[1] == 'T';
+}
+
 // '0', '1', and '2' come from |ExpressionCategory::Unary| in
 // "parser_expression.cc".
 int TokenData::precedence() const {
@@ -158,7 +163,7 @@ int TokenData::precedence() const {
     return details[1] - 'a' + 2;
   if (is_name() || is_literal())
     return 1;
-  if (is_keyword() && details[1] == 'P')
+  if (is_keyword() && details[1] == 'L')
     return 1;
   return 0;
 }

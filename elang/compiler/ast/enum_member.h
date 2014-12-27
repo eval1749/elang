@@ -11,10 +11,6 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class Enum;
-class Expression;
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // EnumMember
@@ -41,4 +37,3 @@ class EnumMember final : public Node {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_enum_member_h)
-

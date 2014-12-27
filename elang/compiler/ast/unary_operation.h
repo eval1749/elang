@@ -22,7 +22,7 @@ class UnaryOperation final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* expression_;
+  private: Expression* const expression_;
 
   private: UnaryOperation(Token* op, Expression* expression);
   public: ~UnaryOperation() final;
@@ -40,4 +40,3 @@ class UnaryOperation final : public Expression {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_unary_operation_h)
-

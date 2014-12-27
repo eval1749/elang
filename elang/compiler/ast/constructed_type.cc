@@ -2,10 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/name_reference.h"
+#include "elang/compiler/ast/constructed_type.h"
 
 #include "base/logging.h"
-#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -13,14 +12,15 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NameReference
+// ConstructedType
 //
-NameReference::NameReference(Token* name) : Expression(name) {
-  DCHECK(name->is_name() || name->is_type_name() || 
-         name->type() == TokenType::Var);
+ConstructedType::ConstructedType(Token* op, Expression* type,
+                                 const std::vector<Expression*>& args)
+    : Expression(op), arguments_(args), blueprint_type_(type) {
+  DCHECK(!arguments_.empty());
 }
 
-NameReference::~NameReference() {
+ConstructedType::~ConstructedType() {
 }
 
 }  // namespace ast

@@ -31,8 +31,8 @@ namespace compiler {
 //  'S' string data
 //
 // Second characters are
+//  'L' keyword literal, e.g. false, null, true.
 //  'M' modifier
-//  'P' primary expression
 //  'T' type
 //  'a' operator precedence (highest)
 //  ...
@@ -178,8 +178,10 @@ namespace compiler {
         K(Yield, "yield", "K-") \
     /* known types */ \
     K(Bool, "bool", "KT") \
+    K(Char, "char", "KT") \
     K(Float32, "float32", "KT") \
     K(Float64, "float64", "KT") \
+    K(Int, "int", "KT") /* |int| is alias of |int32|. */ \
     K(Int8, "int8", "KT") \
     K(Int16, "int16", "KT") \
     K(Int32, "int32", "KT") \
@@ -189,9 +191,9 @@ namespace compiler {
     K(UInt32, "uint32", "KT") \
     K(UInt64, "uint64", "KT") \
     /* literals */ \
-    K(NullLiteral, "null", "KPL") \
-    K(TrueLiteral, "true", "KPL") \
-    K(FalseLiteral, "false", "KPL") \
+    K(NullLiteral, "null", "KL") \
+    K(TrueLiteral, "true", "KL") \
+    K(FalseLiteral, "false", "KL") \
     T(Float32Literal, "f32", "LF") \
     T(Float64Literal, "f64", "LF") \
     T(Int32Literal, "I32", "LI") \

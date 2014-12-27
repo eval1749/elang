@@ -2,10 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/name_reference.h"
+#include "elang/compiler/ast/member_access.h"
 
 #include "base/logging.h"
-#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -13,14 +12,14 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NameReference
+// MemberAccess
 //
-NameReference::NameReference(Token* name) : Expression(name) {
-  DCHECK(name->is_name() || name->is_type_name() || 
-         name->type() == TokenType::Var);
+MemberAccess::MemberAccess(const std::vector<Expression*>& members)
+    : Expression(members.front().token()), members_(members) {
+  DCHECK(members_.size() >= 2u);
 }
 
-NameReference::~NameReference() {
+MemberAccess::~MemberAccess() {
 }
 
 }  // namespace ast

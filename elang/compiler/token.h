@@ -51,6 +51,7 @@ class Token final {
   public: bool is_literal() const { return data_.is_literal(); }
   public: bool is_name() const { return data_.is_name(); }
   public: bool is_operator() const { return data_.is_operator(); }
+  public: bool is_type_name() const { return data_.is_type_name(); }
   public: const SourceCodeRange& location() const { return location_; }
   public: int precedence() const { return data_.precedence(); }
   public: hir::SimpleName* simple_name() const { return data_.simple_name(); }

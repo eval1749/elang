@@ -20,8 +20,8 @@ class Assignment final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* left_;
-  private: Expression* right_;
+  private: Expression* const left_;
+  private: Expression* const right_;
 
   private: Assignment(Token* op, Expression* left, Expression* right);
   public: ~Assignment() final;

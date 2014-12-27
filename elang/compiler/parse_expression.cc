@@ -113,6 +113,7 @@ bool Parser::ParseExpression() {
     // Note: Assignment is right-associative |a = b = c| == |a = (b = c)|.
     auto const op_assign = ConsumeToken();
     auto const lhs = ConsumeExpression();
+    // TODO(eval1749) Check |lhs| is unary expression.
     if (!ParseExpression())
       return false;
     auto const rhs = ConsumeExpression();

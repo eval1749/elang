@@ -37,4 +37,3 @@ class Expression : public Node {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_expression_h)
-

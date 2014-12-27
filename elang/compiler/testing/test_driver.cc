@@ -10,13 +10,17 @@
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
+#include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
@@ -132,6 +136,16 @@ void Formatter::VisitAlias(ast::Alias* alias) {
       " = " << alias->target_name() << ";" << std::endl;
 }
 
+void Formatter::VisitArrayType(ast::ArrayType* array_type) {
+  Visit(array_type->element_type());
+  for (auto const rank : array_type->ranks()) {
+    stream_ << "[";
+    for (auto counter = rank; counter >= 2; --counter)
+      stream_ << ",";
+    stream_ << "]";
+  }
+}
+
 void Formatter::VisitAssignment(ast::Assignment* assignment) {
   Visit(assignment->left());
   stream_ << " " << assignment->op() << " ";
@@ -168,6 +182,18 @@ void Formatter::VisitClass(ast::Class* klass) {
   }
 }
 
+void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
+  Visit(cons_type->blueprint_type());
+  stream_ << "<";
+  const char* separator = "";
+  for (auto const type_arg : cons_type->arguments()) {
+    stream_ << separator;
+    Visit(type_arg);
+    separator = ", ";
+  }
+  stream_ << ">";
+}
+
 void Formatter::VisitEnum(ast::Enum* enumx) {
   Indent();
   stream_ << "enum " << enumx->simple_name();
@@ -183,8 +209,28 @@ void Formatter::VisitEnum(ast::Enum* enumx) {
   }
 }
 
+void Formatter::VisitField(ast::Field* field) {
+  Indent();
+  Visit(field->type());
+  stream_ << " " << field->name();
+  if (auto const expression = field->expression()) {
+    stream_ << " = ";
+    Visit(expression);
+  }
+  stream_ << ";" << std::endl;
+}
+
 void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
+}
+
+void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
+  const char* separator = "";
+  for (auto const member : member_access->members()) {
+    stream_ << separator;
+    Visit(member);
+    separator = ".";
+  }
 }
 
 void Formatter::VisitNameReference(ast::NameReference* operation) {

@@ -20,9 +20,9 @@ class Conditional final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* cond_;
-  private: Expression* else_;
-  private: Expression* then_;
+  private: Expression* const cond_;
+  private: Expression* const else_;
+  private: Expression* const then_;
 
   private: Conditional(Token* op, Expression* condition,
                        Expression* then_expression,
@@ -44,4 +44,3 @@ class Conditional final : public Expression {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_conditional_h)
-

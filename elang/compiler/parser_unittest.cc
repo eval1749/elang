@@ -10,6 +10,10 @@ namespace elang {
 namespace compiler {
 namespace {
 
+//////////////////////////////////////////////////////////////////////
+//
+// Class
+//
 TEST(ParserTest, ClassBasic) {
   TestDriver driver(
     "class A : C {} class B : A {} class C {}");
@@ -19,6 +23,35 @@ TEST(ParserTest, ClassBasic) {
     "class C {\n}\n", driver.RunParser());
 }
 
+TEST(ParserTest, ClassField) {
+  TestDriver driver(
+    "class A { int x; B y = null; var z = 0; }");
+  EXPECT_EQ(
+    "class A {\n"
+    "  int x;\n"
+    "  B y = null;\n"
+    "  var z = 0;\n"
+    "}\n", driver.RunParser());
+}
+
+TEST(ParserTest, ErrorClassFieldDuplicate) {
+  TestDriver driver(
+    "class A { int x; bool x; }");
+  EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x\n",
+            driver.RunParser());
+}
+
+TEST(ParserTest, ErrorClassFieldVar) {
+  TestDriver driver(
+    "class A { var x; }");
+  EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n",
+            driver.RunParser()) << "var field must be initialized";
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Namespace
+//
 TEST(ParserTest, NamespaceAlias) {
   TestDriver driver(
     "namespace A { using B = N1.N2; }");

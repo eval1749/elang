@@ -67,6 +67,7 @@ class TokenData {
   public: bool is_literal() const;
   public: bool is_name() const;
   public: bool is_operator() const;
+  public: bool is_type_name() const;
   public: int precedence() const;
   public: hir::SimpleName* simple_name() const;
   public: base::StringPiece16 string_data() const;

@@ -6,14 +6,17 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
@@ -74,6 +77,13 @@ EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* simple_name,
   return node;
 }
 
+Field* NodeFactory::NewField(NamespaceBody* namespace_body, Expression* type,
+                             Token* name, Expression* expression) {
+  auto const node = new Field(namespace_body, type, name, expression);
+  RememberNode(node);
+  return node;
+}
+
 Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
                                      Token* keyword,
                                      Token* simple_name) {
@@ -87,6 +97,14 @@ Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
 //
 // Expression nodes
 //
+ArrayType* NodeFactory::NewArrayType(Token* op,
+                                     Expression* element_type,
+                                     const std::vector<int>& ranks) {
+  auto const node = new ArrayType(op, element_type, ranks);
+  RememberNode(node);
+  return node;
+}
+
 Assignment* NodeFactory::NewAssignment(Token* op, Expression* left,
                                        Expression* right) {
   auto const node = new Assignment(op, left, right);
@@ -109,8 +127,24 @@ Conditional* NodeFactory::NewConditional(Token* op, Expression* cond_expr,
   return node;
 }
 
+ConstructedType* NodeFactory::NewConstructedType(
+    Token* op,
+    Expression* blueprint_type,
+    const std::vector<Expression*>& arguments) {
+  auto const node = new ConstructedType(op, blueprint_type, arguments);
+  RememberNode(node);
+  return node;
+}
+
 Literal* NodeFactory::NewLiteral(Token* literal) {
   auto const node = new Literal(literal);
+  RememberNode(node);
+  return node;
+}
+
+MemberAccess* NodeFactory::NewMemberAccess(
+    const std::vector<Expression*>& members) {
+  auto const node = new MemberAccess(members);
   RememberNode(node);
   return node;
 }
