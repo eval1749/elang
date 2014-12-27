@@ -78,6 +78,8 @@ class CompilationSession final {
   public: hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
   public: CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   public: base::StringPiece16* NewString(base::StringPiece16 string);
+  public: Token* NewUniqueNameToken(const SourceCodeRange& location,
+                                    const base::char16* format);
   public: Token* NewToken(const SourceCodeRange& source_range,
                           const TokenData& data);
 

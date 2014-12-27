@@ -9,7 +9,6 @@
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"
@@ -92,6 +91,13 @@ base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
   string_pool_.push_back(new base::StringPiece16(
       hir_factory()->NewString(string)));
   return string_pool_.back();
+}
+
+Token* CompilationSession::NewUniqueNameToken(
+    const SourceCodeRange& location, const base::char16* format) {
+  return token_factory_->NewToken(
+      location,
+      TokenData(TokenType::TempName, hir_factory()->NewUniqueName(format)));
 }
 
 Token* CompilationSession::NewToken(const SourceCodeRange& location,

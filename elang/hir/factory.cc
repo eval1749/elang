@@ -5,6 +5,7 @@
 #include "elang/hir/factory.h"
 
 #include "base/logging.h"
+#include "base/strings/stringprintf.h"
 #include "elang/hir/class.h"
 #include "elang/hir/namespace.h"
 #include "elang/hir/simple_name.h"
@@ -24,7 +25,9 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 //
 // Factory
 //
-Factory::Factory() : global_namespace_(CreateGlobalNamespace(this)) {
+Factory::Factory()
+    : global_namespace_(CreateGlobalNamespace(this)),
+      temp_name_counter_(0) {
 }
 
 Factory::~Factory() {
@@ -51,6 +54,10 @@ Namespace* Factory::NewNamespace(Namespace* outer, SimpleName* simple_name) {
   auto const node = new Namespace(outer, simple_name);
   nodes_.push_back(node);
   return node;
+}
+
+SimpleName* Factory::NewUniqueName(const base::char16* format) {
+  return new SimpleName(base::StringPrintf(format, ++temp_name_counter_));
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {

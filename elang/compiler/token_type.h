@@ -204,6 +204,7 @@ namespace compiler {
     T(StringLiteral, "\"string\"", "LS") \
 \
     T(SimpleName, "SimpleName", "NN") \
+    T(TempName, "TempName", "NN") \
     T(Illegal, "ILLIEGAL", "?")
 
 //////////////////////////////////////////////////////////////////////
