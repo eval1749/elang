@@ -56,8 +56,15 @@ namespace compiler {
     /* ClassMember */ \
       E(Syntax, ClassMember, Duplicate) \
       E(Syntax, ClassMember, Name) \
+      E(Syntax, ClassMember, Parenthesis) \
       E(Syntax, ClassMember, SemiColon) \
       E(Syntax, ClassMember, VarField) \
+    /* Method */ \
+      E(Syntax, Method, Comma) \
+      E(Syntax, Method, LeftCurryBracket) \
+      E(Syntax, Method, NameDuplicate) \
+      /* ';' without |extern| modifier. */ \
+      E(Syntax, Method, SemiColon) \
     /* Modifier */ \
       E(Syntax, Modifier, Duplicate) \
       /* 'partial' modifier must be the last modifier. */ \

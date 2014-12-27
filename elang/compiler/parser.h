@@ -25,7 +25,9 @@ class CompilationUnit;
 class CompilationSession;
 enum class ErrorCode;
 class Lexer;
+class Modifiers;
 class QualifiedName;
+class SourceCodePosition;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -44,6 +46,7 @@ class Parser final {
   private: CompilationUnit* compilation_unit_;
   private: ast::Expression* expression_;
   private: const std::unique_ptr<Lexer> lexer_;
+  private: int last_source_offset_;
   private: std::unique_ptr<ModifierParser> modifiers_;
   private: ast::NamespaceBody* namespace_body_;
   private: std::unique_ptr<QualifiedNameBuilder> name_builder_;
@@ -74,10 +77,16 @@ class Parser final {
   // Returns |Token*| and consume it if current token is |type|.
   private: Token* ConsumeTokenIf(TokenType type);
 
+  // Returns last produced expression.
+  private: ast::Expression* ConsumeType();
+
   // Always returns false for simplify error processing.
   private: bool Error(ErrorCode error_code);
   private: bool Error(ErrorCode error_code, Token* token);
   private: ast::NamespaceMember* FindMember(Token* token);
+  private: Token* Parser::NewUniqueNameToken(const base::char16* format);
+
+  // Parsing
   private: bool ParseAfterPrimaryExpression();
   private: bool ParseClassDecl();
   private: bool ParseEnumDecl();
@@ -85,6 +94,10 @@ class Parser final {
   private: bool ParseExpressionSub(ExpressionCategory category);
   private: bool ParseFunctionDecl();
   private: bool ParseCompilationUnit();
+  private: bool ParseMethodDecl(Modifiers modifiers,
+                                ast::Expression* method_type,
+                                Token* method_name,
+                                const std::vector<Token*> type_parameters);
   private: bool ParseNamespaceDecl();
   private: bool ParseNamespaceDecl(Token* namespace_keyword,
                                    const std::vector<Token*>& names,
@@ -94,9 +107,10 @@ class Parser final {
   private: bool ParsePrimaryExpressionPost();
   // Returns false if no name, otherwise true.
   private: bool ParseQualifiedName();
+  private: bool ParseStatement();
   private: bool ParseType();
   private: bool ParseTypePost();
-  private: bool ParseTypeParameter();
+  private: std::vector<Token*> ParseTypeParameterList();
   private: bool ParseUsingDirectives();
   private: Token* PeekToken();
   private: ExpressionCategory PeekTokenCategory();
@@ -111,6 +125,11 @@ class Parser final {
   // Parser entry point. Returns true if parsing succeeded, otherwise false.
   public: bool Run();
 
+  private: void ValidateClassModifiers();
+  private: void ValidateEnumModifiers();
+  private: void ValidateFieldModifiers();
+  private: void ValidateMethodModifiers();
+
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 
@@ -118,4 +137,3 @@ class Parser final {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_parser_h)
-

@@ -17,6 +17,7 @@
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/member_access.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
@@ -84,6 +85,17 @@ Field* NodeFactory::NewField(NamespaceBody* namespace_body, Modifiers modifiers,
                              Expression* expression) {
   auto const node = new Field(namespace_body, modifiers, type, name,
                               expression);
+  RememberNode(node);
+  return node;
+}
+
+Method* NodeFactory::NewMethod(
+    NamespaceBody* namespace_body, Modifiers modifies,
+    Expression* type, Token* name,
+    const std::vector<Token*>& type_parameters,
+    const std::vector<TypeAndName>& parameters) {
+  auto const node = new Method(namespace_body, modifies, type, name,
+                               type_parameters, parameters);
   RememberNode(node);
   return node;
 }

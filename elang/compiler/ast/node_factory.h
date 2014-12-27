@@ -11,6 +11,7 @@
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
 #include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/type_and_name.h"
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
@@ -44,6 +45,11 @@ class NodeFactory final {
   public: Field* NewField(NamespaceBody* namespace_body,  Modifiers modifiers,
                           Expression* type, Token* name,
                           Expression* expression);
+  public: Method* NewMethod(
+      NamespaceBody* namespace_body, Modifiers modifies,
+      Expression* type, Token* name,
+      const std::vector<Token*>& type_parameters,
+      const std::vector<TypeAndName>& parameters);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
                                   Token* keyword, Token* name);
 

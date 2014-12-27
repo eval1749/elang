@@ -22,6 +22,11 @@
 namespace elang {
 namespace compiler {
 
+// Just an alias of |ConsumeExpression()| for improving readbility.
+ast::Expression* Parser::ConsumeType() {
+  return ConsumeExpression();
+}
+
 // Type ::= ValueType | ReferenceType | TypeParameter
 //
 // TypeName ::= NamespaceOrTypeName
@@ -69,12 +74,12 @@ bool Parser::ParseType() {
       for (;;) {
         if (!ParseType())
           return false;
-        type_args.push_back(ConsumeExpression());
+        type_args.push_back(ConsumeType());
         if (AdvanceIf(TokenType::Comma))
           continue;
         if (AdvanceIf(TokenType::RightAngleBracket)) {
           type_names.push_back(factory()->NewConstructedType(
-              op_token, ConsumeExpression(), type_args));
+              op_token, ConsumeType(), type_args));
           break;
         }
         Error(ErrorCode::SyntaxTypeComma);
@@ -100,11 +105,11 @@ bool Parser::ParseType() {
 bool Parser::ParseTypePost() {
   if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType)) {
     ProduceType(factory()->NewUnaryOperation(optional_marker,
-                                                   ConsumeExpression()));
+                                                   ConsumeType()));
   }
   if (PeekToken() != TokenType::LeftSquareBracket)
     return true;
-  auto const element_type = ConsumeExpression();
+  auto const element_type = ConsumeType();
   auto const op_token = ConsumeToken();
   std::vector<int> ranks;
   while (AdvanceIf(TokenType::LeftSquareBracket)) {
@@ -121,8 +126,22 @@ bool Parser::ParseTypePost() {
   return true;
 }
 
-bool Parser::ParseTypeParameter() {
-  return false;
+// TypeParameterList ::= '<' TypeParameter (',' TypeParameter)* '>'
+// TypeParameter ::= Attribute? Name
+std::vector<Token*> Parser::ParseTypeParameterList() {
+  std::vector<Token*> type_params;
+  for (;;) {
+    if (!PeekToken()->is_name())
+      break;
+    // TODO(eval1749) We should use |ast::TypeParameter| with |in|, |out| and
+    // attribute list.
+    type_params.push_back(ConsumeToken());
+    if (AdvanceIf(TokenType::RightAngleBracket))
+      break;
+    if (!AdvanceIf(TokenType::Comma))
+      Error(ErrorCode::SyntaxClassDeclTypeParamInvalid);
+  }
+  return type_params;
 }
 
 void Parser::ProduceType(ast::Expression* type) {

@@ -21,6 +21,7 @@
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/member_access.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
@@ -231,6 +232,32 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
     Visit(member);
     separator = ".";
   }
+}
+
+void Formatter::VisitMethod(ast::Method* method) {
+  Indent();
+  stream_ << method->modifiers();
+  if (!method->modifiers().value())
+    stream_ << " ";
+  Visit(method->return_type());
+  stream_ << " " << method->name();
+  if (!method->type_parameters().empty()) {
+    const char* separator = "<";
+    for (auto const name : method->type_parameters()) {
+      stream_ << separator << name;
+      separator = ", ";
+    }
+    stream_ << ">";
+  }
+  stream_ << "(";
+  const char* separator = "";
+  for (auto const param : method->parameters()) {
+    stream_ << separator;
+    Visit(param.type);
+    stream_ << " " << param.name;
+    separator = ", ";
+  }
+  stream_ << ");";
 }
 
 void Formatter::VisitNameReference(ast::NameReference* operation) {

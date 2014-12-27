@@ -5,12 +5,14 @@
 #include "elang/compiler/parser.h"
 
 #include <vector>
+#include <unordered_set>
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -52,7 +54,7 @@ bool Parser::ModifierParser::Add(Token* token) {
   if (builder_.HasPartial())
     parser_->Error(ErrorCode::SyntaxModifierPartial);
   switch (token->type()) {
-    #define CASE_CLAUSE(name, details) \
+    #define CASE_CLAUSE(name, string, details) \
       case TokenType::name: \
         if (builder_.Has ## name()) { \
           parser_->Error(ErrorCode::SyntaxModifierDuplicate); \
@@ -147,6 +149,7 @@ void Parser::QualifiedNameBuilder::Reset() {
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
       expression_(nullptr),
+      last_source_offset_(0),
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
@@ -210,6 +213,13 @@ ast::NamespaceMember* Parser::FindMember(Token* simple_name) {
   return namespace_body_->FindMember(simple_name);
 }
 
+Token* Parser::NewUniqueNameToken(const base::char16* format) {
+  return session_->NewUniqueNameToken(
+      SourceCodeRange(compilation_unit_->source_code(),
+                      last_source_offset_, last_source_offset_),
+      format);
+}
+
 // ClassDecl ::= Attribute* ClassModifier* 'partial'? 'class'
 //               Name TypeParamereList? ClassBase?
 //               TypeParameterConstraintsClasses?
@@ -223,36 +233,7 @@ ast::NamespaceMember* Parser::FindMember(Token* simple_name) {
 // ClassBody ::= '{' ClassMemberDecl* '}'
 //
 bool Parser::ParseClassDecl() {
-  // Check class modifiers
-  {
-    auto has_accessibility = false;
-    auto has_inheritance = false;
-    for (const auto& token : modifiers_->tokens()) {
-      switch (token->type()) {
-        case TokenType::Abstract:
-        case TokenType::New:
-        case TokenType::Static:
-          if (has_inheritance)
-            Error(ErrorCode::SyntaxClassDeclModifier, token);
-          else
-              has_inheritance = true;
-          break;
-        case TokenType::Private:
-        case TokenType::Protected:
-        case TokenType::Public:
-          if (has_accessibility)
-            Error(ErrorCode::SyntaxClassDeclModifier, token);
-          else
-            has_accessibility = true;
-          break;
-        case TokenType::Virtual:
-        case TokenType::Volatile:
-          Error(ErrorCode::SyntaxClassDeclModifier, token);
-          break;
-      }
-    }
-  }
-
+  ValidateClassModifiers();
   // TODO(eval1749) Support partial class.
   auto const class_modifiers = modifiers_->Get();
   auto const class_keyword = ConsumeToken();
@@ -267,16 +248,8 @@ bool Parser::ParseClassDecl() {
   NamespaceBodyScope namespace_body_scope(this, clazz);
 
   // TypeParameterList
-  if (AdvanceIf(TokenType::LeftAngleBracket)) {
-    for (;;) {
-      if (!ParseTypeParameter())
-        return false;
-      if (AdvanceIf(TokenType::RightAngleBracket))
-        break;
-      if (!AdvanceIf(TokenType::Comma))
-        return Error(ErrorCode::SyntaxClassDeclTypeParamInvalid);
-    }
-  }
+  if (AdvanceIf(TokenType::LeftAngleBracket))
+    ParseTypeParameterList();
 
   // ClassBase
   if (AdvanceIf(TokenType::Colon)) {
@@ -330,9 +303,10 @@ bool Parser::ParseClassDecl() {
         return true;
     }
 
-    // FieldDecl ::= Type Name ("=" Expression)? ";"
-    // MethodDecl ::= Type Name ParameterDecl ";"
-    //                Type Name ParameterDecl "{" Statement* "}"
+    // MethodDecl ::=
+    //    Type Name TypeParameterList? ParameterDecl ';'
+    //    Type Name TypeParameterList? ParameterDecl '{'
+    //    Statement* '}'
     if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
       ProduceType(factory()->NewNameReference(var_keyword));
     } else if (!ParseType()) {
@@ -340,12 +314,31 @@ bool Parser::ParseClassDecl() {
     }
     // TODO(eval1749) Validate FieldMoifiers
     auto const member_modifiers = modifiers_->Get();
-    auto const member_type = ConsumeExpression();
+    auto const member_type = ConsumeType();
     auto const member_name = ConsumeToken();
     if (!member_name->is_name())
       return Error(ErrorCode::SyntaxClassMemberName);
     if (FindMember(member_name))
       Error(ErrorCode::SyntaxClassMemberDuplicate, member_name);
+    if (AdvanceIf(TokenType::LeftAngleBracket)) {
+      auto const type_parameters = ParseTypeParameterList();
+      if (!AdvanceIf(TokenType::LeftParenthesis)) {
+        Error(ErrorCode::SyntaxClassMemberParenthesis);
+        // TODO(eval1749) Skip until '{' or '}'
+        continue;
+      }
+      ParseMethodDecl(member_modifiers, member_type, member_name,
+                      type_parameters);
+      continue;
+    }
+    if (AdvanceIf(TokenType::LeftParenthesis)) {
+      ParseMethodDecl(member_modifiers, member_type, member_name, {});
+      continue;
+    }
+
+    // FieldDecl ::= Type Name ('=' Expression)? ';'
+    //
+    ValidateFieldModifiers();
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())
         return false;
@@ -424,6 +417,48 @@ bool Parser::ParseEnumDecl() {
 
 bool Parser::ParseFunctionDecl() {
   return false;
+}
+
+// Called after '(' read.
+bool Parser::ParseMethodDecl(Modifiers method_modifiers,
+                             ast::Expression* method_type,
+                             Token* method_name,
+                             const std::vector<Token*> type_parameters) {
+  ValidateMethodModifiers();
+  std::vector<ast::TypeAndName> parameters;
+  std::unordered_set<hir::SimpleName*> names;
+  for (;;) {
+    auto const param_type = ParseType() ? ConsumeType() : nullptr;
+    auto const param_name = PeekToken()->is_name() ?
+        ConsumeToken() : NewUniqueNameToken(L"@p%d");
+    if (names.find(param_name->simple_name()) != names.end())
+      Error(ErrorCode::SyntaxMethodNameDuplicate);
+    parameters.push_back(ast::TypeAndName(param_type, param_name));
+    names.insert(param_name->simple_name());
+    if (AdvanceIf(TokenType::RightParenthesis))
+      break;
+    if (!AdvanceIf(TokenType::Comma))
+      Error(ErrorCode::SyntaxMethodComma);
+  }
+
+  auto const method = factory()->NewMethod(namespace_body_, method_modifiers,
+                                           method_type, method_name,
+                                           type_parameters, parameters);
+  AddMember(method);
+
+  if (AdvanceIf(TokenType::SemiColon)) {
+    if (!method_modifiers.HasExtern())
+      Error(ErrorCode::SyntaxMethodSemiColon);
+    return true;
+  }
+
+  if (PeekToken() != TokenType::LeftCurryBracket) {
+    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
+    return true;
+  }
+
+  ParseStatement();
+  return true;
 }
 
 //  NamespaceDecl ::= "namespace" QualifiedName Namespace ";"?
@@ -547,12 +582,54 @@ Token* Parser::PeekToken() {
   if (token_)
     return token_;
   token_ = lexer_->GetToken();
+  last_source_offset_ = token_->location().start_offset();
   return token_;
 }
 
 bool Parser::Run() {
   ParseCompilationUnit();
   return session_->errors().empty();
+}
+
+void Parser::ValidateClassModifiers() {
+  auto has_accessibility = false;
+  auto has_inheritance = false;
+  for (const auto& token : modifiers_->tokens()) {
+    switch (token->type()) {
+      case TokenType::Abstract:
+      case TokenType::New:
+      case TokenType::Static:
+        if (has_inheritance)
+          Error(ErrorCode::SyntaxClassDeclModifier, token);
+        else
+            has_inheritance = true;
+        break;
+      case TokenType::Private:
+      case TokenType::Protected:
+      case TokenType::Public:
+        if (has_accessibility)
+          Error(ErrorCode::SyntaxClassDeclModifier, token);
+        else
+          has_accessibility = true;
+        break;
+      case TokenType::Virtual:
+      case TokenType::Volatile:
+        Error(ErrorCode::SyntaxClassDeclModifier, token);
+        break;
+    }
+  }
+}
+
+void Parser::ValidateEnumModifiers() {
+  // TODO(eval1749) NYI validate enum modifier
+}
+
+void Parser::ValidateFieldModifiers() {
+  // TODO(eval1749) NYI validate field modifier
+}
+
+void Parser::ValidateMethodModifiers() {
+  // TODO(eval1749) NYI validate method modifier
 }
 
 }  // namespace compiler

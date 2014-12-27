@@ -38,10 +38,12 @@ class NamespaceMember : public Node {
   protected: ~NamespaceMember() override;
 
   public: Modifiers modifiers() const { return modifiers_; }
+  public: Token* name() const { return simple_name_; }
   public: NamespaceBody* namespace_body() const { return namespace_body_; }
   public: Namespace* outer() const;
   public: Namespace* owner() const { return outer(); }
-  public: Token* simple_name() const { return simple_name_; }
+  // TODO(eval1749) Get rid of |NamespaceMember::simple_name()|.
+  public: Token* simple_name() const { return name(); }
 
   public: bool IsDescendantOf(const NamespaceMember* other) const;
   public: virtual Namespace* ToNamespace();

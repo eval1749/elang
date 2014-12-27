@@ -1,0 +1,62 @@
+// Copyright 2014 Project Vogue. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#if !defined(INCLUDE_elang_compiler_ast_method_h)
+#define INCLUDE_elang_compiler_ast_method_h
+
+#include <vector>
+
+#include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/type_and_name.h"
+
+namespace elang {
+namespace hir {
+class SimpleName;
+}
+namespace compiler {
+namespace ast {
+
+class Class;
+class MethodMember;
+class NodeFactory;
+
+//////////////////////////////////////////////////////////////////////
+//
+// Method
+//
+class Method final : public NamespaceMember {
+  DECLARE_CASTABLE_CLASS(Method, NamespaceMember);
+
+  friend class NodeFactory;
+
+  public: typedef std::vector<TypeAndName> Parameters;
+
+  private: const Parameters parameters_;
+  private: Expression* return_type_;
+  private: const std::vector<Token*> type_parameters_;
+
+  public: Method(NamespaceBody* namespace_body, Modifiers modifies,
+                 Expression* return_type, Token* name,
+                 const std::vector<Token*>& type_parameters,
+                 const Parameters& parameters);
+  public: ~Method() final;
+
+  public: const Parameters& parameters() const { return parameters_; }
+  public: Expression* return_type() const { return return_type_; }
+  public: const std::vector<Token*>& type_parameters() {
+    return type_parameters_;
+  }
+
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
+  DISALLOW_COPY_AND_ASSIGN(Method);
+};
+
+}  // namespace ast
+}  // namespace compiler
+}  // namespace elang
+
+#endif // !defined(INCLUDE_elang_compiler_ast_method_h)
+

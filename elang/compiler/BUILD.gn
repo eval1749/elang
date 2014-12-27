@@ -21,6 +21,7 @@ static_library("compiler") {
     "parser.cc",
     "parser.h",
     "parse_expression.cc",
+    "parse_statement.cc",
     "parse_type.cc",
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",

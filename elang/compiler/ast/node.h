@@ -20,6 +20,7 @@ namespace ast {
   V(Class) \
   V(Enum) \
   V(Field) \
+  V(Method) \
   V(Namespace)
 
 #define EXPRESSION_NODE_LIST(V) \
