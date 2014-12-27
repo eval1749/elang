@@ -15,6 +15,7 @@
 
 namespace elang {
 namespace compiler {
+class Modifiers;
 class QualifiedName;
 class Token;
 
@@ -32,19 +33,19 @@ class NodeFactory final {
 
   // Declaration related nodes
   public: Alias* NewAlias(NamespaceBody* namespace_body, Token* keyword,
-                          Token* simple_name,
+                          Token* alias_name,
                           const QualifiedName& target_name);
-  public: Class* NewClass(NamespaceBody* namespace_body, Token* keyword,
-                          Token* simple_name);
-  public: Enum* NewEnum(NamespaceBody* namespace_body, Token* keyword,
-                        Token* simple_name);
+  public: Class* NewClass(NamespaceBody* namespace_body, Modifiers modifiers,
+                          Token* keyword, Token* name);
+  public: Enum* NewEnum(NamespaceBody* namespace_body, Modifiers modifiers,
+                        Token* keyword, Token* name);
   public: EnumMember* NewEnumMember(Enum* owner, Token* name,
                                     Expression* expression);
-  public: Field* NewField(NamespaceBody* namespace_body, Expression* type,
-                          Token* name, Expression* expression);
+  public: Field* NewField(NamespaceBody* namespace_body,  Modifiers modifiers,
+                          Expression* type, Token* name,
+                          Expression* expression);
   public: Namespace* NewNamespace(NamespaceBody* namespace_body,
-                                  Token* keyword,
-                                  Token* simple_name);
+                                  Token* keyword, Token* name);
 
   // Expression nodes
   public: ArrayType* NewArrayType(

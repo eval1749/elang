@@ -23,8 +23,8 @@ class Field final : public NamespaceMember {
   private: Expression* const expression_;
   private: Expression* const type_;
 
-  private: Field(NamespaceBody* namespace_body, Expression* Type,
-                Token* name, Expression* expression);
+  private: Field(NamespaceBody* namespace_body, Modifiers modifiers,
+                 Expression* Type, Token* name, Expression* expression);
   public: ~Field() final;
 
   public: Expression* expression() const { return expression_; }

@@ -36,7 +36,7 @@ class Parser final {
   // Note: To implement operation of |ExpressionCategory| in "parser.cc"
   // it is marked |public|, but other modules can't use it.
   public: enum class ExpressionCategory;
-  private: class ModifierBuilder;
+  private: class ModifierParser;
   private: class NamespaceBodyScope;
   friend class NamespaceBodyScope;
   private: class QualifiedNameBuilder;
@@ -44,7 +44,7 @@ class Parser final {
   private: CompilationUnit* compilation_unit_;
   private: ast::Expression* expression_;
   private: const std::unique_ptr<Lexer> lexer_;
-  private: std::unique_ptr<ModifierBuilder> modifiers_;
+  private: std::unique_ptr<ModifierParser> modifiers_;
   private: ast::NamespaceBody* namespace_body_;
   private: std::unique_ptr<QualifiedNameBuilder> name_builder_;
   private: CompilationSession* session_;

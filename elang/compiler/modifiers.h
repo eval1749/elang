@@ -5,6 +5,8 @@
 #if !defined(INCLUDE_elang_compiler_modifier_h)
 #define INCLUDE_elang_compiler_modifier_h
 
+#include "base/macros.h"
+
 namespace elang {
 namespace compiler {
 
@@ -36,6 +38,35 @@ enum class Modifier {
   MODIFIER_LIST(T)
   #undef T
 };
+
+//////////////////////////////////////////////////////////////////////
+//
+// Modifiers
+//
+class Modifiers final {
+  friend class ModifiersBuilder;
+
+  private: int flags_;
+
+  private: explicit Modifiers(int flags);
+  public: Modifiers(const Modifiers& other);
+  public: Modifiers();
+  public: ~Modifiers();
+
+  public: Modifiers& operator=(const Modifiers& other);
+
+  public: int value() const { return flags_; }
+
+  #define DEFINE_HAS(name, details) \
+    bool Has ## name() const { \
+      return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
+    }
+  MODIFIER_LIST(DEFINE_HAS)
+  #undef DEFINE_HAS
+};
+
+static_assert(sizeof(Modifiers) == sizeof(int),
+              "Instance of Modifiers should be small.");
 
 }  // namespace compiler
 }  // namespace elang

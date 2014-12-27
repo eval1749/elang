@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/class.h"
 
 #include "base/logging.h"
+#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -15,9 +16,9 @@ namespace ast {
 //
 // Class
 //
-Class::Class(NamespaceBody* namespace_body, Token* keyword,
-             Token* simple_name)
-    : Namespace(namespace_body, keyword, simple_name),
+Class::Class(NamespaceBody* namespace_body, Modifiers modifiers,
+             Token* keyword, Token* name)
+    : Namespace(namespace_body, modifiers, keyword, name),
       is_fixed_(false) {
   DCHECK(keyword->type() == TokenType::Class ||
          keyword->type() == TokenType::Interface ||

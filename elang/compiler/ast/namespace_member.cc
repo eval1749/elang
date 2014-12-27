@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -18,6 +19,7 @@ namespace ast {
 // NamespaceMember
 //
 NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
+                                 Modifiers modifiers,
                                  Token* keyword_or_name,
                                  Token* simple_name)
     : Node(keyword_or_name),

@@ -33,8 +33,10 @@ class Namespace : public NamespaceMember {
   private: std::vector<NamespaceBody*> bodies_;
   private: std::unordered_map<hir::SimpleName*, NamespaceMember*> map_;
 
-  protected: Namespace(NamespaceBody* namespace_body,
+  protected: Namespace(NamespaceBody* namespace_body, Modifiers modifiers,
                        Token* keyword, Token* simple_name);
+  private: Namespace(NamespaceBody* namespace_body,
+                     Token* keyword, Token* simple_name);
   public: ~Namespace() override;
 
   public: const std::vector<NamespaceBody*> bodies() const { return bodies_; }

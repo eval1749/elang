@@ -33,8 +33,8 @@ class Enum final : public NamespaceMember {
   private: std::unordered_map<hir::SimpleName*, EnumMember*> map_;
   private: std::vector<EnumMember*> members_;
 
-  public: Enum(NamespaceBody* namespace_body, Token* keyword,
-               Token* simple_name);
+  public: Enum(NamespaceBody* namespace_body, Modifiers modifies,
+               Token* keyword, Token* name);
   public: ~Enum() final;
 
   public: const std::vector<EnumMember*> members() const { return members_; }

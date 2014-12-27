@@ -9,8 +9,11 @@
 
 #include "elang/compiler/ast/node.h"
 
+#include "elang/compiler/modifiers.h"
+
 namespace elang {
 namespace compiler {
+class Modifiers;
 namespace ast {
 
 class Namespace;
@@ -23,16 +26,18 @@ class NamespaceBody;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
+  private: const Modifiers modifiers_;
   // We use |namespace_body_| for name resolution to look up alias and
   // import.
   private: NamespaceBody* const namespace_body_;
   private: Token* const simple_name_;
 
   protected: NamespaceMember(NamespaceBody* namespace_body,
-                             Token* keyword_or_name,
+                             Modifiers modifiers, Token* keyword_or_name,
                              Token* simple_name);
   protected: ~NamespaceMember() override;
 
+  public: Modifiers modifiers() const { return modifiers_; }
   public: NamespaceBody* namespace_body() const { return namespace_body_; }
   public: Namespace* outer() const;
   public: Namespace* owner() const { return outer(); }

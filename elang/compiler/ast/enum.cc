@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -18,8 +19,9 @@ namespace ast {
 //
 // Enum
 //
-Enum::Enum(NamespaceBody* namespace_body, Token* keyword, Token* name)
-    : NamespaceMember(namespace_body, keyword, name) {
+Enum::Enum(NamespaceBody* namespace_body, Modifiers modifiers, Token* keyword,
+           Token* name)
+    : NamespaceMember(namespace_body, modifiers, keyword, name) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);
   DCHECK(name->is_name());
 }

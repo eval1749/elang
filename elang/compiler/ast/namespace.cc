@@ -8,19 +8,35 @@
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
 
+namespace {
+Modifiers GetNamespaceModifiers() {
+  ModifiersBuilder builder;
+  builder.SetPublic();
+  return builder.Get();
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
+Namespace::Namespace(NamespaceBody* namespace_body, Modifiers modifiers,
+                     Token* keyword, Token* name)
+    : NamespaceMember(namespace_body, modifiers, keyword, name) {
+  DCHECK_NE(keyword, TokenType::Namespace);
+}
+
 Namespace::Namespace(NamespaceBody* namespace_body, Token* keyword,
-                     Token* simple_name)
-    : NamespaceMember(namespace_body, keyword, simple_name) {
+                     Token* name)
+    : NamespaceMember(namespace_body, GetNamespaceModifiers(), keyword, name) {
+  DCHECK_EQ(keyword, TokenType::Namespace);
 }
 
 Namespace::~Namespace() {

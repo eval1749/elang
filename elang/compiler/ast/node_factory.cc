@@ -21,6 +21,7 @@
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/visitor.h"
+#include "elang/compiler/modifiers.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
 
@@ -47,48 +48,51 @@ NodeFactory::~NodeFactory() {
 //
 // Declaration related nodes
 //
-Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
-                             Token* keyword, Token* simple_name,
+Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body, Token* keyword,
+                             Token* alias_name,
                              const QualifiedName& target_name) {
-  auto const node = new Alias(namespace_body, keyword, simple_name,
+  auto const node = new Alias(namespace_body, keyword, alias_name,
                               target_name);
   RememberNode(node);
   return node;
 }
 
 Class* NodeFactory::NewClass(NamespaceBody* namespace_body,
-                             Token* keyword, Token* simple_name) {
-  auto const node = new Class(namespace_body, keyword, simple_name);
+                             Modifiers modifiers, Token* keyword,
+                             Token* name) {
+  auto const node = new Class(namespace_body, modifiers, keyword, name);
   RememberNode(node);
   return node;
 }
 
-Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
-                           Token* keyword, Token* simple_name) {
-  auto const node = new Enum(namespace_body, keyword, simple_name);
+Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body, Modifiers modifiers,
+                           Token* keyword, Token* name) {
+  auto const node = new Enum(namespace_body, modifiers, keyword, name);
   RememberNode(node);
   return node;
 }
 
-EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* simple_name,
+EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* name,
                                        Expression* expression) {
-  auto const node = new EnumMember(owner, simple_name, expression);
+  auto const node = new EnumMember(owner, name, expression);
   RememberNode(node);
   return node;
 }
 
-Field* NodeFactory::NewField(NamespaceBody* namespace_body, Expression* type,
-                             Token* name, Expression* expression) {
-  auto const node = new Field(namespace_body, type, name, expression);
+Field* NodeFactory::NewField(NamespaceBody* namespace_body, Modifiers modifiers,
+                             Expression* type, Token* name,
+                             Expression* expression) {
+  auto const node = new Field(namespace_body, modifiers, type, name,
+                              expression);
   RememberNode(node);
   return node;
 }
 
 Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
                                      Token* keyword,
-                                     Token* simple_name) {
+                                     Token* name) {
   DCHECK_EQ(keyword->type(), TokenType::Namespace);
-  auto const node = new Namespace(namespace_body, keyword, simple_name);
+  auto const node = new Namespace(namespace_body, keyword, name);
   RememberNode(node);
   return node;
 }

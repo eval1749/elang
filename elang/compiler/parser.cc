@@ -17,7 +17,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/lexer.h"
-#include "elang/compiler/modifier.h"
+#include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token_type.h"
 
@@ -26,47 +26,39 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Parser::ModifierBuilder
+// Parser::ModifierParser
 //
-class Parser::ModifierBuilder final {
-  private: int modifiers_;
+class Parser::ModifierParser final {
+  private: ModifiersBuilder builder_;
   private: std::vector<Token*> tokens_;
   private: Parser* const parser_;
 
-  public: ModifierBuilder(Parser* parser);
-  public: ~ModifierBuilder() = default;
+  public: ModifierParser(Parser* parser);
+  public: ~ModifierParser() = default;
 
-  public: int modifiers() const { return modifiers_; }
   public: const std::vector<Token*>& tokens() const { return tokens_; }
 
   public: bool Add(Token* token);
+  public: Modifiers Get() const;
   public: void Reset();
 
-  #define DEFINE_HAS(name, details) \
-    bool Has ## name() const { \
-      return (modifiers_ & (1 << static_cast<int>(Modifier::name))) != 0; \
-    }
-  MODIFIER_LIST(DEFINE_HAS)
-  #undef DEFINE_HAS
-
-  DISALLOW_COPY_AND_ASSIGN(ModifierBuilder);
+  DISALLOW_COPY_AND_ASSIGN(ModifierParser);
 };
 
-Parser::ModifierBuilder::ModifierBuilder(Parser* parser)
-    : modifiers_(0), parser_(parser) {
+Parser::ModifierParser::ModifierParser(Parser* parser) : parser_(parser) {
 }
 
-bool Parser::ModifierBuilder::Add(Token* token) {
-  if (HasPartial())
+bool Parser::ModifierParser::Add(Token* token) {
+  if (builder_.HasPartial())
     parser_->Error(ErrorCode::SyntaxModifierPartial);
   switch (token->type()) {
     #define CASE_CLAUSE(name, details) \
       case TokenType::name: \
-        if (Has ## name()) { \
+        if (builder_.Has ## name()) { \
           parser_->Error(ErrorCode::SyntaxModifierDuplicate); \
           return true; \
         } \
-        modifiers_ |= 1 << static_cast<int>(Modifier::name); \
+        builder_.Set##name(); \
         tokens_.push_back(token); \
         return true;
     MODIFIER_LIST(CASE_CLAUSE)
@@ -75,8 +67,12 @@ bool Parser::ModifierBuilder::Add(Token* token) {
   return false;
 }
 
-void Parser::ModifierBuilder::Reset() {
-  modifiers_ = 0;
+Modifiers Parser::ModifierParser::Get() const {
+  return builder_.Get();
+}
+
+void Parser::ModifierParser::Reset() {
+  builder_.Reset();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -152,7 +148,7 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
       expression_(nullptr),
       lexer_(new Lexer(session, compilation_unit)),
-      modifiers_(new ModifierBuilder(this)),
+      modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
       namespace_body_(new ast::NamespaceBody(nullptr,
                                              session->global_namespace())),
@@ -258,14 +254,15 @@ bool Parser::ParseClassDecl() {
   }
 
   // TODO(eval1749) Support partial class.
+  auto const class_modifiers = modifiers_->Get();
   auto const class_keyword = ConsumeToken();
   auto const class_name = ConsumeToken();
   if (!class_name->is_name())
     return Error(ErrorCode::SyntaxClassDeclName, class_name);
   if (FindMember(class_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate, class_name);
-  auto const clazz = factory()->NewClass(namespace_body_, class_keyword,
-                                         class_name);
+  auto const clazz = factory()->NewClass(namespace_body_, class_modifiers,
+                                         class_keyword, class_name);
   AddMember(clazz);
   NamespaceBodyScope namespace_body_scope(this, clazz);
 
@@ -290,7 +287,7 @@ bool Parser::ParseClassDecl() {
     }
   }
 
-  if (modifiers_->HasExtern()) {
+  if (class_modifiers.HasExtern()) {
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxClassDeclSemiColon);
     return true;
@@ -341,6 +338,8 @@ bool Parser::ParseClassDecl() {
     } else if (!ParseType()) {
       return Error(ErrorCode::SyntaxClassDeclRightCurryBracket);
     }
+    // TODO(eval1749) Validate FieldMoifiers
+    auto const member_modifiers = modifiers_->Get();
     auto const member_type = ConsumeExpression();
     auto const member_name = ConsumeToken();
     if (!member_name->is_name())
@@ -350,8 +349,9 @@ bool Parser::ParseClassDecl() {
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())
         return false;
-      AddMember(factory()->NewField(namespace_body_, member_type,
-                                    member_name, ConsumeExpression()));
+      AddMember(factory()->NewField(namespace_body_, member_modifiers,
+                                    member_type, member_name,
+                                    ConsumeExpression()));
       if (!AdvanceIf(TokenType::SemiColon))
         Error(ErrorCode::SyntaxClassMemberSemiColon);
       continue;
@@ -363,8 +363,8 @@ bool Parser::ParseClassDecl() {
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
 
-    AddMember(factory()->NewField(namespace_body_, member_type,
-                                  member_name, nullptr));
+    AddMember(factory()->NewField(namespace_body_, member_modifiers,
+                                  member_type, member_name, nullptr));
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxClassMemberSemiColon);
   }
@@ -387,6 +387,7 @@ bool Parser::ParseCompilationUnit() {
 // EnumModifier ::= 'new' | 'public' | 'protected' | 'private'
 bool Parser::ParseEnumDecl() {
   // TODO(eval1749) Validate EnumModifier
+  auto const enum_modifiers = modifiers_->Get();
   auto const enum_keyword = ConsumeToken();
   DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
   if (!PeekToken()->is_name())
@@ -394,8 +395,8 @@ bool Parser::ParseEnumDecl() {
   auto const enum_name = ConsumeToken();
   if (FindMember(enum_name))
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
-  auto const enum_decl = factory()->NewEnum(namespace_body_, enum_keyword,
-                                            enum_name);
+  auto const enum_decl = factory()->NewEnum(namespace_body_, enum_modifiers,
+                                            enum_keyword, enum_name);
   AddMember(enum_decl);
   // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
