@@ -63,6 +63,15 @@ class Token final {
   DISALLOW_COPY_AND_ASSIGN(Token);
 };
 
+// Convenience function to allow |PeekType() == TokenType::Var|.
+inline bool operator==(const Token* token, TokenType type) {
+  return token->type() == type;
+}
+
+inline bool operator!=(const Token* token, TokenType type) {
+  return !operator==(token, type);
+}
+
 std::ostream& operator<<(std::ostream& ostream, Token* token);
 
 }  // namespace compiler

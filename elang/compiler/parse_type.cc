@@ -43,12 +43,12 @@ bool Parser::ParseType() {
     return false;
   }
 
-  if (token_->is_type_name()) {
+  if (PeekToken()->is_type_name()) {
     ProduceType(factory()->NewNameReference(ConsumeToken()));
     return ParseTypePost();
   }
 
-  if (!token_->is_name())
+  if (!PeekToken()->is_name())
     return false;
 
   std::vector<ast::Expression*> type_names;
@@ -56,7 +56,7 @@ bool Parser::ParseType() {
   for (;;) {
     if (AdvanceIf(TokenType::Dot)) {
       PeekToken();
-      if (!token_->is_name())
+      if (!PeekToken()->is_name())
         return Error(ErrorCode::SyntaxTypeDotNotName);
       type_names.push_back(factory()->NewNameReference(ConsumeToken()));
       continue;
@@ -105,7 +105,7 @@ bool Parser::ParseTypePost() {
   if (PeekToken() != TokenType::LeftSquareBracket)
     return true;
   auto const element_type = ConsumeExpression();
-  auto const op_token = token_;
+  auto const op_token = ConsumeToken();
   std::vector<int> ranks;
   while (AdvanceIf(TokenType::LeftSquareBracket)) {
     auto rank = 1;

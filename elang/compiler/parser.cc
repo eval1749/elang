@@ -257,17 +257,15 @@ bool Parser::ParseClassDecl() {
     }
   }
 
-  // TODO(eval1749) Support partail class.
+  // TODO(eval1749) Support partial class.
   auto const class_keyword = ConsumeToken();
-  PeekToken();
-  auto const simple_name = token_;
-  if (!simple_name->is_name())
-    return Error(ErrorCode::SyntaxClassDeclName);
-  if (FindMember(simple_name))
-    Error(ErrorCode::SyntaxClassDeclNameDuplicate);
-  Advance();
+  auto const class_name = ConsumeToken();
+  if (!class_name->is_name())
+    return Error(ErrorCode::SyntaxClassDeclName, class_name);
+  if (FindMember(class_name))
+    Error(ErrorCode::SyntaxClassDeclNameDuplicate, class_name);
   auto const clazz = factory()->NewClass(namespace_body_, class_keyword,
-                                         simple_name);
+                                         class_name);
   AddMember(clazz);
   NamespaceBodyScope namespace_body_scope(this, clazz);
 
@@ -276,7 +274,7 @@ bool Parser::ParseClassDecl() {
     for (;;) {
       if (!ParseTypeParameter())
         return false;
-      if (AdvanceIf(TokenType::Lt))
+      if (AdvanceIf(TokenType::RightAngleBracket))
         break;
       if (!AdvanceIf(TokenType::Comma))
         return Error(ErrorCode::SyntaxClassDeclTypeParamInvalid);
@@ -315,13 +313,10 @@ bool Parser::ParseClassDecl() {
 
   for (;;) {
     modifiers_->Reset();
-    PeekToken();
-    while (modifiers_->Add(token_)) {
+    while (modifiers_->Add(PeekToken()))
       Advance();
-      PeekToken();
-    }
 
-    switch (PeekToken()) {
+    switch (PeekToken()->type()) {
       case TokenType::Class:
       case TokenType::Interface:
       case TokenType::Struct:
@@ -394,8 +389,7 @@ bool Parser::ParseEnumDecl() {
   // TODO(eval1749) Validate EnumModifier
   auto const enum_keyword = ConsumeToken();
   DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
-  PeekToken();
-  if (!token_->is_name())
+  if (!PeekToken()->is_name())
     return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
   auto const enum_name = ConsumeToken();
   if (FindMember(enum_name))
@@ -406,10 +400,7 @@ bool Parser::ParseEnumDecl() {
   // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
-  for (;;) {
-    PeekToken();
-    if (!token_->is_name())
-      break;
+  while (PeekToken()->is_name()) {
     auto const member_name = ConsumeToken();
     auto member_value = static_cast<ast::Expression*>(nullptr);
     if (AdvanceIf(TokenType::Assign)) {
@@ -485,12 +476,9 @@ bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
 bool Parser::ParseNamespaceMemberDecls() {
   for (;;) {
     modifiers_->Reset();
-    PeekToken();
-    while (modifiers_->Add(token_)) {
+    while (modifiers_->Add(PeekToken()))
       Advance();
-      PeekToken();
-    }
-    switch (PeekToken()) {
+    switch (PeekToken()->type()) {
       case TokenType::Class:
       case TokenType::Interface:
       case TokenType::Struct:
@@ -520,8 +508,7 @@ bool Parser::ParseNamespaceMemberDecls() {
 bool Parser::ParseQualifiedName() {
   name_builder_->Reset();
   for (;;) {
-    PeekToken();
-    if (!token_->is_name())
+    if (!PeekToken()->is_name())
       break;
     name_builder_->Add(ConsumeToken());
     if (!AdvanceIf(TokenType::Dot))
@@ -555,11 +542,11 @@ bool Parser::ParseUsingDirectives() {
   return true;
 }
 
-TokenType Parser::PeekToken() {
+Token* Parser::PeekToken() {
   if (token_)
-    return token_->type();
+    return token_;
   token_ = lexer_->GetToken();
-  return token_->type();
+  return token_;
 }
 
 bool Parser::Run() {

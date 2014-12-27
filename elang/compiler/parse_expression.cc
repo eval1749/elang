@@ -193,13 +193,12 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
 //    default-value-expression
 //    anonymous-method-expression
 bool Parser::ParsePrimaryExpression() {
-  PeekToken();
-  if (token_->is_literal()) {
+  if (PeekToken()->is_literal()) {
     ProduceExpression(factory()->NewLiteral(ConsumeToken()));
     return ParsePrimaryExpressionPost();
   }
 
-  if (token_->is_name()) {
+  if (PeekToken()->is_name()) {
     ProduceExpression(factory()->NewNameReference(ConsumeToken()));
     return ParsePrimaryExpressionPost();
   }
@@ -243,9 +242,9 @@ bool Parser::ParsePrimaryExpressionPost() {
 
 Parser::ExpressionCategory Parser::PeekTokenCategory() {
   PeekToken();
-  if (!token_->is_operator())
+  if (!PeekToken()->is_operator())
     return ExpressionCategory::None;
-  return static_cast<ExpressionCategory>(token_->precedence());
+  return static_cast<ExpressionCategory>(PeekToken()->precedence());
 }
 
 void Parser::ProduceExpression(ast::Expression* expression) {

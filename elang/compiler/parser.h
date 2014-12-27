@@ -98,7 +98,7 @@ class Parser final {
   private: bool ParseTypePost();
   private: bool ParseTypeParameter();
   private: bool ParseUsingDirectives();
-  private: TokenType PeekToken();
+  private: Token* PeekToken();
   private: ExpressionCategory PeekTokenCategory();
   private: void ProduceBinaryOperation(Token* op_token,
                                        ast::Expression* left,
