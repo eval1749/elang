@@ -25,6 +25,9 @@ class Literal final : public Expression {
   private: Literal(Token* literal);
   public: ~Literal() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
 

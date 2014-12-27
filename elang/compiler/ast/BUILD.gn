@@ -1,0 +1,48 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+static_library("ast") {
+  sources = [
+    "alias.cc",
+    "alias.h",
+    "assignment.cc",
+    "assignment.h",
+    "binary_operation.cc",
+    "binary_operation.h",
+    "class.cc",
+    "class.h",
+    "conditional.cc",
+    "conditional.h",
+    "enum.cc",
+    "enum.h",
+    "enum_member.cc",
+    "enum_member.h",
+    "expression.cc",
+    "expression.h",
+    "literal.cc",
+    "literal.h",
+    "namespace.cc",
+    "namespace.h",
+    "namespace_body.cc",
+    "namespace_body.h",
+    "namespace_member.cc",
+    "namespace_member.h",
+    "name_reference.cc",
+    "name_reference.h",
+    "node.cc",
+    "node.h",
+    "node_factory.cc",
+    "node_factory.h",
+    "unary_operation.cc",
+    "unary_operation.h",
+    "visitor.cc",
+    "visitor.h",
+  ]
+
+  deps = [
+    "//base",
+    "//elang/base",
+    "//elang/hir",
+  ]
+}

@@ -37,6 +37,9 @@ class Alias final : public NamespaceMember {
 
   public: void BindTo(NamespaceMember* target);
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };
 

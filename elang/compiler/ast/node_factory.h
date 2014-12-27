@@ -19,13 +19,6 @@ class QualifiedName;
 class Token;
 
 namespace ast {
-#define FORWARD_DECLARATION(type) class type;
-AST_NODE_LIST(FORWARD_DECLARATION)
-#undef FORWARD_DECLARATION
-
-class Expression;
-class EnumMember;
-class NamespaceBody;
 
 //////////////////////////////////////////////////////////////////////
 //

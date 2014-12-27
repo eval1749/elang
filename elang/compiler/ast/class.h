@@ -46,6 +46,9 @@ class Class final : public Namespace {
   // NamespaceMember
   public: Namespace* ToNamespace() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 

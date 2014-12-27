@@ -27,6 +27,9 @@ class UnaryOperation final : public Expression {
   private: UnaryOperation(Token* op, Expression* expression);
   public: ~UnaryOperation() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(UnaryOperation);
 };
 

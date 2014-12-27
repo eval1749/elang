@@ -26,6 +26,9 @@ class Assignment final : public Expression {
   private: Assignment(Token* op, Expression* left, Expression* right);
   public: ~Assignment() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Assignment);
 };
 

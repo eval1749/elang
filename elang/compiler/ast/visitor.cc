@@ -2,9 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/node.h"
-
-#include "base/logging.h"
+#include "elang/compiler/ast/visitor.h"
 
 namespace elang {
 namespace compiler {
@@ -12,16 +10,12 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Node
+// Visitor
 //
-Node::Node(Token* token) : token_(token) {
+Visitor::Visitor() {
 }
 
-Node::~Node() {
-}
-
-void Node::Accept(Visitor*) {
-  NOTREACHED();
+Visitor::~Visitor() {
 }
 
 }   // namespace ast

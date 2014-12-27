@@ -28,6 +28,9 @@ class BinaryOperation final : public Expression {
   private: BinaryOperation(Token* op, Expression* left, Expression* right);
   public: ~BinaryOperation() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(BinaryOperation);
 };
 

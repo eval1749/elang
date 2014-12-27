@@ -29,6 +29,9 @@ class Conditional final : public Expression {
                        Expression* else_expression);
   public: ~Conditional() final;
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
 

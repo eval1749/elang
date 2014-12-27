@@ -35,6 +35,19 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Forward class declarations
+//
+#define FORWARD_DECLARATION(type) class type;
+AST_NODE_LIST(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
+
+class EnumMember;
+class Expression;
+class NamespaceBody;
+class Visitor;
+
+//////////////////////////////////////////////////////////////////////
+//
 // Node
 //
 class Node : public Castable {
@@ -47,6 +60,8 @@ class Node : public Castable {
 
   public: Token* token() const { return token_; }
 
+  public: virtual void Accept(Visitor* visitor);
+
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
@@ -55,4 +70,3 @@ class Node : public Castable {
 }  // namespace elang
 
 #endif // !defined(INCLUDE_elang_compiler_ast_node_h)
-

@@ -42,6 +42,9 @@ class Enum final : public NamespaceMember {
   public: void AddMember(EnumMember* member);
   public: EnumMember* FindMember(Token* simple_name);
 
+  // Node
+  private: void Accept(Visitor* visitor) override;
+
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
 

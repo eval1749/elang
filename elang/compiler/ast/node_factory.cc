@@ -17,12 +17,18 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
+
+#define IMPLEMENT_ACCEPT(type) \
+  void type::Accept(Visitor* visitor) { visitor->Visit##type(this); }
+AST_NODE_LIST(IMPLEMENT_ACCEPT)
+#undef IMPLEMENT_ACCEPT
 
 //////////////////////////////////////////////////////////////////////
 //
