@@ -189,6 +189,12 @@ Token* Parser::ConsumeToken() {
   return result;
 }
 
+Token* Parser::ConsumeTokenIf(TokenType type) {
+  if (PeekToken() != type)
+    return nullptr;
+  return ConsumeToken();
+}
+
 bool Parser::Error(ErrorCode error_code, Token* token) {
   DCHECK(token);
   expression_ = nullptr;
@@ -328,8 +334,8 @@ bool Parser::ParseClassDecl() {
     //                Type Name ParameterDecl "{" Statement* "}"
     if (!ParseMaybeType())
       break;
-    PeekToken();
-    if (!token_->is_name())
+    auto const field_name = ConsumeToken();
+    if (!field_name->is_name())
       return Error(ErrorCode::SyntaxFieldDeclName);
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxFieldDeclSemiColon);
@@ -355,9 +361,8 @@ bool Parser::ParseCompilationUnit() {
 // EnumDecl := EnumModifier* "enum" Name "{" EnumField* "}"
 // EnumField ::= Name ("=" Expression)? ","?
 bool Parser::ParseEnumDecl() {
-  DCHECK_EQ(token_->type(), TokenType::Enum);
-  auto enum_keyword = token_;
-  Advance();
+  auto const enum_keyword = ConsumeToken();
+  DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
   PeekToken();
   if (!token_->is_name())
     return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
@@ -503,12 +508,11 @@ bool Parser::ParseTypeParameter() {
 }
 
 // UsingDirective ::= AliasDef | ImportNamespace
-// AliasDef ::= "using" Name "="  QualfiedName ";"
-// ImportNamespace ::= "using" QualfiedName ";"
+// AliasDef ::= 'using' Name '='  QualfiedName ';'
+// ImportNamespace ::= 'using' QualfiedName ';'
 bool Parser::ParseUsingDirectives() {
   DCHECK(namespace_body_->owner()->ToNamespace());
-  while (PeekToken() == TokenType::Using) {
-    auto const using_keyword = ConsumeToken();
+  while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
     if (!ParseQualifiedName())
       return Error(ErrorCode::SyntaxUsingDirectiveName);
     if (AdvanceIf(TokenType::Assign)) {

@@ -60,13 +60,20 @@ class Parser final {
   private: void AddMember(ast::NamespaceMember* member);
   private: void Advance();
   private: bool AdvanceIf(TokenType type);
+
   // Returns last produced expression.
   private: ast::Expression* ConsumeExpression();
+
   // Returns current token and advance to next token.
   private: Token* ConsumeToken();
+
   // Returns current token as |type| and advance to next token. This function
   // is used for handling unary '+','-' and post '++', '--'.
   private: Token* ConsumeTokenAs(TokenType type);
+
+  // Returns |Token*| and consume it if current token is |type|.
+  private: Token* ConsumeTokenIf(TokenType type);
+
   // Always returns false for simplify error processing.
   private: bool Error(ErrorCode error_code);
   private: bool Error(ErrorCode error_code, Token* token);
@@ -102,6 +109,8 @@ class Parser final {
   private: ast::Expression* ProduceExpression(Token* op_token,
                                               ast::Expression* operand0);
   private: ast::Expression* ProduceExpression(Token* op_token);
+
+  // Parser entry point. Returns true if parsing succeeded, otherwise false.
   public: bool Run();
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
