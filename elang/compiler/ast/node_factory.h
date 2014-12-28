@@ -83,6 +83,9 @@ class NodeFactory final {
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
 
   // Statement nodes
+  BlockStatement* NewBlockStatement(Token* keyword,
+                                    const std::vector<Statement*> statements);
+  ReturnStatement* NewReturnStatement(Token* keyword, Expression* type);
   VarStatement* NewVarStatement(Expression* type,
                                 Token* name,
                                 Expression* value);

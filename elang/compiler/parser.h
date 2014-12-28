@@ -20,6 +20,7 @@ class Namespace;
 class NamespaceBody;
 class NamespaceMember;
 class NodeFactory;
+class Statement;
 class VarStatement;
 }
 
@@ -65,6 +66,9 @@ class Parser final {
 
   // Returns last produced expression.
   ast::Expression* ConsumeExpression();
+
+  // Returns last produced statement.
+  ast::Statement* ConsumeStatement();
 
   // Returns current token and advance to next token.
   Token* ConsumeToken();
@@ -117,6 +121,7 @@ class Parser final {
                               ast::Expression* left,
                               ast::Expression* right);
   void ProduceExpression(ast::Expression* expression);
+  void ProduceStatement(ast::Statement* statement);
   void ProduceType(ast::Expression* expression);
   void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
 
@@ -134,6 +139,7 @@ class Parser final {
   ast::NamespaceBody* namespace_body_;
   std::unique_ptr<QualifiedNameBuilder> name_builder_;
   CompilationSession* session_;
+  ast::Statement* statement_;
   Token* token_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);

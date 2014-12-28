@@ -9,6 +9,7 @@
 #include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
+#include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -22,6 +23,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
+#include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/visitor.h"
@@ -204,6 +206,21 @@ UnaryOperation* NodeFactory::NewUnaryOperation(Token* op, Expression* expr) {
 //
 // Statement
 //
+BlockStatement* NodeFactory::NewBlockStatement(
+    Token* keyword,
+    const std::vector<Statement*> statements) {
+  auto const node = new BlockStatement(keyword, statements);
+  RememberNode(node);
+  return node;
+}
+
+ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
+                                                 Expression* value) {
+  auto const node = new ReturnStatement(keyword, value);
+  RememberNode(node);
+  return node;
+}
+
 VarStatement* NodeFactory::NewVarStatement(Expression* type,
                                            Token* name,
                                            Expression* value) {

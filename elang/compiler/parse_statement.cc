@@ -9,12 +9,14 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
+#include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
+#include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/compilation_session.h"
@@ -31,24 +33,26 @@ namespace compiler {
 //
 class Parser::DeclarationSpace final {
  public:
-  explicit DeclarationSpace(Parser* parser);
+  explicit DeclarationSpace(Parser* parser, Token* owner);
   ~DeclarationSpace();
 
   DeclarationSpace* outer() const { return outer_; }
+  Token* owner() const { return owner_; }
 
   void AddVarStatement(ast::VarStatement* variable);
   ast::VarStatement* FindVariable(Token* name) const;
 
  private:
   DeclarationSpace* outer_;
+  Token* const owner_;
   Parser* const parser_;
   std::unordered_map<hir::SimpleName*, ast::VarStatement*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(DeclarationSpace);
 };
 
-Parser::DeclarationSpace::DeclarationSpace(Parser* parser)
-    : outer_(parser->declaration_space_), parser_(parser) {
+Parser::DeclarationSpace::DeclarationSpace(Parser* parser, Token* owner)
+    : outer_(parser->declaration_space_), owner_(owner), parser_(parser) {
   parser_->declaration_space_ = this;
 }
 
@@ -73,6 +77,13 @@ ast::VarStatement* Parser::DeclarationSpace::FindVariable(Token* name) const {
 //
 // Parser
 //
+ast::Statement* Parser::ConsumeStatement() {
+  DCHECK(statement_);
+  auto const result = statement_;
+  statement_ = nullptr;
+  return result;
+}
+
 ast::VarStatement* Parser::FindVariable(Token* token) const {
   DCHECK(token->is_name());
   for (auto space = declaration_space_; space; space = space->outer()) {
@@ -127,26 +138,71 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
     return true;
   }
 
-  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
+  if (PeekToken() != TokenType::LeftCurryBracket) {
     Error(ErrorCode::SyntaxMethodLeftCurryBracket);
     return true;
   }
 
-  DeclarationSpace method_body_space(this);
+  DeclarationSpace method_body_space(this, PeekToken());
   for (auto param : method->parameters())
     method_body_space.AddVarStatement(param);
 
-  ParseStatement();
-
-  if (!AdvanceIf(TokenType::RightCurryBracket)) {
-    Error(ErrorCode::SyntaxMethodRightCurryBracket);
+  if (!ParseStatement())
     return true;
-  }
+
+  method->SetStatement(ConsumeStatement());
   return true;
 }
 
+// Parses statement in following grammar:
+//    BlockStatement
+//    ExpressionStatement
+//    ReturnStatement
 bool Parser::ParseStatement() {
+  if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket)) {
+    DeclarationSpace block_space(this, bracket);
+    std::vector<ast::Statement*> statements;
+    for (;;) {
+      // TODO(eval1749) Should we do unreachable code check?
+      if (!ParseStatement()) {
+        if (AdvanceIf(TokenType::RightCurryBracket))
+          break;
+        // We don't have right curry bracket. We reached at end of source.
+        Error(ErrorCode::SyntaxStatementInvalid);
+        Advance();
+        continue;
+      }
+      statements.push_back(ConsumeStatement());
+    }
+    ProduceStatement(factory()->NewBlockStatement(bracket, statements));
+    return true;
+  }
+
+  // ReturnStatement ::= 'return' expression? ';'
+  if (auto const return_keyword = ConsumeTokenIf(TokenType::Return)) {
+    auto value = static_cast<ast::Expression*>(nullptr);
+    if (!AdvanceIf(TokenType::SemiColon)) {
+      if (ParseExpression()) {
+        value = ConsumeExpression();
+        if (!AdvanceIf(TokenType::SemiColon))
+          Error(ErrorCode::SyntaxStatementSemiColon);
+      }
+    }
+    ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
+    return true;
+  }
+
+  // ExpressionStatement ::= Expression ';'
+  if (!ParseExpression())
+    return false;
+  if (AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxStatementSemiColon);
   return true;
+}
+
+void Parser::ProduceStatement(ast::Statement* statement) {
+  DCHECK(!statement_);
+  statement_ = statement;
 }
 
 }  // namespace compiler

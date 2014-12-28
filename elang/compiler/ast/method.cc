@@ -31,12 +31,19 @@ Method::Method(NamespaceBody* namespace_body,
       namespace_body_(namespace_body),
       parameters_(parameters),
       return_type_(return_type),
+      statement_(nullptr),
       type_parameters_(type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
 }
 
 Method::~Method() {
+}
+
+void Method::SetStatement(ast::Statement* statement) {
+  DCHECK(!statement_);
+  DCHECK(statement);
+  statement_ = statement;
 }
 
 }  // namespace ast

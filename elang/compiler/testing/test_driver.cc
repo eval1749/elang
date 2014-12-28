@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
+#include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -27,6 +28,7 @@
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/ast/name_reference.h"
+#include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/visitor.h"
@@ -101,7 +103,7 @@ class Formatter final : public ast::Visitor {
 //
 Formatter::FormatBlock::FormatBlock(Formatter* formatter)
     : formatter_(formatter) {
-  formatter_->stream_ << " {" << std::endl;
+  formatter_->stream_ << "{" << std::endl;
   ++formatter_->depth_;
 }
 
@@ -165,6 +167,15 @@ void Formatter::VisitBinaryOperation(ast::BinaryOperation* operation) {
   Visit(operation->right());
 }
 
+void Formatter::VisitBlockStatement(ast::BlockStatement* block_statement) {
+  FormatBlock block(this);
+  for (auto const statement : block_statement->statements()) {
+    Indent();
+    Visit(statement);
+    stream_ << std::endl;
+  }
+}
+
 void Formatter::VisitConditional(ast::Conditional* cond) {
   Visit(cond->conditional());
   stream_ << " ? ";
@@ -183,6 +194,7 @@ void Formatter::VisitClass(ast::Class* klass) {
       separator = ", ";
     }
 
+    stream_ << " ";
     FormatBlock block(this);
     for (auto const member : body->members())
       Visit(member);
@@ -203,7 +215,7 @@ void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
 
 void Formatter::VisitEnum(ast::Enum* enumx) {
   Indent();
-  stream_ << "enum " << enumx->simple_name();
+  stream_ << "enum " << enumx->simple_name() << " ";
   FormatBlock block(this);
   for (auto const member : enumx->members()) {
     Indent();
@@ -264,7 +276,20 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
       stream_ << " " << param->name();
       separator = ", ";
     }
-    stream_ << ");" << std::endl;
+    stream_ << ")";
+    auto const statement = method->statement();
+    if (!statement) {
+      stream_ << ";" << std::endl;
+      continue;
+    }
+    if (statement->is<ast::BlockStatement>()) {
+      stream_ << " ";
+      Visit(statement);
+      continue;
+    }
+    stream_ << "=> ";
+    Visit(statement);
+    stream_ << ";" << std::endl;
   }
 }
 
@@ -275,11 +300,20 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
 void Formatter::VisitNamespace(ast::Namespace* ns) {
   for (auto const body : ns->bodies()) {
     Indent();
-    stream_ << ns->token() << " " << ns->simple_name();
+    stream_ << ns->token() << " " << ns->simple_name() << " ";
     FormatBlock block(this);
     for (auto const member : body->members())
       Visit(member);
   }
+}
+
+void Formatter::VisitReturnStatement(ast::ReturnStatement* statement) {
+  stream_ << "return";
+  if (auto const value = statement->value()) {
+    stream_ << " ";
+    Visit(value);
+  }
+  stream_ << ";";
 }
 
 void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {

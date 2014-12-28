@@ -49,10 +49,12 @@ TEST(ParserTest, ErrorClassFieldVar) {
 // Methods
 //
 TEST(ParserTest, MethodBasic) {
-  TestDriver driver("class A { void Run(int x) {} }");
+  TestDriver driver("class A { void Run(int x) { return x; } }");
   EXPECT_EQ(
       "class A {\n"
-      "  void Run(int x);\n"
+      "  void Run(int x) {\n"
+      "    return x;\n"
+      "  }\n"
       "}\n",
       driver.RunParser());
 }

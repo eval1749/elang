@@ -37,7 +37,10 @@ namespace ast {
   V(NameReference)              \
   V(UnaryOperation)
 
-#define STATEMENT_NODE_LIST(V) V(VarStatement)
+#define STATEMENT_NODE_LIST(V) \
+  V(BlockStatement)            \
+  V(ReturnStatement)           \
+  V(VarStatement)
 
 #define AST_NODE_LIST(V)   \
   DECLARATION_NODE_LIST(V) \
@@ -57,6 +60,7 @@ class Expression;
 class Method;
 class NamespaceBody;
 class NodeFactory;
+class Statement;
 class Visitor;
 
 //////////////////////////////////////////////////////////////////////

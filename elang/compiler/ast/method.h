@@ -28,7 +28,18 @@ class Method final : public Node {
   Token* name() const { return token(); }
   const std::vector<VarStatement*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
+
+  // Returns method body. Its is null when parsing is failed or |extern|
+  // method.
+  Statement* statement() const { return statement_; }
+
+  // Type parameters for generic method.
   const std::vector<Token*>& type_parameters() { return type_parameters_; }
+
+  // Set method body to |statement|. |statement| can be |BlockStatement| or
+  // |Expression|, by shortcut syntax |int Foo(int x) => x + 1;|.
+  // |statement| can't be null.
+  void SetStatement(Statement* statement);
 
  private:
   Method(NamespaceBody* namespace_body,
@@ -45,6 +56,7 @@ class Method final : public Node {
   NamespaceBody* const namespace_body_;
   const std::vector<VarStatement*> parameters_;
   Expression* const return_type_;
+  Statement* statement_;
   const std::vector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
