@@ -28,6 +28,7 @@
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -84,10 +85,9 @@ class Formatter final : public ast::Visitor {
   // ast::Visitor
   void Visit(ast::Node* node) final;
 
-  #define DECLARE_VISIT(type) \
-    void Visit##type(ast::type* node) final;
+#define DECLARE_VISIT(type) void Visit##type(ast::type* node) final;
   AST_NODE_LIST(DECLARE_VISIT)
-  #undef DECLARE_VISIT
+#undef DECLARE_VISIT
 
   std::stringstream stream_;
   int depth_;
@@ -139,8 +139,8 @@ void Formatter::Visit(ast::Node* node) {
 
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->token() << " " << alias->simple_name() <<
-      " = " << alias->target_name() << ";" << std::endl;
+  stream_ << alias->token() << " " << alias->simple_name() << " = "
+          << alias->target_name() << ";" << std::endl;
 }
 
 void Formatter::VisitArrayType(ast::ArrayType* array_type) {
@@ -260,8 +260,8 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
     const char* separator = "";
     for (auto const param : method->parameters()) {
       stream_ << separator;
-      Visit(param.type);
-      stream_ << " " << param.name;
+      Visit(param->type());
+      stream_ << " " << param->name();
       separator = ", ";
     }
     stream_ << ");" << std::endl;
@@ -293,6 +293,17 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
   Visit(operation->expression());
 }
 
+void Formatter::VisitVarStatement(ast::VarStatement* statement) {
+  Indent();
+  Visit(statement->type());
+  stream_ << " " << statement->name();
+  if (auto const value = statement->value()) {
+    stream_ << " = ";
+    Visit(value);
+  }
+  stream_ << ";";
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -301,10 +312,10 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
 //
 TestDriver::TestDriver(base::StringPiece source_text)
     : session_(new CompilationSession()),
-      source_code_(new StringSourceCode(L"testing",
-                                        base::UTF8ToUTF16(source_text))),
-      compilation_unit_(new CompilationUnit(session_.get(),
-                                            source_code_.get())) {
+      source_code_(
+          new StringSourceCode(L"testing", base::UTF8ToUTF16(source_text))),
+      compilation_unit_(
+          new CompilationUnit(session_.get(), source_code_.get())) {
 }
 
 TestDriver::~TestDriver() {
@@ -337,16 +348,15 @@ ast::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
 
 std::string TestDriver::GetErrors() {
   static const char* const error_messages[] = {
-    #define E(category, subcategory, name) \
-        #category "." #subcategory "." #name,
-    COMPILER_ERROR_CODE_LIST(E, E)
-    #undef E
+#define E(category, subcategory, name) #category "." #subcategory "." #name,
+      COMPILER_ERROR_CODE_LIST(E, E)
+#undef E
   };
 
   std::stringstream stream;
   for (auto const error : session_->errors()) {
-    stream << error_messages[static_cast<int>(error->error_code())] << "(" <<
-        error->location().start().offset() << ")";
+    stream << error_messages[static_cast<int>(error->error_code())] << "("
+           << error->location().start().offset() << ")";
     for (auto token : error->tokens())
       stream << " " << token;
     stream << std::endl;

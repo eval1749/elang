@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_AST_EXPRESSION_H_
-#define ELANG_COMPILER_AST_EXPRESSION_H_
+#ifndef ELANG_COMPILER_AST_STATEMENT_H_
+#define ELANG_COMPILER_AST_STATEMENT_H_
 
 #include <vector>
 
-#include "elang/compiler/ast/statement.h"
+#include "elang/compiler/ast/node.h"
 
 namespace elang {
 namespace compiler {
@@ -17,27 +17,27 @@ class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
-// Expression
+// Statement
 //
-class Expression : public Statement {
-  DECLARE_CASTABLE_CLASS(Expression, Statement);
+class Statement : public Node {
+  DECLARE_CASTABLE_CLASS(Statement, Node);
 
   friend class NodeFactory;
 
  public:
-  ~Expression() override;
+  ~Statement() override;
 
   Token* op() const { return token(); }
 
  protected:
-  explicit Expression(Token* op);
+  explicit Statement(Token* op);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Expression);
+  DISALLOW_COPY_AND_ASSIGN(Statement);
 };
 
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_AST_EXPRESSION_H_
+#endif  // ELANG_COMPILER_AST_STATEMENT_H_

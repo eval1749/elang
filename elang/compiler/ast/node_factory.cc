@@ -23,6 +23,7 @@
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/qualified_name.h"
@@ -51,51 +52,59 @@ NodeFactory::~NodeFactory() {
 //
 // Declaration related nodes
 //
-Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body, Token* keyword,
+Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
+                             Token* keyword,
                              Token* alias_name,
                              const QualifiedName& target_name) {
-  auto const node = new Alias(namespace_body, keyword, alias_name,
-                              target_name);
+  auto const node = new Alias(namespace_body, keyword, alias_name, target_name);
   RememberNode(node);
   return node;
 }
 
 Class* NodeFactory::NewClass(NamespaceBody* namespace_body,
-                             Modifiers modifiers, Token* keyword,
+                             Modifiers modifiers,
+                             Token* keyword,
                              Token* name) {
   auto const node = new Class(namespace_body, modifiers, keyword, name);
   RememberNode(node);
   return node;
 }
 
-Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body, Modifiers modifiers,
-                           Token* keyword, Token* name) {
+Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
+                           Modifiers modifiers,
+                           Token* keyword,
+                           Token* name) {
   auto const node = new Enum(namespace_body, modifiers, keyword, name);
   RememberNode(node);
   return node;
 }
 
-EnumMember* NodeFactory::NewEnumMember(Enum* owner, Token* name,
+EnumMember* NodeFactory::NewEnumMember(Enum* owner,
+                                       Token* name,
                                        Expression* expression) {
   auto const node = new EnumMember(owner, name, expression);
   RememberNode(node);
   return node;
 }
 
-Field* NodeFactory::NewField(NamespaceBody* namespace_body, Modifiers modifiers,
-                             Expression* type, Token* name,
+Field* NodeFactory::NewField(NamespaceBody* namespace_body,
+                             Modifiers modifiers,
+                             Expression* type,
+                             Token* name,
                              Expression* expression) {
-  auto const node = new Field(namespace_body, modifiers, type, name,
-                              expression);
+  auto const node =
+      new Field(namespace_body, modifiers, type, name, expression);
   RememberNode(node);
   return node;
 }
 
-Method* NodeFactory::NewMethod(
-    NamespaceBody* namespace_body, MethodGroup* method_group,
-    Modifiers modifies, Expression* type, Token* name,
-    const std::vector<Token*>& type_parameters,
-    const std::vector<TypeAndName>& parameters) {
+Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
+                               MethodGroup* method_group,
+                               Modifiers modifies,
+                               Expression* type,
+                               Token* name,
+                               const std::vector<Token*>& type_parameters,
+                               const std::vector<VarStatement*>& parameters) {
   auto const node = new Method(namespace_body, method_group, modifies, type,
                                name, type_parameters, parameters);
   RememberNode(node);
@@ -132,21 +141,24 @@ ArrayType* NodeFactory::NewArrayType(Token* op,
   return node;
 }
 
-Assignment* NodeFactory::NewAssignment(Token* op, Expression* left,
+Assignment* NodeFactory::NewAssignment(Token* op,
+                                       Expression* left,
                                        Expression* right) {
   auto const node = new Assignment(op, left, right);
   RememberNode(node);
   return node;
 }
 
-BinaryOperation* NodeFactory::NewBinaryOperation(Token* op, Expression* left,
+BinaryOperation* NodeFactory::NewBinaryOperation(Token* op,
+                                                 Expression* left,
                                                  Expression* right) {
   auto const node = new BinaryOperation(op, left, right);
   RememberNode(node);
   return node;
 }
 
-Conditional* NodeFactory::NewConditional(Token* op, Expression* cond_expr,
+Conditional* NodeFactory::NewConditional(Token* op,
+                                         Expression* cond_expr,
                                          Expression* then_expr,
                                          Expression* else_expr) {
   auto const node = new Conditional(op, cond_expr, then_expr, else_expr);
@@ -190,6 +202,18 @@ UnaryOperation* NodeFactory::NewUnaryOperation(Token* op, Expression* expr) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Statement
+//
+VarStatement* NodeFactory::NewVarStatement(Expression* type,
+                                           Token* name,
+                                           Expression* value) {
+  auto const node = new VarStatement(type, name, value);
+  RememberNode(node);
+  return node;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Utility
 //
 Node* NodeFactory::RememberNode(Node* node) {
@@ -201,6 +225,6 @@ void NodeFactory::RemoveAll() {
   nodes_.clear();
 }
 
-}   // namespace ast
+}  // namespace ast
 }  // namespace compiler
 }  // namespace elang

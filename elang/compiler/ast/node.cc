@@ -25,6 +25,6 @@ void Node::Accept(Visitor* visitor) {
   NOTREACHED();
 }
 
-}   // namespace ast
+}  // namespace ast
 }  // namespace compiler
 }  // namespace elang

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/var_statement.h"
 
 namespace elang {
 namespace compiler {
@@ -10,12 +10,13 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Expression
+// VarStatement
 //
-Expression::Expression(Token* op) : Statement(op) {
+VarStatement::VarStatement(Expression* type, Token* name, Expression* value)
+    : Statement(name), type_(type), value_(value) {
 }
 
-Expression::~Expression() {
+VarStatement::~VarStatement() {
 }
 
 }  // namespace ast

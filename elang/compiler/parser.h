@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_parser_h)
-#define INCLUDE_elang_compiler_parser_h
+#ifndef ELANG_COMPILER_PARSER_H_
+#define ELANG_COMPILER_PARSER_H_
 
 #include <memory>
 #include <vector>
@@ -20,6 +20,7 @@ class Namespace;
 class NamespaceBody;
 class NamespaceMember;
 class NodeFactory;
+class VarStatement;
 }
 
 class CompilationUnit;
@@ -50,9 +51,9 @@ class Parser final {
   bool Run();
 
  private:
+  class DeclarationSpace;
   class ModifierParser;
   class NamespaceBodyScope;
-  friend class NamespaceBodyScope;
 
   class QualifiedNameBuilder;
 
@@ -81,10 +82,10 @@ class Parser final {
   // Always returns false for simplify error processing.
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
-  ast::NamespaceMember* FindMember(Token* token);
+  ast::NamespaceMember* FindMember(Token* token) const;
+  ast::VarStatement* FindVariable(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
-  // Parsing
   bool ParseAfterPrimaryExpression();
   bool ParseClassDecl();
   bool ParseEnumDecl();
@@ -112,7 +113,8 @@ class Parser final {
   bool ParseUsingDirectives();
   Token* PeekToken();
   ExpressionCategory PeekTokenCategory();
-  void ProduceBinaryOperation(Token* op_token, ast::Expression* left,
+  void ProduceBinaryOperation(Token* op_token,
+                              ast::Expression* left,
                               ast::Expression* right);
   void ProduceExpression(ast::Expression* expression);
   void ProduceType(ast::Expression* expression);
@@ -124,6 +126,7 @@ class Parser final {
   void ValidateMethodModifiers();
 
   CompilationUnit* compilation_unit_;
+  DeclarationSpace* declaration_space_;
   ast::Expression* expression_;
   const std::unique_ptr<Lexer> lexer_;
   int last_source_offset_;
@@ -139,4 +142,4 @@ class Parser final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_parser_h)
+#endif  // ELANG_COMPILER_PARSER_H_

@@ -13,8 +13,6 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/field.h"
-#include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -157,6 +155,7 @@ void Parser::QualifiedNameBuilder::Reset() {
 //
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
+      declaration_space_(nullptr),
       expression_(nullptr),
       last_source_offset_(0),
       lexer_(new Lexer(session, compilation_unit)),
@@ -218,8 +217,9 @@ bool Parser::Error(ErrorCode error_code) {
   return Error(error_code, token_);
 }
 
-ast::NamespaceMember* Parser::FindMember(Token* simple_name) {
-  return namespace_body_->FindMember(simple_name);
+ast::NamespaceMember* Parser::FindMember(Token* name) const {
+  DCHECK(name->is_name());
+  return namespace_body_->FindMember(name);
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
@@ -426,65 +426,6 @@ bool Parser::ParseEnumDecl() {
 
 bool Parser::ParseFunctionDecl() {
   return false;
-}
-
-// Called after '(' read.
-bool Parser::ParseMethodDecl(Modifiers method_modifiers,
-                             ast::Expression* method_type,
-                             Token* method_name,
-                             const std::vector<Token*> type_parameters) {
-  ValidateMethodModifiers();
-  std::vector<ast::TypeAndName> parameters;
-  std::unordered_set<hir::SimpleName*> names;
-  for (;;) {
-    auto const param_type = ParseType() ? ConsumeType() : nullptr;
-    auto const param_name = PeekToken()->is_name() ?
-        ConsumeToken() : NewUniqueNameToken(L"@p%d");
-    if (names.find(param_name->simple_name()) != names.end())
-      Error(ErrorCode::SyntaxMethodNameDuplicate);
-    parameters.push_back(ast::TypeAndName(param_type, param_name));
-    names.insert(param_name->simple_name());
-    if (AdvanceIf(TokenType::RightParenthesis))
-      break;
-    if (!AdvanceIf(TokenType::Comma))
-      Error(ErrorCode::SyntaxMethodComma);
-  }
-
-  auto method_group = static_cast<ast::MethodGroup*>(nullptr);
-  if (auto const present = FindMember(method_name)) {
-    method_group = present->as<ast::MethodGroup>();
-    if (!method_group)
-      Error(ErrorCode::SyntaxClassMemberDuplicate, method_name);
-  }
-  if (!method_group) {
-    method_group = factory()->NewMethodGroup(namespace_body_, method_name);
-    AddMember(method_group);
-  }
-
-  auto const method = factory()->NewMethod(namespace_body_, method_group,
-                                           method_modifiers, method_type,
-                                           method_name, type_parameters,
-                                           parameters);
-  method_group->AddMethod(method);
-
-  if (AdvanceIf(TokenType::SemiColon)) {
-    if (!method_modifiers.HasExtern())
-      Error(ErrorCode::SyntaxMethodSemiColon);
-    return true;
-  }
-
-  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
-    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
-    return true;
-  }
-
-  ParseStatement();
-
-  if (!AdvanceIf(TokenType::RightCurryBracket)) {
-    Error(ErrorCode::SyntaxMethodRightCurryBracket);
-    return true;
-  }
-  return true;
 }
 
 //  NamespaceDecl ::= "namespace" QualifiedName Namespace ";"?

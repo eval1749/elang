@@ -19,27 +19,30 @@ namespace compiler {
 namespace ast {
 
 #define DECLARATION_NODE_LIST(V) \
-  V(Alias) \
-  V(Class) \
-  V(Enum) \
-  V(Field) \
-  V(MethodGroup) \
+  V(Alias)                       \
+  V(Class)                       \
+  V(Enum)                        \
+  V(Field)                       \
+  V(MethodGroup)                 \
   V(Namespace)
 
 #define EXPRESSION_NODE_LIST(V) \
-  V(ArrayType) \
-  V(Assignment) \
-  V(BinaryOperation) \
-  V(Conditional) \
-  V(ConstructedType) \
-  V(Literal) \
-  V(MemberAccess) \
-  V(NameReference) \
+  V(ArrayType)                  \
+  V(Assignment)                 \
+  V(BinaryOperation)            \
+  V(Conditional)                \
+  V(ConstructedType)            \
+  V(Literal)                    \
+  V(MemberAccess)               \
+  V(NameReference)              \
   V(UnaryOperation)
 
-#define AST_NODE_LIST(V) \
+#define STATEMENT_NODE_LIST(V) V(VarStatement)
+
+#define AST_NODE_LIST(V)   \
   DECLARATION_NODE_LIST(V) \
-  EXPRESSION_NODE_LIST(V)
+  EXPRESSION_NODE_LIST(V)  \
+  STATEMENT_NODE_LIST(V)
 
 //////////////////////////////////////////////////////////////////////
 //
