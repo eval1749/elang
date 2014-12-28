@@ -52,7 +52,7 @@ class Parser final {
   bool Run();
 
  private:
-  class DeclarationSpace;
+  class LocalDeclarationSpace;
   class ModifierParser;
   class NamespaceBodyScope;
 
@@ -64,12 +64,6 @@ class Parser final {
   void Advance();
   bool AdvanceIf(TokenType type);
 
-  // Returns last produced expression.
-  ast::Expression* ConsumeExpression();
-
-  // Returns last produced statement.
-  ast::Statement* ConsumeStatement();
-
   // Returns current token and advance to next token.
   Token* ConsumeToken();
 
@@ -80,58 +74,66 @@ class Parser final {
   // Returns |Token*| and consume it if current token is |type|.
   Token* ConsumeTokenIf(TokenType type);
 
-  // Returns last produced expression.
-  ast::Expression* ConsumeType();
-
   // Always returns false for simplify error processing.
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
   ast::NamespaceMember* FindMember(Token* token) const;
-  ast::VarStatement* FindVariable(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
-  bool ParseAfterPrimaryExpression();
   bool ParseClassDecl();
   bool ParseEnumDecl();
-  bool ParseExpression();
-  bool ParseExpressionSub(ExpressionCategory category);
   bool ParseFunctionDecl();
   bool ParseCompilationUnit();
-  bool ParseMethodDecl(Modifiers modifiers,
-                       ast::Expression* method_type,
-                       Token* method_name,
-                       const std::vector<Token*> type_parameters);
   bool ParseNamespaceDecl();
   bool ParseNamespaceDecl(Token* namespace_keyword,
                           const std::vector<Token*>& names,
                           size_t index);
   bool ParseNamespaceMemberDecls();
-  bool ParsePrimaryExpression();
-  bool ParsePrimaryExpressionPost();
-  // Returns false if no name, otherwise true.
   bool ParseQualifiedName();
-  bool ParseStatement();
-  bool ParseType();
-  bool ParseTypePost();
-  std::vector<Token*> ParseTypeParameterList();
   bool ParseUsingDirectives();
   Token* PeekToken();
-  ExpressionCategory PeekTokenCategory();
-  void ProduceBinaryOperation(Token* op_token,
-                              ast::Expression* left,
-                              ast::Expression* right);
-  void ProduceExpression(ast::Expression* expression);
-  void ProduceStatement(ast::Statement* statement);
-  void ProduceType(ast::Expression* expression);
-  void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
-
   void ValidateClassModifiers();
   void ValidateEnumModifiers();
   void ValidateFieldModifiers();
   void ValidateMethodModifiers();
 
+  // in "parse_expression.cc"
+  // Returns last produced expression.
+  ast::Expression* ConsumeExpression();
+  bool ParseAfterPrimaryExpression();
+  void ProduceBinaryOperation(Token* op_token,
+                              ast::Expression* left,
+                              ast::Expression* right);
+  bool ParseExpression();
+  bool ParseExpressionSub(ExpressionCategory category);
+  bool ParsePrimaryExpression();
+  bool ParsePrimaryExpressionPost();
+  ExpressionCategory PeekTokenCategory();
+  // Returns false if no name, otherwise true.
+  void ProduceExpression(ast::Expression* expression);
+  void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
+
+  // in "parse_statement.cc"
+  // Returns last produced statement.
+  ast::Statement* ConsumeStatement();
+  ast::VarStatement* FindVariable(Token* token) const;
+  bool ParseMethodDecl(Modifiers modifiers,
+                       ast::Expression* method_type,
+                       Token* method_name,
+                       const std::vector<Token*> type_parameters);
+  bool ParseStatement();
+  void ProduceStatement(ast::Statement* statement);
+
+  // in "parse_type.cc"
+  // Returns last produced expression.
+  ast::Expression* ConsumeType();
+  bool ParseType();
+  std::vector<Token*> ParseTypeParameterList();
+  bool ParseTypePost();
+  void ProduceType(ast::Expression* expression);
+
   CompilationUnit* compilation_unit_;
-  DeclarationSpace* declaration_space_;
+  LocalDeclarationSpace* declaration_space_;
   ast::Expression* expression_;
   const std::unique_ptr<Lexer> lexer_;
   int last_source_offset_;

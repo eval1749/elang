@@ -30,45 +30,48 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Parser::DeclarationSpace
+// Parser::LocalDeclarationSpace
 //
-class Parser::DeclarationSpace final {
+class Parser::LocalDeclarationSpace final {
  public:
-  explicit DeclarationSpace(Parser* parser, Token* owner);
-  ~DeclarationSpace();
+  explicit LocalDeclarationSpace(Parser* parser, Token* owner);
+  ~LocalDeclarationSpace();
 
-  DeclarationSpace* outer() const { return outer_; }
+  LocalDeclarationSpace* outer() const { return outer_; }
   Token* owner() const { return owner_; }
 
   void AddVarStatement(ast::VarStatement* variable);
   ast::VarStatement* FindVariable(Token* name) const;
 
  private:
-  DeclarationSpace* outer_;
+  LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
   std::unordered_map<hir::SimpleName*, ast::VarStatement*> variables_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeclarationSpace);
+  DISALLOW_COPY_AND_ASSIGN(LocalDeclarationSpace);
 };
 
-Parser::DeclarationSpace::DeclarationSpace(Parser* parser, Token* owner)
+Parser::LocalDeclarationSpace::LocalDeclarationSpace(Parser* parser,
+                                                     Token* owner)
     : outer_(parser->declaration_space_), owner_(owner), parser_(parser) {
   parser_->declaration_space_ = this;
 }
 
-Parser::DeclarationSpace::~DeclarationSpace() {
+Parser::LocalDeclarationSpace::~LocalDeclarationSpace() {
   parser_->declaration_space_ = outer_;
 }
 
-void Parser::DeclarationSpace::AddVarStatement(ast::VarStatement* variable) {
+void Parser::LocalDeclarationSpace::AddVarStatement(
+    ast::VarStatement* variable) {
   auto const name = variable->name()->simple_name();
   if (variables_.find(name) != variables_.end())
     return;
   variables_[name] = variable;
 }
 
-ast::VarStatement* Parser::DeclarationSpace::FindVariable(Token* name) const {
+ast::VarStatement* Parser::LocalDeclarationSpace::FindVariable(
+    Token* name) const {
   DCHECK(name->is_name());
   auto const present = variables_.find(name->simple_name());
   return present == variables_.end() ? nullptr : present->second;
@@ -144,7 +147,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
     return true;
   }
 
-  DeclarationSpace method_body_space(this, PeekToken());
+  LocalDeclarationSpace method_body_space(this, PeekToken());
   for (auto param : method->parameters())
     method_body_space.AddVarStatement(param);
 
@@ -169,14 +172,13 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    IfStatement
 //    ReturnStatement
 //    SwitchStatement NYI
-//    TryCatchStatement NYI
-//    TryFinallyStatement NYI
+//    TryStatement NYI
 //    UsingStatement NYI
 //    WhileStatement NYI
 //    YieldStatement NYI
 bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket)) {
-    DeclarationSpace block_space(this, bracket);
+    LocalDeclarationSpace block_space(this, bracket);
     std::vector<ast::Statement*> statements;
     for (;;) {
       // TODO(eval1749) Should we do unreachable code check?
