@@ -26,7 +26,7 @@ NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
       namespace_body_(namespace_body),
       simple_name_(simple_name) {
   DCHECK(simple_name->is_name());
-  DCHECK(namespace_body_ || keyword_or_name->type() == TokenType::Namespace);
+  DCHECK(namespace_body_ || keyword_or_name == TokenType::Namespace);
 }
 
 NamespaceMember::~NamespaceMember() {

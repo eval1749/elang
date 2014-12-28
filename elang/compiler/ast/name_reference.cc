@@ -16,8 +16,7 @@ namespace ast {
 // NameReference
 //
 NameReference::NameReference(Token* name) : Expression(name) {
-  DCHECK(name->is_name() || name->is_type_name() ||
-         name->type() == TokenType::Var);
+  DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var);
 }
 
 NameReference::~NameReference() {

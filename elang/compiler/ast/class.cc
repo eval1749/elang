@@ -21,9 +21,8 @@ Class::Class(NamespaceBody* namespace_body,
              Token* keyword,
              Token* name)
     : Namespace(namespace_body, modifiers, keyword, name), is_fixed_(false) {
-  DCHECK(keyword->type() == TokenType::Class ||
-         keyword->type() == TokenType::Interface ||
-         keyword->type() == TokenType::Struct);
+  DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
+         keyword == TokenType::Struct);
 }
 
 Class::~Class() {
@@ -49,8 +48,8 @@ void Class::BindBaseClasses(const std::vector<Class*>& base_classes) {
   auto first = true;
   for (auto const base_class : base_classes) {
     if (first) {
-      DCHECK(base_class->token()->type() == TokenType::Class ||
-             base_class->token()->type() == TokenType::Interface);
+      DCHECK(base_class->token() == TokenType::Class ||
+             base_class->token() == TokenType::Interface);
       first = false;
       continue;
     }

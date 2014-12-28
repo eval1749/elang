@@ -38,7 +38,7 @@ NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
     DCHECK_EQ(outer_->owner(), owner->outer());
   } else {
     DCHECK(!owner->outer());
-    DCHECK(owner->token()->type() == TokenType::Namespace);
+    DCHECK_EQ(owner->token(), TokenType::Namespace);
   }
 }
 

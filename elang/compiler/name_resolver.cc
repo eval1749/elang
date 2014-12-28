@@ -163,7 +163,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
     }
 
     // |base_class| must be an interface except for first one.
-    if (base_class->token()->type() == TokenType::Class) {
+    if (base_class->token() == TokenType::Class) {
       if (!base_classes.empty()) {
         session_->AddError(ErrorCode::NameResolutionNameNotInterface,
                            base_class_name.simple_name());

@@ -317,8 +317,8 @@ void Formatter::VisitReturnStatement(ast::ReturnStatement* statement) {
 }
 
 void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
-  if (operation->op()->type() == TokenType::PostDecrement ||
-      operation->op()->type() == TokenType::PostIncrement) {
+  if (operation->op() == TokenType::PostDecrement ||
+      operation->op() == TokenType::PostIncrement) {
     Visit(operation->expression());
     stream_ << operation->op();
     return;

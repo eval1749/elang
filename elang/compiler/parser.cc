@@ -362,7 +362,7 @@ bool Parser::ParseClassDecl() {
 
     // |var| field must have initial value.
     if (auto const name_ref = member_type->as<ast::NameReference>()) {
-      if (name_ref->name()->type() == TokenType::Var)
+      if (name_ref->name() == TokenType::Var)
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
 
