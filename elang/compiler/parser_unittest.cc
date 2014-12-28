@@ -49,13 +49,12 @@ TEST(ParserTest, ErrorClassFieldVar) {
 // 'do' statement
 //
 TEST(ParserTest, DoBasic) {
-  TestDriver driver(
-      "class A { void Run(int x) { do { return; } while (x); } }");
+  TestDriver driver("class A { void Run(int x) { do { ; } while (x); } }");
   EXPECT_EQ(
       "class A {\n"
       "  void Run(int x) {\n"
       "    do {\n"
-      "      return;\n"
+      "      ;\n"
       "    } while (x);\n"
       "  }\n"
       "}\n",

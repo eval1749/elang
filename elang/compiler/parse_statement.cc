@@ -12,6 +12,7 @@
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/do_statement.h"
+#include "elang/compiler/ast/empty_statement.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/method.h"
@@ -282,7 +283,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    BreakStatement NYI
 //    ContinueStatement NYI
 //    DoStatement
-//    EmptyStatement NYI
+//    EmptyStatement
 //    ExpressionStatement NYI
 //    ForStatement NYI
 //    ForEachStatement NYI
@@ -306,6 +307,11 @@ bool Parser::ParseStatement() {
 
   if (auto const return_keyword = ConsumeTokenIf(TokenType::Return))
     return ParseReturnStatement(return_keyword);
+
+  if (auto const semicolon = ConsumeTokenIf(TokenType::SemiColon)) {
+    ProduceStatement(factory()->NewEmptyStatement(semicolon));
+    return true;
+  }
 
   // ExpressionStatement ::= Expression ';'
   if (!ParseExpression())

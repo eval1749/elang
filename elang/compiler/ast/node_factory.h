@@ -88,6 +88,7 @@ class NodeFactory final {
   DoStatement* NewDoStatement(Token* keyword,
                               Statement* statement,
                               Expression* condition);
+  EmptyStatement* NewEmptyStatement(Token* keyword);
   IfStatement* NewIfStatement(Token* keyword,
                               Expression* condition,
                               Statement* then_statement,

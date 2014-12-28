@@ -22,6 +22,8 @@ static_library("ast") {
     "constructed_type.h",
     "do_statement.cc",
     "do_statement.h",
+    "empty_statement.cc",
+    "empty_statement.h",
     "enum.cc",
     "enum.h",
     "enum_member.cc",

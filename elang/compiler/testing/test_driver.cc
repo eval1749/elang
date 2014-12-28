@@ -18,6 +18,7 @@
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/do_statement.h"
+#include "elang/compiler/ast/empty_statement.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
@@ -239,6 +240,11 @@ void Formatter::VisitDoStatement(ast::DoStatement* do_statement) {
   stream_ << " while (";
   Visit(do_statement->condition());
   stream_ << ");";
+}
+
+void Formatter::VisitEmptyStatement(ast::EmptyStatement* empty_statement) {
+  __assume(empty_statement);
+  stream_ << ";";
 }
 
 void Formatter::VisitEnum(ast::Enum* enumx) {
