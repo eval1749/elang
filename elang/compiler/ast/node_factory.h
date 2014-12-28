@@ -98,6 +98,9 @@ class NodeFactory final {
   VarStatement* NewVarStatement(Expression* type,
                                 Token* name,
                                 Expression* value);
+  WhileStatement* NewWhileStatement(Token* keyword,
+                                    Expression* condition,
+                                    Statement* statement);
 
   // Utility
   void RemoveAll();

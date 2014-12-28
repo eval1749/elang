@@ -127,6 +127,7 @@ class Parser final {
                        const std::vector<Token*> type_parameters);
   bool ParseReturnStatement(Token* keyword);
   bool ParseStatement();
+  bool ParseWhileStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);
 
   // in "parse_type.cc"

@@ -23,6 +23,7 @@
 #include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
+#include "elang/compiler/ast/while_statement.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"
@@ -216,6 +217,25 @@ bool Parser::ParseReturnStatement(Token* return_keyword) {
   return true;
 }
 
+// WhileStatement ::= while' '(' Expression ') Statement
+bool Parser::ParseWhileStatement(Token* while_keyword) {
+  DCHECK_EQ(while_keyword, TokenType::While);
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxWhileLeftParenthesis);
+  if (!ParseExpression())
+    return false;
+  auto const condition = ConsumeExpression();
+  if (!AdvanceIf(TokenType::RightParenthesis))
+    Error(ErrorCode::SyntaxWhileRightParenthesis);
+  StatementScope while_scope(this, while_keyword);
+  if (!ParseStatement())
+    return false;
+  auto const statement = ConsumeStatement();
+  ProduceStatement(
+      factory()->NewWhileStatement(while_keyword, condition, statement));
+  return true;
+}
+
 // Called after '(' read.
 bool Parser::ParseMethodDecl(Modifiers method_modifiers,
                              ast::Expression* method_type,
@@ -285,7 +305,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    ContinueStatement NYI
 //    DoStatement
 //    EmptyStatement
-//    ExpressionStatement NYI
+//    ExpressionStatement
 //    ForStatement NYI
 //    ForEachStatement NYI
 //    GotoEachStatement NYI
@@ -294,7 +314,8 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    SwitchStatement NYI
 //    TryStatement NYI
 //    UsingStatement NYI
-//    WhileStatement NYI
+//    VarStatement NYI
+//    WhileStatement
 //    YieldStatement NYI
 bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket))
@@ -308,6 +329,9 @@ bool Parser::ParseStatement() {
 
   if (auto const return_keyword = ConsumeTokenIf(TokenType::Return))
     return ParseReturnStatement(return_keyword);
+
+  if (auto const while_keyword = ConsumeTokenIf(TokenType::While))
+    return ParseWhileStatement(while_keyword);
 
   if (auto const semicolon = ConsumeTokenIf(TokenType::SemiColon)) {
     ProduceStatement(factory()->NewEmptyStatement(semicolon));

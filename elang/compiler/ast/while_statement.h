@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_AST_DO_STATEMENT_H_
-#define ELANG_COMPILER_AST_DO_STATEMENT_H_
+#ifndef ELANG_COMPILER_AST_WHILE_STATEMENT_H_
+#define ELANG_COMPILER_AST_WHILE_STATEMENT_H_
 
 #include "elang/compiler/ast/statement.h"
 
@@ -15,10 +15,10 @@ class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
-// DoStatement
+// WhileStatement
 //
-class DoStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(DoStatement, Statement);
+class WhileStatement final : public Statement {
+  DECLARE_CASTABLE_CLASS(WhileStatement, Statement);
   friend class NodeFactory;
 
  public:
@@ -26,10 +26,10 @@ class DoStatement final : public Statement {
   Statement* statement() const { return statement_; }
 
  private:
-  explicit DoStatement(Token* keyword,
-                       Statement* statement,
-                       Expression* condition);
-  ~DoStatement() final;
+  explicit WhileStatement(Token* keyword,
+                          Expression* condition,
+                          Statement* statement);
+  ~WhileStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;
@@ -37,11 +37,11 @@ class DoStatement final : public Statement {
   Expression* const condition_;
   Statement* const statement_;
 
-  DISALLOW_COPY_AND_ASSIGN(DoStatement);
+  DISALLOW_COPY_AND_ASSIGN(WhileStatement);
 };
 
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_AST_DO_STATEMENT_H_
+#endif  // ELANG_COMPILER_AST_WHILE_STATEMENT_H_

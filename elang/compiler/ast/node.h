@@ -44,7 +44,8 @@ namespace ast {
   V(ExpressionStatement)       \
   V(IfStatement)               \
   V(ReturnStatement)           \
-  V(VarStatement)
+  V(VarStatement)              \
+  V(WhileStatement)
 
 #define AST_NODE_LIST(V)   \
   DECLARATION_NODE_LIST(V) \

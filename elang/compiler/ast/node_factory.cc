@@ -30,6 +30,7 @@
 #include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
+#include "elang/compiler/ast/while_statement.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/qualified_name.h"
@@ -260,6 +261,14 @@ VarStatement* NodeFactory::NewVarStatement(Expression* type,
                                            Token* name,
                                            Expression* value) {
   auto const node = new VarStatement(type, name, value);
+  RememberNode(node);
+  return node;
+}
+
+WhileStatement* NodeFactory::NewWhileStatement(Token* keyword,
+                                               Expression* condition,
+                                               Statement* statement) {
+  auto const node = new WhileStatement(keyword, condition, statement);
   RememberNode(node);
   return node;
 }

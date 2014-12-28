@@ -86,6 +86,9 @@ namespace compiler {
   E(Syntax, UsingDirective, Invalid)                  \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
+  /* Do */                                            \
+  E(Syntax, While, LeftParenthesis)                   \
+  E(Syntax, While, RightParenthesis)                  \
   /* Lexer */                                         \
   E(Token, AtMark, Invalid)                           \
   E(Token, AtMarkString, Unclosed)                    \

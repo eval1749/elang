@@ -64,6 +64,44 @@ TEST(ParserTest, DoBasic) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// enum
+//
+TEST(ParserTest, EnumBasic) {
+  TestDriver driver("enum Color { Red, Green, Blue }");
+  EXPECT_EQ(
+      "enum Color {\n"
+      "  Red,\n"
+      "  Green,\n"
+      "  Blue,\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, EnumComma) {
+  TestDriver driver("enum Color { Red, Green, Blue, }");
+  EXPECT_EQ(
+      "enum Color {\n"
+      "  Red,\n"
+      "  Green,\n"
+      "  Blue,\n"
+      "}\n",
+      driver.RunParser())
+      << "Comma following last member";
+}
+
+TEST(ParserTest, EnumValue) {
+  TestDriver driver("enum Color { Red = 3, Green = Red + 10, Blue }");
+  EXPECT_EQ(
+      "enum Color {\n"
+      "  Red = 3,\n"
+      "  Green = Red + 10,\n"
+      "  Blue,\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'if' statement
 //
 TEST(ParserTest, IfBasic) {
@@ -160,38 +198,17 @@ TEST(ParserTest, NamespaceNestedShortcut) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// enum
+// 'while' statement
 //
-TEST(ParserTest, EnumBasic) {
-  TestDriver driver("enum Color { Red, Green, Blue }");
+TEST(ParserTest, WhileBasic) {
+  TestDriver driver("class A { void Run(int x) { while (x) { foo; } } }");
   EXPECT_EQ(
-      "enum Color {\n"
-      "  Red,\n"
-      "  Green,\n"
-      "  Blue,\n"
-      "}\n",
-      driver.RunParser());
-}
-
-TEST(ParserTest, EnumComma) {
-  TestDriver driver("enum Color { Red, Green, Blue, }");
-  EXPECT_EQ(
-      "enum Color {\n"
-      "  Red,\n"
-      "  Green,\n"
-      "  Blue,\n"
-      "}\n",
-      driver.RunParser())
-      << "Comma following last member";
-}
-
-TEST(ParserTest, EnumValue) {
-  TestDriver driver("enum Color { Red = 3, Green = Red + 10, Blue }");
-  EXPECT_EQ(
-      "enum Color {\n"
-      "  Red = 3,\n"
-      "  Green = Red + 10,\n"
-      "  Blue,\n"
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    while (x) {\n"
+      "      foo;\n"
+      "    }\n"
+      "  }\n"
       "}\n",
       driver.RunParser());
 }
