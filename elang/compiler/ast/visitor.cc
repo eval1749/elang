@@ -18,6 +18,6 @@ Visitor::Visitor() {
 Visitor::~Visitor() {
 }
 
-}   // namespace ast
+}  // namespace ast
 }  // namespace compiler
 }  // namespace elang

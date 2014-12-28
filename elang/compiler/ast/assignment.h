@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_assignment_h)
-#define INCLUDE_elang_compiler_ast_assignment_h
+#ifndef ELANG_COMPILER_AST_ASSIGNMENT_H_
+#define ELANG_COMPILER_AST_ASSIGNMENT_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -42,5 +42,4 @@ class Assignment final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_assignment_h)
-
+#endif  // ELANG_COMPILER_AST_ASSIGNMENT_H_

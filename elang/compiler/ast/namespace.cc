@@ -27,14 +27,15 @@ Modifiers GetNamespaceModifiers() {
 //
 // Namespace
 //
-Namespace::Namespace(NamespaceBody* namespace_body, Modifiers modifiers,
-                     Token* keyword, Token* name)
+Namespace::Namespace(NamespaceBody* namespace_body,
+                     Modifiers modifiers,
+                     Token* keyword,
+                     Token* name)
     : NamespaceMember(namespace_body, modifiers, keyword, name) {
   DCHECK_NE(keyword, TokenType::Namespace);
 }
 
-Namespace::Namespace(NamespaceBody* namespace_body, Token* keyword,
-                     Token* name)
+Namespace::Namespace(NamespaceBody* namespace_body, Token* keyword, Token* name)
     : NamespaceMember(namespace_body, GetNamespaceModifiers(), keyword, name) {
   DCHECK_EQ(keyword, TokenType::Namespace);
 }

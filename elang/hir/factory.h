@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_hir_factory_h)
-#define INCLUDE_elang_hir_factory_h
+#ifndef ELANG_HIR_FACTORY_H_
+#define ELANG_HIR_FACTORY_H_
 
 #include <memory>
 #include <string>
@@ -34,7 +34,8 @@ class Factory final {
   Namespace* global_namespace() const { return global_namespace_; }
 
   SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
-  Class* NewClass(Namespace* outer, SimpleName* simple_name,
+  Class* NewClass(Namespace* outer,
+                  SimpleName* simple_name,
                   const std::vector<Class*>& base_classes);
   Namespace* NewNamespace(Namespace* outer, SimpleName* simple_name);
   base::StringPiece16 NewString(base::StringPiece16 string);
@@ -57,5 +58,4 @@ class Factory final {
 }  // namespace hir
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_hir_factory_h)
-
+#endif  // ELANG_HIR_FACTORY_H_

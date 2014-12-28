@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_compilation_session_h)
-#define INCLUDE_elang_compiler_compilation_session_h
+#ifndef ELANG_COMPILER_COMPILATION_SESSION_H_
+#define ELANG_COMPILER_COMPILATION_SESSION_H_
 
 #include <memory>
 #include <string>
@@ -61,11 +61,11 @@ class CompilationSession final {
   base::StringPiece16* NewString(base::StringPiece16 string);
   Token* NewUniqueNameToken(const SourceCodeRange& location,
                             const base::char16* format);
-  Token* NewToken(const SourceCodeRange& source_range,
-                  const TokenData& data);
+  Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
 
  private:
-  void AddError(const SourceCodeRange& location, ErrorCode error_code,
+  void AddError(const SourceCodeRange& location,
+                ErrorCode error_code,
                 const std::vector<Token*>& tokens);
 
   const std::unique_ptr<ast::NodeFactory> ast_factory_;
@@ -84,4 +84,4 @@ class CompilationSession final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_compilation_session_h)
+#endif  // ELANG_COMPILER_COMPILATION_SESSION_H_

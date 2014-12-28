@@ -12,8 +12,7 @@
 namespace elang {
 namespace compiler {
 
-CompilationUnit::CompilationUnit(CompilationSession*,
-                                 SourceCode* source_code)
+CompilationUnit::CompilationUnit(CompilationSession*, SourceCode* source_code)
     : source_code_(source_code) {
 }
 

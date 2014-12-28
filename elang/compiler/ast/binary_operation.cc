@@ -14,8 +14,7 @@ namespace ast {
 //
 // BinaryOperation
 //
-BinaryOperation::BinaryOperation(Token* op, Expression* left,
-                                 Expression* right)
+BinaryOperation::BinaryOperation(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
 }
 

@@ -16,8 +16,10 @@ namespace ast {
 //
 // Alias
 //
-Alias::Alias(NamespaceBody* namespace_body, Token* keyword,
-             Token* simple_name, const QualifiedName& target_name)
+Alias::Alias(NamespaceBody* namespace_body,
+             Token* keyword,
+             Token* simple_name,
+             const QualifiedName& target_name)
     : NamespaceMember(namespace_body, Modifiers(), keyword, simple_name),
       target_(nullptr),
       target_name_(target_name) {

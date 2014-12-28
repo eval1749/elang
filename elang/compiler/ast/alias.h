@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_alias_h)
-#define INCLUDE_elang_compiler_ast_alias_h
+#ifndef ELANG_COMPILER_AST_ALIAS_H_
+#define ELANG_COMPILER_AST_ALIAS_H_
 
 #include "elang/compiler/ast/namespace_member.h"
 
@@ -33,9 +33,10 @@ class Alias final : public NamespaceMember {
   void BindTo(NamespaceMember* target);
 
  private:
-  Alias(NamespaceBody* namespace_body, Token* keyword,
-                 Token* simple_name,
-                 const QualifiedName& reference_name);
+  Alias(NamespaceBody* namespace_body,
+        Token* keyword,
+        Token* simple_name,
+        const QualifiedName& reference_name);
 
   // Node
   void Accept(Visitor* visitor) override;
@@ -50,5 +51,4 @@ class Alias final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_alias_h)
-
+#endif  // ELANG_COMPILER_AST_ALIAS_H_

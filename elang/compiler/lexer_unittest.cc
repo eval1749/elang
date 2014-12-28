@@ -31,7 +31,9 @@ class TestLexer final {
   Token* Get();
   Token* MakeToken(int start, int end, float32_t f32);
   Token* MakeToken(int start, int end, float64_t f64);
-  Token* MakeToken(TokenType type, int start, int end,
+  Token* MakeToken(TokenType type,
+                   int start,
+                   int end,
                    const base::StringPiece16& data);
   Token* MakeToken(TokenType type, int start, int end, uint64_t u64);
 
@@ -64,8 +66,10 @@ Token* TestLexer::MakeToken(int start, int end, float64_t f64) {
   return session_.NewToken(location, TokenData(f64));
 }
 
-Token* TestLexer::MakeToken(TokenType type, int start, int end,
-                           const base::StringPiece16& data) {
+Token* TestLexer::MakeToken(TokenType type,
+                            int start,
+                            int end,
+                            const base::StringPiece16& data) {
   auto location = SourceCodeRange(&source_code_, start, end);
   if (type == TokenType::StringLiteral)
     return session_.NewToken(location, TokenData(session_.NewString(data)));
@@ -97,8 +101,8 @@ char ToHexDigit(int n) {
 }
 
 void PrintTo(const Token& token, ::std::ostream* ostream) {
-  *ostream << token.data() << "(" << token.location().start().offset() <<
-      " " << token.location().end().offset() << ")";
+  *ostream << token.data() << "(" << token.location().start().offset() << " "
+           << token.location().end().offset() << ")";
 }
 
 #define EXPECT_FLOAT_TOKEN(start, end, data) \
@@ -112,18 +116,18 @@ void PrintTo(const Token& token, ::std::ostream* ostream) {
 
 TEST(LexerTest, Basic) {
   TestLexer lexer(
-  //   012345678901234
-     L"class Foo<T> {\n"
-  //   5678901234567890
-     L"  var ch = 'c';\n"
-  //   1234567890123456789
-     L"  var ival = 1234;\n"
-  //   012345678901 2345678 901
-     L"  var str = \"string\";\n"
-  //   2345678901234567890123456789012
-     L"  T method(T? p) { return p; }\n"
-  //   3
-     L"}");
+      //   012345678901234
+      L"class Foo<T> {\n"
+      //   5678901234567890
+      L"  var ch = 'c';\n"
+      //   1234567890123456789
+      L"  var ival = 1234;\n"
+      //   012345678901 2345678 901
+      L"  var str = \"string\";\n"
+      //   2345678901234567890123456789012
+      L"  T method(T? p) { return p; }\n"
+      //   3
+      L"}");
   // Lien 0
   EXPECT_TOKEN(Class, 0, 5, L"class");
   EXPECT_TOKEN(SimpleName, 6, 9, L"Foo");
@@ -178,15 +182,15 @@ TEST(LexerTest, Basic) {
 
 TEST(LexerTest, Integers) {
   TestLexer lexer(
-  //  0123456789012345678901234567890123456789
-    L" 1234   0b0101   0o177   0x7FE5         "  // 0
-    L" 1234l  0b0101l  0o177l  0x7FE5l        "  // 40
-    L" 1234u  0b0101u  0o177u  0x7FE5u        "  // 80
-    L" 1234lu 0b0101Lu 0o177lU 0x7FE5Lu       "  // 120
-    L" 1234ul 0b0101UL 0o177uL 0x7FE5Ul       "  // 160
-    L"");
-  EXPECT_TOKEN(Int32Literal, 1,  5, 1234);
-  EXPECT_TOKEN(Int32Literal, 8,  14, 5);
+      //  0123456789012345678901234567890123456789
+      L" 1234   0b0101   0o177   0x7FE5         "  // 0
+      L" 1234l  0b0101l  0o177l  0x7FE5l        "  // 40
+      L" 1234u  0b0101u  0o177u  0x7FE5u        "  // 80
+      L" 1234lu 0b0101Lu 0o177lU 0x7FE5Lu       "  // 120
+      L" 1234ul 0b0101UL 0o177uL 0x7FE5Ul       "  // 160
+      L"");
+  EXPECT_TOKEN(Int32Literal, 1, 5, 1234);
+  EXPECT_TOKEN(Int32Literal, 8, 14, 5);
   EXPECT_TOKEN(Int32Literal, 17, 22, 127);
   EXPECT_TOKEN(Int32Literal, 25, 31, 0x7FE5);
 
@@ -195,9 +199,9 @@ TEST(LexerTest, Integers) {
   EXPECT_TOKEN(Int64Literal, 57, 63, 127);
   EXPECT_TOKEN(Int64Literal, 65, 72, 0x7FE5);
 
-  EXPECT_TOKEN(UInt32Literal, 81,  86, 1234);
-  EXPECT_TOKEN(UInt32Literal, 88,  95, 5);
-  EXPECT_TOKEN(UInt32Literal, 97,  103, 127);
+  EXPECT_TOKEN(UInt32Literal, 81, 86, 1234);
+  EXPECT_TOKEN(UInt32Literal, 88, 95, 5);
+  EXPECT_TOKEN(UInt32Literal, 97, 103, 127);
   EXPECT_TOKEN(UInt32Literal, 105, 112, 0x7FE5);
 
   EXPECT_TOKEN(UInt64Literal, 121, 127, 1234);
@@ -213,20 +217,20 @@ TEST(LexerTest, Integers) {
 
 TEST(LexerTest, Operators) {
   TestLexer lexer(
-  //  0123456789
-    L" ~ . ,    "
-    L" * *= / /="
-    L" % %= ^ ^="
-    L" ? ?? ! !="
-    L" + += ++  "
-    L" - -= --  "
-    L" & &= &&  "
-    L" | |= ||  "
-    L" = == =>  "
-    L" < <= <<  "
-    L" <<=      "
-    L" > >= >>  "
-    L" >>=");
+      //  0123456789
+      L" ~ . ,    "
+      L" * *= / /="
+      L" % %= ^ ^="
+      L" ? ?? ! !="
+      L" + += ++  "
+      L" - -= --  "
+      L" & &= &&  "
+      L" | |= ||  "
+      L" = == =>  "
+      L" < <= <<  "
+      L" <<=      "
+      L" > >= >>  "
+      L" >>=");
   EXPECT_OPERATOR_TOKEN(BitNot, 1, 2);
   EXPECT_OPERATOR_TOKEN(Dot, 3, 4);
   EXPECT_OPERATOR_TOKEN(Comma, 5, 6);
@@ -279,9 +283,9 @@ TEST(LexerTest, Operators) {
 
 TEST(LexerTest, Reals) {
   TestLexer lexer(
-  //  0123456789012345678901234567890123456789
-    L"    0.0  1.34  2.5E10  3.5e+10  46E-11  "
-    L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-11f ");
+      //  0123456789012345678901234567890123456789
+      L"    0.0  1.34  2.5E10  3.5e+10  46E-11  "
+      L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-11f ");
   EXPECT_FLOAT_TOKEN(4, 7, 0.0);
   EXPECT_FLOAT_TOKEN(9, 13, 1.34);
   EXPECT_FLOAT_TOKEN(15, 21, 2.5E10);
@@ -297,10 +301,10 @@ TEST(LexerTest, Reals) {
 
 TEST(LexerTest, Strings) {
   TestLexer lexer(
-    L"\"\\a\b\\n\\r\\t\\v\\u1234x\""
-    L"@\"ab\"\"cd\""
-    L"'c'"
-    L"'\u1234'");
+      L"\"\\a\b\\n\\r\\t\\v\\u1234x\""
+      L"@\"ab\"\"cd\""
+      L"'c'"
+      L"'\u1234'");
   EXPECT_TOKEN(StringLiteral, 0, 20, L"\a\b\n\r\t\v\u1234x");
   EXPECT_TOKEN(StringLiteral, 20, 29, L"ab\"cd");
   EXPECT_TOKEN(CharacterLiteral, 29, 32, 'c');

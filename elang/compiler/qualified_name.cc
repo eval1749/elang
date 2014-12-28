@@ -26,7 +26,7 @@ QualifiedName::QualifiedName(const QualifiedName& other)
 }
 
 QualifiedName::QualifiedName(Token* simple_name)
-    : simple_names_(std::vector<Token*> { simple_name }) {
+    : simple_names_(std::vector<Token*>{simple_name}) {
   DCHECK(simple_name->is_name());
 }
 

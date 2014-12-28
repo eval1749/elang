@@ -19,13 +19,12 @@ namespace ast {
 // NamespaceBody::ImportDef
 //
 struct NamespaceBody::ImportDef {
-    Token* keyword;
-    QualifiedName name;
-    ImportDef(Token* keyword, const QualifiedName& real_name);
+  Token* keyword;
+  QualifiedName name;
+  ImportDef(Token* keyword, const QualifiedName& real_name);
 };
 
-NamespaceBody::ImportDef::ImportDef(Token* keyword,
-                                    const QualifiedName& name)
+NamespaceBody::ImportDef::ImportDef(Token* keyword, const QualifiedName& name)
     : keyword(keyword), name(name) {
 }
 

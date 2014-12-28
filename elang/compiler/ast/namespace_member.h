@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_namespace_member_h)
-#define INCLUDE_elang_compiler_ast_namespace_member_h
+#ifndef ELANG_COMPILER_AST_NAMESPACE_MEMBER_H_
+#define ELANG_COMPILER_AST_NAMESPACE_MEMBER_H_
 
 #include <vector>
 
@@ -39,8 +39,10 @@ class NamespaceMember : public Node {
   virtual Namespace* ToNamespace();
 
  protected:
-  NamespaceMember(NamespaceBody* namespace_body, Modifiers modifiers,
-                  Token* keyword_or_name, Token* simple_name);
+  NamespaceMember(NamespaceBody* namespace_body,
+                  Modifiers modifiers,
+                  Token* keyword_or_name,
+                  Token* simple_name);
   ~NamespaceMember() override;
 
  private:
@@ -57,5 +59,4 @@ class NamespaceMember : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_namespace_member_h)
-
+#endif  // ELANG_COMPILER_AST_NAMESPACE_MEMBER_H_

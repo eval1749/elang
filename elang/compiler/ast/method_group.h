@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "elang/compiler/ast/namespace_member.h"
-#include "elang/compiler/ast/type_and_name.h"
 
 namespace elang {
 namespace compiler {
@@ -44,4 +43,3 @@ class MethodGroup final : public NamespaceMember {
 }  // namespace elang
 
 #endif  // ELANG_COMPILER_AST_METHOD_GROUP_H_
-

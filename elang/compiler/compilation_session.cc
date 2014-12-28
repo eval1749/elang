@@ -22,14 +22,13 @@ namespace {
 
 ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
                                       SourceCode* source_code) {
-  return session->ast_factory()->NewNamespace(nullptr,
-      session->NewToken(
-          SourceCodeRange(source_code, 0, 0),
-          TokenData(TokenType::Namespace,
-                    session->GetOrCreateSimpleName(L"namespace"))),
-      session->NewToken(
-          SourceCodeRange(source_code, 0, 0),
-          TokenData(session->GetOrCreateSimpleName(L"::"))));
+  return session->ast_factory()->NewNamespace(
+      nullptr, session->NewToken(
+                   SourceCodeRange(source_code, 0, 0),
+                   TokenData(TokenType::Namespace,
+                             session->GetOrCreateSimpleName(L"namespace"))),
+      session->NewToken(SourceCodeRange(source_code, 0, 0),
+                        TokenData(session->GetOrCreateSimpleName(L"::"))));
 }
 
 }  // namespace
@@ -52,13 +51,13 @@ CompilationSession::~CompilationSession() {
 }
 
 void CompilationSession::AddError(ErrorCode error_code, Token* token) {
-  AddError(token->location(), error_code, std::vector<Token*> { token });
+  AddError(token->location(), error_code, std::vector<Token*>{token});
 }
 
-void CompilationSession::AddError(ErrorCode error_code, Token* token1,
+void CompilationSession::AddError(ErrorCode error_code,
+                                  Token* token1,
                                   Token* token2) {
-  AddError(token1->location(), error_code,
-           std::vector<Token*> { token1, token2 });
+  AddError(token1->location(), error_code, std::vector<Token*>{token1, token2});
 }
 
 void CompilationSession::AddError(const SourceCodeRange& location,
@@ -71,9 +70,9 @@ void CompilationSession::AddError(const SourceCodeRange& location,
                                   const std::vector<Token*>& tokens) {
   errors_.push_back(new ErrorData(location, error_code, tokens));
   std::sort(errors_.begin(), errors_.end(),
-        [](const ErrorData* a, const ErrorData* b) {
-          return a->location().start_offset() < b->location().start_offset();
-        });
+            [](const ErrorData* a, const ErrorData* b) {
+    return a->location().start_offset() < b->location().start_offset();
+  });
 }
 
 hir::SimpleName* CompilationSession::GetOrCreateSimpleName(
@@ -89,13 +88,13 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
 }
 
 base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
-  string_pool_.push_back(new base::StringPiece16(
-      hir_factory()->NewString(string)));
+  string_pool_.push_back(
+      new base::StringPiece16(hir_factory()->NewString(string)));
   return string_pool_.back();
 }
 
-Token* CompilationSession::NewUniqueNameToken(
-    const SourceCodeRange& location, const base::char16* format) {
+Token* CompilationSession::NewUniqueNameToken(const SourceCodeRange& location,
+                                              const base::char16* format) {
   return token_factory_->NewToken(
       location,
       TokenData(TokenType::TempName, hir_factory()->NewUniqueName(format)));

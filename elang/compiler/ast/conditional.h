@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_conditional_h)
-#define INCLUDE_elang_compiler_ast_conditional_h
+#ifndef ELANG_COMPILER_AST_CONDITIONAL_H_
+#define ELANG_COMPILER_AST_CONDITIONAL_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -28,7 +28,9 @@ class Conditional final : public Expression {
   Expression* then_expression() const { return then_; }
 
  private:
-  Conditional(Token* op, Expression* condition, Expression* then_expression,
+  Conditional(Token* op,
+              Expression* condition,
+              Expression* then_expression,
               Expression* else_expression);
 
   // Node
@@ -45,4 +47,4 @@ class Conditional final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_conditional_h)
+#endif  // ELANG_COMPILER_AST_CONDITIONAL_H_

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_field_h)
-#define INCLUDE_elang_compiler_ast_field_h
+#ifndef ELANG_COMPILER_AST_FIELD_H_
+#define ELANG_COMPILER_AST_FIELD_H_
 
 #include "elang/compiler/ast/namespace_member.h"
 
@@ -28,8 +28,11 @@ class Field final : public NamespaceMember {
   Expression* type() const { return type_; }
 
  private:
-  Field(NamespaceBody* namespace_body, Modifiers modifiers, Expression* Type,
-        Token* name, Expression* expression);
+  Field(NamespaceBody* namespace_body,
+        Modifiers modifiers,
+        Expression* Type,
+        Token* name,
+        Expression* expression);
 
   // Node
   void Accept(Visitor* visitor) override;
@@ -44,4 +47,4 @@ class Field final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_field_h)
+#endif  // ELANG_COMPILER_AST_FIELD_H_

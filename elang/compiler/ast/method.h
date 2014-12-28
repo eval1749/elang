@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "elang/compiler/ast/namespace_member.h"
-#include "elang/compiler/ast/type_and_name.h"
 #include "elang/compiler/modifiers.h"
 
 namespace elang {
@@ -27,21 +26,24 @@ class Method final : public Node {
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
   Token* name() const { return token(); }
-  const std::vector<TypeAndName>& parameters() const { return parameters_; }
+  const std::vector<VarStatement*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
-  const std::vector<Token*>& type_parameters() {  return type_parameters_; }
+  const std::vector<Token*>& type_parameters() { return type_parameters_; }
 
  private:
-  Method(NamespaceBody* namespace_body, MethodGroup* method_group,
-         Modifiers modifies, Expression* return_type, Token* name,
+  Method(NamespaceBody* namespace_body,
+         MethodGroup* method_group,
+         Modifiers modifies,
+         Expression* return_type,
+         Token* name,
          const std::vector<Token*>& type_parameters,
-         const std::vector<TypeAndName>& parameters);
+         const std::vector<VarStatement*>& parameters);
   ~Method() final;
 
   MethodGroup* const method_group_;
   const Modifiers modifiers_;
   NamespaceBody* const namespace_body_;
-  const std::vector<TypeAndName> parameters_;
+  const std::vector<VarStatement*> parameters_;
   Expression* const return_type_;
   const std::vector<Token*> type_parameters_;
 

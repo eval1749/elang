@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_constructed_type_h)
-#define INCLUDE_elang_compiler_ast_constructed_type_h
+#ifndef ELANG_COMPILER_AST_CONSTRUCTED_TYPE_H_
+#define ELANG_COMPILER_AST_CONSTRUCTED_TYPE_H_
 
 #include <vector>
 
@@ -31,7 +31,8 @@ class ConstructedType final : public Expression {
   Expression* blueprint_type() const { return blueprint_type_; }
 
  private:
-  ConstructedType(Token* op_token, Expression* expression,
+  ConstructedType(Token* op_token,
+                  Expression* expression,
                   const std::vector<Expression*>& arguments);
   // Node
   void Accept(Visitor* visitor) override;
@@ -46,4 +47,4 @@ class ConstructedType final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_constructed_type_h)
+#endif  // ELANG_COMPILER_AST_CONSTRUCTED_TYPE_H_

@@ -9,8 +9,10 @@
 namespace elang {
 namespace compiler {
 
-SourceCodePosition::SourceCodePosition(SourceCode* source_code, int offset,
-                                       int line, int column)
+SourceCodePosition::SourceCodePosition(SourceCode* source_code,
+                                       int offset,
+                                       int line,
+                                       int column)
     : column_(column), line_(line), offset_(offset), source_code_(source_code) {
 }
 

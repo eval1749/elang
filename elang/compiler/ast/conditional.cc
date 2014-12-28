@@ -14,8 +14,10 @@ namespace ast {
 //
 // Conditional
 //
-Conditional::Conditional(Token* op, Expression* cond_expr,
-                         Expression* then_expr, Expression* else_expr)
+Conditional::Conditional(Token* op,
+                         Expression* cond_expr,
+                         Expression* then_expr,
+                         Expression* else_expr)
     : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
 }
 

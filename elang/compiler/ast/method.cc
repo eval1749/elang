@@ -18,13 +18,20 @@ namespace ast {
 //
 // Method
 //
-Method::Method(NamespaceBody* namespace_body, MethodGroup* method_group,
-               Modifiers modifiers, Expression* return_type, Token* name,
+Method::Method(NamespaceBody* namespace_body,
+               MethodGroup* method_group,
+               Modifiers modifiers,
+               Expression* return_type,
+               Token* name,
                const std::vector<Token*>& type_parameters,
-               const std::vector<TypeAndName>& parameters)
-    : Node(name), method_group_(method_group), modifiers_(modifiers),
-      namespace_body_(namespace_body), parameters_(parameters),
-      return_type_(return_type), type_parameters_(type_parameters) {
+               const std::vector<VarStatement*>& parameters)
+    : Node(name),
+      method_group_(method_group),
+      modifiers_(modifiers),
+      namespace_body_(namespace_body),
+      parameters_(parameters),
+      return_type_(return_type),
+      type_parameters_(type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
 }

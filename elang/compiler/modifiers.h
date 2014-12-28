@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_modifier_h)
-#define INCLUDE_elang_compiler_modifier_h
+#ifndef ELANG_COMPILER_MODIFIERS_H_
+#define ELANG_COMPILER_MODIFIERS_H_
 
 #include <ostream>
 #include <string>
@@ -18,18 +18,18 @@ namespace compiler {
 // nothing with tokens belonging to the respective category.
 #define IGNORE_MODIFIER(name, string, details)
 
-#define MODIFIER_LIST(V) \
-  V(Abstract, "abstract", "I") \
-  V(Extern, "extern", "I") \
-  V(Final, "final", "I") \
-  V(New, "new", "M") \
+#define MODIFIER_LIST(V)                             \
+  V(Abstract, "abstract", "I")                       \
+  V(Extern, "extern", "I")                           \
+  V(Final, "final", "I")                             \
+  V(New, "new", "M")                                 \
   /* 'partial' modifier must be the last modifier */ \
-  V(Partial, "partial", "D") \
-  V(Private, "private", "A") \
-  V(Protected, "protected", "A") \
-  V(Public, "public", "A") \
-  V(Static, "static", "I") \
-  V(Virtual, "virtual", "I") \
+  V(Partial, "partial", "D")                         \
+  V(Private, "private", "A")                         \
+  V(Protected, "protected", "A")                     \
+  V(Public, "public", "A")                           \
+  V(Static, "static", "I")                           \
+  V(Virtual, "virtual", "I")                         \
   V(Volatile, "volatile", "V")
 
 //////////////////////////////////////////////////////////////////////
@@ -37,9 +37,9 @@ namespace compiler {
 // Modifier
 //
 enum class Modifier {
-  #define T(name, string, details) name,
+#define T(name, string, details) name,
   MODIFIER_LIST(T)
-  #undef T
+#undef T
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -58,12 +58,12 @@ class Modifiers final {
 
   int value() const { return flags_; }
 
-  #define DEFINE_HAS(name, string, details) \
-    bool Has ## name() const { \
-      return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
-    }
+#define DEFINE_HAS(name, string, details)                           \
+  bool Has##name() const {                                          \
+    return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
+  }
   MODIFIER_LIST(DEFINE_HAS)
-  #undef DEFINE_HAS
+#undef DEFINE_HAS
 
  private:
   explicit Modifiers(int flags);
@@ -79,5 +79,4 @@ std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers);
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_modifier_h)
-
+#endif  // ELANG_COMPILER_MODIFIERS_H_

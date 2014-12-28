@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_token_h)
-#define INCLUDE_elang_compiler_token_h
+#ifndef ELANG_COMPILER_TOKEN_H_
+#define ELANG_COMPILER_TOKEN_H_
 
 #include <memory>
 #include <ostream>
@@ -45,7 +45,7 @@ class Token final {
   const SourceCodeRange& location() const { return location_; }
   int precedence() const { return data_.precedence(); }
   hir::SimpleName* simple_name() const { return data_.simple_name(); }
-  base::StringPiece16 string_data() const { return data_.string_data();}
+  base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }
 
  private:
@@ -74,5 +74,4 @@ std::ostream& operator<<(std::ostream& ostream, Token* token);
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_token_h)
-
+#endif  // ELANG_COMPILER_TOKEN_H_

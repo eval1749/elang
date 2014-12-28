@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_array_type_h)
-#define INCLUDE_elang_compiler_ast_array_type_h
+#ifndef ELANG_COMPILER_AST_ARRAY_TYPE_H_
+#define ELANG_COMPILER_AST_ARRAY_TYPE_H_
 
 #include <vector>
 
@@ -31,7 +31,8 @@ class ArrayType final : public Expression {
   const std::vector<int>& ranks() const { return ranks_; }
 
  private:
-  ArrayType(Token* op_token, Expression* expression,
+  ArrayType(Token* op_token,
+            Expression* expression,
             const std::vector<int>& ranks);
 
   // Node
@@ -47,4 +48,4 @@ class ArrayType final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_array_type_h)
+#endif  // ELANG_COMPILER_AST_ARRAY_TYPE_H_

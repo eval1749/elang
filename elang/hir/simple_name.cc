@@ -15,8 +15,7 @@ namespace hir {
 //
 // SimpleName
 //
-SimpleName::SimpleName(base::StringPiece16 string)
-    : string_(string) {
+SimpleName::SimpleName(base::StringPiece16 string) : string_(string) {
 }
 
 SimpleName::~SimpleName() {

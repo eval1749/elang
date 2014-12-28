@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_namespae_body_h)
-#define INCLUDE_elang_compiler_ast_namespae_body_h
+#ifndef ELANG_COMPILER_AST_NAMESPACE_BODY_H_
+#define ELANG_COMPILER_AST_NAMESPACE_BODY_H_
 
 #include <unordered_map>
 #include <vector>
@@ -32,9 +32,7 @@ class NamespaceBody final {
   ~NamespaceBody();
 
   const std::vector<Alias*>& aliases() const;
-  const std::vector<NamespaceMember*>& members() const {
-    return members_;
-  }
+  const std::vector<NamespaceMember*>& members() const { return members_; }
   NamespaceBody* outer() const { return outer_; }
   Namespace* owner() const { return owner_; }
 
@@ -62,4 +60,4 @@ class NamespaceBody final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_namespae_body_h)
+#endif  // ELANG_COMPILER_AST_NAMESPACE_BODY_H_

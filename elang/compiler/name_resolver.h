@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_name_resolver_h)
-#define INCLUDE_elang_compiler_name_resolver_h
+#ifndef ELANG_COMPILER_NAME_RESOLVER_H_
+#define ELANG_COMPILER_NAME_RESOLVER_H_
 
 #include <unordered_map>
 #include <unordered_set>
@@ -49,10 +49,9 @@ class NameResolver final {
 
   // Resolves left most simple name of |name| in
   // |enclosing_namespace| and |alias_namespace|.
-  ast::NamespaceMember* ResolveLeftMostName(
-      ast::Namespace* enclosing_namespace,
-      ast::NamespaceBody* alias_namespace,
-      const QualifiedName& name);
+  ast::NamespaceMember* ResolveLeftMostName(ast::Namespace* enclosing_namespace,
+                                            ast::NamespaceBody* alias_namespace,
+                                            const QualifiedName& name);
   // Resolves |name| in |enclosing_namespace| and |alias_namespace|.
   ast::NamespaceMember* ResolveQualifiedName(
       ast::Namespace* enclosing_namespace,
@@ -74,4 +73,4 @@ class NameResolver final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_name_resolver_h)
+#endif  // ELANG_COMPILER_NAME_RESOLVER_H_

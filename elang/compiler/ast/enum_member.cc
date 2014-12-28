@@ -14,8 +14,7 @@ namespace ast {
 //
 // EnumMember
 //
-EnumMember::EnumMember(Enum* owner, Token* simple_name,
-                       Expression* expression)
+EnumMember::EnumMember(Enum* owner, Token* simple_name, Expression* expression)
     : Node(simple_name), expression_(expression) {
   DCHECK(simple_name->is_name());
 }

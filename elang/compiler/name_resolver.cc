@@ -45,13 +45,13 @@ NameResolver::ScopedResolver::ScopedResolver(NameResolver* resolver,
     return;
   }
 
-  auto const another_member = resolver_->running_stack_.size() == 1 ?
-      resolver_->running_stack_.front() :
-      resolver_->running_stack_[resolver_->running_stack_.size() - 2];
-  resolver_->session_->AddError(
-      ErrorCode::NameResolutionNameCycle,
-      another_member->simple_name(),
-      member_->simple_name());
+  auto const another_member =
+      resolver_->running_stack_.size() == 1
+          ? resolver_->running_stack_.front()
+          : resolver_->running_stack_[resolver_->running_stack_.size() - 2];
+  resolver_->session_->AddError(ErrorCode::NameResolutionNameCycle,
+                                another_member->simple_name(),
+                                member_->simple_name());
   member_ = nullptr;
 }
 
@@ -105,8 +105,7 @@ NameResolver::~NameResolver() {
 void NameResolver::BindAlias(ast::Alias* alias) {
   DCHECK(!alias->target());
   auto const target = ResolveQualifiedName(
-      alias->outer(), alias->namespace_body()->outer(),
-      alias->target_name());
+      alias->outer(), alias->namespace_body()->outer(), alias->target_name());
   if (!target) {
     session_->AddError(ErrorCode::NameResolutionAliasNoTarget,
                        alias->simple_name());
@@ -173,18 +172,17 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
       }
     } else if (base_class->token()->type() != TokenType::Interface) {
       session_->AddError(
-        base_classes.empty() ?
-            ErrorCode::NameResolutionNameNeitherClassNortInterface :
-            ErrorCode::NameResolutionNameNotInterface,
-        base_class_name.simple_name());
+          base_classes.empty()
+              ? ErrorCode::NameResolutionNameNeitherClassNortInterface
+              : ErrorCode::NameResolutionNameNotInterface,
+          base_class_name.simple_name());
       is_base_classes_valid = false;
       continue;
     }
 
     if (base_class == outer || outer->IsDescendantOf(base_class)) {
       session_->AddError(ErrorCode::NameResolutionClassContaining,
-          base_class_name.simple_name(),
-          clazz->simple_name());
+                         base_class_name.simple_name(), clazz->simple_name());
       is_base_classes_valid = false;
       continue;
     }
@@ -226,7 +224,8 @@ Maybe<ast::NamespaceMember*> NameResolver::Resolve(
 }
 
 ast::NamespaceMember* NameResolver::ResolveLeftMostName(
-    ast::Namespace* outer, ast::NamespaceBody* alias_namespace,
+    ast::Namespace* outer,
+    ast::NamespaceBody* alias_namespace,
     const QualifiedName& name) {
   DCHECK(outer);
   const auto& simple_name = name.simple_names()[0];
@@ -239,10 +238,9 @@ ast::NamespaceMember* NameResolver::ResolveLeftMostName(
         if (!target)
           return nullptr;
         if (present && target != present) {
-          session_->AddError(
-               target ? ErrorCode::NameResolutionNameAmbiguous :
-                        ErrorCode::NameResolutionAliasNoTarget,
-               simple_name);
+          session_->AddError(target ? ErrorCode::NameResolutionNameAmbiguous
+                                    : ErrorCode::NameResolutionAliasNoTarget,
+                             simple_name);
         }
         return target;
       }
@@ -258,7 +256,8 @@ ast::NamespaceMember* NameResolver::ResolveLeftMostName(
 }
 
 ast::NamespaceMember* NameResolver::ResolveQualifiedName(
-    ast::Namespace* outer, ast::NamespaceBody* alias_namespace,
+    ast::Namespace* outer,
+    ast::NamespaceBody* alias_namespace,
     const QualifiedName& name) {
   DCHECK(outer);
   ast::NamespaceMember* resolved = nullptr;
@@ -271,9 +270,8 @@ ast::NamespaceMember* NameResolver::ResolveQualifiedName(
     }
     auto const namespaze = resolved->as<ast::Namespace>();
     if (!namespaze) {
-      session_->AddError(
-          ErrorCode::NameResolutionNameNeitherNamespaceNorType,
-          simple_name);
+      session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
+                         simple_name);
       return nullptr;
     }
     resolved = namespaze->FindMember(simple_name);

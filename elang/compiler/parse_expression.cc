@@ -22,41 +22,40 @@
 namespace elang {
 namespace compiler {
 
-
 //////////////////////////////////////////////////////////////////////
 //
 // Parser::ExpressionCategory
 //
-#define EXPRESSION_CATEGORY_LIST(V) \
-  V(None) \
-  V(Primary) \
-  V(Unary) /* '++' '--' '~' '!' */ \
-  V(Multiplicative) /* '*' '/' /%' */\
-  V(Additive) /* '+' '-' */ \
-  V(Shift) /* '<<' '>>' */ \
-  V(Relational) /* '<' '<=' '>' '>=' */\
-  V(Equality) /* '==') '!=' */ \
-  V(BitAnd) /* '&' */ \
-  V(BitXor) /* '^' */ \
-  V(BitOr) /* '|' */ \
-  V(ConditionalAnd) /* '&&' */ \
-  V(ConditionalOr) /* '||' */ \
-  V(NullCoalescing) /* '??' */ \
-  V(Conditional) /* '?:' */ \
-  V(Assignment) /* '=' '+=' ... */
+#define EXPRESSION_CATEGORY_LIST(V)         \
+  V(None)                                   \
+  V(Primary)                                \
+  V(Unary)          /* '++' '--' '~' '!' */ \
+  V(Multiplicative) /* '*' '/' /%' */       \
+  V(Additive)       /* '+' '-' */           \
+  V(Shift)          /* '<<' '>>' */         \
+  V(Relational)     /* '<' '<=' '>' '>=' */ \
+  V(Equality)       /* '==') '!=' */        \
+  V(BitAnd)         /* '&' */               \
+  V(BitXor)         /* '^' */               \
+  V(BitOr)          /* '|' */               \
+  V(ConditionalAnd) /* '&&' */              \
+  V(ConditionalOr)  /* '||' */              \
+  V(NullCoalescing) /* '??' */              \
+  V(Conditional)    /* '?:' */              \
+  V(Assignment)     /* '=' '+=' ... */
 
 enum class Parser::ExpressionCategory {
-  #define ENUM_MEMBER(name) name,
+#define ENUM_MEMBER(name) name,
   EXPRESSION_CATEGORY_LIST(ENUM_MEMBER)
-  #undef ENUM_MEMBER
+#undef ENUM_MEMBER
 };
 
 std::ostream& operator<<(std::ostream& ostream,
                          Parser::ExpressionCategory category) {
   static const char* const strings[] = {
-    #define V(name) #name,
-    EXPRESSION_CATEGORY_LIST(V)
-    #undef V
+#define V(name) #name,
+      EXPRESSION_CATEGORY_LIST(V)
+#undef V
   };
   return ostream << strings[static_cast<int>(category)];
 }
@@ -66,8 +65,8 @@ Parser::ExpressionCategory RaisePrecedence(
     Parser::ExpressionCategory category) {
   DCHECK_NE(category, Parser::ExpressionCategory::None);
   DCHECK_NE(category, Parser::ExpressionCategory::Primary);
-  return static_cast<Parser::ExpressionCategory>(
-      static_cast<int>(category) - 1);
+  return static_cast<Parser::ExpressionCategory>(static_cast<int>(category) -
+                                                 1);
 }
 }  // namespace
 
@@ -226,7 +225,7 @@ bool Parser::ParsePrimaryExpressionPost() {
       auto const op_token = ConsumeTokenAs(TokenType::PostIncrement);
       ProduceUnaryOperation(op_token, ConsumeExpression());
       continue;
-     }
+    }
 
     if (PeekToken() == TokenType::Decrement) {
       // PostDecrementExpression ::=

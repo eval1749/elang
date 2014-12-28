@@ -17,10 +17,14 @@ namespace ast {
 //
 // Field
 //
-Field::Field(NamespaceBody* namespace_body, Modifiers modifiers,
-             Expression* type, Token* name, Expression* expression)
+Field::Field(NamespaceBody* namespace_body,
+             Modifiers modifiers,
+             Expression* type,
+             Token* name,
+             Expression* expression)
     : NamespaceMember(namespace_body, modifiers, name, name),
-      expression_(expression), type_(type) {
+      expression_(expression),
+      type_(type) {
   DCHECK(namespace_body->owner()->is<Class>());
 }
 

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_source_code_position_h)
-#define INCLUDE_elang_compiler_source_code_position_h
+#ifndef ELANG_COMPILER_SOURCE_CODE_POSITION_H_
+#define ELANG_COMPILER_SOURCE_CODE_POSITION_H_
 
 namespace elang {
 namespace compiler {
@@ -16,7 +16,9 @@ class SourceCode;
 //
 class SourceCodePosition {
  public:
-  SourceCodePosition(SourceCode* source_code, int offset, int line_number,
+  SourceCodePosition(SourceCode* source_code,
+                     int offset,
+                     int line_number,
                      int column_number);
   SourceCodePosition(const SourceCodePosition& other) = default;
   ~SourceCodePosition();
@@ -45,4 +47,4 @@ class SourceCodePosition {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_source_code_position_h)
+#endif  // ELANG_COMPILER_SOURCE_CODE_POSITION_H_

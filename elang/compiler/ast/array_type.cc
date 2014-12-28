@@ -14,7 +14,8 @@ namespace ast {
 //
 // ArrayType
 //
-ArrayType::ArrayType(Token* op, Expression* element_type,
+ArrayType::ArrayType(Token* op,
+                     Expression* element_type,
                      const std::vector<int>& ranks)
     : Expression(op), element_type_(element_type), ranks_(ranks) {
 }

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_compilation_unit_h)
-#define INCLUDE_elang_compiler_compilation_unit_h
+#ifndef ELANG_COMPILER_COMPILATION_UNIT_H_
+#define ELANG_COMPILER_COMPILATION_UNIT_H_
 
 #include <memory>
 
@@ -39,5 +39,4 @@ class CompilationUnit {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_compilation_unit_h)
-
+#endif  // ELANG_COMPILER_COMPILATION_UNIT_H_

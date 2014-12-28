@@ -16,10 +16,11 @@ namespace ast {
 //
 // Class
 //
-Class::Class(NamespaceBody* namespace_body, Modifiers modifiers,
-             Token* keyword, Token* name)
-    : Namespace(namespace_body, modifiers, keyword, name),
-      is_fixed_(false) {
+Class::Class(NamespaceBody* namespace_body,
+             Modifiers modifiers,
+             Token* keyword,
+             Token* name)
+    : Namespace(namespace_body, modifiers, keyword, name), is_fixed_(false) {
   DCHECK(keyword->type() == TokenType::Class ||
          keyword->type() == TokenType::Interface ||
          keyword->type() == TokenType::Struct);

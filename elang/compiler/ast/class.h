@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_class_h)
-#define INCLUDE_elang_compiler_ast_class_h
+#ifndef ELANG_COMPILER_AST_CLASS_H_
+#define ELANG_COMPILER_AST_CLASS_H_
 
 #include <vector>
 
@@ -32,7 +32,7 @@ class Class final : public Namespace {
   const std::vector<QualifiedName>& base_class_names() const {
     return base_class_names_;
   }
-  bool is_fixed() const {return is_fixed_; }
+  bool is_fixed() const { return is_fixed_; }
 
   void AddBaseClassName(const QualifiedName& class_name);
 
@@ -42,8 +42,10 @@ class Class final : public Namespace {
   Namespace* ToNamespace() final;
 
  private:
-  Class(NamespaceBody* namespace_body, Modifiers modifiers,
-                 Token* keyword, Token* name);
+  Class(NamespaceBody* namespace_body,
+        Modifiers modifiers,
+        Token* keyword,
+        Token* name);
   // Node
   void Accept(Visitor* visitor) override;
 
@@ -58,5 +60,4 @@ class Class final : public Namespace {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_class_h)
-
+#endif  // ELANG_COMPILER_AST_CLASS_H_

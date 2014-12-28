@@ -28,7 +28,6 @@ bool Token::operator!=(const Token& other) const {
   return !operator==(other);
 }
 
-
 std::ostream& operator<<(std::ostream& ostream, Token* token) {
   return ostream << token->data();
 }

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_hir_class_h)
-#define INCLUDE_elang_hir_class_h
+#ifndef ELANG_HIR_CLASS_H_
+#define ELANG_HIR_CLASS_H_
 
 #include <vector>
 
@@ -26,7 +26,8 @@ class Class final : public Namespace {
   const std::vector<Class*>& base_classes() const { return base_classes_; }
 
  private:
-  Class(Namespace* outer, SimpleName* simple_name,
+  Class(Namespace* outer,
+        SimpleName* simple_name,
         const std::vector<Class*>& base_classes);
   ~Class() override;
 
@@ -41,4 +42,4 @@ class Class final : public Namespace {
 }  // namespace hir
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_hir_class_h)
+#endif  // ELANG_HIR_CLASS_H_

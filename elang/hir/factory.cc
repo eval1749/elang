@@ -28,8 +28,7 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 // Factory
 //
 Factory::Factory()
-    : global_namespace_(CreateGlobalNamespace(this)),
-      temp_name_counter_(0) {
+    : global_namespace_(CreateGlobalNamespace(this)), temp_name_counter_(0) {
 }
 
 Factory::~Factory() {
@@ -45,8 +44,9 @@ SimpleName* Factory::GetOrCreateSimpleName(base::StringPiece16 string) {
   return simple_name;
 }
 
-Class* Factory::NewClass(Namespace* outer, SimpleName* simple_name,
-                          const std::vector<Class*>& base_classes) {
+Class* Factory::NewClass(Namespace* outer,
+                         SimpleName* simple_name,
+                         const std::vector<Class*>& base_classes) {
   auto const node = new Class(outer, simple_name, base_classes);
   nodes_.push_back(node);
   return node;
@@ -63,8 +63,8 @@ SimpleName* Factory::NewUniqueName(const base::char16* format) {
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
-  auto const string = new base::string16(string_piece.data(),
-                                         string_piece.size());
+  auto const string =
+      new base::string16(string_piece.data(), string_piece.size());
   strings_.push_back(string);
   return base::StringPiece16(string->data(), string->size());
 }

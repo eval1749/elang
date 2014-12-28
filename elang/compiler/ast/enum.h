@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_enum_h)
-#define INCLUDE_elang_compiler_ast_enum_h
+#ifndef ELANG_COMPILER_AST_ENUM_H_
+#define ELANG_COMPILER_AST_ENUM_H_
 
 #include <unordered_map>
 #include <vector>
@@ -39,7 +39,9 @@ class Enum final : public NamespaceMember {
   EnumMember* FindMember(Token* simple_name);
 
  private:
-  Enum(NamespaceBody* namespace_body, Modifiers modifies, Token* keyword,
+  Enum(NamespaceBody* namespace_body,
+       Modifiers modifies,
+       Token* keyword,
        Token* name);
 
   // Node
@@ -55,5 +57,4 @@ class Enum final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_enum_h)
-
+#endif  // ELANG_COMPILER_AST_ENUM_H_

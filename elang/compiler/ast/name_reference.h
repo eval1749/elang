@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_name_reference_h)
-#define INCLUDE_elang_compiler_ast_name_reference_h
+#ifndef ELANG_COMPILER_AST_NAME_REFERENCE_H_
+#define ELANG_COMPILER_AST_NAME_REFERENCE_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -40,5 +40,4 @@ class NameReference final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_name_reference_h)
-
+#endif  // ELANG_COMPILER_AST_NAME_REFERENCE_H_

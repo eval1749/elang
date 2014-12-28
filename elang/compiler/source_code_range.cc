@@ -33,7 +33,6 @@ bool SourceCodeRange::operator!=(const SourceCodeRange& other) const {
   return !operator==(other);
 }
 
-
 SourceCodePosition SourceCodeRange::end() const {
   return source_code_->ComputePosition(end_offset_);
 }

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_literal_h)
-#define INCLUDE_elang_compiler_ast_literal_h
+#ifndef ELANG_COMPILER_AST_LITERAL_H_
+#define ELANG_COMPILER_AST_LITERAL_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -38,5 +38,4 @@ class Literal final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_literal_h)
-
+#endif  // ELANG_COMPILER_AST_LITERAL_H_

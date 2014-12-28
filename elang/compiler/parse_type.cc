@@ -104,8 +104,7 @@ bool Parser::ParseType() {
 // RankSpecifier ::= '[' ','* ']'
 bool Parser::ParseTypePost() {
   if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType)) {
-    ProduceType(factory()->NewUnaryOperation(optional_marker,
-                                                   ConsumeType()));
+    ProduceType(factory()->NewUnaryOperation(optional_marker, ConsumeType()));
   }
   if (PeekToken() != TokenType::LeftSquareBracket)
     return true;

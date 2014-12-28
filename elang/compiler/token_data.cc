@@ -16,9 +16,9 @@ namespace compiler {
 
 namespace {
 const char* const kTokenDetails[] = {
-  #define T(name, string, details) details,
-  TOKEN_LIST(T, T)
-  #undef T
+#define T(name, string, details) details,
+    TOKEN_LIST(T, T)
+#undef T
 };
 
 const char* GetTokenDetails(TokenType type) {
@@ -182,9 +182,9 @@ base::StringPiece16 TokenData::string_data() const {
 
 std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
   static const char* const kTokenTypeString[] = {
-#   define V(name, string, details) string,
-    TOKEN_LIST(V, V)
-#   undef V
+#define V(name, string, details) string,
+      TOKEN_LIST(V, V)
+#undef V
   };
 
   static char const xdigits[] = "0123456789ABCDEF";
@@ -194,16 +194,16 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
       auto const ch = token.char_data();
       char buffer[7];
       if (ch < ' ' || ch >= 0x7F || ch == '\\' || ch == '\'') {
-          buffer[0] = '\\';
-          buffer[1] = 'u';
-          buffer[2] = xdigits[(ch >> 12) & 15];
-          buffer[3] = xdigits[(ch >> 8) & 15];
-          buffer[4] = xdigits[(ch >> 4) & 15];
-          buffer[5] = xdigits[ch & 15];
-          buffer[6] = 0;
+        buffer[0] = '\\';
+        buffer[1] = 'u';
+        buffer[2] = xdigits[(ch >> 12) & 15];
+        buffer[3] = xdigits[(ch >> 8) & 15];
+        buffer[4] = xdigits[(ch >> 4) & 15];
+        buffer[5] = xdigits[ch & 15];
+        buffer[6] = 0;
       } else {
-         buffer[0] = ch;
-         buffer[1] = 0;
+        buffer[0] = ch;
+        buffer[1] = 0;
       }
       return ostream << "'" << buffer << "'";
     }
