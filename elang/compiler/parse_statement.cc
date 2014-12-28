@@ -97,6 +97,65 @@ ast::VarStatement* Parser::FindVariable(Token* token) const {
   return nullptr;
 }
 
+// BlockStatement ::= '{' Statement* '}'
+bool Parser::ParseBlockStatement(Token* bracket) {
+  DCHECK_EQ(bracket, TokenType::LeftCurryBracket);
+  LocalDeclarationSpace block_space(this, bracket);
+  std::vector<ast::Statement*> statements;
+  for (;;) {
+    // TODO(eval1749) Should we do unreachable code check?
+    if (!ParseStatement()) {
+      if (AdvanceIf(TokenType::RightCurryBracket))
+        break;
+      // We don't have right curry bracket. We reached at end of source.
+      Error(ErrorCode::SyntaxStatementInvalid);
+      Advance();
+      continue;
+    }
+    statements.push_back(ConsumeStatement());
+  }
+  ProduceStatement(factory()->NewBlockStatement(bracket, statements));
+  return true;
+}
+
+// IfStatement ::= 'if' '(' Expression ')' Statement (('else Statement ')')?
+bool Parser::ParseIfStatement(Token* if_keyword) {
+  DCHECK_EQ(if_keyword, TokenType::If);
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxIfLeftParenthesis);
+  if (!ParseExpression())
+    return false;
+  auto const condition = ConsumeExpression();
+  if (!AdvanceIf(TokenType::RightParenthesis))
+    Error(ErrorCode::SyntaxIfRightParenthesis);
+  if (!ParseStatement())
+    return false;
+  auto const then_statement = ConsumeStatement();
+  auto else_statement = static_cast<ast::Statement*>(nullptr);
+  if (AdvanceIf(TokenType::Else)) {
+    if (ParseStatement())
+      else_statement = ConsumeStatement();
+  }
+  ProduceStatement(factory()->NewIfStatement(if_keyword, condition,
+                                             then_statement, else_statement));
+  return true;
+}
+
+// ReturnStatement ::= 'return' expression? ';'
+bool Parser::ParseReturnStatement(Token* return_keyword) {
+  DCHECK_EQ(return_keyword, TokenType::Return);
+  auto value = static_cast<ast::Expression*>(nullptr);
+  if (!AdvanceIf(TokenType::SemiColon)) {
+    if (ParseExpression()) {
+      value = ConsumeExpression();
+      if (!AdvanceIf(TokenType::SemiColon))
+        Error(ErrorCode::SyntaxStatementSemiColon);
+    }
+  }
+  ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
+  return true;
+}
+
 // Called after '(' read.
 bool Parser::ParseMethodDecl(Modifiers method_modifiers,
                              ast::Expression* method_type,
@@ -177,60 +236,14 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    WhileStatement NYI
 //    YieldStatement NYI
 bool Parser::ParseStatement() {
-  if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket)) {
-    LocalDeclarationSpace block_space(this, bracket);
-    std::vector<ast::Statement*> statements;
-    for (;;) {
-      // TODO(eval1749) Should we do unreachable code check?
-      if (!ParseStatement()) {
-        if (AdvanceIf(TokenType::RightCurryBracket))
-          break;
-        // We don't have right curry bracket. We reached at end of source.
-        Error(ErrorCode::SyntaxStatementInvalid);
-        Advance();
-        continue;
-      }
-      statements.push_back(ConsumeStatement());
-    }
-    ProduceStatement(factory()->NewBlockStatement(bracket, statements));
-    return true;
-  }
+  if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket))
+    return ParseBlockStatement(bracket);
 
-  // IfStatement
-  if (auto const if_keyword = ConsumeTokenIf(TokenType::If)) {
-    if (!AdvanceIf(TokenType::LeftParenthesis))
-      Error(ErrorCode::SyntaxIfLeftParenthesis);
-    if (!ParseExpression())
-      return false;
-    auto const condition = ConsumeExpression();
-    if (!AdvanceIf(TokenType::RightParenthesis))
-      Error(ErrorCode::SyntaxIfRightParenthesis);
-    if (!ParseStatement())
-      return false;
-    auto const then_statement = ConsumeStatement();
-    auto else_statement = static_cast<ast::Statement*>(nullptr);
-    if (AdvanceIf(TokenType::Else)) {
-      if (ParseStatement())
-        else_statement = ConsumeStatement();
-    }
-    ProduceStatement(factory()->NewIfStatement(if_keyword, condition,
-                                               then_statement, else_statement));
-    return true;
-  }
+  if (auto const if_keyword = ConsumeTokenIf(TokenType::If))
+    return ParseIfStatement(if_keyword);
 
-  // ReturnStatement ::= 'return' expression? ';'
-  if (auto const return_keyword = ConsumeTokenIf(TokenType::Return)) {
-    auto value = static_cast<ast::Expression*>(nullptr);
-    if (!AdvanceIf(TokenType::SemiColon)) {
-      if (ParseExpression()) {
-        value = ConsumeExpression();
-        if (!AdvanceIf(TokenType::SemiColon))
-          Error(ErrorCode::SyntaxStatementSemiColon);
-      }
-    }
-    ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
-    return true;
-  }
+  if (auto const return_keyword = ConsumeTokenIf(TokenType::Return))
+    return ParseReturnStatement(return_keyword);
 
   // ExpressionStatement ::= Expression ';'
   if (!ParseExpression())

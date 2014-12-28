@@ -117,10 +117,13 @@ class Parser final {
   // Returns last produced statement.
   ast::Statement* ConsumeStatement();
   ast::VarStatement* FindVariable(Token* token) const;
+  bool ParseBlockStatement(Token* keyword);
+  bool ParseIfStatement(Token* keyword);
   bool ParseMethodDecl(Modifiers modifiers,
                        ast::Expression* method_type,
                        Token* method_name,
                        const std::vector<Token*> type_parameters);
+  bool ParseReturnStatement(Token* keyword);
   bool ParseStatement();
   void ProduceStatement(ast::Statement* statement);
 
