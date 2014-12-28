@@ -50,6 +50,19 @@ TEST(ParserTest, ErrorClassFieldVar) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Methods
+//
+TEST(ParserTest, MethodBasic) {
+  TestDriver driver(
+    "class A { void Run(int x) {} }");
+  EXPECT_EQ(
+    "class A {\n"
+    "  void Run(int x);\n"
+    "}\n", driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Namespace
 //
 TEST(ParserTest, NamespaceAlias) {

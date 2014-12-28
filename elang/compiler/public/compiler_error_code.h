@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_public_compiler_error_code_h)
-#define INCLUDE_elang_compiler_public_compiler_error_code_h
+#ifndef ELANG_COMPILER_PUBLIC_COMPILER_ERROR_CODE_H_
+#define ELANG_COMPILER_PUBLIC_COMPILER_ERROR_CODE_H_
 
 namespace elang {
 namespace compiler {
@@ -57,6 +57,7 @@ namespace compiler {
       E(Syntax, Method, Comma) \
       E(Syntax, Method, LeftCurryBracket) \
       E(Syntax, Method, NameDuplicate) \
+      E(Syntax, Method, RightCurryBracket) \
       /* ';' without |extern| modifier. */ \
       E(Syntax, Method, SemiColon) \
     /* Modifier */ \
@@ -102,5 +103,4 @@ enum class ErrorCode {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_public_compiler_error_code_h)
-
+#endif  // ELANG_COMPILER_PUBLIC_COMPILER_ERROR_CODE_H_

@@ -244,7 +244,7 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
   for (auto const method : method_group->methods()) {
     Indent();
     stream_ << method->modifiers();
-    if (!method->modifiers().value())
+    if (method->modifiers().value())
       stream_ << " ";
     Visit(method->return_type());
     stream_ << " " << method->name();
@@ -264,7 +264,7 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
       stream_ << " " << param.name;
       separator = ", ";
     }
-    stream_ << ");";
+    stream_ << ");" << std::endl;
   }
 }
 

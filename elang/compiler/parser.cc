@@ -473,12 +473,17 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
     return true;
   }
 
-  if (PeekToken() != TokenType::LeftCurryBracket) {
+  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
     Error(ErrorCode::SyntaxMethodLeftCurryBracket);
     return true;
   }
 
   ParseStatement();
+
+  if (!AdvanceIf(TokenType::RightCurryBracket)) {
+    Error(ErrorCode::SyntaxMethodRightCurryBracket);
+    return true;
+  }
   return true;
 }
 
