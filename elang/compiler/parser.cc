@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -326,8 +327,6 @@ bool Parser::ParseClassDecl() {
     auto const member_name = ConsumeToken();
     if (!member_name->is_name())
       return Error(ErrorCode::SyntaxClassMemberName);
-    if (FindMember(member_name))
-      Error(ErrorCode::SyntaxClassMemberDuplicate, member_name);
     if (AdvanceIf(TokenType::LeftAngleBracket)) {
       auto const type_parameters = ParseTypeParameterList();
       if (!AdvanceIf(TokenType::LeftParenthesis)) {
@@ -346,6 +345,8 @@ bool Parser::ParseClassDecl() {
 
     // FieldDecl ::= Type Name ('=' Expression)? ';'
     //
+    if (FindMember(member_name))
+      Error(ErrorCode::SyntaxClassMemberDuplicate, member_name);
     ValidateFieldModifiers();
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())
@@ -449,10 +450,22 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
       Error(ErrorCode::SyntaxMethodComma);
   }
 
-  auto const method = factory()->NewMethod(namespace_body_, method_modifiers,
-                                           method_type, method_name,
-                                           type_parameters, parameters);
-  AddMember(method);
+  auto method_group = static_cast<ast::MethodGroup*>(nullptr);
+  if (auto const present = FindMember(method_name)) {
+    method_group = present->as<ast::MethodGroup>();
+    if (!method_group)
+      Error(ErrorCode::SyntaxClassMemberDuplicate, method_name);
+  }
+  if (!method_group) {
+    method_group = factory()->NewMethodGroup(namespace_body_, method_name);
+    AddMember(method_group);
+  }
+
+  auto const method = factory()->NewMethod(namespace_body_, method_group,
+                                           method_modifiers, method_type,
+                                           method_name, type_parameters,
+                                           parameters);
+  method_group->AddMethod(method);
 
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasExtern())

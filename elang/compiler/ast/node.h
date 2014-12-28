@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_node_h)
-#define INCLUDE_elang_compiler_ast_node_h
+#ifndef ELANG_COMPILER_AST_NODE_H_
+#define ELANG_COMPILER_AST_NODE_H_
 
 #include <memory>
 
@@ -12,6 +12,9 @@
 #include "elang/compiler/token.h"
 
 namespace elang {
+namespace hir {
+class SimpleName;
+}
 namespace compiler {
 namespace ast {
 
@@ -20,7 +23,7 @@ namespace ast {
   V(Class) \
   V(Enum) \
   V(Field) \
-  V(Method) \
+  V(MethodGroup) \
   V(Namespace)
 
 #define EXPRESSION_NODE_LIST(V) \
@@ -48,7 +51,9 @@ AST_NODE_LIST(FORWARD_DECLARATION)
 
 class EnumMember;
 class Expression;
+class Method;
 class NamespaceBody;
+class NodeFactory;
 class Visitor;
 
 //////////////////////////////////////////////////////////////////////
@@ -78,4 +83,4 @@ class Node : public Castable {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_node_h)
+#endif  // ELANG_COMPILER_AST_NODE_H_

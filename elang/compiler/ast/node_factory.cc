@@ -18,7 +18,9 @@
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/visitor.h"
@@ -90,12 +92,21 @@ Field* NodeFactory::NewField(NamespaceBody* namespace_body, Modifiers modifiers,
 }
 
 Method* NodeFactory::NewMethod(
-    NamespaceBody* namespace_body, Modifiers modifies,
-    Expression* type, Token* name,
+    NamespaceBody* namespace_body, MethodGroup* method_group,
+    Modifiers modifies, Expression* type, Token* name,
     const std::vector<Token*>& type_parameters,
     const std::vector<TypeAndName>& parameters) {
-  auto const node = new Method(namespace_body, modifies, type, name,
-                               type_parameters, parameters);
+  auto const node = new Method(namespace_body, method_group, modifies, type,
+                               name, type_parameters, parameters);
+  RememberNode(node);
+  return node;
+}
+
+MethodGroup* NodeFactory::NewMethodGroup(NamespaceBody* namespace_body,
+                                         Token* name) {
+  DCHECK(namespace_body->owner()->is<Class>());
+  DCHECK(name->is_name());
+  auto const node = new MethodGroup(namespace_body, name);
   RememberNode(node);
   return node;
 }

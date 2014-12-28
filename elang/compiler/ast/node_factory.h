@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_node_factory_h)
-#define INCLUDE_elang_compiler_ast_node_factory_h
+#ifndef ELANG_COMPILER_AST_NODE_FACTORY_H_
+#define ELANG_COMPILER_AST_NODE_FACTORY_H_
 
 #include <memory>
 #include <vector>
@@ -41,10 +41,11 @@ class NodeFactory final {
   EnumMember* NewEnumMember(Enum* owner, Token* name, Expression* expression);
   Field* NewField(NamespaceBody* namespace_body,  Modifiers modifiers,
                   Expression* type, Token* name, Expression* expression);
-  Method* NewMethod(NamespaceBody* namespace_body, Modifiers modifies,
-                    Expression* type, Token* name,
+  Method* NewMethod(NamespaceBody* namespace_body, MethodGroup* method_group,
+                    Modifiers modifies, Expression* type, Token* name,
                     const std::vector<Token*>& type_parameters,
                     const std::vector<TypeAndName>& parameters);
+  MethodGroup* NewMethodGroup(NamespaceBody* namespace_body, Token* name);
   Namespace* NewNamespace(NamespaceBody* namespace_body, Token* keyword,
                           Token* name);
 
@@ -79,5 +80,5 @@ class NodeFactory final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_node_factory_h)
+#endif  // ELANG_COMPILER_AST_NODE_FACTORY_H_
 

@@ -32,6 +32,8 @@ static_library("ast") {
     "member_access.h",
     "method.cc",
     "method.h",
+    "method_group.cc",
+    "method_group.h",
     "namespace.cc",
     "namespace.h",
     "namespace_body.cc",

@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/method.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -17,14 +18,15 @@ namespace ast {
 //
 // Method
 //
-Method::Method(NamespaceBody* namespace_body, Modifiers modifiers,
-               Expression* return_type, Token* name,
+Method::Method(NamespaceBody* namespace_body, MethodGroup* method_group,
+               Modifiers modifiers, Expression* return_type, Token* name,
                const std::vector<Token*>& type_parameters,
-               const Parameters& parameters)
-    : NamespaceMember(namespace_body, modifiers, name, name),
-      parameters_(parameters), return_type_(return_type),
-      type_parameters_(type_parameters) {
+               const std::vector<TypeAndName>& parameters)
+    : Node(name), method_group_(method_group), modifiers_(modifiers),
+      namespace_body_(namespace_body), parameters_(parameters),
+      return_type_(return_type), type_parameters_(type_parameters) {
   DCHECK(name->is_name());
+  DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
 }
 
 Method::~Method() {
