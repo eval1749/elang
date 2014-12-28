@@ -15,6 +15,7 @@
 #include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
+#include "elang/compiler/ast/expression_statement.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
@@ -227,6 +228,13 @@ DoStatement* NodeFactory::NewDoStatement(Token* keyword,
 
 EmptyStatement* NodeFactory::NewEmptyStatement(Token* keyword) {
   auto const node = new EmptyStatement(keyword);
+  RememberNode(node);
+  return node;
+}
+
+ExpressionStatement* NodeFactory::NewExpressionStatement(
+    Expression* expression) {
+  auto const node = new ExpressionStatement(expression);
   RememberNode(node);
   return node;
 }

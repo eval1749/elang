@@ -24,6 +24,8 @@ static_library("ast") {
     "do_statement.h",
     "empty_statement.cc",
     "empty_statement.h",
+    "expression_statement.cc",
+    "expression_statement.h",
     "enum.cc",
     "enum.h",
     "enum_member.cc",

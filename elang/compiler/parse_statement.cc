@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
+#include "elang/compiler/ast/expression_statement.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/method.h"
@@ -316,7 +317,7 @@ bool Parser::ParseStatement() {
   // ExpressionStatement ::= Expression ';'
   if (!ParseExpression())
     return false;
-  ProduceStatement(ConsumeExpression());
+  ProduceStatement(factory()->NewExpressionStatement(ConsumeExpression()));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxStatementSemiColon);
   return true;

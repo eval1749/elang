@@ -89,11 +89,12 @@ class NodeFactory final {
                               Statement* statement,
                               Expression* condition);
   EmptyStatement* NewEmptyStatement(Token* keyword);
+  ExpressionStatement* NewExpressionStatement(Expression* expression);
   IfStatement* NewIfStatement(Token* keyword,
                               Expression* condition,
                               Statement* then_statement,
                               Statement* else_statement);
-  ReturnStatement* NewReturnStatement(Token* keyword, Expression* type);
+  ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
   VarStatement* NewVarStatement(Expression* type,
                                 Token* name,
                                 Expression* value);

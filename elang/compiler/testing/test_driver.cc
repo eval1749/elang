@@ -19,6 +19,7 @@
 #include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
+#include "elang/compiler/ast/expression_statement.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
@@ -260,6 +261,11 @@ void Formatter::VisitEnum(ast::Enum* enumx) {
     }
     stream_ << "," << std::endl;
   }
+}
+
+void Formatter::VisitExpressionStatement(ast::ExpressionStatement* statement) {
+  Visit(statement->expression());
+  stream_ << ";";
 }
 
 void Formatter::VisitField(ast::Field* field) {

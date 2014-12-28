@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/compiler/ast/statement.h"
+#include "elang/compiler/ast/node.h"
 
 namespace elang {
 namespace compiler {
@@ -19,8 +19,8 @@ class NodeFactory;
 //
 // Expression
 //
-class Expression : public Statement {
-  DECLARE_CASTABLE_CLASS(Expression, Statement);
+class Expression : public Node {
+  DECLARE_CASTABLE_CLASS(Expression, Node);
 
   friend class NodeFactory;
 
