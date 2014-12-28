@@ -46,6 +46,46 @@ TEST(ParserTest, ErrorClassFieldVar) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// If
+//
+TEST(ParserTest, IfBasic) {
+  TestDriver driver("class A { void Run(int x) { if (x) return x; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    if (x)\n"
+      "      return x;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, IfBasicElse) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    if (x) {"
+      "      return x;"
+      "    } else {"
+      "      return 3;"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    if (x) {\n"
+      "      return x;\n"
+      "    } else {\n"
+      "      return 3;\n"
+      "    }\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Methods
 //
 TEST(ParserTest, MethodBasic) {

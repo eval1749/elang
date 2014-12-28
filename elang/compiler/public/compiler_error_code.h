@@ -53,6 +53,9 @@ namespace compiler {
   E(Syntax, ClassMember, Parenthesis)                 \
   E(Syntax, ClassMember, SemiColon)                   \
   E(Syntax, ClassMember, VarField)                    \
+  /* If */                                            \
+  E(Syntax, If, LeftParenthesis)                      \
+  E(Syntax, If, RightParenthesis)                     \
   /* Method */                                        \
   E(Syntax, Method, Comma)                            \
   E(Syntax, Method, LeftCurryBracket)                 \

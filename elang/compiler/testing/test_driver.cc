@@ -20,6 +20,7 @@
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/method.h"
@@ -58,6 +59,11 @@ std::ostream& operator<<(std::ostream& ostream, const QualifiedName& name) {
 
 namespace {
 
+enum class NewlineAtEnd {
+  No,
+  Yes,
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Formatter
@@ -72,17 +78,20 @@ class Formatter final : public ast::Visitor {
  private:
   class FormatBlock {
    public:
-    explicit FormatBlock(Formatter* formatter);
+    explicit FormatBlock(Formatter* formatter,
+                         NewlineAtEnd newline_at_end = NewlineAtEnd::Yes);
     ~FormatBlock();
 
    private:
-    Formatter* formatter_;
+    Formatter* const formatter_;
+    NewlineAtEnd const newline_at_end_;
 
     DISALLOW_COPY_AND_ASSIGN(FormatBlock);
   };
   friend class FormatBlock;
 
   void Indent();
+  void IndentPlusOne();
 
   // ast::Visitor
   void Visit(ast::Node* node) final;
@@ -101,8 +110,9 @@ class Formatter final : public ast::Visitor {
 //
 // Formatter::FormatBlock
 //
-Formatter::FormatBlock::FormatBlock(Formatter* formatter)
-    : formatter_(formatter) {
+Formatter::FormatBlock::FormatBlock(Formatter* formatter,
+                                    NewlineAtEnd newline_at_end)
+    : formatter_(formatter), newline_at_end_(newline_at_end) {
   formatter_->stream_ << "{" << std::endl;
   ++formatter_->depth_;
 }
@@ -110,7 +120,10 @@ Formatter::FormatBlock::FormatBlock(Formatter* formatter)
 Formatter::FormatBlock::~FormatBlock() {
   --formatter_->depth_;
   formatter_->Indent();
-  formatter_->stream_ << "}" << std::endl;
+  formatter_->stream_ << "}";
+  if (newline_at_end_ == NewlineAtEnd::No)
+    return;
+  formatter_->stream_ << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -122,6 +135,12 @@ Formatter::Formatter() : depth_(0) {
 
 void Formatter::Indent() {
   stream_ << std::string(depth_ * 2, ' ');
+}
+
+void Formatter::IndentPlusOne() {
+  ++depth_;
+  Indent();
+  --depth_;
 }
 
 std::string Formatter::Run(ast::Namespace* ns) {
@@ -168,7 +187,7 @@ void Formatter::VisitBinaryOperation(ast::BinaryOperation* operation) {
 }
 
 void Formatter::VisitBlockStatement(ast::BlockStatement* block_statement) {
-  FormatBlock block(this);
+  FormatBlock block(this, NewlineAtEnd::No);
   for (auto const statement : block_statement->statements()) {
     Indent();
     Visit(statement);
@@ -239,6 +258,61 @@ void Formatter::VisitField(ast::Field* field) {
   stream_ << ";" << std::endl;
 }
 
+void Formatter::VisitIfStatement(ast::IfStatement* statement) {
+  stream_ << "if (";
+  Visit(statement->condition());
+  stream_ << ")";
+  if (!statement->else_statement()) {
+    if (statement->then_statement()->is<ast::BlockStatement>()) {
+      stream_ << " ";
+      Visit(statement->then_statement());
+      return;
+    }
+    stream_ << std::endl;
+    IndentPlusOne();
+    Visit(statement->then_statement());
+    return;
+  }
+
+  auto const use_brace =
+      statement->then_statement()->is<ast::BlockStatement>() ||
+      statement->else_statement()->is<ast::BlockStatement>();
+
+  if (statement->then_statement()->is<ast::BlockStatement>()) {
+    stream_ << " ";
+    Visit(statement->then_statement());
+  } else if (use_brace) {
+    stream_ << " {" << std::endl;
+    IndentPlusOne();
+    Visit(statement->then_statement());
+    stream_ << std::endl;
+    Indent();
+    stream_ << "}";
+  }
+
+  if (statement->else_statement()->is<ast::BlockStatement>()) {
+    stream_ << " else ";
+    Visit(statement->else_statement());
+    return;
+  }
+
+  if (use_brace) {
+    stream_ << " else {" << std::endl;
+    IndentPlusOne();
+    Visit(statement->else_statement());
+    stream_ << std::endl;
+    Indent();
+    stream_ << "}";
+    return;
+  }
+
+  stream_ << std::endl;
+  Indent();
+  stream_ << "else" << std::endl;
+  IndentPlusOne();
+  Visit(statement->then_statement());
+}
+
 void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
@@ -285,6 +359,7 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
     if (statement->is<ast::BlockStatement>()) {
       stream_ << " ";
       Visit(statement);
+      stream_ << std::endl;
       continue;
     }
     stream_ << "=> ";

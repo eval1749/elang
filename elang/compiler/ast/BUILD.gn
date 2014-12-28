@@ -28,6 +28,8 @@ static_library("ast") {
     "expression.h",
     "field.cc",
     "field.h",
+    "if_statement.cc",
+    "if_statement.h",
     "literal.cc",
     "literal.h",
     "member_access.cc",

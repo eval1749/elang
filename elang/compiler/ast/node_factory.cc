@@ -16,6 +16,7 @@
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/method.h"
@@ -210,6 +211,16 @@ BlockStatement* NodeFactory::NewBlockStatement(
     Token* keyword,
     const std::vector<Statement*> statements) {
   auto const node = new BlockStatement(keyword, statements);
+  RememberNode(node);
+  return node;
+}
+
+IfStatement* NodeFactory::NewIfStatement(Token* keyword,
+                                         Expression* condition,
+                                         Statement* then_statement,
+                                         Statement* else_statement) {
+  auto const node =
+      new IfStatement(keyword, condition, then_statement, else_statement);
   RememberNode(node);
   return node;
 }

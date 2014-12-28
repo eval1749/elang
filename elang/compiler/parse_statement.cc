@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
@@ -150,14 +151,29 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
   if (!ParseStatement())
     return true;
 
-  method->SetStatement(ConsumeStatement());
+  auto const method_body = ConsumeStatement();
+  DCHECK(method_body->is<ast::BlockStatement>());
+  method->SetStatement(method_body);
   return true;
 }
 
 // Parses statement in following grammar:
 //    BlockStatement
+//    BreakStatement NYI
+//    ContinueStatement NYI
+//    DoStatement NYI
 //    ExpressionStatement
+//    ForStatement NYI
+//    ForEachStatement NYI
+//    GotoEachStatement NYI
+//    IfStatement
 //    ReturnStatement
+//    SwitchStatement NYI
+//    TryCatchStatement NYI
+//    TryFinallyStatement NYI
+//    UsingStatement NYI
+//    WhileStatement NYI
+//    YieldStatement NYI
 bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket)) {
     DeclarationSpace block_space(this, bracket);
@@ -175,6 +191,28 @@ bool Parser::ParseStatement() {
       statements.push_back(ConsumeStatement());
     }
     ProduceStatement(factory()->NewBlockStatement(bracket, statements));
+    return true;
+  }
+
+  // IfStatement
+  if (auto const if_keyword = ConsumeTokenIf(TokenType::If)) {
+    if (!AdvanceIf(TokenType::LeftParenthesis))
+      Error(ErrorCode::SyntaxIfLeftParenthesis);
+    if (!ParseExpression())
+      return false;
+    auto const condition = ConsumeExpression();
+    if (!AdvanceIf(TokenType::RightParenthesis))
+      Error(ErrorCode::SyntaxIfRightParenthesis);
+    if (!ParseStatement())
+      return false;
+    auto const then_statement = ConsumeStatement();
+    auto else_statement = static_cast<ast::Statement*>(nullptr);
+    if (AdvanceIf(TokenType::Else)) {
+      if (ParseStatement())
+        else_statement = ConsumeStatement();
+    }
+    ProduceStatement(factory()->NewIfStatement(if_keyword, condition,
+                                               then_statement, else_statement));
     return true;
   }
 
