@@ -44,6 +44,18 @@ hooks = [
                 '-s', 'src/buildtools/win/gn.exe.sha1',
     ],
   },
+  # Pull clang-format binaries using checked-in hashes.
+  {
+    'name': 'clang_format_win',
+    'pattern': '.',
+    'action': [ 'download_from_google_storage',
+                '--no_resume',
+                '--platform=win32',
+                '--no_auth',
+                '--bucket', 'chromium-clang-format',
+                '-s', 'src/buildtools/win/clang-format.exe.sha1',
+    ],
+  },
   {
     'pattern': '.',
     'action': ['src\\elang\\build\\gn_elang.cmd']
