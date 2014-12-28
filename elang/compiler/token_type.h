@@ -5,6 +5,7 @@
 #if !defined(INCLUDE_elang_compiler_token_type_h)
 #define INCLUDE_elang_compiler_token_type_h
 
+#include <string>
 #include <ostream>
 
 namespace elang {
@@ -99,14 +100,12 @@ namespace compiler {
     T(Increment, "++", "Oa") \
     T(Not, "!", "Oa") \
     T(BitNot, "~", "Oa") \
-    /* |PostDecrement| and |PostIncrment| tokens are produced by parser
-     * rather than lexer.
-     */ \
+    /* |PostDecrement| and |PostIncrment| tokens are produced by parser */ \
+    /* rather than lexer. */ \
     T(PostDecrement, "--", "P") \
     T(PostIncrement, "++", "P") \
-    /* |UnaryAdd| and |UnarySub| tokens are produced by parser
-     * rather than lexer.
-     */ \
+    /* |UnaryAdd| and |UnarySub| tokens are produced by parser rather than */ \
+    /* lexer. */ \
     T(UnaryAdd, "+", "+") \
     T(UnarySub, "-", "-") \
     /* Keywords */ \
@@ -222,5 +221,5 @@ std::ostream& operator<<(std::ostream& ostream, TokenType token_type);
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_token_type_h)
+#endif  // !defined(INCLUDE_elang_compiler_token_type_h)
 

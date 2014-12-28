@@ -20,14 +20,16 @@ class CharacterStream;
 // StringSourceCode
 //
 class StringSourceCode final : public SourceCode {
-  private: std::unique_ptr<CharacterStream> stream_;
+ public:
+  StringSourceCode(const base::string16& name,
+                   const base::StringPiece16& source);
+  ~StringSourceCode() final;
 
-  public: StringSourceCode(const base::string16& name,
-                           const base::StringPiece16& source);
-  public: ~StringSourceCode() final;
-
+ private:
   // SourceCode
-  private: CharacterStream* GetStream() final { return stream_.get(); }
+  CharacterStream* GetStream() final { return stream_.get(); }
+
+  std::unique_ptr<CharacterStream> stream_;
 
   DISALLOW_COPY_AND_ASSIGN(StringSourceCode);
 };
@@ -35,5 +37,5 @@ class StringSourceCode final : public SourceCode {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_string_code_h)
+#endif  // !defined(INCLUDE_elang_compiler_string_code_h)
 

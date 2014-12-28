@@ -20,14 +20,16 @@ class EnumMember final : public Node {
 
   friend class NodeFactory;
 
-  private: Expression* expression_;
+ public:
+  ~EnumMember() final;
 
-  private: EnumMember(Enum* owner, Token* name,
-                      Expression* expression);
-  public: ~EnumMember() final;
+  Expression* expression() const { return expression_; }
+  Token* name() const { return token(); }
 
-  public: Expression* expression() const { return expression_; }
-  public: Token* name() const { return token(); }
+ private:
+  EnumMember(Enum* owner, Token* name, Expression* expression);
+
+  Expression* expression_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };
@@ -36,4 +38,4 @@ class EnumMember final : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_enum_member_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_enum_member_h)

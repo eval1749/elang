@@ -6,6 +6,7 @@
 #define INCLUDE_elang_compiler_parser_h
 
 #include <memory>
+#include <vector>
 
 #include "base/basictypes.h"
 #include "elang/compiler/token.h"
@@ -37,98 +38,100 @@ class Parser final {
   // |ExpressionCategory| representing precedence of operator.
   // Note: To implement operation of |ExpressionCategory| in "parser.cc"
   // it is marked |public|, but other modules can't use it.
-  public: enum class ExpressionCategory;
-  private: class ModifierParser;
-  private: class NamespaceBodyScope;
+ public:
+  enum class ExpressionCategory;
+
+  Parser(CompilationSession* session, CompilationUnit* compilation_unit);
+  ~Parser();
+
+  CompilationSession* session() const { return session_; }
+
+  // Parser entry point. Returns true if parsing succeeded, otherwise false.
+  bool Run();
+
+ private:
+  class ModifierParser;
+  class NamespaceBodyScope;
   friend class NamespaceBodyScope;
-  private: class QualifiedNameBuilder;
 
-  private: CompilationUnit* compilation_unit_;
-  private: ast::Expression* expression_;
-  private: const std::unique_ptr<Lexer> lexer_;
-  private: int last_source_offset_;
-  private: std::unique_ptr<ModifierParser> modifiers_;
-  private: ast::NamespaceBody* namespace_body_;
-  private: std::unique_ptr<QualifiedNameBuilder> name_builder_;
-  private: CompilationSession* session_;
-  private: Token* token_;
+  class QualifiedNameBuilder;
 
-  public: Parser(CompilationSession* session,
-                 CompilationUnit* compilation_unit);
-  public: ~Parser();
+  ast::NodeFactory* factory() const;
 
-  private: ast::NodeFactory* factory() const;
-  public: CompilationSession* session() const { return session_; }
-
-  private: void AddMember(ast::NamespaceMember* member);
-  private: void Advance();
-  private: bool AdvanceIf(TokenType type);
+  void AddMember(ast::NamespaceMember* member);
+  void Advance();
+  bool AdvanceIf(TokenType type);
 
   // Returns last produced expression.
-  private: ast::Expression* ConsumeExpression();
+  ast::Expression* ConsumeExpression();
 
   // Returns current token and advance to next token.
-  private: Token* ConsumeToken();
+  Token* ConsumeToken();
 
   // Returns current token as |type| and advance to next token. This function
   // is used for handling unary '+','-' and post '++', '--'.
-  private: Token* ConsumeTokenAs(TokenType type);
+  Token* ConsumeTokenAs(TokenType type);
 
   // Returns |Token*| and consume it if current token is |type|.
-  private: Token* ConsumeTokenIf(TokenType type);
+  Token* ConsumeTokenIf(TokenType type);
 
   // Returns last produced expression.
-  private: ast::Expression* ConsumeType();
+  ast::Expression* ConsumeType();
 
   // Always returns false for simplify error processing.
-  private: bool Error(ErrorCode error_code);
-  private: bool Error(ErrorCode error_code, Token* token);
-  private: ast::NamespaceMember* FindMember(Token* token);
-  private: Token* Parser::NewUniqueNameToken(const base::char16* format);
+  bool Error(ErrorCode error_code);
+  bool Error(ErrorCode error_code, Token* token);
+  ast::NamespaceMember* FindMember(Token* token);
+  Token* Parser::NewUniqueNameToken(const base::char16* format);
 
   // Parsing
-  private: bool ParseAfterPrimaryExpression();
-  private: bool ParseClassDecl();
-  private: bool ParseEnumDecl();
-  private: bool ParseExpression();
-  private: bool ParseExpressionSub(ExpressionCategory category);
-  private: bool ParseFunctionDecl();
-  private: bool ParseCompilationUnit();
-  private: bool ParseMethodDecl(Modifiers modifiers,
-                                ast::Expression* method_type,
-                                Token* method_name,
-                                const std::vector<Token*> type_parameters);
-  private: bool ParseNamespaceDecl();
-  private: bool ParseNamespaceDecl(Token* namespace_keyword,
-                                   const std::vector<Token*>& names,
-                                   size_t index);
-  private: bool ParseNamespaceMemberDecls();
-  private: bool ParsePrimaryExpression();
-  private: bool ParsePrimaryExpressionPost();
+  bool ParseAfterPrimaryExpression();
+  bool ParseClassDecl();
+  bool ParseEnumDecl();
+  bool ParseExpression();
+  bool ParseExpressionSub(ExpressionCategory category);
+  bool ParseFunctionDecl();
+  bool ParseCompilationUnit();
+  bool ParseMethodDecl(Modifiers modifiers,
+                       ast::Expression* method_type,
+                       Token* method_name,
+                       const std::vector<Token*> type_parameters);
+  bool ParseNamespaceDecl();
+  bool ParseNamespaceDecl(Token* namespace_keyword,
+                          const std::vector<Token*>& names,
+                          size_t index);
+  bool ParseNamespaceMemberDecls();
+  bool ParsePrimaryExpression();
+  bool ParsePrimaryExpressionPost();
   // Returns false if no name, otherwise true.
-  private: bool ParseQualifiedName();
-  private: bool ParseStatement();
-  private: bool ParseType();
-  private: bool ParseTypePost();
-  private: std::vector<Token*> ParseTypeParameterList();
-  private: bool ParseUsingDirectives();
-  private: Token* PeekToken();
-  private: ExpressionCategory PeekTokenCategory();
-  private: void ProduceBinaryOperation(Token* op_token,
-                                       ast::Expression* left,
-                                       ast::Expression* right);
-  private: void ProduceExpression(ast::Expression* expression);
-  private: void ProduceType(ast::Expression* expression);
-  private: void ProduceUnaryOperation(Token* op_token,
-                                      ast::Expression* expression);
+  bool ParseQualifiedName();
+  bool ParseStatement();
+  bool ParseType();
+  bool ParseTypePost();
+  std::vector<Token*> ParseTypeParameterList();
+  bool ParseUsingDirectives();
+  Token* PeekToken();
+  ExpressionCategory PeekTokenCategory();
+  void ProduceBinaryOperation(Token* op_token, ast::Expression* left,
+                              ast::Expression* right);
+  void ProduceExpression(ast::Expression* expression);
+  void ProduceType(ast::Expression* expression);
+  void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
 
-  // Parser entry point. Returns true if parsing succeeded, otherwise false.
-  public: bool Run();
+  void ValidateClassModifiers();
+  void ValidateEnumModifiers();
+  void ValidateFieldModifiers();
+  void ValidateMethodModifiers();
 
-  private: void ValidateClassModifiers();
-  private: void ValidateEnumModifiers();
-  private: void ValidateFieldModifiers();
-  private: void ValidateMethodModifiers();
+  CompilationUnit* compilation_unit_;
+  ast::Expression* expression_;
+  const std::unique_ptr<Lexer> lexer_;
+  int last_source_offset_;
+  std::unique_ptr<ModifierParser> modifiers_;
+  ast::NamespaceBody* namespace_body_;
+  std::unique_ptr<QualifiedNameBuilder> name_builder_;
+  CompilationSession* session_;
+  Token* token_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
@@ -136,4 +139,4 @@ class Parser final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_parser_h)
+#endif  // !defined(INCLUDE_elang_compiler_parser_h)

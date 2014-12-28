@@ -22,16 +22,19 @@ class Namespace : public NamespaceMember {
   DECLARE_CASTABLE_CLASS(Namespace, NamespaceMember);
   friend class Factory;
 
-  private: std::unordered_map<SimpleName*, NamespaceMember*> map_;
+ public:
+  void AddMember(NamespaceMember* member);
+  NamespaceMember* FindMember(SimpleName* simple_name);
 
-  protected: Namespace(Namespace* outer, SimpleName* simple_name);
-  protected: ~Namespace() override;
+ protected:
+  Namespace(Namespace* outer, SimpleName* simple_name);
+  ~Namespace() override;
 
-  public: void AddMember(NamespaceMember* member);
-  public: NamespaceMember* FindMember(SimpleName* simple_name);
-
+ private:
   // NamespaceMember
-  private: Namespace* ToNamespace() override;
+  Namespace* ToNamespace() override;
+
+  std::unordered_map<SimpleName*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
@@ -39,4 +42,4 @@ class Namespace : public NamespaceMember {
 }  // namespace hir
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_hir_namespace_h)
+#endif  // !defined(INCLUDE_elang_hir_namespace_h)

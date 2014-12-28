@@ -24,12 +24,14 @@ class SourceCode;
 // CompilationUnit
 //
 class CompilationUnit {
-  private: SourceCode* const source_code_;
+ public:
+  CompilationUnit(CompilationSession* session, SourceCode* source_code);
+  ~CompilationUnit();
 
-  public: CompilationUnit(CompilationSession* session, SourceCode* source_code);
-  public: ~CompilationUnit();
+  SourceCode* source_code() const { return source_code_; }
 
-  public: SourceCode* source_code() const { return source_code_; }
+ private:
+  SourceCode* const source_code_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationUnit);
 };
@@ -37,5 +39,5 @@ class CompilationUnit {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_compilation_unit_h)
+#endif  // !defined(INCLUDE_elang_compiler_compilation_unit_h)
 

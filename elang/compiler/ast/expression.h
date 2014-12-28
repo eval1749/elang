@@ -24,11 +24,15 @@ class Expression : public Node {
 
   friend class NodeFactory;
 
-  protected: Expression(Token* op);
-  public: ~Expression() override;
+ public:
+  ~Expression() override;
 
-  public: Token* op() const { return token(); }
+  Token* op() const { return token(); }
 
+ protected:
+  explicit Expression(Token* op);
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(Expression);
 };
 
@@ -36,4 +40,4 @@ class Expression : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_expression_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_expression_h)

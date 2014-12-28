@@ -20,7 +20,8 @@ Node::Node(Token* token) : token_(token) {
 Node::~Node() {
 }
 
-void Node::Accept(Visitor*) {
+void Node::Accept(Visitor* visitor) {
+  __assume(visitor);
   NOTREACHED();
 }
 

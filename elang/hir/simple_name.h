@@ -6,6 +6,7 @@
 #define INCLUDE_elang_hir_simple_name_h
 
 #include <ostream>
+#include <string>
 
 #include "base/strings/string_piece.h"
 
@@ -21,12 +22,14 @@ class Factory;
 class SimpleName final {
   friend class Factory;
 
-  private: base::StringPiece16 const string_;
+ public:
+  base::StringPiece16 string() const { return string_; }
 
-  private: SimpleName(base::StringPiece16 string);
-  private: ~SimpleName();
+ private:
+  explicit SimpleName(base::StringPiece16 string);
+  ~SimpleName();
 
-  public: base::StringPiece16 string() const { return string_; }
+  base::StringPiece16 const string_;
 
   DISALLOW_COPY_AND_ASSIGN(SimpleName);
 };
@@ -36,4 +39,4 @@ std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name);
 }  // namespace hir
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_hir_simple_name_h)
+#endif  // !defined(INCLUDE_elang_hir_simple_name_h)

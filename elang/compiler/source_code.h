@@ -21,18 +21,22 @@ class SourceCodePosition;
 // SourceCode
 //
 class SourceCode {
-  private: int line_number_;
-  private: std::map<int, int> map_;
-  private: const base::string16 name_;
+ public:
+  virtual ~SourceCode();
 
-  protected: SourceCode(const base::string16& name);
-  public: virtual ~SourceCode();
+  const base::string16& name() const { return name_; }
 
-  public: const base::string16& name() const { return name_; }
+  SourceCodePosition ComputePosition(int offset) const;
+  virtual CharacterStream* GetStream() = 0;
+  void RememberStartOfLine(int offset);
 
-  public: SourceCodePosition ComputePosition(int offset) const;
-  public: virtual CharacterStream* GetStream() = 0;
-  public: void RememberStartOfLine(int offset);
+ protected:
+  explicit SourceCode(const base::string16& name);
+
+ private:
+  int line_number_;
+  std::map<int, int> map_;
+  const base::string16 name_;
 
   DISALLOW_COPY_AND_ASSIGN(SourceCode);
 };
@@ -40,5 +44,4 @@ class SourceCode {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_source_code_h)
-
+#endif  // !defined(INCLUDE_elang_compiler_source_code_h)

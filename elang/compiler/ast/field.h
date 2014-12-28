@@ -20,19 +20,22 @@ class Field final : public NamespaceMember {
 
   friend class NodeFactory;
 
-  private: Expression* const expression_;
-  private: Expression* const type_;
+ public:
+  ~Field() final;
 
-  private: Field(NamespaceBody* namespace_body, Modifiers modifiers,
-                 Expression* Type, Token* name, Expression* expression);
-  public: ~Field() final;
+  Expression* expression() const { return expression_; }
+  Token* name() const { return token(); }
+  Expression* type() const { return type_; }
 
-  public: Expression* expression() const { return expression_; }
-  public: Token* name() const { return token(); }
-  public: Expression* type() const { return type_; }
+ private:
+  Field(NamespaceBody* namespace_body, Modifiers modifiers, Expression* Type,
+        Token* name, Expression* expression);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const expression_;
+  Expression* const type_;
 
   DISALLOW_COPY_AND_ASSIGN(Field);
 };
@@ -41,4 +44,4 @@ class Field final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_field_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_field_h)

@@ -6,6 +6,7 @@
 #define INCLUDE_elang_compiler_modifier_h
 
 #include <ostream>
+#include <string>
 
 #include "base/macros.h"
 
@@ -48,16 +49,14 @@ enum class Modifier {
 class Modifiers final {
   friend class ModifiersBuilder;
 
-  private: int flags_;
+ public:
+  Modifiers(const Modifiers& other);
+  Modifiers();
+  ~Modifiers();
 
-  private: explicit Modifiers(int flags);
-  public: Modifiers(const Modifiers& other);
-  public: Modifiers();
-  public: ~Modifiers();
+  Modifiers& operator=(const Modifiers& other);
 
-  public: Modifiers& operator=(const Modifiers& other);
-
-  public: int value() const { return flags_; }
+  int value() const { return flags_; }
 
   #define DEFINE_HAS(name, string, details) \
     bool Has ## name() const { \
@@ -65,6 +64,11 @@ class Modifiers final {
     }
   MODIFIER_LIST(DEFINE_HAS)
   #undef DEFINE_HAS
+
+ private:
+  explicit Modifiers(int flags);
+
+  int flags_;
 };
 
 static_assert(sizeof(Modifiers) == sizeof(int),
@@ -75,5 +79,5 @@ std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers);
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_modifier_h)
+#endif  // !defined(INCLUDE_elang_compiler_modifier_h)
 

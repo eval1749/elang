@@ -26,17 +26,18 @@ class MemberAccess final : public Expression {
 
   friend class NodeFactory;
 
-  private: const std::vector<Expression*> members_;
+ public:
+  ~MemberAccess() final;
 
-  private: MemberAccess(const std::vector<Expression*>& members);
-  public: ~MemberAccess() final;
+  const std::vector<Expression*>& members() const { return members_; }
 
-  public: const std::vector<Expression*>& members() const {
-    return members_;
-  }
+ private:
+  explicit MemberAccess(const std::vector<Expression*>& members);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  const std::vector<Expression*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
 };
@@ -45,4 +46,4 @@ class MemberAccess final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_member_access_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_member_access_h)

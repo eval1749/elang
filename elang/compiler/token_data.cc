@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <string>
+
 #include "elang/compiler/token_data.h"
 
 #include "base/logging.h"
@@ -30,7 +32,7 @@ const char* GetTokenDetails(TokenType type) {
 // TokenData
 //
 TokenData::TokenData(TokenType type) : type_(type) {
-  data_.u64 = static_cast<uint64_t>(0); 
+  data_.u64 = static_cast<uint64_t>(0);
 }
 
 TokenData::TokenData(float32_t f32) : type_(TokenType::Float32Literal) {
@@ -44,7 +46,7 @@ TokenData::TokenData(float64_t f64) : type_(TokenType::Float64Literal) {
 
 TokenData::TokenData(TokenType type, hir::SimpleName* simple_name)
     : type_(type) {
-  data_.u64 = reinterpret_cast<uintptr_t>(simple_name); 
+  data_.u64 = reinterpret_cast<uintptr_t>(simple_name);
 }
 
 TokenData::TokenData(hir::SimpleName* simple_name)
@@ -180,8 +182,9 @@ base::StringPiece16 TokenData::string_data() const {
 
 std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
   static const char* const kTokenTypeString[] = {
-    #define V(name, string, details) string,
+#   define V(name, string, details) string,
     TOKEN_LIST(V, V)
+#   undef V
   };
 
   static char const xdigits[] = "0123456789ABCDEF";

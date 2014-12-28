@@ -20,17 +20,20 @@ class Assignment final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* const left_;
-  private: Expression* const right_;
+ public:
+  ~Assignment() final;
 
-  private: Assignment(Token* op, Expression* left, Expression* right);
-  public: ~Assignment() final;
+  Expression* left() const { return left_; }
+  Expression* right() const { return right_; }
 
-  public: Expression* left() const { return left_; }
-  public: Expression* right() const { return right_; }
+ private:
+  Assignment(Token* op, Expression* left, Expression* right);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const left_;
+  Expression* const right_;
 
   DISALLOW_COPY_AND_ASSIGN(Assignment);
 };
@@ -39,5 +42,5 @@ class Assignment final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_assignment_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_assignment_h)
 

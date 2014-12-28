@@ -32,38 +32,41 @@ class NamespaceMember;
 // NameResolver
 //
 class NameResolver final {
-  private: class ScopedResolver;
+ public:
+  explicit NameResolver(CompilationSession* session);
+  ~NameResolver();
+
+  bool Run();
+
+ private:
+  class ScopedResolver;
   friend class ScopedResolver;
 
-  private: std::vector<ast::NamespaceMember*> pending_members_;
-  private: std::unordered_set<ast::NamespaceMember*> pending_set_;
-  private: std::unordered_set<ast::NamespaceMember*> running_set_;
-  private: std::vector<ast::NamespaceMember*> running_stack_;
-  private: std::unordered_set<ast::NamespaceMember*> waiting_set_;
-  private: CompilationSession* const session_;
-
-  public: NameResolver(CompilationSession* session);
-  public: ~NameResolver();
-
-  private: void BindAlias(ast::Alias* alias);
-  private: Maybe<ast::NamespaceMember*> FixClass(ast::Class* clazz);
-  private: void BindMembers(ast::Namespace* ast_Namespace);
-  private: Maybe<ast::NamespaceMember*> Resolve(ast::NamespaceMember* member);
+  void BindAlias(ast::Alias* alias);
+  Maybe<ast::NamespaceMember*> FixClass(ast::Class* clazz);
+  void BindMembers(ast::Namespace* ast_Namespace);
+  Maybe<ast::NamespaceMember*> Resolve(ast::NamespaceMember* member);
 
   // Resolves left most simple name of |name| in
   // |enclosing_namespace| and |alias_namespace|.
-  private: ast::NamespaceMember* ResolveLeftMostName(
+  ast::NamespaceMember* ResolveLeftMostName(
       ast::Namespace* enclosing_namespace,
       ast::NamespaceBody* alias_namespace,
       const QualifiedName& name);
   // Resolves |name| in |enclosing_namespace| and |alias_namespace|.
-  private: ast::NamespaceMember* ResolveQualifiedName(
+  ast::NamespaceMember* ResolveQualifiedName(
       ast::Namespace* enclosing_namespace,
       ast::NamespaceBody* alias_namespace,
       const QualifiedName& name);
-  public: bool Run();
-  private: void ScheduleClassTree(ast::Class* clazz);
-  private: void Schedule(ast::NamespaceMember* member);
+  void ScheduleClassTree(ast::Class* clazz);
+  void Schedule(ast::NamespaceMember* member);
+
+  std::vector<ast::NamespaceMember*> pending_members_;
+  std::unordered_set<ast::NamespaceMember*> pending_set_;
+  std::unordered_set<ast::NamespaceMember*> running_set_;
+  std::vector<ast::NamespaceMember*> running_stack_;
+  std::unordered_set<ast::NamespaceMember*> waiting_set_;
+  CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };
@@ -71,4 +74,4 @@ class NameResolver final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_name_resolver_h)
+#endif  // !defined(INCLUDE_elang_compiler_name_resolver_h)

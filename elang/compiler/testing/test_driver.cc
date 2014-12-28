@@ -59,32 +59,37 @@ namespace {
 // Formatter
 //
 class Formatter final : public ast::Visitor {
-  private: class FormatBlock {
-    private: Formatter* formatter_;
+ public:
+  Formatter();
+  ~Formatter() = default;
 
-    public: FormatBlock(Formatter* formatter);
-    public: ~FormatBlock();
+  std::string Run(ast::Namespace* ns);
+
+ private:
+  class FormatBlock {
+   public:
+    explicit FormatBlock(Formatter* formatter);
+    ~FormatBlock();
+
+   private:
+    Formatter* formatter_;
 
     DISALLOW_COPY_AND_ASSIGN(FormatBlock);
   };
   friend class FormatBlock;
 
-  private: std::stringstream stream_;
-  private: int depth_;
-
-  public: Formatter();
-  public: ~Formatter() = default;
-
-  private: void Indent();
-  public: std::string Run(ast::Namespace* ns);
+  void Indent();
 
   // ast::Visitor
-  private: void Visit(ast::Node* node) final;
+  void Visit(ast::Node* node) final;
 
   #define DECLARE_VISIT(type) \
-    private: void Visit##type(ast::type* node) final;
+    void Visit##type(ast::type* node) final;
   AST_NODE_LIST(DECLARE_VISIT)
   #undef DECLARE_VISIT
+
+  std::stringstream stream_;
+  int depth_;
 
   DISALLOW_COPY_AND_ASSIGN(Formatter);
 };

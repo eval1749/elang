@@ -24,7 +24,39 @@ enum class TokenType;
 // TokenData
 //
 class TokenData {
-  private: union Data {
+ public:
+  TokenData(TokenType type, hir::SimpleName* name);
+  TokenData(TokenType type, uint64_t u64);
+  explicit TokenData(TokenType type);
+  explicit TokenData(float32_t f32);
+  explicit TokenData(float64_t f64);
+  explicit TokenData(hir::SimpleName* name);
+  explicit TokenData(base::StringPiece16* str);
+  TokenData(const TokenData& other);
+  ~TokenData();
+
+  TokenData& operator=(const TokenData& other);
+  bool operator==(const TokenData& other) const;
+  bool operator!=(const TokenData& other) const;
+
+  base::char16 char_data() const;
+  float32_t f32_data() const;
+  float64_t f64_data() const;
+  int64_t int64_data() const;
+  hir::SimpleName* id() const { return simple_name(); }
+  bool is_contextual_keyword() const;
+  bool is_keyword() const;
+  bool is_literal() const;
+  bool is_name() const;
+  bool is_operator() const;
+  bool is_type_name() const;
+  int precedence() const;
+  hir::SimpleName* simple_name() const;
+  base::StringPiece16 string_data() const;
+  TokenType type() const { return type_; }
+
+ private:
+  union Data {
     base::char16 ch;
     float32_t f32;
     float64_t f64;
@@ -37,41 +69,12 @@ class TokenData {
   static_assert(sizeof(Data) == sizeof(uint64_t),
                 "sizeof(TokenData) must equal to sizeof(uint64_t).");
 
-  private: Data data_;
-  private: TokenType type_;
+  bool has_int_data() const;
+  bool has_simple_name() const;
+  bool has_string_data() const;
 
-  public: TokenData(TokenType type, hir::SimpleName* name);
-  public: TokenData(TokenType type, uint64_t u64);
-  public: explicit TokenData(TokenType type);
-  public: explicit TokenData(float32_t f32);
-  public: explicit TokenData(float64_t f64);
-  public: explicit TokenData(hir::SimpleName* name);
-  public: explicit TokenData(base::StringPiece16* str);
-  public: TokenData(const TokenData& other);
-  public: ~TokenData();
-
-  public: TokenData& operator=(const TokenData& other);
-  public: bool operator==(const TokenData& other) const;
-  public: bool operator!=(const TokenData& other) const;
-
-  public: base::char16 char_data() const;
-  private: bool has_int_data() const;
-  private: bool has_simple_name() const;
-  private: bool has_string_data() const;
-  public: float32_t f32_data() const;
-  public: float64_t f64_data() const;
-  public: int64_t int64_data() const;
-  public: hir::SimpleName* id() const { return simple_name(); }
-  public: bool is_contextual_keyword() const;
-  public: bool is_keyword() const;
-  public: bool is_literal() const;
-  public: bool is_name() const;
-  public: bool is_operator() const;
-  public: bool is_type_name() const;
-  public: int precedence() const;
-  public: hir::SimpleName* simple_name() const;
-  public: base::StringPiece16 string_data() const;
-  public: TokenType type() const { return type_; }
+  Data data_;
+  TokenType type_;
 };
 
 std::ostream& operator<<(std::ostream& ostream, const TokenData& token);
@@ -79,5 +82,5 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token);
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_token_data_h)
+#endif  // !defined(INCLUDE_elang_compiler_token_data_h)
 

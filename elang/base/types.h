@@ -29,5 +29,5 @@ Maybe<T> make_maybe(T t) {
 
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_types_h)
+#endif  // !defined(INCLUDE_elang_types_h)
 

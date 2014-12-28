@@ -4,6 +4,7 @@
 
 #include "elang/compiler/parser.h"
 
+#include <string>
 #include <vector>
 #include <unordered_set>
 
@@ -31,18 +32,20 @@ namespace compiler {
 // Parser::ModifierParser
 //
 class Parser::ModifierParser final {
-  private: ModifiersBuilder builder_;
-  private: std::vector<Token*> tokens_;
-  private: Parser* const parser_;
+ public:
+  explicit ModifierParser(Parser* parser);
+  ~ModifierParser() = default;
 
-  public: ModifierParser(Parser* parser);
-  public: ~ModifierParser() = default;
+  const std::vector<Token*>& tokens() const { return tokens_; }
 
-  public: const std::vector<Token*>& tokens() const { return tokens_; }
+  bool Add(Token* token);
+  Modifiers Get() const;
+  void Reset();
 
-  public: bool Add(Token* token);
-  public: Modifiers Get() const;
-  public: void Reset();
+ private:
+  ModifiersBuilder builder_;
+  std::vector<Token*> tokens_;
+  Parser* const parser_;
 
   DISALLOW_COPY_AND_ASSIGN(ModifierParser);
 };
@@ -82,11 +85,13 @@ void Parser::ModifierParser::Reset() {
 // NamespaceBodyScope
 //
 class Parser::NamespaceBodyScope {
-  private: Parser* const parser_;
-  private: ast::NamespaceBody* const namespace_body_;
+ public:
+  NamespaceBodyScope(Parser* parser, ast::Namespace* new_namespace);
+  ~NamespaceBodyScope();
 
-  public: NamespaceBodyScope(Parser* parser, ast::Namespace* new_namespace);
-  public: ~NamespaceBodyScope();
+ private:
+  Parser* const parser_;
+  ast::NamespaceBody* const namespace_body_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBodyScope);
 };
@@ -109,18 +114,21 @@ Parser::NamespaceBodyScope::~NamespaceBodyScope() {
 // QualifiedNameBuilder
 //
 class Parser::QualifiedNameBuilder final {
-  private: std::vector<Token*> simple_names_;
-  public: QualifiedNameBuilder();
-  public: ~QualifiedNameBuilder() = default;
+ public:
+  QualifiedNameBuilder();
+  ~QualifiedNameBuilder() = default;
 
-  public: const std::vector<Token*> simple_names() const {
+  const std::vector<Token*> simple_names() const {
     return simple_names_;
   }
 
-  public: void Add(Token* simple_name);
-  public: QualifiedName Get() const;
-  public: bool IsSimpleName() const { return simple_names_.size() == 1u; }
-  public: void Reset();
+  void Add(Token* simple_name);
+  QualifiedName Get() const;
+  bool IsSimpleName() const { return simple_names_.size() == 1u; }
+  void Reset();
+
+ private:
+  std::vector<Token*> simple_names_;
 
   DISALLOW_COPY_AND_ASSIGN(QualifiedNameBuilder);
 };

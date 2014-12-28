@@ -5,6 +5,8 @@
 #if !defined(INCLUDE_elang_compiler_modifiers_builder_h)
 #define INCLUDE_elang_compiler_modifiers_builder_h
 
+#include <string>
+
 #include "elang/compiler/modifiers.h"
 
 namespace elang {
@@ -15,13 +17,12 @@ namespace compiler {
 // ModifiersBuilder
 //
 class ModifiersBuilder final {
-  private: int flags_;
+ public:
+  ModifiersBuilder();
+  ~ModifiersBuilder();
 
-  public: ModifiersBuilder();
-  public: ~ModifiersBuilder();
-
-  public: Modifiers Get() const;
-  public: void Reset();
+  Modifiers Get() const;
+  void Reset();
 
   #define DECL_ACCESSOR(name, string, details) \
     bool Has ## name() const; \
@@ -29,11 +30,14 @@ class ModifiersBuilder final {
   MODIFIER_LIST(DECL_ACCESSOR)
   #undef DECL_ACCESSOR
 
+ private:
+  int flags_;
+
   DISALLOW_COPY_AND_ASSIGN(ModifiersBuilder);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_modifiers_builder_h)
+#endif  // !defined(INCLUDE_elang_compiler_modifiers_builder_h)
 

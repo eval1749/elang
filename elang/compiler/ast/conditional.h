@@ -20,21 +20,23 @@ class Conditional final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* const cond_;
-  private: Expression* const else_;
-  private: Expression* const then_;
+ public:
+  ~Conditional() final;
 
-  private: Conditional(Token* op, Expression* condition,
-                       Expression* then_expression,
-                       Expression* else_expression);
-  public: ~Conditional() final;
+  Expression* conditional() const { return cond_; }
+  Expression* else_expression() const { return else_; }
+  Expression* then_expression() const { return then_; }
 
-  public: Expression* conditional() const { return cond_; }
-  public: Expression* else_expression() const { return else_; }
-  public: Expression* then_expression() const { return then_; }
+ private:
+  Conditional(Token* op, Expression* condition, Expression* then_expression,
+              Expression* else_expression);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const cond_;
+  Expression* const else_;
+  Expression* const then_;
 
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
@@ -43,4 +45,4 @@ class Conditional final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_conditional_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_conditional_h)

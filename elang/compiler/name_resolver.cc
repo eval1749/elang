@@ -22,14 +22,16 @@ namespace compiler {
 // ScopedResolver
 //
 class NameResolver::ScopedResolver final {
-  private: ast::NamespaceMember* member_;
-  private: NameResolver* const resolver_;
+ public:
+  ScopedResolver(NameResolver* resolver, ast::NamespaceMember* member);
+  ~ScopedResolver();
 
-  public: ScopedResolver(NameResolver* resolver, ast::NamespaceMember* member);
-  public: ~ScopedResolver();
+  Maybe<ast::NamespaceMember*> Resolve();
+  Maybe<ast::NamespaceMember*> ResolveInternal();
 
-  public: Maybe<ast::NamespaceMember*> Resolve();
-  public: Maybe<ast::NamespaceMember*> ResolveInternal();
+ private:
+  ast::NamespaceMember* member_;
+  NameResolver* const resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(ScopedResolver);
 };

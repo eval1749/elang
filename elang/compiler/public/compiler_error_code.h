@@ -11,14 +11,10 @@ namespace compiler {
 #define IGNORE_COMPILER_ERROR(category, subcategory, name)
 
 #define COMPILER_ERROR_CODE_LIST(E, W) \
-  /*
-   * Parser Expression
-   */ \
+  /*  Parser Expression */ \
     E(Expression, Conditional, Colon) \
     E(Expression, Primary, RightParenthesis) \
-  /*
-   * Name Resolver
-   */ \
+  /* * Name Resolver */ \
     E(NameResolution, Alias, NoTarget) \
     E(NameResolution, Class, Containing) \
     E(NameResolution, Name, Ambiguous) \
@@ -29,9 +25,7 @@ namespace compiler {
     E(NameResolution, Name, NotFound) \
     E(NameResolution, Name, NotInterface) \
     E(NameResolution, Name, NotNamespace) \
-  /*
-   * Parser
-   */ \
+  /*  Parser */ \
     /* AliasDef */ \
       E(Syntax, AliasDef, AliasName) \
       E(Syntax, AliasDef, RealName) \
@@ -81,9 +75,7 @@ namespace compiler {
       E(Syntax, UsingDirective, Invalid) \
       E(Syntax, UsingDirective, Name) \
       E(Syntax, UsingDirective, SemiColon) \
-  /*
-   * Lexer
-   */ \
+  /* Lexer */ \
     E(Token, AtMark, Invalid) \
     E(Token, AtMarkString, Unclosed) \
     E(Token, Backslash, Invalid) \
@@ -110,5 +102,5 @@ enum class ErrorCode {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_public_compiler_error_code_h)
+#endif  // !defined(INCLUDE_elang_compiler_public_compiler_error_code_h)
 

@@ -58,14 +58,18 @@ class Visitor;
 class Node : public Castable {
   DECLARE_CASTABLE_CLASS(Node, Castable);
 
-  private: Token* const token_;
+ public:
+  virtual ~Node();
 
-  protected: Node(Token* token);
-  public: virtual ~Node();
+  Token* token() const { return token_; }
 
-  public: Token* token() const { return token_; }
+  virtual void Accept(Visitor* visitor);
 
-  public: virtual void Accept(Visitor* visitor);
+ protected:
+  explicit Node(Token* token);
+
+ private:
+  Token* const token_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
@@ -74,4 +78,4 @@ class Node : public Castable {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_node_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_node_h)

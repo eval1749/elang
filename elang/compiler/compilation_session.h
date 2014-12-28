@@ -6,6 +6,7 @@
 #define INCLUDE_elang_compiler_compilation_session_h
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <unordered_map>
 
@@ -41,47 +42,41 @@ enum class TokenType;
 // CompilationSession
 //
 class CompilationSession final {
-  private: const std::unique_ptr<ast::NodeFactory> ast_factory_;
-  private: std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
-  private: std::vector<ErrorData*> errors_;
-  private: const std::unique_ptr<hir::Factory> hir_factory_;
-  private: std::vector<base::StringPiece16*> string_pool_;
-  private: std::unique_ptr<TokenFactory> token_factory_;
+ public:
+  CompilationSession();
+  ~CompilationSession();
 
-  private: std::unique_ptr<SourceCode> source_code_;
-  private: ast::Namespace* const global_namespace_;
-
-  public: CompilationSession();
-  public: ~CompilationSession();
-
-  public: ast::NodeFactory* ast_factory() const {
-    return ast_factory_.get();
-  }
-  public: hir::Factory* hir_factory() const { return hir_factory_.get(); }
-
+  ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
+  hir::Factory* hir_factory() const { return hir_factory_.get(); }
   // TODO(eval1749) We should sort error list by source code offset.
-  public: const std::vector<ErrorData*>& errors() const {
-    return errors_;
-  }
+  const std::vector<ErrorData*>& errors() const { return errors_; }
+  ast::Namespace* global_namespace() const { return global_namespace_; }
 
-  public: ast::Namespace* global_namespace() const {
-    return global_namespace_;
-  }
-
-  public: void AddError(ErrorCode error_code, Token* token);
-  public: void AddError(ErrorCode error_code, Token* token1,
-                        Token* token2);
+  void AddError(ErrorCode error_code, Token* token);
+  void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
-  public: void AddError(const SourceCodeRange& location, ErrorCode error_code);
-  private: void AddError(const SourceCodeRange& location, ErrorCode error_code,
-                         const std::vector<Token*>& tokens);
-  public: hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
-  public: CompilationUnit* NewCompilationUnit(SourceCode* source_code);
-  public: base::StringPiece16* NewString(base::StringPiece16 string);
-  public: Token* NewUniqueNameToken(const SourceCodeRange& location,
-                                    const base::char16* format);
-  public: Token* NewToken(const SourceCodeRange& source_range,
-                          const TokenData& data);
+  void AddError(const SourceCodeRange& location, ErrorCode error_code);
+  hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
+  CompilationUnit* NewCompilationUnit(SourceCode* source_code);
+  base::StringPiece16* NewString(base::StringPiece16 string);
+  Token* NewUniqueNameToken(const SourceCodeRange& location,
+                            const base::char16* format);
+  Token* NewToken(const SourceCodeRange& source_range,
+                  const TokenData& data);
+
+ private:
+  void AddError(const SourceCodeRange& location, ErrorCode error_code,
+                const std::vector<Token*>& tokens);
+
+  const std::unique_ptr<ast::NodeFactory> ast_factory_;
+  std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
+  std::vector<ErrorData*> errors_;
+  const std::unique_ptr<hir::Factory> hir_factory_;
+  std::vector<base::StringPiece16*> string_pool_;
+  std::unique_ptr<TokenFactory> token_factory_;
+
+  std::unique_ptr<SourceCode> source_code_;
+  ast::Namespace* const global_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);
 };
@@ -89,4 +84,4 @@ class CompilationSession final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_compilation_session_h)
+#endif  // !defined(INCLUDE_elang_compiler_compilation_session_h)

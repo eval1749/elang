@@ -6,6 +6,7 @@
 #define INCLUDE_elang_hir_factory_h
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "base/strings/string16.h"
@@ -26,27 +27,29 @@ class SimpleName;
 // Factory
 //
 class Factory final {
-  private: std::vector<Node*> nodes_;
-  private: std::unordered_map<base::StringPiece16, SimpleName*> simple_names_;
-  private: std::vector<base::string16*> strings_;
-  private: int temp_name_counter_;
+ public:
+  Factory();
+  ~Factory();
+
+  Namespace* global_namespace() const { return global_namespace_; }
+
+  SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
+  Class* NewClass(Namespace* outer, SimpleName* simple_name,
+                  const std::vector<Class*>& base_classes);
+  Namespace* NewNamespace(Namespace* outer, SimpleName* simple_name);
+  base::StringPiece16 NewString(base::StringPiece16 string);
+  SimpleName* NewUniqueName(const base::char16* format);
+  void RemoveAll();
+
+ private:
+  std::vector<Node*> nodes_;
+  std::unordered_map<base::StringPiece16, SimpleName*> simple_names_;
+  std::vector<base::string16*> strings_;
+  int temp_name_counter_;
 
   // |global_namespace_| must be initialized after node pool and string pool
   // are created.
-  private: Namespace* const global_namespace_;
-
-  public: Factory();
-  public: ~Factory();
-
-  public: Namespace* global_namespace() const { return global_namespace_; }
-
-  public: SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
-  public: Class* NewClass(Namespace* outer, SimpleName* simple_name,
-                          const std::vector<Class*>& base_classes);
-  public: Namespace* NewNamespace(Namespace* outer, SimpleName* simple_name);
-  public: base::StringPiece16 NewString(base::StringPiece16 string);
-  public: SimpleName* NewUniqueName(const base::char16* format);
-  public: void RemoveAll();
+  Namespace* const global_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
@@ -54,5 +57,5 @@ class Factory final {
 }  // namespace hir
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_hir_factory_h)
+#endif  // !defined(INCLUDE_elang_hir_factory_h)
 

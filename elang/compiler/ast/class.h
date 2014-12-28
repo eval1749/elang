@@ -25,29 +25,31 @@ class Class final : public Namespace {
 
   friend class NodeFactory;
 
-  private: std::vector<Class*> base_classes_;
-  private: std::vector<QualifiedName> base_class_names_;
-  private: bool is_fixed_;
+ public:
+  ~Class() final;
 
-  private: Class(NamespaceBody* namespace_body, Modifiers modifiers,
-                 Token* keyword, Token* name);
-  public: ~Class() final;
-
-  public: const std::vector<Class*>& base_classes() const;
-  public: const std::vector<QualifiedName>& base_class_names() const {
+  const std::vector<Class*>& base_classes() const;
+  const std::vector<QualifiedName>& base_class_names() const {
     return base_class_names_;
   }
-  public: bool is_fixed() const {return is_fixed_; }
+  bool is_fixed() const {return is_fixed_; }
 
-  public: void AddBaseClassName(const QualifiedName& class_name);
+  void AddBaseClassName(const QualifiedName& class_name);
 
-  public: void BindBaseClasses(const std::vector<Class*>& base_classes);
+  void BindBaseClasses(const std::vector<Class*>& base_classes);
 
   // NamespaceMember
-  public: Namespace* ToNamespace() final;
+  Namespace* ToNamespace() final;
 
+ private:
+  Class(NamespaceBody* namespace_body, Modifiers modifiers,
+                 Token* keyword, Token* name);
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  std::vector<Class*> base_classes_;
+  std::vector<QualifiedName> base_class_names_;
+  bool is_fixed_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
@@ -56,5 +58,5 @@ class Class final : public Namespace {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_class_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_class_h)
 

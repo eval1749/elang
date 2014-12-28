@@ -27,57 +27,50 @@ namespace ast {
 // NodeFactory
 //
 class NodeFactory final {
-  private: std::vector<std::unique_ptr<Node>> nodes_;
-
-  public: NodeFactory();
-  public: ~NodeFactory();
+ public:
+  NodeFactory();
+  ~NodeFactory();
 
   // Declaration related nodes
-  public: Alias* NewAlias(NamespaceBody* namespace_body, Token* keyword,
-                          Token* alias_name,
-                          const QualifiedName& target_name);
-  public: Class* NewClass(NamespaceBody* namespace_body, Modifiers modifiers,
-                          Token* keyword, Token* name);
-  public: Enum* NewEnum(NamespaceBody* namespace_body, Modifiers modifiers,
-                        Token* keyword, Token* name);
-  public: EnumMember* NewEnumMember(Enum* owner, Token* name,
-                                    Expression* expression);
-  public: Field* NewField(NamespaceBody* namespace_body,  Modifiers modifiers,
-                          Expression* type, Token* name,
-                          Expression* expression);
-  public: Method* NewMethod(
-      NamespaceBody* namespace_body, Modifiers modifies,
-      Expression* type, Token* name,
-      const std::vector<Token*>& type_parameters,
-      const std::vector<TypeAndName>& parameters);
-  public: Namespace* NewNamespace(NamespaceBody* namespace_body,
-                                  Token* keyword, Token* name);
+  Alias* NewAlias(NamespaceBody* namespace_body, Token* keyword,
+                  Token* alias_name, const QualifiedName& target_name);
+  Class* NewClass(NamespaceBody* namespace_body, Modifiers modifiers,
+                  Token* keyword, Token* name);
+  Enum* NewEnum(NamespaceBody* namespace_body, Modifiers modifiers,
+                Token* keyword, Token* name);
+  EnumMember* NewEnumMember(Enum* owner, Token* name, Expression* expression);
+  Field* NewField(NamespaceBody* namespace_body,  Modifiers modifiers,
+                  Expression* type, Token* name, Expression* expression);
+  Method* NewMethod(NamespaceBody* namespace_body, Modifiers modifies,
+                    Expression* type, Token* name,
+                    const std::vector<Token*>& type_parameters,
+                    const std::vector<TypeAndName>& parameters);
+  Namespace* NewNamespace(NamespaceBody* namespace_body, Token* keyword,
+                          Token* name);
 
   // Expression nodes
-  public: ArrayType* NewArrayType(
-      Token* op,
-      Expression* element_type,
-      const std::vector<int>& ranks);
-  public: Assignment* NewAssignment(Token* op, Expression* left,
-                                    Expression* right);
-  public: BinaryOperation* NewBinaryOperation(Token* op, Expression* left,
-                                              Expression* right);
-  public: Conditional* NewConditional(Token* op, Expression* cond_expr,
-                                      Expression* then_expr,
-                                      Expression* else_expr);
-  public: ConstructedType* NewConstructedType(
-      Token* op,
-      Expression* blueprint_type,
-      const std::vector<Expression*>& arguments);
-  public: Literal* NewLiteral(Token* literal);
-  public: MemberAccess* NewMemberAccess(
-      const std::vector<Expression*>& members);
-  public: NameReference* NewNameReference(Token* literal);
-  public: UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
+  ArrayType* NewArrayType(Token* op, Expression* element_type,
+                          const std::vector<int>& ranks);
+  Assignment* NewAssignment(Token* op, Expression* left, Expression* right);
+  BinaryOperation* NewBinaryOperation(Token* op, Expression* left,
+                                      Expression* right);
+  Conditional* NewConditional(Token* op, Expression* cond_expr,
+                              Expression* then_expr, Expression* else_expr);
+  ConstructedType* NewConstructedType(
+    Token* op, Expression* blueprint_type,
+    const std::vector<Expression*>& arguments);
+  Literal* NewLiteral(Token* literal);
+  MemberAccess* NewMemberAccess(const std::vector<Expression*>& members);
+  NameReference* NewNameReference(Token* literal);
+  UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
 
   // Utility
-  private: Node* RememberNode(Node* node);
-  public: void RemoveAll();
+  void RemoveAll();
+
+ private:
+  Node* RememberNode(Node* node);
+
+  std::vector<std::unique_ptr<Node>> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };
@@ -86,5 +79,5 @@ class NodeFactory final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_node_factory_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_node_factory_h)
 

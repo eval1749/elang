@@ -24,18 +24,21 @@ class ArrayType final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* const element_type_;
-  private: const std::vector<int> ranks_;
+ public:
+  ~ArrayType() final;
 
-  private: ArrayType(Token* op_token, Expression* expression,
-                     const std::vector<int>& ranks);
-  public: ~ArrayType() final;
+  Expression* element_type() const { return element_type_; }
+  const std::vector<int>& ranks() const { return ranks_; }
 
-  public: Expression* element_type() const { return element_type_; }
-  public: const std::vector<int>& ranks() const { return ranks_; }
+ private:
+  ArrayType(Token* op_token, Expression* expression,
+            const std::vector<int>& ranks);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const element_type_;
+  const std::vector<int> ranks_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
@@ -44,4 +47,4 @@ class ArrayType final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_array_type_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_array_type_h)

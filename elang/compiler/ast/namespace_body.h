@@ -6,6 +6,7 @@
 #define INCLUDE_elang_compiler_ast_namespae_body_h
 
 #include <unordered_map>
+#include <vector>
 
 #include "elang/compiler/ast/namespace_member.h"
 
@@ -26,32 +27,33 @@ class NodeFactory;
 // NamespaceBody
 //
 class NamespaceBody final {
-  private: struct ImportDef;
+ public:
+  NamespaceBody(NamespaceBody* outer, Namespace* owner);
+  ~NamespaceBody();
 
-  // TODO(eval1749) Use |AstVector| instead of |std::vector|
-  private: std::vector<Alias*> aliases_;
-  private: std::unordered_map<hir::SimpleName*, Alias*> alias_map_;
-  private: std::vector<ImportDef*> import_defs_;
-  private: std::vector<NamespaceMember*> members_;
-  private: NamespaceBody* const outer_;
-  private: Namespace* const owner_;
-
-  public: NamespaceBody(NamespaceBody* outer, Namespace* owner);
-  public: ~NamespaceBody();
-
-  public: const std::vector<Alias*>& aliases() const;
-  public: const std::vector<NamespaceMember*>& members() const {
+  const std::vector<Alias*>& aliases() const;
+  const std::vector<NamespaceMember*>& members() const {
     return members_;
   }
-  public: NamespaceBody* outer() const { return outer_; }
-  public: Namespace* owner() const { return owner_; }
+  NamespaceBody* outer() const { return outer_; }
+  Namespace* owner() const { return owner_; }
 
-  public: void AddImport(Token* import_keyword,
-                         const QualifiedName& name);
-  public: void AddAlias(Alias* alias);
-  public: void AddMember(NamespaceMember* member);
-  public: Alias* FindAlias(Token* simple_name);
-  public: NamespaceMember* FindMember(Token* simple_name);
+  void AddImport(Token* import_keyword, const QualifiedName& name);
+  void AddAlias(Alias* alias);
+  void AddMember(NamespaceMember* member);
+  Alias* FindAlias(Token* simple_name);
+  NamespaceMember* FindMember(Token* simple_name);
+
+ private:
+  struct ImportDef;
+
+  // TODO(eval1749) Use |AstVector| instead of |std::vector|
+  std::vector<Alias*> aliases_;
+  std::unordered_map<hir::SimpleName*, Alias*> alias_map_;
+  std::vector<ImportDef*> import_defs_;
+  std::vector<NamespaceMember*> members_;
+  NamespaceBody* const outer_;
+  Namespace* const owner_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };
@@ -60,4 +62,4 @@ class NamespaceBody final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_namespae_body_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_namespae_body_h)

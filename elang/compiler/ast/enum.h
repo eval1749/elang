@@ -30,20 +30,23 @@ class Enum final : public NamespaceMember {
 
   friend class NodeFactory;
 
-  private: std::unordered_map<hir::SimpleName*, EnumMember*> map_;
-  private: std::vector<EnumMember*> members_;
+ public:
+  ~Enum() final;
 
-  public: Enum(NamespaceBody* namespace_body, Modifiers modifies,
-               Token* keyword, Token* name);
-  public: ~Enum() final;
+  const std::vector<EnumMember*> members() const { return members_; }
 
-  public: const std::vector<EnumMember*> members() const { return members_; }
+  void AddMember(EnumMember* member);
+  EnumMember* FindMember(Token* simple_name);
 
-  public: void AddMember(EnumMember* member);
-  public: EnumMember* FindMember(Token* simple_name);
+ private:
+  Enum(NamespaceBody* namespace_body, Modifiers modifies, Token* keyword,
+       Token* name);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  std::unordered_map<hir::SimpleName*, EnumMember*> map_;
+  std::vector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
@@ -52,5 +55,5 @@ class Enum final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_enum_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_enum_h)
 

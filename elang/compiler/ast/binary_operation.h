@@ -22,17 +22,20 @@ class BinaryOperation final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* const left_;
-  private: Expression* const right_;
+ public:
+  ~BinaryOperation() final;
 
-  private: BinaryOperation(Token* op, Expression* left, Expression* right);
-  public: ~BinaryOperation() final;
+  Expression* left() const { return left_; }
+  Expression* right() const { return right_; }
 
-  public: Expression* left() const { return left_; }
-  public: Expression* right() const { return right_; }
+ private:
+  BinaryOperation(Token* op, Expression* left, Expression* right);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const left_;
+  Expression* const right_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOperation);
 };
@@ -41,4 +44,4 @@ class BinaryOperation final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_binary_operation_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_binary_operation_h)

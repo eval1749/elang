@@ -22,13 +22,16 @@ class NameReference final : public Expression {
 
   friend class NodeFactory;
 
-  private: NameReference(Token* name);
-  public: ~NameReference() final;
+ public:
+  ~NameReference() final;
 
-  public: Token* name() const { return token(); }
+  Token* name() const { return token(); }
+
+ private:
+  explicit NameReference(Token* name);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
 
   DISALLOW_COPY_AND_ASSIGN(NameReference);
 };
@@ -37,5 +40,5 @@ class NameReference final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_name_reference_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_name_reference_h)
 

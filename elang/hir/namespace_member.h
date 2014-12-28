@@ -20,17 +20,20 @@ class SimpleName;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
-  private: Namespace* const outer_;
-  private: SimpleName* const simple_name_;
+ public:
+  Namespace* outer() const { return outer_; }
+  SimpleName* simple_name() const { return simple_name_; }
 
-  protected: NamespaceMember(Namespace* owner, SimpleName* simple_name);
-  protected: ~NamespaceMember() override;
+  bool IsDescendantOf(const NamespaceMember* other) const;
+  virtual Namespace* ToNamespace();
 
-  public: Namespace* outer() const { return outer_; }
-  public: SimpleName* simple_name() const { return simple_name_; }
+ protected:
+  NamespaceMember(Namespace* owner, SimpleName* simple_name);
+  ~NamespaceMember() override;
 
-  public: bool IsDescendantOf(const NamespaceMember* other) const;
-  public: virtual Namespace* ToNamespace();
+ private:
+  Namespace* const outer_;
+  SimpleName* const simple_name_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);
 };
@@ -38,4 +41,4 @@ class NamespaceMember : public Node {
 }  // namespace hir
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_hir_namespace_member_h)
+#endif  // !defined(INCLUDE_elang_hir_namespace_member_h)

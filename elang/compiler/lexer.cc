@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
 #include <vector>
 
 #include "base/logging.h"
@@ -73,14 +74,16 @@ bool IsNameChar(base::char16 char_code) {
 // Lexer::CharSink
 //
 class Lexer::CharSink {
-  private: std::vector<base::char16> buffer_;
+ public:
+  CharSink();
+  ~CharSink() = default;
 
-  public: CharSink();
-  public: ~CharSink() = default;
+  base::StringPiece16 End();
+  void AddChar(base::char16 char_code);
+  void Start();
 
-  public: base::StringPiece16 End();
-  public: void AddChar(base::char16 char_code);
-  public: void Start();
+ private:
+  std::vector<base::char16> buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(CharSink);
 };
@@ -105,19 +108,21 @@ void Lexer::CharSink::Start() {
 // Lexer::InputStream
 //
 class Lexer::InputStream {
-  private: bool has_char_;
-  private: base::char16 last_char_;
-  private: int offset_;
-  private: SourceCode* source_code_;
-  private: CharacterStream* const stream_;
+ public:
+  explicit InputStream(SourceCode* source_code);
+  ~InputStream();
 
-  public: InputStream(SourceCode* source_code);
-  public: ~InputStream();
+  void Advance();
+  bool IsAtEndOfStream();
+  base::char16 PeekChar();
+  base::char16 ReadChar();
 
-  public: void Advance();
-  public: bool IsAtEndOfStream();
-  public: base::char16 PeekChar();
-  public: base::char16 ReadChar();
+ private:
+  bool has_char_;
+  base::char16 last_char_;
+  int offset_;
+  SourceCode* source_code_;
+  CharacterStream* const stream_;
 
   DISALLOW_COPY_AND_ASSIGN(InputStream);
 };
@@ -290,8 +295,8 @@ Token* Lexer::GetToken() {
       case '?':
         if (just_after_whitespace) {
           if (AdvanceIf('?'))
-              return NewToken(TokenType::NullOr);
-           return HandleOneChar(TokenType::QuestionMark);
+            return NewToken(TokenType::NullOr);
+          return HandleOneChar(TokenType::QuestionMark);
         }
         if (AdvanceIf('.'))
           return NewToken(TokenType::OptionalDot);

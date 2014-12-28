@@ -16,18 +16,20 @@ namespace compiler {
 // CharacterStream
 //
 class CharacterStream {
+ public:
+  virtual ~CharacterStream();
 
-  protected: CharacterStream();
-  public: virtual ~CharacterStream();
+  virtual bool IsAtEndOfStream() = 0;
+  virtual base::char16 ReadChar() = 0;
 
-  public: virtual bool IsAtEndOfStream() = 0;
-  public: virtual base::char16 ReadChar() = 0;
+ protected:
+  CharacterStream();
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(CharacterStream);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_character_stream_h)
-
+#endif  // !defined(INCLUDE_elang_compiler_character_stream_h)

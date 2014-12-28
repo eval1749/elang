@@ -16,15 +16,17 @@ namespace compiler {
 // StringStream
 //
 class StringStream final : public CharacterStream {
-  private: const base::string16 string_;
-  private: size_t position_;
-
-  public: StringStream(const base::StringPiece16& source);
-  public: ~StringStream() final;
+ public:
+  explicit StringStream(const base::StringPiece16& source);
+  ~StringStream() final;
 
   // CharacterStream
-  private: bool IsAtEndOfStream() final;
-  private: base::char16 ReadChar() final;
+ private:
+  bool IsAtEndOfStream() final;
+  base::char16 ReadChar() final;
+
+  const base::string16 string_;
+  size_t position_;
 
   DISALLOW_COPY_AND_ASSIGN(StringStream);
 };
@@ -32,5 +34,5 @@ class StringStream final : public CharacterStream {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_string_stream_h)
+#endif  // !defined(INCLUDE_elang_compiler_string_stream_h)
 

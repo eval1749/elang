@@ -24,20 +24,20 @@ class ConstructedType final : public Expression {
 
   friend class NodeFactory;
 
-  private: const std::vector<Expression*> arguments_;
-  private: Expression* const blueprint_type_;
+ public:
+  ~ConstructedType() final;
 
-  private: ConstructedType(Token* op_token, Expression* expression,
-                     const std::vector<Expression*>& arguments);
-  public: ~ConstructedType() final;
+  const std::vector<Expression*>& arguments() const { return arguments_; }
+  Expression* blueprint_type() const { return blueprint_type_; }
 
-  public: const std::vector<Expression*>& arguments() const {
-    return arguments_;
-  }
-  public: Expression* blueprint_type() const { return blueprint_type_; }
-
+ private:
+  ConstructedType(Token* op_token, Expression* expression,
+                  const std::vector<Expression*>& arguments);
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  const std::vector<Expression*> arguments_;
+  Expression* const blueprint_type_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructedType);
 };
@@ -46,4 +46,4 @@ class ConstructedType final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_constructed_type_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_constructed_type_h)

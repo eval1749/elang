@@ -19,13 +19,14 @@ class SourceCodeRange;
 // TokenFactory
 //
 class TokenFactory {
-  private: std::vector<Token*> tokens_;
+ public:
+  TokenFactory();
+  ~TokenFactory();
 
-  public: TokenFactory();
-  public: ~TokenFactory();
+  Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
 
-  public: Token* NewToken(const SourceCodeRange& source_range,
-                          const TokenData& data);
+ private:
+  std::vector<Token*> tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(TokenFactory);
 };
@@ -33,5 +34,5 @@ class TokenFactory {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_token_factory_h)
+#endif  // !defined(INCLUDE_elang_compiler_token_factory_h)
 

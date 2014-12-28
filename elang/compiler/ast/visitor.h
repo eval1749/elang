@@ -16,16 +16,17 @@ namespace ast {
 // Visitor
 //
 class Visitor  {
-  public: Visitor();
-  public: virtual ~Visitor();
+ public:
+  Visitor();
+  virtual ~Visitor();
 
-  public: virtual void Visit(Node* node) = 0;
+  virtual void Visit(Node* node) = 0;
 
-    #define DEF_VISIT(type) \
-        public: virtual void Visit##type(type* node) = 0;
-    AST_NODE_LIST(DEF_VISIT)
-    #undef DEF_VISIT
+  #define DEF_VISIT(type) virtual void Visit##type(type* node) = 0;
+  AST_NODE_LIST(DEF_VISIT)
+  #undef DEF_VISIT
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(Visitor);
 };
 
@@ -33,4 +34,4 @@ class Visitor  {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_visitor_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_visitor_h)

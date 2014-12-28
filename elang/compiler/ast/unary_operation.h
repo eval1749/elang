@@ -22,15 +22,18 @@ class UnaryOperation final : public Expression {
 
   friend class NodeFactory;
 
-  private: Expression* const expression_;
+ public:
+  ~UnaryOperation() final;
 
-  private: UnaryOperation(Token* op, Expression* expression);
-  public: ~UnaryOperation() final;
+  Expression* expression() const { return expression_; }
 
-  public: Expression* expression() const { return expression_; }
+ private:
+  UnaryOperation(Token* op, Expression* expression);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(UnaryOperation);
 };
@@ -39,4 +42,4 @@ class UnaryOperation final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_unary_operation_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_unary_operation_h)

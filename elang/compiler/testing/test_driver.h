@@ -29,18 +29,20 @@ class StringSourceCode;
 // TestDriver is a simple harness for testing interactions with compiler.
 //
 class TestDriver final {
-  private: const std::unique_ptr<CompilationSession> session_;
-  private: const std::unique_ptr<StringSourceCode> source_code_;
-  private: const std::unique_ptr<CompilationUnit> compilation_unit_;
+ public:
+  explicit TestDriver(base::StringPiece source_text);
+  ~TestDriver();
 
-  public: TestDriver(base::StringPiece source_text);
-  public: ~TestDriver();
+  ast::Class* FindClass(base::StringPiece name);
+  ast::NamespaceMember* FindMember(base::StringPiece name);
+  std::string GetErrors();
+  std::string RunNameResolver();
+  std::string RunParser();
 
-  public: ast::Class* FindClass(base::StringPiece name);
-  public: ast::NamespaceMember* FindMember(base::StringPiece name);
-  public: std::string GetErrors();
-  public: std::string RunNameResolver();
-  public: std::string RunParser();
+ private:
+  const std::unique_ptr<CompilationSession> session_;
+  const std::unique_ptr<StringSourceCode> source_code_;
+  const std::unique_ptr<CompilationUnit> compilation_unit_;
 
   DISALLOW_COPY_AND_ASSIGN(TestDriver);
 };
@@ -48,5 +50,5 @@ class TestDriver final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_testing_compiler_test_h)
+#endif  // !defined(INCLUDE_elang_compiler_testing_compiler_test_h)
 

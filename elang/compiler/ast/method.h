@@ -30,26 +30,27 @@ class Method final : public NamespaceMember {
 
   friend class NodeFactory;
 
-  public: typedef std::vector<TypeAndName> Parameters;
+ public:
+  typedef std::vector<TypeAndName> Parameters;
 
-  private: const Parameters parameters_;
-  private: Expression* return_type_;
-  private: const std::vector<Token*> type_parameters_;
+  ~Method() final;
 
-  public: Method(NamespaceBody* namespace_body, Modifiers modifies,
+  const Parameters& parameters() const { return parameters_; }
+  Expression* return_type() const { return return_type_; }
+  const std::vector<Token*>& type_parameters() {  return type_parameters_; }
+
+ private:
+  Method(NamespaceBody* namespace_body, Modifiers modifies,
                  Expression* return_type, Token* name,
                  const std::vector<Token*>& type_parameters,
                  const Parameters& parameters);
-  public: ~Method() final;
-
-  public: const Parameters& parameters() const { return parameters_; }
-  public: Expression* return_type() const { return return_type_; }
-  public: const std::vector<Token*>& type_parameters() {
-    return type_parameters_;
-  }
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  const Parameters parameters_;
+  Expression* return_type_;
+  const std::vector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
 };
@@ -58,5 +59,5 @@ class Method final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_method_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_method_h)
 

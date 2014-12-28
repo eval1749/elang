@@ -64,7 +64,7 @@ TEST(NameResolverTest, ErrorAliasAmbiguous) {
     "namespace N3 { class A {} }"
     "namespace N3 {"
     "  using A = N1.N2.A;"
-    "  class B : A {}" // A can be N1.N2.A or N3.A.
+    "  class B : A {}"  // A can be N1.N2.A or N3.A.
     "}");
   EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n",
             driver.RunNameResolver());
@@ -75,7 +75,7 @@ TEST(NameResolverTest, ErrorAliasScope) {
   TestDriver driver(
     "namespace N1.N2 { class A {} }"
     "namespace N3 { using R = N1.N2; }"
-    "namespace N3 { class B : R.A {} }"); // Error: R unknown
+    "namespace N3 { class B : R.A {} }");  // Error: R unknown
   EXPECT_EQ("NameResolution.Name.NotFound(88) R\n",
             driver.RunNameResolver());
 }
@@ -86,7 +86,7 @@ TEST(NameResolverTest, ErrorAliasScopeHide) {
     "namespace N1.N2 { class A {} }"
     "namespace N3 {"
     "  class R {}"  // Class R hides alias R in toplevel.
-    "  class B : R.A {}" // Error: R has no member A.
+    "  class B : R.A {}"  // Error: R has no member A.
     "}");
   EXPECT_EQ("NameResolution.Name.NotFound(86) A\n", driver.RunNameResolver());
 }
@@ -97,7 +97,7 @@ TEST(NameResolverTest, ErrorAliasScopeResolution) {
     "namespace N3 {"
     "  using R1 = N1;"
     "  using R2 = N1.N2;"
-    "  using R3 = R1.N2;" // Error: R1 is unknown.
+    "  using R3 = R1.N2;"  // Error: R1 is unknown.
     "}");
   EXPECT_EQ("NameResolution.Alias.NoTarget(75) R3\n"
             "NameResolution.Name.NotFound(80) R1\n",
@@ -141,7 +141,7 @@ TEST(NameResolverTest, ClassNested) {
 
 TEST(NameResolverTest, ErrorClassBaseNotInterface) {
   TestDriver driver(
-    "class A : B, C {}" // C must be an interface.
+    "class A : B, C {}"  // C must be an interface.
     "class B {}"
     "class C {}");
   EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
@@ -184,9 +184,9 @@ TEST(NameResolverTest, ErrorClassCircularlyDependency) {
 
 TEST(NameResolverTest, ErrorClassCircularlyDependencyNested) {
   TestDriver driver(
-    "class A : B.C {}" // A depends on B and C.
-    "class B : A {" // B depends on A.
-    "  public class C {}" // C depends on B.
+    "class A : B.C {}"  // A depends on B and C.
+    "class B : A {"  // B depends on A.
+    "  public class C {}"  // C depends on B.
     "}");
   EXPECT_EQ("NameResolution.Name.Cycle(6) A B\n"
             "NameResolution.Name.Cycle(22) B C\n"

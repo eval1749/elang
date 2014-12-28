@@ -22,11 +22,14 @@ class Literal final : public Expression {
 
   friend class NodeFactory;
 
-  private: Literal(Token* literal);
-  public: ~Literal() final;
+ public:
+  ~Literal() final;
+
+ private:
+  explicit Literal(Token* literal);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
 
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
@@ -35,5 +38,5 @@ class Literal final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_literal_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_literal_h)
 

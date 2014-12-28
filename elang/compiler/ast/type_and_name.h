@@ -24,4 +24,4 @@ struct TypeAndName {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_type_and_name_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_type_and_name_h)

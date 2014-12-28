@@ -22,13 +22,15 @@ class Node : public Castable {
   DECLARE_CASTABLE_CLASS(Node, Castable);
   friend class Factory;
 
-  protected: Node();
-  protected: virtual ~Node();
+ protected:
+  Node();
+  virtual ~Node();
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
 }  // namespace hir
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_hir_node_h)
+#endif  // !defined(INCLUDE_elang_hir_node_h)

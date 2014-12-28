@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/parser.h"
-
 #include <vector>
+
+#include "elang/compiler/parser.h"
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"

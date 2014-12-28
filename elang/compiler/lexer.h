@@ -28,48 +28,50 @@ enum class TokenType;
 // Lexer
 //
 class Lexer final {
-  private: class CharSink;
-  private: class InputStream;
-  private: enum class State;
+ public:
+  Lexer(CompilationSession* session, CompilationUnit* compilation_unit);
+  ~Lexer();
 
-  private: const std::unique_ptr<CharSink> char_sink_;
-  private: CompilationUnit* const compilation_unit_;
-  private: std::unique_ptr<InputStream> input_stream_;
-  private: int token_end_;
-  private: int token_start_;
-  private: CompilationSession* const session_;
+  Token* GetToken();
 
-  public: Lexer(CompilationSession* session, CompilationUnit* compilation_unit);
-  public: ~Lexer();
+ private:
+  class CharSink;
+  class InputStream;
+  enum class State;
 
-  private: void Advance();
-  private: bool AdvanceIf(base::char16 char_code);
-  private: bool AdvanceIfEither(base::char16 char_code1, base::char16 char_code2);
-  private: SourceCodeRange ComputeLocation();
-  private: SourceCodeRange ComputeLocation(int length);
-  private: Token* Error(ErrorCode error_code);
-  public: Token* GetToken();
-  private: Token* HandleAfterDecimalPoint(uint64_t int_part);
-  private: Token* HandleAtMark();
-  private: Token* HandleExponent(uint64_t u64, int exponent_offset);
-  private: Token* HandleInteger(int base);
-  private: Token* HandleIntegerOrReal(int digit);
-  private: Token* HandleIntegerSuffix(uint64_t value);
-  private: Token* HandleMayBeEq(TokenType with_eq, TokenType without_eq);
-  private: Token* HandleName(base::char16 char_code);
-  private: Token* HandleOneChar(TokenType token_type);
-  private: Token* HandleStringLiteral(base::char16 quote_code);
-  private: Token* HandleZero();
-  private: bool IsAtEndOfStream();
-  private: Token* NewFloatLiteral(TokenType token_type, uint64_t u64,
-                                 int exponent);
-  private: Token* NewIntLiteral(TokenType token_type, uint64_t u64);
-  private: Token* NewToken(TokenType token_type);
-  private: Token* NewToken(const TokenData& token_data);
-  private: base::char16 PeekChar();
-  private: void SkipLineComment();
-  private: bool SkipBlockComment();
-  private: base::char16 ReadChar();
+  const std::unique_ptr<CharSink> char_sink_;
+  CompilationUnit* const compilation_unit_;
+  std::unique_ptr<InputStream> input_stream_;
+  int token_end_;
+  int token_start_;
+  CompilationSession* const session_;
+
+  void Advance();
+  bool AdvanceIf(base::char16 char_code);
+  bool AdvanceIfEither(base::char16 char_code1, base::char16 char_code2);
+  SourceCodeRange ComputeLocation();
+  SourceCodeRange ComputeLocation(int length);
+  Token* Error(ErrorCode error_code);
+  Token* HandleAfterDecimalPoint(uint64_t int_part);
+  Token* HandleAtMark();
+  Token* HandleExponent(uint64_t u64, int exponent_offset);
+  Token* HandleInteger(int base);
+  Token* HandleIntegerOrReal(int digit);
+  Token* HandleIntegerSuffix(uint64_t value);
+  Token* HandleMayBeEq(TokenType with_eq, TokenType without_eq);
+  Token* HandleName(base::char16 char_code);
+  Token* HandleOneChar(TokenType token_type);
+  Token* HandleStringLiteral(base::char16 quote_code);
+  Token* HandleZero();
+  bool IsAtEndOfStream();
+  Token* NewFloatLiteral(TokenType token_type, uint64_t u64, int exponent);
+  Token* NewIntLiteral(TokenType token_type, uint64_t u64);
+  Token* NewToken(TokenType token_type);
+  Token* NewToken(const TokenData& token_data);
+  base::char16 PeekChar();
+  void SkipLineComment();
+  bool SkipBlockComment();
+  base::char16 ReadChar();
 
   DISALLOW_COPY_AND_ASSIGN(Lexer);
 };
@@ -77,4 +79,4 @@ class Lexer final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_lexer_h)
+#endif  // !defined(INCLUDE_elang_compiler_lexer_h)

@@ -24,21 +24,24 @@ class Alias final : public NamespaceMember {
 
   friend class NodeFactory;
 
-  private: const QualifiedName target_name_;
-  private: NamespaceMember* target_;
+ public:
+  ~Alias() final;
 
-  private: Alias(NamespaceBody* namespace_body, Token* keyword,
+  NamespaceMember* target() const { return target_; }
+  const QualifiedName& target_name() const { return target_name_; }
+
+  void BindTo(NamespaceMember* target);
+
+ private:
+  Alias(NamespaceBody* namespace_body, Token* keyword,
                  Token* simple_name,
                  const QualifiedName& reference_name);
-  public: ~Alias() final;
-
-  public: NamespaceMember* target() const { return target_; }
-  public: const QualifiedName& target_name() const { return target_name_; }
-
-  public: void BindTo(NamespaceMember* target);
 
   // Node
-  private: void Accept(Visitor* visitor) override;
+  void Accept(Visitor* visitor) override;
+
+  const QualifiedName target_name_;
+  NamespaceMember* target_;
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };
@@ -47,5 +50,5 @@ class Alias final : public NamespaceMember {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_alias_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_alias_h)
 

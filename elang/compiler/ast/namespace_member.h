@@ -26,27 +26,29 @@ class NamespaceBody;
 class NamespaceMember : public Node {
   DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
 
-  private: const Modifiers modifiers_;
+ public:
+  Modifiers modifiers() const { return modifiers_; }
+  Token* name() const { return simple_name_; }
+  NamespaceBody* namespace_body() const { return namespace_body_; }
+  Namespace* outer() const;
+  Namespace* owner() const { return outer(); }
+  // TODO(eval1749) Get rid of |NamespaceMember::simple_name()|.
+  Token* simple_name() const { return name(); }
+
+  bool IsDescendantOf(const NamespaceMember* other) const;
+  virtual Namespace* ToNamespace();
+
+ protected:
+  NamespaceMember(NamespaceBody* namespace_body, Modifiers modifiers,
+                  Token* keyword_or_name, Token* simple_name);
+  ~NamespaceMember() override;
+
+ private:
+  const Modifiers modifiers_;
   // We use |namespace_body_| for name resolution to look up alias and
   // import.
-  private: NamespaceBody* const namespace_body_;
-  private: Token* const simple_name_;
-
-  protected: NamespaceMember(NamespaceBody* namespace_body,
-                             Modifiers modifiers, Token* keyword_or_name,
-                             Token* simple_name);
-  protected: ~NamespaceMember() override;
-
-  public: Modifiers modifiers() const { return modifiers_; }
-  public: Token* name() const { return simple_name_; }
-  public: NamespaceBody* namespace_body() const { return namespace_body_; }
-  public: Namespace* outer() const;
-  public: Namespace* owner() const { return outer(); }
-  // TODO(eval1749) Get rid of |NamespaceMember::simple_name()|.
-  public: Token* simple_name() const { return name(); }
-
-  public: bool IsDescendantOf(const NamespaceMember* other) const;
-  public: virtual Namespace* ToNamespace();
+  NamespaceBody* const namespace_body_;
+  Token* const simple_name_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);
 };
@@ -55,5 +57,5 @@ class NamespaceMember : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_ast_namespace_member_h)
+#endif  // !defined(INCLUDE_elang_compiler_ast_namespace_member_h)
 

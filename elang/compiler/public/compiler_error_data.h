@@ -22,19 +22,19 @@ class Token;
 // ErrorData
 //
 class ErrorData final {
-  private: SourceCodeRange source_code_location_;
-  private: ErrorCode error_code_;
-  private: std::vector<Token*> tokens_;
+ public:
+  ErrorData(const SourceCodeRange& location, ErrorCode error_code,
+            const std::vector<Token*>& tokens_);
+  ~ErrorData();
 
-  public: ErrorData(const SourceCodeRange& location, ErrorCode error_code,
-                    const std::vector<Token*>& tokens_);
-  public: ~ErrorData();
+  ErrorCode error_code() const { return error_code_; }
+  const SourceCodeRange& location() const { return source_code_location_; }
+  const std::vector<Token*>& tokens() const { return tokens_; }
 
-  public: ErrorCode error_code() const { return error_code_; }
-  public: const SourceCodeRange& location() const {
-    return source_code_location_;
-  }
-  public: const std::vector<Token*>& tokens() const { return tokens_; }
+ private:
+  SourceCodeRange source_code_location_;
+  ErrorCode error_code_;
+  std::vector<Token*> tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(ErrorData);
 };
@@ -42,4 +42,4 @@ class ErrorData final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif // !defined(INCLUDE_elang_compiler_public_error_data_h)
+#endif  // !defined(INCLUDE_elang_compiler_public_error_data_h)

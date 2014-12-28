@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <string>
 
 #include "elang/compiler/compilation_session.h"
 
@@ -70,9 +71,9 @@ void CompilationSession::AddError(const SourceCodeRange& location,
                                   const std::vector<Token*>& tokens) {
   errors_.push_back(new ErrorData(location, error_code, tokens));
   std::sort(errors_.begin(), errors_.end(),
-            [](const ErrorData* a, const ErrorData* b) {
-              return a->location().start_offset() < b->location().start_offset();
-            });
+        [](const ErrorData* a, const ErrorData* b) {
+          return a->location().start_offset() < b->location().start_offset();
+        });
 }
 
 hir::SimpleName* CompilationSession::GetOrCreateSimpleName(
