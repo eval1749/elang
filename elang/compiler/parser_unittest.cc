@@ -213,6 +213,21 @@ TEST(ParserTest, WhileBasic) {
       driver.RunParser());
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// 'yield' statement
+//
+TEST(ParserTest, YieldBasic) {
+  TestDriver driver("class A { void Run(int x) { yield x; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    yield x;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang

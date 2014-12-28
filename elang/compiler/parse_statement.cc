@@ -24,6 +24,7 @@
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
+#include "elang/compiler/ast/yield_statement.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"
@@ -236,6 +237,18 @@ bool Parser::ParseWhileStatement(Token* while_keyword) {
   return true;
 }
 
+// YieldStatement ::= 'yield' expression ';'
+bool Parser::ParseYieldStatement(Token* yield_keyword) {
+  DCHECK_EQ(yield_keyword, TokenType::Yield);
+  if (!ParseExpression())
+    return false;
+  auto const value = ConsumeExpression();
+  ProduceStatement(factory()->NewYieldStatement(yield_keyword, value));
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxStatementSemiColon);
+  return true;
+}
+
 // Called after '(' read.
 bool Parser::ParseMethodDecl(Modifiers method_modifiers,
                              ast::Expression* method_type,
@@ -316,7 +329,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    UsingStatement NYI
 //    VarStatement NYI
 //    WhileStatement
-//    YieldStatement NYI
+//    YieldStatement
 bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket))
     return ParseBlockStatement(bracket);
@@ -332,6 +345,9 @@ bool Parser::ParseStatement() {
 
   if (auto const while_keyword = ConsumeTokenIf(TokenType::While))
     return ParseWhileStatement(while_keyword);
+
+  if (auto const yield_keyword = ConsumeTokenIf(TokenType::Yield))
+    return ParseYieldStatement(yield_keyword);
 
   if (auto const semicolon = ConsumeTokenIf(TokenType::SemiColon)) {
     ProduceStatement(factory()->NewEmptyStatement(semicolon));

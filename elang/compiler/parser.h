@@ -128,6 +128,7 @@ class Parser final {
   bool ParseReturnStatement(Token* keyword);
   bool ParseStatement();
   bool ParseWhileStatement(Token* keyword);
+  bool ParseYieldStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);
 
   // in "parse_type.cc"

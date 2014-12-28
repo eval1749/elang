@@ -101,6 +101,7 @@ class NodeFactory final {
   WhileStatement* NewWhileStatement(Token* keyword,
                                     Expression* condition,
                                     Statement* statement);
+  YieldStatement* NewYieldStatement(Token* keyword, Expression* value);
 
   // Utility
   void RemoveAll();

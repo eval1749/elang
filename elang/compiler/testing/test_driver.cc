@@ -36,6 +36,7 @@
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
+#include "elang/compiler/ast/yield_statement.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -440,6 +441,12 @@ void Formatter::VisitWhileStatement(ast::WhileStatement* while_statement) {
   Visit(while_statement->condition());
   stream_ << ") ";
   Visit(while_statement->statement());
+}
+
+void Formatter::VisitYieldStatement(ast::YieldStatement* yield_statement) {
+  stream_ << "yield ";
+  Visit(yield_statement->value());
+  stream_ << ";";
 }
 
 }  // namespace

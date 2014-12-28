@@ -31,6 +31,7 @@
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
+#include "elang/compiler/ast/yield_statement.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/qualified_name.h"
@@ -269,6 +270,13 @@ WhileStatement* NodeFactory::NewWhileStatement(Token* keyword,
                                                Expression* condition,
                                                Statement* statement) {
   auto const node = new WhileStatement(keyword, condition, statement);
+  RememberNode(node);
+  return node;
+}
+
+YieldStatement* NodeFactory::NewYieldStatement(Token* keyword,
+                                               Expression* value) {
+  auto const node = new YieldStatement(keyword, value);
   RememberNode(node);
   return node;
 }

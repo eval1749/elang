@@ -66,6 +66,8 @@ static_library("ast") {
     "var_statement.h",
     "while_statement.cc",
     "while_statement.h",
+    "yield_statement.cc",
+    "yield_statement.h",
     "visitor.cc",
     "visitor.h",
   ]
