@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/method.h"
@@ -79,6 +80,45 @@ ast::VarStatement* Parser::LocalDeclarationSpace::FindVariable(
 
 //////////////////////////////////////////////////////////////////////
 //
+// Parser::StatementScope
+//
+class Parser::StatementScope final {
+ public:
+  StatementScope(Parser* parser, Token* keyword);
+  ~StatementScope();
+
+  StatementScope* outer() const { return outer_; }
+
+  bool CanUseBreak() const;
+  bool CanUseContinue() const;
+
+ private:
+  Token* const keyword_;
+  StatementScope* outer_;
+  Parser* const parser_;
+
+  DISALLOW_COPY_AND_ASSIGN(StatementScope);
+};
+
+Parser::StatementScope::StatementScope(Parser* parser, Token* keyword)
+    : keyword_(keyword), outer_(parser->statement_scope_), parser_(parser) {
+  parser_->statement_scope_ = this;
+}
+
+Parser::StatementScope::~StatementScope() {
+  parser_->statement_scope_ = outer_;
+}
+
+bool Parser::StatementScope::CanUseBreak() const {
+  return CanUseContinue() || keyword_ == TokenType::Switch;
+}
+
+bool Parser::StatementScope::CanUseContinue() const {
+  return keyword_ == TokenType::Do || keyword_ == TokenType::For;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Parser
 //
 ast::Statement* Parser::ConsumeStatement() {
@@ -102,23 +142,41 @@ bool Parser::ParseBlockStatement(Token* bracket) {
   DCHECK_EQ(bracket, TokenType::LeftCurryBracket);
   LocalDeclarationSpace block_space(this, bracket);
   std::vector<ast::Statement*> statements;
-  for (;;) {
+  while (!AdvanceIf(TokenType::RightCurryBracket)) {
     // TODO(eval1749) Should we do unreachable code check?
-    if (!ParseStatement()) {
-      if (AdvanceIf(TokenType::RightCurryBracket))
-        break;
-      // We don't have right curry bracket. We reached at end of source.
-      Error(ErrorCode::SyntaxStatementInvalid);
-      Advance();
-      continue;
-    }
+    if (!ParseStatement())
+      break;
     statements.push_back(ConsumeStatement());
   }
   ProduceStatement(factory()->NewBlockStatement(bracket, statements));
   return true;
 }
 
-// IfStatement ::= 'if' '(' Expression ')' Statement (('else Statement ')')?
+// DoStatement ::= 'do' Statement 'while' '(' Expression ') ';'
+bool Parser::ParseDoStatement(Token* do_keyword) {
+  DCHECK_EQ(do_keyword, TokenType::Do);
+  StatementScope do_scope(this, do_keyword);
+  if (!ParseStatement())
+    return false;
+  auto const statement = ConsumeStatement();
+  if (!AdvanceIf(TokenType::While)) {
+    Error(ErrorCode::SyntaxDoWhile);
+    return false;
+  }
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxDoLeftParenthesis);
+  if (!ParseExpression())
+    return false;
+  auto const condition = ConsumeExpression();
+  if (!AdvanceIf(TokenType::RightParenthesis))
+    Error(ErrorCode::SyntaxDoRightParenthesis);
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxDoSemiColon);
+  ProduceStatement(factory()->NewDoStatement(do_keyword, statement, condition));
+  return true;
+}
+
+// IfStatement ::= 'if' '(' Expression ')' Statement ('else Statement)?
 bool Parser::ParseIfStatement(Token* if_keyword) {
   DCHECK_EQ(if_keyword, TokenType::If);
   if (!AdvanceIf(TokenType::LeftParenthesis))
@@ -223,8 +281,9 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 //    BlockStatement
 //    BreakStatement NYI
 //    ContinueStatement NYI
-//    DoStatement NYI
-//    ExpressionStatement
+//    DoStatement
+//    EmptyStatement NYI
+//    ExpressionStatement NYI
 //    ForStatement NYI
 //    ForEachStatement NYI
 //    GotoEachStatement NYI
@@ -239,6 +298,9 @@ bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket))
     return ParseBlockStatement(bracket);
 
+  if (auto const do_keyword = ConsumeTokenIf(TokenType::Do))
+    return ParseDoStatement(do_keyword);
+
   if (auto const if_keyword = ConsumeTokenIf(TokenType::If))
     return ParseIfStatement(if_keyword);
 
@@ -248,7 +310,8 @@ bool Parser::ParseStatement() {
   // ExpressionStatement ::= Expression ';'
   if (!ParseExpression())
     return false;
-  if (AdvanceIf(TokenType::SemiColon))
+  ProduceStatement(ConsumeExpression());
+  if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxStatementSemiColon);
   return true;
 }

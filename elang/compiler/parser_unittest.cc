@@ -46,7 +46,25 @@ TEST(ParserTest, ErrorClassFieldVar) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// If
+// 'do' statement
+//
+TEST(ParserTest, DoBasic) {
+  TestDriver driver(
+      "class A { void Run(int x) { do { return; } while (x); } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    do {\n"
+      "      return;\n"
+      "    } while (x);\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// 'if' statement
 //
 TEST(ParserTest, IfBasic) {
   TestDriver driver("class A { void Run(int x) { if (x) return x; } }");

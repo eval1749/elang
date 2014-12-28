@@ -20,6 +20,8 @@ static_library("ast") {
     "conditional.h",
     "constructed_type.cc",
     "constructed_type.h",
+    "do_statement.cc",
+    "do_statement.h",
     "enum.cc",
     "enum.h",
     "enum_member.cc",

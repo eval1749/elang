@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
+#include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
@@ -211,6 +212,14 @@ BlockStatement* NodeFactory::NewBlockStatement(
     Token* keyword,
     const std::vector<Statement*> statements) {
   auto const node = new BlockStatement(keyword, statements);
+  RememberNode(node);
+  return node;
+}
+
+DoStatement* NodeFactory::NewDoStatement(Token* keyword,
+                                         Statement* statement,
+                                         Expression* condition) {
+  auto const node = new DoStatement(keyword, statement, condition);
   RememberNode(node);
   return node;
 }

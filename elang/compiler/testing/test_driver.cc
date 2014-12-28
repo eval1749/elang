@@ -17,6 +17,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
+#include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
@@ -230,6 +231,14 @@ void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
     separator = ", ";
   }
   stream_ << ">";
+}
+
+void Formatter::VisitDoStatement(ast::DoStatement* do_statement) {
+  stream_ << "do ";
+  Visit(do_statement->statement());
+  stream_ << " while (";
+  Visit(do_statement->condition());
+  stream_ << ");";
 }
 
 void Formatter::VisitEnum(ast::Enum* enumx) {

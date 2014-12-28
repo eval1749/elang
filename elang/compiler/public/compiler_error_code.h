@@ -53,6 +53,11 @@ namespace compiler {
   E(Syntax, ClassMember, Parenthesis)                 \
   E(Syntax, ClassMember, SemiColon)                   \
   E(Syntax, ClassMember, VarField)                    \
+  /* Do */                                            \
+  E(Syntax, Do, LeftParenthesis)                      \
+  E(Syntax, Do, RightParenthesis)                     \
+  E(Syntax, Do, SemiColon)                            \
+  E(Syntax, Do, While)                                \
   /* If */                                            \
   E(Syntax, If, LeftParenthesis)                      \
   E(Syntax, If, RightParenthesis)                     \
@@ -72,7 +77,6 @@ namespace compiler {
   E(Syntax, NamespaceDecl, NameDuplicate)             \
   E(Syntax, NamespaceDecl, RightCurryBracket)         \
   /* Statement */                                     \
-  E(Syntax, Statement, Invalid)                       \
   E(Syntax, Statement, SemiColon)                     \
   /* Type */                                          \
   E(Syntax, Type, Comma)                              \

@@ -39,6 +39,7 @@ namespace ast {
 
 #define STATEMENT_NODE_LIST(V) \
   V(BlockStatement)            \
+  V(DoStatement)               \
   V(IfStatement)               \
   V(ReturnStatement)           \
   V(VarStatement)

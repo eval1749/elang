@@ -165,6 +165,7 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
                                              session->global_namespace())),
       session_(session),
       statement_(nullptr),
+      statement_scope_(nullptr),
       token_(nullptr) {
   namespace_body_->owner()->AddNamespaceBody(namespace_body_);
 }

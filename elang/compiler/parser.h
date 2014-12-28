@@ -52,7 +52,6 @@ class Parser final {
   bool Run();
 
  private:
-  class LocalDeclarationSpace;
   class ModifierParser;
   class NamespaceBodyScope;
 
@@ -115,9 +114,12 @@ class Parser final {
 
   // in "parse_statement.cc"
   // Returns last produced statement.
+  class LocalDeclarationSpace;
+  class StatementScope;
   ast::Statement* ConsumeStatement();
   ast::VarStatement* FindVariable(Token* token) const;
   bool ParseBlockStatement(Token* keyword);
+  bool ParseDoStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);
   bool ParseMethodDecl(Modifiers modifiers,
                        ast::Expression* method_type,
@@ -145,6 +147,7 @@ class Parser final {
   std::unique_ptr<QualifiedNameBuilder> name_builder_;
   CompilationSession* session_;
   ast::Statement* statement_;
+  StatementScope* statement_scope_;
   Token* token_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
