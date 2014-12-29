@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "elang/compiler/parser.h"
+#include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"

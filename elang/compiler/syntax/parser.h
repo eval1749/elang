@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_PARSER_H_
-#define ELANG_COMPILER_PARSER_H_
+#ifndef ELANG_COMPILER_SYNTAX_PARSER_H_
+#define ELANG_COMPILER_SYNTAX_PARSER_H_
 
 #include <memory>
 #include <vector>
@@ -169,4 +169,4 @@ class Parser final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_PARSER_H_
+#endif  // ELANG_COMPILER_SYNTAX_PARSER_H_

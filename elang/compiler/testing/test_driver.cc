@@ -13,7 +13,7 @@
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/parser.h"
+#include "elang/compiler/syntax/parser.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"

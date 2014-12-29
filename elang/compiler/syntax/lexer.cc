@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/lexer.h"
+#include "elang/compiler/syntax/lexer.h"
 
 #include <cmath>
 #include <limits>

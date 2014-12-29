@@ -9,7 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/parser.h"
+#include "elang/compiler/syntax/parser.h"
 #include "elang/compiler/string_source_code.h"
 
 namespace elang {

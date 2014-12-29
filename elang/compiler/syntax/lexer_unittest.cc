@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "elang/compiler/lexer.h"
+#include "elang/compiler/syntax/lexer.h"
 
 #include "base/logging.h"
 #include "base/macros.h"

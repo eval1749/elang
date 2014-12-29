@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/parser.h"
+#include "elang/compiler/syntax/parser.h"
 
 #include <string>
 #include <vector>
@@ -18,7 +18,7 @@
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/lexer.h"
+#include "elang/compiler/syntax/lexer.h"
 #include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token_type.h"

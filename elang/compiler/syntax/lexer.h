@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_lexer_h)
-#define INCLUDE_elang_compiler_lexer_h
+#ifndef ELANG_COMPILER_SYNTAX_LEXER_H_
+#define ELANG_COMPILER_SYNTAX_LEXER_H_
 
 #include <memory>
 
@@ -79,4 +79,4 @@ class Lexer final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_lexer_h)
+#endif  // ELANG_COMPILER_SYNTAX_LEXER_H_

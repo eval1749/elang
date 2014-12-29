@@ -12,17 +12,10 @@ static_library("compiler") {
     "compilation_session.h",
     "compilation_unit.cc",
     "compilation_unit.h",
-    "lexer.cc",
-    "lexer.h",
     "modifiers.cc",
     "modifiers.h",
     "modifiers_builder.cc",
     "modifiers_builder.h",
-    "parser.cc",
-    "parser.h",
-    "parse_expression.cc",
-    "parse_statement.cc",
-    "parse_type.cc",
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",
     "public/compiler_error_data.h",
@@ -38,6 +31,13 @@ static_library("compiler") {
     "string_source_code.h",
     "string_stream.h",
     "string_stream.cc",
+    "syntax/lexer.cc",
+    "syntax/lexer.h",
+    "syntax/parser.cc",
+    "syntax/parser.h",
+    "syntax/parse_expression.cc",
+    "syntax/parse_statement.cc",
+    "syntax/parse_type.cc",
     "token.cc",
     "token.h",
     "token_data.cc",
@@ -73,8 +73,8 @@ source_set("compiler_test") {
 test("compiler_unittests") {
   sources = [
     "analyze/namespace_analyzer_unittest.cc",
-    "lexer_unittest.cc",
-    "parser_unittest.cc",
+    "syntax/lexer_unittest.cc",
+    "syntax/parser_unittest.cc",
   ]
 
   deps = [
