@@ -136,6 +136,7 @@ class Parser final {
   bool ParseTryStatement(Token* keyword);
   bool ParseStatement();
   bool ParseWhileStatement(Token* keyword);
+  bool ParseUsingStatement(Token* keyword);
   bool ParseVarStatement(Token* keyword);
   bool ParseYieldStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);

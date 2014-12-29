@@ -450,6 +450,40 @@ TEST(ParserTest, VarBasic) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'using' statement
+//
+TEST(ParserTest, UsingBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    using (x) {\n"
+      "      foo;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// 'using' statement
+//
+TEST(ParserTest, UsingVar) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    using (var y = foo) {\n"
+      "      foo;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'while' statement
 //
 TEST(ParserTest, WhileBasic) {

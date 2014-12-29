@@ -28,6 +28,7 @@
 #include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/using_statement.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
 #include "elang/compiler/ast/yield_statement.h"
@@ -420,6 +421,51 @@ bool Parser::ParseTryStatement(Token* try_keyword) {
   return true;
 }
 
+// UsingStatement ::= 'using' '(' UsingResourceDecl ')' Statement
+// UsingResourceDecl ::= Expression | 'var' Name '=' Expression
+bool Parser::ParseUsingStatement(Token* using_keyword) {
+  DCHECK_EQ(using_keyword, TokenType::Using);
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxUsingLeftParenthesis);
+  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
+    if (!PeekToken()->is_name()) {
+      Error(ErrorCode::SyntaxUsingName);
+      return false;
+    }
+    auto const var_name = ConsumeToken();
+    if (!AdvanceIf(TokenType::Assign)) {
+      Error(ErrorCode::SyntaxUsingAssign);
+      return false;
+    }
+    if (!ParseExpression())
+      return false;
+    if (!AdvanceIf(TokenType::RightParenthesis))
+      Error(ErrorCode::SyntaxUsingRightParenthesis);
+
+    LocalDeclarationSpace using_scope(this, using_keyword);
+    auto const variable = factory()->NewLocalVariable(
+        using_keyword, nullptr, var_name, ConsumeExpression());
+    using_scope.AddVariable(variable);
+    if (!ParseStatement())
+      return false;
+    ProduceStatement(factory()->NewUsingStatement(using_keyword, variable,
+                                                  variable->value(),
+                                                  ConsumeStatement()));
+    return true;
+  }
+
+  if (!ParseExpression())
+    return false;
+  auto const resource = ConsumeExpression();
+  if (!AdvanceIf(TokenType::RightParenthesis))
+    Error(ErrorCode::SyntaxUsingRightParenthesis);
+  if (!ParseStatement())
+    return false;
+  ProduceStatement(factory()->NewUsingStatement(using_keyword, nullptr,
+                                                resource, ConsumeStatement()));
+  return true;
+}
+
 // VarStatement ::= 'var' VarDecl (',' VarDecl)* ';'
 // VarDecl ::= Name ('=' Expression')
 bool Parser::ParseVarStatement(Token* var_keyword) {
@@ -494,7 +540,7 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 //    SwitchStatement NYI
 //    ThrowStatement
 //    TryStatement
-//    UsingStatement NYI
+//    UsingStatement
 //    VarStatement
 //    WhileStatement
 //    YieldStatement
@@ -525,6 +571,9 @@ bool Parser::ParseStatement() {
 
   if (auto const try_keyword = ConsumeTokenIf(TokenType::Try))
     return ParseTryStatement(try_keyword);
+
+  if (auto const using_keyword = ConsumeTokenIf(TokenType::Using))
+    return ParseUsingStatement(using_keyword);
 
   if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
     return ParseVarStatement(var_keyword);

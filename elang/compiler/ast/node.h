@@ -48,6 +48,7 @@ namespace ast {
   V(ReturnStatement)           \
   V(ThrowStatement)            \
   V(TryStatement)              \
+  V(UsingStatement)            \
   V(VarStatement)              \
   V(WhileStatement)            \
   V(YieldStatement)

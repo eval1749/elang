@@ -74,6 +74,8 @@ static_library("ast") {
     "try_statement.h",
     "unary_operation.cc",
     "unary_operation.h",
+    "using_statement.cc",
+    "using_statement.h",
     "var_statement.cc",
     "var_statement.h",
     "while_statement.cc",

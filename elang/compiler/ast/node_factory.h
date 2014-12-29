@@ -110,6 +110,10 @@ class NodeFactory final {
                                 BlockStatement* protected_block,
                                 const std::vector<CatchClause*>& catch_clauses,
                                 BlockStatement* finally_block);
+  UsingStatement* NewUsingStatement(Token* keyword,
+                                    LocalVariable* variable,
+                                    Expression* resource,
+                                    Statement* statement);
   VarStatement* NewVarStatement(Token* keyword,
                                 const std::vector<LocalVariable*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,

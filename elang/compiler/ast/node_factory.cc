@@ -35,6 +35,7 @@
 #include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/using_statement.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
 #include "elang/compiler/ast/yield_statement.h"
@@ -308,6 +309,15 @@ TryStatement* NodeFactory::NewTryStatement(
     BlockStatement* finally_block) {
   auto const node =
       new TryStatement(keyword, protected_block, catch_clauses, finally_block);
+  RememberNode(node);
+  return node;
+}
+
+UsingStatement* NodeFactory::NewUsingStatement(Token* keyword,
+                                               LocalVariable* variable,
+                                               Expression* resource,
+                                               Statement* statement) {
+  auto const node = new UsingStatement(keyword, variable, resource, statement);
   RememberNode(node);
   return node;
 }

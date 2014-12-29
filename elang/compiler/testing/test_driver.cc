@@ -40,6 +40,7 @@
 #include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
+#include "elang/compiler/ast/using_statement.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
 #include "elang/compiler/ast/yield_statement.h"
@@ -467,6 +468,25 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
   }
   stream_ << operation->op();
   Visit(operation->expression());
+}
+
+void Formatter::VisitUsingStatement(ast::UsingStatement* using_statement) {
+  stream_ << "using (";
+  if (auto const var = using_statement->variable()) {
+    stream_ << "var ";
+    stream_ << var->name();
+    stream_ << " = ";
+  }
+  Visit(using_statement->resource());
+  stream_ << ")";
+  if (using_statement->statement()->is<ast::BlockStatement>()) {
+    stream_ << " ";
+    Visit(using_statement->statement());
+  } else {
+    stream_ << std::endl;
+    Indent();
+    Visit(using_statement->statement());
+  }
 }
 
 void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {

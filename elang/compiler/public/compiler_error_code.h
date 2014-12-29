@@ -100,6 +100,11 @@ namespace compiler {
   E(Syntax, Type, DotNotName)                         \
   E(Syntax, Type, RightSquareBracket)                 \
   /* Using */                                         \
+  E(Syntax, Using, Assign)                            \
+  E(Syntax, Using, LeftParenthesis)                   \
+  E(Syntax, Using, RightParenthesis)                  \
+  E(Syntax, Using, Name)                              \
+  /* Using directive*/                                \
   E(Syntax, UsingDirective, Invalid)                  \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
