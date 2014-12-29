@@ -90,8 +90,8 @@ class Formatter final : public ast::Visitor {
  private:
   class FormatBlock {
    public:
-    explicit FormatBlock(Formatter* formatter,
-                         NewlineAtEnd newline_at_end = NewlineAtEnd::Yes);
+    FormatBlock(Formatter* formatter,
+                NewlineAtEnd newline_at_end = NewlineAtEnd::Yes);
     ~FormatBlock();
 
    private:
@@ -172,7 +172,7 @@ void Formatter::Visit(ast::Node* node) {
 
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->token() << " " << alias->simple_name() << " = "
+  stream_ << alias->token() << " " << alias->name() << " = "
           << alias->target_name() << ";" << std::endl;
 }
 
@@ -223,7 +223,7 @@ void Formatter::VisitConditional(ast::Conditional* cond) {
 void Formatter::VisitClass(ast::Class* klass) {
   for (auto const body : klass->bodies()) {
     Indent();
-    stream_ << klass->token() << " " << klass->simple_name();
+    stream_ << klass->token() << " " << klass->name();
     const char* separator = " : ";
     for (auto const base_class_name : klass->base_class_names()) {
       stream_ << separator << base_class_name;
@@ -270,7 +270,7 @@ void Formatter::VisitEmptyStatement(ast::EmptyStatement* empty_statement) {
 
 void Formatter::VisitEnum(ast::Enum* enumx) {
   Indent();
-  stream_ << "enum " << enumx->simple_name() << " ";
+  stream_ << "enum " << enumx->name() << " ";
   FormatBlock block(this);
   for (auto const member : enumx->members()) {
     Indent();
@@ -416,7 +416,7 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
 void Formatter::VisitNamespace(ast::Namespace* ns) {
   for (auto const body : ns->bodies()) {
     Indent();
-    stream_ << ns->token() << " " << ns->simple_name() << " ";
+    stream_ << ns->token() << " " << ns->name() << " ";
     FormatBlock block(this);
     for (auto const member : body->members())
       Visit(member);

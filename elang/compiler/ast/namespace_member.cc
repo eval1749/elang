@@ -20,13 +20,10 @@ namespace ast {
 //
 NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
                                  Modifiers modifiers,
-                                 Token* keyword_or_name,
-                                 Token* simple_name)
-    : Node(keyword_or_name),
-      namespace_body_(namespace_body),
-      simple_name_(simple_name) {
-  DCHECK(simple_name->is_name());
-  DCHECK(namespace_body_ || keyword_or_name == TokenType::Namespace);
+                                 Token* keyword,
+                                 Token* name)
+    : NamedNode(keyword, name), namespace_body_(namespace_body) {
+  DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }
 
 NamespaceMember::~NamespaceMember() {

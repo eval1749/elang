@@ -26,9 +26,7 @@ class WhileStatement final : public Statement {
   Statement* statement() const { return statement_; }
 
  private:
-  explicit WhileStatement(Token* keyword,
-                          Expression* condition,
-                          Statement* statement);
+  WhileStatement(Token* keyword, Expression* condition, Statement* statement);
   ~WhileStatement() final;
 
   // Node

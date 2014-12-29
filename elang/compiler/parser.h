@@ -15,6 +15,7 @@ namespace elang {
 namespace compiler {
 
 namespace ast {
+class NamedNode;
 class Expression;
 class LocalVariable;
 class Namespace;
@@ -23,7 +24,7 @@ class NamespaceMember;
 class NodeFactory;
 class Statement;
 class VarStatement;
-}
+}  // namespace ast
 
 class CompilationUnit;
 class CompilationSession;
@@ -118,7 +119,7 @@ class Parser final {
   class LocalDeclarationSpace;
   class StatementScope;
   ast::Statement* ConsumeStatement();
-  ast::LocalVariable* FindVariable(Token* token) const;
+  ast::NamedNode* FindLocalMember(Token* token) const;
   bool IsInLoop() const;
   bool IsInStatement(TokenType keyword) const;
   bool ParseBlockStatement(Token* keyword);

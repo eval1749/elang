@@ -67,6 +67,7 @@ AST_NODE_LIST(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 class CatchClause;
+class NamedNode;
 class EnumMember;
 class Expression;
 class LocalVariable;
@@ -82,16 +83,16 @@ class Visitor;
 //
 class Node : public Castable {
   DECLARE_CASTABLE_CLASS(Node, Castable);
+  friend class NodeFactory;
 
  public:
-  virtual ~Node();
-
   Token* token() const { return token_; }
 
   virtual void Accept(Visitor* visitor);
 
  protected:
   explicit Node(Token* token);
+  virtual ~Node();
 
  private:
   Token* const token_;

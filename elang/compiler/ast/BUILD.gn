@@ -52,6 +52,8 @@ static_library("ast") {
     "method.h",
     "method_group.cc",
     "method_group.h",
+    "named_node.cc",
+    "named_node.h",
     "namespace.cc",
     "namespace.h",
     "namespace_body.cc",

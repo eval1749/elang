@@ -26,9 +26,7 @@ class DoStatement final : public Statement {
   Statement* statement() const { return statement_; }
 
  private:
-  explicit DoStatement(Token* keyword,
-                       Statement* statement,
-                       Expression* condition);
+  DoStatement(Token* keyword, Statement* statement, Expression* condition);
   ~DoStatement() final;
 
   // Node

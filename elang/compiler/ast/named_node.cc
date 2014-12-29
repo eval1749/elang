@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/enum_member.h"
+#include "elang/compiler/ast/named_node.h"
 
 #include "base/logging.h"
+#include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
@@ -12,14 +13,13 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// EnumMember
+// NamedNode
 //
-EnumMember::EnumMember(Enum* owner, Token* name, Expression* expression)
-    : NamedNode(name, name), expression_(expression) {
+NamedNode::NamedNode(Token* keyword, Token* name) : Node(keyword), name_(name) {
   DCHECK(name->is_name());
 }
 
-EnumMember::~EnumMember() {
+NamedNode::~NamedNode() {
 }
 
 }  // namespace ast

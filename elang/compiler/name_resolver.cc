@@ -50,8 +50,7 @@ NameResolver::ScopedResolver::ScopedResolver(NameResolver* resolver,
           ? resolver_->running_stack_.front()
           : resolver_->running_stack_[resolver_->running_stack_.size() - 2];
   resolver_->session_->AddError(ErrorCode::NameResolutionNameCycle,
-                                another_member->simple_name(),
-                                member_->simple_name());
+                                another_member->name(), member_->name());
   member_ = nullptr;
 }
 
@@ -107,8 +106,7 @@ void NameResolver::BindAlias(ast::Alias* alias) {
   auto const target = ResolveQualifiedName(
       alias->outer(), alias->namespace_body()->outer(), alias->target_name());
   if (!target) {
-    session_->AddError(ErrorCode::NameResolutionAliasNoTarget,
-                       alias->simple_name());
+    session_->AddError(ErrorCode::NameResolutionAliasNoTarget, alias->name());
     return;
   }
   if (!target->as<ast::Namespace>()) {
@@ -130,7 +128,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
   auto const outer = resolution.value->as<ast::Namespace>();
   if (!outer) {
     session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
-                       clazz->outer()->simple_name());
+                       clazz->outer()->name());
     return Maybe<ast::NamespaceMember*>(nullptr);
   }
 
@@ -182,7 +180,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
 
     if (base_class == outer || outer->IsDescendantOf(base_class)) {
       session_->AddError(ErrorCode::NameResolutionClassContaining,
-                         base_class_name.simple_name(), clazz->simple_name());
+                         base_class_name.simple_name(), clazz->name());
       is_base_classes_valid = false;
       continue;
     }

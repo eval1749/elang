@@ -25,7 +25,7 @@ Method::Method(NamespaceBody* namespace_body,
                Token* name,
                const std::vector<Token*>& type_parameters,
                const std::vector<LocalVariable*>& parameters)
-    : Node(name),
+    : NamedNode(name, name),
       method_group_(method_group),
       modifiers_(modifiers),
       namespace_body_(namespace_body),

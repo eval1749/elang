@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/named_node.h"
 
 #include "elang/compiler/modifiers.h"
 
@@ -23,17 +23,14 @@ class NamespaceBody;
 //
 // NamespaceMember
 //
-class NamespaceMember : public Node {
-  DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
+class NamespaceMember : public NamedNode {
+  DECLARE_CASTABLE_CLASS(NamespaceMember, NamedNode);
 
  public:
   Modifiers modifiers() const { return modifiers_; }
-  Token* name() const { return simple_name_; }
   NamespaceBody* namespace_body() const { return namespace_body_; }
   Namespace* outer() const;
   Namespace* owner() const { return outer(); }
-  // TODO(eval1749) Get rid of |NamespaceMember::simple_name()|.
-  Token* simple_name() const { return name(); }
 
   bool IsDescendantOf(const NamespaceMember* other) const;
   virtual Namespace* ToNamespace();
@@ -50,7 +47,6 @@ class NamespaceMember : public Node {
   // We use |namespace_body_| for name resolution to look up alias and
   // import.
   NamespaceBody* const namespace_body_;
-  Token* const simple_name_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);
 };

@@ -127,7 +127,7 @@ class NodeFactory final {
  private:
   Node* RememberNode(Node* node);
 
-  std::vector<std::unique_ptr<Node>> nodes_;
+  std::vector<Node*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };

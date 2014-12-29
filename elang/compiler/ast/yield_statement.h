@@ -25,7 +25,7 @@ class YieldStatement final : public Statement {
   Expression* value() const { return value_; }
 
  private:
-  explicit YieldStatement(Token* keyword, Expression* value);
+  YieldStatement(Token* keyword, Expression* value);
   ~YieldStatement() final;
 
   // Node

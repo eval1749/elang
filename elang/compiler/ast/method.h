@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/named_node.h"
 #include "elang/compiler/modifiers.h"
 
 namespace elang {
@@ -18,14 +18,13 @@ namespace ast {
 //
 // Method
 //
-class Method final : public Node {
-  DECLARE_CASTABLE_CLASS(Method, Node);
+class Method final : public NamedNode {
+  DECLARE_CASTABLE_CLASS(Method, NamedNode);
   friend class NodeFactory;
 
  public:
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
-  Token* name() const { return token(); }
   const std::vector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
 

@@ -61,7 +61,7 @@ void NamespaceBody::AddImport(Token* keyword, const QualifiedName& name) {
 void NamespaceBody::AddAlias(Alias* alias) {
   DCHECK(owner_->ToNamespace());
   aliases_.push_back(alias);
-  alias_map_[alias->simple_name()->simple_name()] = alias;
+  alias_map_[alias->name()->simple_name()] = alias;
   members_.push_back(alias);
 }
 

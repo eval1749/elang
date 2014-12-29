@@ -46,20 +46,20 @@ namespace compiler {
 //
 class Parser::LocalDeclarationSpace final {
  public:
-  explicit LocalDeclarationSpace(Parser* parser, Token* owner);
+  LocalDeclarationSpace(Parser* parser, Token* owner);
   ~LocalDeclarationSpace();
 
   LocalDeclarationSpace* outer() const { return outer_; }
   Token* owner() const { return owner_; }
 
-  void AddVariable(ast::LocalVariable* variable);
-  ast::LocalVariable* FindVariable(Token* name) const;
+  void AddMember(ast::NamedNode* member);
+  ast::NamedNode* FindMember(Token* name) const;
 
  private:
   LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
-  std::unordered_map<hir::SimpleName*, ast::LocalVariable*> variables_;
+  std::unordered_map<hir::SimpleName*, ast::NamedNode*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalDeclarationSpace);
 };
@@ -74,18 +74,17 @@ Parser::LocalDeclarationSpace::~LocalDeclarationSpace() {
   parser_->declaration_space_ = outer_;
 }
 
-void Parser::LocalDeclarationSpace::AddVariable(ast::LocalVariable* variable) {
-  auto const name = variable->name()->simple_name();
-  if (variables_.find(name) != variables_.end())
+void Parser::LocalDeclarationSpace::AddMember(ast::NamedNode* member) {
+  auto const name = member->name()->simple_name();
+  if (map_.find(name) != map_.end())
     return;
-  variables_[name] = variable;
+  map_[name] = member;
 }
 
-ast::LocalVariable* Parser::LocalDeclarationSpace::FindVariable(
-    Token* name) const {
+ast::NamedNode* Parser::LocalDeclarationSpace::FindMember(Token* name) const {
   DCHECK(name->is_name());
-  auto const present = variables_.find(name->simple_name());
-  return present == variables_.end() ? nullptr : present->second;
+  auto const present = map_.find(name->simple_name());
+  return present == map_.end() ? nullptr : present->second;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -135,10 +134,10 @@ ast::Statement* Parser::ConsumeStatement() {
   return result;
 }
 
-ast::LocalVariable* Parser::FindVariable(Token* token) const {
+ast::NamedNode* Parser::FindLocalMember(Token* token) const {
   DCHECK(token->is_name());
   for (auto space = declaration_space_; space; space = space->outer()) {
-    if (auto const present = space->FindVariable(token))
+    if (auto const present = space->FindMember(token))
       return present;
   }
   return nullptr;
@@ -322,7 +321,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 
   LocalDeclarationSpace method_body_space(this, PeekToken());
   for (auto param : method->parameters())
-    method_body_space.AddVariable(param);
+    method_body_space.AddMember(param);
 
   if (!ParseStatement())
     return true;
@@ -394,7 +393,7 @@ bool Parser::ParseTryStatement(Token* try_keyword) {
       auto const catch_name = ConsumeToken();
       catch_var = factory()->NewLocalVariable(catch_keyword, catch_type,
                                               catch_name, nullptr);
-      catch_var_scope.AddVariable(catch_var);
+      catch_var_scope.AddMember(catch_var);
     }
     if (!AdvanceIf(TokenType::RightParenthesis))
       Error(ErrorCode::SyntaxCatchRightParenthesis);
@@ -403,9 +402,8 @@ bool Parser::ParseTryStatement(Token* try_keyword) {
     if (!ParseStatement())
       continue;
     auto const catch_block = ConsumeStatement()->as<ast::BlockStatement>();
-    catch_clauses.push_back(
-        factory()->NewCatchClause(catch_keyword, catch_type, catch_var,
-                                  catch_block));
+    catch_clauses.push_back(factory()->NewCatchClause(catch_keyword, catch_type,
+                                                      catch_var, catch_block));
   }
 
   // Parser 'finally' Block
@@ -445,12 +443,11 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
     LocalDeclarationSpace using_scope(this, using_keyword);
     auto const variable = factory()->NewLocalVariable(
         using_keyword, nullptr, var_name, ConsumeExpression());
-    using_scope.AddVariable(variable);
+    using_scope.AddMember(variable);
     if (!ParseStatement())
       return false;
-    ProduceStatement(factory()->NewUsingStatement(using_keyword, variable,
-                                                  variable->value(),
-                                                  ConsumeStatement()));
+    ProduceStatement(factory()->NewUsingStatement(
+        using_keyword, variable, variable->value(), ConsumeStatement()));
     return true;
   }
 

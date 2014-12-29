@@ -5,39 +5,33 @@
 #ifndef ELANG_COMPILER_AST_LOCAL_VARIABLE_H_
 #define ELANG_COMPILER_AST_LOCAL_VARIABLE_H_
 
-#include "elang/compiler/ast/statement.h"
-
-#include "elang/compiler/modifiers.h"
+#include "elang/compiler/ast/named_node.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // LocalVariable
 //
-class LocalVariable final : public Node {
-  DECLARE_CASTABLE_CLASS(LocalVariable, Node);
+class LocalVariable final : public NamedNode {
+  DECLARE_CASTABLE_CLASS(LocalVariable, NamedNode);
   friend class NodeFactory;
 
  public:
-  ~LocalVariable() final;
-
   bool is_const() const;
-  Token* name() const { return token(); }
   Expression* type() const { return type_; }
   Expression* value() const { return value_; }
 
  private:
-  explicit LocalVariable(Token* keyword,
-                         Expression* type,
-                         Token* name,
-                         Expression* value);
+  LocalVariable(Token* keyword,
+                Expression* type,
+                Token* name,
+                Expression* value);
 
-  Token* const keyword_;
+  ~LocalVariable() final;
+
   Expression* const type_;
   Expression* const value_;
 

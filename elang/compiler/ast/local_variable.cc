@@ -19,7 +19,7 @@ LocalVariable::LocalVariable(Token* keyword,
                              Expression* type,
                              Token* name,
                              Expression* value)
-    : Node(name), keyword_(keyword), type_(type), value_(value) {
+    : NamedNode(keyword, name), type_(type), value_(value) {
   DCHECK(!keyword || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::Using);
 }
@@ -28,7 +28,7 @@ LocalVariable::~LocalVariable() {
 }
 
 bool LocalVariable::is_const() const {
-  return keyword_ == TokenType::Const;
+  return token() == TokenType::Const || token() == TokenType::Using;
 }
 
 }  // namespace ast

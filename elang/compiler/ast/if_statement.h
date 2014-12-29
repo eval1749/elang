@@ -27,10 +27,10 @@ class IfStatement final : public Statement {
   Statement* then_statement() const { return then_statement_; }
 
  private:
-  explicit IfStatement(Token* keyword,
-                       Expression* condition,
-                       Statement* then_statement,
-                       Statement* else_statement);
+  IfStatement(Token* keyword,
+              Expression* condition,
+              Statement* then_statement,
+              Statement* else_statement);
   ~IfStatement() final;
 
   // Node

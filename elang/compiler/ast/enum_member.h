@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_enum_member_h)
-#define INCLUDE_elang_compiler_ast_enum_member_h
+#ifndef ELANG_COMPILER_AST_ENUM_MEMBER_H_
+#define ELANG_COMPILER_AST_ENUM_MEMBER_H_
 
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/named_node.h"
 
 namespace elang {
 namespace compiler {
@@ -15,8 +15,8 @@ namespace ast {
 //
 // EnumMember
 //
-class EnumMember final : public Node {
-  DECLARE_CASTABLE_CLASS(EnumMember, Node);
+class EnumMember final : public NamedNode {
+  DECLARE_CASTABLE_CLASS(EnumMember, NamedNode);
 
   friend class NodeFactory;
 
@@ -24,7 +24,6 @@ class EnumMember final : public Node {
   ~EnumMember() final;
 
   Expression* expression() const { return expression_; }
-  Token* name() const { return token(); }
 
  private:
   EnumMember(Enum* owner, Token* name, Expression* expression);
@@ -38,4 +37,4 @@ class EnumMember final : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_enum_member_h)
+#endif  // ELANG_COMPILER_AST_ENUM_MEMBER_H_

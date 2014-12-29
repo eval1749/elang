@@ -61,6 +61,8 @@ NodeFactory::NodeFactory() {
 }
 
 NodeFactory::~NodeFactory() {
+  for (auto const node : nodes_)
+    delete node;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -350,7 +352,7 @@ YieldStatement* NodeFactory::NewYieldStatement(Token* keyword,
 // Utility
 //
 Node* NodeFactory::RememberNode(Node* node) {
-  nodes_.push_back(std::unique_ptr<Node>(node));
+  nodes_.push_back(node);
   return node;
 }
 

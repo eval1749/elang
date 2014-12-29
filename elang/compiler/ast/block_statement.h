@@ -27,8 +27,7 @@ class BlockStatement final : public Statement {
   const std::vector<Statement*>& statements() const { return statements_; }
 
  private:
-  explicit BlockStatement(Token* keyword,
-                          const std::vector<Statement*>& statements);
+  BlockStatement(Token* keyword, const std::vector<Statement*>& statements);
   ~BlockStatement() final;
 
   // Node

@@ -47,22 +47,22 @@ void Namespace::AddMember(NamespaceMember* member) {
   DCHECK_EQ(this, member->owner());
   DCHECK(!member->is<Alias>());
   // We keep first member declaration.
-  if (FindMember(member->simple_name()))
+  if (FindMember(member->name()))
     return;
-  map_[member->simple_name()->simple_name()] = member;
+  map_[member->name()->simple_name()] = member;
 }
 
 void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
   bodies_.push_back(namespace_body);
 }
 
-NamespaceMember* Namespace::FindMember(hir::SimpleName* simple_name) {
-  auto const it = map_.find(simple_name);
+NamespaceMember* Namespace::FindMember(hir::SimpleName* name) {
+  auto const it = map_.find(name);
   return it == map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* Namespace::FindMember(Token* simple_name) {
-  return FindMember(simple_name->simple_name());
+NamespaceMember* Namespace::FindMember(Token* name) {
+  return FindMember(name->simple_name());
 }
 
 // NamespaceMember

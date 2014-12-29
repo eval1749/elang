@@ -24,7 +24,6 @@ class Field final : public NamespaceMember {
   ~Field() final;
 
   Expression* expression() const { return expression_; }
-  Token* name() const { return token(); }
   Expression* type() const { return type_; }
 
  private:
