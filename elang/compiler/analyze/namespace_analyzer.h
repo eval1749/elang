@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_NAME_RESOLVER_H_
-#define ELANG_COMPILER_NAME_RESOLVER_H_
+#ifndef ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
+#define ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 
 #include <unordered_map>
 #include <unordered_set>
@@ -29,12 +29,12 @@ class NamespaceMember;
 
 //////////////////////////////////////////////////////////////////////
 //
-// NameResolver
+// NamespaceAnalyzer
 //
-class NameResolver final {
+class NamespaceAnalyzer final {
  public:
-  explicit NameResolver(CompilationSession* session);
-  ~NameResolver();
+  explicit NamespaceAnalyzer(CompilationSession* session);
+  ~NamespaceAnalyzer();
 
   bool Run();
 
@@ -67,10 +67,10 @@ class NameResolver final {
   std::unordered_set<ast::NamespaceMember*> waiting_set_;
   CompilationSession* const session_;
 
-  DISALLOW_COPY_AND_ASSIGN(NameResolver);
+  DISALLOW_COPY_AND_ASSIGN(NamespaceAnalyzer);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_NAME_RESOLVER_H_
+#endif  // ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_

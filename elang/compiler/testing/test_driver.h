@@ -38,7 +38,7 @@ class TestDriver final {
   ast::Class* FindClass(base::StringPiece name);
   ast::NamespaceMember* FindMember(base::StringPiece name);
   std::string GetErrors();
-  std::string RunNameResolver();
+  std::string RunNamespaceAnalyzer();
   std::string RunParser();
 
  private:

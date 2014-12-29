@@ -16,11 +16,11 @@ using testing::TestDriver;
 //
 // Alias resolution
 //
-TEST(NameResolverTest, AliasBasic) {
+TEST(NamespaceAnalyzerTest, AliasBasic) {
   TestDriver driver(
       "namespace N1.N2 { class A{} }"
       "namespace N3 { using C = N1.N2.A; class B : C {} }");
-  EXPECT_EQ("", driver.RunNameResolver());
+  EXPECT_EQ("", driver.RunNamespaceAnalyzer());
   auto const class_a = driver.FindClass("N1.N2.A");
   ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
   auto const class_b = driver.FindClass("N3.B");
@@ -29,11 +29,11 @@ TEST(NameResolverTest, AliasBasic) {
 }
 
 // Same as |AliasBasic|, but order of declaration is different.
-TEST(NameResolverTest, AliasLayout) {
+TEST(NamespaceAnalyzerTest, AliasLayout) {
   TestDriver driver(
       "namespace N3 { using C = N1.N2.A; class B : C {} }"
       "namespace N1.N2 { class A {} }");
-  EXPECT_EQ("", driver.RunNameResolver());
+  EXPECT_EQ("", driver.RunNamespaceAnalyzer());
   auto const class_a = driver.FindClass("N1.N2.A");
   ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
   auto const class_b = driver.FindClass("N3.B");
@@ -41,13 +41,13 @@ TEST(NameResolverTest, AliasLayout) {
   EXPECT_EQ(class_a, class_b->base_classes()[0]);
 }
 
-TEST(NameResolverTest, AliasExtent) {
+TEST(NamespaceAnalyzerTest, AliasExtent) {
   TestDriver driver(
       "using R = N1.N2;"
       "namespace N1.N2 { class A {} }"
       "namespace N3 { class B : R.A {} }"
       "namespace N3 { class C : R.A {} }");
-  EXPECT_EQ("", driver.RunNameResolver());
+  EXPECT_EQ("", driver.RunNamespaceAnalyzer());
 
   auto const class_a = driver.FindClass("N1.N2.A");
   ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
@@ -60,7 +60,7 @@ TEST(NameResolverTest, AliasExtent) {
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.
-TEST(NameResolverTest, ErrorAliasAmbiguous) {
+TEST(NamespaceAnalyzerTest, ErrorAliasAmbiguous) {
   TestDriver driver(
       "namespace N1.N2 { class A {} }"
       "namespace N3 { class A {} }"
@@ -68,19 +68,21 @@ TEST(NameResolverTest, ErrorAliasAmbiguous) {
       "  using A = N1.N2.A;"
       "  class B : A {}"  // A can be N1.N2.A or N3.A.
       "}");
-  EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n", driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n",
+            driver.RunNamespaceAnalyzer());
 }
 
 // Scope of using alias directive is limited into namespace body.
-TEST(NameResolverTest, ErrorAliasScope) {
+TEST(NamespaceAnalyzerTest, ErrorAliasScope) {
   TestDriver driver(
       "namespace N1.N2 { class A {} }"
       "namespace N3 { using R = N1.N2; }"
       "namespace N3 { class B : R.A {} }");  // Error: R unknown
-  EXPECT_EQ("NameResolution.Name.NotFound(88) R\n", driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Name.NotFound(88) R\n",
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorAliasScopeHide) {
+TEST(NamespaceAnalyzerTest, ErrorAliasScopeHide) {
   TestDriver driver(
       "using R = N1.N2;"
       "namespace N1.N2 { class A {} }"
@@ -88,10 +90,11 @@ TEST(NameResolverTest, ErrorAliasScopeHide) {
       "  class R {}"        // Class R hides alias R in toplevel.
       "  class B : R.A {}"  // Error: R has no member A.
       "}");
-  EXPECT_EQ("NameResolution.Name.NotFound(86) A\n", driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Name.NotFound(86) A\n",
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorAliasScopeResolution) {
+TEST(NamespaceAnalyzerTest, ErrorAliasScopeResolution) {
   TestDriver driver(
       "namespace N1.N2 {}"
       "namespace N3 {"
@@ -102,16 +105,16 @@ TEST(NameResolverTest, ErrorAliasScopeResolution) {
   EXPECT_EQ(
       "NameResolution.Alias.NoTarget(75) R3\n"
       "NameResolution.Name.NotFound(80) R1\n",
-      driver.RunNameResolver());
+      driver.RunNamespaceAnalyzer());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // Class resolution
 //
-TEST(NameResolverTest, ClassBasic) {
+TEST(NamespaceAnalyzerTest, ClassBasic) {
   TestDriver driver("class A : C {} class B : A {} class C {}");
-  EXPECT_EQ("", driver.RunNameResolver());
+  EXPECT_EQ("", driver.RunNamespaceAnalyzer());
 
   auto const class_a = driver.FindClass("A");
   ASSERT_TRUE(class_a) << "Not found: class A";
@@ -127,9 +130,9 @@ TEST(NameResolverTest, ClassBasic) {
   EXPECT_EQ(class_a, class_b->base_classes()[0]);
 }
 
-TEST(NameResolverTest, ClassNested) {
+TEST(NamespaceAnalyzerTest, ClassNested) {
   TestDriver driver("class A { class B {} }");
-  EXPECT_EQ("", driver.RunNameResolver());
+  EXPECT_EQ("", driver.RunNamespaceAnalyzer());
 
   auto const class_a = driver.FindClass("A");
   EXPECT_TRUE(class_a) << "Not found: class A";
@@ -138,38 +141,39 @@ TEST(NameResolverTest, ClassNested) {
   EXPECT_TRUE(class_b) << "Not found: class A.B";
 }
 
-TEST(NameResolverTest, ErrorClassBaseNotInterface) {
+TEST(NamespaceAnalyzerTest, ErrorClassBaseNotInterface) {
   TestDriver driver(
       "class A : B, C {}"  // C must be an interface.
       "class B {}"
       "class C {}");
   EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
-            driver.RunNameResolver());
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassBaseClassIsInterface) {
+TEST(NamespaceAnalyzerTest, ErrorClassBaseClassIsInterface) {
   TestDriver driver(
       "class A : B, C {}"
       "interface B {}"
       "class C {}");
   EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
-            driver.RunNameResolver());
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassBaseClassIsStruct) {
+TEST(NamespaceAnalyzerTest, ErrorClassBaseClassIsStruct) {
   TestDriver driver(
       "class A : B {}"
       "struct B {}");
   EXPECT_EQ("NameResolution.Name.NeitherClassNortInterface(10) B\n",
-            driver.RunNameResolver());
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassBaseClassIsNamespace) {
+TEST(NamespaceAnalyzerTest, ErrorClassBaseClassIsNamespace) {
   TestDriver driver("namespace N1 { class A : N1 {} }");
-  EXPECT_EQ("NameResolution.Name.NotClass(25) N1\n", driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Name.NotClass(25) N1\n",
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassCircularlyDependency) {
+TEST(NamespaceAnalyzerTest, ErrorClassCircularlyDependency) {
   TestDriver driver(
       "class A : B {}"
       "class B : C {}"
@@ -178,10 +182,10 @@ TEST(NameResolverTest, ErrorClassCircularlyDependency) {
       "NameResolution.Name.Cycle(6) A C\n"
       "NameResolution.Name.Cycle(20) B A\n"
       "NameResolution.Name.Cycle(34) C B\n",
-      driver.RunNameResolver());
+      driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassCircularlyDependencyNested) {
+TEST(NamespaceAnalyzerTest, ErrorClassCircularlyDependencyNested) {
   TestDriver driver(
       "class A : B.C {}"     // A depends on B and C.
       "class B : A {"        // B depends on A.
@@ -191,18 +195,19 @@ TEST(NameResolverTest, ErrorClassCircularlyDependencyNested) {
       "NameResolution.Name.Cycle(6) A B\n"
       "NameResolution.Name.Cycle(22) B C\n"
       "NameResolution.Name.Cycle(44) C A\n",
-      driver.RunNameResolver());
+      driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassNestedDependency) {
+TEST(NamespaceAnalyzerTest, ErrorClassNestedDependency) {
   TestDriver driver("class A { class B : A {} }");
   EXPECT_EQ("NameResolution.Class.Containing(20) A B\n",
-            driver.RunNameResolver());
+            driver.RunNamespaceAnalyzer());
 }
 
-TEST(NameResolverTest, ErrorClassSelfReference) {
+TEST(NamespaceAnalyzerTest, ErrorClassSelfReference) {
   TestDriver driver("class A : A {}");
-  EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n", driver.RunNameResolver());
+  EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n",
+            driver.RunNamespaceAnalyzer());
 }
 
 }  // namespace

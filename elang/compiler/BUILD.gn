@@ -4,6 +4,8 @@
 
 static_library("compiler") {
   sources = [
+    "analyze/namespace_analyzer.cc",
+    "analyze/namespace_analyzer.h",
     "character_stream.h",
     "character_stream.cc",
     "compilation_session.cc",
@@ -16,8 +18,6 @@ static_library("compiler") {
     "modifiers.h",
     "modifiers_builder.cc",
     "modifiers_builder.h",
-    "name_resolver.cc",
-    "name_resolver.h",
     "parser.cc",
     "parser.h",
     "parse_expression.cc",
@@ -72,8 +72,8 @@ source_set("compiler_test") {
 
 test("compiler_unittests") {
   sources = [
+    "analyze/namespace_analyzer_unittest.cc",
     "lexer_unittest.cc",
-    "name_resolver_unittest.cc",
     "parser_unittest.cc",
   ]
 

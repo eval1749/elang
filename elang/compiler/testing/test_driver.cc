@@ -7,10 +7,10 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/name_resolver.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/parser.h"
@@ -83,13 +83,13 @@ std::string TestDriver::GetErrors() {
   return stream.str();
 }
 
-std::string TestDriver::RunNameResolver() {
+std::string TestDriver::RunNamespaceAnalyzer() {
   {
     Parser parser(session_.get(), compilation_unit_.get());
     if (!parser.Run())
       return GetErrors();
   }
-  NameResolver resolver(session_.get());
+  NamespaceAnalyzer resolver(session_.get());
   return resolver.Run() ? "" : GetErrors();
 }
 

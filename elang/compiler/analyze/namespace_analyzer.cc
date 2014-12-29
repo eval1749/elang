@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/name_resolver.h"
+#include "elang/compiler/analyze/namespace_analyzer.h"
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
@@ -21,9 +21,9 @@ namespace compiler {
 //
 // ScopedResolver
 //
-class NameResolver::ScopedResolver final {
+class NamespaceAnalyzer::ScopedResolver final {
  public:
-  ScopedResolver(NameResolver* resolver, ast::NamespaceMember* member);
+  ScopedResolver(NamespaceAnalyzer* resolver, ast::NamespaceMember* member);
   ~ScopedResolver();
 
   Maybe<ast::NamespaceMember*> Resolve();
@@ -31,13 +31,13 @@ class NameResolver::ScopedResolver final {
 
  private:
   ast::NamespaceMember* member_;
-  NameResolver* const resolver_;
+  NamespaceAnalyzer* const resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(ScopedResolver);
 };
 
-NameResolver::ScopedResolver::ScopedResolver(NameResolver* resolver,
-                                             ast::NamespaceMember* member)
+NamespaceAnalyzer::ScopedResolver::ScopedResolver(NamespaceAnalyzer* resolver,
+                                                  ast::NamespaceMember* member)
     : member_(member), resolver_(resolver) {
   if (resolver_->running_set_.find(member_) == resolver_->running_set_.end()) {
     resolver_->running_stack_.push_back(member_);
@@ -54,21 +54,22 @@ NameResolver::ScopedResolver::ScopedResolver(NameResolver* resolver,
   member_ = nullptr;
 }
 
-NameResolver::ScopedResolver::~ScopedResolver() {
+NamespaceAnalyzer::ScopedResolver::~ScopedResolver() {
   if (!member_)
     return;
   resolver_->running_stack_.pop_back();
   resolver_->running_set_.erase(member_);
 }
 
-Maybe<ast::NamespaceMember*> NameResolver::ScopedResolver::Resolve() {
+Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ScopedResolver::Resolve() {
   auto const result = ResolveInternal();
   if (!result.has_value)
     resolver_->Schedule(member_);
   return result;
 }
 
-Maybe<ast::NamespaceMember*> NameResolver::ScopedResolver::ResolveInternal() {
+Maybe<ast::NamespaceMember*>
+NamespaceAnalyzer::ScopedResolver::ResolveInternal() {
   if (!member_)
     return Maybe<ast::NamespaceMember*>(nullptr);
 #if 0
@@ -93,15 +94,16 @@ Maybe<ast::NamespaceMember*> NameResolver::ScopedResolver::ResolveInternal() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NameResolver
+// NamespaceAnalyzer
 //
-NameResolver::NameResolver(CompilationSession* session) : session_(session) {
+NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session)
+    : session_(session) {
 }
 
-NameResolver::~NameResolver() {
+NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
-void NameResolver::BindAlias(ast::Alias* alias) {
+void NamespaceAnalyzer::BindAlias(ast::Alias* alias) {
   DCHECK(!alias->target());
   auto const target = ResolveQualifiedName(
       alias->outer(), alias->namespace_body()->outer(), alias->target_name());
@@ -116,7 +118,7 @@ void NameResolver::BindAlias(ast::Alias* alias) {
   alias->BindTo(target);
 }
 
-Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
+Maybe<ast::NamespaceMember*> NamespaceAnalyzer::FixClass(ast::Class* clazz) {
   if (clazz->is_fixed())
     return Maybe<ast::NamespaceMember*>(clazz);
 
@@ -200,7 +202,7 @@ Maybe<ast::NamespaceMember*> NameResolver::FixClass(ast::Class* clazz) {
 }
 
 // Builds namespace tree and schedule members to resolve.
-void NameResolver::BindMembers(ast::Namespace* enclosing_namespace) {
+void NamespaceAnalyzer::BindMembers(ast::Namespace* enclosing_namespace) {
   for (auto const body : enclosing_namespace->bodies()) {
     for (auto const alias : body->aliases())
       BindAlias(alias);
@@ -215,13 +217,13 @@ void NameResolver::BindMembers(ast::Namespace* enclosing_namespace) {
   }
 }
 
-Maybe<ast::NamespaceMember*> NameResolver::Resolve(
+Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Resolve(
     ast::NamespaceMember* member) {
   ScopedResolver resolver(this, member);
   return resolver.Resolve();
 }
 
-ast::NamespaceMember* NameResolver::ResolveLeftMostName(
+ast::NamespaceMember* NamespaceAnalyzer::ResolveLeftMostName(
     ast::Namespace* outer,
     ast::NamespaceBody* alias_namespace,
     const QualifiedName& name) {
@@ -253,7 +255,7 @@ ast::NamespaceMember* NameResolver::ResolveLeftMostName(
   return nullptr;
 }
 
-ast::NamespaceMember* NameResolver::ResolveQualifiedName(
+ast::NamespaceMember* NamespaceAnalyzer::ResolveQualifiedName(
     ast::Namespace* outer,
     ast::NamespaceBody* alias_namespace,
     const QualifiedName& name) {
@@ -282,7 +284,7 @@ ast::NamespaceMember* NameResolver::ResolveQualifiedName(
   return resolved;
 }
 
-bool NameResolver::Run() {
+bool NamespaceAnalyzer::Run() {
   BindMembers(session_->global_namespace());
   do {
     DCHECK(waiting_set_.empty());
@@ -299,7 +301,7 @@ bool NameResolver::Run() {
   return true;
 }
 
-void NameResolver::ScheduleClassTree(ast::Class* clazz) {
+void NamespaceAnalyzer::ScheduleClassTree(ast::Class* clazz) {
   if (!clazz->is_fixed())
     Schedule(clazz);
   for (auto const body : clazz->bodies()) {
@@ -312,7 +314,7 @@ void NameResolver::ScheduleClassTree(ast::Class* clazz) {
   }
 }
 
-void NameResolver::Schedule(ast::NamespaceMember* member) {
+void NamespaceAnalyzer::Schedule(ast::NamespaceMember* member) {
   if (!member->is<ast::Class>() && !member->is<ast::Alias>())
     return;
   pending_set_.insert(member);
