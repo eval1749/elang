@@ -2,47 +2,57 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/testing/test_driver.h"
-#include "testing/gtest/include/gtest/gtest.h"
+#include "elang/compiler/testing/compiler_test.h"
 
 namespace elang {
 namespace compiler {
 namespace {
 
-using testing::TestDriver;
+//////////////////////////////////////////////////////////////////////
+//
+// ParserTest
+//
+class ParserTest : public testing::CompilerTest {
+ protected:
+  ParserTest() = default;
+  ~ParserTest() override = default;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ParserTest);
+};
 
 //////////////////////////////////////////////////////////////////////
 //
 // Class
 //
-TEST(ParserTest, ClassBasic) {
-  TestDriver driver("class A : C {} class B : A {} class C {}");
-  EXPECT_EQ(
+TEST_F(ParserTest, ClassBasic) {
+  auto const source_code =
       "class A : C {\n}\n"
       "class B : A {\n}\n"
-      "class C {\n}\n",
-      driver.RunParser());
+      "class C {\n}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ClassField) {
-  TestDriver driver("class A { int x; B y = null; var z = 0; }");
-  EXPECT_EQ(
+TEST_F(ParserTest, ClassField) {
+  auto const source_code =
       "class A {\n"
       "  int x;\n"
       "  B y = null;\n"
       "  var z = 0;\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ErrorClassFieldDuplicate) {
-  TestDriver driver("class A { int x; bool x; }");
-  EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x\n", driver.RunParser());
+TEST_F(ParserTest, ErrorClassFieldDuplicate) {
+  Prepare("class A { int x; bool x; }");
+  EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x\n", Format());
 }
 
-TEST(ParserTest, ErrorClassFieldVar) {
-  TestDriver driver("class A { var x; }");
-  EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n", driver.RunParser())
+TEST_F(ParserTest, ErrorClassFieldVar) {
+  Prepare("class A { var x; }");
+  EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n", Format())
       << "var field must be initialized";
 }
 
@@ -50,47 +60,40 @@ TEST(ParserTest, ErrorClassFieldVar) {
 //
 // compilation unit
 //
-TEST(ParserTest, ErrorCompilationUnitInvalid) {
-  TestDriver driver("class A {} using R = A;");
-  EXPECT_EQ("Syntax.CompilationUnit.Invalid(11) using\n", driver.RunParser());
+TEST_F(ParserTest, ErrorCompilationUnitInvalid) {
+  Prepare("class A {} using R = A;");
+  EXPECT_EQ("Syntax.CompilationUnit.Invalid(11) using\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'break' statement
 //
-TEST(ParserTest, BreakBasic) {
-  TestDriver driver(
-      "class A {"
-      "  void Run(int x) {"
-      "    while (x) {"
-      "      break;"
-      "    }"
-      "  }"
-      "}");
-  EXPECT_EQ(
+TEST_F(ParserTest, BreakBasic) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    while (x) {\n"
       "      break;\n"
       "    }\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, BreakErrorInvalid) {
-  TestDriver driver(
-      "class A {"
-      "  void Run(int x) {"
-      "    break;"
-      "  }"
-      "}");
-  EXPECT_EQ("Syntax.Break.Invalid(40) }\n", driver.RunParser());
+TEST_F(ParserTest, BreakErrorInvalid) {
+  Prepare(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    break;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Break.Invalid(40) }\n", Format());
 }
 
-TEST(ParserTest, BreakErrorSemiColon) {
-  TestDriver driver(
+TEST_F(ParserTest, BreakErrorSemiColon) {
+  Prepare(
       "class A {"
       "  void Run(int x) {"
       "    while (x) {"
@@ -98,60 +101,53 @@ TEST(ParserTest, BreakErrorSemiColon) {
       "    }"
       "  }"
       "}");
-  EXPECT_EQ("Syntax.Break.SemiColon(58) }\n", driver.RunParser());
+  EXPECT_EQ("Syntax.Break.SemiColon(58) }\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'const' statement
 //
-TEST(ParserTest, ConstBasic) {
-  TestDriver driver("class A { void Run(int x) { const var b = 3; } }");
+TEST_F(ParserTest, ConstBasic) {
+  Prepare("class A { void Run(int x) { const var b = 3; } }");
   EXPECT_EQ(
       "class A {\n"
       "  void Run(int x) {\n"
       "    const var b = 3;\n"
       "  }\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'continue' statement
 //
-TEST(ParserTest, ContinueBasic) {
-  TestDriver driver(
-      "class A {"
-      "  void Run(int x) {"
-      "    while (x) {"
-      "      continue;"
-      "    }"
-      "  }"
-      "}");
-  EXPECT_EQ(
+TEST_F(ParserTest, ContinueBasic) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    while (x) {\n"
       "      continue;\n"
       "    }\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ContinueErrorInvalid) {
-  TestDriver driver(
+TEST_F(ParserTest, ContinueErrorInvalid) {
+  Prepare(
       "class A {"
       "  void Run(int x) {"
       "    continue;"
       "  }"
       "}");
-  EXPECT_EQ("Syntax.Continue.Invalid(43) }\n", driver.RunParser());
+  EXPECT_EQ("Syntax.Continue.Invalid(43) }\n", Format());
 }
 
-TEST(ParserTest, ContinueErrorSemiColon) {
-  TestDriver driver(
+TEST_F(ParserTest, ContinueErrorSemiColon) {
+  Prepare(
       "class A {"
       "  void Run(int x) {"
       "    while (x) {"
@@ -159,16 +155,15 @@ TEST(ParserTest, ContinueErrorSemiColon) {
       "    }"
       "  }"
       "}");
-  EXPECT_EQ("Syntax.Continue.SemiColon(61) }\n", driver.RunParser());
+  EXPECT_EQ("Syntax.Continue.SemiColon(61) }\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'do' statement
 //
-TEST(ParserTest, DoBasic) {
-  TestDriver driver("class A { void Run(int x) { do { ; foo; } while (x); } }");
-  EXPECT_EQ(
+TEST_F(ParserTest, DoBasic) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    do {\n"
@@ -176,54 +171,55 @@ TEST(ParserTest, DoBasic) {
       "      foo;\n"
       "    } while (x);\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // enum
 //
-TEST(ParserTest, EnumBasic) {
-  TestDriver driver("enum Color { Red, Green, Blue }");
+TEST_F(ParserTest, EnumBasic) {
+  Prepare("enum Color { Red, Green, Blue }");
   EXPECT_EQ(
       "enum Color {\n"
       "  Red,\n"
       "  Green,\n"
       "  Blue,\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
-TEST(ParserTest, EnumComma) {
-  TestDriver driver("enum Color { Red, Green, Blue, }");
+TEST_F(ParserTest, EnumComma) {
+  Prepare("enum Color { Red, Green, Blue, }");
   EXPECT_EQ(
       "enum Color {\n"
       "  Red,\n"
       "  Green,\n"
       "  Blue,\n"
       "}\n",
-      driver.RunParser())
+      Format())
       << "Comma following last member";
 }
 
-TEST(ParserTest, EnumValue) {
-  TestDriver driver("enum Color { Red = 3, Green = Red + 10, Blue }");
+TEST_F(ParserTest, EnumValue) {
+  Prepare("enum Color { Red = 3, Green = Red + 10, Blue }");
   EXPECT_EQ(
       "enum Color {\n"
       "  Red = 3,\n"
       "  Green = Red + 10,\n"
       "  Blue,\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'if' statement
 //
-TEST(ParserTest, IfBasic) {
-  TestDriver driver("class A { void Run(int x) { if (x) return x; } }");
+TEST_F(ParserTest, IfBasic) {
+  Prepare("class A { void Run(int x) { if (x) return x; } }");
   EXPECT_EQ(
       "class A {\n"
       "  void Run(int x) {\n"
@@ -231,21 +227,11 @@ TEST(ParserTest, IfBasic) {
       "      return x;\n"
       "  }\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
-TEST(ParserTest, IfBasicElse) {
-  TestDriver driver(
-      "class A {"
-      "  void Run(int x) {"
-      "    if (x) {"
-      "      return x;"
-      "    } else {"
-      "      return 3;"
-      "    }"
-      "  }"
-      "}");
-  EXPECT_EQ(
+TEST_F(ParserTest, IfBasicElse) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    if (x) {\n"
@@ -254,43 +240,41 @@ TEST(ParserTest, IfBasicElse) {
       "      return 3;\n"
       "    }\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // Methods
 //
-TEST(ParserTest, MethodBasic) {
-  TestDriver driver("class A { void Run(int x) { return x; } }");
+TEST_F(ParserTest, MethodBasic) {
+  Prepare("class A { void Run(int x) { return x; } }");
   EXPECT_EQ(
       "class A {\n"
       "  void Run(int x) {\n"
       "    return x;\n"
       "  }\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
-TEST(ParserTest, NamespaceAlias) {
-  TestDriver driver("namespace A { using B = N1.N2; }");
+TEST_F(ParserTest, NamespaceAlias) {
+  Prepare("namespace A { using B = N1.N2; }");
   EXPECT_EQ(
       "namespace A {\n"
       "  using B = N1.N2;\n"
       "}\n",
-      driver.RunParser());
+      Format());
 }
 
-TEST(ParserTest, NamespaceBasic) {
-  TestDriver driver(
-      "namespace A { namespace B { namespace C {} } }\n"
-      "namespace D {}");
-  EXPECT_EQ(
+TEST_F(ParserTest, NamespaceBasic) {
+  auto const source_code =
       "namespace A {\n"
       "  namespace B {\n"
       "    namespace C {\n"
@@ -298,64 +282,65 @@ TEST(ParserTest, NamespaceBasic) {
       "  }\n"
       "}\n"
       "namespace D {\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, NamespaceNestedShortcut) {
-  TestDriver driver("namespace N1.N2 { class A {} }");
-  EXPECT_EQ(
+TEST_F(ParserTest, NamespaceNestedShortcut) {
+  auto const source_code =
       "namespace N1 {\n"
       "  namespace N2 {\n"
       "    class A {\n"
       "    }\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'return' statement
 //
-TEST(ParserTest, ReturnBasic) {
-  TestDriver driver("class A { void Run(int x) { return; } }");
-  EXPECT_EQ(
+TEST_F(ParserTest, ReturnBasic) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    return;\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ReturnExpression) {
-  TestDriver driver("class A { void Run(int x) { return 1; } }");
-  EXPECT_EQ(
+TEST_F(ParserTest, ReturnExpression) {
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    return 1;\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'throw' statement
 //
-TEST(ParserTest, ThrowBasic) {
+TEST_F(ParserTest, ThrowBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    throw 1;\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ThrowNoExpression) {
+TEST_F(ParserTest, ThrowNoExpression) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -366,13 +351,13 @@ TEST(ParserTest, ThrowNoExpression) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, ThrowInvalid) {
-  TestDriver driver("class A { void Run(int x) { throw; } }");
-  EXPECT_EQ("Syntax.Throw.Invalid(35) }\n", driver.RunParser())
+TEST_F(ParserTest, ThrowInvalid) {
+  Prepare("class A { void Run(int x) { throw; } }");
+  EXPECT_EQ("Syntax.Throw.Invalid(35) }\n", Format())
       << "We can't omit expression outside 'catch' statement.";
 }
 
@@ -380,7 +365,7 @@ TEST(ParserTest, ThrowInvalid) {
 //
 // 'try' statement
 //
-TEST(ParserTest, TryBasic) {
+TEST_F(ParserTest, TryBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -391,11 +376,11 @@ TEST(ParserTest, TryBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, TryCatches) {
+TEST_F(ParserTest, TryCatches) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -408,11 +393,11 @@ TEST(ParserTest, TryCatches) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, TryCatcheFinally) {
+TEST_F(ParserTest, TryCatcheFinally) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -425,11 +410,11 @@ TEST(ParserTest, TryCatcheFinally) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
-TEST(ParserTest, TryFinally) {
+TEST_F(ParserTest, TryFinally) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -440,30 +425,30 @@ TEST(ParserTest, TryFinally) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'var' statement
 //
-TEST(ParserTest, VarBasic) {
+TEST_F(ParserTest, VarBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    var a, b = 3;\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'using' statement
 //
-TEST(ParserTest, UsingBasic) {
+TEST_F(ParserTest, UsingBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -472,15 +457,15 @@ TEST(ParserTest, UsingBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'using' statement
 //
-TEST(ParserTest, UsingVar) {
+TEST_F(ParserTest, UsingVar) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -489,15 +474,15 @@ TEST(ParserTest, UsingVar) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'while' statement
 //
-TEST(ParserTest, WhileBasic) {
+TEST_F(ParserTest, WhileBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
@@ -506,23 +491,23 @@ TEST(ParserTest, WhileBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // 'yield' statement
 //
-TEST(ParserTest, YieldBasic) {
+TEST_F(ParserTest, YieldBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    yield x;\n"
       "  }\n"
       "}\n";
-  TestDriver driver(source_code);
-  EXPECT_EQ(source_code, driver.RunParser());
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 }  // namespace
