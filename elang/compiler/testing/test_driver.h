@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_testing_compiler_test_h)
-#define INCLUDE_elang_compiler_testing_compiler_test_h
+#ifndef ELANG_COMPILER_TESTING_TEST_DRIVER_H_
+#define ELANG_COMPILER_TESTING_TEST_DRIVER_H_
 
 #include <memory>
 #include <string>
@@ -23,6 +23,8 @@ class CompilationSession;
 class CompilationUnit;
 class Parser;
 class StringSourceCode;
+
+namespace testing {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -47,8 +49,8 @@ class TestDriver final {
   DISALLOW_COPY_AND_ASSIGN(TestDriver);
 };
 
+}  // namespace testing
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_testing_compiler_test_h)
-
+#endif  // ELANG_COMPILER_TESTING_TEST_DRIVER_H_

@@ -10,6 +10,8 @@ namespace elang {
 namespace compiler {
 namespace {
 
+using testing::TestDriver;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Alias resolution
