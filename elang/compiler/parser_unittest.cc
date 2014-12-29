@@ -92,6 +92,21 @@ TEST(ParserTest, BreakErrorSemiColon) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'const' statement
+//
+TEST(ParserTest, ConstBasic) {
+  TestDriver driver("class A { void Run(int x) { const var b = 3; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    const var b = 3;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'continue' statement
 //
 TEST(ParserTest, ContinueBasic) {

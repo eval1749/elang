@@ -27,10 +27,10 @@ class Statement : public Node {
  public:
   ~Statement() override;
 
-  Token* op() const { return token(); }
+  Token* keyword() const { return token(); }
 
  protected:
-  explicit Statement(Token* op);
+  explicit Statement(Token* keyword);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Statement);

@@ -121,6 +121,7 @@ class Parser final {
   ast::LocalVariable* FindVariable(Token* token) const;
   bool ParseBlockStatement(Token* keyword);
   bool ParseBreakStatement(Token* keyword);
+  bool ParseConstStatement(Token* keyword);
   bool ParseContinueStatement(Token* keyword);
   bool ParseDoStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);

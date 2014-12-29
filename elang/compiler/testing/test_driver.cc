@@ -440,6 +440,8 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
 }
 
 void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
+  if (var_statement->keyword() == TokenType::Const)
+    stream_ << "const ";
   auto is_first = true;
   for (auto const var : var_statement->variables()) {
     if (is_first) {

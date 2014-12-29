@@ -172,6 +172,34 @@ bool Parser::ParseBreakStatement(Token* break_keyword) {
   return true;
 }
 
+// ConstStatement ::= 'const' ('var' | Type) (Name '=' Expression)+ ';'
+bool Parser::ParseConstStatement(Token* const_keyword) {
+  DCHECK_EQ(const_keyword, TokenType::Const);
+  auto type = static_cast<ast::Expression*>(nullptr);
+  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
+    type = factory()->NewNameReference(var_keyword);
+  } else if (ParseType()) {
+    type = ConsumeType();
+  }
+  std::vector<ast::LocalVariable*> variables;
+  while (PeekToken()->is_name()) {
+    auto const name = ConsumeToken();
+    if (AdvanceIf(TokenType::Assign) && ParseExpression()) {
+      auto const expression = ConsumeExpression();
+      variables.push_back(
+          factory()->NewLocalVariable(const_keyword, type, name, expression));
+    }
+    if (!AdvanceIf(TokenType::Comma))
+      break;
+  }
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxVarSemiColon);
+  if (variables.empty())
+    Error(ErrorCode::SyntaxVarInvalid);
+  ProduceStatement(factory()->NewVarStatement(const_keyword, variables));
+  return true;
+}
+
 bool Parser::ParseContinueStatement(Token* continue_keyword) {
   DCHECK_EQ(continue_keyword, TokenType::Continue);
   ProduceStatement(factory()->NewContinueStatement(continue_keyword));
@@ -393,6 +421,9 @@ bool Parser::ParseStatement() {
 
   if (auto const break_keyword = ConsumeTokenIf(TokenType::Break))
     return ParseBreakStatement(break_keyword);
+
+  if (auto const const_keyword = ConsumeTokenIf(TokenType::Const))
+    return ParseConstStatement(const_keyword);
 
   if (auto const continue_keyword = ConsumeTokenIf(TokenType::Continue))
     return ParseContinueStatement(continue_keyword);
