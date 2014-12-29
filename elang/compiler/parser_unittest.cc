@@ -92,6 +92,52 @@ TEST(ParserTest, BreakErrorSemiColon) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'continue' statement
+//
+TEST(ParserTest, ContinueBasic) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    while (x) {"
+      "      continue;"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    while (x) {\n"
+      "      continue;\n"
+      "    }\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, ContinueErrorInvalid) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    continue;"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Continue.Invalid(43) }\n", driver.RunParser());
+}
+
+TEST(ParserTest, ContinueErrorSemiColon) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    while (x) {"
+      "      continue"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Continue.SemiColon(61) }\n", driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'do' statement
 //
 TEST(ParserTest, DoBasic) {

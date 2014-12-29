@@ -41,6 +41,7 @@ namespace ast {
   V(BlockStatement)            \
   V(BreakStatement)            \
   V(DoStatement)               \
+  V(ContinueStatement)         \
   V(EmptyStatement)            \
   V(ExpressionStatement)       \
   V(IfStatement)               \

@@ -22,6 +22,8 @@ static_library("ast") {
     "conditional.h",
     "constructed_type.cc",
     "constructed_type.h",
+    "continue_statement.cc",
+    "continue_statement.h",
     "do_statement.cc",
     "do_statement.h",
     "empty_statement.cc",

@@ -12,6 +12,7 @@
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/continue_statement.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
 #include "elang/compiler/ast/expression_statement.h"
@@ -168,6 +169,19 @@ bool Parser::ParseBreakStatement(Token* break_keyword) {
       return true;
   }
   Error(ErrorCode::SyntaxBreakInvalid);
+  return true;
+}
+
+bool Parser::ParseContinueStatement(Token* continue_keyword) {
+  DCHECK_EQ(continue_keyword, TokenType::Continue);
+  ProduceStatement(factory()->NewContinueStatement(continue_keyword));
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxContinueSemiColon);
+  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
+    if (scope->IsLoop())
+      return true;
+  }
+  Error(ErrorCode::SyntaxContinueInvalid);
   return true;
 }
 
@@ -330,7 +344,7 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 // Parses statement in following grammar:
 //    BlockStatement
 //    BreakStatement
-//    ContinueStatement NYI
+//    ContinueStatement
 //    DoStatement
 //    EmptyStatement
 //    ExpressionStatement
@@ -351,6 +365,9 @@ bool Parser::ParseStatement() {
 
   if (auto const break_keyword = ConsumeTokenIf(TokenType::Break))
     return ParseBreakStatement(break_keyword);
+
+  if (auto const continue_keyword = ConsumeTokenIf(TokenType::Continue))
+    return ParseContinueStatement(continue_keyword);
 
   if (auto const do_keyword = ConsumeTokenIf(TokenType::Do))
     return ParseDoStatement(do_keyword);

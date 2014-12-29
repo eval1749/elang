@@ -56,6 +56,9 @@ namespace compiler {
   /* Break */                                         \
   E(Syntax, Break, Invalid)                           \
   E(Syntax, Break, SemiColon)                         \
+  /* Continue */                                      \
+  E(Syntax, Continue, Invalid)                        \
+  E(Syntax, Continue, SemiColon)                      \
   /* Do */                                            \
   E(Syntax, Do, LeftParenthesis)                      \
   E(Syntax, Do, RightParenthesis)                     \

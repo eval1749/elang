@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
+#include "elang/compiler/ast/continue_statement.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
 #include "elang/compiler/ast/expression_statement.h"
@@ -223,6 +224,12 @@ BlockStatement* NodeFactory::NewBlockStatement(
 
 BreakStatement* NodeFactory::NewBreakStatement(Token* keyword) {
   auto const node = new BreakStatement(keyword);
+  RememberNode(node);
+  return node;
+}
+
+ContinueStatement* NodeFactory::NewContinueStatement(Token* keyword) {
+  auto const node = new ContinueStatement(keyword);
   RememberNode(node);
   return node;
 }
