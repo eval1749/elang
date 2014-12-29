@@ -20,7 +20,8 @@ LocalVariable::LocalVariable(Token* keyword,
                              Token* name,
                              Expression* value)
     : Node(name), keyword_(keyword), type_(type), value_(value) {
-  DCHECK(!keyword || keyword == TokenType::Const);
+  DCHECK(!keyword || keyword == TokenType::Const ||
+         keyword == TokenType::Catch);
 }
 
 LocalVariable::~LocalVariable() {

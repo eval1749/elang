@@ -56,6 +56,10 @@ namespace compiler {
   /* Break */                                         \
   E(Syntax, Break, Invalid)                           \
   E(Syntax, Break, SemiColon)                         \
+  /* Catch */                                         \
+  E(Syntax, Catch, LeftCurryBracket)                  \
+  E(Syntax, Catch, LeftParenthesis)                   \
+  E(Syntax, Catch, RightParenthesis)                  \
   /* Continue */                                      \
   E(Syntax, Continue, Invalid)                        \
   E(Syntax, Continue, SemiColon)                      \
@@ -64,6 +68,8 @@ namespace compiler {
   E(Syntax, Do, RightParenthesis)                     \
   E(Syntax, Do, SemiColon)                            \
   E(Syntax, Do, While)                                \
+  /* Finally */                                       \
+  E(Syntax, Finally, LeftCurryBracket)                \
   /* If */                                            \
   E(Syntax, If, LeftParenthesis)                      \
   E(Syntax, If, RightParenthesis)                     \
@@ -97,6 +103,8 @@ namespace compiler {
   E(Syntax, UsingDirective, Invalid)                  \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
+  /* Try */                                           \
+  E(Syntax, Try, LeftCurryBracket)                    \
   /* Var */                                           \
   E(Syntax, Var, Invalid)                             \
   E(Syntax, Var, SemiColon)                           \

@@ -47,6 +47,7 @@ namespace ast {
   V(IfStatement)               \
   V(ReturnStatement)           \
   V(ThrowStatement)            \
+  V(TryStatement)              \
   V(VarStatement)              \
   V(WhileStatement)            \
   V(YieldStatement)
@@ -64,6 +65,7 @@ namespace ast {
 AST_NODE_LIST(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
+class CatchClause;
 class EnumMember;
 class Expression;
 class LocalVariable;

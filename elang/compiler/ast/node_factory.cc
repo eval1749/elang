@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
+#include "elang/compiler/ast/catch_clause.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -32,6 +33,7 @@
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/throw_statement.h"
+#include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -230,6 +232,15 @@ BreakStatement* NodeFactory::NewBreakStatement(Token* keyword) {
   return node;
 }
 
+CatchClause* NodeFactory::NewCatchClause(Token* keyword,
+                                         Expression* type,
+                                         LocalVariable* variable,
+                                         BlockStatement* block) {
+  auto const node = new CatchClause(keyword, type, variable, block);
+  RememberNode(node);
+  return node;
+}
+
 ContinueStatement* NodeFactory::NewContinueStatement(Token* keyword) {
   auto const node = new ContinueStatement(keyword);
   RememberNode(node);
@@ -286,6 +297,17 @@ ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
 ThrowStatement* NodeFactory::NewThrowStatement(Token* keyword,
                                                Expression* value) {
   auto const node = new ThrowStatement(keyword, value);
+  RememberNode(node);
+  return node;
+}
+
+TryStatement* NodeFactory::NewTryStatement(
+    Token* keyword,
+    BlockStatement* protected_block,
+    const std::vector<CatchClause*>& catch_clauses,
+    BlockStatement* finally_block) {
+  auto const node =
+      new TryStatement(keyword, protected_block, catch_clauses, finally_block);
   RememberNode(node);
   return node;
 }

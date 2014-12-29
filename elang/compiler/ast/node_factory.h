@@ -86,6 +86,10 @@ class NodeFactory final {
   BlockStatement* NewBlockStatement(Token* keyword,
                                     const std::vector<Statement*> statements);
   BreakStatement* NewBreakStatement(Token* keyword);
+  CatchClause* NewCatchClause(Token* keyword,
+                              Expression* type,
+                              LocalVariable* variable,
+                              BlockStatement* block);
   ContinueStatement* NewContinueStatement(Token* keyword);
   DoStatement* NewDoStatement(Token* keyword,
                               Statement* statement,
@@ -102,6 +106,10 @@ class NodeFactory final {
                                   Expression* expression);
   ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
   ThrowStatement* NewThrowStatement(Token* keyword, Expression* value);
+  TryStatement* NewTryStatement(Token* keyword,
+                                BlockStatement* protected_block,
+                                const std::vector<CatchClause*>& catch_clauses,
+                                BlockStatement* finally_block);
   VarStatement* NewVarStatement(Token* keyword,
                                 const std::vector<LocalVariable*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,

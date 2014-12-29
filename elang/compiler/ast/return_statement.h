@@ -25,7 +25,7 @@ class ReturnStatement final : public Statement {
   Expression* value() const { return value_; }
 
  private:
-  explicit ReturnStatement(Token* keyword, Expression* value);
+  ReturnStatement(Token* keyword, Expression* value);
   ~ReturnStatement() final;
 
   // Node

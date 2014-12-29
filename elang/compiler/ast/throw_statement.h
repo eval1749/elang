@@ -25,7 +25,7 @@ class ThrowStatement final : public Statement {
   Expression* value() const { return value_; }
 
  private:
-  explicit ThrowStatement(Token* keyword, Expression* value);
+  ThrowStatement(Token* keyword, Expression* value);
   ~ThrowStatement() final;
 
   // Node

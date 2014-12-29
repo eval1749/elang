@@ -29,8 +29,7 @@ class VarStatement final : public Statement {
   const std::vector<LocalVariable*>& variables() const { return variables_; }
 
  private:
-  explicit VarStatement(Token* name,
-                        const std::vector<LocalVariable*>& variables);
+  VarStatement(Token* name, const std::vector<LocalVariable*>& variables);
 
   // Node
   void Accept(Visitor* visitor) override;

@@ -12,6 +12,7 @@
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/catch_clause.h"
 #include "elang/compiler/ast/continue_statement.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
@@ -25,6 +26,7 @@
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/throw_statement.h"
+#include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -364,6 +366,60 @@ bool Parser::ParseThrowStatement(Token* throw_keyword) {
   return true;
 }
 
+// TryStatement ::= 'try' Block CatchClause* ('finally' Block)?
+bool Parser::ParseTryStatement(Token* try_keyword) {
+  DCHECK_EQ(try_keyword, TokenType::Try);
+  if (PeekToken() != TokenType::LeftCurryBracket) {
+    Error(ErrorCode::SyntaxTryLeftCurryBracket);
+    return false;
+  }
+  if (!ParseStatement())
+    return false;
+
+  auto const protected_block = ConsumeStatement()->as<ast::BlockStatement>();
+
+  // Parser 'catch' '(' Type Name? ')' Block
+  std::vector<ast::CatchClause*> catch_clauses;
+  while (auto const catch_keyword = ConsumeTokenIf(TokenType::Catch)) {
+    if (!AdvanceIf(TokenType::LeftParenthesis))
+      Error(ErrorCode::SyntaxCatchLeftParenthesis);
+    if (!ParseType())
+      continue;
+    auto const catch_type = ConsumeType();
+    auto catch_var = static_cast<ast::LocalVariable*>(nullptr);
+    StatementScope catch_scope(this, catch_keyword);
+    LocalDeclarationSpace catch_var_scope(this, catch_keyword);
+    if (PeekToken()->is_name()) {
+      auto const catch_name = ConsumeToken();
+      catch_var = factory()->NewLocalVariable(catch_keyword, catch_type,
+                                              catch_name, nullptr);
+      catch_var_scope.AddVariable(catch_var);
+    }
+    if (!AdvanceIf(TokenType::RightParenthesis))
+      Error(ErrorCode::SyntaxCatchRightParenthesis);
+    if (PeekToken() != TokenType::LeftCurryBracket)
+      Error(ErrorCode::SyntaxCatchLeftCurryBracket);
+    if (!ParseStatement())
+      continue;
+    auto const catch_block = ConsumeStatement()->as<ast::BlockStatement>();
+    catch_clauses.push_back(
+        factory()->NewCatchClause(catch_keyword, catch_type, catch_var,
+                                  catch_block));
+  }
+
+  // Parser 'finally' Block
+  auto finally_block = static_cast<ast::BlockStatement*>(nullptr);
+  if (AdvanceIf(TokenType::Finally)) {
+    if (PeekToken() != TokenType::LeftCurryBracket)
+      Error(ErrorCode::SyntaxFinallyLeftCurryBracket);
+    if (ParseStatement())
+      finally_block = ConsumeStatement()->as<ast::BlockStatement>();
+  }
+  ProduceStatement(factory()->NewTryStatement(try_keyword, protected_block,
+                                              catch_clauses, finally_block));
+  return true;
+}
+
 // VarStatement ::= 'var' VarDecl (',' VarDecl)* ';'
 // VarDecl ::= Name ('=' Expression')
 bool Parser::ParseVarStatement(Token* var_keyword) {
@@ -433,10 +489,11 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 //    ForEachStatement NYI
 //    GotoEachStatement NYI
 //    IfStatement
+//    LabeledStatement NYI
 //    ReturnStatement
 //    SwitchStatement NYI
 //    ThrowStatement
-//    TryStatement NYI
+//    TryStatement
 //    UsingStatement NYI
 //    VarStatement
 //    WhileStatement
@@ -465,6 +522,9 @@ bool Parser::ParseStatement() {
 
   if (auto const throw_keyword = ConsumeTokenIf(TokenType::Throw))
     return ParseThrowStatement(throw_keyword);
+
+  if (auto const try_keyword = ConsumeTokenIf(TokenType::Try))
+    return ParseTryStatement(try_keyword);
 
   if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
     return ParseVarStatement(var_keyword);

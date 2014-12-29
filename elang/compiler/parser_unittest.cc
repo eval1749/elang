@@ -334,14 +334,29 @@ TEST(ParserTest, ReturnExpression) {
 // 'throw' statement
 //
 TEST(ParserTest, ThrowBasic) {
-  TestDriver driver("class A { void Run(int x) { throw 1; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    throw 1;\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+TEST(ParserTest, ThrowNoExpression) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    try {\n"
+      "      return 1;\n"
+      "    } catch (E1) {\n"
+      "      throw;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
 }
 
 TEST(ParserTest, ThrowInvalid) {
@@ -352,17 +367,85 @@ TEST(ParserTest, ThrowInvalid) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'try' statement
+//
+TEST(ParserTest, TryBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    try {\n"
+      "      return x;\n"
+      "    } catch (E y) {\n"
+      "      return 3;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+TEST(ParserTest, TryCatches) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    try {\n"
+      "      return x;\n"
+      "    } catch (E1 y) {\n"
+      "      return 1;\n"
+      "    } catch (E2) {\n"
+      "      return 2;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+TEST(ParserTest, TryCatcheFinally) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    try {\n"
+      "      return x;\n"
+      "    } catch (E1 y) {\n"
+      "      return 1;\n"
+      "    } finally {\n"
+      "      return 2;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+TEST(ParserTest, TryFinally) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    try {\n"
+      "      return x;\n"
+      "    } finally {\n"
+      "      return 2;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'var' statement
 //
 TEST(ParserTest, VarBasic) {
-  TestDriver driver("class A { void Run(int x) { var a, b = 3; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    var a, b = 3;\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -370,16 +453,16 @@ TEST(ParserTest, VarBasic) {
 // 'while' statement
 //
 TEST(ParserTest, WhileBasic) {
-  TestDriver driver("class A { void Run(int x) { while (x) { foo; } } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    while (x) {\n"
       "      foo;\n"
       "    }\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -387,14 +470,14 @@ TEST(ParserTest, WhileBasic) {
 // 'yield' statement
 //
 TEST(ParserTest, YieldBasic) {
-  TestDriver driver("class A { void Run(int x) { yield x; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    yield x;\n"
       "  }\n"
-      "}\n",
-      driver.RunParser());
+      "}\n";
+  TestDriver driver(source_code);
+  EXPECT_EQ(source_code, driver.RunParser());
 }
 
 }  // namespace

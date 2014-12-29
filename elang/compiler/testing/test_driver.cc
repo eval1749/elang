@@ -15,6 +15,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
+#include "elang/compiler/ast/catch_clause.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -37,6 +38,7 @@
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/return_statement.h"
 #include "elang/compiler/ast/throw_statement.h"
+#include "elang/compiler/ast/try_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -420,22 +422,40 @@ void Formatter::VisitNamespace(ast::Namespace* ns) {
   }
 }
 
-void Formatter::VisitReturnStatement(ast::ReturnStatement* statement) {
+void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {
   stream_ << "return";
-  if (auto const value = statement->value()) {
+  if (auto const value = return_statement->value()) {
     stream_ << " ";
     Visit(value);
   }
   stream_ << ";";
 }
 
-void Formatter::VisitThrowStatement(ast::ThrowStatement* statement) {
+void Formatter::VisitThrowStatement(ast::ThrowStatement* throw_statement) {
   stream_ << "throw";
-  if (auto const value = statement->value()) {
+  if (auto const value = throw_statement->value()) {
     stream_ << " ";
     Visit(value);
   }
   stream_ << ";";
+}
+
+void Formatter::VisitTryStatement(ast::TryStatement* try_statement) {
+  stream_ << "try ";
+  Visit(try_statement->protected_block());
+  for (auto const catch_clause : try_statement->catch_clauses()) {
+    stream_ << " catch (";
+    Visit(catch_clause->type());
+    if (auto const variable = catch_clause->variable())
+      stream_ << " " << variable->name();
+    stream_ << ") ";
+    Visit(catch_clause->block());
+  }
+  auto const finally_block = try_statement->finally_block();
+  if (!finally_block)
+    return;
+  stream_ << " finally ";
+  Visit(finally_block);
 }
 
 void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
