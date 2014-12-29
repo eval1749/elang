@@ -2,10 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/compiler/testing/test_driver.h"
 
 #include "base/logging.h"
 #include "base/macros.h"
+#include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/ast/class.h"
@@ -24,6 +27,23 @@
 namespace elang {
 namespace compiler {
 namespace testing {
+
+namespace {
+std::string GetQualifiedName(ast::NamespaceMember* member) {
+  std::vector<Token*> names;
+  names.push_back(member->name());
+  for (auto ns = member->outer(); ns && ns->outer(); ns = ns->outer())
+    names.push_back(ns->name());
+  std::reverse(names.begin(), names.end());
+  std::stringstream stream;
+  const char* separator = "";
+  for (auto const name : names) {
+    stream << separator << name;
+    separator = ".";
+  }
+  return stream.str();
+}
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -63,6 +83,22 @@ ast::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
     pos = dot_pos;
   }
   return found;
+}
+
+std::string TestDriver::GetBaseClasses(base::StringPiece name) {
+  auto const member = FindMember(name);
+  if (!member)
+    return base::StringPrintf("No such class %s", name);
+  auto const clazz = member->as<ast::Class>();
+  if (!clazz)
+    return base::StringPrintf("%s isn't class", name);
+  std::stringstream stream;
+  const char* separator = "";
+  for (auto base_class : clazz->base_classes()) {
+    stream << separator << GetQualifiedName(base_class);
+    separator = ", ";
+  }
+  return stream.str();
 }
 
 std::string TestDriver::GetErrors() {

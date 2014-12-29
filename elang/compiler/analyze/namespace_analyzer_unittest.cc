@@ -21,11 +21,7 @@ TEST(NamespaceAnalyzerTest, AliasBasic) {
       "namespace N1.N2 { class A{} }"
       "namespace N3 { using C = N1.N2.A; class B : C {} }");
   EXPECT_EQ("", driver.RunNamespaceAnalyzer());
-  auto const class_a = driver.FindClass("N1.N2.A");
-  ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
-  auto const class_b = driver.FindClass("N3.B");
-  ASSERT_TRUE(class_b) << "Not found class N3.B";
-  EXPECT_EQ(class_a, class_b->base_classes()[0]);
+  EXPECT_EQ("N1.N2.A", driver.GetBaseClasses("N3.B"));
 }
 
 // Same as |AliasBasic|, but order of declaration is different.
@@ -34,11 +30,7 @@ TEST(NamespaceAnalyzerTest, AliasLayout) {
       "namespace N3 { using C = N1.N2.A; class B : C {} }"
       "namespace N1.N2 { class A {} }");
   EXPECT_EQ("", driver.RunNamespaceAnalyzer());
-  auto const class_a = driver.FindClass("N1.N2.A");
-  ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
-  auto const class_b = driver.FindClass("N3.B");
-  ASSERT_TRUE(class_b) << "Not found class N3.B";
-  EXPECT_EQ(class_a, class_b->base_classes()[0]);
+  EXPECT_EQ("N1.N2.A", driver.GetBaseClasses("N3.B"));
 }
 
 TEST(NamespaceAnalyzerTest, AliasExtent) {
@@ -48,15 +40,20 @@ TEST(NamespaceAnalyzerTest, AliasExtent) {
       "namespace N3 { class B : R.A {} }"
       "namespace N3 { class C : R.A {} }");
   EXPECT_EQ("", driver.RunNamespaceAnalyzer());
+  EXPECT_EQ("N1.N2.A", driver.GetBaseClasses("N3.B"));
+  EXPECT_EQ("N1.N2.A", driver.GetBaseClasses("N3.C"));
+}
 
-  auto const class_a = driver.FindClass("N1.N2.A");
-  ASSERT_TRUE(class_a) << "Not found class N1.N2.A";
-  auto const class_b = driver.FindClass("N3.B");
-  ASSERT_TRUE(class_b) << "Not found class N3.B";
-  auto const class_c = driver.FindClass("N3.C");
-  ASSERT_TRUE(class_c) << "Not found class N3.C";
-  EXPECT_EQ(class_a, class_b->base_classes()[0]);
-  EXPECT_EQ(class_a, class_c->base_classes()[0]);
+TEST(NamespaceAnalyzerTest, AliasToAlias) {
+  TestDriver driver(
+      "using R1 = A.B;"
+      "class A { class B { class C {} } }"
+      "namespace N1 {"
+      "  using R2 = R1;"
+      "  class D : R2.C {}"
+      "}");
+  ASSERT_EQ("", driver.RunNamespaceAnalyzer());
+  EXPECT_EQ("A.B.C", driver.GetBaseClasses("N1.D"));
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.
@@ -115,30 +112,15 @@ TEST(NamespaceAnalyzerTest, ErrorAliasScopeResolution) {
 TEST(NamespaceAnalyzerTest, ClassBasic) {
   TestDriver driver("class A : C {} class B : A {} class C {}");
   EXPECT_EQ("", driver.RunNamespaceAnalyzer());
-
-  auto const class_a = driver.FindClass("A");
-  ASSERT_TRUE(class_a) << "Not found: class A";
-
-  auto const class_b = driver.FindClass("B");
-  ASSERT_TRUE(class_b) << "Not found: class B";
-
-  auto const class_c = driver.FindClass("C");
-  ASSERT_TRUE(class_c) << "Not found: class C";
-
-  // Check class hierarchy
-  EXPECT_EQ(class_c, class_a->base_classes()[0]);
-  EXPECT_EQ(class_a, class_b->base_classes()[0]);
+  EXPECT_EQ("C", driver.GetBaseClasses("A"));
+  EXPECT_EQ("A", driver.GetBaseClasses("B"));
 }
 
 TEST(NamespaceAnalyzerTest, ClassNested) {
   TestDriver driver("class A { class B {} }");
   EXPECT_EQ("", driver.RunNamespaceAnalyzer());
-
-  auto const class_a = driver.FindClass("A");
-  EXPECT_TRUE(class_a) << "Not found: class A";
-
-  auto const class_b = driver.FindClass("A.B");
-  EXPECT_TRUE(class_b) << "Not found: class A.B";
+  EXPECT_EQ("", driver.GetBaseClasses("A"));
+  EXPECT_EQ("", driver.GetBaseClasses("A.B"));
 }
 
 TEST(NamespaceAnalyzerTest, ErrorClassBaseNotInterface) {
