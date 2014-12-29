@@ -65,6 +65,20 @@ TEST_F(NamespaceAnalyzerTest, AliasToAlias) {
   EXPECT_EQ("A.B.C", GetBaseClasses("N1.D"));
 }
 
+TEST_F(NamespaceAnalyzerTest, AliasToAliasDeep) {
+  Prepare(
+      "using R1 = N1.N2.A.B;"
+      "namespace N1 {"
+      "  using R2 = R1;"
+      "  class D : R2.C {}"
+      "  namespace N2 {"
+      "     class A { class B { class C {} } }"
+      "  }"
+      "}");
+  ASSERT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("N1.N2.A.B.C", GetBaseClasses("N1.D"));
+}
+
 // Note: MS C# compiler doesn't report error if alias A isn't used.
 TEST_F(NamespaceAnalyzerTest, ErrorAliasAmbiguous) {
   Prepare(
