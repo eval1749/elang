@@ -42,6 +42,8 @@ static_library("ast") {
     "if_statement.h",
     "literal.cc",
     "literal.h",
+    "local_variable.cc",
+    "local_variable.h",
     "member_access.cc",
     "member_access.h",
     "method.cc",

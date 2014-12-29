@@ -16,6 +16,7 @@ namespace compiler {
 
 namespace ast {
 class Expression;
+class LocalVariable;
 class Namespace;
 class NamespaceBody;
 class NamespaceMember;
@@ -117,7 +118,7 @@ class Parser final {
   class LocalDeclarationSpace;
   class StatementScope;
   ast::Statement* ConsumeStatement();
-  ast::VarStatement* FindVariable(Token* token) const;
+  ast::LocalVariable* FindVariable(Token* token) const;
   bool ParseBlockStatement(Token* keyword);
   bool ParseBreakStatement(Token* keyword);
   bool ParseContinueStatement(Token* keyword);
@@ -130,6 +131,7 @@ class Parser final {
   bool ParseReturnStatement(Token* keyword);
   bool ParseStatement();
   bool ParseWhileStatement(Token* keyword);
+  bool ParseVarStatement(Token* keyword);
   bool ParseYieldStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);
 

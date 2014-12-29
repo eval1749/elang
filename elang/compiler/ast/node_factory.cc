@@ -23,6 +23,7 @@
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
@@ -114,7 +115,7 @@ Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
                                Expression* type,
                                Token* name,
                                const std::vector<Token*>& type_parameters,
-                               const std::vector<VarStatement*>& parameters) {
+                               const std::vector<LocalVariable*>& parameters) {
   auto const node = new Method(namespace_body, method_group, modifies, type,
                                name, type_parameters, parameters);
   RememberNode(node);
@@ -265,6 +266,15 @@ IfStatement* NodeFactory::NewIfStatement(Token* keyword,
   return node;
 }
 
+LocalVariable* NodeFactory::NewLocalVariable(Token* keyword,
+                                             Expression* type,
+                                             Token* name,
+                                             Expression* value) {
+  auto const node = new LocalVariable(keyword, type, name, value);
+  RememberNode(node);
+  return node;
+}
+
 ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
                                                  Expression* value) {
   auto const node = new ReturnStatement(keyword, value);
@@ -272,10 +282,10 @@ ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
   return node;
 }
 
-VarStatement* NodeFactory::NewVarStatement(Expression* type,
-                                           Token* name,
-                                           Expression* value) {
-  auto const node = new VarStatement(type, name, value);
+VarStatement* NodeFactory::NewVarStatement(
+    Token* keyword,
+    const std::vector<ast::LocalVariable*>& variables) {
+  auto const node = new VarStatement(keyword, variables);
   RememberNode(node);
   return node;
 }

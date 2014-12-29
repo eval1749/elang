@@ -26,7 +26,7 @@ class Method final : public Node {
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
   Token* name() const { return token(); }
-  const std::vector<VarStatement*>& parameters() const { return parameters_; }
+  const std::vector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
 
   // Returns method body. Its is null when parsing is failed or |extern|
@@ -48,13 +48,13 @@ class Method final : public Node {
          Expression* return_type,
          Token* name,
          const std::vector<Token*>& type_parameters,
-         const std::vector<VarStatement*>& parameters);
+         const std::vector<LocalVariable*>& parameters);
   ~Method() final;
 
   MethodGroup* const method_group_;
   const Modifiers modifiers_;
   NamespaceBody* const namespace_body_;
-  const std::vector<VarStatement*> parameters_;
+  const std::vector<LocalVariable*> parameters_;
   Expression* const return_type_;
   Statement* statement_;
   const std::vector<Token*> type_parameters_;

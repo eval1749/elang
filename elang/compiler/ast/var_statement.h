@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_AST_VAR_STATEMENT_H_
 #define ELANG_COMPILER_AST_VAR_STATEMENT_H_
 
+#include <vector>
+
 #include "elang/compiler/ast/statement.h"
 
 namespace elang {
@@ -24,18 +26,16 @@ class VarStatement final : public Statement {
  public:
   ~VarStatement() final;
 
-  Token* name() const { return token(); }
-  Expression* type() const { return type_; }
-  Expression* value() const { return value_; }
+  const std::vector<LocalVariable*>& variables() const { return variables_; }
 
  private:
-  explicit VarStatement(Expression* type, Token* name, Expression* value);
+  explicit VarStatement(Token* name,
+                        const std::vector<LocalVariable*>& variables);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  Expression* const type_;
-  Expression* const value_;
+  const std::vector<LocalVariable*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(VarStatement);
 };

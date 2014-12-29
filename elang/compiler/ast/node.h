@@ -65,6 +65,7 @@ AST_NODE_LIST(FORWARD_DECLARATION)
 
 class EnumMember;
 class Expression;
+class LocalVariable;
 class Method;
 class NamespaceBody;
 class NodeFactory;

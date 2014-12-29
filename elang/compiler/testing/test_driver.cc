@@ -27,6 +27,7 @@
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
@@ -438,13 +439,21 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
   Visit(operation->expression());
 }
 
-void Formatter::VisitVarStatement(ast::VarStatement* statement) {
-  Indent();
-  Visit(statement->type());
-  stream_ << " " << statement->name();
-  if (auto const value = statement->value()) {
-    stream_ << " = ";
-    Visit(value);
+void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
+  auto is_first = true;
+  for (auto const var : var_statement->variables()) {
+    if (is_first) {
+      Visit(var->type());
+      stream_ << " ";
+      is_first = false;
+    } else {
+      stream_ << ", ";
+    }
+    stream_ << var->name();
+    if (auto const value = var->value()) {
+      stream_ << " = ";
+      Visit(value);
+    }
   }
   stream_ << ";";
 }

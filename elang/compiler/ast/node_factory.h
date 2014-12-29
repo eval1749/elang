@@ -55,7 +55,7 @@ class NodeFactory final {
                     Expression* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters,
-                    const std::vector<VarStatement*>& parameters);
+                    const std::vector<LocalVariable*>& parameters);
   MethodGroup* NewMethodGroup(NamespaceBody* namespace_body, Token* name);
   Namespace* NewNamespace(NamespaceBody* namespace_body,
                           Token* keyword,
@@ -96,10 +96,13 @@ class NodeFactory final {
                               Expression* condition,
                               Statement* then_statement,
                               Statement* else_statement);
+  LocalVariable* NewLocalVariable(Token* keyword,
+                                  Expression* type,
+                                  Token* name,
+                                  Expression* expression);
   ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
-  VarStatement* NewVarStatement(Expression* type,
-                                Token* name,
-                                Expression* value);
+  VarStatement* NewVarStatement(Token* keyword,
+                                const std::vector<LocalVariable*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,
                                     Expression* condition,
                                     Statement* statement);

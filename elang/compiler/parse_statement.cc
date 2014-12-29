@@ -18,6 +18,7 @@
 #include "elang/compiler/ast/expression_statement.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
+#include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/name_reference.h"
@@ -47,14 +48,14 @@ class Parser::LocalDeclarationSpace final {
   LocalDeclarationSpace* outer() const { return outer_; }
   Token* owner() const { return owner_; }
 
-  void AddVarStatement(ast::VarStatement* variable);
-  ast::VarStatement* FindVariable(Token* name) const;
+  void AddVariable(ast::LocalVariable* variable);
+  ast::LocalVariable* FindVariable(Token* name) const;
 
  private:
   LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
-  std::unordered_map<hir::SimpleName*, ast::VarStatement*> variables_;
+  std::unordered_map<hir::SimpleName*, ast::LocalVariable*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalDeclarationSpace);
 };
@@ -69,15 +70,14 @@ Parser::LocalDeclarationSpace::~LocalDeclarationSpace() {
   parser_->declaration_space_ = outer_;
 }
 
-void Parser::LocalDeclarationSpace::AddVarStatement(
-    ast::VarStatement* variable) {
+void Parser::LocalDeclarationSpace::AddVariable(ast::LocalVariable* variable) {
   auto const name = variable->name()->simple_name();
   if (variables_.find(name) != variables_.end())
     return;
   variables_[name] = variable;
 }
 
-ast::VarStatement* Parser::LocalDeclarationSpace::FindVariable(
+ast::LocalVariable* Parser::LocalDeclarationSpace::FindVariable(
     Token* name) const {
   DCHECK(name->is_name());
   auto const present = variables_.find(name->simple_name());
@@ -135,7 +135,7 @@ ast::Statement* Parser::ConsumeStatement() {
   return result;
 }
 
-ast::VarStatement* Parser::FindVariable(Token* token) const {
+ast::LocalVariable* Parser::FindVariable(Token* token) const {
   DCHECK(token->is_name());
   for (auto space = declaration_space_; space; space = space->outer()) {
     if (auto const present = space->FindVariable(token))
@@ -238,7 +238,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
                              Token* method_name,
                              const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
-  std::vector<ast::VarStatement*> parameters;
+  std::vector<ast::LocalVariable*> parameters;
   std::unordered_set<hir::SimpleName*> names;
   for (;;) {
     auto const param_type = ParseType() ? ConsumeType() : nullptr;
@@ -247,7 +247,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
     if (names.find(param_name->simple_name()) != names.end())
       Error(ErrorCode::SyntaxMethodNameDuplicate);
     parameters.push_back(
-        factory()->NewVarStatement(param_type, param_name, nullptr));
+        factory()->NewLocalVariable(nullptr, param_type, param_name, nullptr));
     names.insert(param_name->simple_name());
     if (AdvanceIf(TokenType::RightParenthesis))
       break;
@@ -284,7 +284,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 
   LocalDeclarationSpace method_body_space(this, PeekToken());
   for (auto param : method->parameters())
-    method_body_space.AddVarStatement(param);
+    method_body_space.AddVariable(param);
 
   if (!ParseStatement())
     return true;
@@ -307,6 +307,32 @@ bool Parser::ParseReturnStatement(Token* return_keyword) {
     }
   }
   ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
+  return true;
+}
+
+// VarStatement ::= 'var' VarDecl (',' VarDecl)* ';'
+// VarDecl ::= Name ('=' Expression')
+bool Parser::ParseVarStatement(Token* var_keyword) {
+  DCHECK_EQ(var_keyword, TokenType::Var);
+  auto const type = factory()->NewNameReference(var_keyword);
+  std::vector<ast::LocalVariable*> variables;
+  while (PeekToken()->is_name()) {
+    auto const name = ConsumeToken();
+    auto expression = static_cast<ast::Expression*>(nullptr);
+    if (AdvanceIf(TokenType::Assign)) {
+      if (ParseExpression())
+        expression = ConsumeExpression();
+    }
+    variables.push_back(
+        factory()->NewLocalVariable(nullptr, type, name, expression));
+    if (!AdvanceIf(TokenType::Comma))
+      break;
+  }
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxVarSemiColon);
+  if (variables.empty())
+    Error(ErrorCode::SyntaxVarInvalid);
+  ProduceStatement(factory()->NewVarStatement(var_keyword, variables));
   return true;
 }
 
@@ -345,6 +371,7 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 //    BlockStatement
 //    BreakStatement
 //    ContinueStatement
+//    ConstStatement
 //    DoStatement
 //    EmptyStatement
 //    ExpressionStatement
@@ -354,9 +381,10 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 //    IfStatement
 //    ReturnStatement
 //    SwitchStatement NYI
+//    ThrowStatement NYI
 //    TryStatement NYI
 //    UsingStatement NYI
-//    VarStatement NYI
+//    VarStatement
 //    WhileStatement
 //    YieldStatement
 bool Parser::ParseStatement() {
@@ -377,6 +405,9 @@ bool Parser::ParseStatement() {
 
   if (auto const return_keyword = ConsumeTokenIf(TokenType::Return))
     return ParseReturnStatement(return_keyword);
+
+  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
+    return ParseVarStatement(var_keyword);
 
   if (auto const while_keyword = ConsumeTokenIf(TokenType::While))
     return ParseWhileStatement(while_keyword);

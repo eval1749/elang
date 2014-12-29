@@ -290,6 +290,21 @@ TEST(ParserTest, NamespaceNestedShortcut) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'var' statement
+//
+TEST(ParserTest, VarBasic) {
+  TestDriver driver("class A { void Run(int x) { var a, b = 3; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    var a, b = 3;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'while' statement
 //
 TEST(ParserTest, WhileBasic) {

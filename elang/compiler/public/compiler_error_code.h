@@ -92,7 +92,10 @@ namespace compiler {
   E(Syntax, UsingDirective, Invalid)                  \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
-  /* Do */                                            \
+  /* Var */                                           \
+  E(Syntax, Var, Invalid)                             \
+  E(Syntax, Var, SemiColon)                           \
+  /* While */                                         \
   E(Syntax, While, LeftParenthesis)                   \
   E(Syntax, While, RightParenthesis)                  \
   /* Lexer */                                         \

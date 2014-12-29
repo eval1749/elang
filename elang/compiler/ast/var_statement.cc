@@ -12,8 +12,9 @@ namespace ast {
 //
 // VarStatement
 //
-VarStatement::VarStatement(Expression* type, Token* name, Expression* value)
-    : Statement(name), type_(type), value_(value) {
+VarStatement::VarStatement(Token* keyword,
+                           const std::vector<LocalVariable*>& variables)
+    : Statement(keyword), variables_(variables) {
 }
 
 VarStatement::~VarStatement() {
