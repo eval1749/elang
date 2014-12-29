@@ -305,6 +305,53 @@ TEST(ParserTest, NamespaceNestedShortcut) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'return' statement
+//
+TEST(ParserTest, ReturnBasic) {
+  TestDriver driver("class A { void Run(int x) { return; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    return;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, ReturnExpression) {
+  TestDriver driver("class A { void Run(int x) { return 1; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    return 1;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// 'throw' statement
+//
+TEST(ParserTest, ThrowBasic) {
+  TestDriver driver("class A { void Run(int x) { throw 1; } }");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    throw 1;\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, ThrowInvalid) {
+  TestDriver driver("class A { void Run(int x) { throw; } }");
+  EXPECT_EQ("Syntax.Throw.Invalid(35) }\n", driver.RunParser())
+      << "We can't omit expression outside 'catch' statement.";
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'var' statement
 //
 TEST(ParserTest, VarBasic) {

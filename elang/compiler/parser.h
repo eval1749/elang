@@ -119,6 +119,8 @@ class Parser final {
   class StatementScope;
   ast::Statement* ConsumeStatement();
   ast::LocalVariable* FindVariable(Token* token) const;
+  bool IsInLoop() const;
+  bool IsInStatement(TokenType keyword) const;
   bool ParseBlockStatement(Token* keyword);
   bool ParseBreakStatement(Token* keyword);
   bool ParseConstStatement(Token* keyword);
@@ -130,6 +132,7 @@ class Parser final {
                        Token* method_name,
                        const std::vector<Token*> type_parameters);
   bool ParseReturnStatement(Token* keyword);
+  bool ParseThrowStatement(Token* keyword);
   bool ParseStatement();
   bool ParseWhileStatement(Token* keyword);
   bool ParseVarStatement(Token* keyword);

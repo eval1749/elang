@@ -64,6 +64,8 @@ static_library("ast") {
     "node_factory.h",
     "return_statement.cc",
     "return_statement.h",
+    "throw_statement.cc",
+    "throw_statement.h",
     "statement.cc",
     "statement.h",
     "unary_operation.cc",

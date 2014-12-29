@@ -82,13 +82,18 @@ namespace compiler {
   E(Syntax, NamespaceDecl, LeftCurryBracket)          \
   E(Syntax, NamespaceDecl, NameDuplicate)             \
   E(Syntax, NamespaceDecl, RightCurryBracket)         \
+  /* Return */                                        \
+  E(Syntax, Return, SemiColon)                        \
   /* Statement */                                     \
   E(Syntax, Statement, SemiColon)                     \
+  /* Throw */                                         \
+  E(Syntax, Throw, Invalid)                           \
+  E(Syntax, Throw, SemiColon)                         \
   /* Type */                                          \
   E(Syntax, Type, Comma)                              \
   E(Syntax, Type, DotNotName)                         \
   E(Syntax, Type, RightSquareBracket)                 \
-  /* UsingDirective */                                \
+  /* Using */                                         \
   E(Syntax, UsingDirective, Invalid)                  \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \

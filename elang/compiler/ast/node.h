@@ -46,6 +46,7 @@ namespace ast {
   V(ExpressionStatement)       \
   V(IfStatement)               \
   V(ReturnStatement)           \
+  V(ThrowStatement)            \
   V(VarStatement)              \
   V(WhileStatement)            \
   V(YieldStatement)

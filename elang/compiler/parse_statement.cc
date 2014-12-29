@@ -24,6 +24,7 @@
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/return_statement.h"
+#include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -93,10 +94,10 @@ class Parser::StatementScope final {
   StatementScope(Parser* parser, Token* keyword);
   ~StatementScope();
 
+  Token* keyword() const { return keyword_; }
   StatementScope* outer() const { return outer_; }
 
   bool IsLoop() const;
-  bool IsSwitch() const;
 
  private:
   Token* const keyword_;
@@ -120,10 +121,6 @@ bool Parser::StatementScope::IsLoop() const {
          keyword_ == TokenType::While;
 }
 
-bool Parser::StatementScope::IsSwitch() const {
-  return keyword_ == TokenType::Switch;
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // Parser
@@ -142,6 +139,22 @@ ast::LocalVariable* Parser::FindVariable(Token* token) const {
       return present;
   }
   return nullptr;
+}
+
+bool Parser::IsInLoop() const {
+  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
+    if (scope->IsLoop())
+      return true;
+  }
+  return false;
+}
+
+bool Parser::IsInStatement(TokenType keyword) const {
+  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
+    if (scope->keyword() == keyword)
+      return true;
+  }
+  return false;
 }
 
 // BlockStatement ::= '{' Statement* '}'
@@ -164,11 +177,8 @@ bool Parser::ParseBreakStatement(Token* break_keyword) {
   ProduceStatement(factory()->NewBreakStatement(break_keyword));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxBreakSemiColon);
-  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
-    if (scope->IsLoop() || scope->IsSwitch())
-      return true;
-  }
-  Error(ErrorCode::SyntaxBreakInvalid);
+  if (!IsInLoop())
+    Error(ErrorCode::SyntaxBreakInvalid);
   return true;
 }
 
@@ -205,11 +215,8 @@ bool Parser::ParseContinueStatement(Token* continue_keyword) {
   ProduceStatement(factory()->NewContinueStatement(continue_keyword));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxContinueSemiColon);
-  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
-    if (scope->IsLoop())
-      return true;
-  }
-  Error(ErrorCode::SyntaxContinueInvalid);
+  if (!IsInLoop())
+    Error(ErrorCode::SyntaxContinueInvalid);
   return true;
 }
 
@@ -323,7 +330,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
   return true;
 }
 
-// ReturnStatement ::= 'return' expression? ';'
+// ReturnStatement ::= 'return' Expression? ';'
 bool Parser::ParseReturnStatement(Token* return_keyword) {
   DCHECK_EQ(return_keyword, TokenType::Return);
   auto value = static_cast<ast::Expression*>(nullptr);
@@ -331,10 +338,29 @@ bool Parser::ParseReturnStatement(Token* return_keyword) {
     if (ParseExpression()) {
       value = ConsumeExpression();
       if (!AdvanceIf(TokenType::SemiColon))
-        Error(ErrorCode::SyntaxStatementSemiColon);
+        Error(ErrorCode::SyntaxReturnSemiColon);
     }
   }
   ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
+  return true;
+}
+
+// ThrowStatement ::= 'throw' Expression? ';'
+// Note: We can omit Expression if throw-statement in catch-clause.
+bool Parser::ParseThrowStatement(Token* throw_keyword) {
+  DCHECK_EQ(throw_keyword, TokenType::Throw);
+  auto value = static_cast<ast::Expression*>(nullptr);
+  if (AdvanceIf(TokenType::SemiColon)) {
+    if (!IsInStatement(TokenType::Catch))
+      Error(ErrorCode::SyntaxThrowInvalid);
+  } else {
+    if (ParseExpression()) {
+      value = ConsumeExpression();
+      if (!AdvanceIf(TokenType::SemiColon))
+        Error(ErrorCode::SyntaxThrowSemiColon);
+    }
+  }
+  ProduceStatement(factory()->NewThrowStatement(throw_keyword, value));
   return true;
 }
 
@@ -409,7 +435,7 @@ bool Parser::ParseYieldStatement(Token* yield_keyword) {
 //    IfStatement
 //    ReturnStatement
 //    SwitchStatement NYI
-//    ThrowStatement NYI
+//    ThrowStatement
 //    TryStatement NYI
 //    UsingStatement NYI
 //    VarStatement
@@ -436,6 +462,9 @@ bool Parser::ParseStatement() {
 
   if (auto const return_keyword = ConsumeTokenIf(TokenType::Return))
     return ParseReturnStatement(return_keyword);
+
+  if (auto const throw_keyword = ConsumeTokenIf(TokenType::Throw))
+    return ParseThrowStatement(throw_keyword);
 
   if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
     return ParseVarStatement(var_keyword);

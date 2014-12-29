@@ -31,6 +31,7 @@
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/return_statement.h"
+#include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -278,6 +279,13 @@ LocalVariable* NodeFactory::NewLocalVariable(Token* keyword,
 ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
                                                  Expression* value) {
   auto const node = new ReturnStatement(keyword, value);
+  RememberNode(node);
+  return node;
+}
+
+ThrowStatement* NodeFactory::NewThrowStatement(Token* keyword,
+                                               Expression* value) {
+  auto const node = new ThrowStatement(keyword, value);
   RememberNode(node);
   return node;
 }

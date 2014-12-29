@@ -36,6 +36,7 @@
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/return_statement.h"
+#include "elang/compiler/ast/throw_statement.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/ast/var_statement.h"
 #include "elang/compiler/ast/while_statement.h"
@@ -421,6 +422,15 @@ void Formatter::VisitNamespace(ast::Namespace* ns) {
 
 void Formatter::VisitReturnStatement(ast::ReturnStatement* statement) {
   stream_ << "return";
+  if (auto const value = statement->value()) {
+    stream_ << " ";
+    Visit(value);
+  }
+  stream_ << ";";
+}
+
+void Formatter::VisitThrowStatement(ast::ThrowStatement* statement) {
+  stream_ << "throw";
   if (auto const value = statement->value()) {
     stream_ << " ";
     Visit(value);

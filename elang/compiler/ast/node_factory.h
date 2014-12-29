@@ -101,6 +101,7 @@ class NodeFactory final {
                                   Token* name,
                                   Expression* expression);
   ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
+  ThrowStatement* NewThrowStatement(Token* keyword, Expression* value);
   VarStatement* NewVarStatement(Token* keyword,
                                 const std::vector<LocalVariable*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,
