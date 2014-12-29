@@ -46,6 +46,52 @@ TEST(ParserTest, ErrorClassFieldVar) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'break' statement
+//
+TEST(ParserTest, BreakBasic) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    while (x) {"
+      "      break;"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    while (x) {\n"
+      "      break;\n"
+      "    }\n"
+      "  }\n"
+      "}\n",
+      driver.RunParser());
+}
+
+TEST(ParserTest, BreakErrorInvalid) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    break;"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Break.Invalid(40) }\n", driver.RunParser());
+}
+
+TEST(ParserTest, BreakErrorSemiColon) {
+  TestDriver driver(
+      "class A {"
+      "  void Run(int x) {"
+      "    while (x) {"
+      "      break"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Break.SemiColon(58) }\n", driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'do' statement
 //
 TEST(ParserTest, DoBasic) {

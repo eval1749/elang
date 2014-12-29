@@ -10,6 +10,7 @@
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
+#include "elang/compiler/ast/break_statement.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
@@ -93,8 +94,8 @@ class Parser::StatementScope final {
 
   StatementScope* outer() const { return outer_; }
 
-  bool CanUseBreak() const;
-  bool CanUseContinue() const;
+  bool IsLoop() const;
+  bool IsSwitch() const;
 
  private:
   Token* const keyword_;
@@ -113,12 +114,13 @@ Parser::StatementScope::~StatementScope() {
   parser_->statement_scope_ = outer_;
 }
 
-bool Parser::StatementScope::CanUseBreak() const {
-  return CanUseContinue() || keyword_ == TokenType::Switch;
+bool Parser::StatementScope::IsLoop() const {
+  return keyword_ == TokenType::Do || keyword_ == TokenType::For ||
+         keyword_ == TokenType::While;
 }
 
-bool Parser::StatementScope::CanUseContinue() const {
-  return keyword_ == TokenType::Do || keyword_ == TokenType::For;
+bool Parser::StatementScope::IsSwitch() const {
+  return keyword_ == TokenType::Switch;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,6 +155,19 @@ bool Parser::ParseBlockStatement(Token* bracket) {
     statements.push_back(ConsumeStatement());
   }
   ProduceStatement(factory()->NewBlockStatement(bracket, statements));
+  return true;
+}
+
+bool Parser::ParseBreakStatement(Token* break_keyword) {
+  DCHECK_EQ(break_keyword, TokenType::Break);
+  ProduceStatement(factory()->NewBreakStatement(break_keyword));
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxBreakSemiColon);
+  for (auto scope = statement_scope_; scope; scope = scope->outer()) {
+    if (scope->IsLoop() || scope->IsSwitch())
+      return true;
+  }
+  Error(ErrorCode::SyntaxBreakInvalid);
   return true;
 }
 
@@ -200,52 +215,6 @@ bool Parser::ParseIfStatement(Token* if_keyword) {
   }
   ProduceStatement(factory()->NewIfStatement(if_keyword, condition,
                                              then_statement, else_statement));
-  return true;
-}
-
-// ReturnStatement ::= 'return' expression? ';'
-bool Parser::ParseReturnStatement(Token* return_keyword) {
-  DCHECK_EQ(return_keyword, TokenType::Return);
-  auto value = static_cast<ast::Expression*>(nullptr);
-  if (!AdvanceIf(TokenType::SemiColon)) {
-    if (ParseExpression()) {
-      value = ConsumeExpression();
-      if (!AdvanceIf(TokenType::SemiColon))
-        Error(ErrorCode::SyntaxStatementSemiColon);
-    }
-  }
-  ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
-  return true;
-}
-
-// WhileStatement ::= while' '(' Expression ') Statement
-bool Parser::ParseWhileStatement(Token* while_keyword) {
-  DCHECK_EQ(while_keyword, TokenType::While);
-  if (!AdvanceIf(TokenType::LeftParenthesis))
-    Error(ErrorCode::SyntaxWhileLeftParenthesis);
-  if (!ParseExpression())
-    return false;
-  auto const condition = ConsumeExpression();
-  if (!AdvanceIf(TokenType::RightParenthesis))
-    Error(ErrorCode::SyntaxWhileRightParenthesis);
-  StatementScope while_scope(this, while_keyword);
-  if (!ParseStatement())
-    return false;
-  auto const statement = ConsumeStatement();
-  ProduceStatement(
-      factory()->NewWhileStatement(while_keyword, condition, statement));
-  return true;
-}
-
-// YieldStatement ::= 'yield' expression ';'
-bool Parser::ParseYieldStatement(Token* yield_keyword) {
-  DCHECK_EQ(yield_keyword, TokenType::Yield);
-  if (!ParseExpression())
-    return false;
-  auto const value = ConsumeExpression();
-  ProduceStatement(factory()->NewYieldStatement(yield_keyword, value));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxStatementSemiColon);
   return true;
 }
 
@@ -312,9 +281,55 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
   return true;
 }
 
+// ReturnStatement ::= 'return' expression? ';'
+bool Parser::ParseReturnStatement(Token* return_keyword) {
+  DCHECK_EQ(return_keyword, TokenType::Return);
+  auto value = static_cast<ast::Expression*>(nullptr);
+  if (!AdvanceIf(TokenType::SemiColon)) {
+    if (ParseExpression()) {
+      value = ConsumeExpression();
+      if (!AdvanceIf(TokenType::SemiColon))
+        Error(ErrorCode::SyntaxStatementSemiColon);
+    }
+  }
+  ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
+  return true;
+}
+
+// WhileStatement ::= while' '(' Expression ') Statement
+bool Parser::ParseWhileStatement(Token* while_keyword) {
+  DCHECK_EQ(while_keyword, TokenType::While);
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxWhileLeftParenthesis);
+  if (!ParseExpression())
+    return false;
+  auto const condition = ConsumeExpression();
+  if (!AdvanceIf(TokenType::RightParenthesis))
+    Error(ErrorCode::SyntaxWhileRightParenthesis);
+  StatementScope while_scope(this, while_keyword);
+  if (!ParseStatement())
+    return false;
+  auto const statement = ConsumeStatement();
+  ProduceStatement(
+      factory()->NewWhileStatement(while_keyword, condition, statement));
+  return true;
+}
+
+// YieldStatement ::= 'yield' expression ';'
+bool Parser::ParseYieldStatement(Token* yield_keyword) {
+  DCHECK_EQ(yield_keyword, TokenType::Yield);
+  if (!ParseExpression())
+    return false;
+  auto const value = ConsumeExpression();
+  ProduceStatement(factory()->NewYieldStatement(yield_keyword, value));
+  if (!AdvanceIf(TokenType::SemiColon))
+    Error(ErrorCode::SyntaxStatementSemiColon);
+  return true;
+}
+
 // Parses statement in following grammar:
 //    BlockStatement
-//    BreakStatement NYI
+//    BreakStatement
 //    ContinueStatement NYI
 //    DoStatement
 //    EmptyStatement
@@ -333,6 +348,9 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
 bool Parser::ParseStatement() {
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftCurryBracket))
     return ParseBlockStatement(bracket);
+
+  if (auto const break_keyword = ConsumeTokenIf(TokenType::Break))
+    return ParseBreakStatement(break_keyword);
 
   if (auto const do_keyword = ConsumeTokenIf(TokenType::Do))
     return ParseDoStatement(do_keyword);

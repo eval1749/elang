@@ -10,6 +10,7 @@
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
+#include "elang/compiler/ast/break_statement.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -216,6 +217,12 @@ BlockStatement* NodeFactory::NewBlockStatement(
     Token* keyword,
     const std::vector<Statement*> statements) {
   auto const node = new BlockStatement(keyword, statements);
+  RememberNode(node);
+  return node;
+}
+
+BreakStatement* NodeFactory::NewBreakStatement(Token* keyword) {
+  auto const node = new BreakStatement(keyword);
   RememberNode(node);
   return node;
 }

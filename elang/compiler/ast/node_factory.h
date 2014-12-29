@@ -85,6 +85,7 @@ class NodeFactory final {
   // Statement nodes
   BlockStatement* NewBlockStatement(Token* keyword,
                                     const std::vector<Statement*> statements);
+  BreakStatement* NewBreakStatement(Token* keyword);
   DoStatement* NewDoStatement(Token* keyword,
                               Statement* statement,
                               Expression* condition);

@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
+#include "elang/compiler/ast/break_statement.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/constructed_type.h"
@@ -198,6 +199,11 @@ void Formatter::VisitBlockStatement(ast::BlockStatement* block_statement) {
     Visit(statement);
     stream_ << std::endl;
   }
+}
+
+void Formatter::VisitBreakStatement(ast::BreakStatement* break_statement) {
+  __assume(break_statement);
+  stream_ << "break;";
 }
 
 void Formatter::VisitConditional(ast::Conditional* cond) {

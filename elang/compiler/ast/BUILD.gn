@@ -14,6 +14,8 @@ static_library("ast") {
     "binary_operation.h",
     "block_statement.cc",
     "block_statement.h",
+    "break_statement.cc",
+    "break_statement.h",
     "class.cc",
     "class.h",
     "conditional.cc",

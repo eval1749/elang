@@ -53,6 +53,9 @@ namespace compiler {
   E(Syntax, ClassMember, Parenthesis)                 \
   E(Syntax, ClassMember, SemiColon)                   \
   E(Syntax, ClassMember, VarField)                    \
+  /* Break */                                         \
+  E(Syntax, Break, Invalid)                           \
+  E(Syntax, Break, SemiColon)                         \
   /* Do */                                            \
   E(Syntax, Do, LeftParenthesis)                      \
   E(Syntax, Do, RightParenthesis)                     \
