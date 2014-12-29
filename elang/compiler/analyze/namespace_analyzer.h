@@ -5,7 +5,6 @@
 #ifndef ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 #define ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
