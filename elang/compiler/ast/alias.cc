@@ -32,6 +32,7 @@ Alias::~Alias() {
 void Alias::BindTo(NamespaceMember* target) {
   DCHECK(target);
   DCHECK(!target_);
+  DCHECK(!target->is<ast::Alias>());
   target_ = target;
 }
 

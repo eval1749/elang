@@ -84,11 +84,11 @@ TEST_F(ParserTest, BreakBasic) {
 
 TEST_F(ParserTest, BreakErrorInvalid) {
   Prepare(
-      "class A {\n"
-      "  void Run(int x) {\n"
-      "    break;\n"
-      "  }\n"
-      "}\n");
+      "class A {"
+      "  void Run(int x) {"
+      "    break;"
+      "  }"
+      "}");
   EXPECT_EQ("Syntax.Break.Invalid(40) }\n", Format());
 }
 
