@@ -29,6 +29,8 @@ namespace compiler {
   /* AliasDef */                                      \
   E(Syntax, AliasDef, AliasName)                      \
   E(Syntax, AliasDef, RealName)                       \
+  /* CompilationUnit */                               \
+  E(Syntax, CompilationUnit, Invalid)                 \
   /* EnumDecl */                                      \
   E(Syntax, EnumDecl, Expression)                     \
   E(Syntax, EnumDecl, LeftCurryBracket)               \

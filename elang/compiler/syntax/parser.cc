@@ -382,7 +382,10 @@ bool Parser::ParseClassDecl() {
 bool Parser::ParseCompilationUnit() {
   if (!ParseUsingDirectives() || !ParseNamespaceMemberDecls())
     return false;
-  return PeekToken() == TokenType::EndOfSource;
+  if (PeekToken() == TokenType::EndOfSource)
+    return true;
+  Error(ErrorCode::SyntaxCompilationUnitInvalid, token_);
+  return false;
 }
 
 // EnumDecl := EnumModifier* "enum" Name EnumBase? "{" EnumField* "}"

@@ -48,6 +48,15 @@ TEST(ParserTest, ErrorClassFieldVar) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// compilation unit
+//
+TEST(ParserTest, ErrorCompilationUnitInvalid) {
+  TestDriver driver("class A {} using R = A;");
+  EXPECT_EQ("Syntax.CompilationUnit.Invalid(11) using\n", driver.RunParser());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'break' statement
 //
 TEST(ParserTest, BreakBasic) {
