@@ -26,9 +26,6 @@ namespace compiler {
   E(NameResolution, Name, NotInterface)               \
   E(NameResolution, Name, NotNamespace)               \
   /*  Parser */                                       \
-  /* AliasDef */                                      \
-  E(Syntax, AliasDef, AliasName)                      \
-  E(Syntax, AliasDef, RealName)                       \
   /* CompilationUnit */                               \
   E(Syntax, CompilationUnit, Invalid)                 \
   /* EnumDecl */                                      \
@@ -97,9 +94,13 @@ namespace compiler {
   /* Throw */                                         \
   E(Syntax, Throw, Invalid)                           \
   E(Syntax, Throw, SemiColon)                         \
+  /* Try */                                           \
+  E(Syntax, Try, LeftCurryBracket)                    \
   /* Type */                                          \
   E(Syntax, Type, Comma)                              \
   E(Syntax, Type, DotNotName)                         \
+  E(Syntax, Type, Name)                               \
+  E(Syntax, Type, RightAngleBracket)                  \
   E(Syntax, Type, RightSquareBracket)                 \
   /* Using */                                         \
   E(Syntax, Using, Assign)                            \
@@ -107,11 +108,11 @@ namespace compiler {
   E(Syntax, Using, RightParenthesis)                  \
   E(Syntax, Using, Name)                              \
   /* Using directive*/                                \
-  E(Syntax, UsingDirective, Invalid)                  \
+  E(Syntax, UsingDirective, Alias)                    \
+  E(Syntax, UsingDirective, Duplicate)                \
+  E(Syntax, UsingDirective, Import)                   \
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
-  /* Try */                                           \
-  E(Syntax, Try, LeftCurryBracket)                    \
   /* Var */                                           \
   E(Syntax, Var, Invalid)                             \
   E(Syntax, Var, SemiColon)                           \

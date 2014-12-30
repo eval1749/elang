@@ -31,8 +31,7 @@ class ConstructedType final : public Expression {
   Expression* blueprint_type() const { return blueprint_type_; }
 
  private:
-  ConstructedType(Token* op_token,
-                  Expression* expression,
+  ConstructedType(Expression* expression,
                   const std::vector<Expression*>& arguments);
   // Node
   void Accept(Visitor* visitor) override;

@@ -23,6 +23,43 @@ class ParserTest : public testing::CompilerTest {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Alias
+//
+TEST_F(ParserTest, AliasBasic) {
+  auto const source_code =
+      "using R1 = A;\n"
+      "using R2 = A.B;\n"
+      "using R3 = A.B.C<T>;\n"
+      "using R4 = A.B.C<T>.D;\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
+TEST_F(ParserTest, AliasErrorDot) {
+  auto const source_code = "using R1 = A.;\n";
+  Prepare(source_code);
+  EXPECT_EQ("Syntax.Type.Name(13) ;\n", Format());
+}
+
+TEST_F(ParserTest, AliasErrorDuplicate) {
+  auto const source_code =
+      "using R1 = A;\n"
+      "using R1 = B;\n";
+  Prepare(source_code);
+  EXPECT_EQ(
+      "Syntax.UsingDirective.Duplicate(20) R1 using\n"
+      "Syntax.CompilationUnit.Invalid(25) B\n",
+      Format());
+}
+
+TEST_F(ParserTest, AliasErrorReference) {
+  auto const source_code = "using R1 = ;\n";
+  Prepare(source_code);
+  EXPECT_EQ("Syntax.Type.Name(11) ;\n", Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Class
 //
 TEST_F(ParserTest, ClassBasic) {
@@ -243,6 +280,27 @@ TEST_F(ParserTest, IfBasicElse) {
       "}\n";
   Prepare(source_code);
   EXPECT_EQ(source_code, Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Import
+//
+TEST_F(ParserTest, ImportBasic) {
+  auto const source_code =
+      "using System;\n"
+      "using System.Console;\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
+TEST_F(ParserTest, ImportErrorInvalid) {
+  auto const source_code =
+      "using A.B<T>;\n";
+  Prepare(source_code);
+  EXPECT_EQ("Syntax.UsingDirective.Import(12) ;\n"
+            "Syntax.CompilationUnit.Invalid(12) ;\n",
+            Format());
 }
 
 //////////////////////////////////////////////////////////////////////

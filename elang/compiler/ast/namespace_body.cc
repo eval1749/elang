@@ -16,20 +16,6 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NamespaceBody::ImportDef
-//
-struct NamespaceBody::ImportDef {
-  Token* keyword;
-  QualifiedName name;
-  ImportDef(Token* keyword, const QualifiedName& real_name);
-};
-
-NamespaceBody::ImportDef::ImportDef(Token* keyword, const QualifiedName& name)
-    : keyword(keyword), name(name) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // NamespaceBody
 //
 NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
@@ -43,8 +29,6 @@ NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
 }
 
 NamespaceBody::~NamespaceBody() {
-  for (auto const import_def : import_defs_)
-    delete import_def;
 }
 
 const std::vector<Alias*>& NamespaceBody::aliases() const {
@@ -52,10 +36,14 @@ const std::vector<Alias*>& NamespaceBody::aliases() const {
   return aliases_;
 }
 
-void NamespaceBody::AddImport(Token* keyword, const QualifiedName& name) {
+const std::vector<Expression*>& NamespaceBody::imports() const {
   DCHECK(owner_->ToNamespace());
-  DCHECK_EQ(keyword->type(), TokenType::Using);
-  import_defs_.push_back(new ImportDef(keyword, name));
+  return imports_;
+}
+
+void NamespaceBody::AddImport(Expression* reference) {
+  DCHECK(owner_->ToNamespace());
+  imports_.push_back(reference);
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
@@ -71,14 +59,14 @@ void NamespaceBody::AddMember(NamespaceMember* member) {
   members_.push_back(member);
 }
 
-Alias* NamespaceBody::FindAlias(Token* simple_name) {
+Alias* NamespaceBody::FindAlias(Token* name) {
   DCHECK(owner_->ToNamespace());
-  auto const it = alias_map_.find(simple_name->simple_name());
+  auto const it = alias_map_.find(name->simple_name());
   return it == alias_map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* NamespaceBody::FindMember(Token* simple_name) {
-  return owner_->FindMember(simple_name);
+NamespaceMember* NamespaceBody::FindMember(Token* name) {
+  return owner_->FindMember(name);
 }
 
 }  // namespace ast

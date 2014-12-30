@@ -595,9 +595,9 @@ bool Parser::ParseStatement() {
   return true;
 }
 
-void Parser::ProduceStatement(ast::Statement* statement) {
+ast::Statement* Parser::ProduceStatement(ast::Statement* statement) {
   DCHECK(!statement_);
-  statement_ = statement;
+  return statement_ = statement;
 }
 
 }  // namespace compiler

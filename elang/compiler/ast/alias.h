@@ -27,22 +27,18 @@ class Alias final : public NamespaceMember {
  public:
   ~Alias() final;
 
-  NamespaceMember* target() const { return target_; }
-  const QualifiedName& target_name() const { return target_name_; }
-
-  void BindTo(NamespaceMember* target);
+  Expression* reference() const { return reference_; }
 
  private:
   Alias(NamespaceBody* namespace_body,
         Token* keyword,
-        Token* simple_name,
-        const QualifiedName& reference_name);
+        Token* alias_name,
+        Expression* target_name);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const QualifiedName target_name_;
-  NamespaceMember* target_;
+  Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };

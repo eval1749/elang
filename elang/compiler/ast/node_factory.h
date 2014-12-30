@@ -34,7 +34,7 @@ class NodeFactory final {
   Alias* NewAlias(NamespaceBody* namespace_body,
                   Token* keyword,
                   Token* alias_name,
-                  const QualifiedName& target_name);
+                  Expression* reference);
   Class* NewClass(NamespaceBody* namespace_body,
                   Modifiers modifiers,
                   Token* keyword,
@@ -74,7 +74,6 @@ class NodeFactory final {
                               Expression* then_expr,
                               Expression* else_expr);
   ConstructedType* NewConstructedType(
-      Token* op,
       Expression* blueprint_type,
       const std::vector<Expression*>& arguments);
   Literal* NewLiteral(Token* literal);

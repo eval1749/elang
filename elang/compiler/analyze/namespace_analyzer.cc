@@ -17,6 +17,18 @@
 namespace elang {
 namespace compiler {
 
+NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session)
+    : session_(session) {
+}
+
+NamespaceAnalyzer::~NamespaceAnalyzer() {
+}
+
+bool NamespaceAnalyzer::Run() {
+  return false;
+}
+
+#if 0
 ///////////////////////////////////////////////////////////////////////
 //
 // ScopedResolver
@@ -320,6 +332,7 @@ void NamespaceAnalyzer::Schedule(ast::NamespaceMember* member) {
   pending_set_.insert(member);
   pending_members_.push_back(member);
 }
+#endif
 
 }  // namespace compiler
 }  // namespace elang

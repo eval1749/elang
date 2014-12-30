@@ -18,22 +18,14 @@ namespace ast {
 //
 Alias::Alias(NamespaceBody* namespace_body,
              Token* keyword,
-             Token* simple_name,
-             const QualifiedName& target_name)
-    : NamespaceMember(namespace_body, Modifiers(), keyword, simple_name),
-      target_(nullptr),
-      target_name_(target_name) {
+             Token* name,
+             Expression* reference)
+    : NamespaceMember(namespace_body, Modifiers(), keyword, name),
+      reference_(reference) {
   DCHECK_EQ(keyword->type(), TokenType::Using);
 }
 
 Alias::~Alias() {
-}
-
-void Alias::BindTo(NamespaceMember* target) {
-  DCHECK(target);
-  DCHECK(!target_);
-  DCHECK(!target->is<ast::Alias>());
-  target_ = target;
 }
 
 }  // namespace ast

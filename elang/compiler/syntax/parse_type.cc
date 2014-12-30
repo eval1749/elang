@@ -7,7 +7,6 @@
 #include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/field.h"
@@ -22,17 +21,85 @@
 namespace elang {
 namespace compiler {
 
-// Just an alias of |ConsumeExpression()| for improving readbility.
+// Just an alias of |ConsumeExpression()| for improving readability.
 ast::Expression* Parser::ConsumeType() {
   return ConsumeExpression();
+}
+
+// NamespaceOrTypeName ::=
+//   Name TypeArgumentList |
+//   QualifiedAliasMember |
+//   NamespaceOrTypeName '.' Name TypeArgumentList
+bool Parser::ParseNamespaceOrTypeName() {
+  enum class State {
+    ConstructedType,
+    Dot,
+    Finish,
+    Name,
+    Start,
+  };
+
+  if (!PeekToken()->is_name()) {
+    Error(ErrorCode::SyntaxTypeName);
+    return false;
+  }
+  std::vector<ast::Expression*> names;
+  auto state = State::Start;
+  for (;;) {
+    switch (state) {
+      case State::ConstructedType:
+        if (AdvanceIf(TokenType::Dot)) {
+          state = State::Dot;
+          continue;
+        }
+        state = State::Finish;
+        continue;
+      case State::Dot:
+      case State::Start:
+        if (!PeekToken()->is_name()) {
+          Error(ErrorCode::SyntaxTypeName);
+          return false;
+        }
+        names.push_back(factory()->NewNameReference(ConsumeToken()));
+        state = State::Name;
+        continue;
+      case State::Name:
+        if (AdvanceIf(TokenType::Dot)) {
+          state = State::Dot;
+          continue;
+        }
+        if (AdvanceIf(TokenType::LeftAngleBracket)) {
+          // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
+          std::vector<ast::Expression*> type_args;
+          do {
+            if (!ParseType())
+              return false;
+            type_args.push_back(ConsumeType());
+          } while (AdvanceIf(TokenType::Comma));
+          if (!AdvanceIf(TokenType::RightAngleBracket)) {
+            Error(ErrorCode::SyntaxTypeRightAngleBracket);
+            return false;
+          }
+          ProduceMemberAccess(names);
+          names.clear();
+          names.push_back(
+              factory()->NewConstructedType(ConsumeType(), type_args));
+          state = State::ConstructedType;
+          continue;
+        }
+        state = State::Finish;
+        break;
+      case State::Finish:
+        DCHECK(!names.empty());
+        ProduceMemberAccess(names);
+        return true;
+    }
+  }
 }
 
 // Type ::= ValueType | ReferenceType | TypeParameter
 //
 // TypeName ::= NamespaceOrTypeName
-// NamespaceOrTypeName ::= Name TypeArgumentList? |
-//                         QualifiedAliasMember |
-//                         NamespaceOrTypeName '.' Name TypeArgumentList?
 // ValueType ::= StructType | EnumType
 // StructType ::= TypeName | SimpleType | NullableType
 // SimpleType ::= NumericType | 'bool'
@@ -53,46 +120,9 @@ bool Parser::ParseType() {
     return ParseTypePost();
   }
 
-  if (!PeekToken()->is_name())
+  if (!ParseNamespaceOrTypeName())
     return false;
-
-  std::vector<ast::Expression*> type_names;
-  type_names.push_back(factory()->NewNameReference(ConsumeToken()));
-  for (;;) {
-    if (AdvanceIf(TokenType::Dot)) {
-      PeekToken();
-      if (!PeekToken()->is_name())
-        return Error(ErrorCode::SyntaxTypeDotNotName);
-      type_names.push_back(factory()->NewNameReference(ConsumeToken()));
-      continue;
-    }
-    if (auto const op_token = ConsumeTokenIf(TokenType::LeftAngleBracket)) {
-      // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
-      ProduceType(factory()->NewMemberAccess(type_names));
-      type_names.clear();
-      std::vector<ast::Expression*> type_args;
-      for (;;) {
-        if (!ParseType())
-          return false;
-        type_args.push_back(ConsumeType());
-        if (AdvanceIf(TokenType::Comma))
-          continue;
-        if (AdvanceIf(TokenType::RightAngleBracket)) {
-          type_names.push_back(factory()->NewConstructedType(
-              op_token, ConsumeType(), type_args));
-          break;
-        }
-        Error(ErrorCode::SyntaxTypeComma);
-        return false;
-      }
-      continue;
-    }
-    if (type_names.size() == 1)
-      ProduceType(type_names.front());
-    else
-      ProduceType(factory()->NewMemberAccess(type_names));
-    return ParseTypePost();
-  }
+  return ParseTypePost();
 }
 
 // NullableType ::= NonNullableValueType '?'
@@ -143,8 +173,16 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
   return type_params;
 }
 
-void Parser::ProduceType(ast::Expression* type) {
-  ProduceExpression(type);
+ast::Expression* Parser::ProduceMemberAccess(
+    const std::vector<ast::Expression*>& names) {
+  DCHECK(!names.empty());
+  if (names.size() == 1)
+    return ProduceType(names.back());
+  return ProduceType(factory()->NewMemberAccess(names));
+}
+
+ast::Expression* Parser::ProduceType(ast::Expression* type) {
+  return ProduceExpression(type);
 }
 
 }  // namespace compiler

@@ -72,8 +72,8 @@ NodeFactory::~NodeFactory() {
 Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
                              Token* keyword,
                              Token* alias_name,
-                             const QualifiedName& target_name) {
-  auto const node = new Alias(namespace_body, keyword, alias_name, target_name);
+                             Expression* reference) {
+  auto const node = new Alias(namespace_body, keyword, alias_name, reference);
   RememberNode(node);
   return node;
 }
@@ -184,10 +184,9 @@ Conditional* NodeFactory::NewConditional(Token* op,
 }
 
 ConstructedType* NodeFactory::NewConstructedType(
-    Token* op,
     Expression* blueprint_type,
     const std::vector<Expression*>& arguments) {
-  auto const node = new ConstructedType(op, blueprint_type, arguments);
+  auto const node = new ConstructedType(blueprint_type, arguments);
   RememberNode(node);
   return node;
 }

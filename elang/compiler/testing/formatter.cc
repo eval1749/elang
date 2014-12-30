@@ -110,6 +110,11 @@ std::string Formatter::Run(ast::Namespace* ns) {
   stream_.clear();
   depth_ = 0;
   for (auto const namespace_body : ns->bodies()) {
+    for (auto const import : namespace_body->imports()) {
+      stream_ << "using ";
+      Visit(import);
+      stream_ << ";" << std::endl;
+    }
     for (auto const member : namespace_body->members())
       Visit(member);
   }
@@ -123,8 +128,9 @@ void Formatter::Visit(ast::Node* node) {
 
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->token() << " " << alias->name() << " = "
-          << alias->target_name() << ";" << std::endl;
+  stream_ << alias->token() << " " << alias->name() << " = ";
+  Visit(alias->reference());
+  stream_ << ";" << std::endl;
 }
 
 void Formatter::VisitArrayType(ast::ArrayType* array_type) {
