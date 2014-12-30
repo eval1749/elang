@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
 #include <vector>
 
 #include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/field.h"
@@ -15,7 +17,10 @@
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/unary_operation.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/source_code.h"
+#include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -178,7 +183,21 @@ ast::Expression* Parser::ProduceMemberAccess(
   DCHECK(!names.empty());
   if (names.size() == 1)
     return ProduceType(names.back());
-  return ProduceType(factory()->NewMemberAccess(names));
+  // TODO(eval1749) We should use |base::string16| for creating name for
+  // |MemberAccess|
+  std::stringstream buffer;
+  const char* separator = "";
+  for (auto const name : names) {
+    buffer << separator << name->token();
+    separator = ".";
+  }
+  auto const name_token = session_->NewToken(
+      SourceCodeRange(compilation_unit_->source_code(),
+                      names.front()->token()->location().start_offset(),
+                      names.back()->token()->location().end_offset()),
+      TokenData(TokenType::SimpleName, session_->GetOrCreateSimpleName(
+                                           base::UTF8ToUTF16(buffer.str()))));
+  return ProduceType(factory()->NewMemberAccess(name_token, names));
 }
 
 ast::Expression* Parser::ProduceType(ast::Expression* type) {

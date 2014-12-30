@@ -14,9 +14,10 @@ namespace ast {
 //
 // MemberAccess
 //
-MemberAccess::MemberAccess(const std::vector<Expression*>& members)
-    : Expression(members.front()->token()), members_(members) {
-  DCHECK_GE(members.size(), 2u);
+MemberAccess::MemberAccess(Token* name,
+                           const std::vector<Expression*>& components)
+    : Expression(name), components_(components) {
+  DCHECK_GE(components.size(), 2u);
 }
 
 MemberAccess::~MemberAccess() {

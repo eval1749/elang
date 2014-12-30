@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
@@ -36,14 +37,9 @@ const std::vector<Alias*>& NamespaceBody::aliases() const {
   return aliases_;
 }
 
-const std::vector<Expression*>& NamespaceBody::imports() const {
+const std::vector<Import*>& NamespaceBody::imports() const {
   DCHECK(owner_->ToNamespace());
   return imports_;
-}
-
-void NamespaceBody::AddImport(Expression* reference) {
-  DCHECK(owner_->ToNamespace());
-  imports_.push_back(reference);
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
@@ -53,6 +49,13 @@ void NamespaceBody::AddAlias(Alias* alias) {
   members_.push_back(alias);
 }
 
+void NamespaceBody::AddImport(Import* import) {
+  DCHECK(owner_->ToNamespace());
+  imports_.push_back(import);
+  import_map_[import->name()->simple_name()] = import;
+  members_.push_back(import);
+}
+
 void NamespaceBody::AddMember(NamespaceMember* member) {
   DCHECK(!member->as<Alias>());
   owner()->AddMember(member);
@@ -60,9 +63,13 @@ void NamespaceBody::AddMember(NamespaceMember* member) {
 }
 
 Alias* NamespaceBody::FindAlias(Token* name) {
-  DCHECK(owner_->ToNamespace());
   auto const it = alias_map_.find(name->simple_name());
   return it == alias_map_.end() ? nullptr : it->second;
+}
+
+Import* NamespaceBody::FindImport(Token* name) {
+  auto const it = import_map_.find(name->simple_name());
+  return it == import_map_.end() ? nullptr : it->second;
 }
 
 NamespaceMember* NamespaceBody::FindMember(Token* name) {

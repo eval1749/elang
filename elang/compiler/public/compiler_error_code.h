@@ -15,8 +15,9 @@ namespace compiler {
   E(Expression, Conditional, Colon)                   \
   E(Expression, Primary, RightParenthesis)            \
   /* * Name Resolver */                               \
-  E(NameResolution, Alias, NoTarget)                  \
+  E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
+  E(NameResolution, Import, NeitherNamespaceNorType)  \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
   E(NameResolution, Name, NeitherClassNortInterface)  \
@@ -25,6 +26,7 @@ namespace compiler {
   E(NameResolution, Name, NotFound)                   \
   E(NameResolution, Name, NotInterface)               \
   E(NameResolution, Name, NotNamespace)               \
+  E(NameResolution, Name, NotResolved)                \
   /*  Parser */                                       \
   /* CompilationUnit */                               \
   E(Syntax, CompilationUnit, Invalid)                 \

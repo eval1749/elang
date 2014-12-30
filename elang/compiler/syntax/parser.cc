@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
@@ -28,17 +29,17 @@ namespace elang {
 namespace compiler {
 
 namespace {
-bool IsQualifiedName(ast::Expression* thing) {
-  if (thing->is<ast::NameReference>())
-    return true;
+Token* GetQualifiedNameToken(ast::Expression* thing) {
+  if (auto const name_reference = thing->as<ast::NameReference>())
+    return name_reference->name();
   auto const member_access = thing->as<ast::MemberAccess>();
   if (!member_access)
     return false;
-  for (auto const member : member_access->members()) {
-    if (!member->is<ast::NameReference>())
-      return false;
+  for (auto const component : member_access->components()) {
+    if (!component->is<ast::NameReference>())
+      return nullptr;
   }
-  return true;
+  return member_access->token();
 }
 }  // namespace
 
@@ -241,15 +242,10 @@ bool Parser::Error(ErrorCode error_code) {
 }
 
 ast::NamespaceMember* Parser::FindMember(Token* name) const {
-  DCHECK(name->is_name());
-  for (auto runner = namespace_body_; runner; runner = runner->outer()) {
-    if (auto const present = runner->FindMember(name))
-      return present;
-    if (runner->owner()->ToNamespace()) {
-      if (auto const present = runner->FindAlias(name))
-        return present;
-    }
-  }
+  if (auto const present = namespace_body_->FindAlias(name))
+    return present;
+  if (auto const present = namespace_body_->FindMember(name))
+    return present;
   return nullptr;
 }
 
@@ -569,7 +565,7 @@ bool Parser::ParseUsingDirectives() {
         continue;
       }
       auto const alias_name = thing->as<ast::NameReference>()->name();
-      if (auto const present = FindMember(alias_name)) {
+      if (auto const present = namespace_body_->FindAlias(alias_name)) {
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
               present->keyword());
         continue;
@@ -579,12 +575,18 @@ bool Parser::ParseUsingDirectives() {
             namespace_body_, using_keyword, alias_name, ConsumeType()));
       }
     } else {
-      if (!IsQualifiedName(thing)) {
+      auto const qualified_name = GetQualifiedNameToken(thing);
+      if (!qualified_name) {
         Error(ErrorCode::SyntaxUsingDirectiveImport);
         continue;
       }
-      // TODO(eval1749) We should check duplicated import.
-      namespace_body_->AddImport(thing);
+      if (auto const present = namespace_body_->FindImport(qualified_name)) {
+        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
+              present->reference()->token());
+        continue;
+      }
+      namespace_body_->AddImport(factory()->NewImport(
+        namespace_body_, using_keyword, thing));
     }
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
@@ -598,6 +600,17 @@ Token* Parser::PeekToken() {
   token_ = lexer_->GetToken();
   last_source_offset_ = token_->location().start_offset();
   return token_;
+}
+
+ast::NamespaceMember* Parser::ResolveMember(Token* name) const {
+  DCHECK(name->is_name());
+  for (auto runner = namespace_body_; runner; runner = runner->outer()) {
+    if (auto const present = runner->FindAlias(name))
+      return present;
+    if (auto const present = runner->FindMember(name))
+      return present;
+  }
+  return nullptr;
 }
 
 bool Parser::Run() {

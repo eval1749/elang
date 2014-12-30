@@ -94,6 +94,7 @@ class Parser final {
   bool ParseQualifiedName();
   bool ParseUsingDirectives();
   Token* PeekToken();
+  ast::NamespaceMember* ResolveMember(Token* token) const;
   void ValidateClassModifiers();
   void ValidateEnumModifiers();
   void ValidateFieldModifiers();

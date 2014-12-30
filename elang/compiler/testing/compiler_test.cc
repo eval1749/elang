@@ -11,15 +11,17 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analyze/namespace_analyzer.h"
+#include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/expression.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/syntax/parser.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"
+#include "elang/compiler/syntax/parser.h"
 #include "elang/compiler/testing/formatter.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -49,7 +51,9 @@ std::string GetQualifiedName(ast::NamespaceMember* member) {
 //
 // CompilerTest
 //
-CompilerTest::CompilerTest() : session_(new CompilationSession()) {
+CompilerTest::CompilerTest()
+    : session_(new CompilationSession()),
+      name_resolver_(new NameResolver(session_.get())) {
 }
 
 CompilerTest::~CompilerTest() {
@@ -87,15 +91,17 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
   auto const clazz = member->as<ast::Class>();
   if (!clazz)
     return base::StringPrintf("%s isn't class", name);
-#if 0
   std::stringstream stream;
   const char* separator = "";
-  for (auto base_class : clazz->base_classes()) {
-    stream << separator << GetQualifiedName(base_class);
+  for (auto const base_class_name : clazz->base_class_names()) {
+    stream << separator;
+    if (auto const base_class = name_resolver_->FindReference(base_class_name))
+      stream << GetQualifiedName(base_class);
+    else
+      stream << "Not resolved " << base_class_name->token();
     separator = ", ";
   }
   return stream.str();
-#endif
   return "NYI";
 }
 
@@ -120,7 +126,7 @@ std::string CompilerTest::GetErrors() {
 std::string CompilerTest::AnalyzeNamespace() {
   if (!Parse())
     return GetErrors();
-  NamespaceAnalyzer resolver(session_.get());
+  NamespaceAnalyzer resolver(session_.get(), name_resolver_.get());
   return resolver.Run() ? "" : GetErrors();
 }
 

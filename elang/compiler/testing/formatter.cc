@@ -24,6 +24,7 @@
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/local_variable.h"
@@ -110,11 +111,6 @@ std::string Formatter::Run(ast::Namespace* ns) {
   stream_.clear();
   depth_ = 0;
   for (auto const namespace_body : ns->bodies()) {
-    for (auto const import : namespace_body->imports()) {
-      stream_ << "using ";
-      Visit(import);
-      stream_ << ";" << std::endl;
-    }
     for (auto const member : namespace_body->members())
       Visit(member);
   }
@@ -128,7 +124,7 @@ void Formatter::Visit(ast::Node* node) {
 
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->token() << " " << alias->name() << " = ";
+  stream_ << alias->keyword() << " " << alias->name() << " = ";
   Visit(alias->reference());
   stream_ << ";" << std::endl;
 }
@@ -312,15 +308,22 @@ void Formatter::VisitIfStatement(ast::IfStatement* statement) {
   Visit(statement->then_statement());
 }
 
+void Formatter::VisitImport(ast::Import* import) {
+  Indent();
+  stream_ << import->keyword() << " ";
+  Visit(import->reference());
+  stream_ << ";" << std::endl;
+}
+
 void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
 
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   const char* separator = "";
-  for (auto const member : member_access->members()) {
+  for (auto const component : member_access->components()) {
     stream_ << separator;
-    Visit(member);
+    Visit(component);
     separator = ".";
   }
 }

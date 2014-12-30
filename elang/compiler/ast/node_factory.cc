@@ -23,6 +23,7 @@
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/if_statement.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/member_access.h"
@@ -115,6 +116,14 @@ Field* NodeFactory::NewField(NamespaceBody* namespace_body,
   return node;
 }
 
+Import* NodeFactory::NewImport(NamespaceBody* namespace_body,
+                               Token* keyword,
+                               Expression* reference) {
+  auto const node = new Import(namespace_body, keyword, reference);
+  RememberNode(node);
+  return node;
+}
+
 Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
                                MethodGroup* method_group,
                                Modifiers modifies,
@@ -198,8 +207,9 @@ Literal* NodeFactory::NewLiteral(Token* literal) {
 }
 
 MemberAccess* NodeFactory::NewMemberAccess(
+    Token* name,
     const std::vector<Expression*>& members) {
-  auto const node = new MemberAccess(members);
+  auto const node = new MemberAccess(name, members);
   RememberNode(node);
   return node;
 }

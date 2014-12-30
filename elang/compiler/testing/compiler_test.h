@@ -20,6 +20,7 @@ class NamespaceMember;
 }
 
 class CompilationSession;
+class NameResolver;
 class StringSourceCode;
 
 namespace testing {
@@ -44,6 +45,8 @@ class CompilerTest : public ::testing::Test {
 
  private:
   const std::unique_ptr<CompilationSession> session_;
+
+  std::unique_ptr<NameResolver> name_resolver_;
   std::unique_ptr<StringSourceCode> source_code_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerTest);

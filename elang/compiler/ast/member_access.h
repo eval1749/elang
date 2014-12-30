@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_member_access_h)
-#define INCLUDE_elang_compiler_ast_member_access_h
+#ifndef ELANG_COMPILER_AST_MEMBER_ACCESS_H_
+#define ELANG_COMPILER_AST_MEMBER_ACCESS_H_
 
 #include <vector>
 
@@ -19,7 +19,7 @@ class NodeFactory;
 //
 // MemberAccess
 //
-// Represents type members connected by '.', e.g. |G<S, T>.F<X>.A|.
+// Represents type components connected by '.', e.g. |G<S, T>.F<X>.A|.
 //
 class MemberAccess final : public Expression {
   DECLARE_CASTABLE_CLASS(MemberAccess, Expression);
@@ -29,15 +29,15 @@ class MemberAccess final : public Expression {
  public:
   ~MemberAccess() final;
 
-  const std::vector<Expression*>& members() const { return members_; }
+  const std::vector<Expression*>& components() const { return components_; }
 
  private:
-  explicit MemberAccess(const std::vector<Expression*>& members);
+  MemberAccess(Token* name, const std::vector<Expression*>& components);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const std::vector<Expression*> members_;
+  const std::vector<Expression*> components_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
 };
@@ -46,4 +46,4 @@ class MemberAccess final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_member_access_h)
+#endif  // ELANG_COMPILER_AST_MEMBER_ACCESS_H_

@@ -62,6 +62,17 @@ TEST_F(ParserTest, AliasErrorReference) {
 //
 // Class
 //
+TEST_F(ParserTest, ClassAndAlias) {
+  auto const source_code =
+      "using R = N1.A;\n"
+      "namespace N1 {\n"
+      "  class R {\n"
+      "  }\n"
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
 TEST_F(ParserTest, ClassBasic) {
   auto const source_code =
       "class A : C {\n}\n"
@@ -82,12 +93,17 @@ TEST_F(ParserTest, ClassField) {
   EXPECT_EQ(source_code, Format());
 }
 
-TEST_F(ParserTest, ErrorClassFieldDuplicate) {
+TEST_F(ParserTest, ClassErrorConflictToAlias) {
+  Prepare("using R = N1.A; class R {}");
+  EXPECT_EQ("Syntax.ClassDecl.NameDuplicate(22) R\n", Format());
+}
+
+TEST_F(ParserTest, ClassErrorFieldDuplicate) {
   Prepare("class A { int x; bool x; }");
   EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x\n", Format());
 }
 
-TEST_F(ParserTest, ErrorClassFieldVar) {
+TEST_F(ParserTest, ClassErrorFieldVar) {
   Prepare("class A { var x; }");
   EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n", Format())
       << "var field must be initialized";
@@ -97,7 +113,7 @@ TEST_F(ParserTest, ErrorClassFieldVar) {
 //
 // compilation unit
 //
-TEST_F(ParserTest, ErrorCompilationUnitInvalid) {
+TEST_F(ParserTest, CompilationUnitErrorInvalid) {
   Prepare("class A {} using R = A;");
   EXPECT_EQ("Syntax.CompilationUnit.Invalid(11) using\n", Format());
 }
@@ -292,6 +308,14 @@ TEST_F(ParserTest, ImportBasic) {
       "using System.Console;\n";
   Prepare(source_code);
   EXPECT_EQ(source_code, Format());
+}
+
+TEST_F(ParserTest, ImportErrorDuplicate) {
+  Prepare("using A.B;"
+          "using A.B;");
+  EXPECT_EQ("Syntax.UsingDirective.Duplicate(16) A.B A.B\n"
+            "Syntax.CompilationUnit.Invalid(19) ;\n",
+            Format());
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
