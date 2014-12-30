@@ -277,19 +277,21 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
   ValidateMethodModifiers();
   std::vector<ast::LocalVariable*> parameters;
   std::unordered_set<hir::SimpleName*> names;
-  for (;;) {
-    auto const param_type = ParseType() ? ConsumeType() : nullptr;
-    auto const param_name =
-        PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
-    if (names.find(param_name->simple_name()) != names.end())
-      Error(ErrorCode::SyntaxMethodNameDuplicate);
-    parameters.push_back(
-        factory()->NewLocalVariable(nullptr, param_type, param_name, nullptr));
-    names.insert(param_name->simple_name());
-    if (AdvanceIf(TokenType::RightParenthesis))
-      break;
-    if (!AdvanceIf(TokenType::Comma))
-      Error(ErrorCode::SyntaxMethodComma);
+  if (!AdvanceIf(TokenType::RightParenthesis)) {
+    for (;;) {
+      auto const param_type = ParseType() ? ConsumeType() : nullptr;
+      auto const param_name =
+          PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
+      if (names.find(param_name->simple_name()) != names.end())
+        Error(ErrorCode::SyntaxMethodNameDuplicate);
+      parameters.push_back(factory()->NewLocalVariable(nullptr, param_type,
+                                                       param_name, nullptr));
+      names.insert(param_name->simple_name());
+      if (AdvanceIf(TokenType::RightParenthesis))
+        break;
+      if (!AdvanceIf(TokenType::Comma))
+        Error(ErrorCode::SyntaxMethodComma);
+    }
   }
 
   auto method_group = static_cast<ast::MethodGroup*>(nullptr);

@@ -274,7 +274,7 @@ TEST_F(ParserTest, EnumValue) {
 TEST_F(ParserTest, ExpressionCallBasic) {
   auto const source_code =
     "class A {\n"
-    "  void Run(int x) {\n"
+    "  void Run() {\n"
     "    foo(x);\n"
     "  }\n"
     "}\n";
