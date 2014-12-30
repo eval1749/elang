@@ -87,6 +87,7 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
   auto const clazz = member->as<ast::Class>();
   if (!clazz)
     return base::StringPrintf("%s isn't class", name);
+#if 0
   std::stringstream stream;
   const char* separator = "";
   for (auto base_class : clazz->base_classes()) {
@@ -94,6 +95,8 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
     separator = ", ";
   }
   return stream.str();
+#endif
+  return "NYI";
 }
 
 std::string CompilerTest::GetErrors() {

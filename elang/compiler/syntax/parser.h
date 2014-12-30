@@ -91,7 +91,6 @@ class Parser final {
                           const std::vector<Token*>& names,
                           size_t index);
   bool ParseNamespaceMemberDecls();
-  bool ParseNamespaceOrType();
   bool ParseQualifiedName();
   bool ParseUsingDirectives();
   Token* PeekToken();

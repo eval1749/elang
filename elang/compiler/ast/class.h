@@ -14,29 +14,20 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // Class
 //
 class Class final : public Namespace {
   DECLARE_CASTABLE_CLASS(Class, Namespace);
-
   friend class NodeFactory;
 
  public:
-  ~Class() final;
-
-  const std::vector<Class*>& base_classes() const;
-  const std::vector<QualifiedName>& base_class_names() const {
+  const std::vector<Expression*>& base_class_names() const {
     return base_class_names_;
   }
-  bool is_fixed() const { return is_fixed_; }
 
-  void AddBaseClassName(const QualifiedName& class_name);
-
-  void BindBaseClasses(const std::vector<Class*>& base_classes);
+  void AddBaseClassName(Expression* class_name);
 
   // NamespaceMember
   Namespace* ToNamespace() final;
@@ -46,12 +37,12 @@ class Class final : public Namespace {
         Modifiers modifiers,
         Token* keyword,
         Token* name);
+  ~Class() final;
+
   // Node
   void Accept(Visitor* visitor) override;
 
-  std::vector<Class*> base_classes_;
-  std::vector<QualifiedName> base_class_names_;
-  bool is_fixed_;
+  std::vector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };

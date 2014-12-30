@@ -183,7 +183,8 @@ void Formatter::VisitClass(ast::Class* klass) {
     stream_ << klass->token() << " " << klass->name();
     const char* separator = " : ";
     for (auto const base_class_name : klass->base_class_names()) {
-      stream_ << separator << base_class_name;
+      stream_ << separator;
+      Visit(base_class_name);
       separator = ", ";
     }
 
