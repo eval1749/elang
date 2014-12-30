@@ -35,12 +35,7 @@ class TestDriver final {
   explicit TestDriver(base::StringPiece source_text);
   ~TestDriver();
 
-  ast::Class* FindClass(base::StringPiece name);
-  ast::NamespaceMember* FindMember(base::StringPiece name);
-  std::string GetBaseClasses(base::StringPiece name);
   std::string GetErrors();
-  std::string RunNamespaceAnalyzer();
-  std::string RunParser();
 
  private:
   const std::unique_ptr<CompilationSession> session_;

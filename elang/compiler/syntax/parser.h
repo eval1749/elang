@@ -78,6 +78,7 @@ class Parser final {
   // Always returns false for simplify error processing.
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
+  bool Error(ErrorCode error_code, Token* token, Token* token2);
   ast::NamespaceMember* FindMember(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
@@ -93,6 +94,7 @@ class Parser final {
   bool ParseQualifiedName();
   bool ParseUsingDirectives();
   Token* PeekToken();
+  ast::NamespaceMember* ResolveMember(Token* token) const;
   void ValidateClassModifiers();
   void ValidateEnumModifiers();
   void ValidateFieldModifiers();
@@ -102,17 +104,17 @@ class Parser final {
   // Returns last produced expression.
   ast::Expression* ConsumeExpression();
   bool ParseAfterPrimaryExpression();
-  void ProduceBinaryOperation(Token* op_token,
-                              ast::Expression* left,
-                              ast::Expression* right);
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
   bool ParsePrimaryExpressionPost();
   ExpressionCategory PeekTokenCategory();
-  // Returns false if no name, otherwise true.
-  void ProduceExpression(ast::Expression* expression);
-  void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
+  ast::Expression* ProduceBinaryOperation(Token* op_token,
+                                          ast::Expression* left,
+                                          ast::Expression* right);
+  ast::Expression* ProduceExpression(ast::Expression* expression);
+  ast::Expression* ProduceUnaryOperation(Token* op_token,
+                                         ast::Expression* expression);
 
   // in "parse_statement.cc"
   // Returns last produced statement.
@@ -140,15 +142,18 @@ class Parser final {
   bool ParseUsingStatement(Token* keyword);
   bool ParseVarStatement(Token* keyword);
   bool ParseYieldStatement(Token* keyword);
-  void ProduceStatement(ast::Statement* statement);
+  ast::Statement* ProduceStatement(ast::Statement* statement);
 
   // in "parse_type.cc"
   // Returns last produced expression.
   ast::Expression* ConsumeType();
+  bool ParseNamespaceOrTypeName();
   bool ParseType();
   std::vector<Token*> ParseTypeParameterList();
   bool ParseTypePost();
-  void ProduceType(ast::Expression* expression);
+  ast::Expression* ProduceMemberAccess(
+      const std::vector<ast::Expression*>& names);
+  ast::Expression* ProduceType(ast::Expression* expression);
 
   CompilationUnit* compilation_unit_;
   LocalDeclarationSpace* declaration_space_;

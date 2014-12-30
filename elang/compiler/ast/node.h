@@ -23,6 +23,7 @@ namespace ast {
   V(Class)                       \
   V(Enum)                        \
   V(Field)                       \
+  V(Import)                      \
   V(MethodGroup)                 \
   V(Namespace)
 

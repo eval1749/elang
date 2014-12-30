@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
@@ -13,20 +14,6 @@
 namespace elang {
 namespace compiler {
 namespace ast {
-
-//////////////////////////////////////////////////////////////////////
-//
-// NamespaceBody::ImportDef
-//
-struct NamespaceBody::ImportDef {
-  Token* keyword;
-  QualifiedName name;
-  ImportDef(Token* keyword, const QualifiedName& real_name);
-};
-
-NamespaceBody::ImportDef::ImportDef(Token* keyword, const QualifiedName& name)
-    : keyword(keyword), name(name) {
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -43,8 +30,6 @@ NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
 }
 
 NamespaceBody::~NamespaceBody() {
-  for (auto const import_def : import_defs_)
-    delete import_def;
 }
 
 const std::vector<Alias*>& NamespaceBody::aliases() const {
@@ -52,10 +37,9 @@ const std::vector<Alias*>& NamespaceBody::aliases() const {
   return aliases_;
 }
 
-void NamespaceBody::AddImport(Token* keyword, const QualifiedName& name) {
+const std::vector<Import*>& NamespaceBody::imports() const {
   DCHECK(owner_->ToNamespace());
-  DCHECK_EQ(keyword->type(), TokenType::Using);
-  import_defs_.push_back(new ImportDef(keyword, name));
+  return imports_;
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
@@ -65,20 +49,31 @@ void NamespaceBody::AddAlias(Alias* alias) {
   members_.push_back(alias);
 }
 
+void NamespaceBody::AddImport(Import* import) {
+  DCHECK(owner_->ToNamespace());
+  imports_.push_back(import);
+  import_map_[import->name()->simple_name()] = import;
+  members_.push_back(import);
+}
+
 void NamespaceBody::AddMember(NamespaceMember* member) {
   DCHECK(!member->as<Alias>());
   owner()->AddMember(member);
   members_.push_back(member);
 }
 
-Alias* NamespaceBody::FindAlias(Token* simple_name) {
-  DCHECK(owner_->ToNamespace());
-  auto const it = alias_map_.find(simple_name->simple_name());
+Alias* NamespaceBody::FindAlias(Token* name) {
+  auto const it = alias_map_.find(name->simple_name());
   return it == alias_map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* NamespaceBody::FindMember(Token* simple_name) {
-  return owner_->FindMember(simple_name);
+Import* NamespaceBody::FindImport(Token* name) {
+  auto const it = import_map_.find(name->simple_name());
+  return it == import_map_.end() ? nullptr : it->second;
+}
+
+NamespaceMember* NamespaceBody::FindMember(Token* name) {
+  return owner_->FindMember(name);
 }
 
 }  // namespace ast

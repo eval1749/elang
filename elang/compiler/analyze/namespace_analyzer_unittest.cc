@@ -27,7 +27,7 @@ class NamespaceAnalyzerTest : public testing::CompilerTest {
 //
 TEST_F(NamespaceAnalyzerTest, AliasBasic) {
   Prepare(
-      "namespace N1.N2 { class A{} }"
+      "namespace N1.N2 { class A {} }"
       "namespace N3 { using C = N1.N2.A; class B : C {} }");
   EXPECT_EQ("", AnalyzeNamespace());
   EXPECT_EQ("N1.N2.A", GetBaseClasses("N3.B"));
@@ -80,7 +80,7 @@ TEST_F(NamespaceAnalyzerTest, AliasToAliasDeep) {
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.
-TEST_F(NamespaceAnalyzerTest, ErrorAliasAmbiguous) {
+TEST_F(NamespaceAnalyzerTest, AliasErrorAmbiguous) {
   Prepare(
       "namespace N1.N2 { class A {} }"
       "namespace N3 { class A {} }"
@@ -93,16 +93,16 @@ TEST_F(NamespaceAnalyzerTest, ErrorAliasAmbiguous) {
 }
 
 // Scope of using alias directive is limited into namespace body.
-TEST_F(NamespaceAnalyzerTest, ErrorAliasScope) {
+TEST_F(NamespaceAnalyzerTest, AliasErrorScope) {
   Prepare(
       "namespace N1.N2 { class A {} }"
       "namespace N3 { using R = N1.N2; }"
       "namespace N3 { class B : R.A {} }");  // Error: R unknown
-  EXPECT_EQ("NameResolution.Name.NotFound(88) R\n",
+  EXPECT_EQ("NameResolution.Name.NotResolved(88) R\n",
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorAliasScopeHide) {
+TEST_F(NamespaceAnalyzerTest, AliasErrorScopeHide) {
   Prepare(
       "using R = N1.N2;"
       "namespace N1.N2 { class A {} }"
@@ -110,11 +110,11 @@ TEST_F(NamespaceAnalyzerTest, ErrorAliasScopeHide) {
       "  class R {}"        // Class R hides alias R in toplevel.
       "  class B : R.A {}"  // Error: R has no member A.
       "}");
-  EXPECT_EQ("NameResolution.Name.NotFound(86) A\n",
+  EXPECT_EQ("NameResolution.Name.NotResolved(86) A\n",
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorAliasScopeResolution) {
+TEST_F(NamespaceAnalyzerTest, AliasErrorScopeResolution) {
   Prepare(
       "namespace N1.N2 {}"
       "namespace N3 {"
@@ -122,10 +122,8 @@ TEST_F(NamespaceAnalyzerTest, ErrorAliasScopeResolution) {
       "  using R2 = N1.N2;"
       "  using R3 = R1.N2;"  // Error: R1 is unknown.
       "}");
-  EXPECT_EQ(
-      "NameResolution.Alias.NoTarget(75) R3\n"
-      "NameResolution.Name.NotFound(80) R1\n",
-      AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.NotResolved(80) R1\n",
+            AnalyzeNamespace());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -146,7 +144,7 @@ TEST_F(NamespaceAnalyzerTest, ClassNested) {
   EXPECT_EQ("", GetBaseClasses("A.B"));
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassBaseNotInterface) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseNotInterface) {
   Prepare(
       "class A : B, C {}"  // C must be an interface.
       "class B {}"
@@ -155,7 +153,7 @@ TEST_F(NamespaceAnalyzerTest, ErrorClassBaseNotInterface) {
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassBaseClassIsInterface) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsInterface) {
   Prepare(
       "class A : B, C {}"
       "interface B {}"
@@ -164,7 +162,7 @@ TEST_F(NamespaceAnalyzerTest, ErrorClassBaseClassIsInterface) {
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassBaseClassIsStruct) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsStruct) {
   Prepare(
       "class A : B {}"
       "struct B {}");
@@ -172,13 +170,13 @@ TEST_F(NamespaceAnalyzerTest, ErrorClassBaseClassIsStruct) {
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassBaseClassIsNamespace) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsNamespace) {
   Prepare("namespace N1 { class A : N1 {} }");
   EXPECT_EQ("NameResolution.Name.NotClass(25) N1\n",
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassCircularlyDependency) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorCircularlyDependency) {
   Prepare(
       "class A : B {}"
       "class B : C {}"
@@ -190,7 +188,7 @@ TEST_F(NamespaceAnalyzerTest, ErrorClassCircularlyDependency) {
       AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassCircularlyDependencyNested) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorCircularlyDependencyNested) {
   Prepare(
       "class A : B.C {}"     // A depends on B and C.
       "class B : A {"        // B depends on A.
@@ -203,13 +201,13 @@ TEST_F(NamespaceAnalyzerTest, ErrorClassCircularlyDependencyNested) {
       AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassNestedDependency) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorNestedDependency) {
   Prepare("class A { class B : A {} }");
   EXPECT_EQ("NameResolution.Class.Containing(20) A B\n",
             AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ErrorClassSelfReference) {
+TEST_F(NamespaceAnalyzerTest, ClassErrorSelfReference) {
   Prepare("class A : A {}");
   EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n",
             AnalyzeNamespace());

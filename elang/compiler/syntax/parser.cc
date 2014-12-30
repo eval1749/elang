@@ -13,6 +13,8 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/import.h"
+#include "elang/compiler/ast/member_access.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -25,6 +27,21 @@
 
 namespace elang {
 namespace compiler {
+
+namespace {
+Token* GetQualifiedNameToken(ast::Expression* thing) {
+  if (auto const name_reference = thing->as<ast::NameReference>())
+    return name_reference->name();
+  auto const member_access = thing->as<ast::MemberAccess>();
+  if (!member_access)
+    return false;
+  for (auto const component : member_access->components()) {
+    if (!component->is<ast::NameReference>())
+      return nullptr;
+  }
+  return member_access->token();
+}
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -208,9 +225,14 @@ Token* Parser::ConsumeTokenIf(TokenType type) {
   return ConsumeToken();
 }
 
+bool Parser::Error(ErrorCode error_code, Token* token, Token* token2) {
+  DCHECK(token);
+  session_->AddError(error_code, token, token2);
+  return false;
+}
+
 bool Parser::Error(ErrorCode error_code, Token* token) {
   DCHECK(token);
-  expression_ = nullptr;
   session_->AddError(error_code, token);
   return false;
 }
@@ -220,8 +242,11 @@ bool Parser::Error(ErrorCode error_code) {
 }
 
 ast::NamespaceMember* Parser::FindMember(Token* name) const {
-  DCHECK(name->is_name());
-  return namespace_body_->FindMember(name);
+  if (auto const present = namespace_body_->FindAlias(name))
+    return present;
+  if (auto const present = namespace_body_->FindMember(name))
+    return present;
+  return nullptr;
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
@@ -264,8 +289,8 @@ bool Parser::ParseClassDecl() {
 
   // ClassBase
   if (AdvanceIf(TokenType::Colon)) {
-    while (ParseQualifiedName()) {
-      clazz->AddBaseClassName(name_builder_->Get());
+    while (ParseNamespaceOrTypeName()) {
+      clazz->AddBaseClassName(ConsumeType());
       if (!AdvanceIf(TokenType::Comma))
         break;
     }
@@ -526,26 +551,45 @@ bool Parser::ParseQualifiedName() {
 }
 
 // UsingDirective ::= AliasDef | ImportNamespace
-// AliasDef ::= 'using' Name '='  QualfiedName ';'
+// AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
 // ImportNamespace ::= 'using' QualfiedName ';'
 bool Parser::ParseUsingDirectives() {
   DCHECK(namespace_body_->owner()->ToNamespace());
   while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
-    if (!ParseQualifiedName())
-      return Error(ErrorCode::SyntaxUsingDirectiveName);
+    if (!ParseNamespaceOrTypeName())
+      continue;
+    auto const thing = ConsumeType();
     if (AdvanceIf(TokenType::Assign)) {
-      if (!name_builder_->IsSimpleName())
-        return Error(ErrorCode::SyntaxAliasDefAliasName);
-      auto alias_name = name_builder_->simple_names().front();
-      if (!ParseQualifiedName())
-        return Error(ErrorCode::SyntaxAliasDefRealName);
-      namespace_body_->AddAlias(factory()->NewAlias(
-          namespace_body_, using_keyword, alias_name, name_builder_->Get()));
+      if (!thing->is<ast::NameReference>()) {
+        Error(ErrorCode::SyntaxUsingDirectiveAlias);
+        continue;
+      }
+      auto const alias_name = thing->as<ast::NameReference>()->name();
+      if (auto const present = namespace_body_->FindAlias(alias_name)) {
+        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
+              present->keyword());
+        continue;
+      }
+      if (ParseNamespaceOrTypeName()) {
+        namespace_body_->AddAlias(factory()->NewAlias(
+            namespace_body_, using_keyword, alias_name, ConsumeType()));
+      }
     } else {
-      namespace_body_->AddImport(using_keyword, name_builder_->Get());
+      auto const qualified_name = GetQualifiedNameToken(thing);
+      if (!qualified_name) {
+        Error(ErrorCode::SyntaxUsingDirectiveImport);
+        continue;
+      }
+      if (auto const present = namespace_body_->FindImport(qualified_name)) {
+        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
+              present->reference()->token());
+        continue;
+      }
+      namespace_body_->AddImport(factory()->NewImport(
+        namespace_body_, using_keyword, thing));
     }
     if (!AdvanceIf(TokenType::SemiColon))
-      return Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
+      Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
   }
   return true;
 }
@@ -556,6 +600,17 @@ Token* Parser::PeekToken() {
   token_ = lexer_->GetToken();
   last_source_offset_ = token_->location().start_offset();
   return token_;
+}
+
+ast::NamespaceMember* Parser::ResolveMember(Token* name) const {
+  DCHECK(name->is_name());
+  for (auto runner = namespace_body_; runner; runner = runner->outer()) {
+    if (auto const present = runner->FindAlias(name))
+      return present;
+    if (auto const present = runner->FindMember(name))
+      return present;
+  }
+  return nullptr;
 }
 
 bool Parser::Run() {

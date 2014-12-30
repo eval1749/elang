@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_source_code_range_h)
-#define INCLUDE_elang_compiler_source_code_range_h
+#ifndef ELANG_COMPILER_SOURCE_CODE_RANGE_H_
+#define ELANG_COMPILER_SOURCE_CODE_RANGE_H_
 
 namespace elang {
 namespace compiler {
@@ -28,6 +28,7 @@ class SourceCodeRange {
   bool operator!=(const SourceCodeRange& other) const;
 
   SourceCodePosition end() const;
+  int end_offset() const { return end_offset_; }
   SourceCode* source_code() const { return source_code_; }
   SourceCodePosition start() const;
   int start_offset() const { return start_offset_; }
@@ -41,4 +42,4 @@ class SourceCodeRange {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_source_code_range_h)
+#endif  // ELANG_COMPILER_SOURCE_CODE_RANGE_H_

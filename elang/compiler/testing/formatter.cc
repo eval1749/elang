@@ -24,6 +24,7 @@
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/local_variable.h"
@@ -123,8 +124,9 @@ void Formatter::Visit(ast::Node* node) {
 
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->token() << " " << alias->name() << " = "
-          << alias->target_name() << ";" << std::endl;
+  stream_ << alias->keyword() << " " << alias->name() << " = ";
+  Visit(alias->reference());
+  stream_ << ";" << std::endl;
 }
 
 void Formatter::VisitArrayType(ast::ArrayType* array_type) {
@@ -177,7 +179,8 @@ void Formatter::VisitClass(ast::Class* klass) {
     stream_ << klass->token() << " " << klass->name();
     const char* separator = " : ";
     for (auto const base_class_name : klass->base_class_names()) {
-      stream_ << separator << base_class_name;
+      stream_ << separator;
+      Visit(base_class_name);
       separator = ", ";
     }
 
@@ -305,15 +308,22 @@ void Formatter::VisitIfStatement(ast::IfStatement* statement) {
   Visit(statement->then_statement());
 }
 
+void Formatter::VisitImport(ast::Import* import) {
+  Indent();
+  stream_ << import->keyword() << " ";
+  Visit(import->reference());
+  stream_ << ";" << std::endl;
+}
+
 void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
 
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   const char* separator = "";
-  for (auto const member : member_access->members()) {
+  for (auto const component : member_access->components()) {
     stream_ << separator;
-    Visit(member);
+    Visit(component);
     separator = ".";
   }
 }

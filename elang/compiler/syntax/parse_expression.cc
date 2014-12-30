@@ -246,20 +246,21 @@ Parser::ExpressionCategory Parser::PeekTokenCategory() {
   return static_cast<ExpressionCategory>(PeekToken()->precedence());
 }
 
-void Parser::ProduceExpression(ast::Expression* expression) {
+ast::Expression* Parser::ProduceExpression(ast::Expression* expression) {
   DCHECK(!expression_);
-  expression_ = expression;
+  return expression_ = expression;
 }
 
-void Parser::ProduceBinaryOperation(Token* op_token,
-                                    ast::Expression* left,
-                                    ast::Expression* right) {
-  ProduceExpression(factory()->NewBinaryOperation(op_token, left, right));
+ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
+                                                ast::Expression* left,
+                                                ast::Expression* right) {
+  return ProduceExpression(
+      factory()->NewBinaryOperation(op_token, left, right));
 }
 
-void Parser::ProduceUnaryOperation(Token* op_token,
-                                   ast::Expression* expression) {
-  ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
+ast::Expression* Parser::ProduceUnaryOperation(Token* op_token,
+                                               ast::Expression* expression) {
+  return ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
 }
 
 }  // namespace compiler

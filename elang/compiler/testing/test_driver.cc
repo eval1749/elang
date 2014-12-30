@@ -10,14 +10,10 @@
 #include "base/macros.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/compiler/analyze/namespace_analyzer.h"
-#include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/syntax/parser.h"
-#include "elang/compiler/qualified_name.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/testing/formatter.h"
@@ -27,23 +23,6 @@
 namespace elang {
 namespace compiler {
 namespace testing {
-
-namespace {
-std::string GetQualifiedName(ast::NamespaceMember* member) {
-  std::vector<Token*> names;
-  names.push_back(member->name());
-  for (auto ns = member->outer(); ns && ns->outer(); ns = ns->outer())
-    names.push_back(ns->name());
-  std::reverse(names.begin(), names.end());
-  std::stringstream stream;
-  const char* separator = "";
-  for (auto const name : names) {
-    stream << separator << name;
-    separator = ".";
-  }
-  return stream.str();
-}
-}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -58,47 +37,6 @@ TestDriver::TestDriver(base::StringPiece source_text)
 }
 
 TestDriver::~TestDriver() {
-}
-
-ast::Class* TestDriver::FindClass(base::StringPiece name) {
-  auto const member = FindMember(name);
-  return member ? member->as<ast::Class>() : nullptr;
-}
-
-ast::NamespaceMember* TestDriver::FindMember(base::StringPiece name) {
-  auto enclosing = session_->global_namespace();
-  auto found = static_cast<ast::NamespaceMember*>(nullptr);
-  for (size_t pos = 0u; pos < name.length(); ++pos) {
-    auto dot_pos = name.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = name.length();
-    auto const simple_name = session_->GetOrCreateSimpleName(
-        base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
-    found = enclosing->FindMember(simple_name);
-    if (!found)
-      return nullptr;
-    enclosing = found->as<ast::Namespace>();
-    if (!enclosing)
-      return nullptr;
-    pos = dot_pos;
-  }
-  return found;
-}
-
-std::string TestDriver::GetBaseClasses(base::StringPiece name) {
-  auto const member = FindMember(name);
-  if (!member)
-    return base::StringPrintf("No such class %s", name);
-  auto const clazz = member->as<ast::Class>();
-  if (!clazz)
-    return base::StringPrintf("%s isn't class", name);
-  std::stringstream stream;
-  const char* separator = "";
-  for (auto base_class : clazz->base_classes()) {
-    stream << separator << GetQualifiedName(base_class);
-    separator = ", ";
-  }
-  return stream.str();
 }
 
 std::string TestDriver::GetErrors() {
@@ -117,25 +55,6 @@ std::string TestDriver::GetErrors() {
     stream << std::endl;
   }
   return stream.str();
-}
-
-std::string TestDriver::RunNamespaceAnalyzer() {
-  {
-    Parser parser(session_.get(), compilation_unit_.get());
-    if (!parser.Run())
-      return GetErrors();
-  }
-  NamespaceAnalyzer resolver(session_.get());
-  return resolver.Run() ? "" : GetErrors();
-}
-
-std::string TestDriver::RunParser() {
-  Parser parser(session_.get(), compilation_unit_.get());
-  if (parser.Run()) {
-    Formatter formatter;
-    return formatter.Run(session_->global_namespace());
-  }
-  return GetErrors();
 }
 
 }  // namespace testing

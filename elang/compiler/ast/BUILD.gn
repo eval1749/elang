@@ -42,6 +42,8 @@ static_library("ast") {
     "field.h",
     "if_statement.cc",
     "if_statement.h",
+    "import.cc",
+    "import.h",
     "literal.cc",
     "literal.h",
     "local_variable.cc",

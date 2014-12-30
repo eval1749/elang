@@ -14,10 +14,9 @@ namespace ast {
 //
 // ConstructedType
 //
-ConstructedType::ConstructedType(Token* op,
-                                 Expression* type,
+ConstructedType::ConstructedType(Expression* type,
                                  const std::vector<Expression*>& args)
-    : Expression(op), arguments_(args), blueprint_type_(type) {
+    : Expression(type->token()), arguments_(args), blueprint_type_(type) {
   DCHECK(!arguments_.empty());
 }
 

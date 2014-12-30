@@ -15,12 +15,8 @@ namespace hir {
 class SimpleName;
 }
 namespace compiler {
-class QualifiedName;
 
 namespace ast {
-class Alias;
-class NamespaceMember;
-class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -32,14 +28,16 @@ class NamespaceBody final {
   ~NamespaceBody();
 
   const std::vector<Alias*>& aliases() const;
+  const std::vector<Import*>& imports() const;
   const std::vector<NamespaceMember*>& members() const { return members_; }
   NamespaceBody* outer() const { return outer_; }
   Namespace* owner() const { return owner_; }
 
-  void AddImport(Token* import_keyword, const QualifiedName& name);
   void AddAlias(Alias* alias);
+  void AddImport(Import* import);
   void AddMember(NamespaceMember* member);
   Alias* FindAlias(Token* simple_name);
+  Import* FindImport(Token* simple_name);
   NamespaceMember* FindMember(Token* simple_name);
 
  private:
@@ -48,7 +46,8 @@ class NamespaceBody final {
   // TODO(eval1749) Use |AstVector| instead of |std::vector|
   std::vector<Alias*> aliases_;
   std::unordered_map<hir::SimpleName*, Alias*> alias_map_;
-  std::vector<ImportDef*> import_defs_;
+  std::vector<Import*> imports_;
+  std::unordered_map<hir::SimpleName*, Import*> import_map_;
   std::vector<NamespaceMember*> members_;
   NamespaceBody* const outer_;
   Namespace* const owner_;

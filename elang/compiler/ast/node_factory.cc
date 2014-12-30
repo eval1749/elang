@@ -23,6 +23,7 @@
 #include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/if_statement.h"
+#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/member_access.h"
@@ -72,8 +73,8 @@ NodeFactory::~NodeFactory() {
 Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
                              Token* keyword,
                              Token* alias_name,
-                             const QualifiedName& target_name) {
-  auto const node = new Alias(namespace_body, keyword, alias_name, target_name);
+                             Expression* reference) {
+  auto const node = new Alias(namespace_body, keyword, alias_name, reference);
   RememberNode(node);
   return node;
 }
@@ -111,6 +112,14 @@ Field* NodeFactory::NewField(NamespaceBody* namespace_body,
                              Expression* expression) {
   auto const node =
       new Field(namespace_body, modifiers, type, name, expression);
+  RememberNode(node);
+  return node;
+}
+
+Import* NodeFactory::NewImport(NamespaceBody* namespace_body,
+                               Token* keyword,
+                               Expression* reference) {
+  auto const node = new Import(namespace_body, keyword, reference);
   RememberNode(node);
   return node;
 }
@@ -184,10 +193,9 @@ Conditional* NodeFactory::NewConditional(Token* op,
 }
 
 ConstructedType* NodeFactory::NewConstructedType(
-    Token* op,
     Expression* blueprint_type,
     const std::vector<Expression*>& arguments) {
-  auto const node = new ConstructedType(op, blueprint_type, arguments);
+  auto const node = new ConstructedType(blueprint_type, arguments);
   RememberNode(node);
   return node;
 }
@@ -199,8 +207,9 @@ Literal* NodeFactory::NewLiteral(Token* literal) {
 }
 
 MemberAccess* NodeFactory::NewMemberAccess(
+    Token* name,
     const std::vector<Expression*>& members) {
-  auto const node = new MemberAccess(members);
+  auto const node = new MemberAccess(name, members);
   RememberNode(node);
   return node;
 }

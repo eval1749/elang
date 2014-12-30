@@ -20,7 +20,7 @@ Class::Class(NamespaceBody* namespace_body,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : Namespace(namespace_body, modifiers, keyword, name), is_fixed_(false) {
+    : Namespace(namespace_body, modifiers, keyword, name) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
 }
@@ -28,36 +28,8 @@ Class::Class(NamespaceBody* namespace_body,
 Class::~Class() {
 }
 
-const std::vector<Class*>& Class::base_classes() const {
-  DCHECK(is_fixed_);
-  return base_classes_;
-}
-
-void Class::AddBaseClassName(const QualifiedName& class_name) {
-  DCHECK(!is_fixed_);
+void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
-}
-
-void Class::BindBaseClasses(const std::vector<Class*>& base_classes) {
-  DCHECK(!is_fixed_);
-  DCHECK(base_classes_.empty());
-  DCHECK_EQ(base_classes.size(), base_class_names_.size());
-#if _DEBUG
-  // We check |base_classes[0]| is proper class rather than |struct|,
-  // |interface|.
-  auto first = true;
-  for (auto const base_class : base_classes) {
-    if (first) {
-      DCHECK(base_class->token() == TokenType::Class ||
-             base_class->token() == TokenType::Interface);
-      first = false;
-      continue;
-    }
-    DCHECK_EQ(base_class->token()->type(), TokenType::Interface);
-  }
-#endif
-  base_classes_ = base_classes;
-  is_fixed_ = true;
 }
 
 // NamespaceMember

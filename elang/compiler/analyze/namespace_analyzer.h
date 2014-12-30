@@ -6,7 +6,7 @@
 #define ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 
 #include <unordered_set>
-#include <vector>
+#include <unordered_map>
 
 #include "base/macros.h"
 #include "elang/base/types.h"
@@ -14,17 +14,22 @@
 namespace elang {
 namespace compiler {
 class CompilationSession;
-class QualifiedName;
+class NameResolver;
 class Token;
 
 namespace ast {
 class Node;
 class Alias;
 class Class;
+class ConstructedType;
+class Expression;
+class Import;
+class MemberAccess;
 class Namespace;
 class NamespaceBody;
 class NamespaceMember;
-}
+class NameReference;
+}  // namespace ast
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -32,39 +37,48 @@ class NamespaceMember;
 //
 class NamespaceAnalyzer final {
  public:
-  explicit NamespaceAnalyzer(CompilationSession* session);
+  NamespaceAnalyzer(CompilationSession* session, NameResolver* resolver);
   ~NamespaceAnalyzer();
 
   bool Run();
 
  private:
-  class ScopedResolver;
-  friend class ScopedResolver;
+  class AnalyzeNode;
+  struct ResolveContext;
 
-  void BindAlias(ast::Alias* alias);
-  Maybe<ast::NamespaceMember*> FixClass(ast::Class* clazz);
-  void BindMembers(ast::Namespace* ast_Namespace);
-  Maybe<ast::NamespaceMember*> Resolve(ast::NamespaceMember* member);
+  bool AnalyzeAlias(ast::Alias* alias);
+  bool AnalyzeClass(ast::Class* clazz);
+  bool AnalyzeImport(ast::Import* import);
+  // Build namespace tree and schedule member to resolve.
+  bool AnalyzeNamespace(ast::Namespace* ast_Namespace);
+  bool AnalyzeNamespaceMember(ast::NamespaceMember* member);
 
-  // Resolves left most simple name of |name| in
-  // |enclosing_namespace| and |alias_namespace|.
-  ast::NamespaceMember* ResolveLeftMostName(ast::Namespace* enclosing_namespace,
-                                            ast::NamespaceBody* alias_namespace,
-                                            const QualifiedName& name);
-  // Resolves |name| in |enclosing_namespace| and |alias_namespace|.
-  ast::NamespaceMember* ResolveQualifiedName(
-      ast::Namespace* enclosing_namespace,
-      ast::NamespaceBody* alias_namespace,
-      const QualifiedName& name);
-  void ScheduleClassTree(ast::Class* clazz);
-  void Schedule(ast::NamespaceMember* member);
+  std::unordered_set<ast::NamespaceMember*> FindInClass(Token* name,
+                                                        ast::Class* clazz);
+  ast::NamespaceMember* FindResolved(ast::Expression* reference);
+  AnalyzeNode* GetOrCreateNode(ast::NamespaceMember* member);
+  ast::NamespaceMember* GetResolved(ast::Expression* reference);
 
-  std::vector<ast::NamespaceMember*> pending_members_;
-  std::unordered_set<ast::NamespaceMember*> pending_set_;
-  std::unordered_set<ast::NamespaceMember*> running_set_;
-  std::vector<ast::NamespaceMember*> running_stack_;
-  std::unordered_set<ast::NamespaceMember*> waiting_set_;
+  Maybe<ast::NamespaceMember*> Postpone(AnalyzeNode* node,
+                                        AnalyzeNode* using_node);
+  Maybe<ast::NamespaceMember*> Remember(ast::Expression* reference,
+                                        ast::NamespaceMember* member);
+
+  Maybe<ast::NamespaceMember*> ResolveMemberAccess(
+      const ResolveContext& context,
+      ast::MemberAccess* reference);
+  Maybe<ast::NamespaceMember*> ResolveNameReference(
+      const ResolveContext& context,
+      ast::NameReference* reference);
+  Maybe<ast::NamespaceMember*> ResolveReference(const ResolveContext& context,
+                                                ast::Expression* reference);
+  void Resolved(AnalyzeNode* node);
+
+  std::unordered_map<ast::Expression*, ast::NamespaceMember*> reference_cache_;
+  std::unordered_map<ast::NamespaceMember*, AnalyzeNode*> map_;
+  NameResolver* const resolver_;
   CompilationSession* const session_;
+  std::unordered_set<AnalyzeNode*> unresolved_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceAnalyzer);
 };
