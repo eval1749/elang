@@ -87,6 +87,8 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
   auto const clazz = member->as<ast::Class>();
   if (!clazz)
     return base::StringPrintf("%s isn't class", name);
+  if (!clazz->is_fixed())
+    return base::StringPrintf("class %s isn't fixed", name);
   std::stringstream stream;
   const char* separator = "";
   for (auto base_class : clazz->base_classes()) {
