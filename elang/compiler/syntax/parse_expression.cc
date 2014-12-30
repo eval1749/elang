@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/assignment.h"
 #include "elang/compiler/ast/binary_operation.h"
+#include "elang/compiler/ast/call.h"
 #include "elang/compiler/ast/conditional.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/name_reference.h"
@@ -219,6 +220,19 @@ bool Parser::ParsePrimaryExpression() {
 
 bool Parser::ParsePrimaryExpressionPost() {
   for (;;) {
+    if (AdvanceIf(TokenType::LeftParenthesis)) {
+      // InvokeExpression ::= PrimerExpresion '(' ArgumentList? ')'
+      // ArgumentList ::= Expression (',' Expression)*
+      auto const callee = ConsumeExpression();
+      std::vector<ast::Expression*> arguments;
+      while (!AdvanceIf(TokenType::RightParenthesis)) {
+        if (!ParseExpression())
+          break;
+        arguments.push_back(ConsumeExpression());
+      }
+      ProduceExpression(factory()->NewCall(callee, arguments));
+      continue;
+    }
     if (PeekToken() == TokenType::Increment) {
       // PostIncrementExpression ::=
       //    PrimeryExpression '++'

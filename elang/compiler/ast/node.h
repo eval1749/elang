@@ -31,6 +31,7 @@ namespace ast {
   V(ArrayType)                  \
   V(Assignment)                 \
   V(BinaryOperation)            \
+  V(Call)                       \
   V(Conditional)                \
   V(ConstructedType)            \
   V(Literal)                    \

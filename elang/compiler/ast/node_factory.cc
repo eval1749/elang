@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
+#include "elang/compiler/ast/call.h"
 #include "elang/compiler/ast/catch_clause.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
@@ -240,6 +241,13 @@ BlockStatement* NodeFactory::NewBlockStatement(
 
 BreakStatement* NodeFactory::NewBreakStatement(Token* keyword) {
   auto const node = new BreakStatement(keyword);
+  RememberNode(node);
+  return node;
+}
+
+Call* NodeFactory::NewCall(Expression* callee,
+                           const std::vector<Expression*> arguments) {
+  auto const node = new Call(callee, arguments);
   RememberNode(node);
   return node;
 }

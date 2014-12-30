@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/block_statement.h"
 #include "elang/compiler/ast/break_statement.h"
+#include "elang/compiler/ast/call.h"
 #include "elang/compiler/ast/catch_clause.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/conditional.h"
@@ -163,6 +164,18 @@ void Formatter::VisitBlockStatement(ast::BlockStatement* block_statement) {
 void Formatter::VisitBreakStatement(ast::BreakStatement* break_statement) {
   __assume(break_statement);
   stream_ << "break;";
+}
+
+void Formatter::VisitCall(ast::Call* call) {
+  Visit(call->callee());
+  stream_ << "(";
+  const char* separator = "";
+  for (auto const argument : call->arguments()) {
+    stream_ << separator;
+    Visit(argument);
+    separator = ", ";
+  }
+  stream_ << ")";
 }
 
 void Formatter::VisitConditional(ast::Conditional* cond) {

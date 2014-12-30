@@ -16,6 +16,8 @@ static_library("ast") {
     "block_statement.h",
     "break_statement.cc",
     "break_statement.h",
+    "call.cc",
+    "call.h",
     "catch_clause.cc",
     "catch_clause.h",
     "class.cc",

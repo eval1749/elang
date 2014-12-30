@@ -72,6 +72,7 @@ class NodeFactory final {
   BinaryOperation* NewBinaryOperation(Token* op,
                                       Expression* left,
                                       Expression* right);
+  Call* NewCall(Expression* callee, const std::vector<Expression*> arguments);
   Conditional* NewConditional(Token* op,
                               Expression* cond_expr,
                               Expression* then_expr,

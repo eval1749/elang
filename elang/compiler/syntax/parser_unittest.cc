@@ -60,6 +60,45 @@ TEST_F(ParserTest, AliasErrorReference) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// 'break' statement
+//
+TEST_F(ParserTest, BreakBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    while (x) {\n"
+      "      break;\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
+TEST_F(ParserTest, BreakErrorInvalid) {
+  Prepare(
+      "class A {"
+      "  void Run(int x) {"
+      "    break;"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Break.Invalid(40) }\n", Format());
+}
+
+TEST_F(ParserTest, BreakErrorSemiColon) {
+  Prepare(
+      "class A {"
+      "  void Run(int x) {"
+      "    while (x) {"
+      "      break"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ("Syntax.Break.SemiColon(58) }\n", Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Class
 //
 TEST_F(ParserTest, ClassAndAlias) {
@@ -116,45 +155,6 @@ TEST_F(ParserTest, ClassErrorFieldVar) {
 TEST_F(ParserTest, CompilationUnitErrorInvalid) {
   Prepare("class A {} using R = A;");
   EXPECT_EQ("Syntax.CompilationUnit.Invalid(11) using\n", Format());
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// 'break' statement
-//
-TEST_F(ParserTest, BreakBasic) {
-  auto const source_code =
-      "class A {\n"
-      "  void Run(int x) {\n"
-      "    while (x) {\n"
-      "      break;\n"
-      "    }\n"
-      "  }\n"
-      "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
-}
-
-TEST_F(ParserTest, BreakErrorInvalid) {
-  Prepare(
-      "class A {"
-      "  void Run(int x) {"
-      "    break;"
-      "  }"
-      "}");
-  EXPECT_EQ("Syntax.Break.Invalid(40) }\n", Format());
-}
-
-TEST_F(ParserTest, BreakErrorSemiColon) {
-  Prepare(
-      "class A {"
-      "  void Run(int x) {"
-      "    while (x) {"
-      "      break"
-      "    }"
-      "  }"
-      "}");
-  EXPECT_EQ("Syntax.Break.SemiColon(58) }\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -265,6 +265,21 @@ TEST_F(ParserTest, EnumValue) {
       "  Blue,\n"
       "}\n",
       Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Expression
+//
+TEST_F(ParserTest, ExpressionCallBasic) {
+  auto const source_code =
+    "class A {\n"
+    "  void Run(int x) {\n"
+    "    foo(x);\n"
+    "  }\n"
+    "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
 }
 
 //////////////////////////////////////////////////////////////////////
