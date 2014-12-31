@@ -178,7 +178,7 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
 //
 // PrimaryNoArrayCreationExpression :=
 //    Literal
-//    SimpleName
+//    AtomicString
 //    ParenthesizedExpression
 //    member-access
 //    invocation-expression

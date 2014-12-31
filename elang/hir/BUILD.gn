@@ -4,6 +4,8 @@
 
 static_library("hir") {
   sources = [
+    "atomic_string.cc",
+    "atomic_string.h",
     "class.cc",
     "class.h",
     "factory.cc",
@@ -14,8 +16,6 @@ static_library("hir") {
     "namespace_member.h",
     "node.cc",
     "node.h",
-    "simple_name.cc",
-    "simple_name.h",
   ]
 
   deps = [

@@ -9,9 +9,9 @@
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "elang/base/zone.h"
+#include "elang/hir/atomic_string.h"
 #include "elang/hir/class.h"
 #include "elang/hir/namespace.h"
-#include "elang/hir/simple_name.h"
 
 namespace elang {
 namespace hir {
@@ -19,7 +19,8 @@ namespace hir {
 namespace {
 
 Namespace* CreateGlobalNamespace(Factory* factory) {
-  return factory->NewNamespace(nullptr, factory->GetOrCreateSimpleName(L"::"));
+  return factory->NewNamespace(nullptr,
+                               factory->GetOrCreateAtomicString(L"::"));
 }
 
 }  // namespace
@@ -38,32 +39,32 @@ Factory::~Factory() {
   RemoveAll();
 }
 
-SimpleName* Factory::GetOrCreateSimpleName(base::StringPiece16 string) {
+AtomicString* Factory::GetOrCreateAtomicString(base::StringPiece16 string) {
   auto const it = simple_names_.find(string);
   if (it != simple_names_.end())
     return it->second;
-  auto const simple_name = new (zone_) SimpleName(NewString(string));
+  auto const simple_name = new (zone_) AtomicString(NewString(string));
   simple_names_[simple_name->string()] = simple_name;
   return simple_name;
 }
 
 Class* Factory::NewClass(Namespace* outer,
-                         SimpleName* simple_name,
+                         AtomicString* simple_name,
                          const std::vector<Class*>& base_classes) {
   auto const node = new Class(outer, simple_name, base_classes);
   nodes_.push_back(node);
   return node;
 }
 
-Namespace* Factory::NewNamespace(Namespace* outer, SimpleName* simple_name) {
+Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* simple_name) {
   auto const node = new Namespace(outer, simple_name);
   nodes_.push_back(node);
   return node;
 }
 
-SimpleName* Factory::NewUniqueName(const base::char16* format) {
+AtomicString* Factory::NewUniqueName(const base::char16* format) {
   return new (zone_)
-      SimpleName(base::StringPrintf(format, ++temp_name_counter_));
+      AtomicString(base::StringPrintf(format, ++temp_name_counter_));
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {

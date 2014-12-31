@@ -19,7 +19,7 @@ class Zone;
 
 namespace hir {
 class Factory;
-class SimpleName;
+class AtomicString;
 }
 
 namespace compiler {
@@ -57,7 +57,7 @@ class CompilationSession final {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
-  hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
+  hir::AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   // Allocate |base::StringPiece16| object in zone used for string backing
   // store for |TokenData|.

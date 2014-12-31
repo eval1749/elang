@@ -12,7 +12,7 @@ namespace hir {
 // Class
 //
 Class::Class(Namespace* outer,
-             SimpleName* simple_name,
+             AtomicString* simple_name,
              const std::vector<Class*>& base_classes)
     : Namespace(outer, simple_name), base_classes_(base_classes) {
   // TODO(eval1749) NYI default base class |Object|.

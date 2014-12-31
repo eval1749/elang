@@ -138,7 +138,7 @@ class Parser::QualifiedNameBuilder final {
 
   void Add(Token* simple_name);
   QualifiedName Get() const;
-  bool IsSimpleName() const { return simple_names_.size() == 1u; }
+  bool IsAtomicString() const { return simple_names_.size() == 1u; }
   void Reset();
 
  private:

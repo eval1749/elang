@@ -17,14 +17,14 @@
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
-#include "elang/hir/simple_name.h"
+#include "elang/hir/atomic_string.h"
 
 namespace elang {
 namespace compiler {
 
 namespace {
 
-TokenType ComputeToken(hir::SimpleName* name) {
+TokenType ComputeToken(hir::AtomicString* name) {
   typedef std::unordered_map<base::StringPiece16, TokenType> KeywordMap;
   CR_DEFINE_STATIC_LOCAL(KeywordMap*, keyword_map, ());
   if (!keyword_map) {
@@ -395,7 +395,7 @@ Token* Lexer::HandleAtMark() {
     while (!IsAtEndOfStream()) {
       auto const char_code = PeekChar();
       if (!IsNameChar(char_code)) {
-        auto const simple_name = session_->GetOrCreateSimpleName(
+        auto const simple_name = session_->GetOrCreateAtomicString(
             char_sink_->End());
         return NewToken(TokenData(simple_name));
       }
@@ -526,7 +526,7 @@ Token* Lexer::HandleName(base::char16 first_char_code) {
     Advance();
     char_sink_->AddChar(char_code);
   }
-  auto const name = session_->GetOrCreateSimpleName(char_sink_->End());
+  auto const name = session_->GetOrCreateAtomicString(char_sink_->End());
   return NewToken(TokenData(ComputeToken(name), name));
 }
 

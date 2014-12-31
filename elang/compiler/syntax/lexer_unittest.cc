@@ -73,7 +73,7 @@ Token* TestLexer::MakeToken(TokenType type,
   auto location = SourceCodeRange(&source_code_, start, end);
   if (type == TokenType::StringLiteral)
     return session_.NewToken(location, TokenData(session_.NewString(data)));
-  auto const simple_name = session_.GetOrCreateSimpleName(data);
+  auto const simple_name = session_.GetOrCreateAtomicString(data);
   return session_.NewToken(location, TokenData(type, simple_name));
 }
 

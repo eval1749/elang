@@ -16,7 +16,7 @@
 
 namespace elang {
 namespace hir {
-class SimpleName;
+class AtomicString;
 }
 namespace compiler {
 
@@ -45,7 +45,7 @@ class Token final : public ZoneObject {
   bool is_type_name() const { return data_.is_type_name(); }
   const SourceCodeRange& location() const { return location_; }
   int precedence() const { return data_.precedence(); }
-  hir::SimpleName* simple_name() const { return data_.simple_name(); }
+  hir::AtomicString* simple_name() const { return data_.simple_name(); }
   base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }
 

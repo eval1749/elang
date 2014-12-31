@@ -59,7 +59,7 @@ class Parser::LocalDeclarationSpace final {
   LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
-  std::unordered_map<hir::SimpleName*, ast::NamedNode*> map_;
+  std::unordered_map<hir::AtomicString*, ast::NamedNode*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalDeclarationSpace);
 };
@@ -276,7 +276,7 @@ bool Parser::ParseMethodDecl(Modifiers method_modifiers,
                              const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
   std::vector<ast::LocalVariable*> parameters;
-  std::unordered_set<hir::SimpleName*> names;
+  std::unordered_set<hir::AtomicString*> names;
   if (!AdvanceIf(TokenType::RightParenthesis)) {
     for (;;) {
       auto const param_type = ParseType() ? ConsumeType() : nullptr;

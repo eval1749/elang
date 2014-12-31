@@ -27,7 +27,7 @@ class Class final : public Namespace {
 
  private:
   Class(Namespace* outer,
-        SimpleName* simple_name,
+        AtomicString* simple_name,
         const std::vector<Class*>& base_classes);
   ~Class() override;
 

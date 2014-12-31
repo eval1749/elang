@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_SIMPLE_NAME_H_
-#define ELANG_HIR_SIMPLE_NAME_H_
+#ifndef ELANG_HIR_ATOMIC_STRING_H_
+#define ELANG_HIR_ATOMIC_STRING_H_
 
 #include <ostream>
 #include <string>
@@ -14,30 +14,29 @@
 namespace elang {
 namespace hir {
 
-class Factory;
-
 //////////////////////////////////////////////////////////////////////
 //
-// Node
+// AtomicString
 //
-class SimpleName final : public ZoneObject {
-  friend class Factory;
-
+class AtomicString final : public ZoneObject {
  public:
   base::StringPiece16 string() const { return string_; }
 
  private:
-  explicit SimpleName(base::StringPiece16 string);
-  ~SimpleName() = delete;
+  friend class Factory;
+
+  explicit AtomicString(base::StringPiece16 string);
+  ~AtomicString() = delete;
 
   base::StringPiece16 const string_;
 
-  DISALLOW_COPY_AND_ASSIGN(SimpleName);
+  DISALLOW_COPY_AND_ASSIGN(AtomicString);
 };
 
-std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name);
+std::ostream& operator<<(std::ostream& ostream,
+                         const AtomicString& simple_name);
 
 }  // namespace hir
 }  // namespace elang
 
-#endif  // ELANG_HIR_SIMPLE_NAME_H_
+#endif  // ELANG_HIR_ATOMIC_STRING_H_

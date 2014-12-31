@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_hir_namespace_h)
-#define INCLUDE_elang_hir_namespace_h
+#ifndef ELANG_HIR_NAMESPACE_H_
+#define ELANG_HIR_NAMESPACE_H_
 
 #include <unordered_map>
 
@@ -24,17 +24,17 @@ class Namespace : public NamespaceMember {
 
  public:
   void AddMember(NamespaceMember* member);
-  NamespaceMember* FindMember(SimpleName* simple_name);
+  NamespaceMember* FindMember(AtomicString* simple_name);
 
  protected:
-  Namespace(Namespace* outer, SimpleName* simple_name);
+  Namespace(Namespace* outer, AtomicString* simple_name);
   ~Namespace() override;
 
  private:
   // NamespaceMember
   Namespace* ToNamespace() override;
 
-  std::unordered_map<SimpleName*, NamespaceMember*> map_;
+  std::unordered_map<AtomicString*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
@@ -42,4 +42,4 @@ class Namespace : public NamespaceMember {
 }  // namespace hir
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_hir_namespace_h)
+#endif  // ELANG_HIR_NAMESPACE_H_

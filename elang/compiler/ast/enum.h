@@ -12,7 +12,7 @@
 
 namespace elang {
 namespace hir {
-class SimpleName;
+class AtomicString;
 }
 namespace compiler {
 namespace ast {
@@ -44,7 +44,7 @@ class Enum final : public NamespaceMember {
   // Node
   void Accept(Visitor* visitor) override;
 
-  ZoneUnorderedMap<hir::SimpleName*, EnumMember*> map_;
+  ZoneUnorderedMap<hir::AtomicString*, EnumMember*> map_;
   ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);

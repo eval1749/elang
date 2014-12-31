@@ -14,7 +14,7 @@
 
 namespace elang {
 namespace hir {
-class SimpleName;
+class AtomicString;
 }
 namespace compiler {
 namespace ast {

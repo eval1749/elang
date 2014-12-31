@@ -11,7 +11,7 @@
 
 namespace elang {
 namespace hir {
-class SimpleName;
+class AtomicString;
 }
 namespace compiler {
 namespace ast {
@@ -28,7 +28,7 @@ class Namespace : public NamespaceMember {
 
   void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);
-  NamespaceMember* FindMember(hir::SimpleName* simple_name);
+  NamespaceMember* FindMember(hir::AtomicString* simple_name);
   NamespaceMember* FindMember(Token* simple_name);
 
   // NamespaceMember
@@ -53,7 +53,7 @@ class Namespace : public NamespaceMember {
   struct ImportDef;
 
   ZoneVector<NamespaceBody*> bodies_;
-  ZoneUnorderedMap<hir::SimpleName*, NamespaceMember*> map_;
+  ZoneUnorderedMap<hir::AtomicString*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

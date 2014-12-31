@@ -15,7 +15,7 @@
 
 namespace elang {
 namespace hir {
-class SimpleName;
+class AtomicString;
 }
 namespace compiler {
 namespace ast {
@@ -46,9 +46,9 @@ class NamespaceBody final : public ZoneObject {
 
   // TODO(eval1749) Use |AstVector| instead of |ZoneVector|
   ZoneVector<Alias*> aliases_;
-  ZoneUnorderedMap<hir::SimpleName*, Alias*> alias_map_;
+  ZoneUnorderedMap<hir::AtomicString*, Alias*> alias_map_;
   ZoneVector<Import*> imports_;
-  ZoneUnorderedMap<hir::SimpleName*, Import*> import_map_;
+  ZoneUnorderedMap<hir::AtomicString*, Import*> import_map_;
   ZoneVector<NamespaceMember*> members_;
   NamespaceBody* const outer_;
   Namespace* const owner_;

@@ -21,7 +21,7 @@ class EnumMember;
 class Expression;
 class Namespace;
 class Node;
-class SimpleName;
+class AtomicString;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -34,19 +34,19 @@ class Factory final {
 
   Namespace* global_namespace() const { return global_namespace_; }
 
-  SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
+  AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
   Class* NewClass(Namespace* outer,
-                  SimpleName* simple_name,
+                  AtomicString* simple_name,
                   const std::vector<Class*>& base_classes);
-  Namespace* NewNamespace(Namespace* outer, SimpleName* simple_name);
+  Namespace* NewNamespace(Namespace* outer, AtomicString* simple_name);
   base::StringPiece16 NewString(base::StringPiece16 string);
-  SimpleName* NewUniqueName(const base::char16* format);
+  AtomicString* NewUniqueName(const base::char16* format);
   void RemoveAll();
 
  private:
   Zone* const zone_;
   std::vector<Node*> nodes_;
-  std::unordered_map<base::StringPiece16, SimpleName*> simple_names_;
+  std::unordered_map<base::StringPiece16, AtomicString*> simple_names_;
   std::vector<base::string16*> strings_;
   int temp_name_counter_;
 

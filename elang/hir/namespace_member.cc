@@ -13,7 +13,7 @@ namespace hir {
 //
 // NamespaceMember
 //
-NamespaceMember::NamespaceMember(Namespace* outer, SimpleName* simple_name)
+NamespaceMember::NamespaceMember(Namespace* outer, AtomicString* simple_name)
     : outer_(outer), simple_name_(simple_name) {
 }
 

@@ -13,7 +13,7 @@ namespace hir {
 //
 // Namespace
 //
-Namespace::Namespace(Namespace* outer, SimpleName* simple_name)
+Namespace::Namespace(Namespace* outer, AtomicString* simple_name)
     : NamespaceMember(outer, simple_name) {
 }
 
@@ -25,7 +25,7 @@ void Namespace::AddMember(NamespaceMember* member) {
   map_[member->simple_name()] = member;
 }
 
-NamespaceMember* Namespace::FindMember(SimpleName* simple_name) {
+NamespaceMember* Namespace::FindMember(AtomicString* simple_name) {
   auto const it = map_.find(simple_name);
   return it == map_.end() ? nullptr : it->second;
 }

@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "elang/hir/simple_name.h"
+#include "elang/hir/atomic_string.h"
 
 #include "base/strings/utf_string_conversions.h"
 
@@ -13,12 +13,13 @@ namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// SimpleName
+// AtomicString
 //
-SimpleName::SimpleName(base::StringPiece16 string) : string_(string) {
+AtomicString::AtomicString(base::StringPiece16 string) : string_(string) {
 }
 
-std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name) {
+std::ostream& operator<<(std::ostream& ostream,
+                         const AtomicString& simple_name) {
   return ostream << base::UTF16ToUTF8(simple_name.string().as_string());
 }
 

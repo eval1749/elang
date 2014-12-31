@@ -27,9 +27,9 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
       nullptr, session->NewToken(
                    SourceCodeRange(source_code, 0, 0),
                    TokenData(TokenType::Namespace,
-                             session->GetOrCreateSimpleName(L"namespace"))),
+                             session->GetOrCreateAtomicString(L"namespace"))),
       session->NewToken(SourceCodeRange(source_code, 0, 0),
-                        TokenData(session->GetOrCreateSimpleName(L"::"))));
+                        TokenData(session->GetOrCreateAtomicString(L"::"))));
 }
 
 }  // namespace
@@ -72,9 +72,9 @@ void CompilationSession::AddError(const SourceCodeRange& location,
   });
 }
 
-hir::SimpleName* CompilationSession::GetOrCreateSimpleName(
+hir::AtomicString* CompilationSession::GetOrCreateAtomicString(
     base::StringPiece16 string) {
-  return hir_factory()->GetOrCreateSimpleName(string);
+  return hir_factory()->GetOrCreateAtomicString(string);
 }
 
 CompilationUnit* CompilationSession::NewCompilationUnit(

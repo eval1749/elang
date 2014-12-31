@@ -9,7 +9,7 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/token_type.h"
-#include "elang/hir/simple_name.h"
+#include "elang/hir/atomic_string.h"
 
 namespace elang {
 namespace compiler {
@@ -44,12 +44,12 @@ TokenData::TokenData(float64_t f64) : type_(TokenType::Float64Literal) {
   data_.f64 = f64;
 }
 
-TokenData::TokenData(TokenType type, hir::SimpleName* simple_name)
+TokenData::TokenData(TokenType type, hir::AtomicString* simple_name)
     : type_(type) {
   data_.u64 = reinterpret_cast<uintptr_t>(simple_name);
 }
 
-TokenData::TokenData(hir::SimpleName* simple_name)
+TokenData::TokenData(hir::AtomicString* simple_name)
     : TokenData(TokenType::SimpleName, simple_name) {
 }
 
@@ -170,7 +170,7 @@ int TokenData::precedence() const {
   return 0;
 }
 
-hir::SimpleName* TokenData::simple_name() const {
+hir::AtomicString* TokenData::simple_name() const {
   DCHECK(has_simple_name());
   return data_.name;
 }
