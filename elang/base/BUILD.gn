@@ -18,8 +18,10 @@ source_set("base_files") {
     "types.h",
     "zone.cc",
     "zone.h",
+    "zone_allocator.h",
     "zone_object.h",
     "zone_object.cc",
+    "zone_vector.h",
   ]
 }
 

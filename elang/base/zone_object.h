@@ -19,13 +19,14 @@ class ZoneObject {
  public:
   void* operator new(size_t size, Zone* zone);
 
-  // |ZoneObject| can't have desturcotr and |delete| operator. But MSVC
-  // requires them.
-  ~ZoneObject();
+  // |ZoneObject| can't have |delete| operator. But MSVC requires them.
   void operator delete(void*, Zone*);
 
  protected:
   ZoneObject();
+
+  // |ZoneObject| can't have destructor operator. But MSVC requires them.
+  ~ZoneObject();
 };
 
 }  // namespace elang

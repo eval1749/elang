@@ -21,6 +21,11 @@ class Zone final {
   // Allocate |size| bytes of memory in the Zone.
   void* Allocate(size_t size);
 
+  template <typename T>
+  T* AllocateObjects(size_t length) {
+    return static_cast<T*>(Allocate(length * sizeof(T)));
+  }
+
  private:
   class Segment;
 
