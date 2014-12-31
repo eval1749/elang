@@ -49,7 +49,6 @@ class CompilationSession final {
 
   ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
   hir::Factory* hir_factory() const { return hir_factory_.get(); }
-  // TODO(eval1749) We should sort error list by source code offset.
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   Zone* zone() const { return zone_.get(); }

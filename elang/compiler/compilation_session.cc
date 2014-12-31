@@ -44,9 +44,6 @@ CompilationSession::CompilationSession()
 }
 
 CompilationSession::~CompilationSession() {
-  // For ease of debugging AST, we delete AST factory before string pool.
-  for (auto const error : errors_)
-    delete error;
 }
 
 void CompilationSession::AddError(ErrorCode error_code, Token* token) {
@@ -67,7 +64,8 @@ void CompilationSession::AddError(const SourceCodeRange& location,
 void CompilationSession::AddError(const SourceCodeRange& location,
                                   ErrorCode error_code,
                                   const std::vector<Token*>& tokens) {
-  errors_.push_back(new ErrorData(location, error_code, tokens));
+  errors_.push_back(new (zone_.get())
+                        ErrorData(zone_.get(), location, error_code, tokens));
   std::sort(errors_.begin(), errors_.end(),
             [](const ErrorData* a, const ErrorData* b) {
     return a->location().start_offset() < b->location().start_offset();

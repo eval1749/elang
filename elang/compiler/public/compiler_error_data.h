@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_public_error_data_h)
-#define INCLUDE_elang_compiler_public_error_data_h
+#ifndef ELANG_COMPILER_PUBLIC_COMPILER_ERROR_DATA_H_
+#define ELANG_COMPILER_PUBLIC_COMPILER_ERROR_DATA_H_
 
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/base/zone_object.h"
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token.h"
 
@@ -21,20 +23,24 @@ class Token;
 //
 // ErrorData
 //
-class ErrorData final {
+class ErrorData final : public ZoneObject {
  public:
-  ErrorData(const SourceCodeRange& location, ErrorCode error_code,
-            const std::vector<Token*>& tokens_);
-  ~ErrorData();
-
   ErrorCode error_code() const { return error_code_; }
   const SourceCodeRange& location() const { return source_code_location_; }
-  const std::vector<Token*>& tokens() const { return tokens_; }
+  const ZoneVector<Token*>& tokens() const { return tokens_; }
 
  private:
-  SourceCodeRange source_code_location_;
-  ErrorCode error_code_;
-  std::vector<Token*> tokens_;
+  friend class CompilationSession;
+
+  ErrorData(Zone* zone,
+            const SourceCodeRange& location,
+            ErrorCode error_code,
+            const std::vector<Token*>& tokens_);
+  ~ErrorData() = delete;
+
+  const SourceCodeRange source_code_location_;
+  ErrorCode const error_code_;
+  const ZoneVector<Token*> tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(ErrorData);
 };
@@ -42,4 +48,4 @@ class ErrorData final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_public_error_data_h)
+#endif  // ELANG_COMPILER_PUBLIC_COMPILER_ERROR_DATA_H_

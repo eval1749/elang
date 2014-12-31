@@ -9,13 +9,13 @@
 namespace elang {
 namespace compiler {
 
-ErrorData::ErrorData(const SourceCodeRange& location,  ErrorCode error_code,
+ErrorData::ErrorData(Zone* zone,
+                     const SourceCodeRange& location,
+                     ErrorCode error_code,
                      const std::vector<Token*>& tokens)
-    : error_code_(error_code), source_code_location_(location),
-      tokens_(tokens) {
-}
-
-ErrorData::~ErrorData() {
+    : error_code_(error_code),
+      source_code_location_(location),
+      tokens_(zone, tokens) {
 }
 
 }  // namespace compiler
