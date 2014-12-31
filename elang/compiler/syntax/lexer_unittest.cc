@@ -4,17 +4,15 @@
 
 #include <string>
 
-#include "elang/compiler/syntax/lexer.h"
-
 #include "base/logging.h"
 #include "base/macros.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/source_code_position.h"
-#include "elang/compiler/string_source_code.h"
+#include "elang/compiler/syntax/lexer.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
-#include "testing/gtest/include/gtest/gtest.h"
+#include "elang/compiler/testing/compiler_test.h"
 
 namespace elang {
 namespace compiler {
@@ -23,72 +21,74 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
-// TestLexer
+// LexerTest
 //
-class TestLexer final {
- public:
-  explicit TestLexer(const base::string16& source);
+class LexerTest : public testing::CompilerTest {
+ protected:
   Token* Get();
   Token* MakeToken(int start, int end, float32_t f32);
   Token* MakeToken(int start, int end, float64_t f64);
   Token* MakeToken(TokenType type,
                    int start,
                    int end,
-                   const base::StringPiece16& data);
+                   base::StringPiece16 data);
   Token* MakeToken(TokenType type, int start, int end, uint64_t u64);
+  void PrepareLexer(base::StringPiece16 source_text);
+
+ protected:
+  LexerTest() = default;
+  ~LexerTest() override = default;
 
  private:
-  CompilationSession session_;
-  StringSourceCode source_code_;
-  CompilationUnit compilation_unit_;
-  Lexer lexer_;
+  std::unique_ptr<Lexer> lexer_;
 
-  DISALLOW_COPY_AND_ASSIGN(TestLexer);
+  DISALLOW_COPY_AND_ASSIGN(LexerTest);
 };
 
-TestLexer::TestLexer(const base::string16& string)
-    : source_code_(L"sample", string),
-      compilation_unit_(&session_, &source_code_),
-      lexer_(&session_, &compilation_unit_) {
+Token* LexerTest::Get() {
+  return lexer_->GetToken();
 }
 
-Token* TestLexer::Get() {
-  return lexer_.GetToken();
+Token* LexerTest::MakeToken(int start, int end, float32_t f32) {
+  auto location = SourceCodeRange(source_code(), start, end);
+  return session()->NewToken(location, TokenData(f32));
 }
 
-Token* TestLexer::MakeToken(int start, int end, float32_t f32) {
-  auto location = SourceCodeRange(&source_code_, start, end);
-  return session_.NewToken(location, TokenData(f32));
+Token* LexerTest::MakeToken(int start, int end, float64_t f64) {
+  auto location = SourceCodeRange(source_code(), start, end);
+  return session()->NewToken(location, TokenData(f64));
 }
 
-Token* TestLexer::MakeToken(int start, int end, float64_t f64) {
-  auto location = SourceCodeRange(&source_code_, start, end);
-  return session_.NewToken(location, TokenData(f64));
-}
-
-Token* TestLexer::MakeToken(TokenType type,
+Token* LexerTest::MakeToken(TokenType type,
                             int start,
                             int end,
-                            const base::StringPiece16& data) {
-  auto location = SourceCodeRange(&source_code_, start, end);
+                            base::StringPiece16 data) {
+  auto location = SourceCodeRange(source_code(), start, end);
   if (type == TokenType::StringLiteral)
-    return session_.NewToken(location, TokenData(session_.NewString(data)));
-  auto const simple_name = session_.GetOrCreateAtomicString(data);
-  return session_.NewToken(location, TokenData(type, simple_name));
+    return session()->NewToken(location, TokenData(session()->NewString(data)));
+  auto const simple_name = session()->GetOrCreateAtomicString(data);
+  return session()->NewToken(location, TokenData(type, simple_name));
 }
 
-Token* TestLexer::MakeToken(TokenType type, int start, int end, uint64_t u64) {
+Token* LexerTest::MakeToken(TokenType type, int start, int end, uint64_t u64) {
   DCHECK_NE(type, TokenType::SimpleName);
-  auto location = SourceCodeRange(&source_code_, start, end);
+  auto location = SourceCodeRange(source_code(), start, end);
   switch (type) {
     case TokenType::CharacterLiteral:
     case TokenType::Int32Literal:
     case TokenType::Int64Literal:
     case TokenType::UInt32Literal:
     case TokenType::UInt64Literal:
-      return session_.NewToken(location, TokenData(type, u64));
+      return session()->NewToken(location, TokenData(type, u64));
   }
-  return session_.NewToken(location, TokenData(type));
+  return session()->NewToken(location, TokenData(type));
+}
+
+void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
+  Prepare(source_text);
+  auto const compilation_unit =
+      session()->NewCompilationUnit(source_code());
+  lexer_.reset(new Lexer(session(), compilation_unit));
 }
 
 }  // namespace
@@ -106,16 +106,16 @@ void PrintTo(const Token& token, ::std::ostream* ostream) {
 }
 
 #define EXPECT_FLOAT_TOKEN(start, end, data) \
-  EXPECT_EQ(*lexer.MakeToken(start, end, data), *lexer.Get())
+  EXPECT_EQ(*MakeToken(start, end, data), *Get())
 
 #define EXPECT_OPERATOR_TOKEN(type, start, end) \
-  EXPECT_EQ(*lexer.MakeToken(TokenType::type, start, end, 1), *lexer.Get())
+  EXPECT_EQ(*MakeToken(TokenType::type, start, end, 1), *Get())
 
 #define EXPECT_TOKEN(type, start, end, data) \
-  EXPECT_EQ(*lexer.MakeToken(TokenType::type, start, end, data), *lexer.Get())
+  EXPECT_EQ(*MakeToken(TokenType::type, start, end, data), *Get())
 
-TEST(LexerTest, Basic) {
-  TestLexer lexer(
+TEST_F(LexerTest, Basic) {
+  PrepareLexer(
       //   012345678901234
       L"class Foo<T> {\n"
       //   5678901234567890
@@ -180,8 +180,8 @@ TEST(LexerTest, Basic) {
   EXPECT_TOKEN(EndOfSource, 103, 104, 0);
 }
 
-TEST(LexerTest, Integers) {
-  TestLexer lexer(
+TEST_F(LexerTest, Integers) {
+  PrepareLexer(
       //  0123456789012345678901234567890123456789
       L" 1234   0b0101   0o177   0x7FE5         "  // 0
       L" 1234l  0b0101l  0o177l  0x7FE5l        "  // 40
@@ -215,8 +215,8 @@ TEST(LexerTest, Integers) {
   EXPECT_TOKEN(UInt64Literal, 185, 193, 0x7FE5);
 }
 
-TEST(LexerTest, Operators) {
-  TestLexer lexer(
+TEST_F(LexerTest, Operators) {
+  PrepareLexer(
       //  0123456789
       L" ~ . ,    "
       L" * *= / /="
@@ -281,8 +281,8 @@ TEST(LexerTest, Operators) {
   EXPECT_OPERATOR_TOKEN(ShrAssign, 121, 124);
 }
 
-TEST(LexerTest, Reals) {
-  TestLexer lexer(
+TEST_F(LexerTest, Reals) {
+  PrepareLexer(
       //  0123456789012345678901234567890123456789
       L"    0.0  1.34  2.5E10  3.5e+10  46E-11  "
       L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-11f ");
@@ -299,8 +299,8 @@ TEST(LexerTest, Reals) {
   EXPECT_FLOAT_TOKEN(72, 79, 46E-11f);
 }
 
-TEST(LexerTest, Strings) {
-  TestLexer lexer(
+TEST_F(LexerTest, Strings) {
+  PrepareLexer(
       L"\"\\a\b\\n\\r\\t\\v\\u1234x\""
       L"@\"ab\"\"cd\""
       L"'c'"

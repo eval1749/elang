@@ -59,6 +59,10 @@ CompilerTest::CompilerTest()
 CompilerTest::~CompilerTest() {
 }
 
+SourceCode* CompilerTest::source_code() const {
+  return source_code_.get();
+}
+
 ast::Class* CompilerTest::FindClass(base::StringPiece name) {
   auto const member = FindMember(name);
   return member ? member->as<ast::Class>() : nullptr;
@@ -141,6 +145,11 @@ bool CompilerTest::Parse() {
       session_->NewCompilationUnit(source_code_.get());
   Parser parser(session_.get(), compilation_unit);
   return parser.Run();
+}
+
+void CompilerTest::Prepare(base::StringPiece16 source_text) {
+  source_code_.reset(
+      new StringSourceCode(L"testing", source_text));
 }
 
 void CompilerTest::Prepare(base::StringPiece source_text) {

@@ -21,6 +21,7 @@ class NamespaceMember;
 
 class CompilationSession;
 class NameResolver;
+class SourceCode;
 class StringSourceCode;
 
 namespace testing {
@@ -34,6 +35,9 @@ class CompilerTest : public ::testing::Test {
   CompilerTest();
   ~CompilerTest() override;
 
+  CompilationSession* session() const { return session_.get(); }
+  SourceCode* source_code() const;
+
   std::string AnalyzeNamespace();
   ast::Class* FindClass(base::StringPiece name);
   ast::NamespaceMember* FindMember(base::StringPiece name);
@@ -41,6 +45,7 @@ class CompilerTest : public ::testing::Test {
   std::string GetBaseClasses(base::StringPiece name);
   std::string GetErrors();
   bool Parse();
+  void Prepare(base::StringPiece16 source_code);
   void Prepare(base::StringPiece source_code);
 
  private:

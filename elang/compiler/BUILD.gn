@@ -65,8 +65,6 @@ source_set("compiler_test") {
     "testing/compiler_test.h",
     "testing/formatter.cc",
     "testing/formatter.h",
-    "testing/test_driver.cc",
-    "testing/test_driver.h",
   ]
   public_deps = [
     ":compiler",
