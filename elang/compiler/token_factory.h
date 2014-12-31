@@ -5,14 +5,15 @@
 #ifndef ELANG_COMPILER_TOKEN_FACTORY_H_
 #define ELANG_COMPILER_TOKEN_FACTORY_H_
 
-#include <vector>
-
-#include "elang/compiler/token_data.h"
+#include "base/macros.h"
 
 namespace elang {
+class Zone;
 namespace compiler {
 
 class SourceCodeRange;
+class Token;
+class TokenData;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -20,13 +21,13 @@ class SourceCodeRange;
 //
 class TokenFactory {
  public:
-  TokenFactory();
+  explicit TokenFactory(Zone* zone);
   ~TokenFactory();
 
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
 
  private:
-  std::vector<Token*> tokens_;
+  Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(TokenFactory);
 };

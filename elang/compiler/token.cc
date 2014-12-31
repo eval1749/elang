@@ -17,9 +17,6 @@ Token::Token(const SourceCodeRange& location, const TokenData& data)
     : data_(data), location_(location) {
 }
 
-Token::~Token() {
-}
-
 bool Token::operator==(const Token& other) const {
   return location_ == other.location_ && data_ == other.data_;
 }

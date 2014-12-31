@@ -10,6 +10,7 @@
 
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
+#include "elang/base/zone_object.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token_data.h"
 
@@ -26,7 +27,7 @@ enum class TokenType;
 //
 // Token
 //
-class Token final {
+class Token final : public ZoneObject {
  public:
   bool operator==(const Token& other) const;
   bool operator!=(const Token& other) const;
@@ -52,7 +53,7 @@ class Token final {
   friend class TokenFactory;
 
   Token(const SourceCodeRange& source_range, const TokenData& data);
-  ~Token();
+  ~Token() = delete;
 
   TokenData const data_;
   const SourceCodeRange location_;

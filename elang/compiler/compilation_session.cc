@@ -7,6 +7,7 @@
 
 #include "elang/compiler/compilation_session.h"
 
+#include "elang/base/zone.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_data.h"
@@ -34,10 +35,11 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 }  // namespace
 
 CompilationSession::CompilationSession()
-    : ast_factory_(new ast::NodeFactory()),
+    : zone_(new Zone()),
+      ast_factory_(new ast::NodeFactory()),
       hir_factory_(new hir::Factory()),
       source_code_(new StringSourceCode(L"-", L"")),
-      token_factory_(new TokenFactory()),
+      token_factory_(new TokenFactory(zone_.get())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {
 }
 

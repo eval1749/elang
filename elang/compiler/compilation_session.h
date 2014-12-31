@@ -15,6 +15,7 @@
 #include "elang/compiler/token_data.h"
 
 namespace elang {
+class Zone;
 
 namespace hir {
 class Factory;
@@ -67,6 +68,9 @@ class CompilationSession final {
   void AddError(const SourceCodeRange& location,
                 ErrorCode error_code,
                 const std::vector<Token*>& tokens);
+
+  // |zone_| must be constructed before factories.
+  const std::unique_ptr<Zone> zone_;
 
   const std::unique_ptr<ast::NodeFactory> ast_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
