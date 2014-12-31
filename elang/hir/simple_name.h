@@ -20,7 +20,7 @@ class Factory;
 //
 // Node
 //
-class SimpleName final : ZoneObject {
+class SimpleName final : public ZoneObject {
   friend class Factory;
 
  public:
