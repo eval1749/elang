@@ -18,9 +18,6 @@ namespace hir {
 SimpleName::SimpleName(base::StringPiece16 string) : string_(string) {
 }
 
-SimpleName::~SimpleName() {
-}
-
 std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name) {
   return ostream << base::UTF16ToUTF8(simple_name.string().as_string());
 }

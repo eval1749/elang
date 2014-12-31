@@ -37,7 +37,7 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 CompilationSession::CompilationSession()
     : zone_(new Zone()),
       ast_factory_(new ast::NodeFactory(zone_.get())),
-      hir_factory_(new hir::Factory()),
+      hir_factory_(new hir::Factory(zone_.get())),
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone_.get())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {

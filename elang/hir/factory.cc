@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "elang/base/zone.h"
 #include "elang/hir/class.h"
 #include "elang/hir/namespace.h"
 #include "elang/hir/simple_name.h"
@@ -27,8 +28,10 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 //
 // Factory
 //
-Factory::Factory()
-    : global_namespace_(CreateGlobalNamespace(this)), temp_name_counter_(0) {
+Factory::Factory(Zone* zone)
+    : zone_(zone),
+      global_namespace_(CreateGlobalNamespace(this)),
+      temp_name_counter_(0) {
 }
 
 Factory::~Factory() {
@@ -39,7 +42,7 @@ SimpleName* Factory::GetOrCreateSimpleName(base::StringPiece16 string) {
   auto const it = simple_names_.find(string);
   if (it != simple_names_.end())
     return it->second;
-  auto const simple_name = new SimpleName(NewString(string));
+  auto const simple_name = new (zone_) SimpleName(NewString(string));
   simple_names_[simple_name->string()] = simple_name;
   return simple_name;
 }
@@ -59,23 +62,21 @@ Namespace* Factory::NewNamespace(Namespace* outer, SimpleName* simple_name) {
 }
 
 SimpleName* Factory::NewUniqueName(const base::char16* format) {
-  return new SimpleName(base::StringPrintf(format, ++temp_name_counter_));
+  return new (zone_)
+      SimpleName(base::StringPrintf(format, ++temp_name_counter_));
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
-  auto const string =
-      new base::string16(string_piece.data(), string_piece.size());
-  strings_.push_back(string);
-  return base::StringPiece16(string->data(), string->size());
+  auto const size = string_piece.size() * sizeof(base::char16);
+  auto const string = static_cast<base::char16*>(zone_->Allocate(size));
+  ::memcpy(string, string_piece.data(), size);
+  return base::StringPiece16(string, string_piece.size());
 }
 
 void Factory::RemoveAll() {
   for (auto const node : nodes_)
     delete node;
   nodes_.clear();
-  for (auto const string : strings_)
-    delete string;
-  strings_.clear();
 }
 
 }  // namespace hir

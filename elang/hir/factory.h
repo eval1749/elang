@@ -13,6 +13,7 @@
 #include "base/strings/string_piece.h"
 
 namespace elang {
+class Zone;
 namespace hir {
 class Class;
 class Enum;
@@ -28,7 +29,7 @@ class SimpleName;
 //
 class Factory final {
  public:
-  Factory();
+  explicit Factory(Zone* zone);
   ~Factory();
 
   Namespace* global_namespace() const { return global_namespace_; }
@@ -43,6 +44,7 @@ class Factory final {
   void RemoveAll();
 
  private:
+  Zone* const zone_;
   std::vector<Node*> nodes_;
   std::unordered_map<base::StringPiece16, SimpleName*> simple_names_;
   std::vector<base::string16*> strings_;

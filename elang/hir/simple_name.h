@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_hir_simple_name_h)
-#define INCLUDE_elang_hir_simple_name_h
+#ifndef ELANG_HIR_SIMPLE_NAME_H_
+#define ELANG_HIR_SIMPLE_NAME_H_
 
 #include <ostream>
 #include <string>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_object.h"
 
 namespace elang {
 namespace hir {
@@ -19,7 +20,7 @@ class Factory;
 //
 // Node
 //
-class SimpleName final {
+class SimpleName final : ZoneObject {
   friend class Factory;
 
  public:
@@ -27,7 +28,7 @@ class SimpleName final {
 
  private:
   explicit SimpleName(base::StringPiece16 string);
-  ~SimpleName();
+  ~SimpleName() = delete;
 
   base::StringPiece16 const string_;
 
@@ -39,4 +40,4 @@ std::ostream& operator<<(std::ostream& ostream, const SimpleName& simple_name);
 }  // namespace hir
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_hir_simple_name_h)
+#endif  // ELANG_HIR_SIMPLE_NAME_H_
