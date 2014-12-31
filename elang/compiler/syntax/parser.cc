@@ -73,17 +73,17 @@ bool Parser::ModifierParser::Add(Token* token) {
   if (builder_.HasPartial())
     parser_->Error(ErrorCode::SyntaxModifierPartial);
   switch (token->type()) {
-    #define CASE_CLAUSE(name, string, details) \
-      case TokenType::name: \
-        if (builder_.Has ## name()) { \
-          parser_->Error(ErrorCode::SyntaxModifierDuplicate); \
-          return true; \
-        } \
-        builder_.Set##name(); \
-        tokens_.push_back(token); \
-        return true;
+#define CASE_CLAUSE(name, string, details)                \
+  case TokenType::name:                                   \
+    if (builder_.Has##name()) {                           \
+      parser_->Error(ErrorCode::SyntaxModifierDuplicate); \
+      return true;                                        \
+    }                                                     \
+    builder_.Set##name();                                 \
+    tokens_.push_back(token);                             \
+    return true;
     MODIFIER_LIST(CASE_CLAUSE)
-    #undef CASE_CLAUSE
+#undef CASE_CLAUSE
   }
   return false;
 }
@@ -115,8 +115,8 @@ class Parser::NamespaceBodyScope {
 Parser::NamespaceBodyScope::NamespaceBodyScope(Parser* parser,
                                                ast::Namespace* new_namespace)
     : namespace_body_(parser->namespace_body_), parser_(parser) {
-  auto const namespace_body = new ast::NamespaceBody(namespace_body_,
-                                                     new_namespace);
+  auto const namespace_body =
+      new ast::NamespaceBody(namespace_body_, new_namespace);
   new_namespace->AddNamespaceBody(namespace_body);
   parser->namespace_body_ = namespace_body;
 }
@@ -134,9 +134,7 @@ class Parser::QualifiedNameBuilder final {
   QualifiedNameBuilder();
   ~QualifiedNameBuilder() = default;
 
-  const std::vector<Token*> simple_names() const {
-    return simple_names_;
-  }
+  const std::vector<Token*> simple_names() const { return simple_names_; }
 
   void Add(Token* simple_name);
   QualifiedName Get() const;
@@ -178,8 +176,8 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
-      namespace_body_(new ast::NamespaceBody(nullptr,
-                                             session->global_namespace())),
+      namespace_body_(
+          new ast::NamespaceBody(nullptr, session->global_namespace())),
       session_(session),
       statement_(nullptr),
       statement_scope_(nullptr),
@@ -251,8 +249,8 @@ ast::NamespaceMember* Parser::FindMember(Token* name) const {
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
   return session_->NewUniqueNameToken(
-      SourceCodeRange(compilation_unit_->source_code(),
-                      last_source_offset_, last_source_offset_),
+      SourceCodeRange(compilation_unit_->source_code(), last_source_offset_,
+                      last_source_offset_),
       format);
 }
 
@@ -442,8 +440,8 @@ bool Parser::ParseEnumDecl() {
       else
         Error(ErrorCode::SyntaxEnumDeclExpression);
     }
-    enum_decl->AddMember(factory()->NewEnumMember(enum_decl, member_name,
-                                                  member_value));
+    enum_decl->AddMember(
+        factory()->NewEnumMember(enum_decl, member_name, member_value));
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
     if (AdvanceIf(TokenType::Comma))
@@ -481,8 +479,8 @@ bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
       Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
   }
   if (!new_namespace) {
-    new_namespace = factory()->NewNamespace(namespace_body_,
-                                            namespace_keyword, simple_name);
+    new_namespace = factory()->NewNamespace(namespace_body_, namespace_keyword,
+                                            simple_name);
     AddMember(new_namespace);
   }
   NamespaceBodyScope namespace_body_scope(this, new_namespace);
@@ -585,8 +583,8 @@ bool Parser::ParseUsingDirectives() {
               present->reference()->token());
         continue;
       }
-      namespace_body_->AddImport(factory()->NewImport(
-        namespace_body_, using_keyword, thing));
+      namespace_body_->AddImport(
+          factory()->NewImport(namespace_body_, using_keyword, thing));
     }
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
@@ -629,7 +627,7 @@ void Parser::ValidateClassModifiers() {
         if (has_inheritance)
           Error(ErrorCode::SyntaxClassDeclModifier, token);
         else
-            has_inheritance = true;
+          has_inheritance = true;
         break;
       case TokenType::Private:
       case TokenType::Protected:
