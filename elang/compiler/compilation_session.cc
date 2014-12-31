@@ -47,8 +47,6 @@ CompilationSession::~CompilationSession() {
   // For ease of debugging AST, we delete AST factory before string pool.
   for (auto const error : errors_)
     delete error;
-  for (auto const string : string_pool_)
-    delete string;
 }
 
 void CompilationSession::AddError(ErrorCode error_code, Token* token) {
@@ -89,9 +87,9 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
 }
 
 base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
-  string_pool_.push_back(
-      new base::StringPiece16(hir_factory()->NewString(string)));
-  return string_pool_.back();
+  auto const buffer = hir_factory_->NewString(string);
+  return new (zone_->Allocate(sizeof(base::StringPiece16)))
+      base::StringPiece16(buffer.data(), buffer.size());
 }
 
 Token* CompilationSession::NewUniqueNameToken(const SourceCodeRange& location,

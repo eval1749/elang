@@ -60,6 +60,8 @@ class CompilationSession final {
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
   hir::SimpleName* GetOrCreateSimpleName(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
+  // Allocate |base::StringPiece16| object in zone used for string backing
+  // store for |TokenData|.
   base::StringPiece16* NewString(base::StringPiece16 string);
   Token* NewUniqueNameToken(const SourceCodeRange& location,
                             const base::char16* format);
@@ -77,7 +79,6 @@ class CompilationSession final {
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
   const std::unique_ptr<hir::Factory> hir_factory_;
-  std::vector<base::StringPiece16*> string_pool_;
   std::unique_ptr<TokenFactory> token_factory_;
 
   std::unique_ptr<SourceCode> source_code_;
