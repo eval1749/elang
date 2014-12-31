@@ -15,9 +15,6 @@ namespace ast {
 Expression::Expression(Token* op) : Node(op) {
 }
 
-Expression::~Expression() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

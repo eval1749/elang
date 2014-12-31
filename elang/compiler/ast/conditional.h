@@ -16,13 +16,9 @@ namespace ast {
 // Conditional
 //
 class Conditional final : public Expression {
-  DECLARE_CASTABLE_CLASS(Conditional, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Conditional, Expression);
 
  public:
-  ~Conditional() final;
-
   Expression* conditional() const { return cond_; }
   Expression* else_expression() const { return else_; }
   Expression* then_expression() const { return then_; }

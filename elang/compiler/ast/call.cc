@@ -14,12 +14,12 @@ namespace ast {
 //
 // Call
 //
-Call::Call(Expression* callee,
-           const std::vector<Expression*> arguments)
-    : Expression(callee->token()), arguments_(arguments), callee_(callee) {
-}
-
-Call::~Call() {
+Call::Call(Zone* zone,
+           Expression* callee,
+           const std::vector<Expression*>& arguments)
+    : Expression(callee->token()),
+      arguments_(zone, arguments),
+      callee_(callee) {
 }
 
 }  // namespace ast

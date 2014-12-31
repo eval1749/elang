@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/expression.h"
 
 namespace elang {
@@ -22,22 +23,20 @@ class NodeFactory;
 // Represents type components connected by '.', e.g. |G<S, T>.F<X>.A|.
 //
 class MemberAccess final : public Expression {
-  DECLARE_CASTABLE_CLASS(MemberAccess, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(MemberAccess, Expression);
 
  public:
-  ~MemberAccess() final;
-
-  const std::vector<Expression*>& components() const { return components_; }
+  const ZoneVector<Expression*>& components() const { return components_; }
 
  private:
-  MemberAccess(Token* name, const std::vector<Expression*>& components);
+  MemberAccess(Zone* zone,
+               Token* name,
+               const std::vector<Expression*>& components);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const std::vector<Expression*> components_;
+  const ZoneVector<Expression*> components_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
 };

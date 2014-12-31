@@ -7,40 +7,38 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/statement.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // TryStatement
 //
 class TryStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(TryStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(TryStatement, Statement);
 
  public:
   BlockStatement* finally_block() const { return finally_block_; }
-  const std::vector<CatchClause*>& catch_clauses() const {
+  const ZoneVector<CatchClause*>& catch_clauses() const {
     return catch_clauses_;
   }
   BlockStatement* protected_block() const { return protected_block_; }
 
  private:
-  TryStatement(Token* keyword,
+  TryStatement(Zone* zone,
+               Token* keyword,
                BlockStatement* protected_block,
                const std::vector<CatchClause*>& catch_clauses,
                BlockStatement* finally_block);
-  ~TryStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const std::vector<CatchClause*> catch_clauses_;
+  const ZoneVector<CatchClause*> catch_clauses_;
   BlockStatement* const finally_block_;
   BlockStatement* const protected_block_;
 

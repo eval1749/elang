@@ -11,15 +11,12 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // WhileStatement
 //
 class WhileStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(WhileStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(WhileStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -27,7 +24,6 @@ class WhileStatement final : public Statement {
 
  private:
   WhileStatement(Token* keyword, Expression* condition, Statement* statement);
-  ~WhileStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

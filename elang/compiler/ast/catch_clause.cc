@@ -24,9 +24,6 @@ CatchClause::CatchClause(Token* keyword,
   DCHECK(block_);
 }
 
-CatchClause::~CatchClause() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

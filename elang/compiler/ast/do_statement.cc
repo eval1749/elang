@@ -22,9 +22,6 @@ DoStatement::DoStatement(Token* keyword,
   DCHECK_EQ(keyword, TokenType::Do);
 }
 
-DoStatement::~DoStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

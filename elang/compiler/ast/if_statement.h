@@ -18,8 +18,7 @@ class NodeFactory;
 // IfStatement
 //
 class IfStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(IfStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(IfStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -31,7 +30,6 @@ class IfStatement final : public Statement {
               Expression* condition,
               Statement* then_statement,
               Statement* else_statement);
-  ~IfStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

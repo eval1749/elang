@@ -8,6 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "elang/base/zone_object.h"
+#include "elang/base/zone_unordered_map.h"
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
@@ -15,21 +18,17 @@ namespace hir {
 class SimpleName;
 }
 namespace compiler {
-
 namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceBody
 //
-class NamespaceBody final {
+class NamespaceBody final : public ZoneObject {
  public:
-  NamespaceBody(NamespaceBody* outer, Namespace* owner);
-  ~NamespaceBody();
-
-  const std::vector<Alias*>& aliases() const;
-  const std::vector<Import*>& imports() const;
-  const std::vector<NamespaceMember*>& members() const { return members_; }
+  const ZoneVector<Alias*>& aliases() const;
+  const ZoneVector<Import*>& imports() const;
+  const ZoneVector<NamespaceMember*>& members() const { return members_; }
   NamespaceBody* outer() const { return outer_; }
   Namespace* owner() const { return owner_; }
 
@@ -41,14 +40,16 @@ class NamespaceBody final {
   NamespaceMember* FindMember(Token* simple_name);
 
  private:
-  struct ImportDef;
+  friend class NodeFactory;
+  NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
+  ~NamespaceBody() = delete;
 
-  // TODO(eval1749) Use |AstVector| instead of |std::vector|
-  std::vector<Alias*> aliases_;
-  std::unordered_map<hir::SimpleName*, Alias*> alias_map_;
-  std::vector<Import*> imports_;
-  std::unordered_map<hir::SimpleName*, Import*> import_map_;
-  std::vector<NamespaceMember*> members_;
+  // TODO(eval1749) Use |AstVector| instead of |ZoneVector|
+  ZoneVector<Alias*> aliases_;
+  ZoneUnorderedMap<hir::SimpleName*, Alias*> alias_map_;
+  ZoneVector<Import*> imports_;
+  ZoneUnorderedMap<hir::SimpleName*, Import*> import_map_;
+  ZoneVector<NamespaceMember*> members_;
   NamespaceBody* const outer_;
   Namespace* const owner_;
 

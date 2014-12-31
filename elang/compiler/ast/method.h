@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/named_node.h"
 #include "elang/compiler/modifiers.h"
 
@@ -19,13 +20,12 @@ namespace ast {
 // Method
 //
 class Method final : public NamedNode {
-  DECLARE_CASTABLE_CLASS(Method, NamedNode);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Method, NamedNode);
 
  public:
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
-  const std::vector<LocalVariable*>& parameters() const { return parameters_; }
+  const ZoneVector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
 
   // Returns method body. Its is null when parsing is failed or |extern|
@@ -33,7 +33,7 @@ class Method final : public NamedNode {
   Statement* statement() const { return statement_; }
 
   // Type parameters for generic method.
-  const std::vector<Token*>& type_parameters() { return type_parameters_; }
+  const ZoneVector<Token*>& type_parameters() { return type_parameters_; }
 
   // Set method body to |statement|. |statement| can be |BlockStatement| or
   // |Expression|, by shortcut syntax |int Foo(int x) => x + 1;|.
@@ -41,22 +41,22 @@ class Method final : public NamedNode {
   void SetStatement(Statement* statement);
 
  private:
-  Method(NamespaceBody* namespace_body,
+  Method(Zone* zone,
+         NamespaceBody* namespace_body,
          MethodGroup* method_group,
          Modifiers modifies,
          Expression* return_type,
          Token* name,
          const std::vector<Token*>& type_parameters,
          const std::vector<LocalVariable*>& parameters);
-  ~Method() final;
 
   MethodGroup* const method_group_;
   const Modifiers modifiers_;
   NamespaceBody* const namespace_body_;
-  const std::vector<LocalVariable*> parameters_;
+  const ZoneVector<LocalVariable*> parameters_;
   Expression* const return_type_;
   Statement* statement_;
-  const std::vector<Token*> type_parameters_;
+  const ZoneVector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
 };

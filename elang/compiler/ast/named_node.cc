@@ -19,9 +19,6 @@ NamedNode::NamedNode(Token* keyword, Token* name) : Node(keyword), name_(name) {
   DCHECK(name->is_name());
 }
 
-NamedNode::~NamedNode() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

@@ -18,12 +18,10 @@ class NodeFactory;
 // EmptyStatement
 //
 class EmptyStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(EmptyStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(EmptyStatement, Statement);
 
  private:
   explicit EmptyStatement(Token* keyword);
-  ~EmptyStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

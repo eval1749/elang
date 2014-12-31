@@ -18,13 +18,9 @@ class NodeFactory;
 // NameReference
 //
 class NameReference final : public Expression {
-  DECLARE_CASTABLE_CLASS(NameReference, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(NameReference, Expression);
 
  public:
-  ~NameReference() final;
-
   Token* name() const { return token(); }
 
  private:

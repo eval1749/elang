@@ -18,9 +18,6 @@ ExpressionStatement::ExpressionStatement(Expression* expression)
     : Statement(expression->token()), expression_(expression) {
 }
 
-ExpressionStatement::~ExpressionStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

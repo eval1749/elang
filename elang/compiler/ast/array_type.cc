@@ -14,13 +14,11 @@ namespace ast {
 //
 // ArrayType
 //
-ArrayType::ArrayType(Token* op,
+ArrayType::ArrayType(Zone* zone,
+                     Token* op,
                      Expression* element_type,
                      const std::vector<int>& ranks)
-    : Expression(op), element_type_(element_type), ranks_(ranks) {
-}
-
-ArrayType::~ArrayType() {
+    : Expression(op), element_type_(element_type), ranks_(zone, ranks) {
 }
 
 }  // namespace ast

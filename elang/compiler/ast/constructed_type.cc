@@ -14,13 +14,11 @@ namespace ast {
 //
 // ConstructedType
 //
-ConstructedType::ConstructedType(Expression* type,
+ConstructedType::ConstructedType(Zone* zone,
+                                 Expression* type,
                                  const std::vector<Expression*>& args)
-    : Expression(type->token()), arguments_(args), blueprint_type_(type) {
+    : Expression(type->token()), arguments_(zone, args), blueprint_type_(type) {
   DCHECK(!arguments_.empty());
-}
-
-ConstructedType::~ConstructedType() {
 }
 
 }  // namespace ast

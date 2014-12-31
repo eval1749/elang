@@ -52,6 +52,7 @@ class CompilationSession final {
   // TODO(eval1749) We should sort error list by source code offset.
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
+  Zone* zone() const { return zone_.get(); }
 
   void AddError(ErrorCode error_code, Token* token);
   void AddError(ErrorCode error_code, Token* token1, Token* token2);

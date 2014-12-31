@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
@@ -18,22 +19,20 @@ namespace ast {
 // MethodGroup
 //
 class MethodGroup final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(MethodGroup, NamespaceMember);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(MethodGroup, NamespaceMember);
 
  public:
-  const std::vector<Method*> methods() const { return methods_; }
+  const ZoneVector<Method*>& methods() const { return methods_; }
 
   void AddMethod(Method* method);
 
  private:
-  MethodGroup(NamespaceBody* namespace_body, Token* name);
-  ~MethodGroup() final;
+  MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  std::vector<Method*> methods_;
+  ZoneVector<Method*> methods_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };

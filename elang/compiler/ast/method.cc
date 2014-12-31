@@ -18,7 +18,8 @@ namespace ast {
 //
 // Method
 //
-Method::Method(NamespaceBody* namespace_body,
+Method::Method(Zone* zone,
+               NamespaceBody* namespace_body,
                MethodGroup* method_group,
                Modifiers modifiers,
                Expression* return_type,
@@ -29,15 +30,12 @@ Method::Method(NamespaceBody* namespace_body,
       method_group_(method_group),
       modifiers_(modifiers),
       namespace_body_(namespace_body),
-      parameters_(parameters),
+      parameters_(zone, parameters),
       return_type_(return_type),
       statement_(nullptr),
-      type_parameters_(type_parameters) {
+      type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
-}
-
-Method::~Method() {
 }
 
 void Method::SetStatement(ast::Statement* statement) {

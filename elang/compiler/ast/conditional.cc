@@ -21,9 +21,6 @@ Conditional::Conditional(Token* op,
     : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
 }
 
-Conditional::~Conditional() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

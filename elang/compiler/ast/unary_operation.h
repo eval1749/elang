@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_unary_operation_h)
-#define INCLUDE_elang_compiler_ast_unary_operation_h
+#ifndef ELANG_COMPILER_AST_UNARY_OPERATION_H_
+#define ELANG_COMPILER_AST_UNARY_OPERATION_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -18,13 +18,9 @@ class NodeFactory;
 // UnaryOperation
 //
 class UnaryOperation final : public Expression {
-  DECLARE_CASTABLE_CLASS(UnaryOperation, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(UnaryOperation, Expression);
 
  public:
-  ~UnaryOperation() final;
-
   Expression* expression() const { return expression_; }
 
  private:
@@ -42,4 +38,4 @@ class UnaryOperation final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_unary_operation_h)
+#endif  // ELANG_COMPILER_AST_UNARY_OPERATION_H_

@@ -20,19 +20,13 @@ class NodeFactory;
 // Import
 //
 class Import final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Import, NamespaceMember);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Import, NamespaceMember);
 
  public:
-  ~Import() final;
-
   Expression* reference() const { return reference_; }
 
  private:
-  Import(NamespaceBody* namespace_body,
-         Token* keyword,
-         Expression* reference);
+  Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
 
   // Node
   void Accept(Visitor* visitor) override;

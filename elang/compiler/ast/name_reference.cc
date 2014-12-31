@@ -19,9 +19,6 @@ NameReference::NameReference(Token* name) : Expression(name) {
   DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var);
 }
 
-NameReference::~NameReference() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

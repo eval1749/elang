@@ -19,9 +19,6 @@ EmptyStatement::EmptyStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::SemiColon);
 }
 
-EmptyStatement::~EmptyStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

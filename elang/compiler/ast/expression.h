@@ -20,13 +20,9 @@ class NodeFactory;
 // Expression
 //
 class Expression : public Node {
-  DECLARE_CASTABLE_CLASS(Expression, Node);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Expression, Node);
 
  public:
-  ~Expression() override;
-
   Token* op() const { return token(); }
 
  protected:

@@ -18,8 +18,7 @@ class NodeFactory;
 // DoStatement
 //
 class DoStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(DoStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(DoStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -27,7 +26,6 @@ class DoStatement final : public Statement {
 
  private:
   DoStatement(Token* keyword, Statement* statement, Expression* condition);
-  ~DoStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

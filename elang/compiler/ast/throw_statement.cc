@@ -20,9 +20,6 @@ ThrowStatement::ThrowStatement(Token* keyword, Expression* value)
   DCHECK_EQ(keyword, TokenType::Throw);
 }
 
-ThrowStatement::~ThrowStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

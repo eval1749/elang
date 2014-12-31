@@ -19,9 +19,6 @@ BreakStatement::BreakStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::Break);
 }
 
-BreakStatement::~BreakStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

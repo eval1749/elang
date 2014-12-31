@@ -13,20 +13,14 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // Statement
 //
 class Statement : public Node {
-  DECLARE_CASTABLE_CLASS(Statement, Node);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Statement, Node);
 
  public:
-  ~Statement() override;
-
   Token* keyword() const { return token(); }
 
  protected:

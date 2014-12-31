@@ -26,9 +26,6 @@ NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
   DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }
 
-NamespaceMember::~NamespaceMember() {
-}
-
 Namespace* NamespaceMember::outer() const {
   return namespace_body_ ? namespace_body_->owner() : nullptr;
 }

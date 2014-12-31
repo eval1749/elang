@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_ast_binary_operation_h)
-#define INCLUDE_elang_compiler_ast_binary_operation_h
+#ifndef ELANG_COMPILER_AST_BINARY_OPERATION_H_
+#define ELANG_COMPILER_AST_BINARY_OPERATION_H_
 
 #include "elang/compiler/ast/expression.h"
 
@@ -18,13 +18,9 @@ class NodeFactory;
 // BinaryOperation
 //
 class BinaryOperation final : public Expression {
-  DECLARE_CASTABLE_CLASS(BinaryOperation, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(BinaryOperation, Expression);
 
  public:
-  ~BinaryOperation() final;
-
   Expression* left() const { return left_; }
   Expression* right() const { return right_; }
 
@@ -44,4 +40,4 @@ class BinaryOperation final : public Expression {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_ast_binary_operation_h)
+#endif  // ELANG_COMPILER_AST_BINARY_OPERATION_H_

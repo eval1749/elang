@@ -5,9 +5,9 @@
 #ifndef ELANG_COMPILER_AST_ENUM_H_
 #define ELANG_COMPILER_AST_ENUM_H_
 
-#include <unordered_map>
-#include <vector>
+#include "elang/base/zone_unordered_map.h"
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
@@ -26,20 +26,17 @@ class NodeFactory;
 // Enum
 //
 class Enum final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Enum, NamespaceMember);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Enum, NamespaceMember);
 
  public:
-  ~Enum() final;
-
-  const std::vector<EnumMember*> members() const { return members_; }
+  const ZoneVector<EnumMember*> members() const { return members_; }
 
   void AddMember(EnumMember* member);
   EnumMember* FindMember(Token* simple_name);
 
  private:
-  Enum(NamespaceBody* namespace_body,
+  Enum(Zone* zone,
+       NamespaceBody* namespace_body,
        Modifiers modifies,
        Token* keyword,
        Token* name);
@@ -47,8 +44,8 @@ class Enum final : public NamespaceMember {
   // Node
   void Accept(Visitor* visitor) override;
 
-  std::unordered_map<hir::SimpleName*, EnumMember*> map_;
-  std::vector<EnumMember*> members_;
+  ZoneUnorderedMap<hir::SimpleName*, EnumMember*> map_;
+  ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };

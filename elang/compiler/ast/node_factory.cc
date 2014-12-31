@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/node_factory.h"
 
 #include "base/logging.h"
+#include "elang/base/zone.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/array_type.h"
 #include "elang/compiler/ast/assignment.h"
@@ -59,12 +60,10 @@ AST_NODE_LIST(IMPLEMENT_ACCEPT)
 //
 // NodeFactory
 //
-NodeFactory::NodeFactory() {
+NodeFactory::NodeFactory(Zone* zone) : zone_(zone) {
 }
 
 NodeFactory::~NodeFactory() {
-  for (auto const node : nodes_)
-    delete node;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -75,35 +74,27 @@ Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
                              Token* keyword,
                              Token* alias_name,
                              Expression* reference) {
-  auto const node = new Alias(namespace_body, keyword, alias_name, reference);
-  RememberNode(node);
-  return node;
+  return new (zone_) Alias(namespace_body, keyword, alias_name, reference);
 }
 
 Class* NodeFactory::NewClass(NamespaceBody* namespace_body,
                              Modifiers modifiers,
                              Token* keyword,
                              Token* name) {
-  auto const node = new Class(namespace_body, modifiers, keyword, name);
-  RememberNode(node);
-  return node;
+  return new (zone_) Class(zone_, namespace_body, modifiers, keyword, name);
 }
 
 Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
                            Modifiers modifiers,
                            Token* keyword,
                            Token* name) {
-  auto const node = new Enum(namespace_body, modifiers, keyword, name);
-  RememberNode(node);
-  return node;
+  return new (zone_) Enum(zone_, namespace_body, modifiers, keyword, name);
 }
 
 EnumMember* NodeFactory::NewEnumMember(Enum* owner,
                                        Token* name,
                                        Expression* expression) {
-  auto const node = new EnumMember(owner, name, expression);
-  RememberNode(node);
-  return node;
+  return new (zone_) EnumMember(owner, name, expression);
 }
 
 Field* NodeFactory::NewField(NamespaceBody* namespace_body,
@@ -111,18 +102,13 @@ Field* NodeFactory::NewField(NamespaceBody* namespace_body,
                              Expression* type,
                              Token* name,
                              Expression* expression) {
-  auto const node =
-      new Field(namespace_body, modifiers, type, name, expression);
-  RememberNode(node);
-  return node;
+  return new (zone_) Field(namespace_body, modifiers, type, name, expression);
 }
 
 Import* NodeFactory::NewImport(NamespaceBody* namespace_body,
                                Token* keyword,
                                Expression* reference) {
-  auto const node = new Import(namespace_body, keyword, reference);
-  RememberNode(node);
-  return node;
+  return new (zone_) Import(namespace_body, keyword, reference);
 }
 
 Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
@@ -132,28 +118,27 @@ Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
                                Token* name,
                                const std::vector<Token*>& type_parameters,
                                const std::vector<LocalVariable*>& parameters) {
-  auto const node = new Method(namespace_body, method_group, modifies, type,
-                               name, type_parameters, parameters);
-  RememberNode(node);
-  return node;
+  return new (zone_) Method(zone_, namespace_body, method_group, modifies, type,
+                            name, type_parameters, parameters);
 }
 
 MethodGroup* NodeFactory::NewMethodGroup(NamespaceBody* namespace_body,
                                          Token* name) {
   DCHECK(namespace_body->owner()->is<Class>());
   DCHECK(name->is_name());
-  auto const node = new MethodGroup(namespace_body, name);
-  RememberNode(node);
-  return node;
+  return new (zone_) MethodGroup(zone_, namespace_body, name);
 }
 
 Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
                                      Token* keyword,
                                      Token* name) {
   DCHECK_EQ(keyword->type(), TokenType::Namespace);
-  auto const node = new Namespace(namespace_body, keyword, name);
-  RememberNode(node);
-  return node;
+  return new (zone_) Namespace(zone_, namespace_body, keyword, name);
+}
+
+NamespaceBody* NodeFactory::NewNamespaceBody(NamespaceBody* outer,
+                                             Namespace* owner) {
+  return new (zone_) NamespaceBody(zone_, outer, owner);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -163,68 +148,50 @@ Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
 ArrayType* NodeFactory::NewArrayType(Token* op,
                                      Expression* element_type,
                                      const std::vector<int>& ranks) {
-  auto const node = new ArrayType(op, element_type, ranks);
-  RememberNode(node);
-  return node;
+  return new (zone_) ArrayType(zone_, op, element_type, ranks);
 }
 
 Assignment* NodeFactory::NewAssignment(Token* op,
                                        Expression* left,
                                        Expression* right) {
-  auto const node = new Assignment(op, left, right);
-  RememberNode(node);
-  return node;
+  return new (zone_) Assignment(op, left, right);
 }
 
 BinaryOperation* NodeFactory::NewBinaryOperation(Token* op,
                                                  Expression* left,
                                                  Expression* right) {
-  auto const node = new BinaryOperation(op, left, right);
-  RememberNode(node);
-  return node;
+  return new (zone_) BinaryOperation(op, left, right);
 }
 
 Conditional* NodeFactory::NewConditional(Token* op,
                                          Expression* cond_expr,
                                          Expression* then_expr,
                                          Expression* else_expr) {
-  auto const node = new Conditional(op, cond_expr, then_expr, else_expr);
-  RememberNode(node);
-  return node;
+  return new (zone_) Conditional(op, cond_expr, then_expr, else_expr);
 }
 
 ConstructedType* NodeFactory::NewConstructedType(
     Expression* blueprint_type,
     const std::vector<Expression*>& arguments) {
-  auto const node = new ConstructedType(blueprint_type, arguments);
-  RememberNode(node);
-  return node;
+  return new (zone_) ConstructedType(zone_, blueprint_type, arguments);
 }
 
 Literal* NodeFactory::NewLiteral(Token* literal) {
-  auto const node = new Literal(literal);
-  RememberNode(node);
-  return node;
+  return new (zone_) Literal(literal);
 }
 
 MemberAccess* NodeFactory::NewMemberAccess(
     Token* name,
     const std::vector<Expression*>& members) {
-  auto const node = new MemberAccess(name, members);
-  RememberNode(node);
-  return node;
+  return new (zone_) MemberAccess(zone_, name, members);
 }
 
 NameReference* NodeFactory::NewNameReference(Token* name) {
-  auto const node = new NameReference(name);
-  RememberNode(node);
-  return node;
+  return new (zone_) NameReference(name);
 }
 
 UnaryOperation* NodeFactory::NewUnaryOperation(Token* op, Expression* expr) {
-  auto const node = new UnaryOperation(op, expr);
-  RememberNode(node);
-  return node;
+  return new (zone_) UnaryOperation(op, expr);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -234,91 +201,67 @@ UnaryOperation* NodeFactory::NewUnaryOperation(Token* op, Expression* expr) {
 BlockStatement* NodeFactory::NewBlockStatement(
     Token* keyword,
     const std::vector<Statement*> statements) {
-  auto const node = new BlockStatement(keyword, statements);
-  RememberNode(node);
-  return node;
+  return new (zone_) BlockStatement(zone_, keyword, statements);
 }
 
 BreakStatement* NodeFactory::NewBreakStatement(Token* keyword) {
-  auto const node = new BreakStatement(keyword);
-  RememberNode(node);
-  return node;
+  return new (zone_) BreakStatement(keyword);
 }
 
 Call* NodeFactory::NewCall(Expression* callee,
                            const std::vector<Expression*> arguments) {
-  auto const node = new Call(callee, arguments);
-  RememberNode(node);
-  return node;
+  return new (zone_) Call(zone_, callee, arguments);
 }
 
 CatchClause* NodeFactory::NewCatchClause(Token* keyword,
                                          Expression* type,
                                          LocalVariable* variable,
                                          BlockStatement* block) {
-  auto const node = new CatchClause(keyword, type, variable, block);
-  RememberNode(node);
-  return node;
+  return new (zone_) CatchClause(keyword, type, variable, block);
 }
 
 ContinueStatement* NodeFactory::NewContinueStatement(Token* keyword) {
-  auto const node = new ContinueStatement(keyword);
-  RememberNode(node);
-  return node;
+  return new (zone_) ContinueStatement(keyword);
 }
 
 DoStatement* NodeFactory::NewDoStatement(Token* keyword,
                                          Statement* statement,
                                          Expression* condition) {
-  auto const node = new DoStatement(keyword, statement, condition);
-  RememberNode(node);
-  return node;
+  return new (zone_) DoStatement(keyword, statement, condition);
 }
 
 EmptyStatement* NodeFactory::NewEmptyStatement(Token* keyword) {
-  auto const node = new EmptyStatement(keyword);
-  RememberNode(node);
-  return node;
+  return new (zone_) EmptyStatement(keyword);
 }
 
 ExpressionStatement* NodeFactory::NewExpressionStatement(
     Expression* expression) {
-  auto const node = new ExpressionStatement(expression);
-  RememberNode(node);
-  return node;
+  return new (zone_) ExpressionStatement(expression);
 }
 
 IfStatement* NodeFactory::NewIfStatement(Token* keyword,
                                          Expression* condition,
                                          Statement* then_statement,
                                          Statement* else_statement) {
-  auto const node =
-      new IfStatement(keyword, condition, then_statement, else_statement);
-  RememberNode(node);
-  return node;
+  return new (zone_)
+      IfStatement(keyword, condition, then_statement, else_statement);
 }
 
 LocalVariable* NodeFactory::NewLocalVariable(Token* keyword,
                                              Expression* type,
                                              Token* name,
                                              Expression* value) {
-  auto const node = new LocalVariable(keyword, type, name, value);
-  RememberNode(node);
-  return node;
+  return new (zone_) LocalVariable(keyword, type, name, value);
 }
 
 ReturnStatement* NodeFactory::NewReturnStatement(Token* keyword,
                                                  Expression* value) {
-  auto const node = new ReturnStatement(keyword, value);
-  RememberNode(node);
-  return node;
+  return new (zone_) ReturnStatement(keyword, value);
 }
 
 ThrowStatement* NodeFactory::NewThrowStatement(Token* keyword,
                                                Expression* value) {
-  auto const node = new ThrowStatement(keyword, value);
-  RememberNode(node);
-  return node;
+  return new (zone_) ThrowStatement(keyword, value);
 }
 
 TryStatement* NodeFactory::NewTryStatement(
@@ -326,42 +269,32 @@ TryStatement* NodeFactory::NewTryStatement(
     BlockStatement* protected_block,
     const std::vector<CatchClause*>& catch_clauses,
     BlockStatement* finally_block) {
-  auto const node =
-      new TryStatement(keyword, protected_block, catch_clauses, finally_block);
-  RememberNode(node);
-  return node;
+  return new (zone_) TryStatement(zone_, keyword, protected_block,
+                                  catch_clauses, finally_block);
 }
 
 UsingStatement* NodeFactory::NewUsingStatement(Token* keyword,
                                                LocalVariable* variable,
                                                Expression* resource,
                                                Statement* statement) {
-  auto const node = new UsingStatement(keyword, variable, resource, statement);
-  RememberNode(node);
-  return node;
+  return new (zone_) UsingStatement(keyword, variable, resource, statement);
 }
 
 VarStatement* NodeFactory::NewVarStatement(
     Token* keyword,
     const std::vector<ast::LocalVariable*>& variables) {
-  auto const node = new VarStatement(keyword, variables);
-  RememberNode(node);
-  return node;
+  return new (zone_) VarStatement(zone_, keyword, variables);
 }
 
 WhileStatement* NodeFactory::NewWhileStatement(Token* keyword,
                                                Expression* condition,
                                                Statement* statement) {
-  auto const node = new WhileStatement(keyword, condition, statement);
-  RememberNode(node);
-  return node;
+  return new (zone_) WhileStatement(keyword, condition, statement);
 }
 
 YieldStatement* NodeFactory::NewYieldStatement(Token* keyword,
                                                Expression* value) {
-  auto const node = new YieldStatement(keyword, value);
-  RememberNode(node);
-  return node;
+  return new (zone_) YieldStatement(keyword, value);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -369,12 +302,7 @@ YieldStatement* NodeFactory::NewYieldStatement(Token* keyword,
 // Utility
 //
 Node* NodeFactory::RememberNode(Node* node) {
-  nodes_.push_back(node);
   return node;
-}
-
-void NodeFactory::RemoveAll() {
-  nodes_.clear();
 }
 
 }  // namespace ast

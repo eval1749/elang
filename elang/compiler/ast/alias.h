@@ -20,13 +20,9 @@ class NodeFactory;
 // Alias
 //
 class Alias final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Alias, NamespaceMember);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Alias, NamespaceMember);
 
  public:
-  ~Alias() final;
-
   Expression* reference() const { return reference_; }
 
  private:

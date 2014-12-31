@@ -16,13 +16,9 @@ namespace ast {
 // Assignment
 //
 class Assignment final : public Expression {
-  DECLARE_CASTABLE_CLASS(Assignment, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Assignment, Expression);
 
  public:
-  ~Assignment() final;
-
   Expression* left() const { return left_; }
   Expression* right() const { return right_; }
 

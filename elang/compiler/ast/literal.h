@@ -18,12 +18,7 @@ class NodeFactory;
 // Literal
 //
 class Literal final : public Expression {
-  DECLARE_CASTABLE_CLASS(Literal, Expression);
-
-  friend class NodeFactory;
-
- public:
-  ~Literal() final;
+  DECLARE_AST_NODE_CLASS(Literal, Expression);
 
  private:
   explicit Literal(Token* literal);

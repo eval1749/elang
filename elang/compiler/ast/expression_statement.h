@@ -18,15 +18,13 @@ class NodeFactory;
 // ExpressionStatement
 //
 class ExpressionStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(ExpressionStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(ExpressionStatement, Statement);
 
  public:
   Expression* expression() const { return expression_; }
 
  private:
   explicit ExpressionStatement(Expression* expression);
-  ~ExpressionStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

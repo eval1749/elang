@@ -16,8 +16,7 @@ namespace ast {
 // CatchClause
 //
 class CatchClause final : public Node {
-  DECLARE_CASTABLE_CLASS(CatchClause, Node);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(CatchClause, Node);
 
  public:
   BlockStatement* block() const { return block_; }
@@ -29,7 +28,6 @@ class CatchClause final : public Node {
               Expression* type,
               LocalVariable* variable,
               BlockStatement* block);
-  ~CatchClause() final;
 
   BlockStatement* const block_;
   Expression* const type_;

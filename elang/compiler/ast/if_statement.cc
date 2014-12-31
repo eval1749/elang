@@ -26,9 +26,6 @@ IfStatement::IfStatement(Token* keyword,
   DCHECK_EQ(keyword, TokenType::If);
 }
 
-IfStatement::~IfStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

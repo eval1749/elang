@@ -20,9 +20,6 @@ ReturnStatement::ReturnStatement(Token* keyword, Expression* value)
   DCHECK_EQ(keyword, TokenType::Return);
 }
 
-ReturnStatement::~ReturnStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

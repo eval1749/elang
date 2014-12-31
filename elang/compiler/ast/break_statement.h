@@ -18,12 +18,10 @@ class NodeFactory;
 // BreakStatement
 //
 class BreakStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(BreakStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(BreakStatement, Statement);
 
  private:
   explicit BreakStatement(Token* keyword);
-  ~BreakStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

@@ -18,9 +18,6 @@ Assignment::Assignment(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
 }
 
-Assignment::~Assignment() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/expression.h"
 
 namespace elang {
@@ -20,18 +21,15 @@ class NodeFactory;
 // ArrayType
 //
 class ArrayType final : public Expression {
-  DECLARE_CASTABLE_CLASS(ArrayType, Expression);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(ArrayType, Expression);
 
  public:
-  ~ArrayType() final;
-
   Expression* element_type() const { return element_type_; }
-  const std::vector<int>& ranks() const { return ranks_; }
+  const ZoneVector<int>& ranks() const { return ranks_; }
 
  private:
-  ArrayType(Token* op_token,
+  ArrayType(Zone* zone,
+            Token* op_token,
             Expression* expression,
             const std::vector<int>& ranks);
 
@@ -39,7 +37,7 @@ class ArrayType final : public Expression {
   void Accept(Visitor* visitor) override;
 
   Expression* const element_type_;
-  const std::vector<int> ranks_;
+  const ZoneVector<int> ranks_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };

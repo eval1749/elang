@@ -5,8 +5,8 @@
 #ifndef ELANG_COMPILER_AST_NAMESPACE_H_
 #define ELANG_COMPILER_AST_NAMESPACE_H_
 
-#include <vector>
-
+#include "elang/base/zone_unordered_map.h"
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
@@ -14,25 +14,17 @@ namespace hir {
 class SimpleName;
 }
 namespace compiler {
-class QualifiedName;
 namespace ast {
-
-class NamespaceBody;
-class NodeFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
 class Namespace : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Namespace, NamespaceMember);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Namespace, NamespaceMember);
 
  public:
-  ~Namespace() override;
-
-  const std::vector<NamespaceBody*> bodies() const { return bodies_; }
+  const ZoneVector<NamespaceBody*> bodies() const { return bodies_; }
 
   void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);
@@ -43,21 +35,25 @@ class Namespace : public NamespaceMember {
   Namespace* ToNamespace() override;
 
  protected:
-  Namespace(NamespaceBody* namespace_body,
+  Namespace(Zone* zone,
+            NamespaceBody* namespace_body,
             Modifiers modifiers,
             Token* keyword,
             Token* simple_name);
 
  private:
-  Namespace(NamespaceBody* namespace_body, Token* keyword, Token* simple_name);
+  Namespace(Zone* zone,
+            NamespaceBody* namespace_body,
+            Token* keyword,
+            Token* name);
 
   // Node
   void Accept(Visitor* visitor) override;
 
   struct ImportDef;
 
-  std::vector<NamespaceBody*> bodies_;
-  std::unordered_map<hir::SimpleName*, NamespaceMember*> map_;
+  ZoneVector<NamespaceBody*> bodies_;
+  ZoneUnorderedMap<hir::SimpleName*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

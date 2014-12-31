@@ -25,9 +25,6 @@ Alias::Alias(NamespaceBody* namespace_body,
   DCHECK_EQ(keyword->type(), TokenType::Using);
 }
 
-Alias::~Alias() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

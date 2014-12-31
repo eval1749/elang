@@ -18,7 +18,7 @@ namespace ast {
 // NamedNode
 //
 class NamedNode : public Node {
-  DECLARE_CASTABLE_CLASS(NamedNode, Node);
+  DECLARE_AST_NODE_CLASS(NamedNode, Node);
 
  public:
   Token* keyword() const { return token(); }
@@ -26,7 +26,6 @@ class NamedNode : public Node {
 
  protected:
   NamedNode(Token* keyword, Token* name);
-  ~NamedNode() override;
 
  private:
   Token* const name_;

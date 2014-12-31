@@ -19,13 +19,10 @@ namespace ast {
 //
 // MethodGroup
 //
-MethodGroup::MethodGroup(NamespaceBody* namespace_body, Token* name)
-    : NamespaceMember(namespace_body, Modifiers(), name, name) {
+MethodGroup::MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name)
+    : NamespaceMember(namespace_body, Modifiers(), name, name), methods_(zone) {
   DCHECK(name->is_name());
   DCHECK(namespace_body->owner()->is<Class>());
-}
-
-MethodGroup::~MethodGroup() {
 }
 
 void MethodGroup::AddMethod(Method* method) {

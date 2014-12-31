@@ -18,9 +18,6 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
     : Expression(op), expression_(expression) {
 }
 
-UnaryOperation::~UnaryOperation() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

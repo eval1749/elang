@@ -16,8 +16,7 @@ namespace ast {
 // LocalVariable
 //
 class LocalVariable final : public NamedNode {
-  DECLARE_CASTABLE_CLASS(LocalVariable, NamedNode);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(LocalVariable, NamedNode);
 
  public:
   bool is_const() const;
@@ -29,8 +28,6 @@ class LocalVariable final : public NamedNode {
                 Expression* type,
                 Token* name,
                 Expression* value);
-
-  ~LocalVariable() final;
 
   Expression* const type_;
   Expression* const value_;

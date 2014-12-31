@@ -19,11 +19,10 @@ namespace ast {
 // Class
 //
 class Class final : public Namespace {
-  DECLARE_CASTABLE_CLASS(Class, Namespace);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Class, Namespace);
 
  public:
-  const std::vector<Expression*>& base_class_names() const {
+  const ZoneVector<Expression*>& base_class_names() const {
     return base_class_names_;
   }
 
@@ -33,16 +32,16 @@ class Class final : public Namespace {
   Namespace* ToNamespace() final;
 
  private:
-  Class(NamespaceBody* namespace_body,
+  Class(Zone* zone,
+        NamespaceBody* namespace_body,
         Modifiers modifiers,
         Token* keyword,
         Token* name);
-  ~Class() final;
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  std::vector<Expression*> base_class_names_;
+  ZoneVector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };

@@ -11,22 +11,18 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // ReturnStatement
 //
 class ReturnStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(ReturnStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(ReturnStatement, Statement);
 
  public:
   Expression* value() const { return value_; }
 
  private:
   ReturnStatement(Token* keyword, Expression* value);
-  ~ReturnStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

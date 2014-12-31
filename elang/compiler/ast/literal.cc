@@ -15,9 +15,6 @@ namespace ast {
 Literal::Literal(Token* literal) : Expression(literal) {
 }
 
-Literal::~Literal() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

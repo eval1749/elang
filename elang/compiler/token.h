@@ -55,7 +55,7 @@ class Token final : public ZoneObject {
   Token(const SourceCodeRange& source_range, const TokenData& data);
   ~Token() = delete;
 
-  TokenData const data_;
+  const TokenData data_;
   const SourceCodeRange location_;
 
   DISALLOW_COPY_AND_ASSIGN(Token);

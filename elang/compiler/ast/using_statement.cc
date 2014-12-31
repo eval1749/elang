@@ -28,9 +28,6 @@ UsingStatement::UsingStatement(Token* keyword,
   DCHECK(!variable_ || variable_->value() == resource_);
 }
 
-UsingStatement::~UsingStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

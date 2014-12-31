@@ -18,9 +18,6 @@ namespace ast {
 Statement::Statement(Token* op) : Node(op) {
 }
 
-Statement::~Statement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

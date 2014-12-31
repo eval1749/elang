@@ -18,9 +18,6 @@ BinaryOperation::BinaryOperation(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
 }
 
-BinaryOperation::~BinaryOperation() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

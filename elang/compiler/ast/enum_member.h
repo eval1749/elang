@@ -16,13 +16,9 @@ namespace ast {
 // EnumMember
 //
 class EnumMember final : public NamedNode {
-  DECLARE_CASTABLE_CLASS(EnumMember, NamedNode);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(EnumMember, NamedNode);
 
  public:
-  ~EnumMember() final;
-
   Expression* expression() const { return expression_; }
 
  private:

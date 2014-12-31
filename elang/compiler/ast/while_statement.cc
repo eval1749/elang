@@ -22,9 +22,6 @@ WhileStatement::WhileStatement(Token* keyword,
   DCHECK_EQ(keyword, TokenType::While);
 }
 
-WhileStatement::~WhileStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

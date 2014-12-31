@@ -19,9 +19,6 @@ EnumMember::EnumMember(Enum* owner, Token* name, Expression* expression)
   DCHECK(name->is_name());
 }
 
-EnumMember::~EnumMember() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

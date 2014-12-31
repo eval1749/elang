@@ -36,7 +36,7 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 
 CompilationSession::CompilationSession()
     : zone_(new Zone()),
-      ast_factory_(new ast::NodeFactory()),
+      ast_factory_(new ast::NodeFactory(zone_.get())),
       hir_factory_(new hir::Factory()),
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone_.get())),
@@ -45,7 +45,6 @@ CompilationSession::CompilationSession()
 
 CompilationSession::~CompilationSession() {
   // For ease of debugging AST, we delete AST factory before string pool.
-  ast_factory_->RemoveAll();
   for (auto const error : errors_)
     delete error;
   for (auto const string : string_pool_)

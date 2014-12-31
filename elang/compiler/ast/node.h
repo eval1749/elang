@@ -9,6 +9,7 @@
 
 #include "elang/base/castable.h"
 #include "elang/base/types.h"
+#include "elang/base/zone_object.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -79,13 +80,20 @@ class NodeFactory;
 class Statement;
 class Visitor;
 
+#define DECLARE_AST_NODE_CLASS(self, super) \
+  DECLARE_CASTABLE_CLASS(self, super);      \
+  friend class NodeFactory;                 \
+                                            \
+ protected:                                 \
+  ~self() = default;                        \
+                                            \
+ private:
 //////////////////////////////////////////////////////////////////////
 //
 // Node
 //
-class Node : public Castable {
-  DECLARE_CASTABLE_CLASS(Node, Castable);
-  friend class NodeFactory;
+class Node : public Castable, public ZoneObject {
+  DECLARE_AST_NODE_CLASS(Node, Castable);
 
  public:
   Token* token() const { return token_; }
@@ -94,7 +102,6 @@ class Node : public Castable {
 
  protected:
   explicit Node(Token* token);
-  virtual ~Node();
 
  private:
   Token* const token_;

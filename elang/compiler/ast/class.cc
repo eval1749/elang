@@ -16,16 +16,15 @@ namespace ast {
 //
 // Class
 //
-Class::Class(NamespaceBody* namespace_body,
+Class::Class(Zone* zone,
+             NamespaceBody* namespace_body,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : Namespace(namespace_body, modifiers, keyword, name) {
+    : Namespace(zone, namespace_body, modifiers, keyword, name),
+      base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
-}
-
-Class::~Class() {
 }
 
 void Class::AddBaseClassName(Expression* class_name) {

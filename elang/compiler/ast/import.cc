@@ -18,14 +18,11 @@ namespace ast {
 // Import
 //
 Import::Import(NamespaceBody* namespace_body,
-             Token* keyword,
-             Expression* reference)
+               Token* keyword,
+               Expression* reference)
     : NamespaceMember(namespace_body, Modifiers(), keyword, reference->token()),
       reference_(reference) {
   DCHECK_EQ(keyword->type(), TokenType::Using);
-}
-
-Import::~Import() {
 }
 
 }  // namespace ast

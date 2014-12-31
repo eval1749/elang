@@ -11,22 +11,18 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // YieldStatement
 //
 class YieldStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(YieldStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(YieldStatement, Statement);
 
  public:
   Expression* value() const { return value_; }
 
  private:
   YieldStatement(Token* keyword, Expression* value);
-  ~YieldStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/statement.h"
 
 namespace elang {
@@ -20,20 +21,20 @@ class NodeFactory;
 // BlockStatement
 //
 class BlockStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(BlockStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(BlockStatement, Statement);
 
  public:
-  const std::vector<Statement*>& statements() const { return statements_; }
+  const ZoneVector<Statement*>& statements() const { return statements_; }
 
  private:
-  BlockStatement(Token* keyword, const std::vector<Statement*>& statements);
-  ~BlockStatement() final;
+  BlockStatement(Zone* zone,
+                 Token* keyword,
+                 const std::vector<Statement*>& statements);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const std::vector<Statement*> statements_;
+  const ZoneVector<Statement*> statements_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockStatement);
 };

@@ -15,13 +15,11 @@ namespace ast {
 //
 // BlockStatement
 //
-BlockStatement::BlockStatement(Token* keyword,
+BlockStatement::BlockStatement(Zone* zone,
+                               Token* keyword,
                                const std::vector<Statement*>& statements)
-    : Statement(keyword), statements_(statements) {
+    : Statement(keyword), statements_(zone, statements) {
   DCHECK_EQ(keyword, TokenType::LeftCurryBracket);
-}
-
-BlockStatement::~BlockStatement() {
 }
 
 }  // namespace ast

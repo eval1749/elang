@@ -14,13 +14,11 @@ namespace ast {
 //
 // MemberAccess
 //
-MemberAccess::MemberAccess(Token* name,
+MemberAccess::MemberAccess(Zone* zone,
+                           Token* name,
                            const std::vector<Expression*>& components)
-    : Expression(name), components_(components) {
+    : Expression(name), components_(zone, components) {
   DCHECK_GE(components.size(), 2u);
-}
-
-MemberAccess::~MemberAccess() {
 }
 
 }  // namespace ast

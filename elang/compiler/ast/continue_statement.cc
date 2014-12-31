@@ -19,9 +19,6 @@ ContinueStatement::ContinueStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::Continue);
 }
 
-ContinueStatement::~ContinueStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

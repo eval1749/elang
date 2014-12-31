@@ -15,18 +15,16 @@ namespace ast {
 //
 // TryStatement
 //
-TryStatement::TryStatement(Token* keyword,
+TryStatement::TryStatement(Zone* zone,
+                           Token* keyword,
                            BlockStatement* protected_block,
                            const std::vector<CatchClause*>& catch_clauses,
                            BlockStatement* finally_block)
     : Statement(keyword),
-      catch_clauses_(catch_clauses),
+      catch_clauses_(zone, catch_clauses),
       finally_block_(finally_block),
       protected_block_(protected_block) {
   DCHECK_EQ(keyword, TokenType::Try);
-}
-
-TryStatement::~TryStatement() {
 }
 
 }  // namespace ast

@@ -20,9 +20,6 @@ YieldStatement::YieldStatement(Token* keyword, Expression* value)
   DCHECK_EQ(keyword, TokenType::Yield);
 }
 
-YieldStatement::~YieldStatement() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

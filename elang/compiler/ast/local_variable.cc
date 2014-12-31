@@ -24,9 +24,6 @@ LocalVariable::LocalVariable(Token* keyword,
          keyword == TokenType::Catch || keyword == TokenType::Using);
 }
 
-LocalVariable::~LocalVariable() {
-}
-
 bool LocalVariable::is_const() const {
   return token() == TokenType::Const || token() == TokenType::Using;
 }

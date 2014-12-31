@@ -19,16 +19,16 @@ namespace ast {
 //
 // Enum
 //
-Enum::Enum(NamespaceBody* namespace_body,
+Enum::Enum(Zone* zone,
+           NamespaceBody* namespace_body,
            Modifiers modifiers,
            Token* keyword,
            Token* name)
-    : NamespaceMember(namespace_body, modifiers, keyword, name) {
+    : NamespaceMember(namespace_body, modifiers, keyword, name),
+      map_(zone),
+      members_(zone) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);
   DCHECK(name->is_name());
-}
-
-Enum::~Enum() {
 }
 
 void Enum::AddMember(EnumMember* member) {

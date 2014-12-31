@@ -24,7 +24,7 @@ class NamespaceBody;
 // NamespaceMember
 //
 class NamespaceMember : public NamedNode {
-  DECLARE_CASTABLE_CLASS(NamespaceMember, NamedNode);
+  DECLARE_AST_NODE_CLASS(NamespaceMember, NamedNode);
 
  public:
   Modifiers modifiers() const { return modifiers_; }
@@ -40,7 +40,6 @@ class NamespaceMember : public NamedNode {
                   Modifiers modifiers,
                   Token* keyword_or_name,
                   Token* simple_name);
-  ~NamespaceMember() override;
 
  private:
   const Modifiers modifiers_;

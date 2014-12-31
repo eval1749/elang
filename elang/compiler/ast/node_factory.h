@@ -14,6 +14,7 @@
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
+class Zone;
 namespace compiler {
 class Modifiers;
 class QualifiedName;
@@ -27,7 +28,7 @@ namespace ast {
 //
 class NodeFactory final {
  public:
-  NodeFactory();
+  explicit NodeFactory(Zone* zone);
   ~NodeFactory();
 
   // Declaration related nodes
@@ -63,6 +64,7 @@ class NodeFactory final {
   Namespace* NewNamespace(NamespaceBody* namespace_body,
                           Token* keyword,
                           Token* name);
+  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
 
   // Expression nodes
   ArrayType* NewArrayType(Token* op,
@@ -125,13 +127,10 @@ class NodeFactory final {
                                     Statement* statement);
   YieldStatement* NewYieldStatement(Token* keyword, Expression* value);
 
-  // Utility
-  void RemoveAll();
-
  private:
   Node* RememberNode(Node* node);
 
-  std::vector<Node*> nodes_;
+  Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };

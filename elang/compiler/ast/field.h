@@ -16,13 +16,9 @@ namespace ast {
 // Field
 //
 class Field final : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Field, NamespaceMember);
-
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(Field, NamespaceMember);
 
  public:
-  ~Field() final;
-
   Expression* expression() const { return expression_; }
   Expression* type() const { return type_; }
 

@@ -18,12 +18,10 @@ class NodeFactory;
 // ContinueStatement
 //
 class ContinueStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(ContinueStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(ContinueStatement, Statement);
 
  private:
   explicit ContinueStatement(Token* keyword);
-  ~ContinueStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

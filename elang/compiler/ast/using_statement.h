@@ -18,8 +18,7 @@ class NodeFactory;
 // UsingStatement
 //
 class UsingStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(UsingStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(UsingStatement, Statement);
 
  public:
   Expression* resource() const { return resource_; }
@@ -31,7 +30,6 @@ class UsingStatement final : public Statement {
                  LocalVariable* variable,
                  Expression* resource,
                  Statement* statement);
-  ~UsingStatement() final;
 
   // Node
   void Accept(Visitor* visitor) override;

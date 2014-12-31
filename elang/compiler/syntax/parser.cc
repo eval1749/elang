@@ -115,8 +115,8 @@ class Parser::NamespaceBodyScope {
 Parser::NamespaceBodyScope::NamespaceBodyScope(Parser* parser,
                                                ast::Namespace* new_namespace)
     : namespace_body_(parser->namespace_body_), parser_(parser) {
-  auto const namespace_body =
-      new ast::NamespaceBody(namespace_body_, new_namespace);
+  auto const namespace_body = parser->session_->ast_factory()->NewNamespaceBody(
+      namespace_body_, new_namespace);
   new_namespace->AddNamespaceBody(namespace_body);
   parser->namespace_body_ = namespace_body;
 }
@@ -176,8 +176,9 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
-      namespace_body_(
-          new ast::NamespaceBody(nullptr, session->global_namespace())),
+      namespace_body_(session->ast_factory()->NewNamespaceBody(
+          nullptr,
+          session->global_namespace())),
       session_(session),
       statement_(nullptr),
       statement_scope_(nullptr),

@@ -28,9 +28,6 @@ Field::Field(NamespaceBody* namespace_body,
   DCHECK(namespace_body->owner()->is<Class>());
 }
 
-Field::~Field() {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

@@ -7,34 +7,32 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/statement.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
-
 //////////////////////////////////////////////////////////////////////
 //
 // VarStatement
 //
 class VarStatement final : public Statement {
-  DECLARE_CASTABLE_CLASS(VarStatement, Statement);
-  friend class NodeFactory;
+  DECLARE_AST_NODE_CLASS(VarStatement, Statement);
 
  public:
-  ~VarStatement() final;
-
-  const std::vector<LocalVariable*>& variables() const { return variables_; }
+  const ZoneVector<LocalVariable*>& variables() const { return variables_; }
 
  private:
-  VarStatement(Token* name, const std::vector<LocalVariable*>& variables);
+  VarStatement(Zone* zone,
+               Token* name,
+               const std::vector<LocalVariable*>& variables);
 
   // Node
   void Accept(Visitor* visitor) override;
 
-  const std::vector<LocalVariable*> variables_;
+  const ZoneVector<LocalVariable*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(VarStatement);
 };

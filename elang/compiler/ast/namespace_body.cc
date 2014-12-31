@@ -19,8 +19,14 @@ namespace ast {
 //
 // NamespaceBody
 //
-NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
-    : outer_(outer), owner_(owner) {
+NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
+    : aliases_(zone),
+      alias_map_(zone),
+      imports_(zone),
+      import_map_(zone),
+      members_(zone),
+      outer_(outer),
+      owner_(owner) {
   if (outer_) {
     DCHECK_EQ(outer_->owner(), owner->outer());
   } else {
@@ -29,15 +35,12 @@ NamespaceBody::NamespaceBody(NamespaceBody* outer, Namespace* owner)
   }
 }
 
-NamespaceBody::~NamespaceBody() {
-}
-
-const std::vector<Alias*>& NamespaceBody::aliases() const {
+const ZoneVector<Alias*>& NamespaceBody::aliases() const {
   DCHECK(owner_->ToNamespace());
   return aliases_;
 }
 
-const std::vector<Import*>& NamespaceBody::imports() const {
+const ZoneVector<Import*>& NamespaceBody::imports() const {
   DCHECK(owner_->ToNamespace());
   return imports_;
 }
