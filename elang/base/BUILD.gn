@@ -16,6 +16,10 @@ source_set("base_files") {
   sources = [
     "castable.h",
     "types.h",
+    "zone.cc",
+    "zone.h",
+    "zone_object.h",
+    "zone_object.cc",
   ]
 }
 
