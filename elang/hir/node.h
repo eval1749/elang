@@ -7,7 +7,7 @@
 
 #include "base/macros.h"
 #include "elang/base/castable.h"
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 
 namespace elang {
 namespace hir {
@@ -24,7 +24,7 @@ namespace hir {
 //
 // Node
 //
-class Node : public Castable, public ZoneObject {
+class Node : public Castable, public ZoneAllocated {
   DECLARE_HIR_NODE_CLASS(Node, Castable);
 
  protected:

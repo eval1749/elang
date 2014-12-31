@@ -10,7 +10,7 @@
 
 #include "base/strings/string_piece.h"
 #include "elang/base/types.h"
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token_data.h"
 
@@ -27,7 +27,7 @@ enum class TokenType;
 //
 // Token
 //
-class Token final : public ZoneObject {
+class Token final : public ZoneAllocated {
  public:
   bool operator==(const Token& other) const;
   bool operator!=(const Token& other) const;

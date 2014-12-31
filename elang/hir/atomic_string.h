@@ -9,7 +9,7 @@
 #include <string>
 
 #include "base/strings/string_piece.h"
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 
 namespace elang {
 namespace hir {
@@ -18,7 +18,7 @@ namespace hir {
 //
 // AtomicString
 //
-class AtomicString final : public ZoneObject {
+class AtomicString final : public ZoneAllocated {
  public:
   base::StringPiece16 string() const { return string_; }
 

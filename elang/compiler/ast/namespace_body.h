@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
@@ -24,7 +24,7 @@ namespace ast {
 //
 // NamespaceBody
 //
-class NamespaceBody final : public ZoneObject {
+class NamespaceBody final : public ZoneAllocated {
  public:
   const ZoneVector<Alias*>& aliases() const;
   const ZoneVector<Import*>& imports() const;

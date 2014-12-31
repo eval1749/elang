@@ -9,7 +9,7 @@
 
 #include "elang/base/castable.h"
 #include "elang/base/types.h"
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -92,7 +92,7 @@ class Visitor;
 //
 // Node
 //
-class Node : public Castable, public ZoneObject {
+class Node : public Castable, public ZoneAllocated {
   DECLARE_AST_NODE_CLASS(Node, Castable);
 
  public:

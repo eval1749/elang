@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_ZONE_OBJECT_H_
-#define ELANG_BASE_ZONE_OBJECT_H_
+#ifndef ELANG_BASE_ZONE_ALLOCATED_H_
+#define ELANG_BASE_ZONE_ALLOCATED_H_
 
 #include "base/macros.h"
 
@@ -13,22 +13,22 @@ class Zone;
 
 //////////////////////////////////////////////////////////////////////
 //
-// ZoneObject
+// ZoneAllocated
 //
-class ZoneObject {
+class ZoneAllocated {
  public:
   void* operator new(size_t size, Zone* zone);
 
-  // |ZoneObject| can't have |delete| operator. But MSVC requires them.
+  // |ZoneAllocated| can't have |delete| operator. But MSVC requires them.
   void operator delete(void*, Zone*);
 
  protected:
-  ZoneObject();
+  ZoneAllocated();
 
-  // |ZoneObject| can't have destructor operator. But MSVC requires them.
-  ~ZoneObject();
+  // |ZoneAllocated| can't have destructor operator. But MSVC requires them.
+  ~ZoneAllocated();
 };
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_ZONE_OBJECT_H_
+#endif  // ELANG_BASE_ZONE_ALLOCATED_H_

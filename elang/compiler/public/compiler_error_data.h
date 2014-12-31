@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
-#include "elang/base/zone_object.h"
+#include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token.h"
@@ -23,7 +23,7 @@ class Token;
 //
 // ErrorData
 //
-class ErrorData final : public ZoneObject {
+class ErrorData final : public ZoneAllocated {
  public:
   ErrorCode error_code() const { return error_code_; }
   const SourceCodeRange& location() const { return source_code_location_; }
