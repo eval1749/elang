@@ -14,8 +14,5 @@ namespace hir {
 Node::Node() {
 }
 
-Node::~Node() {
-}
-
 }  // namespace hir
 }  // namespace elang

@@ -2,29 +2,33 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_hir_node_h)
-#define INCLUDE_elang_hir_node_h
-
-#include "elang/base/castable.h"
+#ifndef ELANG_HIR_NODE_H_
+#define ELANG_HIR_NODE_H_
 
 #include "base/macros.h"
+#include "elang/base/castable.h"
+#include "elang/base/zone_object.h"
 
 namespace elang {
 namespace hir {
 
-class Factory;
-
+#define DECLARE_HIR_NODE_CLASS(self, super) \
+  DECLARE_CASTABLE_CLASS(self, super);      \
+  friend class Factory;                     \
+                                            \
+ protected:                                 \
+  ~self() override = default;               \
+                                            \
+ private:
 //////////////////////////////////////////////////////////////////////
 //
 // Node
 //
-class Node : public Castable {
-  DECLARE_CASTABLE_CLASS(Node, Castable);
-  friend class Factory;
+class Node : public Castable, public ZoneObject {
+  DECLARE_HIR_NODE_CLASS(Node, Castable);
 
  protected:
   Node();
-  virtual ~Node();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Node);
@@ -33,4 +37,4 @@ class Node : public Castable {
 }  // namespace hir
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_hir_node_h)
+#endif  // ELANG_HIR_NODE_H_

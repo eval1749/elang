@@ -30,6 +30,9 @@ class Castable {
     return static_class_name() == other_name;
   }
   static const char* static_class_name() { return "Castable"; }
+
+ protected:
+  virtual ~Castable() = default;
 };
 
 #define DECLARE_CASTABLE_CLASS(this_name, base_name)                      \

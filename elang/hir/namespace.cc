@@ -13,11 +13,8 @@ namespace hir {
 //
 // Namespace
 //
-Namespace::Namespace(Namespace* outer, AtomicString* simple_name)
-    : NamespaceMember(outer, simple_name) {
-}
-
-Namespace::~Namespace() {
+Namespace::Namespace(Zone* zone, Namespace* outer, AtomicString* simple_name)
+    : NamespaceMember(outer, simple_name), map_(zone) {
 }
 
 void Namespace::AddMember(NamespaceMember* member) {

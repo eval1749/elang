@@ -29,21 +29,20 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 //
 // Factory
 //
-Factory::Factory(Zone* zone)
-    : zone_(zone),
+Factory::Factory()
+    : zone_(new Zone()),
       global_namespace_(CreateGlobalNamespace(this)),
       temp_name_counter_(0) {
 }
 
 Factory::~Factory() {
-  RemoveAll();
 }
 
 AtomicString* Factory::GetOrCreateAtomicString(base::StringPiece16 string) {
   auto const it = simple_names_.find(string);
   if (it != simple_names_.end())
     return it->second;
-  auto const simple_name = new (zone_) AtomicString(NewString(string));
+  auto const simple_name = new (zone_.get()) AtomicString(NewString(string));
   simple_names_[simple_name->string()] = simple_name;
   return simple_name;
 }
@@ -51,19 +50,15 @@ AtomicString* Factory::GetOrCreateAtomicString(base::StringPiece16 string) {
 Class* Factory::NewClass(Namespace* outer,
                          AtomicString* simple_name,
                          const std::vector<Class*>& base_classes) {
-  auto const node = new Class(outer, simple_name, base_classes);
-  nodes_.push_back(node);
-  return node;
+  return new (zone_.get()) Class(zone_.get(), outer, simple_name, base_classes);
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* simple_name) {
-  auto const node = new Namespace(outer, simple_name);
-  nodes_.push_back(node);
-  return node;
+  return new (zone_.get()) Namespace(zone_.get(), outer, simple_name);
 }
 
 AtomicString* Factory::NewUniqueName(const base::char16* format) {
-  return new (zone_)
+  return new (zone_.get())
       AtomicString(base::StringPrintf(format, ++temp_name_counter_));
 }
 
@@ -72,12 +67,6 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
   auto const string = static_cast<base::char16*>(zone_->Allocate(size));
   ::memcpy(string, string_piece.data(), size);
   return base::StringPiece16(string, string_piece.size());
-}
-
-void Factory::RemoveAll() {
-  for (auto const node : nodes_)
-    delete node;
-  nodes_.clear();
 }
 
 }  // namespace hir

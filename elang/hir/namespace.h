@@ -5,8 +5,7 @@
 #ifndef ELANG_HIR_NAMESPACE_H_
 #define ELANG_HIR_NAMESPACE_H_
 
-#include <unordered_map>
-
+#include "elang/base/zone_unordered_map.h"
 #include "elang/hir/namespace_member.h"
 
 namespace elang {
@@ -19,22 +18,20 @@ class Factory;
 // Namespace
 //
 class Namespace : public NamespaceMember {
-  DECLARE_CASTABLE_CLASS(Namespace, NamespaceMember);
-  friend class Factory;
+  DECLARE_HIR_NODE_CLASS(Namespace, NamespaceMember);
 
  public:
   void AddMember(NamespaceMember* member);
   NamespaceMember* FindMember(AtomicString* simple_name);
 
  protected:
-  Namespace(Namespace* outer, AtomicString* simple_name);
-  ~Namespace() override;
+  Namespace(Zone* zone, Namespace* outer, AtomicString* simple_name);
 
  private:
   // NamespaceMember
   Namespace* ToNamespace() override;
 
-  std::unordered_map<AtomicString*, NamespaceMember*> map_;
+  ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

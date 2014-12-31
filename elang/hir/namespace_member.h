@@ -18,7 +18,7 @@ class AtomicString;
 // NamespaceMember
 //
 class NamespaceMember : public Node {
-  DECLARE_CASTABLE_CLASS(NamespaceMember, Node);
+  DECLARE_HIR_NODE_CLASS(NamespaceMember, Node);
 
  public:
   Namespace* outer() const { return outer_; }
@@ -29,7 +29,6 @@ class NamespaceMember : public Node {
 
  protected:
   NamespaceMember(Namespace* owner, AtomicString* simple_name);
-  ~NamespaceMember() override;
 
  private:
   Namespace* const outer_;

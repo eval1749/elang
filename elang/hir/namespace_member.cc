@@ -17,9 +17,6 @@ NamespaceMember::NamespaceMember(Namespace* outer, AtomicString* simple_name)
     : outer_(outer), simple_name_(simple_name) {
 }
 
-NamespaceMember::~NamespaceMember() {
-}
-
 Namespace* NamespaceMember::ToNamespace() {
   return nullptr;
 }

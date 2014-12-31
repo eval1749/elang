@@ -29,7 +29,7 @@ class AtomicString;
 //
 class Factory final {
  public:
-  explicit Factory(Zone* zone);
+  Factory();
   ~Factory();
 
   Namespace* global_namespace() const { return global_namespace_; }
@@ -41,17 +41,14 @@ class Factory final {
   Namespace* NewNamespace(Namespace* outer, AtomicString* simple_name);
   base::StringPiece16 NewString(base::StringPiece16 string);
   AtomicString* NewUniqueName(const base::char16* format);
-  void RemoveAll();
 
  private:
-  Zone* const zone_;
-  std::vector<Node*> nodes_;
+  const std::unique_ptr<Zone> zone_;
   std::unordered_map<base::StringPiece16, AtomicString*> simple_names_;
   std::vector<base::string16*> strings_;
   int temp_name_counter_;
 
-  // |global_namespace_| must be initialized after node pool and string pool
-  // are created.
+  // |global_namespace_| must be initialized after |zone_|.
   Namespace* const global_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

@@ -11,16 +11,14 @@ namespace hir {
 //
 // Class
 //
-Class::Class(Namespace* outer,
+Class::Class(Zone* zone,
+             Namespace* outer,
              AtomicString* simple_name,
              const std::vector<Class*>& base_classes)
-    : Namespace(outer, simple_name), base_classes_(base_classes) {
+    : Namespace(zone, outer, simple_name), base_classes_(zone, base_classes) {
   // TODO(eval1749) NYI default base class |Object|.
   // TODO(eval1749) NYI validate |base_classes|, |base_classes[0]| must be
   // a class rather than an interface.
-}
-
-Class::~Class() {
 }
 
 // NamespaceMember

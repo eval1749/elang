@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/base/zone_vector.h"
 #include "elang/hir/namespace.h"
 
 namespace elang {
@@ -19,22 +20,21 @@ class Factory;
 // Class
 //
 class Class final : public Namespace {
-  DECLARE_CASTABLE_CLASS(Class, Namespace);
-  friend class Factory;
+  DECLARE_HIR_NODE_CLASS(Class, Namespace);
 
  public:
-  const std::vector<Class*>& base_classes() const { return base_classes_; }
+  const ZoneVector<Class*>& base_classes() const { return base_classes_; }
 
  private:
-  Class(Namespace* outer,
+  Class(Zone* zone,
+        Namespace* outer,
         AtomicString* simple_name,
         const std::vector<Class*>& base_classes);
-  ~Class() override;
 
   // NamespaceMember
   Namespace* ToNamespace() final;
 
-  std::vector<Class*> base_classes_;
+  const ZoneVector<Class*> base_classes_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
