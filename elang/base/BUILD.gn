@@ -5,6 +5,7 @@
 test("elang_base_unittests") {
   sources = [
     "castable_unittest.cc",
+    "double_linked_unittest.cc",
   ]
 
   deps = [
@@ -15,6 +16,7 @@ test("elang_base_unittests") {
 source_set("base_files") {
   sources = [
     "castable.h",
+    "double_linked.h",
     "types.h",
     "zone.cc",
     "zone.h",
