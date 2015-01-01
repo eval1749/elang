@@ -11,28 +11,32 @@
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
+#include "elang/hir/instruction_factory.h"
+#include "elang/hir/type_factory.h"
 
 namespace elang {
 class Zone;
 namespace hir {
+class AtomicString;
 class Class;
 class Enum;
 class EnumMember;
 class Expression;
 class Namespace;
 class Node;
-class AtomicString;
+class TypeFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
 // Factory
 //
-class Factory final {
+class Factory final : public InstructionFactory {
  public:
   Factory();
   ~Factory();
 
   Namespace* global_namespace() const { return global_namespace_; }
+  Zone* zone() const { return zone_.get(); }
 
   AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
   Class* NewClass(Namespace* outer,
@@ -45,7 +49,6 @@ class Factory final {
  private:
   const std::unique_ptr<Zone> zone_;
   std::unordered_map<base::StringPiece16, AtomicString*> simple_names_;
-  std::vector<base::string16*> strings_;
   int temp_name_counter_;
 
   // |global_namespace_| must be initialized after |zone_|.

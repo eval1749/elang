@@ -29,9 +29,9 @@ class ZoneUnorderedMap
                              typename std::unordered_map<K, T>::hasher,
                              typename std::unordered_map<K, T>::key_equal,
                              ZoneAllocator<T>> BaseClass;
+
  public:
-  explicit ZoneUnorderedMap(Zone* zone)
-      : BaseClass(ZoneAllocator<T>(zone)) {}
+  explicit ZoneUnorderedMap(Zone* zone) : BaseClass(ZoneAllocator<T>(zone)) {}
 };
 
 }  // namespace elang

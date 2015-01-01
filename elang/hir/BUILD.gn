@@ -10,16 +10,36 @@ static_library("hir") {
     "class.h",
     "factory.cc",
     "factory.h",
+    "instructions.cc",
+    "instructions.h",
+    "instruction_factory.cc",
+    "instruction_factory.h",
     "namespace.cc",
     "namespace.h",
     "namespace_member.cc",
     "namespace_member.h",
     "node.cc",
     "node.h",
+    "types.cc",
+    "types.h",
+    "type_factory.cc",
+    "type_factory.h",
   ]
 
   deps = [
     "//base",
     "//elang/base",
+  ]
+}
+
+test("elang_hir_unittests") {
+  sources = [
+    "instructions_unittest.cc",
+    "types_unittest.cc",
+  ]
+
+  deps = [
+    ":hir",
+    "//base/test:run_all_unittests",
   ]
 }

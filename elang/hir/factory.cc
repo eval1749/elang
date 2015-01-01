@@ -12,6 +12,7 @@
 #include "elang/hir/atomic_string.h"
 #include "elang/hir/class.h"
 #include "elang/hir/namespace.h"
+#include "elang/hir/type_factory.h"
 
 namespace elang {
 namespace hir {
@@ -30,9 +31,10 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 // Factory
 //
 Factory::Factory()
-    : zone_(new Zone()),
-      global_namespace_(CreateGlobalNamespace(this)),
-      temp_name_counter_(0) {
+    : InstructionFactory(this),
+      zone_(new Zone()),
+      temp_name_counter_(0),
+      global_namespace_(CreateGlobalNamespace(this)) {
 }
 
 Factory::~Factory() {
