@@ -24,6 +24,7 @@ source_set("base_files") {
     "castable.h",
     "double_linked.h",
     "float_types.h",
+    "maybe.h",
     "zone.cc",
     "zone.h",
     "zone_allocated.h",
