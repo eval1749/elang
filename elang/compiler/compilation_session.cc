@@ -15,7 +15,6 @@
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"
-#include "elang/hir/factory.h"
 
 namespace elang {
 namespace compiler {
@@ -39,7 +38,6 @@ CompilationSession::CompilationSession()
     : zone_(new Zone()),
       ast_factory_(new ast::NodeFactory(zone_.get())),
       atomic_string_factory_(new AtomicStringFactory()),
-      hir_factory_(new hir::Factory()),
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone_.get())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {
@@ -87,7 +85,7 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
 }
 
 base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
-  auto const buffer = hir_factory_->NewString(string);
+  auto const buffer = atomic_string_factory_->NewString(string);
   return new (zone_->Allocate(sizeof(base::StringPiece16)))
       base::StringPiece16(buffer.data(), buffer.size());
 }

@@ -19,12 +19,7 @@ class AtomicString;
 class AtomicStringFactory;
 class Zone;
 
-namespace hir {
-class Factory;
-}
-
 namespace compiler {
-
 namespace ast {
 class Namespace;
 class NodeFactory;
@@ -49,7 +44,6 @@ class CompilationSession final {
   ~CompilationSession();
 
   ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
-  hir::Factory* hir_factory() const { return hir_factory_.get(); }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   Zone* zone() const { return zone_.get(); }
@@ -79,7 +73,6 @@ class CompilationSession final {
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
-  const std::unique_ptr<hir::Factory> hir_factory_;
   std::unique_ptr<TokenFactory> token_factory_;
 
   std::unique_ptr<SourceCode> source_code_;
