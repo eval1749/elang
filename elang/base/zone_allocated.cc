@@ -22,7 +22,7 @@ void ZoneAllocated::operator delete(void* pointer, Zone* zone) {
   NOTREACHED();
 }
 
-void* ZoneAllocated::operator new (size_t size, Zone* zone) {
+void* ZoneAllocated::operator new(size_t size, Zone* zone) {
   return zone->Allocate(size);
 }
 
