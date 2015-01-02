@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/strings/string_piece.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 #include "elang/compiler/ast/node.h"
 #include "elang/compiler/source_code_range.h"
 

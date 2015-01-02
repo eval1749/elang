@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "base/macros.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 
 namespace elang {
 namespace compiler {

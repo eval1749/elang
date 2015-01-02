@@ -5,7 +5,7 @@
 #ifndef ELANG_HIR_TYPES_FORWARD_H_
 #define ELANG_HIR_TYPES_FORWARD_H_
 
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 
 namespace elang {
 namespace hir {

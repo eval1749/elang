@@ -9,7 +9,7 @@
 
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 #include "elang/compiler/character_stream.h"
 
 namespace elang {

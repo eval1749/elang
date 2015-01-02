@@ -23,7 +23,7 @@ source_set("base_files") {
     "atomic_string_factory.h",
     "castable.h",
     "double_linked.h",
-    "types.h",
+    "float_types.h",
     "zone.cc",
     "zone.h",
     "zone_allocated.h",

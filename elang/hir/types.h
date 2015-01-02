@@ -11,7 +11,7 @@
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
 #include "elang/base/zone_unordered_map.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"

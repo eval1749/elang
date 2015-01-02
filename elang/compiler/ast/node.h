@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "elang/base/castable.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/compiler/token.h"
 

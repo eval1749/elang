@@ -8,7 +8,7 @@
 #include <ostream>
 
 #include "base/strings/string_piece.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 
 namespace elang {
 class AtomicString;

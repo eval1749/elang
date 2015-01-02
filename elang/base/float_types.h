@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_TYPES_H_
-#define ELANG_BASE_TYPES_H_
+#ifndef ELANG_BASE_FLOAT_TYPES_H_
+#define ELANG_BASE_FLOAT_TYPES_H_
 
 namespace elang {
 
@@ -29,4 +29,4 @@ Maybe<T> make_maybe(T t) {
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_TYPES_H_
+#endif  // ELANG_BASE_FLOAT_TYPES_H_

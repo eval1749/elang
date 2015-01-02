@@ -9,7 +9,7 @@
 #include <ostream>
 
 #include "base/strings/string_piece.h"
-#include "elang/base/types.h"
+#include "elang/base/float_types.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token_data.h"
