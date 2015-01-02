@@ -20,8 +20,7 @@ namespace hir {
 namespace {
 
 Namespace* CreateGlobalNamespace(Factory* factory) {
-  return factory->NewNamespace(nullptr,
-                               factory->GetOrCreateAtomicString(L"::"));
+  return factory->NewNamespace(nullptr, factory->NewAtomicString(L"::"));
 }
 
 }  // namespace
@@ -40,7 +39,7 @@ Factory::Factory()
 Factory::~Factory() {
 }
 
-AtomicString* Factory::GetOrCreateAtomicString(base::StringPiece16 string) {
+AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
   auto const it = simple_names_.find(string);
   if (it != simple_names_.end())
     return it->second;

@@ -24,12 +24,12 @@ namespace {
 ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
                                       SourceCode* source_code) {
   return session->ast_factory()->NewNamespace(
-      nullptr, session->NewToken(
-                   SourceCodeRange(source_code, 0, 0),
-                   TokenData(TokenType::Namespace,
-                             session->GetOrCreateAtomicString(L"namespace"))),
+      nullptr,
       session->NewToken(SourceCodeRange(source_code, 0, 0),
-                        TokenData(session->GetOrCreateAtomicString(L"::"))));
+                        TokenData(TokenType::Namespace,
+                                  session->NewAtomicString(L"namespace"))),
+      session->NewToken(SourceCodeRange(source_code, 0, 0),
+                        TokenData(session->NewAtomicString(L"::"))));
 }
 
 }  // namespace
@@ -72,8 +72,7 @@ void CompilationSession::AddError(const SourceCodeRange& location,
   });
 }
 
-AtomicString* CompilationSession::GetOrCreateAtomicString(
-    base::StringPiece16 string) {
+AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
   return atomic_string_factory_->NewAtomicString(string);
 }
 

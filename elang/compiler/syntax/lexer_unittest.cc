@@ -66,7 +66,7 @@ Token* LexerTest::MakeToken(TokenType type,
   auto location = SourceCodeRange(source_code(), start, end);
   if (type == TokenType::StringLiteral)
     return session()->NewToken(location, TokenData(session()->NewString(data)));
-  auto const simple_name = session()->GetOrCreateAtomicString(data);
+  auto const simple_name = session()->NewAtomicString(data);
   return session()->NewToken(location, TokenData(type, simple_name));
 }
 
@@ -86,8 +86,7 @@ Token* LexerTest::MakeToken(TokenType type, int start, int end, uint64_t u64) {
 
 void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
   Prepare(source_text);
-  auto const compilation_unit =
-      session()->NewCompilationUnit(source_code());
+  auto const compilation_unit = session()->NewCompilationUnit(source_code());
   lexer_.reset(new Lexer(session(), compilation_unit));
 }
 

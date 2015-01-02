@@ -38,7 +38,7 @@ class Factory final : public InstructionFactory {
   Namespace* global_namespace() const { return global_namespace_; }
   Zone* zone() const { return zone_.get(); }
 
-  AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
+  AtomicString* NewAtomicString(base::StringPiece16 string);
   Class* NewClass(Namespace* outer,
                   AtomicString* simple_name,
                   const std::vector<Class*>& base_classes);

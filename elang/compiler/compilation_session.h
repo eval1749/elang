@@ -52,7 +52,7 @@ class CompilationSession final {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
-  AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
+  AtomicString* NewAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   // Allocate |base::StringPiece16| object in zone used for string backing
   // store for |TokenData|.

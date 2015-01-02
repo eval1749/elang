@@ -75,7 +75,7 @@ ast::NamespaceMember* CompilerTest::FindMember(base::StringPiece name) {
     auto dot_pos = name.find('.', pos);
     if (dot_pos == base::StringPiece::npos)
       dot_pos = name.length();
-    auto const simple_name = session_->GetOrCreateAtomicString(
+    auto const simple_name = session_->NewAtomicString(
         base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
     found = enclosing->FindMember(simple_name);
     if (!found)

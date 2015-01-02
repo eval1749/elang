@@ -195,8 +195,8 @@ ast::Expression* Parser::ProduceMemberAccess(
       SourceCodeRange(compilation_unit_->source_code(),
                       names.front()->token()->location().start_offset(),
                       names.back()->token()->location().end_offset()),
-      TokenData(TokenType::SimpleName, session_->GetOrCreateAtomicString(
-                                           base::UTF8ToUTF16(buffer.str()))));
+      TokenData(TokenType::SimpleName,
+                session_->NewAtomicString(base::UTF8ToUTF16(buffer.str()))));
   return ProduceType(factory()->NewMemberAccess(name_token, names));
 }
 

@@ -395,7 +395,7 @@ Token* Lexer::HandleAtMark() {
     while (!IsAtEndOfStream()) {
       auto const char_code = PeekChar();
       if (!IsNameChar(char_code)) {
-        auto const simple_name = session_->GetOrCreateAtomicString(
+        auto const simple_name = session_->NewAtomicString(
             char_sink_->End());
         return NewToken(TokenData(simple_name));
       }
@@ -526,7 +526,7 @@ Token* Lexer::HandleName(base::char16 first_char_code) {
     Advance();
     char_sink_->AddChar(char_code);
   }
-  auto const name = session_->GetOrCreateAtomicString(char_sink_->End());
+  auto const name = session_->NewAtomicString(char_sink_->End());
   return NewToken(TokenData(ComputeToken(name), name));
 }
 
