@@ -11,20 +11,20 @@
 
 #include "base/logging.h"
 #include "base/strings/string_util.h"
+#include "elang/base/atomic_string.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
-#include "elang/hir/atomic_string.h"
 
 namespace elang {
 namespace compiler {
 
 namespace {
 
-TokenType ComputeToken(hir::AtomicString* name) {
+TokenType ComputeToken(AtomicString* name) {
   typedef std::unordered_map<base::StringPiece16, TokenType> KeywordMap;
   CR_DEFINE_STATIC_LOCAL(KeywordMap*, keyword_map, ());
   if (!keyword_map) {

@@ -61,7 +61,7 @@ void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
   bodies_.push_back(namespace_body);
 }
 
-NamespaceMember* Namespace::FindMember(hir::AtomicString* name) {
+NamespaceMember* Namespace::FindMember(AtomicString* name) {
   auto const it = map_.find(name);
   return it == map_.end() ? nullptr : it->second;
 }

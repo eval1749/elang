@@ -13,9 +13,6 @@
 #include "elang/compiler/token.h"
 
 namespace elang {
-namespace hir {
-class AtomicString;
-}
 namespace compiler {
 namespace ast {
 

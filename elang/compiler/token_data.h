@@ -11,9 +11,7 @@
 #include "elang/base/types.h"
 
 namespace elang {
-namespace hir {
 class AtomicString;
-}
 namespace compiler {
 
 class Token;
@@ -25,12 +23,12 @@ enum class TokenType;
 //
 class TokenData {
  public:
-  TokenData(TokenType type, hir::AtomicString* name);
+  TokenData(TokenType type, AtomicString* name);
   TokenData(TokenType type, uint64_t u64);
   explicit TokenData(TokenType type);
   explicit TokenData(float32_t f32);
   explicit TokenData(float64_t f64);
-  explicit TokenData(hir::AtomicString* name);
+  explicit TokenData(AtomicString* name);
   explicit TokenData(base::StringPiece16* str);
   TokenData(const TokenData& other);
   ~TokenData();
@@ -43,7 +41,7 @@ class TokenData {
   float32_t f32_data() const;
   float64_t f64_data() const;
   int64_t int64_data() const;
-  hir::AtomicString* id() const { return simple_name(); }
+  AtomicString* id() const { return simple_name(); }
   bool is_contextual_keyword() const;
   bool is_keyword() const;
   bool is_literal() const;
@@ -51,7 +49,7 @@ class TokenData {
   bool is_operator() const;
   bool is_type_name() const;
   int precedence() const;
-  hir::AtomicString* simple_name() const;
+  AtomicString* simple_name() const;
   base::StringPiece16 string_data() const;
   TokenType type() const { return type_; }
 
@@ -61,7 +59,7 @@ class TokenData {
     float32_t f32;
     float64_t f64;
     int64_t i64;
-    hir::AtomicString* name;
+    AtomicString* name;
     base::StringPiece16* str;
     uint64_t u64;
   };

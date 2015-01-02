@@ -15,9 +15,6 @@
 #include "elang/compiler/token_data.h"
 
 namespace elang {
-namespace hir {
-class AtomicString;
-}
 namespace compiler {
 
 class TokenFactory;
@@ -45,7 +42,7 @@ class Token final : public ZoneAllocated {
   bool is_type_name() const { return data_.is_type_name(); }
   const SourceCodeRange& location() const { return location_; }
   int precedence() const { return data_.precedence(); }
-  hir::AtomicString* simple_name() const { return data_.simple_name(); }
+  AtomicString* simple_name() const { return data_.simple_name(); }
   base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }
 

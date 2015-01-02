@@ -7,6 +7,7 @@
 
 #include "elang/compiler/compilation_session.h"
 
+#include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
@@ -37,6 +38,7 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 CompilationSession::CompilationSession()
     : zone_(new Zone()),
       ast_factory_(new ast::NodeFactory(zone_.get())),
+      atomic_string_factory_(new AtomicStringFactory()),
       hir_factory_(new hir::Factory()),
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone_.get())),
@@ -72,9 +74,9 @@ void CompilationSession::AddError(const SourceCodeRange& location,
   });
 }
 
-hir::AtomicString* CompilationSession::GetOrCreateAtomicString(
+AtomicString* CompilationSession::GetOrCreateAtomicString(
     base::StringPiece16 string) {
-  return hir_factory()->GetOrCreateAtomicString(string);
+  return atomic_string_factory_->NewAtomicString(string);
 }
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
@@ -92,9 +94,9 @@ base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
 
 Token* CompilationSession::NewUniqueNameToken(const SourceCodeRange& location,
                                               const base::char16* format) {
-  return token_factory_->NewToken(
-      location,
-      TokenData(TokenType::TempName, hir_factory()->NewUniqueName(format)));
+  auto const name = atomic_string_factory_->NewUniqueAtomicString(format);
+  return token_factory_->NewToken(location,
+                                  TokenData(TokenType::TempName, name));
 }
 
 Token* CompilationSession::NewToken(const SourceCodeRange& location,

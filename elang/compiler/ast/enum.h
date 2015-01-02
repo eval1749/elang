@@ -11,9 +11,6 @@
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
-namespace hir {
-class AtomicString;
-}
 namespace compiler {
 namespace ast {
 
@@ -44,7 +41,7 @@ class Enum final : public NamespaceMember {
   // Node
   void Accept(Visitor* visitor) override;
 
-  ZoneUnorderedMap<hir::AtomicString*, EnumMember*> map_;
+  ZoneUnorderedMap<AtomicString*, EnumMember*> map_;
   ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);

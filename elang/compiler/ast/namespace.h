@@ -10,9 +10,6 @@
 #include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
-namespace hir {
-class AtomicString;
-}
 namespace compiler {
 namespace ast {
 
@@ -28,7 +25,7 @@ class Namespace : public NamespaceMember {
 
   void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);
-  NamespaceMember* FindMember(hir::AtomicString* simple_name);
+  NamespaceMember* FindMember(AtomicString* simple_name);
   NamespaceMember* FindMember(Token* simple_name);
 
   // NamespaceMember
@@ -53,7 +50,7 @@ class Namespace : public NamespaceMember {
   struct ImportDef;
 
   ZoneVector<NamespaceBody*> bodies_;
-  ZoneUnorderedMap<hir::AtomicString*, NamespaceMember*> map_;
+  ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

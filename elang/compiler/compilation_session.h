@@ -15,11 +15,12 @@
 #include "elang/compiler/token_data.h"
 
 namespace elang {
+class AtomicString;
+class AtomicStringFactory;
 class Zone;
 
 namespace hir {
 class Factory;
-class AtomicString;
 }
 
 namespace compiler {
@@ -57,7 +58,7 @@ class CompilationSession final {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
-  hir::AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
+  AtomicString* GetOrCreateAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   // Allocate |base::StringPiece16| object in zone used for string backing
   // store for |TokenData|.
@@ -75,6 +76,7 @@ class CompilationSession final {
   const std::unique_ptr<Zone> zone_;
 
   const std::unique_ptr<ast::NodeFactory> ast_factory_;
+  const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
   const std::unique_ptr<hir::Factory> hir_factory_;
