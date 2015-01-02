@@ -10,6 +10,8 @@ static_library("hir") {
     "instructions.h",
     "instruction_factory.cc",
     "instruction_factory.h",
+    "operands.cc",
+    "operands.h",
     "types.cc",
     "types.h",
     "type_factory.cc",
