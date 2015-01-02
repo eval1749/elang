@@ -4,17 +4,23 @@
 
 test("elang_base_unittests") {
   sources = [
+    "atomic_string_unittest.cc",
     "castable_unittest.cc",
     "double_linked_unittest.cc",
   ]
 
   deps = [
+    ":base",
     "//base/test:run_all_unittests",
   ]
 }
 
 source_set("base_files") {
   sources = [
+    "atomic_string.cc",
+    "atomic_string.h",
+    "atomic_string_factory.cc",
+    "atomic_string_factory.h",
     "castable.h",
     "double_linked.h",
     "types.h",
