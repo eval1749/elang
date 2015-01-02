@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/hir/operands.h"
+#include "elang/hir/values.h"
 
 namespace elang {
 namespace hir {

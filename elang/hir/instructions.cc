@@ -16,7 +16,7 @@ namespace hir {
 // Instruction
 //
 Instruction::Instruction(Type* output_type)
-    : Operand(output_type), basic_block_(nullptr), id_(0) {
+    : Value(output_type), basic_block_(nullptr), id_(0) {
 }
 
 bool Instruction::CanBeRemoved() const {
@@ -43,8 +43,8 @@ FOR_EACH_HIR_INSTRUCTION(V)
 // CallInstruction
 //
 CallInstruction::CallInstruction(Type* output_type,
-                                 Operand* callee,
-                                 Operand* arguments)
+                                 Value* callee,
+                                 Value* arguments)
     : InstructionTemplate(output_type, callee, arguments) {
 }
 
@@ -80,7 +80,7 @@ bool ExitInstruction::IsTerminator() const {
 // ReturnInstruction
 //
 ReturnInstruction::ReturnInstruction(Type* output_type,
-                                     Operand* value,
+                                     Value* value,
                                      BasicBlock* exit_block)
     : InstructionTemplate(output_type, value, exit_block) {
   DCHECK(output_type->is<VoidType>());

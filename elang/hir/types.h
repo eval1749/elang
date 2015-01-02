@@ -13,8 +13,8 @@
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/types.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/hir/operands_forward.h"
 #include "elang/hir/types_forward.h"
+#include "elang/hir/values_forward.h"
 
 namespace elang {
 namespace hir {

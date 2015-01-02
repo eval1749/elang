@@ -9,7 +9,7 @@
 
 #include "base/basictypes.h"
 #include "elang/hir/instructions_forward.h"
-#include "elang/hir/operands.h"
+#include "elang/hir/values.h"
 
 namespace elang {
 namespace hir {
@@ -20,9 +20,9 @@ namespace hir {
 //
 // Instruction
 //
-class Instruction : public Operand,
+class Instruction : public Value,
                     public DoubleLinked<Instruction, BasicBlock>::Node {
-  DECLARE_HIR_OPERAND_CLASS(Instruction, Operand);
+  DECLARE_HIR_VALUE_CLASS(Instruction, Value);
 
  public:
   // Opcode for formatting
@@ -52,16 +52,16 @@ class Instruction : public Operand,
   virtual bool CanBeRemoved() const;
 
   // Returns number of operands which this instruction has. Other than 'phi',
-  // 'pack', and 'switch', number of operands is constant.
+  // 'pack', and 'switch', number of values is constant.
   virtual int CountOperands() const = 0;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
 
-  // Operand accessor
-  virtual Operand* OperandAt(int index) const = 0;
-  virtual void SetOperandAt(int index, Operand* new_operand) = 0;
+  // Value accessor
+  virtual Value* OperandAt(int index) const = 0;
+  virtual void SetOperandAt(int index, Value* new_value) = 0;
 
  protected:
   explicit Instruction(Type* output_type);
@@ -89,11 +89,9 @@ class InstructionTemplate : public Instruction {
 
   // Instruction
   int CountOperands() const override { return sizeof...(Params); }
-  Operand* OperandAt(int index) const override {
-    return operands_[index].operand();
-  }
-  void SetOperandAt(int index, Operand* new_operand) override {
-    operands_[index].SetOperand(new_operand);
+  Value* OperandAt(int index) const override { return operans_[index].value(); }
+  void SetOperandAt(int index, Value* new_value) override {
+    operans_[index].SetValue(new_value);
   }
 
  protected:
@@ -105,16 +103,16 @@ class InstructionTemplate : public Instruction {
  private:
   void InitOperands(int index) { __assume(index); }
   template <typename... Params>
-  void InitOperands(int index, Operand* operand, Params... params) {
-    operands_[index].Init(this, operand);
+  void InitOperands(int index, Value* value, Params... params) {
+    operans_[index].Init(this, value);
     InitOperands(index + 1, params...);
   }
-  EmbeddedContainer<UseDefNode, sizeof...(Params)> operands_;
+  EmbeddedContainer<UseDefNode, sizeof...(Params)> operans_;
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
-#define DECLARE_HIR_INSTRUCTION_CLASS(Name)                  \
-  DECLARE_HIR_OPERAND_CLASS(Name##Instruction, Instruction); \
+#define DECLARE_HIR_INSTRUCTION_CLASS(Name)                \
+  DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction); \
   Opcode opcode() const override;
 
 //////////////////////////////////////////////////////////////////////
@@ -122,7 +120,7 @@ class InstructionTemplate : public Instruction {
 // CallInstruction
 //
 class CallInstruction
-    : public InstructionTemplate<CallInstruction, Operand*, Operand*> {
+    : public InstructionTemplate<CallInstruction, Value*, Value*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Call);
 
  public:
@@ -132,7 +130,7 @@ class CallInstruction
  private:
   friend class BaseClass;
 
-  CallInstruction(Type* output_type, Operand* callee, Operand* arguments);
+  CallInstruction(Type* output_type, Value* callee, Value* arguments);
 
   DISALLOW_COPY_AND_ASSIGN(CallInstruction);
 };
@@ -175,13 +173,13 @@ class ExitInstruction : public InstructionTemplate<ExitInstruction> {
 // ReturnInstruction
 //
 class ReturnInstruction
-    : public InstructionTemplate<ReturnInstruction, Operand*, BasicBlock*> {
+    : public InstructionTemplate<ReturnInstruction, Value*, BasicBlock*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Return);
 
  private:
   friend class BaseClass;
 
-  ReturnInstruction(Type* output_type, Operand* value, BasicBlock* exit_block);
+  ReturnInstruction(Type* output_type, Value* value, BasicBlock* exit_block);
 
   // Instruction
   bool IsTerminator() const override;

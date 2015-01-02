@@ -9,8 +9,8 @@
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "elang/base/zone.h"
-#include "elang/hir/operands.h"
 #include "elang/hir/type_factory.h"
+#include "elang/hir/values.h"
 
 namespace elang {
 namespace hir {

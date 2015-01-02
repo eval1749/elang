@@ -8,58 +8,58 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/function_editor.h"
 #include "elang/hir/instructions.h"
-#include "elang/hir/operands.h"
-#include "elang/hir/operand_visitor.h"
 #include "elang/hir/types.h"
+#include "elang/hir/values.h"
+#include "elang/hir/value_visitor.h"
 
 namespace elang {
 namespace hir {
 
 #define V(Name, ...) \
-  void Name::Accept(OperandVisitor* visitor) { visitor->Visit##Name(this); }
-FOR_EACH_HIR_OPERAND(V)
+  void Name::Accept(ValueVisitor* visitor) { visitor->Visit##Name(this); }
+FOR_EACH_HIR_VALUE(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////
 //
 // UseDefNode
 //
-UseDefNode::UseDefNode() : instruction_(nullptr), operand_(nullptr) {
+UseDefNode::UseDefNode() : instruction_(nullptr), value_(nullptr) {
 }
 
-void UseDefNode::Init(Instruction* instruction, Operand* operand) {
+void UseDefNode::Init(Instruction* instruction, Value* value) {
   DCHECK(!instruction_);
-  DCHECK(!operand_);
-  DCHECK(operand);
+  DCHECK(!value_);
+  DCHECK(value);
   instruction_ = instruction;
-  operand_ = operand;
-  operand_->Use(this);
+  value_ = value;
+  value_->Use(this);
 }
 
-void UseDefNode::SetOperand(Operand* new_operand) {
-  if (operand_)
-    operand_->Unuse(this);
-  new_operand->Use(this);
+void UseDefNode::SetValue(Value* new_value) {
+  if (value_)
+    value_->Unuse(this);
+  new_value->Use(this);
 }
 
 //////////////////////////////////////////////////////////////////////
 //
-// Operand
+// Value
 //
-Operand::Operand(Type* type) : type_(type) {
+Value::Value(Type* type) : type_(type) {
 }
 
-void Operand::Accept(OperandVisitor* visitor) {
+void Value::Accept(ValueVisitor* visitor) {
   __assume(visitor);
   NOTREACHED();
 }
 
-void Operand::Use(UseDefNode* operand_holder) {
-  use_def_list_.AppendNode(operand_holder);
+void Value::Use(UseDefNode* value_holder) {
+  use_def_list_.AppendNode(value_holder);
 }
 
-void Operand::Unuse(UseDefNode* operand_holder) {
-  use_def_list_.RemoveNode(operand_holder);
+void Value::Unuse(UseDefNode* value_holder) {
+  use_def_list_.RemoveNode(value_holder);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -74,10 +74,10 @@ void Operand::Unuse(UseDefNode* operand_holder) {
   c_type Name##Literal::name##_value() const { return data_; } \
   Name##Literal::Name##Literal(Type* type, c_type data)        \
       : Literal(type), data_(data) {}
-FOR_EACH_HIR_LITERAL_OPERAND(V)
+FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V
 
-Literal::Literal(Type* type) : Operand(type) {
+Literal::Literal(Type* type) : Value(type) {
 }
 
 NullLiteral::NullLiteral(Type* type) : Literal(type) {
@@ -92,7 +92,7 @@ VoidLiteral::VoidLiteral(VoidType* type, int data) : Literal(type) {
 // BasicBlock
 //
 BasicBlock::BasicBlock(Factory* factory)
-    : Operand(factory->GetVoidType()),
+    : Value(factory->GetVoidType()),
       function_(nullptr),
       id_(0),
       last_instruction_id_(0) {
@@ -117,7 +117,7 @@ void BasicBlock::set_id(int new_id) {
 // Function
 //
 Function::Function(Factory* factory, FunctionType* type)
-    : Operand(type), function_(nullptr), last_basic_block_id_(0) {
+    : Value(type), function_(nullptr), last_basic_block_id_(0) {
   FunctionEditor function(factory, this);
 }
 

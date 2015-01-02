@@ -18,7 +18,7 @@ class Instruction;
 // Visitor |V| takes three parameters:
 //  Name         capitalized name for C++ class
 //  mnemonic     mnemonic; used for formatting
-//  num_operands Number of operands
+//  num_values Number of values
 #define FOR_EACH_HIR_INSTRUCTION(V) \
   V(Call, "call", 2)                \
   V(Entry, "entry", 0)              \

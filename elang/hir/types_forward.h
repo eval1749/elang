@@ -11,7 +11,7 @@ namespace elang {
 namespace hir {
 
 // Note: When you add primitive type, you should also update
-// |FOR_EACH_HIR_LITERAL_OPERAND|.
+// |FOR_EACH_HIR_LITERAL_VALUE|.
 //
 // Visitor |V| takes following parameters:
 //  Name        capitalized name

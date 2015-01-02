@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/hir/operand_visitor.h"
+#include "elang/hir/value_visitor.h"
 
 namespace elang {
 namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// OperandVisitor
+// ValueVisitor
 //
-OperandVisitor::OperandVisitor() {
+ValueVisitor::ValueVisitor() {
 }
 
-OperandVisitor::~OperandVisitor() {
+ValueVisitor::~ValueVisitor() {
 }
 
 }  // namespace hir

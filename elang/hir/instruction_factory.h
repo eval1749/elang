@@ -10,8 +10,8 @@
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/hir/instructions_forward.h"
-#include "elang/hir/operands_forward.h"
 #include "elang/hir/types_forward.h"
+#include "elang/hir/values_forward.h"
 
 namespace elang {
 class Zone;

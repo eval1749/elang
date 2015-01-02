@@ -45,7 +45,7 @@ void BasicBlockEditor::Edit(BasicBlock* basic_block) {
   DCHECK(Validate(basic_block));
 }
 
-ReturnInstruction* BasicBlockEditor::NewReturn(Operand* value) {
+ReturnInstruction* BasicBlockEditor::NewReturn(Value* value) {
   return ReturnInstruction::New(
       factory_, factory_->GetVoidType(), value,
       basic_block_->function_->basic_blocks().last_node());

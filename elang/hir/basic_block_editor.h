@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/hir/operands.h"
+#include "elang/hir/values.h"
 
 namespace elang {
 namespace hir {
@@ -25,7 +25,7 @@ class BasicBlockEditor final {
 
   void AppendChild(Instruction* instruction);
   void Edit(BasicBlock* basic_block);
-  ReturnInstruction* NewReturn(Operand* value);
+  ReturnInstruction* NewReturn(Value* value);
   static bool Validate(BasicBlock* basic_block);
 
  private:

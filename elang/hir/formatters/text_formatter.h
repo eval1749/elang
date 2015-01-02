@@ -15,7 +15,7 @@ namespace hir {
 
 class Function;
 class Instruction;
-class Operand;
+class Value;
 
 //////////////////////////////////////////////////////////////////////
 //

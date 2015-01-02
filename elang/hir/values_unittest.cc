@@ -10,7 +10,7 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/formatters/text_formatter.h"
 #include "elang/hir/instructions.h"
-#include "elang/hir/operands.h"
+#include "elang/hir/values.h"
 #include "elang/hir/types.h"
 #include "gtest/gtest.h"
 
@@ -19,11 +19,11 @@ namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// OperandsTest offers HIR factories.
+// ValuesTest offers HIR factories.
 //
-class OperandsTest : public ::testing::Test {
+class ValuesTest : public ::testing::Test {
  protected:
-  OperandsTest();
+  ValuesTest();
 
   Factory* factory() { return factory_.get(); }
   TypeFactory* types() { return factory_->types(); }
@@ -33,14 +33,14 @@ class OperandsTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-OperandsTest::OperandsTest() : factory_(new Factory()) {
+ValuesTest::ValuesTest() : factory_(new Factory()) {
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlock
 //
-TEST_F(OperandsTest, BasicBlock) {
+TEST_F(ValuesTest, BasicBlock) {
   auto const block1 = factory()->NewBasicBlock();
   BasicBlockEditor block(factory(), block1);
   block.AppendChild(ExitInstruction::New(factory(), factory()->GetVoidType()));
@@ -51,7 +51,7 @@ TEST_F(OperandsTest, BasicBlock) {
 //
 // Function
 //
-TEST_F(OperandsTest, Function) {
+TEST_F(ValuesTest, Function) {
   auto const void_type = types()->GetVoidType();
   auto const function_type = types()->NewFunctionType(void_type, void_type);
   auto const function = factory()->NewFunction(function_type);

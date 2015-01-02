@@ -8,8 +8,8 @@
 
 #include "base/strings/utf_string_conversions.h"
 #include "elang/hir/instructions.h"
-#include "elang/hir/operands.h"
-#include "elang/hir/operand_visitor.h"
+#include "elang/hir/values.h"
+#include "elang/hir/value_visitor.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_visitor.h"
 
@@ -27,53 +27,53 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
-// OperandFormatter
+// ValueFormatter
 //
-class OperandFormatter : public OperandVisitor {
+class ValueFormatter : public ValueVisitor {
  public:
-  explicit OperandFormatter(std::ostream& ostream) : ostream_(ostream) {}
-  ~OperandFormatter() = default;
+  explicit ValueFormatter(std::ostream& ostream) : ostream_(ostream) {}
+  ~ValueFormatter() = default;
 
-  void Format(const Operand* type);
+  void Format(const Value* type);
 
  private:
 #define V(Name, ...) \
     void Visit##Name(Name* type) override;
-  FOR_EACH_HIR_OPERAND(V)
+  FOR_EACH_HIR_VALUE(V)
 #undef V
 
   std::ostream& ostream_;
 
-  DISALLOW_COPY_AND_ASSIGN(OperandFormatter);
+  DISALLOW_COPY_AND_ASSIGN(ValueFormatter);
 };
 
-void OperandFormatter::Format(const Operand* type) {
-  const_cast<Operand*>(type)->Accept(this);
+void ValueFormatter::Format(const Value* type) {
+  const_cast<Value*>(type)->Accept(this);
 }
 
-void OperandFormatter::VisitBasicBlock(BasicBlock* block) {
+void ValueFormatter::VisitBasicBlock(BasicBlock* block) {
   ostream_ << *block;
 }
 
-void OperandFormatter::VisitFunction(Function* function) {
+void ValueFormatter::VisitFunction(Function* function) {
   ostream_ << *function;
 }
 
-void OperandFormatter::VisitNullLiteral(NullLiteral* literal) {
+void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
   ostream_ << *literal->type() << " null";
 }
 
-void OperandFormatter::VisitVoidLiteral(VoidLiteral* literal) {
+void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
   DCHECK(literal);
   ostream_ << "void";
 }
 
 #define V(Name, name, ...) \
-  void OperandFormatter::Visit##Name##Literal(Name##Literal* literal) { \
+  void ValueFormatter::Visit##Name##Literal(Name##Literal* literal) { \
     ostream_ << *literal->type() << " " << \
         static_cast<Literal*>(literal)->name##_value(); \
   }
-FOR_EACH_HIR_LITERAL_OPERAND(V)
+FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////
@@ -129,9 +129,9 @@ std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function_" << &function;
 }
 
-std::ostream& operator<<(std::ostream& ostream, const Operand& operand) {
-  OperandFormatter operand_formatter(ostream);
-  operand_formatter.Format(&operand);
+std::ostream& operator<<(std::ostream& ostream, const Value& value) {
+  ValueFormatter value_formatter(ostream);
+  value_formatter.Format(&value);
   return ostream;
 }
 
@@ -168,8 +168,8 @@ void TextFormatter::FormatFunction(const Function* function) {
     ostream_ << "  // Out:";
     {
       auto const last = block->last_instruction();
-      auto const num_operands = last->CountOperands();
-      for (auto nth = 0; nth < num_operands; ++nth) {
+      auto const num_values = last->CountOperands();
+      for (auto nth = 0; nth < num_values; ++nth) {
         if (auto const target = last->OperandAt(nth)->as<BasicBlock>())
           ostream_ << " " << *target;
       }
@@ -194,10 +194,10 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
     ostream_ << *instruction->output_type() << "%r = " << instruction->id();
   ostream_ << mnemonics[instruction->opcode()];
   const char* separator = " ";
-  auto const num_operands = instruction->CountOperands();
-  for (auto nth = 0; nth < num_operands; ++nth) {
-    auto const operand = instruction->OperandAt(nth);
-    ostream_ << separator << *operand;
+  auto const num_values = instruction->CountOperands();
+  for (auto nth = 0; nth < num_values; ++nth) {
+    auto const value = instruction->OperandAt(nth);
+    ostream_ << separator << *value;
     separator = ", ";
   }
 

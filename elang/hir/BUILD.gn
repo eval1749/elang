@@ -16,17 +16,17 @@ static_library("hir") {
     "instructions.h",
     "instruction_factory.cc",
     "instruction_factory.h",
-    "operands.cc",
-    "operands.h",
-    "operands_forward.h",
-    "operand_visitor.cc",
-    "operand_visitor.h",
     "types.cc",
     "types.h",
     "type_factory.cc",
     "type_factory.h",
     "type_visitor.cc",
     "type_visitor.h",
+    "values.cc",
+    "values.h",
+    "values_forward.h",
+    "value_visitor.cc",
+    "value_visitor.h",
   ]
 
   deps = [
@@ -38,8 +38,8 @@ static_library("hir") {
 test("elang_hir_unittests") {
   sources = [
     "instructions_unittest.cc",
-    "operands_unittest.cc",
     "types_unittest.cc",
+    "values_unittest.cc",
   ]
 
   deps = [

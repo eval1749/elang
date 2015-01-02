@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_OPERANDS_FORWARD_H_
-#define ELANG_HIR_OPERANDS_FORWARD_H_
+#ifndef ELANG_HIR_VALUES_FORWARD_H_
+#define ELANG_HIR_VALUES_FORWARD_H_
 
 #include <string>
 
@@ -17,8 +17,8 @@ class BasicBlockEditor;
 class Factory;
 class FunctionEditor;
 class Literal;
-class Operand;
-class OperandVisitor;
+class Value;
+class ValueVisitor;
 class Type;
 class TypeFactory;
 
@@ -26,7 +26,7 @@ class TypeFactory;
 //  Name     capitalized name for C++ class
 //  name     small case name
 //  cpp_type in C++.
-#define FOR_EACH_HIR_LITERAL_OPERAND(V)  \
+#define FOR_EACH_HIR_LITERAL_VALUE(V)    \
   V(Bool, bool, bool)                    \
   V(Char, char, base::char16)            \
   V(Float32, float32, float32_t)         \
@@ -42,35 +42,35 @@ class TypeFactory;
   V(UInt8, uint8, uint8_t)
 
 #define V(Name, ...) class Name##Literal;
-FOR_EACH_HIR_LITERAL_OPERAND(V)
+FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V
 
-// List of concrete C++ classes representing HIR operands other than
+// List of concrete C++ classes representing HIR values other than
 // instruction.
-#define FOR_EACH_HIR_OPERAND(V) \
-  V(BasicBlock)                 \
-  V(Function)                   \
-  V(BoolLiteral)                \
-  V(CharLiteral)                \
-  V(Float32Literal)             \
-  V(Float64Literal)             \
-  V(Int16Literal)               \
-  V(Int32Literal)               \
-  V(Int64Literal)               \
-  V(Int8Literal)                \
-  V(NullLiteral)                \
-  V(StringLiteral)              \
-  V(UInt16Literal)              \
-  V(UInt32Literal)              \
-  V(UInt64Literal)              \
-  V(UInt8Literal)               \
+#define FOR_EACH_HIR_VALUE(V) \
+  V(BasicBlock)               \
+  V(Function)                 \
+  V(BoolLiteral)              \
+  V(CharLiteral)              \
+  V(Float32Literal)           \
+  V(Float64Literal)           \
+  V(Int16Literal)             \
+  V(Int32Literal)             \
+  V(Int64Literal)             \
+  V(Int8Literal)              \
+  V(NullLiteral)              \
+  V(StringLiteral)            \
+  V(UInt16Literal)            \
+  V(UInt32Literal)            \
+  V(UInt64Literal)            \
+  V(UInt8Literal)             \
   V(VoidLiteral)
 
 #define V(Name, ...) class Name;
-FOR_EACH_HIR_OPERAND(V)
+FOR_EACH_HIR_VALUE(V)
 #undef V
 
 }  // namespace hir
 }  // namespace elang
 
-#endif  // ELANG_HIR_OPERANDS_FORWARD_H_
+#endif  // ELANG_HIR_VALUES_FORWARD_H_
