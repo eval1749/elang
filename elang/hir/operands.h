@@ -5,6 +5,8 @@
 #ifndef ELANG_HIR_OPERANDS_H_
 #define ELANG_HIR_OPERANDS_H_
 
+#include <ostream>
+
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
@@ -12,10 +14,13 @@
 #include "elang/base/embedded_container.h"
 #include "elang/base/types.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/hir/operands_forward.h"
 #include "elang/hir/types_forward.h"
 
 namespace elang {
 namespace hir {
+
+class Instruction;
 
 // See "instructions_forward.h" for list of all instructions.
 
@@ -73,6 +78,15 @@ class Operand : public Castable, public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Operand);
 };
 
+// Print for formatting and debugging.
+std::ostream& operator<<(std::ostream& ostream, const Operand& value);
+
+#define DECLARE_HIR_CONCRETE_OPERAND_CLASS(self, super) \
+  DECLARE_HIR_OPERAND_CLASS(self, super);               \
+                                                        \
+ private:                                               \
+  void Accept(OperandVisitor* visitor);
+
 // |Literal| is a base class of literal operand.
 class Literal : public Operand {
   DECLARE_HIR_OPERAND_CLASS(Literal, Operand);
@@ -90,7 +104,10 @@ class Literal : public Operand {
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
 
+// Typed null value. |TypeFactory| singleton.
 class NullLiteral : public Literal {
+  DECLARE_HIR_CONCRETE_OPERAND_CLASS(NullLiteral, Literal);
+
  private:
   // For initializing per-type singleton null literal.
   friend class PointerType;
@@ -101,7 +118,10 @@ class NullLiteral : public Literal {
   DISALLOW_COPY_AND_ASSIGN(NullLiteral);
 };
 
+// operand for 'void' type. |TypeFactory| singleton.
 class VoidLiteral : public Literal {
+  DECLARE_HIR_CONCRETE_OPERAND_CLASS(VoidLiteral, Literal);
+
  private:
   // For creating singleton void literal.
   friend class InstructionFactory;
@@ -112,19 +132,83 @@ class VoidLiteral : public Literal {
   DISALLOW_COPY_AND_ASSIGN(VoidLiteral);
 };
 
-#define V(Name, name, cpp_type)                       \
-  class Name##Literal : public Literal {              \
-    DECLARE_HIR_OPERAND_CLASS(Name##Literal, Literal) \
-   public:                                            \
-    Name##Literal(Type* type, cpp_type data);         \
-                                                      \
-   private:                                           \
-    cpp_type name##_value() const override;           \
-    const cpp_type data_;                             \
-    DISALLOW_COPY_AND_ASSIGN(Name##Literal);          \
+#define V(Name, name, cpp_type)                                \
+  class Name##Literal : public Literal {                       \
+    DECLARE_HIR_CONCRETE_OPERAND_CLASS(Name##Literal, Literal) \
+   public:                                                     \
+    Name##Literal(Type* type, cpp_type data);                  \
+                                                               \
+   private:                                                    \
+    cpp_type name##_value() const override;                    \
+    const cpp_type data_;                                      \
+    DISALLOW_COPY_AND_ASSIGN(Name##Literal);                   \
   };
 FOR_EACH_HIR_LITERAL_OPERAND(V)
 #undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// BasicBlock
+//
+class BasicBlock : public Operand,
+                   public DoubleLinked<BasicBlock, Function>::Node {
+  DECLARE_HIR_CONCRETE_OPERAND_CLASS(BasicBlock, Operand);
+
+ public:
+  typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
+
+  Instruction* first_instruction() const;
+
+  // An integer identifier for debugging.
+  int id() const { return id_; }
+  void set_id(int id);
+
+  const InstructionList& instructions() const { return instructions_; }
+  Instruction* last_instruction() const;
+
+ private:
+  friend class BasicBlockEditor;
+  friend class FunctionEditor;
+
+  explicit BasicBlock(Factory* factory);
+
+  Function* function_;
+  int id_;
+  InstructionList instructions_;
+  int last_instruction_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(BasicBlock);
+};
+
+std::ostream& operator<<(std::ostream& ostream, const BasicBlock& basic_block);
+
+//////////////////////////////////////////////////////////////////////
+//
+// Function
+//
+class Function : public Operand {
+  DECLARE_HIR_CONCRETE_OPERAND_CLASS(Function, Operand);
+
+ public:
+  typedef DoubleLinked<BasicBlock, Function> BasicBlockList;
+
+  const BasicBlockList& basic_blocks() const { return basic_blocks_; }
+  BasicBlock* entry_block() const;
+  BasicBlock* exit_block() const;
+
+ private:
+  friend class FunctionEditor;
+
+  explicit Function(Factory* factory, FunctionType* type);
+
+  Function* function_;
+  BasicBlockList basic_blocks_;
+  int last_basic_block_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(Function);
+};
+
+std::ostream& operator<<(std::ostream& ostream, const Function& function);
 
 }  // namespace hir
 }  // namespace elang

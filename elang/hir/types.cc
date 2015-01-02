@@ -10,6 +10,7 @@
 #include "elang/base/zone.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
+#include "elang/hir/type_visitor.h"
 
 namespace elang {
 namespace hir {
@@ -23,6 +24,13 @@ base::StringPiece16 NewString(Zone* zone, base::StringPiece16 string_piece) {
 }
 }  // namespace
 
+#define V(Name, ...)                              \
+  void Name##Type::Accept(TypeVisitor* visitor) { \
+    visitor->Visit##Name##Type(this);             \
+  }
+FOR_EACH_HIR_TYPE(V)
+#undef V
+
 //////////////////////////////////////////////////////////////////////
 //
 // Type
@@ -33,6 +41,10 @@ Type::RegisterClass Type::register_class() const {
 
 NullLiteral* Type::GetNullLiteral() const {
   return nullptr;
+}
+
+FunctionType::FunctionType(Type* return_type, Type* parameters_type)
+    : parameters_type_(parameters_type), return_type_(return_type) {
 }
 
 //////////////////////////////////////////////////////////////////////

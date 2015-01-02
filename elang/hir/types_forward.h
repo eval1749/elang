@@ -10,13 +10,6 @@
 namespace elang {
 namespace hir {
 
-// Forward declarations
-class PoinerType;
-class ReferenceType;
-class StringType;
-class Type;
-class TypeFactory;
-
 // Note: When you add primitive type, you should also update
 // |FOR_EACH_HIR_LITERAL_OPERAND|.
 //
@@ -44,6 +37,35 @@ class TypeFactory;
 #define V(Name, ...) class Name##Type;
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
+
+// List of concrete C++ classes representing HIR type.
+#define FOR_EACH_HIR_TYPE(V) \
+  V(Bool)                    \
+  V(Char)                    \
+  V(Float32)                 \
+  V(Float64)                 \
+  V(Function)                \
+  V(Int16)                   \
+  V(Int32)                   \
+  V(Int64)                   \
+  V(Int8)                    \
+  V(UInt16)                  \
+  V(UInt32)                  \
+  V(UInt64)                  \
+  V(UInt8)                   \
+  V(String)                  \
+  V(Void)
+
+#define V(Name, ...) class Name##Type;
+FOR_EACH_HIR_TYPE(V)
+#undef V
+
+// Forward declarations
+class PoinerType;
+class ReferenceType;
+class Type;
+class TypeFactory;
+class TypeVisitor;
 
 }  // namespace hir
 }  // namespace elang

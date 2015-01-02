@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "elang/base/zone.h"
+#include "elang/hir/operands.h"
 #include "elang/hir/type_factory.h"
 
 namespace elang {
@@ -22,6 +23,14 @@ Factory::Factory() : InstructionFactory(this), zone_(new Zone()) {
 }
 
 Factory::~Factory() {
+}
+
+BasicBlock* Factory::NewBasicBlock() {
+  return new (zone()) BasicBlock(this);
+}
+
+Function* Factory::NewFunction(FunctionType* type) {
+  return new (zone()) Function(this, type);
 }
 
 }  // namespace hir

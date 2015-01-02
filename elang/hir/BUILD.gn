@@ -4,18 +4,29 @@
 
 static_library("hir") {
   sources = [
+    "basic_block_editor.cc",
+    "basic_block_editor.h",
     "factory.cc",
     "factory.h",
+    "formatters/text_formatter.cc",
+    "formatters/text_formatter.h",
+    "function_editor.cc",
+    "function_editor.h",
     "instructions.cc",
     "instructions.h",
     "instruction_factory.cc",
     "instruction_factory.h",
     "operands.cc",
     "operands.h",
+    "operands_forward.h",
+    "operand_visitor.cc",
+    "operand_visitor.h",
     "types.cc",
     "types.h",
     "type_factory.cc",
     "type_factory.h",
+    "type_visitor.cc",
+    "type_visitor.h",
   ]
 
   deps = [
@@ -27,6 +38,7 @@ static_library("hir") {
 test("elang_hir_unittests") {
   sources = [
     "instructions_unittest.cc",
+    "operands_unittest.cc",
     "types_unittest.cc",
   ]
 

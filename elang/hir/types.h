@@ -5,13 +5,15 @@
 #ifndef ELANG_HIR_TYPES_H_
 #define ELANG_HIR_TYPES_H_
 
+#include <ostream>
+
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/types.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/hir/instructions_forward.h"
+#include "elang/hir/operands_forward.h"
 #include "elang/hir/types_forward.h"
 
 namespace elang {
@@ -60,6 +62,9 @@ class Type : public Castable, public ZoneAllocated {
   // Which type of register holds a value of this type.
   virtual RegisterClass register_class() const;
 
+  // Visitor behavior.
+  virtual void Accept(TypeVisitor* visitor) = 0;
+
   // Returns |NullLiteral| if this type is nullable, otherwise returns null.
   virtual NullLiteral* GetNullLiteral() const;
 
@@ -68,6 +73,32 @@ class Type : public Castable, public ZoneAllocated {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Type);
+};
+
+// Print for formatting and debugging.
+std::ostream& operator<<(std::ostream& ostream, const Type& type);
+
+#define DECLARE_HIR_TYPE_CONCRETE_CLASS(self, super) \
+  DECLARE_HIR_TYPE_CLASS(self, super)                \
+ private:                                            \
+  void Accept(TypeVisitor* visitor) override;
+
+// A concrete class represents function type which has return type and parameter
+// types.
+class FunctionType : public Type {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, Type);
+
+ public:
+  Type* parameters_type() const { return parameters_type_; }
+  Type* return_type() const { return return_type_; }
+
+ private:
+  FunctionType(Type* return_type, Type* parameters_type);
+
+  Type* const parameters_type_;
+  Type* const return_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(FunctionType);
 };
 
 // A base class of primitive types.
@@ -86,6 +117,8 @@ class PrimitiveType : public Type {
 
 #define DECLARE_HIR_PRIMITIVE_TYPE(Name, name, value_type, ...)      \
   class Name##Type final : public PrimitiveType {                    \
+    DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveType);      \
+                                                                     \
    public:                                                           \
     Name##Literal* zero() const { return zero_; }                    \
                                                                      \
@@ -136,7 +169,7 @@ class ReferenceType : public Type {
 // StringType
 //
 class StringType final : public ReferenceType {
-  DECLARE_HIR_TYPE_CLASS(StringType, ReferenceType);
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(StringType, ReferenceType);
 
  public:
   StringLiteral* NewLiteral(base::StringPiece16 data);

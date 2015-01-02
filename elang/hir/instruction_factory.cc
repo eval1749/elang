@@ -17,8 +17,12 @@ InstructionFactory::InstructionFactory(Factory* factory)
     : factory_(factory), zone_(new Zone()), type_factory_(new TypeFactory()) {
 }
 
-VoidLiteral* InstructionFactory::GetVoid() const {
-  return types()->GetVoidType()->zero();
+VoidLiteral* InstructionFactory::GetVoidValue() const {
+  return GetVoidType()->zero();
+}
+
+VoidType* InstructionFactory::GetVoidType() const {
+  return types()->GetVoidType();
 }
 
 }  // namespace hir

@@ -25,6 +25,9 @@ class Factory final : public InstructionFactory {
 
   Zone* zone() const { return zone_.get(); }
 
+  BasicBlock* NewBasicBlock();
+  Function* NewFunction(FunctionType* function_type);
+
  private:
   const std::unique_ptr<Zone> zone_;
 

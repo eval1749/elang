@@ -15,31 +15,37 @@ namespace hir {
 //
 // Instruction
 //
-bool Instruction::CanBeRemoved() const {
-  return !IsTerminator() && users().empty();
+Instruction::Instruction(Type* output_type)
+    : Operand(output_type), basic_block_(nullptr), id_(0) {
 }
 
-bool Instruction::IsExit() const {
-  return false;
+bool Instruction::CanBeRemoved() const {
+  return !IsTerminator() && users().empty();
 }
 
 bool Instruction::IsTerminator() const {
   return false;
 }
 
-Instruction::Instruction(Type* output_type) : Operand(output_type) {
+void Instruction::set_id(int new_id) {
+  DCHECK_GT(new_id, 0);
+  DCHECK(!id_);
+  id_ = new_id;
 }
+
+#define V(Name, ...) \
+  Instruction::Opcode Name##Instruction::opcode() const { return Opcode::Name; }
+FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
 
 //////////////////////////////////////////////////////////////////////
 //
 // CallInstruction
 //
-CallInstruction::CallInstruction(Factory* factory,
-                                 Type* output_type,
+CallInstruction::CallInstruction(Type* output_type,
                                  Operand* callee,
                                  Operand* arguments)
     : InstructionTemplate(output_type, callee, arguments) {
-  __assume(factory);
 }
 
 bool CallInstruction::CanBeRemoved() const {
@@ -49,21 +55,37 @@ bool CallInstruction::CanBeRemoved() const {
 
 //////////////////////////////////////////////////////////////////////
 //
+// EntryInstruction
+//
+EntryInstruction::EntryInstruction(Type* output_type)
+    : InstructionTemplate(output_type) {
+  DCHECK(output_type->is<VoidType>());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ExitInstruction
+//
+ExitInstruction::ExitInstruction(Type* output_type)
+    : InstructionTemplate(output_type) {
+  DCHECK(output_type->is<VoidType>());
+}
+
+bool ExitInstruction::IsTerminator() const {
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // ReturnInstruction
 //
-ReturnInstruction::ReturnInstruction(Factory* factory,
-                                     Type* output_type,
-                                     Operand* value)
-    : InstructionTemplate(output_type, value) {
-}
-
-ReturnInstruction* ReturnInstruction::New(Factory* factory, Operand* value) {
-  return InstructionTemplate::New(factory, factory->types()->GetVoidType(),
-                                  value);
-}
-
-bool ReturnInstruction::IsExit() const {
-  return true;
+ReturnInstruction::ReturnInstruction(Type* output_type,
+                                     Operand* value,
+                                     BasicBlock* exit_block)
+    : InstructionTemplate(output_type, value, exit_block) {
+  DCHECK(output_type->is<VoidType>());
+  DCHECK(!value->is<BasicBlock>());
+  DCHECK(exit_block->last_instruction()->is<ExitInstruction>());
 }
 
 bool ReturnInstruction::IsTerminator() const {

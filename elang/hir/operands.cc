@@ -4,12 +4,21 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
+#include "elang/hir/basic_block_editor.h"
 #include "elang/hir/factory.h"
+#include "elang/hir/function_editor.h"
+#include "elang/hir/instructions.h"
 #include "elang/hir/operands.h"
+#include "elang/hir/operand_visitor.h"
 #include "elang/hir/types.h"
 
 namespace elang {
 namespace hir {
+
+#define V(Name, ...) \
+  void Name::Accept(OperandVisitor* visitor) { visitor->Visit##Name(this); }
+FOR_EACH_HIR_OPERAND(V)
+#undef V
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -76,6 +85,52 @@ NullLiteral::NullLiteral(Type* type) : Literal(type) {
 
 VoidLiteral::VoidLiteral(VoidType* type, int data) : Literal(type) {
   __assume(!data);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// BasicBlock
+//
+BasicBlock::BasicBlock(Factory* factory)
+    : Operand(factory->GetVoidType()),
+      function_(nullptr),
+      id_(0),
+      last_instruction_id_(0) {
+}
+
+Instruction* BasicBlock::first_instruction() const {
+  return instructions_.first_node();
+}
+
+Instruction* BasicBlock::last_instruction() const {
+  return instructions_.last_node();
+}
+
+void BasicBlock::set_id(int new_id) {
+  DCHECK_GT(new_id, 0);
+  DCHECK(!id_);
+  id_ = new_id;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Function
+//
+Function::Function(Factory* factory, FunctionType* type)
+    : Operand(type), function_(nullptr), last_basic_block_id_(0) {
+  FunctionEditor function(factory, this);
+}
+
+BasicBlock* Function::entry_block() const {
+  auto const block = basic_blocks_.first_node();
+  DCHECK(block->first_instruction()->is<EntryInstruction>());
+  return block;
+}
+
+BasicBlock* Function::exit_block() const {
+  auto const block = basic_blocks_.last_node();
+  DCHECK(block->first_instruction()->is<ExitInstruction>());
+  return block;
 }
 
 }  // namespace hir

@@ -10,11 +10,14 @@
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/hir/instructions_forward.h"
+#include "elang/hir/operands_forward.h"
 #include "elang/hir/types_forward.h"
 
 namespace elang {
 class Zone;
 namespace hir {
+
+class Factory;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -28,7 +31,10 @@ class InstructionFactory {
   TypeFactory* types() const { return type_factory_.get(); }
 
   // Convenience function to have 'void' value.
-  VoidLiteral* GetVoid() const;
+  VoidLiteral* GetVoidValue() const;
+
+  // Convenience function to have 'void' type.
+  VoidType* GetVoidType() const;
 
  private:
   Zone* zone() const { return zone_.get(); }

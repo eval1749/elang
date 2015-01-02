@@ -23,21 +23,27 @@ class Factory;
 class TypeFactory {
  public:
   TypeFactory();
-  ~TypeFactory() = default;
+  ~TypeFactory();
 
   Zone* zone() const { return zone_.get(); }
 
   StringType* GetStringType() const { return string_type_; }
+  FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
 
 #define V(Name, ...) Name##Type* Get##Name##Type() const;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
  private:
+  class FunctionTypeFactory;
+
   const std::unique_ptr<Zone> zone_;
+
 #define V(Name, name, ...) Name##Type* const name##_type_;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
+
+  std::unique_ptr<FunctionTypeFactory> function_type_factory_;
   StringType* const string_type_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeFactory);
