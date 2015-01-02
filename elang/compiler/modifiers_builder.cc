@@ -32,7 +32,7 @@ void ModifiersBuilder::Reset() {
   void ModifiersBuilder::Set##name() {                              \
     flags_ |= 1 << static_cast<int>(Modifier::name);                \
   }
-MODIFIER_LIST(DEFINE_ACCESSOR)
+FOR_EACH_MODIFIER(DEFINE_ACCESSOR)
 #undef DEFINE_ACCESSOR
 
 }  // namespace compiler

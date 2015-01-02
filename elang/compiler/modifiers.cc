@@ -35,7 +35,7 @@ Modifiers& Modifiers::operator=(const Modifiers& other) {
 std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers) {
   static const char* const strings[] = {
 #define STRING(name, string, details) string,
-      MODIFIER_LIST(STRING)
+      FOR_EACH_MODIFIER(STRING)
 #undef STRING
   };
   const char* separator = "";

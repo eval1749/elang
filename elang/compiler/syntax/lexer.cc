@@ -31,7 +31,7 @@ TokenType ComputeToken(hir::AtomicString* name) {
     keyword_map = new KeywordMap();
     #define K(name, string, details) \
         (*keyword_map)[L ## string] = TokenType::name;
-    TOKEN_LIST(IGNORE_TOKEN, K)
+    FOR_EACH_TOKEN(IGNORE_TOKEN, K)
     #undef K
   }
   auto it = keyword_map->find(name->string());

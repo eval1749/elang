@@ -53,7 +53,7 @@ namespace ast {
 
 #define IMPLEMENT_ACCEPT(type) \
   void type::Accept(Visitor* visitor) { visitor->Visit##type(this); }
-AST_NODE_LIST(IMPLEMENT_ACCEPT)
+FOR_EACH_AST_NODE(IMPLEMENT_ACCEPT)
 #undef IMPLEMENT_ACCEPT
 
 //////////////////////////////////////////////////////////////////////

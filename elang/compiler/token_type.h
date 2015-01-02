@@ -12,7 +12,7 @@ namespace elang {
 namespace compiler {
 
 // IGNORE_TOKEN is a convenience macro that can be supplied as
-// an argument (at any position) for a TOKEN_LIST call. It does
+// an argument (at any position) for a FOR_EACH_TOKEN call. It does
 // nothing with tokens belonging to the respective category.
 #define IGNORE_TOKEN(name, string, details)
 
@@ -38,7 +38,7 @@ namespace compiler {
 //  'a' operator precedence (highest)
 //  ...
 //  'm' operator precedence (lowest)
-#define TOKEN_LIST(T, K)                                                    \
+#define FOR_EACH_TOKEN(T, K)                                                \
   T(EndOfSource, "EOS", "?")                                                \
                                                                             \
   T(Colon, ":", "P")                                                        \
@@ -212,7 +212,7 @@ namespace compiler {
 //
 enum class TokenType {
 #define T(name, string, precedence) name,
-  TOKEN_LIST(T, T)
+  FOR_EACH_TOKEN(T, T)
 #undef T
 };
 

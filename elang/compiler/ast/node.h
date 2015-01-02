@@ -19,54 +19,54 @@ class AtomicString;
 namespace compiler {
 namespace ast {
 
-#define DECLARATION_NODE_LIST(V) \
-  V(Alias)                       \
-  V(Class)                       \
-  V(Enum)                        \
-  V(Field)                       \
-  V(Import)                      \
-  V(MethodGroup)                 \
+#define FOR_EACH_DECLARATION_NODE(V) \
+  V(Alias)                           \
+  V(Class)                           \
+  V(Enum)                            \
+  V(Field)                           \
+  V(Import)                          \
+  V(MethodGroup)                     \
   V(Namespace)
 
-#define EXPRESSION_NODE_LIST(V) \
-  V(ArrayType)                  \
-  V(Assignment)                 \
-  V(BinaryOperation)            \
-  V(Call)                       \
-  V(Conditional)                \
-  V(ConstructedType)            \
-  V(Literal)                    \
-  V(MemberAccess)               \
-  V(NameReference)              \
+#define FOR_EACH_EXPRESSION_NODE(V) \
+  V(ArrayType)                      \
+  V(Assignment)                     \
+  V(BinaryOperation)                \
+  V(Call)                           \
+  V(Conditional)                    \
+  V(ConstructedType)                \
+  V(Literal)                        \
+  V(MemberAccess)                   \
+  V(NameReference)                  \
   V(UnaryOperation)
 
-#define STATEMENT_NODE_LIST(V) \
-  V(BlockStatement)            \
-  V(BreakStatement)            \
-  V(DoStatement)               \
-  V(ContinueStatement)         \
-  V(EmptyStatement)            \
-  V(ExpressionStatement)       \
-  V(IfStatement)               \
-  V(ReturnStatement)           \
-  V(ThrowStatement)            \
-  V(TryStatement)              \
-  V(UsingStatement)            \
-  V(VarStatement)              \
-  V(WhileStatement)            \
+#define FOR_EACH_STATEMENT_NODE(V) \
+  V(BlockStatement)                \
+  V(BreakStatement)                \
+  V(DoStatement)                   \
+  V(ContinueStatement)             \
+  V(EmptyStatement)                \
+  V(ExpressionStatement)           \
+  V(IfStatement)                   \
+  V(ReturnStatement)               \
+  V(ThrowStatement)                \
+  V(TryStatement)                  \
+  V(UsingStatement)                \
+  V(VarStatement)                  \
+  V(WhileStatement)                \
   V(YieldStatement)
 
-#define AST_NODE_LIST(V)   \
-  DECLARATION_NODE_LIST(V) \
-  EXPRESSION_NODE_LIST(V)  \
-  STATEMENT_NODE_LIST(V)
+#define FOR_EACH_AST_NODE(V)   \
+  FOR_EACH_DECLARATION_NODE(V) \
+  FOR_EACH_EXPRESSION_NODE(V)  \
+  FOR_EACH_STATEMENT_NODE(V)
 
 //////////////////////////////////////////////////////////////////////
 //
 // Forward class declarations
 //
 #define FORWARD_DECLARATION(type) class type;
-AST_NODE_LIST(FORWARD_DECLARATION)
+FOR_EACH_AST_NODE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 class CatchClause;

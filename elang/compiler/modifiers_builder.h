@@ -27,7 +27,7 @@ class ModifiersBuilder final {
 #define DECL_ACCESSOR(name, string, details) \
   bool Has##name() const;                    \
   void Set##name();
-  MODIFIER_LIST(DECL_ACCESSOR)
+  FOR_EACH_MODIFIER(DECL_ACCESSOR)
 #undef DECL_ACCESSOR
 
  private:

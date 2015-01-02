@@ -17,7 +17,7 @@ namespace compiler {
 namespace {
 const char* const kTokenDetails[] = {
 #define T(name, string, details) details,
-    TOKEN_LIST(T, T)
+    FOR_EACH_TOKEN(T, T)
 #undef T
 };
 
@@ -183,7 +183,7 @@ base::StringPiece16 TokenData::string_data() const {
 std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
   static const char* const kTokenTypeString[] = {
 #define V(name, string, details) string,
-      TOKEN_LIST(V, V)
+      FOR_EACH_TOKEN(V, V)
 #undef V
   };
 

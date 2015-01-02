@@ -23,7 +23,7 @@ class Visitor {
   virtual void Visit(Node* node) = 0;
 
 #define DEF_VISIT(type) virtual void Visit##type(type* node) = 0;
-  AST_NODE_LIST(DEF_VISIT)
+  FOR_EACH_AST_NODE(DEF_VISIT)
 #undef DEF_VISIT
 
  private:

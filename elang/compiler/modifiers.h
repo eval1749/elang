@@ -14,11 +14,11 @@ namespace elang {
 namespace compiler {
 
 // IGNORE_MODIFIER is a convenience macro that can be supplied as
-// an argument (at any position) for a TOKEN_LIST call. It does
+// an argument (at any position) for a FOR_EACH_TOKEN call. It does
 // nothing with tokens belonging to the respective category.
 #define IGNORE_MODIFIER(name, string, details)
 
-#define MODIFIER_LIST(V)                             \
+#define FOR_EACH_MODIFIER(V)                         \
   V(Abstract, "abstract", "I")                       \
   V(Extern, "extern", "I")                           \
   V(Final, "final", "I")                             \
@@ -38,7 +38,7 @@ namespace compiler {
 //
 enum class Modifier {
 #define T(name, string, details) name,
-  MODIFIER_LIST(T)
+  FOR_EACH_MODIFIER(T)
 #undef T
 };
 
@@ -62,7 +62,7 @@ class Modifiers final {
   bool Has##name() const {                                          \
     return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
   }
-  MODIFIER_LIST(DEFINE_HAS)
+  FOR_EACH_MODIFIER(DEFINE_HAS)
 #undef DEFINE_HAS
 
  private:

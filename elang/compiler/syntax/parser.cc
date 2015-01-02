@@ -82,7 +82,7 @@ bool Parser::ModifierParser::Add(Token* token) {
     builder_.Set##name();                                 \
     tokens_.push_back(token);                             \
     return true;
-    MODIFIER_LIST(CASE_CLAUSE)
+    FOR_EACH_MODIFIER(CASE_CLAUSE)
 #undef CASE_CLAUSE
   }
   return false;

@@ -10,7 +10,7 @@ namespace compiler {
 
 #define IGNORE_COMPILER_ERROR(category, subcategory, name)
 
-#define COMPILER_ERROR_CODE_LIST(E, W)                \
+#define FOR_EACH_COMPILER_ERROR_CODE(E, W)            \
   /*  Parser Expression */                            \
   E(Expression, Conditional, Colon)                   \
   E(Expression, Primary, RightParenthesis)            \
@@ -141,7 +141,7 @@ namespace compiler {
 //
 enum class ErrorCode {
 #define E(category, subcategory, name) category##subcategory##name,
-  COMPILER_ERROR_CODE_LIST(E, E)
+  FOR_EACH_COMPILER_ERROR_CODE(E, E)
 #undef E
 };
 

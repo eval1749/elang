@@ -111,7 +111,7 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
 std::string CompilerTest::GetErrors() {
   static const char* const error_messages[] = {
 #define E(category, subcategory, name) #category "." #subcategory "." #name,
-      COMPILER_ERROR_CODE_LIST(E, E)
+      FOR_EACH_COMPILER_ERROR_CODE(E, E)
 #undef E
   };
 
@@ -148,8 +148,7 @@ bool CompilerTest::Parse() {
 }
 
 void CompilerTest::Prepare(base::StringPiece16 source_text) {
-  source_code_.reset(
-      new StringSourceCode(L"testing", source_text));
+  source_code_.reset(new StringSourceCode(L"testing", source_text));
 }
 
 void CompilerTest::Prepare(base::StringPiece source_text) {

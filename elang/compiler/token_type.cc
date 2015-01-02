@@ -12,7 +12,7 @@ namespace compiler {
 std::ostream& operator<<(std::ostream& ostream, TokenType token_type) {
   static const char* const print_names[] = {
 #define V(name, string, details) string,
-      TOKEN_LIST(V, V)
+      FOR_EACH_TOKEN(V, V)
 #undef V
   };
   return ostream << "TokenType::" << print_names[static_cast<int>(token_type)];
