@@ -39,13 +39,13 @@ class EmbeddedContainer<ElementType, 0> {
  public:
   const ElementType& operator[](int index) const {
     NOTREACHED();
-    static ElementType sentinel = 0;
+    static ElementType sentinel;
     return sentinel;
   }
 
   ElementType& operator[](int index) {
     NOTREACHED();
-    static ElementType sentinel = 0;
+    static ElementType sentinel;
     return sentinel;
   }
 };
