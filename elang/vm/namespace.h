@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_NAMESPACE_H_
-#define ELANG_HIR_NAMESPACE_H_
+#ifndef ELANG_VM_NAMESPACE_H_
+#define ELANG_VM_NAMESPACE_H_
 
 #include "elang/base/zone_unordered_map.h"
-#include "elang/hir/namespace_member.h"
+#include "elang/vm/namespace_member.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 class Factory;
 
@@ -18,14 +18,14 @@ class Factory;
 // Namespace
 //
 class Namespace : public NamespaceMember {
-  DECLARE_HIR_NODE_CLASS(Namespace, NamespaceMember);
+  DECLARE_VM_NODE_CLASS(Namespace, NamespaceMember);
 
  public:
   void AddMember(NamespaceMember* member);
-  NamespaceMember* FindMember(AtomicString* simple_name);
+  NamespaceMember* FindMember(AtomicString* name);
 
  protected:
-  Namespace(Zone* zone, Namespace* outer, AtomicString* simple_name);
+  Namespace(Zone* zone, Namespace* outer, AtomicString* name);
 
  private:
   // NamespaceMember
@@ -36,7 +36,7 @@ class Namespace : public NamespaceMember {
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang
 
-#endif  // ELANG_HIR_NAMESPACE_H_
+#endif  // ELANG_VM_NAMESPACE_H_

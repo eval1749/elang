@@ -2,42 +2,42 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_NAMESPACE_MEMBER_H_
-#define ELANG_HIR_NAMESPACE_MEMBER_H_
+#ifndef ELANG_VM_NAMESPACE_MEMBER_H_
+#define ELANG_VM_NAMESPACE_MEMBER_H_
 
-#include "elang/hir/node.h"
+#include "elang/vm/node.h"
 
 namespace elang {
-namespace hir {
+class AtomicString;
+namespace vm {
 
 class Namespace;
-class AtomicString;
 
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceMember
 //
 class NamespaceMember : public Node {
-  DECLARE_HIR_NODE_CLASS(NamespaceMember, Node);
+  DECLARE_VM_NODE_CLASS(NamespaceMember, Node);
 
  public:
   Namespace* outer() const { return outer_; }
-  AtomicString* simple_name() const { return simple_name_; }
+  AtomicString* name() const { return name_; }
 
   bool IsDescendantOf(const NamespaceMember* other) const;
   virtual Namespace* ToNamespace();
 
  protected:
-  NamespaceMember(Namespace* owner, AtomicString* simple_name);
+  NamespaceMember(Namespace* owner, AtomicString* name);
 
  private:
   Namespace* const outer_;
-  AtomicString* const simple_name_;
+  AtomicString* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceMember);
 };
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang
 
-#endif  // ELANG_HIR_NAMESPACE_MEMBER_H_
+#endif  // ELANG_VM_NAMESPACE_MEMBER_H_

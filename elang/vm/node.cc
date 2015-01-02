@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/hir/node.h"
+#include "elang/vm/node.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -14,5 +14,5 @@ namespace hir {
 Node::Node() {
 }
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang

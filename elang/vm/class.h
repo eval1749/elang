@@ -2,16 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_CLASS_H_
-#define ELANG_HIR_CLASS_H_
+#ifndef ELANG_VM_CLASS_H_
+#define ELANG_VM_CLASS_H_
 
 #include <vector>
 
 #include "elang/base/zone_vector.h"
-#include "elang/hir/namespace.h"
+#include "elang/vm/namespace.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 class Factory;
 
@@ -20,7 +20,7 @@ class Factory;
 // Class
 //
 class Class final : public Namespace {
-  DECLARE_HIR_NODE_CLASS(Class, Namespace);
+  DECLARE_VM_NODE_CLASS(Class, Namespace);
 
  public:
   const ZoneVector<Class*>& base_classes() const { return base_classes_; }
@@ -39,7 +39,7 @@ class Class final : public Namespace {
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang
 
-#endif  // ELANG_HIR_CLASS_H_
+#endif  // ELANG_VM_CLASS_H_

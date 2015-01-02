@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/hir/class.h"
+#include "elang/vm/class.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -26,5 +26,5 @@ Namespace* Class::ToNamespace() {
   return nullptr;
 }
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang

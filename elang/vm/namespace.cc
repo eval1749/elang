@@ -2,28 +2,28 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/hir/namespace.h"
+#include "elang/vm/namespace.h"
 
 #include "base/logging.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
-Namespace::Namespace(Zone* zone, Namespace* outer, AtomicString* simple_name)
-    : NamespaceMember(outer, simple_name), map_(zone) {
+Namespace::Namespace(Zone* zone, Namespace* outer, AtomicString* name)
+    : NamespaceMember(outer, name), map_(zone) {
 }
 
 void Namespace::AddMember(NamespaceMember* member) {
-  DCHECK(!FindMember(member->simple_name()));
-  map_[member->simple_name()] = member;
+  DCHECK(!FindMember(member->name()));
+  map_[member->name()] = member;
 }
 
-NamespaceMember* Namespace::FindMember(AtomicString* simple_name) {
-  auto const it = map_.find(simple_name);
+NamespaceMember* Namespace::FindMember(AtomicString* name) {
+  auto const it = map_.find(name);
   return it == map_.end() ? nullptr : it->second;
 }
 
@@ -32,5 +32,5 @@ Namespace* Namespace::ToNamespace() {
   return this;
 }
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang

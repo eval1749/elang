@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/hir/namespace_member.h"
+#include "elang/vm/namespace_member.h"
 
-#include "elang/hir/namespace.h"
+#include "elang/vm/namespace.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceMember
 //
-NamespaceMember::NamespaceMember(Namespace* outer, AtomicString* simple_name)
-    : outer_(outer), simple_name_(simple_name) {
+NamespaceMember::NamespaceMember(Namespace* outer, AtomicString* name)
+    : outer_(outer), name_(name) {
 }
 
 Namespace* NamespaceMember::ToNamespace() {
@@ -29,5 +29,5 @@ bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {
   return false;
 }
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang

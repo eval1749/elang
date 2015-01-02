@@ -2,30 +2,30 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_HIR_NODE_H_
-#define ELANG_HIR_NODE_H_
+#ifndef ELANG_VM_NODE_H_
+#define ELANG_VM_NODE_H_
 
 #include "base/macros.h"
 #include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
 
 namespace elang {
-namespace hir {
+namespace vm {
 
-#define DECLARE_HIR_NODE_CLASS(self, super) \
-  DECLARE_CASTABLE_CLASS(self, super);      \
-  friend class Factory;                     \
-                                            \
- protected:                                 \
-  ~self() override = default;               \
-                                            \
+#define DECLARE_VM_NODE_CLASS(self, super) \
+  DECLARE_CASTABLE_CLASS(self, super);     \
+  friend class Factory;                    \
+                                           \
+ protected:                                \
+  ~self() override = default;              \
+                                           \
  private:
 //////////////////////////////////////////////////////////////////////
 //
 // Node
 //
 class Node : public Castable, public ZoneAllocated {
-  DECLARE_HIR_NODE_CLASS(Node, Castable);
+  DECLARE_VM_NODE_CLASS(Node, Castable);
 
  protected:
   Node();
@@ -34,7 +34,7 @@ class Node : public Castable, public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
-}  // namespace hir
+}  // namespace vm
 }  // namespace elang
 
-#endif  // ELANG_HIR_NODE_H_
+#endif  // ELANG_VM_NODE_H_

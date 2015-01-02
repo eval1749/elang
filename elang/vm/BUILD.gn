@@ -2,18 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-static_library("hir") {
+static_library("vm") {
   sources = [
+    "class.cc",
+    "class.h",
     "factory.cc",
     "factory.h",
-    "instructions.cc",
-    "instructions.h",
-    "instruction_factory.cc",
-    "instruction_factory.h",
-    "types.cc",
-    "types.h",
-    "type_factory.cc",
-    "type_factory.h",
+    "namespace.cc",
+    "namespace.h",
+    "namespace_member.cc",
+    "namespace_member.h",
+    "node.cc",
+    "node.h",
   ]
 
   deps = [
@@ -22,14 +22,13 @@ static_library("hir") {
   ]
 }
 
-test("elang_hir_unittests") {
+test("elang_vm_unittests") {
   sources = [
-    "instructions_unittest.cc",
-    "types_unittest.cc",
+    "namespace_unittest.cc",
   ]
 
   deps = [
-    ":hir",
+    ":vm",
     "//base/test:run_all_unittests",
   ]
 }
