@@ -23,7 +23,7 @@ class ZoneVector : public std::vector<T, ZoneAllocator<T>> {
   explicit ZoneVector(Zone* zone)
       : std::vector<T, ZoneAllocator<T>>(ZoneAllocator<T>(zone)) {}
 
-  ZoneVector(Zone* zone, size_t size, value_type& val = value_type())
+  ZoneVector(Zone* zone, size_t size, const value_type& val = value_type())
       : std::vector<T, ZoneAllocator<T>>(size, val, ZoneAllocator<T>(zone)) {}
 
   ZoneVector(Zone* zone, const std::vector<T>& other)
