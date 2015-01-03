@@ -193,18 +193,22 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
     case TokenType::CharacterLiteral: {
       auto const ch = token.char_data();
       char buffer[7];
-      if (ch < ' ' || ch >= 0x7F || ch == '\\' || ch == '\'') {
-        buffer[0] = '\\';
-        buffer[1] = 'u';
-        buffer[2] = xdigits[(ch >> 12) & 15];
-        buffer[3] = xdigits[(ch >> 8) & 15];
-        buffer[4] = xdigits[(ch >> 4) & 15];
-        buffer[5] = xdigits[ch & 15];
-        buffer[6] = 0;
-      } else {
-        buffer[0] = ch;
-        buffer[1] = 0;
-      }
+        if (ch == '\'' || ch == '\\') {
+          buffer[0] = '\\';
+          buffer[1] = ch;
+          buffer[2] = 0;
+        } else if (ch < ' ' || ch >= 0x7F) {
+          buffer[0] = '\\';
+          buffer[1] = 'u';
+          buffer[2] = xdigits[(ch >> 12) & 15];
+          buffer[3] = xdigits[(ch >> 8) & 15];
+          buffer[4] = xdigits[(ch >> 4) & 15];
+          buffer[5] = xdigits[ch & 15];
+          buffer[6] = 0;
+        } else {
+          buffer[0] = ch;
+          buffer[1] = 0;
+        }
       return ostream << "'" << buffer << "'";
     }
     case TokenType::Float32Literal:
@@ -223,7 +227,11 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
       ostream << " \"";
       for (auto const ch : token.string_data()) {
         char buffer[7];
-        if (ch < ' ' || ch >= 0x7F || ch == '\\' || ch == '\"') {
+        if (ch == '"' || ch == '\\') {
+          buffer[0] = '\\';
+          buffer[1] = ch;
+          buffer[2] = 0;
+        } else if (ch < ' ' || ch >= 0x7F) {
           buffer[0] = '\\';
           buffer[1] = 'u';
           buffer[2] = xdigits[(ch >> 12) & 15];
