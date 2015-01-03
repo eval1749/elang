@@ -8,3 +8,10 @@ group("elang") {
     "//elang/vm",
   ]
 }
+
+test("elang_all_unittests") {
+  deps = [
+    "//base/test:run_all_unittests",
+    "//elang/lir:lir_unittests",
+  ]
+}

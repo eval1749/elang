@@ -1,0 +1,68 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# TODO(eval1749) |elang_target_arch| should be defined in top-level "BUILD.gn"
+# rather than here.
+elang_target_arch = "x64"
+
+component("lir") {
+  sources = [
+    "editor.cc",
+    "editor.h",
+    "factory.cc",
+    "factory.h",
+    "formatters/text_formatter.cc",
+    "formatters/text_formatter.h",
+    "instructions.cc",
+    "instructions.h",
+    "instruction_visitor.cc",
+    "instruction_visitor.h",
+    "isa.h",
+    "literals.cc",
+    "literals.h",
+    "literals_forward.h",
+    "literal_visitor.cc",
+    "literal_visitor.h",
+    "value.h",
+  ]
+
+  defines = [ "LIR_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+  ]
+
+  if (elang_target_arch == "x64") {
+    defines += [ "ELANG_TARGET_ARCH_X64" ]
+    sources += [
+      "instructions_x64.cc",
+      "isa_x64.h",
+      "isa_x64.cc",
+    ]
+  }
+}
+
+source_set("lir_unittests") {
+  testonly = true
+  sources = [
+    "instructions_unittest.cc",
+    "literals_unittest.cc",
+    "value_unittest.cc",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":lir",
+  ]
+  if (elang_target_arch == "x64") {
+    defines = [ "ELANG_TARGET_ARCH_X64" ]
+  }
+}
+
+test("elang_lir_unittests") {
+  deps = [
+    "//base/test:run_all_unittests",
+    ":lir_unittests",
+  ]
+}
