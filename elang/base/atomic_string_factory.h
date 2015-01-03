@@ -9,6 +9,7 @@
 #include <string>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/base_export.h"
 
 namespace elang {
 
@@ -19,7 +20,7 @@ class Zone;
 //
 // AtomicStringFactory
 //
-class AtomicStringFactory final {
+class ELANG_BASE_EXPORT AtomicStringFactory final {
  public:
   AtomicStringFactory();
   ~AtomicStringFactory();

@@ -2,20 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-test("elang_base_unittests") {
-  sources = [
-    "atomic_string_unittest.cc",
-    "castable_unittest.cc",
-    "double_linked_unittest.cc",
-  ]
-
-  deps = [
-    ":base",
-    "//base/test:run_all_unittests",
-  ]
-}
-
-source_set("base_files") {
+component("elang_base") {
   sources = [
     "atomic_string.cc",
     "atomic_string.h",
@@ -32,10 +19,29 @@ source_set("base_files") {
     "zone_allocator.h",
     "zone_vector.h",
   ]
+
+  defines = [ "ELANG_BASE_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base"
+  ]
+}
+
+test("elang_base_unittests") {
+  sources = [
+    "atomic_string_unittest.cc",
+    "castable_unittest.cc",
+    "double_linked_unittest.cc",
+  ]
+
+  deps = [
+    ":elang_base",
+    "//base/test:run_all_unittests",
+  ]
 }
 
 group("base") {
   deps = [
-    ":base_files",
+    ":elang_base",
   ]
 }

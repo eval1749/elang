@@ -16,7 +16,7 @@ static_library("vm") {
     "node.h",
   ]
 
-  deps = [
+  public_deps = [
     "//base",
     "//elang/base",
   ]

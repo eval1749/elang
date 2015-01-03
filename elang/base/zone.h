@@ -6,6 +6,7 @@
 #define ELANG_BASE_ZONE_H_
 
 #include "base/macros.h"
+#include "elang/base/base_export.h"
 
 namespace elang {
 
@@ -13,7 +14,7 @@ namespace elang {
 //
 // Zone
 //
-class Zone final {
+class ELANG_BASE_EXPORT Zone final {
  public:
   Zone();
   ~Zone();

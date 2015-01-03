@@ -9,6 +9,7 @@
 #include <string>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/base_export.h"
 #include "elang/base/zone_allocated.h"
 
 namespace elang {
@@ -17,7 +18,7 @@ namespace elang {
 //
 // AtomicString
 //
-class AtomicString final : public ZoneAllocated {
+class ELANG_BASE_EXPORT AtomicString final : public ZoneAllocated {
  public:
   base::StringPiece16 string() const { return string_; }
 
@@ -32,8 +33,8 @@ class AtomicString final : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(AtomicString);
 };
 
-std::ostream& operator<<(std::ostream& ostream,
-                         const AtomicString& simple_name);
+ELANG_BASE_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                           const AtomicString& simple_name);
 
 }  // namespace elang
 

@@ -6,6 +6,7 @@
 #define ELANG_BASE_ZONE_ALLOCATED_H_
 
 #include "base/macros.h"
+#include "elang/base/base_export.h"
 
 namespace elang {
 
@@ -15,7 +16,7 @@ class Zone;
 //
 // ZoneAllocated
 //
-class ZoneAllocated {
+class ELANG_BASE_EXPORT ZoneAllocated {
  public:
   void* operator new(size_t size, Zone* zone);
 
