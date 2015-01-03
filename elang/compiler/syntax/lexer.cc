@@ -386,6 +386,8 @@ Token* Lexer::HandleAtMark() {
           break;
       }
     }
+    if (state == State::Quote)
+      return NewToken(TokenData(session_->NewString(char_sink_->End())));
     return Error(ErrorCode::TokenAtMarkStringUnclosed);
   }
 
@@ -565,7 +567,7 @@ Token* Lexer::HandleStringLiteral(base::char16 delimiter) {
             char_code = static_cast<base::char16>(0x0008);
             break;
           case 'f':
-            char_code = static_cast<base::char16>(0x000F);
+            char_code = static_cast<base::char16>(0x000C);
             break;
           case 'n':
             char_code = static_cast<base::char16>(0x000A);

@@ -115,15 +115,10 @@ void PrintTo(const Token& token, ::std::ostream* ostream) {
 
 TEST_F(LexerTest, Basic) {
   PrepareLexer(
-      //   012345678901234
       L"class Foo<T> {\n"
-      //   5678901234567890
       L"  var ch = 'c';\n"
-      //   1234567890123456789
       L"  var ival = 1234;\n"
-      //   012345678901 2345678 901
       L"  var str = \"string\";\n"
-      //   2345678901234567890123456789012
       L"  T method(T? p) { return p; }\n"
       //   3
       L"}");
@@ -181,7 +176,6 @@ TEST_F(LexerTest, Basic) {
 
 TEST_F(LexerTest, Integers) {
   PrepareLexer(
-      //  0123456789012345678901234567890123456789
       L" 1234   0b0101   0o177   0x7FE5         "  // 0
       L" 1234l  0b0101l  0o177l  0x7FE5l        "  // 40
       L" 1234u  0b0101u  0o177u  0x7FE5u        "  // 80
@@ -216,7 +210,6 @@ TEST_F(LexerTest, Integers) {
 
 TEST_F(LexerTest, Operators) {
   PrepareLexer(
-      //  0123456789
       L" ~ . ,    "
       L" * *= / /="
       L" % %= ^ ^="
@@ -282,7 +275,6 @@ TEST_F(LexerTest, Operators) {
 
 TEST_F(LexerTest, Reals) {
   PrepareLexer(
-      //  0123456789012345678901234567890123456789
       L"    0.0  1.34  2.5E10  3.5e+10  46E-11  "
       L"    0.0f 1.34f 2.5E10F 3.5e+10F 46E-11f ");
   EXPECT_FLOAT_TOKEN(4, 7, 0.0);
@@ -298,16 +290,29 @@ TEST_F(LexerTest, Reals) {
   EXPECT_FLOAT_TOKEN(72, 79, 46E-11f);
 }
 
-TEST_F(LexerTest, Strings) {
-  PrepareLexer(
-      L"\"\\a\b\\n\\r\\t\\v\\u1234x\""
-      L"@\"ab\"\"cd\""
-      L"'c'"
-      L"'\u1234'");
-  EXPECT_TOKEN(StringLiteral, 0, 20, L"\a\b\n\r\t\v\u1234x");
-  EXPECT_TOKEN(StringLiteral, 20, 29, L"ab\"cd");
-  EXPECT_TOKEN(CharacterLiteral, 29, 32, 'c');
-  EXPECT_TOKEN(CharacterLiteral, 32, 35, 0x1234);
+TEST_F(LexerTest, CharsBasic) {
+  PrepareLexer(L"'c'");
+  EXPECT_TOKEN(CharacterLiteral, 0, 3, 'c');
+}
+
+TEST_F(LexerTest, CharsBackslash) {
+  PrepareLexer(L"'\\n'");
+  EXPECT_TOKEN(CharacterLiteral, 0, 4, '\n');
+}
+
+TEST_F(LexerTest, CharsUnicode) {
+  PrepareLexer(L"'\u1234'");
+  EXPECT_TOKEN(CharacterLiteral, 0, 3, 0x1234);
+}
+
+TEST_F(LexerTest, StringsBackslash) {
+  PrepareLexer(L"\"\\a\\b\\t\\n\\v\\f\\r\\u1234x\uABCD\"");
+  EXPECT_TOKEN(StringLiteral, 0, 24, L"\a\b\t\n\v\f\r\u1234x\uABCD");
+}
+
+TEST_F(LexerTest, StringsVerbatim) {
+  PrepareLexer(L"@\"ab\"\"cd\"");
+  EXPECT_TOKEN(StringLiteral, 0, 9, L"ab\"cd");
 }
 
 }  // namespace compiler
