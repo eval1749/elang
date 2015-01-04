@@ -4,11 +4,20 @@
 
 # TODO(eval1749) |elang_target_arch| should be defined in top-level "BUILD.gn"
 # rather than here.
-elang_target_arch = "x64"
+# Should we use import directive? see "gn help import".
+declare_args() {
+  elang_target_arch = cpu_arch
+}
+
+config("elang_target_arch_x64") {
+  defines = [ "ELANG_TARGET_ARCH_X64" ]
+}
 
 component("lir") {
   output_name = "elang_lir"
   sources = [
+    "code_emitter.cc",
+    "code_emitter.h",
     "editor.cc",
     "editor.h",
     "factory.cc",
@@ -32,15 +41,36 @@ component("lir") {
 
   public_deps = [
     "//base",
+    "//elang/api",
     "//elang/base",
   ]
 
   if (elang_target_arch == "x64") {
-    defines += [ "ELANG_TARGET_ARCH_X64" ]
     sources += [
+      "code_emitter_x64.cc",
       "instructions_x64.cc",
       "isa_x64.h",
       "isa_x64.cc",
+    ]
+  }
+}
+
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "testing/lir_test.cc",
+    "testing/lir_test.h",
+    "testing/test_machine_code_builder.cc",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    "//elang/api",
+    ":lir",
+  ]
+  if (elang_target_arch == "x64") {
+    sources += [
+      "testing/lir_test_x64.cc",
+      "testing/lir_test_x64.h",
     ]
   }
 }
@@ -53,11 +83,13 @@ source_set("lir_unittests") {
     "value_unittest.cc",
   ]
   public_deps = [
-    "//testing/gtest",
-    ":lir",
+    ":test_support",
   ]
   if (elang_target_arch == "x64") {
-    defines = [ "ELANG_TARGET_ARCH_X64" ]
+    sources += [
+      "code_emitter_x64_unittest.cc",
+      "literals_x64_unittest.cc",
+    ]
   }
 }
 

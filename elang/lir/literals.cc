@@ -70,12 +70,7 @@ BasicBlock* Function::exit_block() const {
 //
 // Simple Literals
 //
-#define V(Name, name, c_type, ...)                             \
-  c_type Literal::name##_value() const {                       \
-    NOTREACHED();                                              \
-    return c_type();                                           \
-  }                                                            \
-  c_type Name##Literal::name##_value() const { return data_; } \
+#define V(Name, name, c_type, ...) \
   Name##Literal::Name##Literal(c_type data) : data_(data) {}
 FOR_EACH_LIR_SIMPLE_LITERAL(V)
 #undef V

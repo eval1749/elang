@@ -17,7 +17,8 @@ namespace lir {
 //
 class InstructionVisitor {
  public:
-#define V(Name, ...) virtual void Visit##Name(Name##Instruction* type) = 0;
+#define V(Name, ...) \
+  virtual void Visit##Name(Name##Instruction* instruction) = 0;
   FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
 

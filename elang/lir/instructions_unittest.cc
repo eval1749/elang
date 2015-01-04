@@ -23,7 +23,7 @@ class LirInstructionTest : public ::testing::Test {
   Factory* factory() { return factory_.get(); }
 
  private:
-  std::unique_ptr<Factory> factory_;
+  const std::unique_ptr<Factory> factory_;
 };
 
 LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {

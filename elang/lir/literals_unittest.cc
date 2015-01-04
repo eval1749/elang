@@ -12,7 +12,7 @@
 #include "elang/lir/formatters/text_formatter.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
-#include "gtest/gtest.h"
+#include "elang/lir/testing/lir_test.h"
 
 namespace elang {
 namespace lir {
@@ -21,71 +21,29 @@ namespace lir {
 //
 // LirLiteralsTest offers HIR factories.
 //
-class LirLiteralsTest : public ::testing::Test {
+class LirLiteralsTest : public testing::LirTest {
  protected:
-  LirLiteralsTest();
-
-  Factory* factory() { return factory_.get(); }
+  LirLiteralsTest() = default;
 
  private:
-  std::unique_ptr<Factory> factory_;
+  DISALLOW_COPY_AND_ASSIGN(LirLiteralsTest);
 };
 
-LirLiteralsTest::LirLiteralsTest() : factory_(new Factory()) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// Function
-//
-#ifdef ELANG_TARGET_ARCH_X64
 TEST_F(LirLiteralsTest, Function) {
-  auto const function = factory()->NewFunction();
-  Editor editor(factory(), function);
-  auto const entry_block = function->entry_block();
-  {
-    Editor::ScopedEdit scope(&editor);
-    editor.Edit(entry_block);
-    auto const call = factory()->NewCallInstruction();
-    editor.SetInput(call, 0, factory()->NewStringValue(L"Foo"));
-    editor.InsertBefore(call, entry_block->last_instruction());
-  }
-  EXPECT_TRUE(entry_block->first_instruction()->is<EntryInstruction>());
+  auto const function = CreateFunctionEmptySample();
+  EXPECT_TRUE(
+      function->entry_block()->first_instruction()->is<EntryInstruction>());
   EXPECT_TRUE(
       function->exit_block()->first_instruction()->is<ExitInstruction>());
-
-  std::stringstream stream;
-  TextFormatter formatter(factory(), &stream);
-  formatter.FormatFunction(function);
-  EXPECT_EQ(
-      "Function\n"
-      "block1:\n"
-      "  entry\n"
-      "  call \"Foo\"\n"
-      "  ret\n"
-      "\n"
-      "block2:\n"
-      "  exit\n",
-      stream.str());
 }
-#else
-#error "We must define LirLiteralsTest.Function test."
-#endif
 
-//////////////////////////////////////////////////////////////////////
-//
-// Simple Literals
-//
 TEST_F(LirLiteralsTest, SimpleLiterals) {
   std::stringstream stream;
-  stream << *factory()->GetLiteral(factory()->NewFloat32Value(3.2f))
+  stream << *GetLiteral(NewFloat32Value(3.2f)) << std::endl;
+  stream << *GetLiteral(NewFloat64Value(6.4f)) << std::endl;
+  stream << *GetLiteral(NewInt32Value(1 << 30)) << std::endl;
+  stream << *GetLiteral(NewInt64Value(static_cast<int64_t>(1) << 40))
          << std::endl;
-  stream << *factory()->GetLiteral(factory()->NewFloat64Value(6.4f))
-         << std::endl;
-  stream << *factory()->GetLiteral(factory()->NewInt32Value(1 << 30))
-         << std::endl;
-  stream << *factory()->GetLiteral(factory()->NewInt64Value(
-                static_cast<int64_t>(1) << 40)) << std::endl;
 
   EXPECT_EQ(
       "3.2f\n"
@@ -95,15 +53,11 @@ TEST_F(LirLiteralsTest, SimpleLiterals) {
       stream.str());
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// String Literals
-//
 TEST_F(LirLiteralsTest, StringLiteral) {
   base::string16 sample(L"xy\a\b\f\n\r\t\uABCD\v\\z");
   sample[1] = 0;
   std::stringstream stream;
-  stream << *factory()->GetLiteral(factory()->NewStringValue(sample));
+  stream << *GetLiteral(NewStringValue(sample));
   EXPECT_EQ("\"x\\0\\a\\b\\f\\n\\r\\t\\uABCD\\v\\\\z\"", stream.str());
 }
 

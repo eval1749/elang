@@ -45,11 +45,6 @@ class ELANG_LIR_EXPORT Literal : public Castable, public ZoneAllocated {
  public:
   virtual void Accept(LiteralVisitor* visitor);
 
-// Literal value getters, e.g. bool_value(), int32_value(), etc.
-#define V(Name, name, c_type) virtual c_type name##_value() const;
-  FOR_EACH_LIR_SIMPLE_LITERAL(V)
-#undef V
-
  protected:
   Literal();
 
@@ -155,7 +150,7 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
    public:                                                \
     explicit Name##Literal(cpp_type data);                \
                                                           \
-    cpp_type name##_value() const override;               \
+    cpp_type data() const { return data_; }               \
                                                           \
    private:                                               \
     const cpp_type data_;                                 \

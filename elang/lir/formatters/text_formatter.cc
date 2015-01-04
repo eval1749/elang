@@ -41,8 +41,7 @@ class LiteralFormatter final : public LiteralVisitor {
   std::ostream& Format(const Literal* literal);
 
  private:
-#define V(Name, ...) \
-    void Visit##Name(Name* literal) final;
+#define V(Name, ...) void Visit##Name(Name* literal) final;
   FOR_EACH_LIR_LITERAL(V)
 #undef V
 
@@ -64,11 +63,11 @@ void LiteralFormatter::VisitBasicBlock(BasicBlock* block) {
 }
 
 void LiteralFormatter::VisitFloat32Literal(Float32Literal* literal) {
-  ostream_ << literal->float32_value() << "f";
+  ostream_ << literal->data() << "f";
 }
 
 void LiteralFormatter::VisitFloat64Literal(Float64Literal* literal) {
-  ostream_ << literal->float64_value();
+  ostream_ << literal->data();
 }
 
 void LiteralFormatter::VisitFunction(Function* function) {
@@ -76,11 +75,11 @@ void LiteralFormatter::VisitFunction(Function* function) {
 }
 
 void LiteralFormatter::VisitInt32Literal(Int32Literal* literal) {
-  ostream_ << literal->int32_value();
+  ostream_ << literal->data();
 }
 
 void LiteralFormatter::VisitInt64Literal(Int64Literal* literal) {
-  ostream_ << literal->int64_value() << "l";
+  ostream_ << literal->data() << "l";
 }
 
 void LiteralFormatter::VisitStringLiteral(StringLiteral* literal) {
@@ -135,8 +134,7 @@ class ValueFormatter final {
 };
 
 ValueFormatter::ValueFormatter(Factory* factory, std::ostream* ostream)
-    : factory_(factory),
-      ostream_(*ostream) {
+    : factory_(factory), ostream_(*ostream) {
 }
 
 std::ostream& ValueFormatter::Format(Value value) {
@@ -206,18 +204,18 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
   static const char* const kinds[] = {
-    "Invalid",
-    "GeneralRegister",
-    "FloatRegister",
-    "Immediate",
-    "Literal",
-    "VirtualRegister",
-    "NotUsed6",
-    "NotUsed7",
-    "Illegal",
+      "Invalid",
+      "GeneralRegister",
+      "FloatRegister",
+      "Immediate",
+      "Literal",
+      "VirtualRegister",
+      "NotUsed6",
+      "NotUsed7",
+      "Illegal",
   };
-  return ostream << kinds[std::min(static_cast<size_t>(kind),
-                                   arraysize(kinds) - 1)];
+  return ostream
+         << kinds[std::min(static_cast<size_t>(kind), arraysize(kinds) - 1)];
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -225,8 +223,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
 // TextFormatter
 //
 TextFormatter::TextFormatter(Factory* factory, std::ostream* ostream)
-    : factory_(factory),
-      ostream_(*ostream) {
+    : factory_(factory), ostream_(*ostream) {
 }
 
 TextFormatter::~TextFormatter() {
