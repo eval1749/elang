@@ -27,16 +27,24 @@ component("elang_base") {
   ]
 }
 
-test("elang_base_unittests") {
+source_set("base_unittests") {
+  testonly = true
   sources = [
     "atomic_string_unittest.cc",
     "castable_unittest.cc",
     "double_linked_unittest.cc",
   ]
 
-  deps = [
+  public_deps = [
+    "//testing/gtest",
     ":elang_base",
+  ]
+}
+
+test("elang_base_unittests") {
+  deps = [
     "//base/test:run_all_unittests",
+    ":base_unittests",
   ]
 }
 
