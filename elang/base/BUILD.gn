@@ -2,7 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-component("elang_base") {
+component("base") {
+  output_name = "elang_base"
   sources = [
     "atomic_string.cc",
     "atomic_string.h",
@@ -37,7 +38,7 @@ source_set("base_unittests") {
 
   public_deps = [
     "//testing/gtest",
-    ":elang_base",
+    ":base",
   ]
 }
 
@@ -45,11 +46,5 @@ test("elang_base_unittests") {
   deps = [
     "//base/test:run_all_unittests",
     ":base_unittests",
-  ]
-}
-
-group("base") {
-  deps = [
-    ":elang_base",
   ]
 }
