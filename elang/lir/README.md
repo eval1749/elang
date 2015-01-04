@@ -28,6 +28,6 @@ These classes provide getters. `Factory` class provides functions for creating
 instances of them and `Editor` class provides functions for changing and
 deleting.
 
-# Basic Block
+## Basic Block
 Successors of basic block are embedded in input operand list in the last
 instruction.
