@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-component("hir") {
+component("elang_hir") {
   sources = [
     "basic_block_editor.cc",
     "basic_block_editor.h",
@@ -47,13 +47,13 @@ source_set("hir_unittests") {
   ]
   public_deps = [
     "//testing/gtest",
-    ":hir",
+    ":elang_hir",
   ]
 }
 
 test("elang_hir_unittests") {
   deps = [
-    ":hir",
+    ":elang_hir",
     "//base/test:run_all_unittests",
     ":hir_unittests",
   ]

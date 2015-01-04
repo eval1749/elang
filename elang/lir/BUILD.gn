@@ -6,7 +6,7 @@
 # rather than here.
 elang_target_arch = "x64"
 
-component("lir") {
+component("elang_lir") {
   sources = [
     "editor.cc",
     "editor.h",
@@ -53,7 +53,7 @@ source_set("lir_unittests") {
   ]
   public_deps = [
     "//testing/gtest",
-    ":lir",
+    ":elang_lir",
   ]
   if (elang_target_arch == "x64") {
     defines = [ "ELANG_TARGET_ARCH_X64" ]
