@@ -14,11 +14,11 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// InstructionTest offers HIR factories.
+// LirInstructionTest offers HIR factories.
 //
-class InstructionTest : public ::testing::Test {
+class LirInstructionTest : public ::testing::Test {
  protected:
-  InstructionTest();
+  LirInstructionTest();
 
   Factory* factory() { return factory_.get(); }
 
@@ -26,14 +26,14 @@ class InstructionTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-InstructionTest::InstructionTest() : factory_(new Factory()) {
+LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // CallInstruction
 //
-TEST_F(InstructionTest, CallInstruction) {
+TEST_F(LirInstructionTest, CallInstruction) {
   auto const instr = factory()->NewCallInstruction();
   EXPECT_TRUE(instr->is<CallInstruction>());
   EXPECT_FALSE(instr->IsTerminator());

@@ -19,11 +19,11 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LiteralsTest offers HIR factories.
+// LirLiteralsTest offers HIR factories.
 //
-class LiteralsTest : public ::testing::Test {
+class LirLiteralsTest : public ::testing::Test {
  protected:
-  LiteralsTest();
+  LirLiteralsTest();
 
   Factory* factory() { return factory_.get(); }
 
@@ -31,7 +31,7 @@ class LiteralsTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-LiteralsTest::LiteralsTest() : factory_(new Factory()) {
+LirLiteralsTest::LirLiteralsTest() : factory_(new Factory()) {
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ LiteralsTest::LiteralsTest() : factory_(new Factory()) {
 // Function
 //
 #ifdef ELANG_TARGET_ARCH_X64
-TEST_F(LiteralsTest, Function) {
+TEST_F(LirLiteralsTest, Function) {
   auto const function = factory()->NewFunction();
   Editor editor(factory(), function);
   auto const entry_block = function->entry_block();
@@ -69,14 +69,14 @@ TEST_F(LiteralsTest, Function) {
       stream.str());
 }
 #else
-#error "We must define LiteralsTest.Function test."
+#error "We must define LirLiteralsTest.Function test."
 #endif
 
 //////////////////////////////////////////////////////////////////////
 //
 // Simple Literals
 //
-TEST_F(LiteralsTest, SimpleLiterals) {
+TEST_F(LirLiteralsTest, SimpleLiterals) {
   std::stringstream stream;
   stream << *factory()->GetLiteral(factory()->NewFloat32Value(3.2f))
          << std::endl;
@@ -99,7 +99,7 @@ TEST_F(LiteralsTest, SimpleLiterals) {
 //
 // String Literals
 //
-TEST_F(LiteralsTest, StringLiteral) {
+TEST_F(LirLiteralsTest, StringLiteral) {
   base::string16 sample(L"xy\a\b\f\n\r\t\uABCD\v\\z");
   sample[1] = 0;
   std::stringstream stream;

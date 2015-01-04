@@ -8,7 +8,7 @@
 namespace elang {
 namespace lir {
 
-TEST(ValueTest, Basic) {
+TEST(LirValueTest, Basic) {
   EXPECT_EQ(Value(), Value());
   EXPECT_EQ(Value(Value::Kind::Immediate, 3), Value(Value::Kind::Immediate, 3));
   EXPECT_NE(Value(Value::Kind::Immediate, 4), Value(Value::Kind::Immediate, 3));
