@@ -6,6 +6,7 @@
 #define ELANG_LIR_FACTORY_H_
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -63,6 +64,7 @@ class ELANG_LIR_EXPORT Factory final {
   int NextInstructionId();
 
  private:
+  base::StringPiece16 NewString(base::StringPiece16 string);
   Value RegisterLiteral(Literal* literal);
 
   std::unordered_map<float32_t, Value> float32_map_;

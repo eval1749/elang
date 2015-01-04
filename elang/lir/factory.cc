@@ -92,8 +92,9 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
     return it->second;
-  auto const value = RegisterLiteral(new (zone()) StringLiteral(data));
-  int32_map_[value.data] = value;
+  auto const literal = new (zone()) StringLiteral(NewString(data));
+  auto const value = RegisterLiteral(literal);
+  string_map_[literal->data()] = value;
   return value;
 }
 
@@ -111,6 +112,13 @@ int Factory::NextInstructionId() {
   }
 FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
+
+base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
+  auto const size = string_piece.size() * sizeof(base::char16);
+  auto const data = static_cast<base::char16*>(zone_->Allocate(size));
+  ::memcpy(data, string_piece.data(), size);
+  return base::StringPiece16(data, string_piece.size());
+}
 
 Value Factory::RegisterLiteral(Literal* literal) {
   literals_.push_back(literal);
