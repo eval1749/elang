@@ -15,11 +15,11 @@ namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// TypesTest offers HIR factories.
+// HirTypesTest offers HIR factories.
 //
-class TypesTest : public ::testing::Test {
+class HirTypesTest : public ::testing::Test {
  protected:
-  TypesTest();
+  HirTypesTest();
 
   Factory* factory() { return factory_.get(); }
   TypeFactory* types() { return factory_->types(); }
@@ -29,10 +29,10 @@ class TypesTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-TypesTest::TypesTest() : factory_(new Factory()) {
+HirTypesTest::HirTypesTest() : factory_(new Factory()) {
 }
 
-TEST_F(TypesTest, BoolType) {
+TEST_F(HirTypesTest, BoolType) {
   auto const bool_type = types()->GetBoolType();
   auto const true_value = bool_type->NewLiteral(true);
   auto const false_value = bool_type->NewLiteral(false);
@@ -40,7 +40,7 @@ TEST_F(TypesTest, BoolType) {
   EXPECT_EQ(false_value, bool_type->zero());
 }
 
-TEST_F(TypesTest, FunctionType) {
+TEST_F(HirTypesTest, FunctionType) {
   auto const return_type = types()->GetInt32Type();
   auto const void_type = types()->GetVoidType();
   auto const function_type = types()->NewFunctionType(return_type, void_type);

@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-static_library("hir") {
+component("hir") {
   sources = [
     "basic_block_editor.cc",
     "basic_block_editor.h",
@@ -12,6 +12,7 @@ static_library("hir") {
     "formatters/text_formatter.h",
     "function_editor.cc",
     "function_editor.h",
+    "hir_export.h",
     "instructions.cc",
     "instructions.h",
     "instruction_factory.cc",
@@ -29,21 +30,31 @@ static_library("hir") {
     "value_visitor.h",
   ]
 
+  defines = [ "HIR_IMPLEMENTATION" ]
+
   deps = [
     "//base",
     "//elang/base",
   ]
 }
 
-test("elang_hir_unittests") {
+source_set("hir_unittests") {
+  testonly = true
   sources = [
     "instructions_unittest.cc",
     "types_unittest.cc",
     "values_unittest.cc",
   ]
+  public_deps = [
+    "//testing/gtest",
+    ":hir",
+  ]
+}
 
+test("elang_hir_unittests") {
   deps = [
     ":hir",
     "//base/test:run_all_unittests",
+    ":hir_unittests",
   ]
 }

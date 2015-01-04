@@ -16,11 +16,11 @@ namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// InstructionTest offers HIR factories.
+// HirInstructionTest offers HIR factories.
 //
-class InstructionTest : public ::testing::Test {
+class HirInstructionTest : public ::testing::Test {
  protected:
-  InstructionTest();
+  HirInstructionTest();
 
   Factory* factory() { return factory_.get(); }
   TypeFactory* types() { return factory_->types(); }
@@ -30,14 +30,14 @@ class InstructionTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-InstructionTest::InstructionTest() : factory_(new Factory()) {
+HirInstructionTest::HirInstructionTest() : factory_(new Factory()) {
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // CallInstruction
 //
-TEST_F(InstructionTest, CallInstruction) {
+TEST_F(HirInstructionTest, CallInstruction) {
   auto const void_type = types()->GetVoidType();
   auto const string_type = types()->GetStringType();
   auto const callee = string_type->NewLiteral(L"Console.WriteLine");
@@ -65,7 +65,7 @@ TEST_F(InstructionTest, CallInstruction) {
 //
 // ReturnInstruction
 //
-TEST_F(InstructionTest, ReturnInstruction) {
+TEST_F(HirInstructionTest, ReturnInstruction) {
   auto const void_type = factory()->GetVoidType();
   auto const void_value = factory()->GetVoidValue();
 

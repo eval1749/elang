@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/hir/hir_export.h"
 #include "elang/hir/values.h"
 
 namespace elang {
@@ -18,7 +19,7 @@ class ReturnInstruction;
 //
 // BasicBlockEditor
 //
-class BasicBlockEditor final {
+class ELANG_HIR_EXPORT BasicBlockEditor final {
  public:
   explicit BasicBlockEditor(Factory* factory, BasicBlock* basic_block);
   ~BasicBlockEditor();

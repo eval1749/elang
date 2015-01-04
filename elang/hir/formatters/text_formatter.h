@@ -9,6 +9,7 @@
 #include <ostream>
 
 #include "base/macros.h"
+#include "elang/hir/hir_export.h"
 
 namespace elang {
 namespace hir {
@@ -21,7 +22,7 @@ class Value;
 //
 // TextFormatter
 //
-class TextFormatter final {
+class ELANG_HIR_EXPORT TextFormatter final {
  public:
   explicit TextFormatter(std::ostream* stream);
   ~TextFormatter();

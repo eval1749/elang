@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "elang/hir/hir_export.h"
 #include "elang/hir/values.h"
 
 namespace elang {
@@ -16,7 +17,7 @@ namespace hir {
 //
 // FunctionEditor
 //
-class FunctionEditor final {
+class ELANG_HIR_EXPORT FunctionEditor final {
  public:
   explicit FunctionEditor(Factory* factory, Function* function);
   ~FunctionEditor();

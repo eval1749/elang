@@ -8,6 +8,10 @@
 #include <ostream>
 
 #include "base/basictypes.h"
+#include "elang/hir/hir_export.h"
+// TODO(eval1749) We should not include "hir/factory.h". It is required for
+// |InstructionTemplate|.
+#include "elang/hir/factory.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/values.h"
 
@@ -20,8 +24,9 @@ namespace hir {
 //
 // Instruction
 //
-class Instruction : public Value,
-                    public DoubleLinked<Instruction, BasicBlock>::Node {
+class ELANG_HIR_EXPORT Instruction
+    : public Value,
+      public DoubleLinked<Instruction, BasicBlock>::Node {
   DECLARE_HIR_VALUE_CLASS(Instruction, Value);
 
  public:
@@ -119,7 +124,7 @@ class InstructionTemplate : public Instruction {
 //
 // CallInstruction
 //
-class CallInstruction
+class ELANG_HIR_EXPORT CallInstruction
     : public InstructionTemplate<CallInstruction, Value*, Value*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Call);
 
@@ -139,7 +144,8 @@ class CallInstruction
 //
 // EntryInstruction
 //
-class EntryInstruction : public InstructionTemplate<EntryInstruction> {
+class ELANG_HIR_EXPORT EntryInstruction
+    : public InstructionTemplate<EntryInstruction> {
   DECLARE_HIR_INSTRUCTION_CLASS(Entry);
 
  private:
@@ -154,7 +160,8 @@ class EntryInstruction : public InstructionTemplate<EntryInstruction> {
 //
 // ExitInstruction
 //
-class ExitInstruction : public InstructionTemplate<ExitInstruction> {
+class ELANG_HIR_EXPORT ExitInstruction
+    : public InstructionTemplate<ExitInstruction> {
   DECLARE_HIR_INSTRUCTION_CLASS(Exit);
 
  private:
@@ -172,7 +179,7 @@ class ExitInstruction : public InstructionTemplate<ExitInstruction> {
 //
 // ReturnInstruction
 //
-class ReturnInstruction
+class ELANG_HIR_EXPORT ReturnInstruction
     : public InstructionTemplate<ReturnInstruction, Value*, BasicBlock*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Return);
 

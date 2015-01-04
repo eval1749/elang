@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_factory.h"
 #include "elang/hir/type_factory.h"
 
@@ -18,7 +19,7 @@ namespace hir {
 //
 // Factory
 //
-class Factory final : public InstructionFactory {
+class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  public:
   Factory();
   ~Factory();

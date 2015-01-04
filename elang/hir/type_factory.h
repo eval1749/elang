@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "base/macros.h"
+#include "elang/hir/hir_export.h"
 #include "elang/hir/types_forward.h"
 
 namespace elang {
@@ -20,7 +21,7 @@ class Factory;
 //
 // TypeFactory
 //
-class TypeFactory {
+class ELANG_HIR_EXPORT TypeFactory {
  public:
   TypeFactory();
   ~TypeFactory();

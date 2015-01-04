@@ -13,6 +13,7 @@
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/float_types.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/hir/hir_export.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"
 
@@ -46,7 +47,7 @@ namespace hir {
 //
 // Represent HIR type.
 //
-class Type : public Castable, public ZoneAllocated {
+class ELANG_HIR_EXPORT Type : public Castable, public ZoneAllocated {
   DECLARE_HIR_TYPE_CLASS(Type, Castable);
 
  public:
@@ -76,7 +77,8 @@ class Type : public Castable, public ZoneAllocated {
 };
 
 // Print for formatting and debugging.
-std::ostream& operator<<(std::ostream& ostream, const Type& type);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Type& type);
 
 #define DECLARE_HIR_TYPE_CONCRETE_CLASS(self, super) \
   DECLARE_HIR_TYPE_CLASS(self, super)                \
@@ -85,7 +87,7 @@ std::ostream& operator<<(std::ostream& ostream, const Type& type);
 
 // A concrete class represents function type which has return type and parameter
 // types.
-class FunctionType : public Type {
+class ELANG_HIR_EXPORT FunctionType : public Type {
   DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, Type);
 
  public:
@@ -102,7 +104,7 @@ class FunctionType : public Type {
 };
 
 // A base class of primitive types.
-class PrimitiveType : public Type {
+class ELANG_HIR_EXPORT PrimitiveType : public Type {
   DECLARE_HIR_TYPE_CLASS(PrimitiveType, Type);
 
  public:
@@ -116,7 +118,7 @@ class PrimitiveType : public Type {
 };
 
 #define DECLARE_HIR_PRIMITIVE_TYPE(Name, name, value_type, ...)      \
-  class Name##Type final : public PrimitiveType {                    \
+  class ELANG_HIR_EXPORT Name##Type final : public PrimitiveType {   \
     DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveType);      \
                                                                      \
    public:                                                           \
@@ -149,7 +151,7 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(DECLARE_HIR_PRIMITIVE_TYPE)
 //
 // ReferenceType
 //
-class ReferenceType : public Type {
+class ELANG_HIR_EXPORT ReferenceType : public Type {
   DECLARE_HIR_TYPE_CLASS(ReferenceType, Type);
 
  public:
@@ -168,7 +170,7 @@ class ReferenceType : public Type {
 //
 // StringType
 //
-class StringType final : public ReferenceType {
+class ELANG_HIR_EXPORT StringType final : public ReferenceType {
   DECLARE_HIR_TYPE_CONCRETE_CLASS(StringType, ReferenceType);
 
  public:

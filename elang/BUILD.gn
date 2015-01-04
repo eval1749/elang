@@ -12,6 +12,7 @@ group("elang") {
 test("elang_all_unittests") {
   deps = [
     "//base/test:run_all_unittests",
+    "//elang/hir:hir_unittests",
     "//elang/lir:lir_unittests",
   ]
 }

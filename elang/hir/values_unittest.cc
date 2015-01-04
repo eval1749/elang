@@ -19,11 +19,11 @@ namespace hir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ValuesTest offers HIR factories.
+// HirValuesTest offers HIR factories.
 //
-class ValuesTest : public ::testing::Test {
+class HirValuesTest : public ::testing::Test {
  protected:
-  ValuesTest();
+  HirValuesTest();
 
   Factory* factory() { return factory_.get(); }
   TypeFactory* types() { return factory_->types(); }
@@ -33,14 +33,14 @@ class ValuesTest : public ::testing::Test {
   std::unique_ptr<Factory> factory_;
 };
 
-ValuesTest::ValuesTest() : factory_(new Factory()) {
+HirValuesTest::HirValuesTest() : factory_(new Factory()) {
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlock
 //
-TEST_F(ValuesTest, BasicBlock) {
+TEST_F(HirValuesTest, BasicBlock) {
   auto const block1 = factory()->NewBasicBlock();
   BasicBlockEditor block(factory(), block1);
   block.AppendChild(ExitInstruction::New(factory(), factory()->GetVoidType()));
@@ -51,7 +51,7 @@ TEST_F(ValuesTest, BasicBlock) {
 //
 // Function
 //
-TEST_F(ValuesTest, Function) {
+TEST_F(HirValuesTest, Function) {
   auto const void_type = types()->GetVoidType();
   auto const function_type = types()->NewFunctionType(void_type, void_type);
   auto const function = factory()->NewFunction(function_type);

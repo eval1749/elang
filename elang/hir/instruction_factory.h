@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"
@@ -23,7 +24,7 @@ class Factory;
 //
 // InstructionFactory
 //
-class InstructionFactory {
+class ELANG_HIR_EXPORT InstructionFactory {
  public:
   explicit InstructionFactory(Factory* factory);
   ~InstructionFactory() = default;

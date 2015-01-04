@@ -14,6 +14,7 @@
 #include "elang/base/embedded_container.h"
 #include "elang/base/float_types.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/hir/hir_export.h"
 #include "elang/hir/values_forward.h"
 #include "elang/hir/types_forward.h"
 
@@ -40,7 +41,8 @@ class Instruction;
 //      VoidLiteal -- singleton
 
 // Use-def list node.
-class UseDefNode : public DoubleLinked<UseDefNode, Value>::Node {
+class ELANG_HIR_EXPORT UseDefNode
+    : public DoubleLinked<UseDefNode, Value>::Node {
  public:
   UseDefNode();
   ~UseDefNode() = default;
@@ -70,7 +72,7 @@ class UseDefNode : public DoubleLinked<UseDefNode, Value>::Node {
   ~self() override = default;
 
 // Represent an value in instruction.
-class Value : public Castable, public ZoneAllocated {
+class ELANG_HIR_EXPORT Value : public Castable, public ZoneAllocated {
   DECLARE_HIR_VALUE_CLASS(Value, Castable);
 
  public:
@@ -94,7 +96,8 @@ class Value : public Castable, public ZoneAllocated {
 };
 
 // Print for formatting and debugging.
-std::ostream& operator<<(std::ostream& ostream, const Value& value);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Value& value);
 
 #define DECLARE_HIR_CONCRETE_VALUE_CLASS(self, super) \
   DECLARE_HIR_VALUE_CLASS(self, super);               \
@@ -103,7 +106,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value);
   void Accept(ValueVisitor* visitor);
 
 // |Literal| is a base class of literal value.
-class Literal : public Value {
+class ELANG_HIR_EXPORT Literal : public Value {
   DECLARE_HIR_VALUE_CLASS(Literal, Value);
 
  public:
@@ -120,7 +123,7 @@ class Literal : public Value {
 };
 
 // Typed null value. |TypeFactory| singleton.
-class NullLiteral : public Literal {
+class ELANG_HIR_EXPORT NullLiteral : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(NullLiteral, Literal);
 
  private:
@@ -134,7 +137,7 @@ class NullLiteral : public Literal {
 };
 
 // value for 'void' type. |TypeFactory| singleton.
-class VoidLiteral : public Literal {
+class ELANG_HIR_EXPORT VoidLiteral : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(VoidLiteral, Literal);
 
  private:
@@ -148,7 +151,7 @@ class VoidLiteral : public Literal {
 };
 
 #define V(Name, name, cpp_type)                              \
-  class Name##Literal : public Literal {                     \
+  class ELANG_HIR_EXPORT Name##Literal : public Literal {    \
     DECLARE_HIR_CONCRETE_VALUE_CLASS(Name##Literal, Literal) \
    public:                                                   \
     Name##Literal(Type* type, cpp_type data);                \
@@ -176,13 +179,13 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 // TODO(eval1749) Should we add |BasicBlock| to |Function| automatically when
 // we insert 'jump' instruction?
 //
-class BasicBlock : public Value,
-                   public DoubleLinked<BasicBlock, Function>::Node {
+class ELANG_HIR_EXPORT BasicBlock
+    : public Value,
+      public DoubleLinked<BasicBlock, Function>::Node {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(BasicBlock, Value);
 
  public:
   typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
-
 
   // An integer identifier for debugging.
   int id() const { return id_; }
@@ -212,13 +215,14 @@ class BasicBlock : public Value,
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-std::ostream& operator<<(std::ostream& ostream, const BasicBlock& basic_block);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const BasicBlock& basic_block);
 
 //////////////////////////////////////////////////////////////////////
 //
 // Function
 //
-class Function : public Value {
+class ELANG_HIR_EXPORT Function : public Value {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(Function, Value);
 
  public:
@@ -240,7 +244,8 @@ class Function : public Value {
   DISALLOW_COPY_AND_ASSIGN(Function);
 };
 
-std::ostream& operator<<(std::ostream& ostream, const Function& function);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Function& function);
 
 }  // namespace hir
 }  // namespace elang
