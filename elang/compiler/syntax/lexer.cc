@@ -29,10 +29,9 @@ TokenType ComputeToken(AtomicString* name) {
   CR_DEFINE_STATIC_LOCAL(KeywordMap*, keyword_map, ());
   if (!keyword_map) {
     keyword_map = new KeywordMap();
-    #define K(name, string, details) \
-        (*keyword_map)[L ## string] = TokenType::name;
+#define K(name, string, details) (*keyword_map)[L##string] = TokenType::name;
     FOR_EACH_TOKEN(IGNORE_TOKEN, K)
-    #undef K
+#undef K
   }
   auto it = keyword_map->find(name->string());
   return it == keyword_map->end() ? TokenType::SimpleName : it->second;
@@ -128,7 +127,10 @@ class Lexer::InputStream {
 };
 
 Lexer::InputStream::InputStream(SourceCode* source_code)
-    : has_char_(false), last_char_(0), offset_(0), source_code_(source_code),
+    : has_char_(false),
+      last_char_(0),
+      offset_(0),
+      source_code_(source_code),
       stream_(source_code->GetStream()) {
 }
 
@@ -168,9 +170,12 @@ base::char16 Lexer::InputStream::ReadChar() {
 // Lexer
 //
 Lexer::Lexer(CompilationSession* session, CompilationUnit* compilation_unit)
-    : char_sink_(new CharSink()), compilation_unit_(compilation_unit),
+    : char_sink_(new CharSink()),
+      compilation_unit_(compilation_unit),
       input_stream_(new InputStream(compilation_unit->source_code())),
-      session_(session), token_end_(0), token_start_(0) {
+      session_(session),
+      token_end_(0),
+      token_start_(0) {
 }
 
 Lexer::~Lexer() {
@@ -360,10 +365,7 @@ Token* Lexer::HandleAtMark() {
     return Error(ErrorCode::TokenAtMarkInvalid);
 
   if (AdvanceIf('"')) {
-    enum class State {
-      Normal,
-      Quote,
-    } state = State::Normal;
+    enum class State { Normal, Quote, } state = State::Normal;
     char_sink_->Start();
     while (!IsAtEndOfStream()) {
       auto const char_code = PeekChar();
@@ -397,8 +399,7 @@ Token* Lexer::HandleAtMark() {
     while (!IsAtEndOfStream()) {
       auto const char_code = PeekChar();
       if (!IsNameChar(char_code)) {
-        auto const simple_name = session_->NewAtomicString(
-            char_sink_->End());
+        auto const simple_name = session_->NewAtomicString(char_sink_->End());
         return NewToken(TokenData(simple_name));
       }
       Advance();
@@ -480,8 +481,8 @@ Token* Lexer::HandleIntegerOrReal(int digit) {
     }
     if (AdvanceIfEither('e', 'E'))
       return HandleExponent(u64, 0);
-    if (char_code == 'l' || char_code == 'L' ||
-        char_code == 'u' || char_code == 'U') {
+    if (char_code == 'l' || char_code == 'L' || char_code == 'u' ||
+        char_code == 'U') {
       return HandleIntegerSuffix(u64);
     }
     break;
@@ -540,11 +541,7 @@ Token* Lexer::HandleOneChar(TokenType token_type) {
 //   \' \" \\ \0 \a \b \f \n \r \t \uUUUU
 Token* Lexer::HandleStringLiteral(base::char16 delimiter) {
   char_sink_->Start();
-  enum class State {
-    Backslash,
-    BackslashU,
-    Normal,
-  } state = State::Normal;
+  enum class State { Backslash, BackslashU, Normal, } state = State::Normal;
   auto accumulator = 0;
   auto digit_count = 0;
   while (!IsAtEndOfStream()) {
@@ -667,7 +664,8 @@ bool Lexer::IsAtEndOfStream() {
   return input_stream_->IsAtEndOfStream();
 }
 
-Token* Lexer::NewFloatLiteral(TokenType token_type, uint64_t u64,
+Token* Lexer::NewFloatLiteral(TokenType token_type,
+                              uint64_t u64,
                               int exponent) {
   if (token_type == TokenType::Float32Literal) {
     auto const int_part = static_cast<float32_t>(u64);
@@ -760,10 +758,7 @@ bool Lexer::SkipBlockComment() {
 
 // Note: Skip until unescaped newline or end of source code.
 void Lexer::SkipLineComment() {
-  enum State {
-    Backslash,
-    Normal,
-  } state = Normal;
+  enum State { Backslash, Normal, } state = Normal;
   while (!IsAtEndOfStream()) {
     auto const char_code = ReadChar();
     switch (state) {

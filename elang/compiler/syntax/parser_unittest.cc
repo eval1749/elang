@@ -273,11 +273,11 @@ TEST_F(ParserTest, EnumValue) {
 //
 TEST_F(ParserTest, ExpressionCallBasic) {
   auto const source_code =
-    "class A {\n"
-    "  void Run() {\n"
-    "    foo(x);\n"
-    "  }\n"
-    "}\n";
+      "class A {\n"
+      "  void Run() {\n"
+      "    foo(x);\n"
+      "  }\n"
+      "}\n";
   Prepare(source_code);
   EXPECT_EQ(source_code, Format());
 }
@@ -326,20 +326,22 @@ TEST_F(ParserTest, ImportBasic) {
 }
 
 TEST_F(ParserTest, ImportErrorDuplicate) {
-  Prepare("using A.B;"
-          "using A.B;");
-  EXPECT_EQ("Syntax.UsingDirective.Duplicate(16) A.B A.B\n"
-            "Syntax.CompilationUnit.Invalid(19) ;\n",
-            Format());
+  Prepare(
+      "using A.B;"
+      "using A.B;");
+  EXPECT_EQ(
+      "Syntax.UsingDirective.Duplicate(16) A.B A.B\n"
+      "Syntax.CompilationUnit.Invalid(19) ;\n",
+      Format());
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
-  auto const source_code =
-      "using A.B<T>;\n";
+  auto const source_code = "using A.B<T>;\n";
   Prepare(source_code);
-  EXPECT_EQ("Syntax.UsingDirective.Import(12) ;\n"
-            "Syntax.CompilationUnit.Invalid(12) ;\n",
-            Format());
+  EXPECT_EQ(
+      "Syntax.UsingDirective.Import(12) ;\n"
+      "Syntax.CompilationUnit.Invalid(12) ;\n",
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
