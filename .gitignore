@@ -27,4 +27,8 @@
 *.out
 *.app
 
+# Python compiled file.
+*.pyc
+
+/build/win_toolchain.json
 out/
