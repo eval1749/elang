@@ -10,6 +10,7 @@
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/vm/class.h"
+#include "elang/vm/memory_pool.h"
 #include "elang/vm/namespace.h"
 
 namespace elang {
@@ -29,6 +30,8 @@ Namespace* CreateGlobalNamespace(Factory* factory) {
 //
 Factory::Factory()
     : atomic_string_factory_(new AtomicStringFactory()),
+      code_memory_pool_(new MemoryPool(MemoryPool::Kind::Code, 16)),
+      data_memory_pool_(new MemoryPool(MemoryPool::Kind::Data, 16)),
       zone_(new Zone()),
       global_namespace_(CreateGlobalNamespace(this)) {
 }
@@ -44,6 +47,14 @@ Class* Factory::NewClass(Namespace* outer,
                          AtomicString* name,
                          const std::vector<Class*>& base_classes) {
   return new (zone_.get()) Class(zone_.get(), outer, name, base_classes);
+}
+
+EntryPoint Factory::NewCodeBlob(int size) {
+  return reinterpret_cast<EntryPoint>(code_memory_pool_->Allocate(size));
+}
+
+void* Factory::NewDataBlob(int size) {
+  return data_memory_pool_->Allocate(size);
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* name) {

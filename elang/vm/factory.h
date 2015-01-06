@@ -11,6 +11,7 @@
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
+#include "elang/vm/entry_point.h"
 
 namespace elang {
 class AtomicString;
@@ -19,6 +20,7 @@ class Zone;
 
 namespace vm {
 class Class;
+class MemoryPool;
 class Namespace;
 
 //////////////////////////////////////////////////////////////////////
@@ -37,10 +39,14 @@ class Factory final {
   Class* NewClass(Namespace* outer,
                   AtomicString* simple_name,
                   const std::vector<Class*>& base_classes);
+  EntryPoint NewCodeBlob(int size);
+  void* NewDataBlob(int size);
   Namespace* NewNamespace(Namespace* outer, AtomicString* simple_name);
   base::StringPiece16 NewString(base::StringPiece16 string);
 
  private:
+  const std::unique_ptr<MemoryPool> code_memory_pool_;
+  const std::unique_ptr<MemoryPool> data_memory_pool_;
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   const std::unique_ptr<Zone> zone_;
 
