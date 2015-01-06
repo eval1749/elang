@@ -27,6 +27,10 @@ component("base") {
   public_deps = [
     "//base"
   ]
+
+  if (is_win) {
+    sources += [ "logging_win.h" ]
+  }
 }
 
 source_set("base_unittests") {
