@@ -149,6 +149,53 @@ TEST_F(ParserTest, CompilationUnitErrorInvalid) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Conditional expression
+//
+TEST_F(ParserTest, ConditionalBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Method() {\n"
+      "    return x ? w : z;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ConditionalErrorColon) {
+  auto const source_code =
+      "class A {\n"
+      "  void Method() {\n"
+      "    return x ? w;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Expression.ConditionalColon(44) ;\n", Format(source_code))
+      << "Expect ':' after '?'";
+}
+
+TEST_F(ParserTest, ConditionalErrorElse) {
+  auto const source_code =
+      "class A {\n"
+      "  void Method() {\n"
+      "    return x ? y :\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Expression.ConditionalElse(49) }\n", Format(source_code))
+      << "Nothing after ':'";
+}
+
+TEST_F(ParserTest, ConditionalErrorThen) {
+  auto const source_code =
+      "class A {\n"
+      "  void Method() {\n"
+      "    return x ?\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Expression.ConditionalThen(45) }\n", Format(source_code))
+      << "Nothing after '?'";
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'const' statement
 //
 TEST_F(ParserTest, ConstBasic) {

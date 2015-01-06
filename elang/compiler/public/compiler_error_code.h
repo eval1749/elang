@@ -11,9 +11,6 @@ namespace compiler {
 #define IGNORE_COMPILER_ERROR(category, subcategory, name)
 
 #define FOR_EACH_COMPILER_ERROR_CODE(E, W)            \
-  /*  Parser Expression */                            \
-  E(Expression, Conditional, Colon)                   \
-  E(Expression, Primary, RightParenthesis)            \
   /* * Name Resolver */                               \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
@@ -69,6 +66,11 @@ namespace compiler {
   E(Syntax, Do, RightParenthesis)                     \
   E(Syntax, Do, SemiColon)                            \
   E(Syntax, Do, While)                                \
+  /* Expression */                                    \
+  E(Syntax, Expression, ConditionalColon)             \
+  E(Syntax, Expression, ConditionalElse)              \
+  E(Syntax, Expression, ConditionalThen)              \
+  E(Syntax, Expression, RightParenthesis)             \
   /* Finally */                                       \
   E(Syntax, Finally, LeftCurryBracket)                \
   /* If */                                            \

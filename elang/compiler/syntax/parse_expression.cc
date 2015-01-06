@@ -95,13 +95,17 @@ bool Parser::ParseExpression() {
     //     NullCoalescingExpression '?' Expression ':' Expression
     auto const cond_part = ConsumeExpression();
     auto const op_question = ConsumeToken();
-    if (!ParseExpression())
+    if (!ParseExpression()) {
+      Error(ErrorCode::SyntaxExpressionConditionalThen);
       return false;
+    }
     auto const then_part = ConsumeExpression();
     if (!AdvanceIf(TokenType::Colon))
-      return Error(ErrorCode::ExpressionConditionalColon);
-    if (ParseExpression())
+      return Error(ErrorCode::SyntaxExpressionConditionalColon);
+    if (!ParseExpression()) {
+      Error(ErrorCode::SyntaxExpressionConditionalElse);
       return false;
+    }
     auto const else_part = ConsumeExpression();
     ProduceExpression(factory()->NewConditional(op_question, cond_part,
                                                 then_part, else_part));
@@ -212,7 +216,7 @@ bool Parser::ParsePrimaryExpression() {
       return false;
     if (AdvanceIf(TokenType::RightParenthesis))
       return true;
-    Error(ErrorCode::ExpressionPrimaryRightParenthesis);
+    Error(ErrorCode::SyntaxExpressionRightParenthesis);
     return false;
   }
 
@@ -232,7 +236,7 @@ bool Parser::ParsePrimaryExpressionPost() {
         return false;
       }
       auto const member_name = factory()->NewNameReference(ConsumeToken());
-      ProduceMemberAccess({ container, member_name });
+      ProduceMemberAccess({container, member_name});
       if (!AdvanceIf(TokenType::LeftAngleBracket))
         continue;
       auto const generic_type = ConsumeExpression();
