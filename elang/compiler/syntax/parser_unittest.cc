@@ -31,31 +31,25 @@ TEST_F(ParserTest, AliasBasic) {
       "using R2 = A.B;\n"
       "using R3 = A.B.C<T>;\n"
       "using R4 = A.B.C<T>.D;\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, AliasErrorDot) {
-  auto const source_code = "using R1 = A.;\n";
-  Prepare(source_code);
-  EXPECT_EQ("Syntax.Type.Name(13) ;\n", Format());
+  EXPECT_EQ("Syntax.Type.Name(13) ;\n", Format("using R1 = A.;\n"));
 }
 
 TEST_F(ParserTest, AliasErrorDuplicate) {
   auto const source_code =
       "using R1 = A;\n"
       "using R1 = B;\n";
-  Prepare(source_code);
   EXPECT_EQ(
       "Syntax.UsingDirective.Duplicate(20) R1 using\n"
       "Syntax.CompilationUnit.Invalid(25) B\n",
-      Format());
+      Format(source_code));
 }
 
 TEST_F(ParserTest, AliasErrorReference) {
-  auto const source_code = "using R1 = ;\n";
-  Prepare(source_code);
-  EXPECT_EQ("Syntax.Type.Name(11) ;\n", Format());
+  EXPECT_EQ("Syntax.Type.Name(11) ;\n", Format("using R1 = ;\n"));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -71,8 +65,7 @@ TEST_F(ParserTest, BreakBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, BreakErrorInvalid) {
@@ -108,8 +101,7 @@ TEST_F(ParserTest, ClassAndAlias) {
       "  class R {\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ClassBasic) {
@@ -117,8 +109,7 @@ TEST_F(ParserTest, ClassBasic) {
       "class A : C {\n}\n"
       "class B : A {\n}\n"
       "class C {\n}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ClassField) {
@@ -128,8 +119,7 @@ TEST_F(ParserTest, ClassField) {
       "  B y = null;\n"
       "  var z = 0;\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ClassErrorConflictToAlias) {
@@ -162,14 +152,13 @@ TEST_F(ParserTest, CompilationUnitErrorInvalid) {
 // 'const' statement
 //
 TEST_F(ParserTest, ConstBasic) {
-  Prepare("class A { void Run(int x) { const var b = 3; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    const var b = 3;\n"
       "  }\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -185,8 +174,7 @@ TEST_F(ParserTest, ContinueBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ContinueErrorInvalid) {
@@ -225,8 +213,7 @@ TEST_F(ParserTest, DoBasic) {
       "    } while (x);\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -234,37 +221,33 @@ TEST_F(ParserTest, DoBasic) {
 // enum
 //
 TEST_F(ParserTest, EnumBasic) {
-  Prepare("enum Color { Red, Green, Blue }");
-  EXPECT_EQ(
+  auto const source_code =
       "enum Color {\n"
       "  Red,\n"
       "  Green,\n"
       "  Blue,\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, EnumComma) {
-  Prepare("enum Color { Red, Green, Blue, }");
-  EXPECT_EQ(
+  auto const source_code =
       "enum Color {\n"
       "  Red,\n"
       "  Green,\n"
       "  Blue,\n"
-      "}\n",
-      Format())
-      << "Comma following last member";
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code)) << "Comma following last member";
 }
 
 TEST_F(ParserTest, EnumValue) {
-  Prepare("enum Color { Red = 3, Green = Red + 10, Blue }");
-  EXPECT_EQ(
+  auto const source_code =
       "enum Color {\n"
       "  Red = 3,\n"
       "  Green = Red + 10,\n"
       "  Blue,\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -278,8 +261,7 @@ TEST_F(ParserTest, ExpressionCallBasic) {
       "    foo(x);\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -287,15 +269,14 @@ TEST_F(ParserTest, ExpressionCallBasic) {
 // 'if' statement
 //
 TEST_F(ParserTest, IfBasic) {
-  Prepare("class A { void Run(int x) { if (x) return x; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    if (x)\n"
       "      return x;\n"
       "  }\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, IfBasicElse) {
@@ -309,8 +290,7 @@ TEST_F(ParserTest, IfBasicElse) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -321,8 +301,7 @@ TEST_F(ParserTest, ImportBasic) {
   auto const source_code =
       "using System;\n"
       "using System.Console;\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ImportErrorDuplicate) {
@@ -336,8 +315,7 @@ TEST_F(ParserTest, ImportErrorDuplicate) {
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
-  auto const source_code = "using A.B<T>;\n";
-  Prepare(source_code);
+  Prepare("using A.B<T>;\n");
   EXPECT_EQ(
       "Syntax.UsingDirective.Import(12) ;\n"
       "Syntax.CompilationUnit.Invalid(12) ;\n",
@@ -355,8 +333,7 @@ TEST_F(ParserTest, MemberAccessBasic) {
       "    System.Console.WriteLine(123);\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, MemberAccessErrorName) {
@@ -366,9 +343,11 @@ TEST_F(ParserTest, MemberAccessErrorName) {
       "    System.123;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.MemberAccess.Name(34) 123\n"
-            "Syntax.Type.Name(37) ;\n"
-            "Syntax.ClassDecl.RightCurryBracket(37) ;\n", Format());
+  EXPECT_EQ(
+      "Syntax.MemberAccess.Name(34) 123\n"
+      "Syntax.Type.Name(37) ;\n"
+      "Syntax.ClassDecl.RightCurryBracket(37) ;\n",
+      Format());
 }
 
 TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
@@ -388,8 +367,7 @@ TEST_F(ParserTest, MemberAccessTypeArg) {
       "    System.Console<A, int>(123);\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -397,14 +375,13 @@ TEST_F(ParserTest, MemberAccessTypeArg) {
 // Methods
 //
 TEST_F(ParserTest, MethodBasic) {
-  Prepare("class A { void Run(int x) { return x; } }");
-  EXPECT_EQ(
+  auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
       "    return x;\n"
       "  }\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -412,12 +389,11 @@ TEST_F(ParserTest, MethodBasic) {
 // Namespace
 //
 TEST_F(ParserTest, NamespaceAlias) {
-  Prepare("namespace A { using B = N1.N2; }");
-  EXPECT_EQ(
+  auto const source_code =
       "namespace A {\n"
       "  using B = N1.N2;\n"
-      "}\n",
-      Format());
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, NamespaceBasic) {
@@ -430,8 +406,7 @@ TEST_F(ParserTest, NamespaceBasic) {
       "}\n"
       "namespace D {\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, NamespaceNestedShortcut) {
@@ -442,8 +417,7 @@ TEST_F(ParserTest, NamespaceNestedShortcut) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -457,8 +431,7 @@ TEST_F(ParserTest, ReturnBasic) {
       "    return;\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ReturnExpression) {
@@ -468,8 +441,7 @@ TEST_F(ParserTest, ReturnExpression) {
       "    return 1;\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -483,8 +455,7 @@ TEST_F(ParserTest, ThrowBasic) {
       "    throw 1;\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ThrowNoExpression) {
@@ -498,8 +469,7 @@ TEST_F(ParserTest, ThrowNoExpression) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, ThrowInvalid) {
@@ -523,8 +493,7 @@ TEST_F(ParserTest, TryBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, TryCatches) {
@@ -540,8 +509,7 @@ TEST_F(ParserTest, TryCatches) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, TryCatcheFinally) {
@@ -557,8 +525,7 @@ TEST_F(ParserTest, TryCatcheFinally) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 TEST_F(ParserTest, TryFinally) {
@@ -572,8 +539,7 @@ TEST_F(ParserTest, TryFinally) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -587,8 +553,7 @@ TEST_F(ParserTest, VarBasic) {
       "    var a, b = 3;\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -604,8 +569,7 @@ TEST_F(ParserTest, UsingBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -621,8 +585,7 @@ TEST_F(ParserTest, UsingVar) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -638,8 +601,7 @@ TEST_F(ParserTest, WhileBasic) {
       "    }\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -653,8 +615,7 @@ TEST_F(ParserTest, YieldBasic) {
       "    yield x;\n"
       "  }\n"
       "}\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format());
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 }  // namespace

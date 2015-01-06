@@ -63,6 +63,13 @@ SourceCode* CompilerTest::source_code() const {
   return source_code_.get();
 }
 
+std::string CompilerTest::AnalyzeNamespace() {
+  if (!Parse())
+    return GetErrors();
+  NamespaceAnalyzer resolver(session_.get(), name_resolver_.get());
+  return resolver.Run() ? "" : GetErrors();
+}
+
 ast::Class* CompilerTest::FindClass(base::StringPiece name) {
   auto const member = FindMember(name);
   return member ? member->as<ast::Class>() : nullptr;
@@ -86,6 +93,18 @@ ast::NamespaceMember* CompilerTest::FindMember(base::StringPiece name) {
     pos = dot_pos;
   }
   return found;
+}
+
+std::string CompilerTest::Format(base::StringPiece source_code) {
+  Prepare(source_code);
+  return Format();
+}
+
+std::string CompilerTest::Format() {
+  if (!Parse())
+    return GetErrors();
+  Formatter formatter;
+  return formatter.Run(session_->global_namespace());
 }
 
 std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
@@ -124,20 +143,6 @@ std::string CompilerTest::GetErrors() {
     stream << std::endl;
   }
   return stream.str();
-}
-
-std::string CompilerTest::AnalyzeNamespace() {
-  if (!Parse())
-    return GetErrors();
-  NamespaceAnalyzer resolver(session_.get(), name_resolver_.get());
-  return resolver.Run() ? "" : GetErrors();
-}
-
-std::string CompilerTest::Format() {
-  if (!Parse())
-    return GetErrors();
-  Formatter formatter;
-  return formatter.Run(session_->global_namespace());
 }
 
 bool CompilerTest::Parse() {

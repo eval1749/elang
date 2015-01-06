@@ -42,6 +42,7 @@ class CompilerTest : public ::testing::Test {
   ast::Class* FindClass(base::StringPiece name);
   ast::NamespaceMember* FindMember(base::StringPiece name);
   std::string Format();
+  std::string Format(base::StringPiece source_code);
   std::string GetBaseClasses(base::StringPiece name);
   std::string GetErrors();
   bool Parse();
