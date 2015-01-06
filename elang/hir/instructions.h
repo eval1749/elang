@@ -74,6 +74,9 @@ class ELANG_HIR_EXPORT Instruction
  private:
   friend class BasicBlockEditor;
 
+  // Value
+  void Accept(ValueVisitor* visitor) override;
+
   BasicBlock* basic_block_;
   int id_;
   DoubleLinked<UseDefNode, Instruction> users_;
@@ -118,7 +121,7 @@ class InstructionTemplate : public Instruction {
 
 #define DECLARE_HIR_INSTRUCTION_CLASS(Name)                \
   DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction); \
-  Opcode opcode() const override;
+  Opcode opcode() const final;
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -13,6 +13,7 @@
 #include "elang/base/double_linked.h"
 #include "elang/base/embedded_container.h"
 #include "elang/base/float_types.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/values_forward.h"
@@ -72,7 +73,9 @@ class ELANG_HIR_EXPORT UseDefNode
   ~self() override = default;
 
 // Represent an value in instruction.
-class ELANG_HIR_EXPORT Value : public Castable, public ZoneAllocated {
+class ELANG_HIR_EXPORT Value : public Castable,
+                               public Visitable<ValueVisitor>,
+                               public ZoneAllocated {
   DECLARE_HIR_VALUE_CLASS(Value, Castable);
 
  public:
@@ -81,7 +84,6 @@ class ELANG_HIR_EXPORT Value : public Castable, public ZoneAllocated {
   Type* type() const { return type_; }
   const UseDefList& users() const { return use_def_list_; }
 
-  virtual void Accept(ValueVisitor* visitor);
   void Use(UseDefNode* holder);
   void Unuse(UseDefNode* holder);
 
@@ -103,7 +105,7 @@ ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
   DECLARE_HIR_VALUE_CLASS(self, super);               \
                                                       \
  private:                                             \
-  void Accept(ValueVisitor* visitor);
+  void Accept(ValueVisitor* visitor) final;
 
 // |Literal| is a base class of literal value.
 class ELANG_HIR_EXPORT Literal : public Value {

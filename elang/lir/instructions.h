@@ -10,6 +10,7 @@
 #include "base/basictypes.h"
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
 #include "elang/lir/lir_export.h"
@@ -35,6 +36,7 @@ class Factory;
 class ELANG_LIR_EXPORT Instruction
     : public Castable,
       public DoubleLinked<Instruction, BasicBlock>::Node,
+      public Visitable<InstructionVisitor>,
       public ZoneAllocated {
   DECLARE_CASTABLE_CLASS(Instruction, Castable);
 
@@ -51,9 +53,6 @@ class ELANG_LIR_EXPORT Instruction
   // Operands accessor
   const ZoneVector<Value>& inputs() const { return inputs_; }
   const ZoneVector<Value>& outputs() const { return outputs_; }
-
-  // Visitor behavior
-  virtual void Accept(InstructionVisitor* visitor) = 0;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.

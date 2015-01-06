@@ -49,11 +49,6 @@ void UseDefNode::SetValue(Value* new_value) {
 Value::Value(Type* type) : type_(type) {
 }
 
-void Value::Accept(ValueVisitor* visitor) {
-  __assume(visitor);
-  NOTREACHED();
-}
-
 void Value::Use(UseDefNode* value_holder) {
   use_def_list_.AppendNode(value_holder);
 }

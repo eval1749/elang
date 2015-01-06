@@ -26,11 +26,6 @@ FOR_EACH_LIR_LITERAL(V)
 Literal::Literal() {
 }
 
-void Literal::Accept(LiteralVisitor* visitor) {
-  __assume(visitor);
-  NOTREACHED();
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlock

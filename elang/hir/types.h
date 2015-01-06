@@ -12,6 +12,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/float_types.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/types_forward.h"
@@ -47,7 +48,9 @@ namespace hir {
 //
 // Represent HIR type.
 //
-class ELANG_HIR_EXPORT Type : public Castable, public ZoneAllocated {
+class ELANG_HIR_EXPORT Type : public Castable,
+                              public Visitable<TypeVisitor>,
+                              public ZoneAllocated {
   DECLARE_HIR_TYPE_CLASS(Type, Castable);
 
  public:
@@ -62,9 +65,6 @@ class ELANG_HIR_EXPORT Type : public Castable, public ZoneAllocated {
   bool is_void() const { return register_class() == RegisterClass::Void; }
   // Which type of register holds a value of this type.
   virtual RegisterClass register_class() const;
-
-  // Visitor behavior.
-  virtual void Accept(TypeVisitor* visitor) = 0;
 
   // Returns |NullLiteral| if this type is nullable, otherwise returns null.
   virtual NullLiteral* GetNullLiteral() const;

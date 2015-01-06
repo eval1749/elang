@@ -38,6 +38,11 @@ void Instruction::set_id(int new_id) {
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
 
+void Instruction::Accept(ValueVisitor* visitor) {
+  DCHECK(visitor);
+  NOTREACHED();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // CallInstruction

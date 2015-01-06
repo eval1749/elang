@@ -13,6 +13,7 @@
 #include "elang/base/double_linked.h"
 #include "elang/base/embedded_container.h"
 #include "elang/base/float_types.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/literals_forward.h"
@@ -39,11 +40,10 @@ class Instruction;
   ~self() override = default;
 
 // Represent an value in instruction.
-class ELANG_LIR_EXPORT Literal : public Castable, public ZoneAllocated {
+class ELANG_LIR_EXPORT Literal : public Castable,
+                                 public Visitable<LiteralVisitor>,
+                                 public ZoneAllocated {
   DECLARE_LIR_LITERAL_CLASS(Literal, Castable);
-
- public:
-  virtual void Accept(LiteralVisitor* visitor);
 
  protected:
   Literal();

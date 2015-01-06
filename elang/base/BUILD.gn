@@ -13,6 +13,7 @@ component("base") {
     "double_linked.h",
     "float_types.h",
     "maybe.h",
+    "visitable.h",
     "zone.cc",
     "zone.h",
     "zone_allocated.h",

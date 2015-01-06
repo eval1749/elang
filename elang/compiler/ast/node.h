@@ -9,6 +9,7 @@
 
 #include "elang/base/castable.h"
 #include "elang/base/float_types.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/compiler/token.h"
 
@@ -89,13 +90,15 @@ class Visitor;
 //
 // Node
 //
-class Node : public Castable, public ZoneAllocated {
+class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DECLARE_AST_NODE_CLASS(Node, Castable);
 
  public:
   Token* token() const { return token_; }
 
-  virtual void Accept(Visitor* visitor);
+  // Visitable<Visitor>
+  // Default implementation for node classes not in |FOR_EACH_AST_NODE()|.
+  void Accept(Visitor* visitor) override;
 
  protected:
   explicit Node(Token* token);
