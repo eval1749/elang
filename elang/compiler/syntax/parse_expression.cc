@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/binary_operation.h"
 #include "elang/compiler/ast/call.h"
 #include "elang/compiler/ast/conditional.h"
+#include "elang/compiler/ast/constructed_type.h"
 #include "elang/compiler/ast/literal.h"
 #include "elang/compiler/ast/name_reference.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -220,6 +221,34 @@ bool Parser::ParsePrimaryExpression() {
 
 bool Parser::ParsePrimaryExpressionPost() {
   for (;;) {
+    if (AdvanceIf(TokenType::Dot)) {
+      // MemberAccess ::=
+      //    PrimaryExpression '.' Identifier TypeArgumentList? |
+      //    PredefinedType '.' Identifier TypeArgumentList? |
+      //    QualifiedAliasMember '.' Identifier TypeArgumentList?
+      auto const container = ConsumeExpression();
+      if (!PeekToken()->is_name()) {
+        Error(ErrorCode::SyntaxMemberAccessName, ConsumeToken());
+        return false;
+      }
+      auto const member_name = factory()->NewNameReference(ConsumeToken());
+      ProduceMemberAccess({ container, member_name });
+      if (!AdvanceIf(TokenType::LeftAngleBracket))
+        continue;
+      auto const generic_type = ConsumeExpression();
+      std::vector<ast::Expression*> type_args;
+      do {
+        if (!ParseType())
+          return false;
+        type_args.push_back(ConsumeType());
+      } while (AdvanceIf(TokenType::Comma));
+      DCHECK(!type_args.empty());
+      if (!AdvanceIf(TokenType::RightAngleBracket))
+        Error(ErrorCode::SyntaxMemberAccessTypeArgument);
+      ProduceExpression(factory()->NewConstructedType(generic_type, type_args));
+      continue;
+    }
+
     if (AdvanceIf(TokenType::LeftParenthesis)) {
       // InvokeExpression ::= PrimerExpresion '(' ArgumentList? ')'
       // ArgumentList ::= Expression (',' Expression)*
@@ -233,6 +262,7 @@ bool Parser::ParsePrimaryExpressionPost() {
       ProduceExpression(factory()->NewCall(callee, arguments));
       continue;
     }
+
     if (PeekToken() == TokenType::Increment) {
       // PostIncrementExpression ::=
       //    PrimeryExpression '++'

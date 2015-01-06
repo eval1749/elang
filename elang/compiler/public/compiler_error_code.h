@@ -74,6 +74,9 @@ namespace compiler {
   /* If */                                            \
   E(Syntax, If, LeftParenthesis)                      \
   E(Syntax, If, RightParenthesis)                     \
+  /* MemberAccess */                                  \
+  E(Syntax, MemberAccess, Name)                       \
+  E(Syntax, MemberAccess, TypeArgument)               \
   /* Method */                                        \
   E(Syntax, Method, Comma)                            \
   E(Syntax, Method, LeftCurryBracket)                 \

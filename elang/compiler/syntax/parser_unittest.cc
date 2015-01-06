@@ -346,6 +346,54 @@ TEST_F(ParserTest, ImportErrorInvalid) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Member Access
+//
+TEST_F(ParserTest, MemberAccessBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    System.Console.WriteLine(123);\n"
+      "  }\n"
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
+TEST_F(ParserTest, MemberAccessErrorName) {
+  Prepare(
+      "class A {\n"
+      "  void F() {\n"
+      "    System.123;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.MemberAccess.Name(34) 123\n"
+            "Syntax.Type.Name(37) ;\n"
+            "Syntax.ClassDecl.RightCurryBracket(37) ;\n", Format());
+}
+
+TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
+  Prepare(
+      "class A {\n"
+      "  void F() {\n"
+      "    System.Console<A;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.MemberAccess.TypeArgument(43) ;\n", Format());
+}
+
+TEST_F(ParserTest, MemberAccessTypeArg) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    System.Console<A, int>(123);\n"
+      "  }\n"
+      "}\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Methods
 //
 TEST_F(ParserTest, MethodBasic) {
