@@ -2,16 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# TODO(eval1749) |elang_target_arch| should be defined in top-level "BUILD.gn"
-# rather than here.
-# Should we use import directive? see "gn help import".
-declare_args() {
-  elang_target_arch = cpu_arch
-}
-
-config("elang_target_arch_x64") {
-  defines = [ "ELANG_TARGET_ARCH_X64" ]
-}
+import("//elang/build/elang_target_arch.gni")
 
 component("lir") {
   output_name = "elang_lir"
@@ -43,6 +34,7 @@ component("lir") {
     "//base",
     "//elang/api",
     "//elang/base",
+    "//elang:elang_target_arch",
   ]
 
   if (elang_target_arch == "x64") {

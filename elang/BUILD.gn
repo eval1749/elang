@@ -2,11 +2,23 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//elang/build/elang_target_arch.gni")
+
 group("elang") {
   deps = [
     "//elang/shell",
     "//elang/vm",
   ]
+}
+
+group("elang_target_arch") {
+  public_configs = [ ":elang_target_arch_config" ]
+}
+
+config("elang_target_arch_config") {
+  if (elang_target_arch == "x64") {
+    defines = [ "ELANG_TARGET_ARCH_X64" ]
+  }
 }
 
 test("elang_all_unittests") {
