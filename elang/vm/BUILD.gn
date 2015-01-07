@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//elang/build/elang_target_arch.gni")
+
 static_library("vm") {
   output_name = "elang_vm"
 
@@ -28,11 +30,10 @@ static_library("vm") {
     "virtual_memory.h",
   ]
 
-  defines = [ "ELANG_TARGET_ARCH_X64" ]
-
   public_deps = [
     "//base",
     "//elang/base",
+    "//elang:elang_target_arch",
   ]
 
   if (is_win) {
@@ -58,7 +59,6 @@ source_set("vm_unittests") {
     "machine_code_builder_impl_unittest.cc",
     "namespace_unittest.cc",
   ]
-  defines = [ "ELANG_TARGET_ARCH_X64" ]
   public_deps = [
     ":test_support",
   ]
