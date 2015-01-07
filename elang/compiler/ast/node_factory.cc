@@ -234,9 +234,31 @@ EmptyStatement* NodeFactory::NewEmptyStatement(Token* keyword) {
   return new (zone_) EmptyStatement(keyword);
 }
 
+ExpressionList* NodeFactory::NewExpressionList(
+    Token* keyword,
+    const std::vector<Expression*>& expressions) {
+  return new (zone_) ExpressionList(keyword, expressions);
+}
+
 ExpressionStatement* NodeFactory::NewExpressionStatement(
     Expression* expression) {
   return new (zone_) ExpressionStatement(expression);
+}
+
+ForEachStatement* NodeFactory::NewForEachStatement(Token* keyword,
+                                                   LocalVariable* variable,
+                                                   Expression* enumerable,
+                                                   Statement* statement) {
+  return new (zone_) ForEachStatement(keyword, variable, enumerable, statement);
+}
+
+ForStatement* NodeFactory::NewForStatement(Token* keyword,
+                                           Statement* initializer,
+                                           Expression* condition,
+                                           Statement* step,
+                                           Statement* statement) {
+  return new (zone_)
+      ForStatement(keyword, initializer, condition, step, statement);
 }
 
 IfStatement* NodeFactory::NewIfStatement(Token* keyword,

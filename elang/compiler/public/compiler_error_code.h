@@ -73,6 +73,13 @@ namespace compiler {
   E(Syntax, Expression, RightParenthesis)             \
   /* Finally */                                       \
   E(Syntax, Finally, LeftCurryBracket)                \
+  /* For */                                           \
+  E(Syntax, For, Colon)                               \
+  E(Syntax, For, Init)                                \
+  E(Syntax, For, LeftParenthesis)                     \
+  E(Syntax, For, RightParenthesis)                    \
+  E(Syntax, For, SemiColon)                           \
+  E(Syntax, For, Var)                                 \
   /* If */                                            \
   E(Syntax, If, LeftParenthesis)                      \
   E(Syntax, If, RightParenthesis)                     \

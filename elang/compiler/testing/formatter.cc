@@ -98,6 +98,17 @@ Formatter::FormatBlock::~FormatBlock() {
 Formatter::Formatter() : depth_(0) {
 }
 
+void Formatter::FormatChildStatement(ast::Statement* statement) {
+  if (statement->is<ast::BlockStatement>()) {
+    stream_ << " ";
+    Visit(statement);
+    return;
+  }
+  stream_ << std::endl;
+  IndentPlusOne();
+  Visit(statement);
+}
+
 void Formatter::Indent() {
   stream_ << std::string(depth_ * 2, ' ');
 }
@@ -250,6 +261,15 @@ void Formatter::VisitEnum(ast::Enum* enumx) {
   }
 }
 
+void Formatter::VisitExpressionList(ast::ExpressionList* statement) {
+  const char* separator = "";
+  for (auto const expression : statement->expressions()) {
+    stream_ << separator;
+    Visit(expression);
+    separator = ", ";
+  }
+}
+
 void Formatter::VisitExpressionStatement(ast::ExpressionStatement* statement) {
   Visit(statement->expression());
   stream_ << ";";
@@ -264,6 +284,31 @@ void Formatter::VisitField(ast::Field* field) {
     Visit(expression);
   }
   stream_ << ";" << std::endl;
+}
+
+void Formatter::VisitForEachStatement(ast::ForEachStatement* statement) {
+  stream_ << "for (";
+  Visit(statement->variable()->type());
+  stream_ << " " << statement->variable()->name() << " : ";
+  Visit(statement->enumerable());
+  stream_ << ")";
+  FormatChildStatement(statement->statement());
+}
+
+void Formatter::VisitForStatement(ast::ForStatement* statement) {
+  stream_ << "for (";
+  Visit(statement->initializer());
+  if (statement->condition()) {
+    stream_ << " ";
+    Visit(statement->condition());
+  }
+  stream_ << ";";
+  if (statement->step()) {
+    stream_ << " ";
+    Visit(statement->step());
+  }
+  stream_ << ")";
+  FormatChildStatement(statement->statement());
 }
 
 void Formatter::VisitIfStatement(ast::IfStatement* statement) {

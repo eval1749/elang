@@ -24,6 +24,7 @@ class LocalVariable final : public NamedNode {
   Expression* value() const { return value_; }
 
  private:
+  // |keyword| one of 'catch', 'const', 'for', 'using', or |nullptr|
   LocalVariable(Token* keyword,
                 Expression* type,
                 Token* name,

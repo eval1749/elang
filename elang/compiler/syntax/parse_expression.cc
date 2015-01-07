@@ -208,6 +208,11 @@ bool Parser::ParsePrimaryExpression() {
     return ParsePrimaryExpressionPost();
   }
 
+  if (PeekToken()->is_type_name()) {
+    ProduceType(factory()->NewNameReference(ConsumeToken()));
+    return ParseTypePost();
+  }
+
   if (AdvanceIf(TokenType::LeftParenthesis)) {
     // ParenthesizedExpression:
     // '(' Expression ')'

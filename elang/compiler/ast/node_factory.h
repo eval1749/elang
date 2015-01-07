@@ -102,6 +102,22 @@ class NodeFactory final {
                               Expression* condition);
   EmptyStatement* NewEmptyStatement(Token* keyword);
   ExpressionStatement* NewExpressionStatement(Expression* expression);
+
+  ExpressionList* NewExpressionList(
+      Token* keyword,
+      const std::vector<Expression*>& expressions);
+
+  ForEachStatement* NewForEachStatement(Token* keyword,
+                                        LocalVariable* variable,
+                                        Expression* enumerable,
+                                        Statement* statement);
+
+  ForStatement* NewForStatement(Token* keyword,
+                                Statement* initializer,
+                                Expression* condition,
+                                Statement* step,
+                                Statement* statement);
+
   IfStatement* NewIfStatement(Token* keyword,
                               Expression* condition,
                               Statement* then_statement,

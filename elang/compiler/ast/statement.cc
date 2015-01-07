@@ -18,6 +18,33 @@ namespace ast {
 Statement::Statement(Token* op) : Node(op) {
 }
 
+ExpressionList::ExpressionList(Token* keyword,
+                               const std::vector<Expression*>& expressions)
+    : Statement(keyword), expressions_(expressions) {
+}
+
+ForEachStatement::ForEachStatement(Token* keyword,
+                                   LocalVariable* variable,
+                                   Expression* enumerable,
+                                   Statement* statement)
+    : Statement(keyword),
+      enumerable_(enumerable),
+      statement_(statement),
+      variable_(variable) {
+}
+
+ForStatement::ForStatement(Token* keyword,
+                           Statement* initializer,
+                           Expression* condition,
+                           Statement* step,
+                           Statement* statement)
+    : Statement(keyword),
+      condition_(condition),
+      initializer_(initializer),
+      statement_(statement),
+      step_(step) {
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

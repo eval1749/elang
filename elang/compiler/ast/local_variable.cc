@@ -21,7 +21,8 @@ LocalVariable::LocalVariable(Token* keyword,
                              Expression* value)
     : NamedNode(keyword, name), type_(type), value_(value) {
   DCHECK(!keyword || keyword == TokenType::Const ||
-         keyword == TokenType::Catch || keyword == TokenType::Using);
+         keyword == TokenType::Catch || keyword == TokenType::For ||
+         keyword == TokenType::Using);
 }
 
 bool LocalVariable::is_const() const {

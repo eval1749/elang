@@ -129,6 +129,7 @@ class Parser final {
   bool ParseConstStatement(Token* keyword);
   bool ParseContinueStatement(Token* keyword);
   bool ParseDoStatement(Token* keyword);
+  bool ParseForStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);
   bool ParseMethodDecl(Modifiers modifiers,
                        ast::Expression* method_type,

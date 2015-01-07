@@ -45,6 +45,9 @@ namespace ast {
   V(ContinueStatement)             \
   V(EmptyStatement)                \
   V(ExpressionStatement)           \
+  V(ExpressionList)                \
+  V(ForEachStatement)              \
+  V(ForStatement)                  \
   V(IfStatement)                   \
   V(ReturnStatement)               \
   V(ThrowStatement)                \
@@ -83,9 +86,12 @@ class Visitor;
   friend class NodeFactory;                 \
                                             \
  protected:                                 \
-  ~self() = default;                        \
-                                            \
- private:
+  ~self() = default;
+
+#define DECLARE_AST_NODE_CONCRETE_CLASS(self, super) \
+  DECLARE_AST_NODE_CLASS(self, super);               \
+  void Accept(Visitor* visitor) final;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Node

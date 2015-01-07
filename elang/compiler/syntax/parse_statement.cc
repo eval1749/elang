@@ -246,6 +246,176 @@ bool Parser::ParseDoStatement(Token* do_keyword) {
   return true;
 }
 
+// ForThreeStatement ::=
+//   'for' '(' ForInitializer? ';' ForCondition? ';' ForIterator ')'
+//     EmbeddedStatement
+// ForEachStatement ::=
+//   'for' '(' ForEachInitializer ':' Expression ')'
+//     EmbeddedStatement
+bool Parser::ParseForStatement(Token* for_keyword) {
+  DCHECK_EQ(for_keyword, TokenType::For);
+  if (!AdvanceIf(TokenType::LeftParenthesis))
+    Error(ErrorCode::SyntaxForLeftParenthesis);
+
+  enum class State {
+    Colon,
+    Comma,
+    SemiColon,
+    Start,
+    TypeOrExpression,
+    Var,
+  } state = State::Start;
+
+  std::vector<ast::Expression*> initializers;
+  std::vector<ast::LocalVariable*> variables;
+
+  for (;;) {
+    switch (state) {
+      case State::Colon: {
+        DCHECK(initializers.empty());
+        DCHECK(!variables.empty());
+        if (variables.size() != 1u) {
+          Error(ErrorCode::SyntaxForColon);
+          return false;
+        }
+        if (!ParseExpression())
+          return false;
+        if (!AdvanceIf(TokenType::RightParenthesis))
+          Error(ErrorCode::SyntaxForRightParenthesis);
+        auto const enumerable = ConsumeExpression();
+        StatementScope for_scope(this, for_keyword);
+        if (!ParseStatement())
+          return false;
+        ProduceStatement(factory()->NewForEachStatement(
+            for_keyword, variables.front(), enumerable, ConsumeStatement()));
+        return true;
+      }
+      case State::Comma:
+        if (!ParseExpression())
+          return false;
+        if (AdvanceIf(TokenType::SemiColon)) {
+          state = State::SemiColon;
+          continue;
+        }
+        if (AdvanceIf(TokenType::Comma))
+          continue;
+        Error(ErrorCode::SyntaxForInit);
+        return false;
+
+      case State::SemiColon: {
+        auto const semi_colon = ConsumeToken();
+        if (initializers.empty() && variables.empty()) {
+          ProduceStatement(factory()->NewEmptyStatement(semi_colon));
+        } else if (initializers.empty()) {
+          ProduceStatement(factory()->NewVarStatement(for_keyword, variables));
+        } else if (variables.empty()) {
+          factory()->NewExpressionList(semi_colon, initializers);
+        } else {
+          ProduceStatement(factory()->NewVarStatement(for_keyword, variables));
+          Error(ErrorCode::SyntaxForInit);
+        }
+        auto const initializer = ConsumeStatement();
+        auto condition =
+            PeekToken() != TokenType::SemiColon && ParseExpression()
+                ? ConsumeExpression()
+                : static_cast<ast::Expression*>(nullptr);
+        if (!AdvanceIf(TokenType::SemiColon))
+          Error(ErrorCode::SyntaxForSemiColon);
+        {
+          std::vector<ast::Expression*> steps;
+          if (PeekToken() != TokenType::RightParenthesis) {
+            while (ParseExpression()) {
+              steps.push_back(ConsumeExpression());
+              if (!AdvanceIf(TokenType::Comma))
+                break;
+            }
+          }
+          if (!AdvanceIf(TokenType::RightParenthesis))
+            Error(ErrorCode::SyntaxForRightParenthesis);
+          ProduceStatement(factory()->NewExpressionList(for_keyword, steps));
+        }
+        auto const step = ConsumeStatement();
+        StatementScope for_scope(this, for_keyword);
+        if (!ParseStatement())
+          ProduceStatement(factory()->NewEmptyStatement(semi_colon));
+        ProduceStatement(factory()->NewForStatement(
+            for_keyword, initializer, condition, step, ConsumeStatement()));
+        return true;
+      }
+
+      case State::Start:
+        if (PeekToken() == TokenType::SemiColon) {
+          state = State::SemiColon;
+          continue;
+        }
+        if (PeekToken() == TokenType::Var) {
+          ProduceType(factory()->NewNameReference(ConsumeToken()));
+          state = State::Var;
+          continue;
+        }
+        if (!ParseExpression())
+          return false;
+        state = State::TypeOrExpression;
+        break;
+
+      case State::TypeOrExpression:
+        if (PeekToken()->is_name()) {
+          state = State::Var;
+          continue;
+        }
+        initializers.push_back(ConsumeExpression());
+        if (AdvanceIf(TokenType::SemiColon)) {
+          state = State::SemiColon;
+          continue;
+        }
+        if (AdvanceIf(TokenType::Comma)) {
+          state = State::Comma;
+          continue;
+        }
+        Error(ErrorCode::SyntaxForInit);
+        return false;
+
+      case State::Var: {
+        if (!PeekToken()->is_name()) {
+          Error(ErrorCode::SyntaxForVar);
+          state = State::Start;
+          continue;
+        }
+        auto const type = ConsumeType();
+        auto const name = ConsumeToken();
+
+        if (AdvanceIf(TokenType::Assign)) {
+          if (!ParseExpression())
+            return false;
+          variables.push_back(factory()->NewLocalVariable(
+              for_keyword, type, name, ConsumeExpression()));
+          state = State::Start;
+          continue;
+        }
+
+        variables.push_back(
+            factory()->NewLocalVariable(for_keyword, type, name, nullptr));
+
+        if (AdvanceIf(TokenType::Colon)) {
+          state = State::Colon;
+          continue;
+        }
+
+        if (AdvanceIf(TokenType::SemiColon)) {
+          state = State::SemiColon;
+          continue;
+        }
+
+        if (AdvanceIf(TokenType::Comma))
+          continue;
+
+        Error(ErrorCode::SyntaxForInit);
+        return false;
+      }
+    }
+  }
+}
+
 // IfStatement ::= 'if' '(' Expression ')' Statement ('else Statement)?
 bool Parser::ParseIfStatement(Token* if_keyword) {
   DCHECK_EQ(if_keyword, TokenType::If);
@@ -558,6 +728,9 @@ bool Parser::ParseStatement() {
 
   if (auto const do_keyword = ConsumeTokenIf(TokenType::Do))
     return ParseDoStatement(do_keyword);
+
+  if (auto const for_keyword = ConsumeTokenIf(TokenType::For))
+    return ParseForStatement(for_keyword);
 
   if (auto const if_keyword = ConsumeTokenIf(TokenType::If))
     return ParseIfStatement(if_keyword);

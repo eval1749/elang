@@ -30,6 +30,71 @@ class Statement : public Node {
   DISALLOW_COPY_AND_ASSIGN(Statement);
 };
 
+// Represents comma separated expressions used in 'for' statement.
+class ExpressionList : public Statement {
+  DECLARE_AST_NODE_CONCRETE_CLASS(ExpressionList, Statement);
+
+ public:
+  const std::vector<Expression*>& expressions() const { return expressions_; }
+
+ protected:
+  ExpressionList(Token* keyword, const std::vector<Expression*>& expressions);
+
+ private:
+  const std::vector<Expression*> expressions_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExpressionList);
+};
+
+// Represents 'for' + ':' statement.
+class ForEachStatement : public Statement {
+  DECLARE_AST_NODE_CONCRETE_CLASS(ForEachStatement, Statement);
+
+ public:
+  Expression* enumerable() const { return enumerable_; }
+  Statement* statement() const { return statement_; }
+  LocalVariable* variable() const { return variable_; }
+
+ protected:
+  ForEachStatement(Token* keyword,
+                   LocalVariable* variable,
+                   Expression* enumerable,
+                   Statement* statement);
+
+ private:
+  Expression* const enumerable_;
+  Statement* const statement_;
+  LocalVariable* const variable_;
+
+  DISALLOW_COPY_AND_ASSIGN(ForEachStatement);
+};
+
+// Represents 'for' statement.
+class ForStatement : public Statement {
+  DECLARE_AST_NODE_CONCRETE_CLASS(ForStatement, Statement);
+
+ public:
+  Expression* condition() const { return condition_; }
+  Statement* initializer() const { return initializer_; }
+  Statement* statement() const { return statement_; }
+  Statement* step() const { return step_; }
+
+ protected:
+  ForStatement(Token* keyword,
+               Statement* initializer,
+               Expression* condition,
+               Statement* step,
+               Statement* statement);
+
+ private:
+  Expression* const condition_;
+  Statement* const initializer_;
+  Statement* const statement_;
+  Statement* const step_;
+
+  DISALLOW_COPY_AND_ASSIGN(ForStatement);
+};
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

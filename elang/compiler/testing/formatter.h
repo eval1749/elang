@@ -48,6 +48,7 @@ class Formatter final : public ast::Visitor {
   };
   friend class FormatBlock;
 
+  void FormatChildStatement(ast::Statement* statement);
   void Indent();
   void IndentPlusOne();
 

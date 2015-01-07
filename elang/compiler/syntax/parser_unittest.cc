@@ -313,6 +313,47 @@ TEST_F(ParserTest, ExpressionCallBasic) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// for-each statement
+//
+TEST_F(ParserTest, ForEachBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (var expr : exprs)\n"
+      "      process(expr);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// 'for' statement
+//
+TEST_F(ParserTest, ForBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (int i = 0; i < 10; ++i)\n"
+      "      process(i);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ForMultipleStep) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (int i = 0; i < 10; ++i, j++)\n"
+      "      process(i + j);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'if' statement
 //
 TEST_F(ParserTest, IfBasic) {
