@@ -346,7 +346,7 @@ TEST_F(ParserTest, ForMultipleStep) {
       "class A {\n"
       "  void Run() {\n"
       "    for (int i = 0; i < 10; ++i, j++)\n"
-      "      process(i + j);\n"
+      "      process(i, j, 20);\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));

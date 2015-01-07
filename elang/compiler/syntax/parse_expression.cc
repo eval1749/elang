@@ -263,11 +263,15 @@ bool Parser::ParsePrimaryExpressionPost() {
       // ArgumentList ::= Expression (',' Expression)*
       auto const callee = ConsumeExpression();
       std::vector<ast::Expression*> arguments;
-      while (!AdvanceIf(TokenType::RightParenthesis)) {
-        if (!ParseExpression())
-          break;
-        arguments.push_back(ConsumeExpression());
+      if (PeekToken() != TokenType::RightParenthesis) {
+        do {
+          if (!ParseExpression())
+            break;
+          arguments.push_back(ConsumeExpression());
+        } while (AdvanceIf(TokenType::Comma));
       }
+      if (!AdvanceIf(TokenType::RightParenthesis))
+        Error(ErrorCode::SyntaxExpressionRightParenthesis);
       ProduceExpression(factory()->NewCall(callee, arguments));
       continue;
     }
