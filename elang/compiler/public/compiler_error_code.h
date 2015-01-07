@@ -85,6 +85,7 @@ namespace compiler {
   E(Syntax, If, RightParenthesis)                     \
   /* MemberAccess */                                  \
   E(Syntax, MemberAccess, Name)                       \
+  E(Syntax, MemberAccess, RightAngleBracket)          \
   E(Syntax, MemberAccess, TypeArgument)               \
   /* Method */                                        \
   E(Syntax, Method, Comma)                            \
@@ -116,6 +117,7 @@ namespace compiler {
   E(Syntax, Type, Name)                               \
   E(Syntax, Type, RightAngleBracket)                  \
   E(Syntax, Type, RightSquareBracket)                 \
+  E(Syntax, Type, TypeArgument)                       \
   /* Using */                                         \
   E(Syntax, Using, Assign)                            \
   E(Syntax, Using, LeftParenthesis)                   \

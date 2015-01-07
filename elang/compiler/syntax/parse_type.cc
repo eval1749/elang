@@ -81,14 +81,16 @@ bool Parser::ParseNamespaceOrTypeName() {
               return false;
             type_args.push_back(ConsumeType());
           } while (AdvanceIf(TokenType::Comma));
-          if (!AdvanceIf(TokenType::RightAngleBracket)) {
+          if (!AdvanceIf(TokenType::RightAngleBracket))
             Error(ErrorCode::SyntaxTypeRightAngleBracket);
-            return false;
+          if (names.empty()) {
+            Error(ErrorCode::SyntaxTypeTypeArgument);
+          } else {
+            ProduceMemberAccess(names);
+            names.clear();
+            names.push_back(
+                factory()->NewConstructedType(ConsumeType(), type_args));
           }
-          ProduceMemberAccess(names);
-          names.clear();
-          names.push_back(
-              factory()->NewConstructedType(ConsumeType(), type_args));
           state = State::ConstructedType;
           continue;
         }

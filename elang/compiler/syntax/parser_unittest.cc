@@ -445,7 +445,7 @@ TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
       "    System.Console<A;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.MemberAccess.TypeArgument(43) ;\n", Format());
+  EXPECT_EQ("Syntax.MemberAccess.RightAngleBracket(43) ;\n", Format());
 }
 
 TEST_F(ParserTest, MemberAccessTypeArg) {
@@ -471,6 +471,17 @@ TEST_F(ParserTest, MethodBasic) {
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
 }
+
+TEST_F(ParserTest, MethodErrorTypeArg) {
+  Prepare(
+      "class A {\n"
+      "  void Run(B<foo x) {\n"  // Missing right angle bracket.
+      "    return x;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Type.RightAngleBracket(27) x\n", Format());
+}
+
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -632,20 +643,6 @@ TEST_F(ParserTest, TryFinally) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 'var' statement
-//
-TEST_F(ParserTest, VarBasic) {
-  auto const source_code =
-      "class A {\n"
-      "  void Run(int x) {\n"
-      "    var a, b = 3;\n"
-      "  }\n"
-      "}\n";
-  EXPECT_EQ(source_code, Format(source_code));
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // 'using' statement
 //
 TEST_F(ParserTest, UsingBasic) {
@@ -660,10 +657,6 @@ TEST_F(ParserTest, UsingBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// 'using' statement
-//
 TEST_F(ParserTest, UsingVar) {
   auto const source_code =
       "class A {\n"
@@ -671,6 +664,20 @@ TEST_F(ParserTest, UsingVar) {
       "    using (var y = foo) {\n"
       "      foo;\n"
       "    }\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// 'var' statement
+//
+TEST_F(ParserTest, VarBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    var a, b = 3;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));

@@ -251,9 +251,12 @@ bool Parser::ParsePrimaryExpressionPost() {
           return false;
         type_args.push_back(ConsumeType());
       } while (AdvanceIf(TokenType::Comma));
-      DCHECK(!type_args.empty());
-      if (!AdvanceIf(TokenType::RightAngleBracket))
+      if (type_args.empty()) {
         Error(ErrorCode::SyntaxMemberAccessTypeArgument);
+        continue;
+      }
+      if (!AdvanceIf(TokenType::RightAngleBracket))
+        Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
       ProduceExpression(factory()->NewConstructedType(generic_type, type_args));
       continue;
     }
