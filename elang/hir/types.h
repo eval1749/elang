@@ -181,8 +181,6 @@ class ELANG_HIR_EXPORT StringType final : public ReferenceType {
  private:
   explicit StringType(Zone* zone);
 
-  Zone* const zone_;
-
   DISALLOW_COPY_AND_ASSIGN(StringType);
 };
 

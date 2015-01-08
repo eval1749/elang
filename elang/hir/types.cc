@@ -15,15 +15,6 @@
 namespace elang {
 namespace hir {
 
-namespace {
-base::StringPiece16 NewString(Zone* zone, base::StringPiece16 string_piece) {
-  auto const size = string_piece.size() * sizeof(base::char16);
-  auto const string = static_cast<base::char16*>(zone->Allocate(size));
-  ::memcpy(string, string_piece.data(), size);
-  return base::StringPiece16(string, string_piece.size());
-}
-}  // namespace
-
 #define V(Name, ...)                              \
   void Name##Type::Accept(TypeVisitor* visitor) { \
     visitor->Visit##Name##Type(this);             \
@@ -87,11 +78,7 @@ Value* ReferenceType::GetDefaultValue() const {
   return null_literal_;
 }
 
-StringType::StringType(Zone* zone) : ReferenceType(zone), zone_(zone) {
-}
-
-StringLiteral* StringType::NewLiteral(base::StringPiece16 data) {
-  return new (zone_) StringLiteral(this, NewString(zone_, data));
+StringType::StringType(Zone* zone) : ReferenceType(zone) {
 }
 
 }  // namespace hir

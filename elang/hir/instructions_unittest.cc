@@ -40,8 +40,9 @@ HirInstructionTest::HirInstructionTest() : factory_(new Factory()) {
 TEST_F(HirInstructionTest, CallInstruction) {
   auto const void_type = types()->GetVoidType();
   auto const string_type = types()->GetStringType();
-  auto const callee = string_type->NewLiteral(L"Console.WriteLine");
-  auto const args = string_type->NewLiteral(L"Hello world!");
+  auto const callee = factory()->NewReference(
+      types()->NewFunctionType(void_type, string_type), L"Console.WriteLine");
+  auto const args = factory()->NewStringLiteral(L"Hello world!");
   auto const instr = static_cast<Instruction*>(
       CallInstruction::New(factory(), void_type, callee, args));
   EXPECT_FALSE(instr->CanBeRemoved());

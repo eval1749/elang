@@ -59,8 +59,12 @@ void ValueFormatter::VisitFunction(Function* function) {
   ostream_ << *function;
 }
 
+void ValueFormatter::VisitReference(Reference* reference) {
+  ostream_ << *reference;
+}
+
 void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
-  ostream_ << *literal->type() << " null";
+  ostream_ << "static_cast<" << *literal->type() << ">(null)";
 }
 
 void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
@@ -152,6 +156,10 @@ std::ostream& operator<<(std::ostream& ostream, Instruction::Opcode opcode) {
   };
   return ostream << mnemonics[std::min(static_cast<size_t>(opcode),
                                        arraysize(mnemonics))];
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Reference& reference) {
+  return ostream << "`" << reference.name() << "`";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {

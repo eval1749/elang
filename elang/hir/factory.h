@@ -5,8 +5,10 @@
 #ifndef ELANG_HIR_FACTORY_H_
 #define ELANG_HIR_FACTORY_H_
 
+#include <string>
 #include <memory>
 
+#include "base/strings/string_piece.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_factory.h"
 #include "elang/hir/type_factory.h"
@@ -28,6 +30,9 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
 
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
+  Reference* NewReference(Type* type, base::StringPiece16 name);
+  base::StringPiece16 NewString(base::StringPiece16 string_piece);
+  StringLiteral* NewStringLiteral(base::StringPiece16 data);
 
   int NextBasicBlockId();
   int NextInstructionId();

@@ -5,6 +5,7 @@
 #ifndef ELANG_HIR_VALUES_H_
 #define ELANG_HIR_VALUES_H_
 
+#include <string>
 #include <ostream>
 
 #include "base/basictypes.h"
@@ -137,6 +138,24 @@ class ELANG_HIR_EXPORT NullLiteral : public Literal {
 
   DISALLOW_COPY_AND_ASSIGN(NullLiteral);
 };
+
+// Represents reference to object.
+class ELANG_HIR_EXPORT Reference : public Literal {
+  DECLARE_HIR_CONCRETE_VALUE_CLASS(Reference, Literal);
+
+ public:
+  const base::StringPiece16 name() const { return name_; }
+
+ private:
+  Reference(Type* type, base::StringPiece16 name);
+
+  const base::StringPiece16 name_;
+
+  DISALLOW_COPY_AND_ASSIGN(Reference);
+};
+
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Reference& function);
 
 // value for 'void' type. |TypeFactory| singleton.
 class ELANG_HIR_EXPORT VoidLiteral : public Literal {

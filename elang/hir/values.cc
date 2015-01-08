@@ -77,6 +77,10 @@ Literal::Literal(Type* type) : Value(type) {
 NullLiteral::NullLiteral(Type* type) : Literal(type) {
 }
 
+Reference::Reference(Type* type, base::StringPiece16 name)
+    : Literal(type), name_(name) {
+}
+
 VoidLiteral::VoidLiteral(VoidType* type, int data) : Literal(type) {
   __assume(!data);
 }
