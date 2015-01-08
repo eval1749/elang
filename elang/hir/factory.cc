@@ -19,7 +19,11 @@ namespace hir {
 //
 // Factory
 //
-Factory::Factory() : InstructionFactory(this), zone_(new Zone()) {
+Factory::Factory()
+    : InstructionFactory(this),
+      last_basic_block_id_(0),
+      last_instruction_id_(0),
+      zone_(new Zone()) {
 }
 
 Factory::~Factory() {
@@ -31,6 +35,14 @@ BasicBlock* Factory::NewBasicBlock() {
 
 Function* Factory::NewFunction(FunctionType* type) {
   return new (zone()) Function(this, type);
+}
+
+int Factory::NextBasicBlockId() {
+  return ++last_basic_block_id_;
+}
+
+int Factory::NextInstructionId() {
+  return ++last_instruction_id_;
 }
 
 }  // namespace hir

@@ -27,12 +27,6 @@ bool Instruction::IsTerminator() const {
   return false;
 }
 
-void Instruction::set_id(int new_id) {
-  DCHECK_GT(new_id, 0);
-  DCHECK(!id_);
-  id_ = new_id;
-}
-
 #define V(Name, ...) \
   Instruction::Opcode Name##Instruction::opcode() const { return Opcode::Name; }
 FOR_EACH_HIR_INSTRUCTION(V)

@@ -66,8 +66,8 @@ class ELANG_HIR_EXPORT Type : public Castable,
   // Which type of register holds a value of this type.
   virtual RegisterClass register_class() const;
 
-  // Returns |NullLiteral| if this type is nullable, otherwise returns null.
-  virtual NullLiteral* GetNullLiteral() const;
+  // Returns default value of this type.
+  virtual Value* GetDefaultValue() const = 0;
 
  protected:
   Type() = default;
@@ -84,24 +84,6 @@ ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
   DECLARE_HIR_TYPE_CLASS(self, super)                \
  private:                                            \
   void Accept(TypeVisitor* visitor) override;
-
-// A concrete class represents function type which has return type and parameter
-// types.
-class ELANG_HIR_EXPORT FunctionType : public Type {
-  DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, Type);
-
- public:
-  Type* parameters_type() const { return parameters_type_; }
-  Type* return_type() const { return return_type_; }
-
- private:
-  FunctionType(Type* return_type, Type* parameters_type);
-
-  Type* const parameters_type_;
-  Type* const return_type_;
-
-  DISALLOW_COPY_AND_ASSIGN(FunctionType);
-};
 
 // A base class of primitive types.
 class ELANG_HIR_EXPORT PrimitiveType : public Type {
@@ -136,6 +118,7 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
     /* Protocol defined by |PrimitiveType| class */                  \
     int bit_size() const override;                                   \
     RegisterClass register_class() const override;                   \
+    Value* GetDefaultValue() const override;                         \
                                                                      \
     /* |zone_| should be initialized before other members. */        \
     Zone* const zone_;                                               \
@@ -155,15 +138,34 @@ class ELANG_HIR_EXPORT ReferenceType : public Type {
   DECLARE_HIR_TYPE_CLASS(ReferenceType, Type);
 
  public:
-  NullLiteral* GetNullLiteral() const override;
-
  protected:
   explicit ReferenceType(Zone* zone);
 
  private:
+  // Type
+  Value* GetDefaultValue() const override;
+
   NullLiteral* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceType);
+};
+
+// A concrete class represents function type which has return type and parameter
+// types.
+class ELANG_HIR_EXPORT FunctionType : public ReferenceType {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, ReferenceType);
+
+ public:
+  Type* parameters_type() const { return parameters_type_; }
+  Type* return_type() const { return return_type_; }
+
+ private:
+  FunctionType(Zone* zone, Type* return_type, Type* parameters_type);
+
+  Type* const parameters_type_;
+  Type* const return_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(FunctionType);
 };
 
 //////////////////////////////////////////////////////////////////////

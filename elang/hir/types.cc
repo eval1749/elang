@@ -39,12 +39,10 @@ Type::RegisterClass Type::register_class() const {
   return RegisterClass::General;
 }
 
-NullLiteral* Type::GetNullLiteral() const {
-  return nullptr;
-}
-
-FunctionType::FunctionType(Type* return_type, Type* parameters_type)
-    : parameters_type_(parameters_type), return_type_(return_type) {
+FunctionType::FunctionType(Zone* zone, Type* return_type, Type* parameters_type)
+    : ReferenceType(zone),
+      parameters_type_(parameters_type),
+      return_type_(return_type) {
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -70,7 +68,9 @@ FunctionType::FunctionType(Type* return_type, Type* parameters_type)
     auto const new_literal = new (zone_) Name##Literal(this, data); \
     literal_cache_[data] = new_literal;                             \
     return new_literal;                                             \
-  }
+  }                                                                 \
+  /* Type */                                                        \
+  Value* Name##Type::GetDefaultValue() const { return zero_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
@@ -82,7 +82,7 @@ ReferenceType::ReferenceType(Zone* zone)
     : null_literal_(new (zone) NullLiteral(this)) {
 }
 
-NullLiteral* ReferenceType::GetNullLiteral() const {
+Value* ReferenceType::GetDefaultValue() const {
   DCHECK(null_literal_);
   return null_literal_;
 }

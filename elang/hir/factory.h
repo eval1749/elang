@@ -29,7 +29,12 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
 
+  int NextBasicBlockId();
+  int NextInstructionId();
+
  private:
+  int last_basic_block_id_;
+  int last_instruction_id_;
   const std::unique_ptr<Zone> zone_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

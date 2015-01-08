@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "elang/base/zone.h"
-#include "elang/hir/basic_block_editor.h"
+#include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
@@ -69,19 +69,16 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   auto const void_type = factory()->GetVoidType();
   auto const void_value = factory()->GetVoidValue();
 
-  auto const exit_block = factory()->NewBasicBlock();
-  {
-    BasicBlockEditor block(factory(), exit_block);
-    block.AppendChild(ExitInstruction::New(factory(), void_type));
-  }
-  auto const instr = static_cast<Instruction*>(
-      ReturnInstruction::New(factory(), void_type, void_value, exit_block));
+  auto const function_type = types()->NewFunctionType(void_type, void_type);
+  auto const function = factory()->NewFunction(function_type);
+
+  auto const instr = function->entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->GetVoidType(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
   EXPECT_EQ(void_value, instr->OperandAt(0));
-  EXPECT_EQ(exit_block, instr->OperandAt(1));
+  EXPECT_EQ(function->exit_block(), instr->OperandAt(1));
 }
 
 }  // namespace hir

@@ -174,8 +174,8 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 // and successors of a basic block from operands of the last instruction.
 // Note: 'ret' and 'unreachable' instructions have 'exit' block as an operand.
 //
-// This class provides getters only. You need to use |BasicBlockEditor| for
-// changing instructions, and |FunctionEditor| to add |BasicBlock| to
+// This class provides getters only. You need to use |Editor| for
+// changing instructions, and |Editor| to add |BasicBlock| to
 // |Function|.
 //
 // TODO(eval1749) Should we add |BasicBlock| to |Function| automatically when
@@ -189,6 +189,8 @@ class ELANG_HIR_EXPORT BasicBlock
  public:
   typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
 
+  Function* function() const { return function_; }
+
   // An integer identifier for debugging.
   int id() const { return id_; }
   void set_id(int id);
@@ -199,20 +201,17 @@ class ELANG_HIR_EXPORT BasicBlock
   Instruction* last_instruction() const;
 
  private:
-  // |BasicBlockEditor| manipulates instruction list
-  friend class BasicBlockEditor;
-  // |FunctionEditor| changes |function_| member variable.
-  friend class FunctionEditor;
+  // |Editor| manipulates instruction list
+  friend class Editor;
 
   explicit BasicBlock(Factory* factory);
 
   // |function_| holds owner of this |BasicBlock|.
   Function* function_;
-  // |id_| is assign positive integer by |FunctionEditor|. When this basic
+  // |id_| is assign positive integer by |Editor|. When this basic
   // block is removed from |Function|, |id_| is reset to zero.
   int id_;
   InstructionList instructions_;
-  int last_instruction_id_;
 
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
@@ -233,15 +232,14 @@ class ELANG_HIR_EXPORT Function : public Value {
   const BasicBlockList& basic_blocks() const { return basic_blocks_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
+  FunctionType* function_type() const;
 
  private:
-  friend class FunctionEditor;
+  friend class Editor;
 
-  explicit Function(Factory* factory, FunctionType* type);
+  Function(Factory* factory, FunctionType* type);
 
-  Function* function_;
   BasicBlockList basic_blocks_;
-  int last_basic_block_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };

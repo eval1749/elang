@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "elang/base/zone.h"
-#include "elang/hir/basic_block_editor.h"
+#include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/formatters/text_formatter.h"
 #include "elang/hir/instructions.h"
@@ -34,17 +34,6 @@ class HirValuesTest : public ::testing::Test {
 };
 
 HirValuesTest::HirValuesTest() : factory_(new Factory()) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// BasicBlock
-//
-TEST_F(HirValuesTest, BasicBlock) {
-  auto const block1 = factory()->NewBasicBlock();
-  BasicBlockEditor block(factory(), block1);
-  block.AppendChild(ExitInstruction::New(factory(), factory()->GetVoidType()));
-  EXPECT_TRUE(block.Validate(block1));
 }
 
 //////////////////////////////////////////////////////////////////////

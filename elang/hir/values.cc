@@ -4,9 +4,8 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
-#include "elang/hir/basic_block_editor.h"
+#include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
-#include "elang/hir/function_editor.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
 #include "elang/hir/values.h"
@@ -87,10 +86,7 @@ VoidLiteral::VoidLiteral(VoidType* type, int data) : Literal(type) {
 // BasicBlock
 //
 BasicBlock::BasicBlock(Factory* factory)
-    : Value(factory->GetVoidType()),
-      function_(nullptr),
-      id_(0),
-      last_instruction_id_(0) {
+    : Value(factory->GetVoidType()), function_(nullptr), id_(0) {
 }
 
 Instruction* BasicBlock::first_instruction() const {
@@ -101,19 +97,12 @@ Instruction* BasicBlock::last_instruction() const {
   return instructions_.last_node();
 }
 
-void BasicBlock::set_id(int new_id) {
-  DCHECK_GT(new_id, 0);
-  DCHECK(!id_);
-  id_ = new_id;
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // Function
 //
-Function::Function(Factory* factory, FunctionType* type)
-    : Value(type), function_(nullptr), last_basic_block_id_(0) {
-  FunctionEditor function(factory, this);
+Function::Function(Factory* factory, FunctionType* type) : Value(type) {
+  Editor function(factory, this);
 }
 
 BasicBlock* Function::entry_block() const {
@@ -126,6 +115,10 @@ BasicBlock* Function::exit_block() const {
   auto const block = basic_blocks_.last_node();
   DCHECK(block->first_instruction()->is<ExitInstruction>());
   return block;
+}
+
+FunctionType* Function::function_type() const {
+  return type()->as<FunctionType>();
 }
 
 }  // namespace hir

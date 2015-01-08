@@ -5,14 +5,12 @@
 component("hir") {
   output_name = "elang_hir"
   sources = [
-    "basic_block_editor.cc",
-    "basic_block_editor.h",
+    "editor.cc",
+    "editor.h",
     "factory.cc",
     "factory.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
-    "function_editor.cc",
-    "function_editor.h",
     "hir_export.h",
     "instructions.cc",
     "instructions.h",

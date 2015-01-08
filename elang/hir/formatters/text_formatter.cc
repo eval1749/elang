@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
 #include <string>
 
 #include "elang/hir/formatters/text_formatter.h"
@@ -37,8 +38,7 @@ class ValueFormatter : public ValueVisitor {
   void Format(const Value* type);
 
  private:
-#define V(Name, ...) \
-    void Visit##Name(Name* type) override;
+#define V(Name, ...) void Visit##Name(Name* type) override;
   FOR_EACH_HIR_VALUE(V)
 #undef V
 
@@ -68,10 +68,10 @@ void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
   ostream_ << "void";
 }
 
-#define V(Name, name, ...) \
+#define V(Name, name, ...)                                            \
   void ValueFormatter::Visit##Name##Literal(Name##Literal* literal) { \
-    ostream_ << *literal->type() << " " << \
-        static_cast<Literal*>(literal)->name##_value(); \
+    ostream_ << *literal->type() << " "                               \
+             << static_cast<Literal*>(literal)->name##_value();       \
   }
 FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V
@@ -88,8 +88,7 @@ class TypeFormatter : public TypeVisitor {
   void Format(const Type* type);
 
  private:
-#define V(Name, ...) \
-  void Visit##Name##Type(Name##Type* type) override;
+#define V(Name, ...) void Visit##Name##Type(Name##Type* type) override;
   FOR_EACH_HIR_TYPE(V)
 #undef V
 
@@ -111,12 +110,12 @@ void TypeFormatter::VisitStringType(StringType* type) {
   ostream_ << "string";
 }
 
-#define V(Name, name, ...) \
+#define V(Name, name, ...)                                  \
   void TypeFormatter::Visit##Name##Type(Name##Type* type) { \
-    DCHECK(type); \
-    ostream_ << #name; \
+    DCHECK(type);                                           \
+    ostream_ << #name;                                      \
   }
-  FOR_EACH_HIR_PRIMITIVE_TYPE(V)
+FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
 }  // namespace
@@ -127,6 +126,32 @@ std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
 
 std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function_" << &function;
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const Instruction& instruction) {
+  if (auto const basic_block = instruction.basic_block())
+    ostream << "bb" << basic_block->id();
+  else
+    ostream << "--";
+  ostream << ":" << instruction.id() << ":" << instruction.opcode();
+  if (!instruction.type()->is<VoidType>())
+    ostream << " " << instruction.type() << " %" << instruction.id() << " =";
+  auto const operand_count = instruction.CountOperands();
+  for (auto index = 0; index < operand_count; ++index)
+    ostream << " " << instruction.OperandAt(index);
+  return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, Instruction::Opcode opcode) {
+  static const char* const mnemonics[] = {
+#define V(Name, ...) #Name,
+      FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
+          "Invalid",
+  };
+  return ostream << mnemonics[std::min(static_cast<size_t>(opcode),
+                                       arraysize(mnemonics))];
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {
@@ -186,7 +211,7 @@ void TextFormatter::FormatFunction(const Function* function) {
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
   static const char* const mnemonics[] = {
 #define V(Name, mnemonic, ...) mnemonic,
-    FOR_EACH_HIR_INSTRUCTION(V)
+      FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
   };
 

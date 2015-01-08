@@ -42,7 +42,6 @@ class ELANG_HIR_EXPORT Instruction
 
   // An integer identifier for debugging.
   int id() const { return id_; }
-  void set_id(int id);
 
   // Opcode for formatting and debugging
   virtual Opcode opcode() const = 0;
@@ -66,13 +65,14 @@ class ELANG_HIR_EXPORT Instruction
 
   // Value accessor
   virtual Value* OperandAt(int index) const = 0;
-  virtual void SetOperandAt(int index, Value* new_value) = 0;
 
  protected:
   explicit Instruction(Type* output_type);
 
  private:
-  friend class BasicBlockEditor;
+  friend class Editor;
+
+  virtual void SetOperandAt(int index, Value* new_value) = 0;
 
   // Value
   void Accept(ValueVisitor* visitor) override;
@@ -84,7 +84,11 @@ class ELANG_HIR_EXPORT Instruction
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
-std::ostream& operator<<(std::ostream& ostream, const Instruction& instruction);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Instruction& instruction);
+
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          Instruction::Opcode opcode);
 
 template <class Derived, typename... Params>
 class InstructionTemplate : public Instruction {
@@ -97,9 +101,11 @@ class InstructionTemplate : public Instruction {
 
   // Instruction
   int CountOperands() const override { return sizeof...(Params); }
-  Value* OperandAt(int index) const override { return operans_[index].value(); }
+  Value* OperandAt(int index) const override {
+    return operands_[index].value();
+  }
   void SetOperandAt(int index, Value* new_value) override {
-    operans_[index].SetValue(new_value);
+    operands_[index].SetValue(new_value);
   }
 
  protected:
@@ -112,10 +118,10 @@ class InstructionTemplate : public Instruction {
   void InitOperands(int index) { __assume(index); }
   template <typename... Params>
   void InitOperands(int index, Value* value, Params... params) {
-    operans_[index].Init(this, value);
+    operands_[index].Init(this, value);
     InitOperands(index + 1, params...);
   }
-  EmbeddedContainer<UseDefNode, sizeof...(Params)> operans_;
+  EmbeddedContainer<UseDefNode, sizeof...(Params)> operands_;
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
@@ -127,7 +133,7 @@ class InstructionTemplate : public Instruction {
 //
 // CallInstruction
 //
-class ELANG_HIR_EXPORT CallInstruction
+class ELANG_HIR_EXPORT CallInstruction final
     : public InstructionTemplate<CallInstruction, Value*, Value*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Call);
 
@@ -147,7 +153,7 @@ class ELANG_HIR_EXPORT CallInstruction
 //
 // EntryInstruction
 //
-class ELANG_HIR_EXPORT EntryInstruction
+class ELANG_HIR_EXPORT EntryInstruction final
     : public InstructionTemplate<EntryInstruction> {
   DECLARE_HIR_INSTRUCTION_CLASS(Entry);
 
@@ -163,7 +169,7 @@ class ELANG_HIR_EXPORT EntryInstruction
 //
 // ExitInstruction
 //
-class ELANG_HIR_EXPORT ExitInstruction
+class ELANG_HIR_EXPORT ExitInstruction final
     : public InstructionTemplate<ExitInstruction> {
   DECLARE_HIR_INSTRUCTION_CLASS(Exit);
 
@@ -182,7 +188,7 @@ class ELANG_HIR_EXPORT ExitInstruction
 //
 // ReturnInstruction
 //
-class ELANG_HIR_EXPORT ReturnInstruction
+class ELANG_HIR_EXPORT ReturnInstruction final
     : public InstructionTemplate<ReturnInstruction, Value*, BasicBlock*> {
   DECLARE_HIR_INSTRUCTION_CLASS(Return);
 
