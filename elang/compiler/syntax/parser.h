@@ -154,6 +154,7 @@ class Parser final {
   // Returns true if |expression| can be type. Since we've not yet resolved
   // name references, |expression| may not be type.
   bool MaybeType(ast::Expression* expression) const;
+  void ParseArrayType(Token* bracket);
   bool ParseNamespaceOrTypeName();
   bool ParseType();
   std::vector<Token*> ParseTypeParameterList();

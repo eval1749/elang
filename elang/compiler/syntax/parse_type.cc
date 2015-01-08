@@ -41,6 +41,21 @@ bool Parser::MaybeType(ast::Expression* maybe_type) const {
          maybe_type->is<ast::NameReference>();
 }
 
+// ArrayType ::= Type ('[' ','* ']')+
+void Parser::ParseArrayType(Token* bracket) {
+  auto const element_type = ConsumeType();
+  std::vector<int> ranks;
+  do {
+    auto rank = 1;
+    while (AdvanceIf(TokenType::Comma))
+      ++rank;
+    if (!AdvanceIf(TokenType::RightSquareBracket))
+      Error(ErrorCode::SyntaxTypeRightSquareBracket);
+    ranks.push_back(rank);
+  } while (AdvanceIf(TokenType::LeftSquareBracket));
+  ProduceType(factory()->NewArrayType(bracket, element_type, ranks));
+}
+
 // NamespaceOrTypeName ::=
 //   Name TypeArgumentList |
 //   QualifiedAliasMember |
@@ -152,20 +167,8 @@ bool Parser::ParseType() {
 bool Parser::ParseTypePost() {
   if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType))
     ProduceType(factory()->NewUnaryOperation(optional_marker, ConsumeType()));
-  if (PeekToken() != TokenType::LeftSquareBracket)
-    return true;
-  auto const element_type = ConsumeType();
-  auto const bracket_token = PeekToken();
-  std::vector<int> ranks;
-  while (AdvanceIf(TokenType::LeftSquareBracket)) {
-    auto rank = 1;
-    while (AdvanceIf(TokenType::Comma))
-      ++rank;
-    if (!AdvanceIf(TokenType::RightSquareBracket))
-      Error(ErrorCode::SyntaxTypeRightSquareBracket);
-    ranks.push_back(rank);
-  }
-  ProduceType(factory()->NewArrayType(bracket_token, element_type, ranks));
+  if (auto const bracket = ConsumeTokenIf(TokenType::LeftSquareBracket))
+    ParseArrayType(bracket);
   return true;
 }
 

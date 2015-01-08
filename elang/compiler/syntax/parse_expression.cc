@@ -267,6 +267,14 @@ bool Parser::ParsePrimaryExpressionPost() {
       continue;
     }
 
+    if (auto const bracket = ConsumeTokenIf(TokenType::LeftSquareBracket)) {
+      if (PeekToken() == TokenType::RightSquareBracket ||
+          PeekToken() == TokenType::Comma) {
+        ParseArrayType(bracket);
+        continue;
+      }
+    }
+
     return true;
   }
 }
