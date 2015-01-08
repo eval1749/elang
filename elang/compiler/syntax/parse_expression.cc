@@ -129,40 +129,12 @@ bool Parser::ParseExpression() {
   return !!expression_;
 }
 
-// Null-Coalescing-Expression ::=
-//    Conditional-Or-Expression ||
-//    Conditional-Or-Expression '??' Null-Coalescing-Expression
 bool Parser::ParseExpressionSub(ExpressionCategory category) {
   if (category == ExpressionCategory::Primary)
     return ParsePrimaryExpression();
 
-  if (category == ExpressionCategory::Unary) {
-    if (PeekTokenCategory() == ExpressionCategory::Unary) {
-      auto const op_token = ConsumeToken();
-      if (!ParsePrimaryExpression())
-        return false;
-      ProduceUnaryOperation(op_token, ConsumeExpression());
-      return true;
-    }
-
-    if (PeekToken() == TokenType::Add) {
-      auto const op_token = ConsumeTokenAs(TokenType::UnaryAdd);
-      if (!ParsePrimaryExpression())
-        return false;
-      ProduceUnaryOperation(op_token, ConsumeExpression());
-      return true;
-    }
-
-    if (PeekToken() == TokenType::Sub) {
-      auto const op_token = ConsumeTokenAs(TokenType::UnarySub);
-      if (!ParsePrimaryExpression())
-        return false;
-      ProduceUnaryOperation(op_token, ConsumeExpression());
-      return true;
-    }
-
-    return ParsePrimaryExpression();
-  }
+  if (category == ExpressionCategory::Unary)
+    return ParseUnaryExpression();
 
   // Handle Left-associative binary operators
   if (!ParseExpressionSub(RaisePrecedence(category)))
@@ -299,6 +271,26 @@ bool Parser::ParsePrimaryExpressionPost() {
   }
 }
 
+// UnaryExpression ::=
+//  PrimaryExpression |
+//  '++' UnaryExpression |
+//  '--' UnaryExpression |
+//  '+' UnaryExpression |
+//  '-' UnaryExpression |
+//  '!' UnaryExpression |
+//  '~' UnaryExpression |
+//  dynamic_cast<Type>(Expression) |
+//  static_cast<Type>(Expression)
+bool Parser::ParseUnaryExpression() {
+  auto const op_token = TryConsumeUnaryOperator();
+  if (!op_token)
+    return ParsePrimaryExpression();
+  if (!ParseUnaryExpression())
+    return false;
+  ProduceUnaryOperation(op_token, ConsumeExpression());
+  return true;
+}
+
 Parser::ExpressionCategory Parser::PeekTokenCategory() {
   PeekToken();
   if (!PeekToken()->is_operator())
@@ -321,6 +313,16 @@ ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
 ast::Expression* Parser::ProduceUnaryOperation(Token* op_token,
                                                ast::Expression* expression) {
   return ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
+}
+
+Token* Parser::TryConsumeUnaryOperator() {
+  if (PeekTokenCategory() == ExpressionCategory::Unary)
+    return ConsumeToken();
+  if (PeekToken() == TokenType::Add)
+    return ConsumeTokenAs(TokenType::UnaryAdd);
+  if (PeekToken() == TokenType::Sub)
+    return ConsumeTokenAs(TokenType::UnarySub);
+  return nullptr;
 }
 
 }  // namespace compiler

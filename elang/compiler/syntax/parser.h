@@ -108,6 +108,7 @@ class Parser final {
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
   bool ParsePrimaryExpressionPost();
+  bool ParseUnaryExpression();
   ExpressionCategory PeekTokenCategory();
   ast::Expression* ProduceBinaryOperation(Token* op_token,
                                           ast::Expression* left,
@@ -115,6 +116,7 @@ class Parser final {
   ast::Expression* ProduceExpression(ast::Expression* expression);
   ast::Expression* ProduceUnaryOperation(Token* op_token,
                                          ast::Expression* expression);
+  Token* TryConsumeUnaryOperator();
 
   // in "parse_statement.cc"
   // Returns last produced statement.
