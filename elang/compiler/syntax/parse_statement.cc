@@ -194,22 +194,9 @@ bool Parser::ParseConstStatement(Token* const_keyword) {
   } else if (ParseType()) {
     type = ConsumeType();
   }
-  std::vector<ast::LocalVariable*> variables;
-  while (PeekToken()->is_name()) {
-    auto const name = ConsumeToken();
-    if (AdvanceIf(TokenType::Assign) && ParseExpression()) {
-      auto const expression = ConsumeExpression();
-      variables.push_back(
-          factory()->NewLocalVariable(const_keyword, type, name, expression));
-    }
-    if (!AdvanceIf(TokenType::Comma))
-      break;
-  }
+  ParseVariables(const_keyword, type);
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxVarSemiColon);
-  if (variables.empty())
-    Error(ErrorCode::SyntaxVarInvalid);
-  ProduceStatement(factory()->NewVarStatement(const_keyword, variables));
   return true;
 }
 
@@ -627,29 +614,39 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
   return true;
 }
 
+// |keyword| is 'const', 'var' or token of |type|.
+void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
+  std::vector<ast::LocalVariable*> variables;
+  while (PeekToken()->is_name()) {
+    auto const name = ConsumeToken();
+    auto const assign = ConsumeTokenIf(TokenType::Assign);
+    auto const init =
+        assign && ParseExpression() ? ConsumeExpression() : nullptr;
+    if (!init) {
+      if (assign)
+        Error(ErrorCode::SyntaxVarAssign);
+      else if (keyword == TokenType::Const)
+        Error(ErrorCode::SyntaxVarConst);
+    }
+    // TODO(eval1749) Check local name duplication
+    variables.push_back(factory()->NewLocalVariable(nullptr, type, name, init));
+    if (!AdvanceIf(TokenType::Comma))
+      break;
+    if (!PeekToken()->is_name())
+      Error(ErrorCode::SyntaxVarComma);
+  }
+  if (variables.empty())
+    Error(ErrorCode::SyntaxVarName);
+  ProduceStatement(factory()->NewVarStatement(keyword, variables));
+}
+
 // VarStatement ::= 'var' VarDecl (',' VarDecl)* ';'
 // VarDecl ::= Name ('=' Expression')
 bool Parser::ParseVarStatement(Token* var_keyword) {
   DCHECK_EQ(var_keyword, TokenType::Var);
-  auto const type = factory()->NewNameReference(var_keyword);
-  std::vector<ast::LocalVariable*> variables;
-  while (PeekToken()->is_name()) {
-    auto const name = ConsumeToken();
-    auto expression = static_cast<ast::Expression*>(nullptr);
-    if (AdvanceIf(TokenType::Assign)) {
-      if (ParseExpression())
-        expression = ConsumeExpression();
-    }
-    variables.push_back(
-        factory()->NewLocalVariable(nullptr, type, name, expression));
-    if (!AdvanceIf(TokenType::Comma))
-      break;
-  }
+  ParseVariables(var_keyword, factory()->NewNameReference(var_keyword));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxVarSemiColon);
-  if (variables.empty())
-    Error(ErrorCode::SyntaxVarInvalid);
-  ProduceStatement(factory()->NewVarStatement(var_keyword, variables));
   return true;
 }
 
@@ -756,7 +753,22 @@ bool Parser::ParseStatement() {
   // ExpressionStatement ::= Expression ';'
   if (!ParseExpression())
     return false;
-  ProduceStatement(factory()->NewExpressionStatement(ConsumeExpression()));
+
+  auto const expression = ConsumeExpression();
+  if (PeekToken()->is_name()) {
+    // LocalVariableDeclration ::=
+    //    Type LocalVariableDeclarator (',' LocalVariableDeclarator)*
+    // LocalVariableDeclarator ::= Name ('=' Expression)
+    if (!MaybeType(expression))
+      Error(ErrorCode::SyntaxVarType);
+    ParseVariables(expression->token(), expression);
+    if (!AdvanceIf(TokenType::SemiColon))
+      Error(ErrorCode::SyntaxVarSemiColon);
+    return true;
+  }
+
+  // Expression statement
+  ProduceStatement(factory()->NewExpressionStatement(expression));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxStatementSemiColon);
   return true;

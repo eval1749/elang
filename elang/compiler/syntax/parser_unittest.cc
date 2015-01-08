@@ -738,6 +738,56 @@ TEST_F(ParserTest, VarBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, VarErrorAssign) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x = ;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.Assign(35) ;\n", Format(source_code));
+}
+
+TEST_F(ParserTest, VarErrorComma) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x, ;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.Comma(34) ;\n", Format(source_code));
+}
+
+TEST_F(ParserTest, VarErrorName) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    var ;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.Name(31) ;\n", Format(source_code));
+}
+
+TEST_F(ParserTest, VarErrorSemiColon) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x = 0\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.SemiColon(39) }\n", Format(source_code));
+}
+
+TEST_F(ParserTest, VarType) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x = 0, y;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // 'while' statement

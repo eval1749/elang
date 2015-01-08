@@ -131,8 +131,12 @@ namespace compiler {
   E(Syntax, UsingDirective, Name)                     \
   E(Syntax, UsingDirective, SemiColon)                \
   /* Var */                                           \
-  E(Syntax, Var, Invalid)                             \
+  E(Syntax, Var, Assign)                              \
+  E(Syntax, Var, Comma)                               \
+  E(Syntax, Var, Const)                               \
+  E(Syntax, Var, Name)                                \
   E(Syntax, Var, SemiColon)                           \
+  E(Syntax, Var, Type)                                \
   /* While */                                         \
   E(Syntax, While, LeftParenthesis)                   \
   E(Syntax, While, RightParenthesis)                  \

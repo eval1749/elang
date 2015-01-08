@@ -25,8 +25,9 @@ class VarStatement final : public Statement {
   const ZoneVector<LocalVariable*>& variables() const { return variables_; }
 
  private:
+  // |type_token| comes from variable type node.
   VarStatement(Zone* zone,
-               Token* name,
+               Token* type_token,
                const std::vector<LocalVariable*>& variables);
 
   // Node

@@ -13,9 +13,9 @@ namespace ast {
 // VarStatement
 //
 VarStatement::VarStatement(Zone* zone,
-                           Token* keyword,
+                           Token* type_token,
                            const std::vector<LocalVariable*>& variables)
-    : Statement(keyword), variables_(zone, variables) {
+    : Statement(type_token), variables_(zone, variables) {
 }
 
 }  // namespace ast

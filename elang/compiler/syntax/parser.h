@@ -144,6 +144,7 @@ class Parser final {
   bool ParseWhileStatement(Token* keyword);
   bool ParseUsingStatement(Token* keyword);
   bool ParseVarStatement(Token* keyword);
+  void ParseVariables(Token* keyword, ast::Expression* type);
   bool ParseYieldStatement(Token* keyword);
   ast::Statement* ProduceStatement(ast::Statement* statement);
 
