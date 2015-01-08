@@ -45,6 +45,11 @@ ForStatement::ForStatement(Token* keyword,
       step_(step) {
 }
 
+InvalidStatement::InvalidStatement(Token* token) : Statement(token) {
+  // We should have non-null |token| for source code location.
+  DCHECK(token);
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

@@ -341,12 +341,67 @@ TEST_F(ParserTest, ForBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
-TEST_F(ParserTest, ForMultipleStep) {
+TEST_F(ParserTest, ForConditionOnly) {
   auto const source_code =
       "class A {\n"
       "  void Run() {\n"
-      "    for (int i = 0; i < 10; ++i, j++)\n"
+      "    for (; condition();)\n"
+      "      process(i);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ForErrorSemiColon) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (int i = 0; i < 10 ++i)\n"
+      "      process(i);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.For.SemiColon(54) i\n", Format(source_code));
+}
+
+TEST_F(ParserTest, ForInfiniteLoop) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (;;)\n"
+      "      process(i);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ForInitOnly) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (init();;)\n"
+      "      process(i);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ForMultiple) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (int i = 0, j = 0; i < 10; ++i, j++)\n"
       "      process(i, j, 20);\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ForStepOnly) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run() {\n"
+      "    for (;; step())\n"
+      "      ;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));

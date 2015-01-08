@@ -33,6 +33,7 @@ namespace ast {
   V(Call)                           \
   V(Conditional)                    \
   V(ConstructedType)                \
+  V(InvalidExpression)              \
   V(Literal)                        \
   V(MemberAccess)                   \
   V(NameReference)                  \
@@ -49,6 +50,7 @@ namespace ast {
   V(ForEachStatement)              \
   V(ForStatement)                  \
   V(IfStatement)                   \
+  V(InvalidStatement)              \
   V(ReturnStatement)               \
   V(ThrowStatement)                \
   V(TryStatement)                  \

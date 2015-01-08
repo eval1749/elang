@@ -47,7 +47,7 @@ class ExpressionList : public Statement {
 };
 
 // Represents 'for' + ':' statement.
-class ForEachStatement : public Statement {
+class ForEachStatement final : public Statement {
   DECLARE_AST_NODE_CONCRETE_CLASS(ForEachStatement, Statement);
 
  public:
@@ -55,13 +55,12 @@ class ForEachStatement : public Statement {
   Statement* statement() const { return statement_; }
   LocalVariable* variable() const { return variable_; }
 
- protected:
+ private:
   ForEachStatement(Token* keyword,
                    LocalVariable* variable,
                    Expression* enumerable,
                    Statement* statement);
 
- private:
   Expression* const enumerable_;
   Statement* const statement_;
   LocalVariable* const variable_;
@@ -70,7 +69,7 @@ class ForEachStatement : public Statement {
 };
 
 // Represents 'for' statement.
-class ForStatement : public Statement {
+class ForStatement final : public Statement {
   DECLARE_AST_NODE_CONCRETE_CLASS(ForStatement, Statement);
 
  public:
@@ -79,20 +78,30 @@ class ForStatement : public Statement {
   Statement* statement() const { return statement_; }
   Statement* step() const { return step_; }
 
- protected:
+ private:
   ForStatement(Token* keyword,
                Statement* initializer,
                Expression* condition,
                Statement* step,
                Statement* statement);
 
- private:
   Expression* const condition_;
   Statement* const initializer_;
   Statement* const statement_;
   Statement* const step_;
 
   DISALLOW_COPY_AND_ASSIGN(ForStatement);
+};
+
+// Represents invalid statement. This statement is used for continuing parsing
+// after syntax error.
+class InvalidStatement final : public Statement {
+  DECLARE_AST_NODE_CONCRETE_CLASS(InvalidStatement, Statement);
+
+ private:
+  explicit InvalidStatement(Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(InvalidStatement);
 };
 
 }  // namespace ast

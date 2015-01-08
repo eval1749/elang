@@ -82,6 +82,7 @@ class NodeFactory final {
   ConstructedType* NewConstructedType(
       Expression* blueprint_type,
       const std::vector<Expression*>& arguments);
+  InvalidExpression* NewInvalidExpression(Token* token);
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,
                                 const std::vector<Expression*>& members);
@@ -122,6 +123,7 @@ class NodeFactory final {
                               Expression* condition,
                               Statement* then_statement,
                               Statement* else_statement);
+  InvalidStatement* NewInvalidStatement(Token* token);
   LocalVariable* NewLocalVariable(Token* keyword,
                                   Expression* type,
                                   Token* name,

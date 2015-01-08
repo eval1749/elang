@@ -32,6 +32,17 @@ class Expression : public Node {
   DISALLOW_COPY_AND_ASSIGN(Expression);
 };
 
+// Represents invalid expression. This expression is used for continuing parsing
+// after syntax error.
+class InvalidExpression final : public Expression {
+  DECLARE_AST_NODE_CONCRETE_CLASS(InvalidExpression, Expression);
+
+ private:
+  explicit InvalidExpression(Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(InvalidExpression);
+};
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

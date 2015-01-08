@@ -176,6 +176,10 @@ ConstructedType* NodeFactory::NewConstructedType(
   return new (zone_) ConstructedType(zone_, blueprint_type, arguments);
 }
 
+InvalidExpression* NodeFactory::NewInvalidExpression(Token* token) {
+  return new (zone_) InvalidExpression(token);
+}
+
 Literal* NodeFactory::NewLiteral(Token* literal) {
   return new (zone_) Literal(literal);
 }
@@ -267,6 +271,10 @@ IfStatement* NodeFactory::NewIfStatement(Token* keyword,
                                          Statement* else_statement) {
   return new (zone_)
       IfStatement(keyword, condition, then_statement, else_statement);
+}
+
+InvalidStatement* NodeFactory::NewInvalidStatement(Token* token) {
+  return new (zone_) InvalidStatement(token);
 }
 
 LocalVariable* NodeFactory::NewLocalVariable(Token* keyword,

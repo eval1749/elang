@@ -16,6 +16,7 @@
 #include "elang/compiler/ast/continue_statement.h"
 #include "elang/compiler/ast/do_statement.h"
 #include "elang/compiler/ast/empty_statement.h"
+#include "elang/compiler/ast/expression.h"
 #include "elang/compiler/ast/expression_statement.h"
 #include "elang/compiler/ast/if_statement.h"
 #include "elang/compiler/ast/literal.h"
@@ -260,10 +261,11 @@ bool Parser::ParseForStatement(Token* for_keyword) {
   enum class State {
     Colon,
     Comma,
+    Initializer,
     SemiColon,
     Start,
+    Type,
     TypeOrExpression,
-    Var,
   } state = State::Start;
 
   std::vector<ast::Expression*> initializers;
@@ -272,44 +274,50 @@ bool Parser::ParseForStatement(Token* for_keyword) {
   for (;;) {
     switch (state) {
       case State::Colon: {
+        auto const colon = ConsumeToken();
+        DCHECK_EQ(colon, TokenType::Colon);
         DCHECK(initializers.empty());
         DCHECK(!variables.empty());
-        if (variables.size() != 1u) {
+        if (variables.size() != 1u)
           Error(ErrorCode::SyntaxForColon);
-          return false;
-        }
         if (!ParseExpression())
-          return false;
+          ProduceExpression(factory()->NewInvalidExpression(colon));
         if (!AdvanceIf(TokenType::RightParenthesis))
           Error(ErrorCode::SyntaxForRightParenthesis);
         auto const enumerable = ConsumeExpression();
         StatementScope for_scope(this, for_keyword);
         if (!ParseStatement())
-          return false;
+          ProduceStatement(factory()->NewInvalidStatement(colon));
         ProduceStatement(factory()->NewForEachStatement(
             for_keyword, variables.front(), enumerable, ConsumeStatement()));
         return true;
       }
+
       case State::Comma:
-        if (!ParseExpression())
-          return false;
-        if (AdvanceIf(TokenType::SemiColon)) {
+        if (ParseExpression())
+          state = State::Initializer;
+        continue;
+
+      case State::Initializer:
+        initializers.push_back(ConsumeExpression());
+        if (PeekToken() == TokenType::SemiColon) {
           state = State::SemiColon;
           continue;
         }
-        if (AdvanceIf(TokenType::Comma))
-          continue;
-        Error(ErrorCode::SyntaxForInit);
-        return false;
+        if (!AdvanceIf(TokenType::Comma))
+          Error(ErrorCode::SyntaxForInit);
+        continue;
 
       case State::SemiColon: {
         auto const semi_colon = ConsumeToken();
+        DCHECK_EQ(semi_colon, TokenType::SemiColon);
         if (initializers.empty() && variables.empty()) {
           ProduceStatement(factory()->NewEmptyStatement(semi_colon));
         } else if (initializers.empty()) {
           ProduceStatement(factory()->NewVarStatement(for_keyword, variables));
         } else if (variables.empty()) {
-          factory()->NewExpressionList(semi_colon, initializers);
+          ProduceStatement(
+              factory()->NewExpressionList(semi_colon, initializers));
         } else {
           ProduceStatement(factory()->NewVarStatement(for_keyword, variables));
           Error(ErrorCode::SyntaxForInit);
@@ -321,23 +329,22 @@ bool Parser::ParseForStatement(Token* for_keyword) {
                 : static_cast<ast::Expression*>(nullptr);
         if (!AdvanceIf(TokenType::SemiColon))
           Error(ErrorCode::SyntaxForSemiColon);
-        {
-          std::vector<ast::Expression*> steps;
-          if (PeekToken() != TokenType::RightParenthesis) {
-            while (ParseExpression()) {
-              steps.push_back(ConsumeExpression());
-              if (!AdvanceIf(TokenType::Comma))
-                break;
-            }
+        std::vector<ast::Expression*> steps;
+        if (PeekToken() != TokenType::RightParenthesis) {
+          while (ParseExpression()) {
+            steps.push_back(ConsumeExpression());
+            if (!AdvanceIf(TokenType::Comma))
+              break;
           }
-          if (!AdvanceIf(TokenType::RightParenthesis))
-            Error(ErrorCode::SyntaxForRightParenthesis);
-          ProduceStatement(factory()->NewExpressionList(for_keyword, steps));
         }
-        auto const step = ConsumeStatement();
+        if (!AdvanceIf(TokenType::RightParenthesis))
+          Error(ErrorCode::SyntaxForRightParenthesis);
+        auto const step =
+            steps.empty() ? nullptr
+                          : factory()->NewExpressionList(for_keyword, steps);
         StatementScope for_scope(this, for_keyword);
         if (!ParseStatement())
-          ProduceStatement(factory()->NewEmptyStatement(semi_colon));
+          ProduceStatement(factory()->NewInvalidStatement(semi_colon));
         ProduceStatement(factory()->NewForStatement(
             for_keyword, initializer, condition, step, ConsumeStatement()));
         return true;
@@ -350,32 +357,15 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         }
         if (PeekToken() == TokenType::Var) {
           ProduceType(factory()->NewNameReference(ConsumeToken()));
-          state = State::Var;
+          state = State::Type;
           continue;
         }
         if (!ParseExpression())
-          return false;
+          ProduceExpression(factory()->NewInvalidExpression(for_keyword));
         state = State::TypeOrExpression;
         break;
 
-      case State::TypeOrExpression:
-        if (PeekToken()->is_name()) {
-          state = State::Var;
-          continue;
-        }
-        initializers.push_back(ConsumeExpression());
-        if (AdvanceIf(TokenType::SemiColon)) {
-          state = State::SemiColon;
-          continue;
-        }
-        if (AdvanceIf(TokenType::Comma)) {
-          state = State::Comma;
-          continue;
-        }
-        Error(ErrorCode::SyntaxForInit);
-        return false;
-
-      case State::Var: {
+      case State::Type: {
         if (!PeekToken()->is_name()) {
           Error(ErrorCode::SyntaxForVar);
           state = State::Start;
@@ -383,35 +373,37 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         }
         auto const type = ConsumeType();
         auto const name = ConsumeToken();
-
-        if (AdvanceIf(TokenType::Assign)) {
-          if (!ParseExpression())
-            return false;
-          variables.push_back(factory()->NewLocalVariable(
-              for_keyword, type, name, ConsumeExpression()));
-          state = State::Start;
-          continue;
-        }
+        auto const init = AdvanceIf(TokenType::Assign) && ParseExpression()
+                              ? ConsumeExpression()
+                              : static_cast<ast::Expression*>(nullptr);
 
         variables.push_back(
-            factory()->NewLocalVariable(for_keyword, type, name, nullptr));
+            factory()->NewLocalVariable(for_keyword, type, name, init));
 
-        if (AdvanceIf(TokenType::Colon)) {
+        if (PeekToken() == TokenType::Colon) {
+          if (init)
+            Error(ErrorCode::SyntaxForColon);
           state = State::Colon;
           continue;
         }
 
-        if (AdvanceIf(TokenType::SemiColon)) {
+        if (PeekToken() == TokenType::SemiColon) {
           state = State::SemiColon;
           continue;
         }
 
-        if (AdvanceIf(TokenType::Comma))
+        if (AdvanceIf(TokenType::Comma)) {
+          ProduceType(type);
           continue;
+        }
 
         Error(ErrorCode::SyntaxForInit);
-        return false;
+        continue;
       }
+
+      case State::TypeOrExpression:
+        state = PeekToken()->is_name() ? State::Type : State::Initializer;
+        continue;
     }
   }
 }
@@ -756,8 +748,8 @@ bool Parser::ParseStatement() {
   if (auto const yield_keyword = ConsumeTokenIf(TokenType::Yield))
     return ParseYieldStatement(yield_keyword);
 
-  if (auto const semicolon = ConsumeTokenIf(TokenType::SemiColon)) {
-    ProduceStatement(factory()->NewEmptyStatement(semicolon));
+  if (auto const semi_colon = ConsumeTokenIf(TokenType::SemiColon)) {
+    ProduceStatement(factory()->NewEmptyStatement(semi_colon));
     return true;
   }
 

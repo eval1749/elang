@@ -4,6 +4,8 @@
 
 #include "elang/compiler/ast/expression.h"
 
+#include "base/logging.h"
+
 namespace elang {
 namespace compiler {
 namespace ast {
@@ -13,6 +15,11 @@ namespace ast {
 // Expression
 //
 Expression::Expression(Token* op) : Node(op) {
+}
+
+InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
+  // We should have non-null |token| for source code location.
+  DCHECK(token);
 }
 
 }  // namespace ast

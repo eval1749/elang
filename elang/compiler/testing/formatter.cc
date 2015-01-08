@@ -298,6 +298,8 @@ void Formatter::VisitForEachStatement(ast::ForEachStatement* statement) {
 void Formatter::VisitForStatement(ast::ForStatement* statement) {
   stream_ << "for (";
   Visit(statement->initializer());
+  if (statement->initializer()->is<ast::ExpressionList>())
+    stream_ << ";";
   if (statement->condition()) {
     stream_ << " ";
     Visit(statement->condition());
@@ -371,6 +373,14 @@ void Formatter::VisitImport(ast::Import* import) {
   stream_ << import->keyword() << " ";
   Visit(import->reference());
   stream_ << ";" << std::endl;
+}
+
+void Formatter::VisitInvalidExpression(ast::InvalidExpression* expression) {
+  stream_ << "INVALID('" << expression->token() << "')";
+}
+
+void Formatter::VisitInvalidStatement(ast::InvalidStatement* statement) {
+  stream_ << "INVALID '" << statement->token() << "';";
 }
 
 void Formatter::VisitLiteral(ast::Literal* operation) {
