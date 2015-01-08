@@ -28,7 +28,17 @@ namespace compiler {
 
 // Just an alias of |ConsumeExpression()| for improving readability.
 ast::Expression* Parser::ConsumeType() {
-  return ConsumeExpression();
+  auto const type = ConsumeExpression();
+  if (!MaybeType(type))
+    Error(ErrorCode::SyntaxExpressionType);
+  return type;
+}
+
+bool Parser::MaybeType(ast::Expression* maybe_type) const {
+  return maybe_type->is<ast::ArrayType>() ||
+         maybe_type->is<ast::ConstructedType>() ||
+         maybe_type->is<ast::MemberAccess>() ||
+         maybe_type->is<ast::NameReference>();
 }
 
 // NamespaceOrTypeName ::=

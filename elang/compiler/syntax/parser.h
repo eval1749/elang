@@ -150,6 +150,9 @@ class Parser final {
   // in "parse_type.cc"
   // Returns last produced expression.
   ast::Expression* ConsumeType();
+  // Returns true if |expression| can be type. Since we've not yet resolved
+  // name references, |expression| may not be type.
+  bool MaybeType(ast::Expression* expression) const;
   bool ParseNamespaceOrTypeName();
   bool ParseType();
   std::vector<Token*> ParseTypeParameterList();
