@@ -150,25 +150,22 @@ bool Parser::ParseType() {
 //                  TypeParameter
 // RankSpecifier ::= '[' ','* ']'
 bool Parser::ParseTypePost() {
-  if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType)) {
+  if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType))
     ProduceType(factory()->NewUnaryOperation(optional_marker, ConsumeType()));
-  }
   if (PeekToken() != TokenType::LeftSquareBracket)
     return true;
   auto const element_type = ConsumeType();
-  auto const op_token = ConsumeToken();
+  auto const bracket_token = PeekToken();
   std::vector<int> ranks;
   while (AdvanceIf(TokenType::LeftSquareBracket)) {
     auto rank = 1;
     while (AdvanceIf(TokenType::Comma))
       ++rank;
-    if (!AdvanceIf(TokenType::RightSquareBracket)) {
+    if (!AdvanceIf(TokenType::RightSquareBracket))
       Error(ErrorCode::SyntaxTypeRightSquareBracket);
-      return false;
-    }
     ranks.push_back(rank);
   }
-  ProduceType(factory()->NewArrayType(op_token, element_type, ranks));
+  ProduceType(factory()->NewArrayType(bracket_token, element_type, ranks));
   return true;
 }
 

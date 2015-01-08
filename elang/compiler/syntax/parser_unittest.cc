@@ -783,6 +783,7 @@ TEST_F(ParserTest, VarType) {
       "class A {\n"
       "  void F() {\n"
       "    int x = 0, y;\n"
+      "    char[] a;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
