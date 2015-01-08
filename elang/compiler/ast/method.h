@@ -20,7 +20,7 @@ namespace ast {
 // Method
 //
 class Method final : public NamedNode {
-  DECLARE_AST_NODE_CLASS(Method, NamedNode);
+  DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamedNode);
 
  public:
   MethodGroup* method_group() const { return method_group_; }

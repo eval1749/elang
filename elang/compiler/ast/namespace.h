@@ -22,6 +22,9 @@ class Namespace : public NamespaceMember {
 
  public:
   const ZoneVector<NamespaceBody*> bodies() const { return bodies_; }
+  const ZoneUnorderedMap<AtomicString*, NamespaceMember*> name_map() const {
+    return map_;
+  }
 
   void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);

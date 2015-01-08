@@ -396,6 +396,10 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   }
 }
 
+void Formatter::VisitMethod(ast::Method* method) {
+  DCHECK(method);
+}
+
 void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
   for (auto const method : method_group->methods()) {
     Indent();

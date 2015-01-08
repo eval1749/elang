@@ -8,6 +8,8 @@ static_library("compiler") {
     "analyze/namespace_analyzer.h",
     "analyze/name_resolver.cc",
     "analyze/name_resolver.h",
+    "cg/hir_generator.cc",
+    "cg/hir_generator.h",
     "character_stream.h",
     "character_stream.cc",
     "compilation_session.cc",
