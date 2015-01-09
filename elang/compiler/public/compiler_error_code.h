@@ -121,7 +121,6 @@ namespace compiler {
   E(Syntax, Try, LeftCurryBracket)                    \
   /* Type */                                          \
   E(Syntax, Type, Comma)                              \
-  E(Syntax, Type, DotNotName)                         \
   E(Syntax, Type, Name)                               \
   E(Syntax, Type, RightAngleBracket)                  \
   E(Syntax, Type, RightSquareBracket)                 \
