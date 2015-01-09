@@ -10,7 +10,6 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
