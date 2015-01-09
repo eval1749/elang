@@ -8,8 +8,7 @@
 #include <vector>
 
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/node.h"
-#include "elang/compiler/modifiers.h"
+#include "elang/compiler/ast/namespace_member.h"
 
 namespace elang {
 namespace compiler {
@@ -59,6 +58,26 @@ class Method final : public NamedNode {
   const ZoneVector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// MethodGroup
+//
+class MethodGroup final : public NamespaceMember {
+  DECLARE_AST_NODE_CONCRETE_CLASS(MethodGroup, NamespaceMember);
+
+ public:
+  const ZoneVector<Method*>& methods() const { return methods_; }
+
+  void AddMethod(Method* method);
+
+ private:
+  MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name);
+
+  ZoneVector<Method*> methods_;
+
+  DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };
 
 }  // namespace ast

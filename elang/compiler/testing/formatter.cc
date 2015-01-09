@@ -15,7 +15,6 @@
 #include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/method_group.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"

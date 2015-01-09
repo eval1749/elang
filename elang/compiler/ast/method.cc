@@ -5,8 +5,9 @@
 #include "elang/compiler/ast/method.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/method_group.h"
-#include "elang/compiler/modifiers.h"
+#include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -42,6 +43,22 @@ void Method::SetStatement(ast::Statement* statement) {
   DCHECK(!statement_);
   DCHECK(statement);
   statement_ = statement;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// MethodGroup
+//
+MethodGroup::MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name)
+    : NamespaceMember(namespace_body, Modifiers(), name, name), methods_(zone) {
+  DCHECK(name->is_name());
+  DCHECK(namespace_body->owner()->is<Class>());
+}
+
+void MethodGroup::AddMethod(Method* method) {
+  DCHECK_EQ(method->method_group(), this);
+  DCHECK(std::find(methods_.begin(), methods_.end(), method) == methods_.end());
+  methods_.push_back(method);
 }
 
 }  // namespace ast
