@@ -403,6 +403,16 @@ TEST_F(ParserTest, ExpressionCallErrorMissingArgument) {
   EXPECT_EQ("Syntax.Expression.Call(35) )\n", Format());
 }
 
+TEST_F(ParserTest, ExpressionErrorSemiColon) {
+  Prepare(
+      "class A {\n"
+      "  void Run() {\n"
+      "    foo(x) if (x) bar;\n"   // missing ";" before "if".
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Statement.SemiColon(36) if\n", Format());
+}
+
 TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
   Prepare(
       "class A {\n"
