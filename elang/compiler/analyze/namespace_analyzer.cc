@@ -330,7 +330,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Postpone(
 Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Remember(
     ast::Expression* reference,
     ast::NamespaceMember* member) {
-  DCHECK(reference_cache_.find(reference) == reference_cache_.end());
+  DCHECK(!reference_cache_.count(reference));
   reference_cache_[reference] = member;
   if (member)
     resolver_->Resolved(reference, member);

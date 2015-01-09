@@ -428,7 +428,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
       auto const param_type = ParseType() ? ConsumeType() : nullptr;
       auto const param_name =
           PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
-      if (names.find(param_name->simple_name()) != names.end())
+      if (names.count(param_name->simple_name()))
         Error(ErrorCode::SyntaxMethodNameDuplicate);
       parameters.push_back(factory()->NewLocalVariable(nullptr, param_type,
                                                        param_name, nullptr));
