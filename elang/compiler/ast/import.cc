@@ -5,7 +5,7 @@
 #include "elang/compiler/ast/import.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 

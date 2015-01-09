@@ -13,7 +13,7 @@
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/expression.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
