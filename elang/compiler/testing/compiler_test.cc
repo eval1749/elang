@@ -14,6 +14,7 @@
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -45,6 +46,110 @@ std::string GetQualifiedName(ast::NamespaceMember* member) {
   }
   return stream.str();
 }
+
+//////////////////////////////////////////////////////////////////////
+//
+// SystemNamespaceBuilder
+//
+class SystemNamespaceBuilder final {
+ public:
+  explicit SystemNamespaceBuilder(CompilationSession* session);
+  ~SystemNamespaceBuilder() = default;
+
+  void Build();
+
+ private:
+  ast::Class* GetOrNewClass(ast::MemberContainer* container,
+                            base::StringPiece16 name);
+  ast::Namespace* GetOrNewNamespace(ast::Namespace* container,
+                                    base::StringPiece16 name);
+  ast::Namespace* NewSystemNamespace();
+  Token* NewToken(TokenData token_data);
+  Token* NewToken(TokenType token_type);
+  CompilationSession* const session_;
+
+  DISALLOW_COPY_AND_ASSIGN(SystemNamespaceBuilder);
+};
+
+SystemNamespaceBuilder::SystemNamespaceBuilder(CompilationSession* session)
+    : session_(session) {
+}
+
+void SystemNamespaceBuilder::Build() {
+  auto const ns_global = session_->global_namespace();
+  ns_global->AddNamespaceBody(
+      session_->ast_factory()->NewNamespaceBody(nullptr, ns_global));
+  auto const ns_system = GetOrNewNamespace(ns_global, L"System");
+  ns_system->AddNamespaceBody(session_->ast_factory()->NewNamespaceBody(
+      ns_global->bodies().front(), ns_system));
+  GetOrNewClass(ns_system, L"Object");
+  GetOrNewClass(ns_system, L"Value");
+  GetOrNewClass(ns_system, L"Bool");
+  GetOrNewClass(ns_system, L"Char");
+  GetOrNewClass(ns_system, L"Float32");
+  GetOrNewClass(ns_system, L"Float64");
+  GetOrNewClass(ns_system, L"Int16");
+  GetOrNewClass(ns_system, L"Int32");
+  GetOrNewClass(ns_system, L"Int64");
+  GetOrNewClass(ns_system, L"Int8");
+  GetOrNewClass(ns_system, L"String");
+  GetOrNewClass(ns_system, L"UInt16");
+  GetOrNewClass(ns_system, L"UInt32");
+  GetOrNewClass(ns_system, L"UInt64");
+  GetOrNewClass(ns_system, L"UInt8");
+  GetOrNewClass(ns_system, L"Void");
+}
+
+ast::Class* SystemNamespaceBuilder::GetOrNewClass(
+    ast::MemberContainer* container,
+    base::StringPiece16 name) {
+  auto const name_string = session_->NewAtomicString(name);
+  if (auto const member = container->FindMember(name_string)) {
+    if (auto const clazz = member->as<ast::Class>())
+      return clazz;
+    DCHECK(!member);
+  }
+  auto const new_class = session_->ast_factory()->NewClass(
+      container->bodies().front(), Modifiers(), NewToken(TokenType::Class),
+      NewToken(TokenData(name_string)));
+  container->AddMember(new_class);
+  return new_class;
+}
+
+ast::Namespace* SystemNamespaceBuilder::GetOrNewNamespace(
+    ast::Namespace* container,
+    base::StringPiece16 name) {
+  auto const name_string = session_->NewAtomicString(name);
+  if (auto const member = container->FindMember(name_string)) {
+    if (auto const clazz = member->as<ast::Namespace>())
+      return clazz;
+    DCHECK(!member);
+  }
+  auto const new_namespace = session_->ast_factory()->NewNamespace(
+      container->bodies().front(), NewToken(TokenType::Namespace),
+      NewToken(TokenData(name_string)));
+  container->AddMember(new_namespace);
+  return new_namespace;
+}
+
+Token* SystemNamespaceBuilder::NewToken(TokenData token_data) {
+  return session_->NewToken(SourceCodeRange(), token_data);
+}
+
+Token* SystemNamespaceBuilder::NewToken(TokenType token_type) {
+  return NewToken(TokenData(token_type));
+}
+
+ast::Namespace* SystemNamespaceBuilder::NewSystemNamespace() {
+  return GetOrNewNamespace(session_->global_namespace(), L"System");
+}
+
+NameResolver* NewNameResolver(CompilationSession* session) {
+  SystemNamespaceBuilder builder(session);
+  builder.Build();
+  return new NameResolver(session);
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -53,7 +158,7 @@ std::string GetQualifiedName(ast::NamespaceMember* member) {
 //
 CompilerTest::CompilerTest()
     : session_(new CompilationSession()),
-      name_resolver_(new NameResolver(session_.get())) {
+      name_resolver_(NewNameResolver(session_.get())) {
 }
 
 CompilerTest::~CompilerTest() {

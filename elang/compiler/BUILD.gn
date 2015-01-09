@@ -76,6 +76,7 @@ source_set("compiler_test") {
 test("compiler_unittests") {
   sources = [
     "analyze/namespace_analyzer_unittest.cc",
+    "analyze/name_resolver_unittest.cc",
     "syntax/lexer_unittest.cc",
     "syntax/parser_unittest.cc",
   ]

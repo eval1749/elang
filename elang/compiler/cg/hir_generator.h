@@ -17,6 +17,8 @@ class Function;
 }
 namespace compiler {
 class CompilationSession;
+class NameResolver;
+enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -24,7 +26,9 @@ class CompilationSession;
 //
 class HirGenerator final : ast::Visitor {
  public:
-  HirGenerator(CompilationSession* session, hir::Factory* factory);
+  HirGenerator(CompilationSession* session,
+               hir::Factory* factory,
+               NameResolver* name_resolver);
   ~HirGenerator();
 
   void Generate();
@@ -40,6 +44,7 @@ class HirGenerator final : ast::Visitor {
   hir::Factory* const factory_;
   hir::Function* function_;
   std::unordered_map<ast::Method*, hir::Function*> methods_;
+  NameResolver* name_resolver_;
   CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(HirGenerator);

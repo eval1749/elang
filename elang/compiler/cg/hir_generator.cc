@@ -5,6 +5,7 @@
 #include "elang/compiler/cg/hir_generator.h"
 
 #include "base/logging.h"
+#include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/statements.h"
@@ -18,8 +19,13 @@ namespace compiler {
 //
 // HirGenerator
 //
-HirGenerator::HirGenerator(CompilationSession* session, hir::Factory* factory)
-    : factory_(factory), function_(nullptr), session_(session) {
+HirGenerator::HirGenerator(CompilationSession* session,
+                           hir::Factory* factory,
+                           NameResolver* name_resolver)
+    : factory_(factory),
+      function_(nullptr),
+      name_resolver_(name_resolver),
+      session_(session) {
 }
 
 HirGenerator::~HirGenerator() {

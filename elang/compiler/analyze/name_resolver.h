@@ -5,18 +5,27 @@
 #ifndef ELANG_COMPILER_ANALYZE_NAME_RESOLVER_H_
 #define ELANG_COMPILER_ANALYZE_NAME_RESOLVER_H_
 
+#include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "base/macros.h"
+#include "base/strings/string_piece.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
+class Class;
 class Expression;
+class MemberContainer;
+class Namespace;
 class NamespaceMember;
 }
 
 class CompilationSession;
+class Token;
+class TokenData;
+enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -34,7 +43,8 @@ class NameResolver final {
 
  private:
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> map_;
-  CompilationSession* session_;
+  std::unordered_map<TokenType, ast::Class*> keyword_types_;
+  CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };
