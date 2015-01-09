@@ -10,8 +10,6 @@ static_library("ast") {
     "class.h",
     "enum.cc",
     "enum.h",
-    "enum_member.cc",
-    "enum_member.h",
     "expressions.cc",
     "expressions.h",
     "field.cc",

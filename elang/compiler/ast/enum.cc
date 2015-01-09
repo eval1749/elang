@@ -5,7 +5,6 @@
 #include "elang/compiler/ast/enum.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/token.h"
@@ -40,6 +39,15 @@ void Enum::AddMember(EnumMember* member) {
 EnumMember* Enum::FindMember(Token* name) {
   auto const it = map_.find(name->simple_name());
   return it == map_.end() ? nullptr : it->second;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// EnumMember
+//
+EnumMember::EnumMember(Enum* owner, Token* name, Expression* expression)
+    : NamedNode(name, name), expression_(expression) {
+  DCHECK(name->is_name());
 }
 
 }  // namespace ast

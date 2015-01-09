@@ -9,7 +9,6 @@
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
-#include "elang/compiler/ast/enum_member.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/field.h"
 #include "elang/compiler/ast/import.h"

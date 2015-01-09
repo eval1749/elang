@@ -23,7 +23,7 @@ class NodeFactory;
 // Enum
 //
 class Enum final : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(Enum, NamespaceMember);
+  DECLARE_AST_NODE_CONCRETE_CLASS(Enum, NamespaceMember);
 
  public:
   const ZoneVector<EnumMember*> members() const { return members_; }
@@ -38,13 +38,28 @@ class Enum final : public NamespaceMember {
        Token* keyword,
        Token* name);
 
-  // Node
-  void Accept(Visitor* visitor) override;
-
   ZoneUnorderedMap<AtomicString*, EnumMember*> map_;
   ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// EnumMember
+//
+class EnumMember final : public NamedNode {
+  DECLARE_AST_NODE_CLASS(EnumMember, NamedNode);
+
+ public:
+  Expression* expression() const { return expression_; }
+
+ private:
+  EnumMember(Enum* owner, Token* name, Expression* expression);
+
+  Expression* expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };
 
 }  // namespace ast
