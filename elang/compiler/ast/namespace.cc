@@ -25,30 +25,19 @@ Modifiers GetNamespaceModifiers() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace
+// MemberContainer
 //
-Namespace::Namespace(Zone* zone,
-                     NamespaceBody* namespace_body,
-                     Modifiers modifiers,
-                     Token* keyword,
-                     Token* name)
+MemberContainer::MemberContainer(Zone* zone,
+                                 NamespaceBody* namespace_body,
+                                 Modifiers modifiers,
+                                 Token* keyword,
+                                 Token* name)
     : NamespaceMember(namespace_body, modifiers, keyword, name),
       bodies_(zone),
       map_(zone) {
-  DCHECK_NE(keyword, TokenType::Namespace);
 }
 
-Namespace::Namespace(Zone* zone,
-                     NamespaceBody* namespace_body,
-                     Token* keyword,
-                     Token* name)
-    : NamespaceMember(namespace_body, GetNamespaceModifiers(), keyword, name),
-      bodies_(zone),
-      map_(zone) {
-  DCHECK_EQ(keyword, TokenType::Namespace);
-}
-
-void Namespace::AddMember(NamespaceMember* member) {
+void MemberContainer::AddMember(NamespaceMember* member) {
   DCHECK_EQ(this, member->owner());
   DCHECK(!member->is<Alias>());
   // We keep first member declaration.
@@ -57,22 +46,33 @@ void Namespace::AddMember(NamespaceMember* member) {
   map_[member->name()->simple_name()] = member;
 }
 
-void Namespace::AddNamespaceBody(NamespaceBody* namespace_body) {
+void MemberContainer::AddNamespaceBody(NamespaceBody* namespace_body) {
   bodies_.push_back(namespace_body);
 }
 
-NamespaceMember* Namespace::FindMember(AtomicString* name) {
+NamespaceMember* MemberContainer::FindMember(AtomicString* name) {
   auto const it = map_.find(name);
   return it == map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* Namespace::FindMember(Token* name) {
+NamespaceMember* MemberContainer::FindMember(Token* name) {
   return FindMember(name->simple_name());
 }
 
-// NamespaceMember
-Namespace* Namespace::ToNamespace() {
-  return this;
+//////////////////////////////////////////////////////////////////////
+//
+// Namespace
+//
+Namespace::Namespace(Zone* zone,
+                     NamespaceBody* namespace_body,
+                     Token* keyword,
+                     Token* name)
+    : MemberContainer(zone,
+                      namespace_body,
+                      GetNamespaceModifiers(),
+                      keyword,
+                      name) {
+  DCHECK_EQ(keyword, TokenType::Namespace);
 }
 
 }  // namespace ast

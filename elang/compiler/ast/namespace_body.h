@@ -27,7 +27,7 @@ class NamespaceBody final : public ZoneAllocated {
   const ZoneVector<Import*>& imports() const;
   const ZoneVector<NamespaceMember*>& members() const { return members_; }
   NamespaceBody* outer() const { return outer_; }
-  Namespace* owner() const { return owner_; }
+  MemberContainer* owner() const { return owner_; }
 
   void AddAlias(Alias* alias);
   void AddImport(Import* import);
@@ -38,7 +38,7 @@ class NamespaceBody final : public ZoneAllocated {
 
  private:
   friend class NodeFactory;
-  NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
+  NamespaceBody(Zone* zone, NamespaceBody* outer, MemberContainer* owner);
   ~NamespaceBody() = delete;
 
   // TODO(eval1749) Use |AstVector| instead of |ZoneVector|
@@ -48,7 +48,7 @@ class NamespaceBody final : public ZoneAllocated {
   ZoneUnorderedMap<AtomicString*, Import*> import_map_;
   ZoneVector<NamespaceMember*> members_;
   NamespaceBody* const outer_;
-  Namespace* const owner_;
+  MemberContainer* const owner_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };

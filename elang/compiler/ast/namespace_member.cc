@@ -26,7 +26,7 @@ NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
   DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }
 
-Namespace* NamespaceMember::outer() const {
+MemberContainer* NamespaceMember::outer() const {
   return namespace_body_ ? namespace_body_->owner() : nullptr;
 }
 
@@ -36,10 +36,6 @@ bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {
       return true;
   }
   return false;
-}
-
-Namespace* NamespaceMember::ToNamespace() {
-  return nullptr;
 }
 
 }  // namespace ast

@@ -21,7 +21,7 @@ Class::Class(Zone* zone,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : Namespace(zone, namespace_body, modifiers, keyword, name),
+    : MemberContainer(zone, namespace_body, modifiers, keyword, name),
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
@@ -29,11 +29,6 @@ Class::Class(Zone* zone,
 
 void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
-}
-
-// NamespaceMember
-Namespace* Class::ToNamespace() {
-  return nullptr;
 }
 
 }  // namespace ast

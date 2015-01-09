@@ -18,8 +18,8 @@ namespace ast {
 //
 // Class
 //
-class Class final : public Namespace {
-  DECLARE_AST_NODE_CLASS(Class, Namespace);
+class Class final : public MemberContainer {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Class, MemberContainer);
 
  public:
   const ZoneVector<Expression*>& base_class_names() const {
@@ -28,18 +28,12 @@ class Class final : public Namespace {
 
   void AddBaseClassName(Expression* class_name);
 
-  // NamespaceMember
-  Namespace* ToNamespace() final;
-
  private:
   Class(Zone* zone,
         NamespaceBody* namespace_body,
         Modifiers modifiers,
         Token* keyword,
         Token* name);
-
-  // Node
-  void Accept(Visitor* visitor) override;
 
   ZoneVector<Expression*> base_class_names_;
 

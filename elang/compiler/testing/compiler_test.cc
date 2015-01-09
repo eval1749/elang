@@ -76,7 +76,8 @@ ast::Class* CompilerTest::FindClass(base::StringPiece name) {
 }
 
 ast::NamespaceMember* CompilerTest::FindMember(base::StringPiece name) {
-  auto enclosing = session_->global_namespace();
+  auto enclosing =
+      static_cast<ast::MemberContainer*>(session_->global_namespace());
   auto found = static_cast<ast::NamespaceMember*>(nullptr);
   for (size_t pos = 0u; pos < name.length(); ++pos) {
     auto dot_pos = name.find('.', pos);
@@ -87,7 +88,7 @@ ast::NamespaceMember* CompilerTest::FindMember(base::StringPiece name) {
     found = enclosing->FindMember(simple_name);
     if (!found)
       return nullptr;
-    enclosing = found->as<ast::Namespace>();
+    enclosing = found->as<ast::MemberContainer>();
     if (!enclosing)
       return nullptr;
     pos = dot_pos;
@@ -110,10 +111,10 @@ std::string CompilerTest::Format() {
 std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
   auto const member = FindMember(name);
   if (!member)
-    return base::StringPrintf("No such class %s", name);
+    return base::StringPrintf("No such class %s", name.as_string().c_str());
   auto const clazz = member->as<ast::Class>();
   if (!clazz)
-    return base::StringPrintf("%s isn't class", name);
+    return base::StringPrintf("%s isn't class", name.as_string().c_str());
   std::stringstream stream;
   const char* separator = "";
   for (auto const base_class_name : clazz->base_class_names()) {

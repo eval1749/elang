@@ -112,7 +112,7 @@ Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
 }
 
 NamespaceBody* NodeFactory::NewNamespaceBody(NamespaceBody* outer,
-                                             Namespace* owner) {
+                                             MemberContainer* owner) {
   return new (zone_) NamespaceBody(zone_, outer, owner);
 }
 

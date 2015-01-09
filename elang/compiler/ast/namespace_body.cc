@@ -19,7 +19,9 @@ namespace ast {
 //
 // NamespaceBody
 //
-NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
+NamespaceBody::NamespaceBody(Zone* zone,
+                             NamespaceBody* outer,
+                             MemberContainer* owner)
     : aliases_(zone),
       alias_map_(zone),
       imports_(zone),
@@ -36,24 +38,24 @@ NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
 }
 
 const ZoneVector<Alias*>& NamespaceBody::aliases() const {
-  DCHECK(owner_->ToNamespace());
+  DCHECK(owner_->is<Namespace>());
   return aliases_;
 }
 
 const ZoneVector<Import*>& NamespaceBody::imports() const {
-  DCHECK(owner_->ToNamespace());
+  DCHECK(owner_->is<Namespace>());
   return imports_;
 }
 
 void NamespaceBody::AddAlias(Alias* alias) {
-  DCHECK(owner_->ToNamespace());
+  DCHECK(owner_->is<Namespace>());
   aliases_.push_back(alias);
   alias_map_[alias->name()->simple_name()] = alias;
   members_.push_back(alias);
 }
 
 void NamespaceBody::AddImport(Import* import) {
-  DCHECK(owner_->ToNamespace());
+  DCHECK(owner_->is<Namespace>());
   imports_.push_back(import);
   import_map_[import->name()->simple_name()] = import;
   members_.push_back(import);

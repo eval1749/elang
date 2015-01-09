@@ -79,6 +79,7 @@ class EnumMember;
 class Expression;
 class LocalVariable;
 class Method;
+class MemberContainer;
 class NamespaceBody;
 class NodeFactory;
 class Statement;

@@ -15,10 +15,10 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace
+// MemberContainer
 //
-class Namespace : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(Namespace, NamespaceMember);
+class MemberContainer : public NamespaceMember {
+  DECLARE_AST_NODE_CLASS(MemberContainer, NamespaceMember);
 
  public:
   const ZoneVector<NamespaceBody*> bodies() const { return bodies_; }
@@ -31,29 +31,32 @@ class Namespace : public NamespaceMember {
   NamespaceMember* FindMember(AtomicString* simple_name);
   NamespaceMember* FindMember(Token* simple_name);
 
-  // NamespaceMember
-  Namespace* ToNamespace() override;
-
  protected:
-  Namespace(Zone* zone,
-            NamespaceBody* namespace_body,
-            Modifiers modifiers,
-            Token* keyword,
-            Token* simple_name);
+  MemberContainer(Zone* zone,
+                  NamespaceBody* namespace_body,
+                  Modifiers modifiers,
+                  Token* keyword,
+                  Token* simple_name);
+
+ private:
+  ZoneVector<NamespaceBody*> bodies_;
+  ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
+
+  DISALLOW_COPY_AND_ASSIGN(MemberContainer);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Namespace
+//
+class Namespace final : public MemberContainer {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Namespace, MemberContainer);
 
  private:
   Namespace(Zone* zone,
             NamespaceBody* namespace_body,
             Token* keyword,
             Token* name);
-
-  // Node
-  void Accept(Visitor* visitor) override;
-
-  struct ImportDef;
-
-  ZoneVector<NamespaceBody*> bodies_;
-  ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };

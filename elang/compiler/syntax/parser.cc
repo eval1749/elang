@@ -101,7 +101,7 @@ void Parser::ModifierParser::Reset() {
 //
 class Parser::NamespaceBodyScope {
  public:
-  NamespaceBodyScope(Parser* parser, ast::Namespace* new_namespace);
+  NamespaceBodyScope(Parser* parser, ast::MemberContainer* new_container);
   ~NamespaceBodyScope();
 
  private:
@@ -111,12 +111,13 @@ class Parser::NamespaceBodyScope {
   DISALLOW_COPY_AND_ASSIGN(NamespaceBodyScope);
 };
 
-Parser::NamespaceBodyScope::NamespaceBodyScope(Parser* parser,
-                                               ast::Namespace* new_namespace)
+Parser::NamespaceBodyScope::NamespaceBodyScope(
+    Parser* parser,
+    ast::MemberContainer* new_container)
     : namespace_body_(parser->namespace_body_), parser_(parser) {
   auto const namespace_body = parser->session_->ast_factory()->NewNamespaceBody(
-      namespace_body_, new_namespace);
-  new_namespace->AddNamespaceBody(namespace_body);
+      namespace_body_, new_container);
+  new_container->AddNamespaceBody(namespace_body);
   parser->namespace_body_ = namespace_body;
 }
 
@@ -474,7 +475,7 @@ bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
   auto const simple_name = names[index];
   ast::Namespace* new_namespace = nullptr;
   if (auto const present = FindMember(simple_name)) {
-    new_namespace = present->ToNamespace();
+    new_namespace = present->as<ast::Namespace>();
     if (!new_namespace)
       Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
   }
@@ -552,7 +553,7 @@ bool Parser::ParseQualifiedName() {
 // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
 // ImportNamespace ::= 'using' QualfiedName ';'
 bool Parser::ParseUsingDirectives() {
-  DCHECK(namespace_body_->owner()->ToNamespace());
+  DCHECK(namespace_body_->owner()->as<ast::Namespace>());
   while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
     if (!ParseNamespaceOrTypeName())
       continue;

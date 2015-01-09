@@ -16,9 +16,6 @@ namespace compiler {
 class Modifiers;
 namespace ast {
 
-class Namespace;
-class NamespaceBody;
-
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceMember
@@ -29,11 +26,10 @@ class NamespaceMember : public NamedNode {
  public:
   Modifiers modifiers() const { return modifiers_; }
   NamespaceBody* namespace_body() const { return namespace_body_; }
-  Namespace* outer() const;
-  Namespace* owner() const { return outer(); }
+  MemberContainer* outer() const;
+  MemberContainer* owner() const { return outer(); }
 
   bool IsDescendantOf(const NamespaceMember* other) const;
-  virtual Namespace* ToNamespace();
 
  protected:
   NamespaceMember(NamespaceBody* namespace_body,

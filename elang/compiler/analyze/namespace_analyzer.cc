@@ -52,7 +52,7 @@ class NamespaceAnalyzer::AnalyzeNode final {
 };
 
 NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(ast::NamespaceMember* member)
-    : is_resolved_(!!member->ToNamespace()), member_(member) {
+    : is_resolved_(member->is<ast::Namespace>()), member_(member) {
 }
 
 NamespaceAnalyzer::AnalyzeNode::~AnalyzeNode() {
@@ -61,8 +61,9 @@ NamespaceAnalyzer::AnalyzeNode::~AnalyzeNode() {
 Token* NamespaceAnalyzer::AnalyzeNode::GetFirstUserName() const {
   auto node = static_cast<AnalyzeNode*>(nullptr);
   for (auto const runner : users_) {
-    if (!node || node->member()->name()->location().start_offset() >
-        runner->member()->name()->location().start_offset()) {
+    if (!node ||
+        node->member()->name()->location().start_offset() >
+            runner->member()->name()->location().start_offset()) {
       node = runner;
     }
   }
@@ -90,21 +91,23 @@ void NamespaceAnalyzer::AnalyzeNode::Use(AnalyzeNode* node) {
 //
 struct NamespaceAnalyzer::ResolveContext {
   ast::NamespaceBody* alias_space;
+  ast::MemberContainer* name_space;
   ast::MemberAccess* member_access;
-  ast::Namespace* name_space;
   AnalyzeNode* node;
 
   ResolveContext(AnalyzeNode* node,
-                 ast::Namespace* name_space,
+                 ast::MemberContainer* name_space,
                  ast::NamespaceBody* alias_space);
 };
 
 // Resolve name in |namespace|.
 NamespaceAnalyzer::ResolveContext::ResolveContext(
     AnalyzeNode* node,
-    ast::Namespace* name_space,
+    ast::MemberContainer* name_space,
     ast::NamespaceBody* alias_space)
-    : alias_space(alias_space), member_access(nullptr), name_space(name_space),
+    : alias_space(alias_space),
+      member_access(nullptr),
+      name_space(name_space),
       node(node) {
 }
 
@@ -133,12 +136,9 @@ bool NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
   auto const result = ResolveReference(context, alias->reference());
   if (!result.has_value)
     return false;
-  if (result.value) {
-    auto const name_space = result.value->as<ast::Namespace>();
-    if (!name_space) {
-      session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
-                         alias->reference()->token());
-    }
+  if (result.value && !result.value->as<ast::MemberContainer>()) {
+    session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
+                       alias->reference()->token());
   }
   Resolved(alias_node);
   return true;
@@ -238,12 +238,9 @@ bool NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
   auto const result = ResolveReference(context, import->reference());
   if (!result.has_value)
     return false;
-  if (result.value) {
-    auto const name_space = result.value->as<ast::Namespace>();
-    if (!name_space) {
-      session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
-                         import->reference()->token());
-    }
+  if (result.value && !result.value->as<ast::MemberContainer>()) {
+    session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
+                       import->reference()->token());
   }
   Resolved(import_node);
   return true;
@@ -251,7 +248,7 @@ bool NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
 
 // Builds namespace tree and schedule members to resolve.
 bool NamespaceAnalyzer::AnalyzeNamespace(ast::Namespace* enclosing_namespace) {
-  DCHECK(enclosing_namespace->ToNamespace());
+  DCHECK(enclosing_namespace->is<ast::Namespace>());
   for (auto const body : enclosing_namespace->bodies()) {
     for (auto const import : body->imports())
       AnalyzeImport(import);
@@ -348,13 +345,13 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveMemberAccess(
   auto resolved = static_cast<ast::NamespaceMember*>(nullptr);
   for (auto const component : reference->components()) {
     if (resolved) {
-      auto const namespaze = resolved->as<ast::Namespace>();
-      if (!namespaze) {
+      auto const container = resolved->as<ast::MemberContainer>();
+      if (!container) {
         session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
                            component->token(), reference->token());
         return Remember(reference, nullptr);
       }
-      context.name_space = namespaze;
+      context.name_space = container;
       context.alias_space = nullptr;
     }
 
@@ -394,7 +391,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
       }
     }
 
-    if (alias_space && name_space->ToNamespace() &&
+    if (alias_space && name_space->is<ast::Namespace>() &&
         alias_space->owner() == name_space) {
       // Alias
       if (auto const alias = alias_space->FindAlias(name)) {
@@ -415,7 +412,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
           return Postpone(context.node, import_node);
         auto const imported = GetResolved(import->reference());
         if (auto const present =
-                imported->as<ast::Namespace>()->FindMember(name)) {
+                imported->as<ast::MemberContainer>()->FindMember(name)) {
           founds.insert(present);
         } else if (auto const clazz = imported->as<ast::Class>()) {
           auto const clazz_node = GetOrCreateNode(clazz);
@@ -496,8 +493,7 @@ bool NamespaceAnalyzer::Run() {
   // is odd number.
   for (auto const node : unresolved_nodes_) {
     session_->AddError(ErrorCode::NameResolutionNameCycle,
-                       node->member()->name(),
-                       node->GetFirstUserName());
+                       node->member()->name(), node->GetFirstUserName());
   }
   return false;
 }

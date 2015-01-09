@@ -64,7 +64,7 @@ class NodeFactory final {
   Namespace* NewNamespace(NamespaceBody* namespace_body,
                           Token* keyword,
                           Token* name);
-  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
+  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, MemberContainer* owner);
 
   // Expression nodes
   ArrayType* NewArrayType(Token* op,
