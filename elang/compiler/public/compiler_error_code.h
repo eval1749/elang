@@ -71,6 +71,7 @@ namespace compiler {
   E(Syntax, Do, While)                                \
   /* Expression */                                    \
   E(Syntax, Expression, ArrayAccess)                  \
+  E(Syntax, Expression, Call)                         \
   E(Syntax, Expression, ConditionalColon)             \
   E(Syntax, Expression, ConditionalElse)              \
   E(Syntax, Expression, ConditionalThen)              \

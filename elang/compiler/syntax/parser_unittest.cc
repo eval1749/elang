@@ -393,6 +393,16 @@ TEST_F(ParserTest, ExpressionCallBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, ExpressionCallErrorMissingArgument) {
+  Prepare(
+      "class A {\n"
+      "  void Run() {\n"
+      "    foo(x,);\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Expression.Call(35) )\n", Format());
+}
+
 TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
   Prepare(
       "class A {\n"

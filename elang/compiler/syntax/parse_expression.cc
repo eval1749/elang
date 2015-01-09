@@ -273,9 +273,10 @@ void Parser::ParsePrimaryExpressionPost() {
       std::vector<ast::Expression*> arguments;
       if (PeekToken() != TokenType::RightParenthesis) {
         do {
-          if (!ParseExpression())
-            break;
-          arguments.push_back(ConsumeExpression());
+          if (ParseExpression())
+            arguments.push_back(ConsumeExpression());
+          else
+            Error(ErrorCode::SyntaxExpressionCall);
         } while (AdvanceIf(TokenType::Comma));
       }
       if (!AdvanceIf(TokenType::RightParenthesis))
