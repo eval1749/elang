@@ -72,6 +72,7 @@ namespace compiler {
   E(Syntax, Expression, ConditionalElse)              \
   E(Syntax, Expression, ConditionalThen)              \
   E(Syntax, Expression, Label)                        \
+  E(Syntax, Expression, LeftAngleBracket)             \
   E(Syntax, Expression, RightParenthesis)             \
   E(Syntax, Expression, Type)                         \
   /* Finally */                                       \

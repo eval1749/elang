@@ -80,8 +80,10 @@ Token* Parser::ConsumeTokenAs(TokenType type) {
 
 bool Parser::ParseExpression() {
   // Expression ::= ConditionalExpression | Assignment
-  if (!ParseExpressionSub(ExpressionCategory::NullCoalescing))
+  if (!ParseExpressionSub(ExpressionCategory::NullCoalescing)) {
+    DCHECK(!expression_);
     return false;
+  }
 
   if (PeekToken() == TokenType::QuestionMark) {
     // ConditionalExpression ::=
@@ -91,6 +93,7 @@ bool Parser::ParseExpression() {
     auto const op_question = ConsumeToken();
     if (!ParseExpression()) {
       Error(ErrorCode::SyntaxExpressionConditionalThen);
+      DCHECK(!expression_);
       return false;
     }
     auto const then_part = ConsumeExpression();
@@ -98,6 +101,7 @@ bool Parser::ParseExpression() {
       return Error(ErrorCode::SyntaxExpressionConditionalColon);
     if (!ParseExpression()) {
       Error(ErrorCode::SyntaxExpressionConditionalElse);
+      DCHECK(!expression_);
       return false;
     }
     auto const else_part = ConsumeExpression();
@@ -113,8 +117,10 @@ bool Parser::ParseExpression() {
     auto const op_assign = ConsumeToken();
     auto const lhs = ConsumeExpression();
     // TODO(eval1749) Check |lhs| is unary expression.
-    if (!ParseExpression())
+    if (!ParseExpression()) {
+      DCHECK(!expression_);
       return false;
+    }
     auto const rhs = ConsumeExpression();
     ProduceExpression(factory()->NewAssignment(op_assign, lhs, rhs));
     return true;
@@ -131,15 +137,18 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
     return ParseUnaryExpression();
 
   // Handle Left-associative binary operators
-  if (!ParseExpressionSub(RaisePrecedence(category)))
+  if (!ParseExpressionSub(RaisePrecedence(category))) {
+    DCHECK(!expression_);
     return false;
+  }
   while (PeekTokenCategory() == category) {
     auto const op_token = ConsumeToken();
     auto const left = ConsumeExpression();
     if (!ParseExpressionSub(category))
-      return false;
+      return true;
     ProduceBinaryOperation(op_token, left, ConsumeExpression());
   }
+  DCHECK(expression_);
   return true;
 }
 
@@ -166,77 +175,94 @@ bool Parser::ParseExpressionSub(ExpressionCategory category) {
 bool Parser::ParsePrimaryExpression() {
   if (PeekToken()->is_literal()) {
     ProduceExpression(factory()->NewLiteral(ConsumeToken()));
-    return ParsePrimaryExpressionPost();
+    ParsePrimaryExpressionPost();
+    return true;
   }
 
   if (PeekToken()->is_name()) {
     // NameReference
     auto const name = ConsumeToken();
     if (auto const local_member = FindLocalMember(name)) {
+      // Local name reference
       if (auto const var = local_member->as<ast::LocalVariable>()) {
         ProduceVariableReference(name, var);
       } else {
         Error(ErrorCode::SyntaxExpressionLabel, name);
         ProduceExpression(factory()->NewInvalidExpression(name));
       }
-    } else {
-      // Non-local name reference.
-      ProduceType(factory()->NewNameReference(name));
+      ParsePrimaryExpressionPost();
+      return true;
     }
-    return ParsePrimaryExpressionPost();
+
+    // Non-local name reference
+    ProduceExpression(factory()->NewNameReference(name));
+    ParsePrimaryExpressionName();
+    ParsePrimaryExpressionPost();
+    return true;
   }
 
   if (PeekToken()->is_type_name()) {
     // Type name: 'bool', 'char', 'int', 'int16', and so on.
     ProduceType(factory()->NewNameReference(ConsumeToken()));
-    return ParseTypePost();
+    if (AdvanceIf(TokenType::LeftAngleBracket)) {
+      // TODO(eval1749) Skip until right angle bracket
+      Error(ErrorCode::SyntaxExpressionLeftAngleBracket);
+    }
+    ParseTypePost();
+    return true;
   }
 
-  if (AdvanceIf(TokenType::LeftParenthesis)) {
+  if (auto const parenthesis = ConsumeTokenIf(TokenType::LeftParenthesis)) {
     // ParenthesizedExpression:
     // '(' Expression ')'
-    ParseExpression();
-    if (!ParsePrimaryExpressionPost())
-      return false;
-    if (AdvanceIf(TokenType::RightParenthesis))
-      return true;
-    Error(ErrorCode::SyntaxExpressionRightParenthesis);
-    return false;
+    if (!ParseExpression())
+      ProduceExpression(factory()->NewInvalidExpression(parenthesis));
+    ParsePrimaryExpressionPost();
+    if (!AdvanceIf(TokenType::RightParenthesis))
+      Error(ErrorCode::SyntaxExpressionRightParenthesis);
+    return true;
   }
 
+  DCHECK(!expression_);
   return false;
 }
 
-bool Parser::ParsePrimaryExpressionPost() {
+void Parser::ParsePrimaryExpressionName() {
+  if (!AdvanceIf(TokenType::LeftAngleBracket))
+    return;
+  auto const generic_type = ConsumeExpression();
+  std::vector<ast::Expression*> type_args;
+  do {
+    if (!ParseType()) {
+      // TODO(eval1749) Skip to right angle bracket.
+      break;
+    }
+    type_args.push_back(ConsumeType());
+  } while (AdvanceIf(TokenType::Comma));
+  if (type_args.empty()) {
+    Error(ErrorCode::SyntaxMemberAccessTypeArgument);
+    return;
+  }
+  if (!AdvanceIf(TokenType::RightAngleBracket))
+    Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
+  ProduceExpression(factory()->NewConstructedType(generic_type, type_args));
+}
+
+void Parser::ParsePrimaryExpressionPost() {
   for (;;) {
     if (AdvanceIf(TokenType::Dot)) {
       // MemberAccess ::=
       //    PrimaryExpression '.' Identifier TypeArgumentList? |
       //    PredefinedType '.' Identifier TypeArgumentList? |
       //    QualifiedAliasMember '.' Identifier TypeArgumentList?
-      auto const container = ConsumeExpression();
       if (!PeekToken()->is_name()) {
         Error(ErrorCode::SyntaxMemberAccessName, ConsumeToken());
-        return false;
+        return;
       }
+      auto const container = ConsumeExpression();
       auto const member_name = factory()->NewNameReference(ConsumeToken());
       ProduceMemberAccess({container, member_name});
-      if (!AdvanceIf(TokenType::LeftAngleBracket))
-        continue;
-      auto const generic_type = ConsumeExpression();
-      std::vector<ast::Expression*> type_args;
-      do {
-        if (!ParseType())
-          return false;
-        type_args.push_back(ConsumeType());
-      } while (AdvanceIf(TokenType::Comma));
-      if (type_args.empty()) {
-        Error(ErrorCode::SyntaxMemberAccessTypeArgument);
-        continue;
-      }
-      if (!AdvanceIf(TokenType::RightAngleBracket))
-        Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
-      ProduceExpression(factory()->NewConstructedType(generic_type, type_args));
+      ParsePrimaryExpressionName();
       continue;
     }
 
@@ -280,9 +306,16 @@ bool Parser::ParsePrimaryExpressionPost() {
         ParseArrayType(bracket);
         continue;
       }
+      // TODO(eval1749) NYI Array reference
     }
 
-    return true;
+    if (auto const bracket = ConsumeTokenIf(TokenType::LeftAngleBracket)) {
+      // TODO(eval1749) Skip until right angle bracket
+      Error(ErrorCode::SyntaxExpressionLeftAngleBracket, bracket);
+    }
+
+    // Here, we have token not part of primary expression.
+    return;
   }
 }
 

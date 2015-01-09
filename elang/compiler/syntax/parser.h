@@ -103,11 +103,11 @@ class Parser final {
   // in "parse_expression.cc"
   // Returns last produced expression.
   ast::Expression* ConsumeExpression();
-  bool ParseAfterPrimaryExpression();
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
-  bool ParsePrimaryExpressionPost();
+  void ParsePrimaryExpressionName();
+  void ParsePrimaryExpressionPost();
   bool ParseUnaryExpression();
   ExpressionCategory PeekTokenCategory();
   ast::Expression* ProduceBinaryOperation(Token* op_token,
@@ -158,6 +158,9 @@ class Parser final {
   // Returns true if |expression| can be type. Since we've not yet resolved
   // name references, |expression| may not be type.
   bool MaybeType(ast::Expression* expression) const;
+  // Returns true if |expression| can be type name. Since we've not yet resolved
+  // name references, |expression| may not be type name.
+  bool MaybeTypeName(ast::Expression* expression) const;
   void ParseArrayType(Token* bracket);
   bool ParseNamespaceOrTypeName();
   bool ParseType();

@@ -206,8 +206,10 @@ TEST_F(ParserTest, ConstBasic) {
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
-  EXPECT_EQ("Syntax.Var.NotUsed(25) x\n"
-            "Syntax.Var.NotUsed(44) b\n", GetWarnings());
+  EXPECT_EQ(
+      "Syntax.Var.NotUsed(25) x\n"
+      "Syntax.Var.NotUsed(44) b\n",
+      GetWarnings());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -311,6 +313,20 @@ TEST_F(ParserTest, ExpressionCallBasic) {
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
+  Prepare(
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    x<T>;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Expression.LeftAngleBracket(35) <\n"
+            "Syntax.Var.Type(36) T\n"
+            "Syntax.Var.SemiColon(37) >\n"
+            "Syntax.Type.Name(37) >\n"
+            "Syntax.ClassDecl.RightCurryBracket(37) >\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -485,14 +501,10 @@ TEST_F(ParserTest, MemberAccessErrorName) {
   Prepare(
       "class A {\n"
       "  void F() {\n"
-      "    System.123;\n"
+      "    System.123;\n"  // "." should be followed by name instead of "123".
       "  }\n"
       "}\n");
-  EXPECT_EQ(
-      "Syntax.MemberAccess.Name(34) 123\n"
-      "Syntax.Type.Name(37) ;\n"
-      "Syntax.ClassDecl.RightCurryBracket(37) ;\n",
-      Format());
+  EXPECT_EQ("Syntax.MemberAccess.Name(34) 123\n", Format());
 }
 
 TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
@@ -538,7 +550,6 @@ TEST_F(ParserTest, MethodErrorTypeArg) {
       "}\n");
   EXPECT_EQ("Syntax.Type.RightAngleBracket(27) x\n", Format());
 }
-
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -30,9 +30,13 @@ ast::Expression* Parser::ConsumeType() {
 }
 
 bool Parser::MaybeType(ast::Expression* maybe_type) const {
-  return maybe_type->is<ast::ArrayType>() ||
-         maybe_type->is<ast::ConstructedType>() ||
-         maybe_type->is<ast::MemberAccess>() ||
+  return MaybeTypeName(maybe_type) ||
+         maybe_type->is<ast::ArrayType>() ||
+         maybe_type->is<ast::ConstructedType>();
+}
+
+bool Parser::MaybeTypeName(ast::Expression* maybe_type) const {
+  return maybe_type->is<ast::MemberAccess>() ||
          maybe_type->is<ast::NameReference>();
 }
 
