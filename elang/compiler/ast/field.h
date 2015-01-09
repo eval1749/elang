@@ -16,7 +16,7 @@ namespace ast {
 // Field
 //
 class Field final : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(Field, NamespaceMember);
+  DECLARE_AST_NODE_CONCRETE_CLASS(Field, NamespaceMember);
 
  public:
   Expression* expression() const { return expression_; }
@@ -28,9 +28,6 @@ class Field final : public NamespaceMember {
         Expression* Type,
         Token* name,
         Expression* expression);
-
-  // Node
-  void Accept(Visitor* visitor) override;
 
   Expression* const expression_;
   Expression* const type_;
