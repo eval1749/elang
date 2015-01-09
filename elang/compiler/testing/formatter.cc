@@ -115,6 +115,17 @@ void Formatter::VisitAlias(ast::Alias* alias) {
   stream_ << ";" << std::endl;
 }
 
+void Formatter::VisitArrayAccess(ast::ArrayAccess* access) {
+  Visit(access->array());
+  const char* separator = "[";
+  for (auto const index : access->indexes()) {
+    stream_ << separator;
+    Visit(index);
+    separator = ", ";
+  }
+  stream_ << "]";
+}
+
 void Formatter::VisitArrayType(ast::ArrayType* array_type) {
   Visit(array_type->element_type());
   for (auto const rank : array_type->ranks()) {

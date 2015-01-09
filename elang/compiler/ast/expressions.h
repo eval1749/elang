@@ -33,6 +33,26 @@ class Expression : public Node {
   DISALLOW_COPY_AND_ASSIGN(Expression);
 };
 
+// Represents array access, e.g. array[index (',' index)*]
+class ArrayAccess final : public Expression {
+  DECLARE_AST_NODE_CONCRETE_CLASS(ArrayAccess, Expression);
+
+ public:
+  Expression* array() const { return array_; }
+  const ZoneVector<Expression*>& indexes() const { return indexes_; }
+
+ private:
+  ArrayAccess(Zone* zone,
+              Token* name,
+              Expression* array,
+              const std::vector<Expression*>& indexes);
+
+  Expression* array_;
+  const ZoneVector<Expression*> indexes_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayAccess);
+};
+
 // Represents ArrayType expression:
 //  PrimaryExpresion Rank+
 //  Rank ::= '[' ','* ']'

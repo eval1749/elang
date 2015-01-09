@@ -28,6 +28,7 @@ namespace ast {
   V(Namespace)
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
+  V(ArrayAccess)                    \
   V(ArrayType)                      \
   V(Assignment)                     \
   V(BinaryOperation)                \

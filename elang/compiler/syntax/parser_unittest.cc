@@ -332,6 +332,57 @@ TEST_F(ParserTest, EnumValue) {
 //
 // Expression
 //
+TEST_F(ParserTest, ExpressionArrayBasic) {
+  auto const source_code =
+      "class A {\n"
+      "  void Main(String[] args) {\n"
+      "    args[1];\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ExpressionArrayErrorEmpty) {
+  Prepare(
+      "class A {\n"
+      "  void Main(String[] args) {\n"
+      "    args[];\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Expression.ArrayAccess(48) ]\n", Format());
+}
+
+TEST_F(ParserTest, ExpressionArrayErrorMissingIndex) {
+  Prepare(
+      "class A {\n"
+      "  void Main(String[] args) {\n"
+      "    args[1,];\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Expression.ArrayAccess(50) ]\n", Format());
+}
+
+TEST_F(ParserTest, ExpressionArrayErrorRightSquareBracket) {
+  Prepare(
+      "class A {\n"
+      "  void Main(String[] args) {\n"
+      "    args[1;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Bracket.NotClosed(47) [ }\n"
+            "Syntax.Expression.RightSquareBracket(49) ;\n", Format());
+}
+
+TEST_F(ParserTest, ExpressionArrayMultiple) {
+  auto const source_code =
+      "class A {\n"
+      "  void Main(String[] args) {\n"
+      "    args[1, 2, 3];\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
 TEST_F(ParserTest, ExpressionCallBasic) {
   auto const source_code =
       "class A {\n"

@@ -70,12 +70,14 @@ namespace compiler {
   E(Syntax, Do, SemiColon)                            \
   E(Syntax, Do, While)                                \
   /* Expression */                                    \
+  E(Syntax, Expression, ArrayAccess)                  \
   E(Syntax, Expression, ConditionalColon)             \
   E(Syntax, Expression, ConditionalElse)              \
   E(Syntax, Expression, ConditionalThen)              \
   E(Syntax, Expression, Label)                        \
   E(Syntax, Expression, LeftAngleBracket)             \
   E(Syntax, Expression, RightParenthesis)             \
+  E(Syntax, Expression, RightSquareBracket)           \
   E(Syntax, Expression, Type)                         \
   /* Finally */                                       \
   E(Syntax, Finally, LeftCurryBracket)                \

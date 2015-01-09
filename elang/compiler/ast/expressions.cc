@@ -19,6 +19,15 @@ namespace ast {
 Expression::Expression(Token* op) : Node(op) {
 }
 
+ArrayAccess::ArrayAccess(Zone* zone,
+                         Token* bracket,
+                         Expression* array,
+                         const std::vector<Expression*>& indexes)
+    : Expression(bracket), array_(array), indexes_(zone, indexes) {
+  DCHECK_EQ(bracket, TokenType::LeftSquareBracket);
+  DCHECK(!indexes.empty());
+}
+
 ArrayType::ArrayType(Zone* zone,
                      Token* op,
                      Expression* element_type,

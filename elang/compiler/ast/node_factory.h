@@ -67,6 +67,9 @@ class NodeFactory final {
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, MemberContainer* owner);
 
   // Expression nodes
+  ArrayAccess* NewArrayAccess(Token* bracket,
+                              Expression* array,
+                              const std::vector<Expression*> indexes);
   ArrayType* NewArrayType(Token* op,
                           Expression* element_type,
                           const std::vector<int>& ranks);

@@ -120,6 +120,13 @@ NamespaceBody* NodeFactory::NewNamespaceBody(NamespaceBody* outer,
 //
 // Expression nodes
 //
+ArrayAccess* NodeFactory::NewArrayAccess(
+    Token* bracket,
+    Expression* array,
+    const std::vector<Expression*> indexes) {
+  return new (zone_) ArrayAccess(zone_, bracket, array, indexes);
+}
+
 ArrayType* NodeFactory::NewArrayType(Token* op,
                                      Expression* element_type,
                                      const std::vector<int>& ranks) {

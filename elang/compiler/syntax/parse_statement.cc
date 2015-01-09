@@ -417,22 +417,23 @@ bool Parser::ParseIfStatement(Token* if_keyword) {
 
 // Called after '(' read.
 bool Parser::ParseMethod(Modifiers method_modifiers,
-                             ast::Expression* method_type,
-                             Token* method_name,
-                             const std::vector<Token*> type_parameters) {
+                         ast::Expression* method_type,
+                         Token* method_name,
+                         const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
+  LocalDeclarationSpace method_space(this, PeekToken());
   std::vector<ast::LocalVariable*> parameters;
-  std::unordered_set<AtomicString*> names;
   if (!AdvanceIf(TokenType::RightParenthesis)) {
     for (;;) {
       auto const param_type = ParseType() ? ConsumeType() : nullptr;
       auto const param_name =
           PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
-      if (names.count(param_name->simple_name()))
+      if (method_space.FindMember(param_name))
         Error(ErrorCode::SyntaxMethodNameDuplicate);
-      parameters.push_back(factory()->NewLocalVariable(nullptr, param_type,
-                                                       param_name, nullptr));
-      names.insert(param_name->simple_name());
+      auto const parameter = factory()->NewLocalVariable(nullptr, param_type,
+                                                         param_name, nullptr);
+      method_space.AddMember(parameter);
+      parameters.push_back(parameter);
       if (AdvanceIf(TokenType::RightParenthesis))
         break;
       if (!AdvanceIf(TokenType::Comma))
@@ -468,12 +469,8 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   }
 
   LocalDeclarationSpace method_body_space(this, PeekToken());
-  for (auto param : method->parameters())
-    method_body_space.AddMember(param);
-
   if (!ParseStatement())
     return true;
-
   auto const method_body = ConsumeStatement();
   DCHECK(method_body->is<ast::BlockStatement>());
   method->SetBody(method_body);

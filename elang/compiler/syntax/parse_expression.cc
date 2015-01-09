@@ -301,12 +301,32 @@ void Parser::ParsePrimaryExpressionPost() {
     }
 
     if (auto const bracket = ConsumeTokenIf(TokenType::LeftSquareBracket)) {
-      if (PeekToken() == TokenType::RightSquareBracket ||
-          PeekToken() == TokenType::Comma) {
-        ParseArrayType(bracket);
-        continue;
+      // ArrayAccess ::= PrimaryExpression '[' Expression (',' Expression)* ']'
+      DCHECK(expression_);
+      if (MaybeType(expression_)) {
+        if (PeekToken() == TokenType::RightSquareBracket ||
+            PeekToken() == TokenType::Comma) {
+          ParseArrayType(bracket);
+          continue;
+        }
       }
-      // TODO(eval1749) NYI Array reference
+      auto const array = ConsumeExpression();
+      std::vector<ast::Expression*> indexes;
+      do {
+        if (ParseExpression()) {
+          indexes.push_back(ConsumeExpression());
+        } else {
+          Error(ErrorCode::SyntaxExpressionArrayAccess);
+          indexes.push_back(factory()->NewInvalidExpression(bracket));
+        }
+        if (PeekToken() == TokenType::RightSquareBracket)
+          break;
+      } while (AdvanceIf(TokenType::Comma));
+      DCHECK(!indexes.empty());
+      if (!AdvanceIf(TokenType::RightSquareBracket))
+        Error(ErrorCode::SyntaxExpressionRightSquareBracket);
+      ProduceExpression(factory()->NewArrayAccess(bracket, array, indexes));
+      continue;
     }
 
     if (auto const bracket = ConsumeTokenIf(TokenType::LeftAngleBracket)) {
