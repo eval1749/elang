@@ -517,6 +517,10 @@ void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
   stream_ << ";";
 }
 
+void Formatter::VisitVariableReference(ast::VariableReference* var) {
+  stream_ << var->token();
+}
+
 void Formatter::VisitWhileStatement(ast::WhileStatement* while_statement) {
   stream_ << "while (";
   Visit(while_statement->condition());

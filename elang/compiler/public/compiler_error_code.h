@@ -11,6 +11,7 @@ namespace compiler {
 #define IGNORE_COMPILER_ERROR(category, subcategory, name)
 
 #define FOR_EACH_COMPILER_ERROR_CODE(E, W)            \
+  E(Error, Code, Zero)                                \
   /* * Name Resolver */                               \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
@@ -70,6 +71,7 @@ namespace compiler {
   E(Syntax, Expression, ConditionalColon)             \
   E(Syntax, Expression, ConditionalElse)              \
   E(Syntax, Expression, ConditionalThen)              \
+  E(Syntax, Expression, Label)                        \
   E(Syntax, Expression, RightParenthesis)             \
   E(Syntax, Expression, Type)                         \
   /* Finally */                                       \
@@ -134,6 +136,7 @@ namespace compiler {
   E(Syntax, Var, Assign)                              \
   E(Syntax, Var, Comma)                               \
   E(Syntax, Var, Const)                               \
+  E(Syntax, Var, Duplicate)                           \
   E(Syntax, Var, Name)                                \
   E(Syntax, Var, SemiColon)                           \
   E(Syntax, Var, Type)                                \
@@ -152,7 +155,9 @@ namespace compiler {
   E(Token, Integer, Overflow)                         \
   E(Token, Real, TooManyDigits)                       \
   E(Token, String, HasNewline)                        \
-  E(Token, String, Unclosed)
+  E(Token, String, Unclosed)                          \
+  W(Warning, Code, Zero)                              \
+  W(Syntax, Var, NotUsed)
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "elang/compiler/syntax/parser.h"
 
@@ -34,12 +35,14 @@ class Parser::LocalDeclarationSpace final {
 
   void AddMember(ast::NamedNode* member);
   ast::NamedNode* FindMember(Token* name) const;
+  void RecordReference(ast::NamedNode* member);
 
  private:
   LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
   std::unordered_map<AtomicString*, ast::NamedNode*> map_;
+  std::unordered_set<ast::NamedNode*> referenced_set_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalDeclarationSpace);
 };
@@ -51,12 +54,18 @@ Parser::LocalDeclarationSpace::LocalDeclarationSpace(Parser* parser,
 }
 
 Parser::LocalDeclarationSpace::~LocalDeclarationSpace() {
+  for (auto name_node : map_) {
+    if (referenced_set_.count(name_node.second))
+      continue;
+    // TODO(eval1749) We should use SyntaxLabelNotUsed for labels.
+    parser_->Error(ErrorCode::SyntaxVarNotUsed, name_node.second->name());
+  }
   parser_->declaration_space_ = outer_;
 }
 
 void Parser::LocalDeclarationSpace::AddMember(ast::NamedNode* member) {
   auto const name = member->name()->simple_name();
-  if (map_.find(name) != map_.end())
+  if (map_.count(name))
     return;
   map_[name] = member;
 }
@@ -65,6 +74,11 @@ ast::NamedNode* Parser::LocalDeclarationSpace::FindMember(Token* name) const {
   DCHECK(name->is_name());
   auto const present = map_.find(name->simple_name());
   return present == map_.end() ? nullptr : present->second;
+}
+
+void Parser::LocalDeclarationSpace::RecordReference(ast::NamedNode* member) {
+  DCHECK(map_.count(member->name()->simple_name()));
+  referenced_set_.insert(member);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -234,6 +248,8 @@ bool Parser::ParseForStatement(Token* for_keyword) {
     TypeOrExpression,
   } state = State::Start;
 
+
+  LocalDeclarationSpace for_var_scope(this, for_keyword);
   std::vector<ast::Expression*> initializers;
   std::vector<ast::LocalVariable*> variables;
 
@@ -270,8 +286,10 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           state = State::SemiColon;
           continue;
         }
-        if (!AdvanceIf(TokenType::Comma))
+        if (!AdvanceIf(TokenType::Comma)) {
           Error(ErrorCode::SyntaxForInit);
+          ProduceExpression(factory()->NewInvalidExpression(PeekToken()));
+        }
         continue;
 
       case State::SemiColon: {
@@ -398,7 +416,7 @@ bool Parser::ParseIfStatement(Token* if_keyword) {
 }
 
 // Called after '(' read.
-bool Parser::ParseMethodDecl(Modifiers method_modifiers,
+bool Parser::ParseMethod(Modifiers method_modifiers,
                              ast::Expression* method_type,
                              Token* method_name,
                              const std::vector<Token*> type_parameters) {
@@ -607,8 +625,13 @@ void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
       else if (keyword == TokenType::Const)
         Error(ErrorCode::SyntaxVarConst);
     }
-    // TODO(eval1749) Check local name duplication
-    variables.push_back(factory()->NewLocalVariable(nullptr, type, name, init));
+    auto const variable =
+        factory()->NewLocalVariable(nullptr, type, name, init);
+    if (FindLocalMember(name))
+      Error(ErrorCode::SyntaxVarDuplicate, name);
+    else
+      declaration_space_->AddMember(variable);
+    variables.push_back(variable);
     if (!AdvanceIf(TokenType::Comma))
       break;
     if (!PeekToken()->is_name())
@@ -756,6 +779,22 @@ bool Parser::ParseStatement() {
 ast::Statement* Parser::ProduceStatement(ast::Statement* statement) {
   DCHECK(!statement_);
   return statement_ = statement;
+}
+
+ast::Expression* Parser::ProduceVariableReference(
+    Token* name,
+    ast::LocalVariable* variable) {
+  DCHECK(name->is_name());
+  auto enclosing_space = static_cast<LocalDeclarationSpace*>(nullptr);
+  for (auto runner = declaration_space_; runner; runner = runner->outer()) {
+    if (runner->FindMember(name)) {
+      enclosing_space = runner;
+      break;
+    }
+  }
+  DCHECK(enclosing_space);
+  enclosing_space->RecordReference(variable);
+  return ProduceExpression(factory()->NewVariableReference(name, variable));
 }
 
 }  // namespace compiler

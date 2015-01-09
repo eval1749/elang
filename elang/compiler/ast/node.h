@@ -38,7 +38,8 @@ namespace ast {
   V(Literal)                        \
   V(MemberAccess)                   \
   V(NameReference)                  \
-  V(UnaryOperation)
+  V(UnaryOperation)                 \
+  V(VariableReference)
 
 #define FOR_EACH_STATEMENT_NODE(V) \
   V(BlockStatement)                \

@@ -45,6 +45,7 @@ class CompilerTest : public ::testing::Test {
   std::string Format(base::StringPiece source_code);
   std::string GetBaseClasses(base::StringPiece name);
   std::string GetErrors();
+  std::string GetWarnings();
   bool Parse();
   void PopulateSystemNamespace();
   void Prepare(base::StringPiece16 source_code);

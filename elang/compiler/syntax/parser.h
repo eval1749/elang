@@ -133,10 +133,10 @@ class Parser final {
   bool ParseDoStatement(Token* keyword);
   bool ParseForStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);
-  bool ParseMethodDecl(Modifiers modifiers,
-                       ast::Expression* method_type,
-                       Token* method_name,
-                       const std::vector<Token*> type_parameters);
+  bool ParseMethod(Modifiers modifiers,
+                   ast::Expression* method_type,
+                   Token* method_name,
+                   const std::vector<Token*> type_parameters);
   bool ParseReturnStatement(Token* keyword);
   bool ParseThrowStatement(Token* keyword);
   bool ParseTryStatement(Token* keyword);
@@ -147,6 +147,10 @@ class Parser final {
   void ParseVariables(Token* keyword, ast::Expression* type);
   bool ParseYieldStatement(Token* keyword);
   ast::Statement* ProduceStatement(ast::Statement* statement);
+
+  // Produce local variable reference at |name| token.
+  ast::Expression* ProduceVariableReference(Token* name,
+                                            ast::LocalVariable* variable);
 
   // in "parse_type.cc"
   // Returns last produced expression.

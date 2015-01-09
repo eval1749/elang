@@ -46,6 +46,7 @@ class CompilationSession final {
   ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
+  const std::vector<ErrorData*>& warnings() const { return warnings_; }
   Zone* zone() const { return zone_.get(); }
 
   void AddError(ErrorCode error_code, Token* token);
@@ -74,6 +75,7 @@ class CompilationSession final {
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
   std::unique_ptr<TokenFactory> token_factory_;
+  std::vector<ErrorData*> warnings_;
 
   std::unique_ptr<SourceCode> source_code_;
   ast::Namespace* const global_namespace_;

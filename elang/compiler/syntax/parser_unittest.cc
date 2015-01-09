@@ -206,6 +206,8 @@ TEST_F(ParserTest, ConstBasic) {
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
+  EXPECT_EQ("Syntax.Var.NotUsed(25) x\n"
+            "Syntax.Var.NotUsed(44) b\n", GetWarnings());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -756,6 +758,16 @@ TEST_F(ParserTest, VarErrorComma) {
       "  }\n"
       "}\n";
   EXPECT_EQ("Syntax.Var.Comma(34) ;\n", Format(source_code));
+}
+
+TEST_F(ParserTest, VarErrorDuplicate) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x, x;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.Duplicate(34) x\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorName) {

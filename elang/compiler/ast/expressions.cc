@@ -79,6 +79,10 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
     : Expression(op), expression_(expression) {
 }
 
+VariableReference::VariableReference(Token* name, LocalVariable* variable)
+    : Expression(name), variable_(variable) {
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

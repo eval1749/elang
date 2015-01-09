@@ -11,6 +11,7 @@
 #include "elang/base/zone.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
+#include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
@@ -64,9 +65,11 @@ void CompilationSession::AddError(const SourceCodeRange& location,
 void CompilationSession::AddError(const SourceCodeRange& location,
                                   ErrorCode error_code,
                                   const std::vector<Token*>& tokens) {
-  errors_.push_back(new (zone_.get())
-                        ErrorData(zone_.get(), location, error_code, tokens));
-  std::sort(errors_.begin(), errors_.end(),
+  std::vector<ErrorData*>* list =
+      error_code > ErrorCode::WarningCodeZero ? &warnings_ : &errors_;
+  list->push_back(new (zone_.get())
+                      ErrorData(zone_.get(), location, error_code, tokens));
+  std::sort(list->begin(), list->end(),
             [](const ErrorData* a, const ErrorData* b) {
     return a->location().start_offset() < b->location().start_offset();
   });

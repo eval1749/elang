@@ -360,12 +360,11 @@ bool Parser::ParseClassDecl() {
         // TODO(eval1749) Skip until '{' or '}'
         continue;
       }
-      ParseMethodDecl(member_modifiers, member_type, member_name,
-                      type_parameters);
+      ParseMethod(member_modifiers, member_type, member_name, type_parameters);
       continue;
     }
     if (AdvanceIf(TokenType::LeftParenthesis)) {
-      ParseMethodDecl(member_modifiers, member_type, member_name, {});
+      ParseMethod(member_modifiers, member_type, member_name, {});
       continue;
     }
 

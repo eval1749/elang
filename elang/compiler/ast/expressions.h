@@ -192,7 +192,7 @@ class MemberAccess final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
 };
 
-// Represents name reference
+// Represents non-local name reference
 class NameReference final : public Expression {
   DECLARE_AST_NODE_CONCRETE_CLASS(NameReference, Expression);
 
@@ -224,6 +224,23 @@ class UnaryOperation final : public Expression {
   Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(UnaryOperation);
+};
+
+// Represents local variable reference
+class VariableReference final : public Expression {
+  DECLARE_AST_NODE_CONCRETE_CLASS(VariableReference, Expression);
+
+ public:
+  // Returns name token where local variable referenced.
+  Token* name() const { return token(); }
+  LocalVariable* variable() const { return variable_; }
+
+ private:
+  VariableReference(Token* name, LocalVariable* variable);
+
+  LocalVariable* const variable_;
+
+  DISALLOW_COPY_AND_ASSIGN(VariableReference);
 };
 
 }  // namespace ast

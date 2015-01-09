@@ -173,6 +173,11 @@ UnaryOperation* NodeFactory::NewUnaryOperation(Token* op, Expression* expr) {
   return new (zone_) UnaryOperation(op, expr);
 }
 
+VariableReference* NodeFactory::NewVariableReference(Token* name,
+                                                     LocalVariable* variable) {
+  return new (zone_) VariableReference(name, variable);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Statement

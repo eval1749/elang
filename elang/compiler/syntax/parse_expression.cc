@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -169,11 +170,24 @@ bool Parser::ParsePrimaryExpression() {
   }
 
   if (PeekToken()->is_name()) {
-    ProduceExpression(factory()->NewNameReference(ConsumeToken()));
+    // NameReference
+    auto const name = ConsumeToken();
+    if (auto const local_member = FindLocalMember(name)) {
+      if (auto const var = local_member->as<ast::LocalVariable>()) {
+        ProduceVariableReference(name, var);
+      } else {
+        Error(ErrorCode::SyntaxExpressionLabel, name);
+        ProduceExpression(factory()->NewInvalidExpression(name));
+      }
+    } else {
+      // Non-local name reference.
+      ProduceType(factory()->NewNameReference(name));
+    }
     return ParsePrimaryExpressionPost();
   }
 
   if (PeekToken()->is_type_name()) {
+    // Type name: 'bool', 'char', 'int', 'int16', and so on.
     ProduceType(factory()->NewNameReference(ConsumeToken()));
     return ParseTypePost();
   }

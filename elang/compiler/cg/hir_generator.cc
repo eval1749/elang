@@ -127,6 +127,10 @@ void HirGenerator::VisitUnaryOperation(ast::UnaryOperation* node) {
   DCHECK(node);
 }
 
+void HirGenerator::VisitVariableReference(ast::VariableReference* node) {
+  DCHECK(node);
+}
+
 // Statement nodes
 void HirGenerator::VisitBlockStatement(ast::BlockStatement* node) {
   DCHECK(node);

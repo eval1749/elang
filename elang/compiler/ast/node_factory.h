@@ -88,6 +88,7 @@ class NodeFactory final {
                                 const std::vector<Expression*>& members);
   NameReference* NewNameReference(Token* literal);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
+  VariableReference* NewVariableReference(Token* name, LocalVariable* var);
 
   // Statement nodes
   BlockStatement* NewBlockStatement(Token* keyword,

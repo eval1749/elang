@@ -32,6 +32,25 @@ namespace compiler {
 namespace testing {
 
 namespace {
+std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
+  static const char* const mnemonic[] = {
+#define V(category, subcategory, name) #category "." #subcategory "." #name,
+      FOR_EACH_COMPILER_ERROR_CODE(V, V)
+#undef V
+  };
+
+  std::stringstream stream;
+  for (auto const error : errors) {
+    auto const index = static_cast<int>(error->error_code());
+    stream << mnemonic[index] << "(" << error->location().start().offset()
+           << ")";
+    for (auto token : error->tokens())
+      stream << " " << token;
+    stream << std::endl;
+  }
+  return stream.str();
+}
+
 std::string GetQualifiedName(ast::NamespaceMember* member) {
   std::vector<Token*> names;
   names.push_back(member->name());
@@ -234,21 +253,11 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
 }
 
 std::string CompilerTest::GetErrors() {
-  static const char* const error_messages[] = {
-#define E(category, subcategory, name) #category "." #subcategory "." #name,
-      FOR_EACH_COMPILER_ERROR_CODE(E, E)
-#undef E
-  };
+  return ConvertErrorListToString(session_->errors());
+}
 
-  std::stringstream stream;
-  for (auto const error : session_->errors()) {
-    stream << error_messages[static_cast<int>(error->error_code())] << "("
-           << error->location().start().offset() << ")";
-    for (auto token : error->tokens())
-      stream << " " << token;
-    stream << std::endl;
-  }
-  return stream.str();
+std::string CompilerTest::GetWarnings() {
+  return ConvertErrorListToString(session_->warnings());
 }
 
 bool CompilerTest::Parse() {
