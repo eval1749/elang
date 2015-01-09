@@ -8,7 +8,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/method_group.h"
-#include "elang/compiler/ast/statement.h"
+#include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 
