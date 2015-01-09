@@ -33,20 +33,25 @@ class LexerTest : public testing::CompilerTest {
                    int end,
                    base::StringPiece16 data);
   Token* MakeToken(TokenType type, int start, int end, uint64_t u64);
+  Token* Peek();
   void PrepareLexer(base::StringPiece16 source_text);
 
  protected:
-  LexerTest() = default;
+  LexerTest();
   ~LexerTest() override = default;
 
  private:
   std::unique_ptr<Lexer> lexer_;
+  Token* token_;
 
   DISALLOW_COPY_AND_ASSIGN(LexerTest);
 };
 
+LexerTest::LexerTest() : token_(nullptr) {
+}
+
 Token* LexerTest::Get() {
-  return lexer_->GetToken();
+  return token_ = lexer_->GetToken();
 }
 
 Token* LexerTest::MakeToken(int start, int end, float32_t f32) {
@@ -84,6 +89,11 @@ Token* LexerTest::MakeToken(TokenType type, int start, int end, uint64_t u64) {
   return session()->NewToken(location, TokenData(type));
 }
 
+Token* LexerTest::Peek() {
+  DCHECK(token_);
+  return token_;
+}
+
 void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
   Prepare(source_text);
   auto const compilation_unit = session()->NewCompilationUnit(source_code());
@@ -93,10 +103,7 @@ void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
 }  // namespace
 
 char ToHexDigit(int n) {
-  auto const n4 = n & 15;
-  if (n4 < 10)
-    return '0' + n4;
-  return n4 + 'A' - 10;
+  return "0123456789ABCDEF"[n & 15];
 }
 
 void PrintTo(const Token& token, ::std::ostream* ostream) {
@@ -172,6 +179,22 @@ TEST_F(LexerTest, Basic) {
 
   // We should get |EndOfSource| once we are at end of source.
   EXPECT_TOKEN(EndOfSource, 103, 104, 0);
+}
+
+TEST_F(LexerTest, Bracket) {
+  PrepareLexer(L"()<>[]{}");
+  EXPECT_TRUE(Get()->is_left_bracket()) << "(";
+  EXPECT_TRUE(Peek()->right_bracket() == TokenType::RightParenthesis);
+  EXPECT_TRUE(Get()->is_right_bracket()) << ")";
+  EXPECT_TRUE(Get()->is_left_bracket()) << "<";
+  EXPECT_TRUE(Peek()->right_bracket() == TokenType::RightAngleBracket);
+  EXPECT_TRUE(Get()->is_right_bracket()) << ">";
+  EXPECT_TRUE(Get()->is_left_bracket()) << "[";
+  EXPECT_TRUE(Peek()->right_bracket() == TokenType::RightSquareBracket);
+  EXPECT_TRUE(Get()->is_right_bracket()) << "]";
+  EXPECT_TRUE(Get()->is_left_bracket()) << "{";
+  EXPECT_TRUE(Peek()->right_bracket() == TokenType::RightCurryBracket);
+  EXPECT_TRUE(Get()->is_right_bracket()) << "}";
 }
 
 TEST_F(LexerTest, Integers) {

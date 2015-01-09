@@ -36,12 +36,15 @@ class Token final : public ZoneAllocated {
   int64_t int64_data() const { return data_.int64_data(); }
   bool is_contextual_keyword() const { return data_.is_contextual_keyword(); }
   bool is_keyword() const { return data_.is_keyword(); }
+  bool is_left_bracket() const { return data_.is_left_bracket(); }
   bool is_literal() const { return data_.is_literal(); }
   bool is_name() const { return data_.is_name(); }
   bool is_operator() const { return data_.is_operator(); }
+  bool is_right_bracket() const { return data_.is_right_bracket(); }
   bool is_type_name() const { return data_.is_type_name(); }
   const SourceCodeRange& location() const { return location_; }
   int precedence() const { return data_.precedence(); }
+  TokenType right_bracket() const { return data_.right_bracket(); }
   AtomicString* simple_name() const { return data_.simple_name(); }
   base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }

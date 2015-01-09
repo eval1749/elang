@@ -26,6 +26,8 @@ namespace compiler {
   E(NameResolution, Name, NotNamespace)               \
   E(NameResolution, Name, NotResolved)                \
   /*  Parser */                                       \
+  E(Syntax, Bracket, Extra)                           \
+  E(Syntax, Bracket, NotClosed)                       \
   /* CompilationUnit */                               \
   E(Syntax, CompilationUnit, Invalid)                 \
   /* EnumDecl */                                      \

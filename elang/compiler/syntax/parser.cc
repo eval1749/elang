@@ -403,7 +403,7 @@ bool Parser::ParseClassDecl() {
 //      GlobalAttribute*
 //      NamespaceMemberDecl*
 bool Parser::ParseCompilationUnit() {
-  if (!ParseUsingDirectives() || !ParseNamespaceMemberDecls())
+  if (!ParseUsingDirectives() || !ParseNamespaceMembers())
     return false;
   if (PeekToken() == TokenType::EndOfSource)
     return true;
@@ -459,16 +459,16 @@ bool Parser::ParseFunctionDecl() {
 //  NamespaceDecl ::= "namespace" QualifiedName Namespace ";"?
 //  Namespace ::= "{" ExternAliasDirective* UsingDirective*
 //                        NamespaceMemberDecl* "}"
-bool Parser::ParseNamespaceDecl() {
+bool Parser::ParseNamespace() {
   auto const namespace_keyword = ConsumeToken();
   DCHECK_EQ(namespace_keyword->type(), TokenType::Namespace);
   if (!ParseQualifiedName())
     return false;
   const auto name = name_builder_->Get();
-  return ParseNamespaceDecl(namespace_keyword, name.simple_names(), 0);
+  return ParseNamespace(namespace_keyword, name.simple_names(), 0);
 }
 
-bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
+bool Parser::ParseNamespace(Token* namespace_keyword,
                                 const std::vector<Token*>& names,
                                 size_t index) {
   auto const simple_name = names[index];
@@ -485,14 +485,14 @@ bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
   }
   NamespaceBodyScope namespace_body_scope(this, new_namespace);
   if (index + 1 < names.size())
-    return ParseNamespaceDecl(namespace_keyword, names, index + 1);
+    return ParseNamespace(namespace_keyword, names, index + 1);
   // TODO(eval1749) Record position of left bracket for error message
   // when there is no matching right bracket.
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxNamespaceDeclLeftCurryBracket);
   if (!ParseUsingDirectives())
     return false;
-  if (!ParseNamespaceMemberDecls())
+  if (!ParseNamespaceMembers())
     return false;
   // TODO(eval1749) Report unmatched left bracket when token is EOS.
   if (!AdvanceIf(TokenType::RightCurryBracket))
@@ -504,7 +504,7 @@ bool Parser::ParseNamespaceDecl(Token* namespace_keyword,
 // NamespaceMemberDecl ::= NamespaceDecl | TypeDecl
 // TypeDecl ::= ClassDecl | InterfaceDecl | StructDecl | EnumDecl |
 //              FunctionDecl
-bool Parser::ParseNamespaceMemberDecls() {
+bool Parser::ParseNamespaceMembers() {
   for (;;) {
     modifiers_->Reset();
     while (modifiers_->Add(PeekToken()))
@@ -525,7 +525,7 @@ bool Parser::ParseNamespaceMemberDecls() {
           return false;
         break;
       case TokenType::Namespace:
-        if (!ParseNamespaceDecl())
+        if (!ParseNamespace())
           return false;
         break;
       default:
@@ -597,6 +597,34 @@ Token* Parser::PeekToken() {
     return token_;
   token_ = lexer_->GetToken();
   last_source_offset_ = token_->location().start_offset();
+  if (token_->is_left_bracket()) {
+    delimiters_.push_back(token_);
+    return token_;
+  }
+
+  if (!token_->is_right_bracket())
+    return token_;
+
+  Token* left_bracket = nullptr;
+  for (auto it = delimiters_.rbegin(); it != delimiters_.rend(); ++it) {
+    auto const delimiter = *it;
+    if (!delimiter->is_left_bracket())
+      continue;
+    if (token_ == delimiter->right_bracket()) {
+      if (left_bracket)
+        Error(ErrorCode::SyntaxBracketNotClosed, left_bracket, token_);
+      while (delimiters_.back() != delimiter)
+        delimiters_.pop_back();
+      delimiters_.pop_back();
+      return token_;
+    }
+    left_bracket = delimiter;
+  }
+
+  if (left_bracket)
+    Error(ErrorCode::SyntaxBracketNotClosed, left_bracket, token_);
+  else
+    Error(ErrorCode::SyntaxBracketExtra);
   return token_;
 }
 

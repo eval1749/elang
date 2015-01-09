@@ -86,11 +86,11 @@ class Parser final {
   bool ParseEnumDecl();
   bool ParseFunctionDecl();
   bool ParseCompilationUnit();
-  bool ParseNamespaceDecl();
-  bool ParseNamespaceDecl(Token* namespace_keyword,
-                          const std::vector<Token*>& names,
-                          size_t index);
-  bool ParseNamespaceMemberDecls();
+  bool ParseNamespace();
+  bool ParseNamespace(Token* namespace_keyword,
+                      const std::vector<Token*>& names,
+                      size_t index);
+  bool ParseNamespaceMembers();
   bool ParseQualifiedName();
   bool ParseUsingDirectives();
   Token* PeekToken();
@@ -172,6 +172,7 @@ class Parser final {
 
   CompilationUnit* compilation_unit_;
   LocalDeclarationSpace* declaration_space_;
+  std::vector<Token*> delimiters_;
   ast::Expression* expression_;
   const std::unique_ptr<Lexer> lexer_;
   int last_source_offset_;

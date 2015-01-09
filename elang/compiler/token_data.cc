@@ -139,6 +139,11 @@ bool TokenData::is_keyword() const {
   return detail == 'C' || detail == 'K';
 }
 
+bool TokenData::is_left_bracket() const {
+  auto const details = GetTokenDetails(type_);
+  return details[0] == 'P' && details[1] == 'L';
+}
+
 bool TokenData::is_literal() const {
   auto const details = GetTokenDetails(type_);
   return details[0] == 'L' || details[1] == 'L';
@@ -151,6 +156,11 @@ bool TokenData::is_name() const {
 
 bool TokenData::is_operator() const {
   return GetTokenDetails(type_)[0] == 'O';
+}
+
+bool TokenData::is_right_bracket() const {
+  auto const details = GetTokenDetails(type_);
+  return details[0] == 'P' && details[1] == 'R';
 }
 
 bool TokenData::is_type_name() const {
@@ -173,6 +183,19 @@ int TokenData::precedence() const {
 AtomicString* TokenData::simple_name() const {
   DCHECK(has_simple_name());
   return data_.name;
+}
+
+TokenType TokenData::right_bracket() const {
+  if (type_ == TokenType::LeftAngleBracket)
+    return TokenType::RightAngleBracket;
+  if (type_ == TokenType::LeftCurryBracket)
+    return TokenType::RightCurryBracket;
+  if (type_ == TokenType::LeftParenthesis)
+    return TokenType::RightParenthesis;
+  if (type_ == TokenType::LeftSquareBracket)
+    return TokenType::RightSquareBracket;
+  NOTREACHED();
+  return TokenType::Illegal;
 }
 
 base::StringPiece16 TokenData::string_data() const {

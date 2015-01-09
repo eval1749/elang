@@ -54,6 +54,33 @@ TEST_F(ParserTest, AliasErrorReference) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Bracket statement
+//
+TEST_F(ParserTest, BracketErrorExtra) {
+  EXPECT_EQ("Syntax.Bracket.Extra(0) }\n"
+            "Syntax.CompilationUnit.Invalid(0) }\n", Format("}"));
+}
+
+TEST_F(ParserTest, BracketErrorNotClosed) {
+  EXPECT_EQ("Syntax.Bracket.NotClosed(12) { )\n"
+            "Syntax.NamespaceDecl.RightCurryBracket(14) )\n",
+            Format("namespace A { )"));
+}
+
+TEST_F(ParserTest, BracketErrorNotClosed2) {
+  Prepare(
+      "class A {\n"
+      "  void Run() {\n"
+      "    )\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ("Syntax.Bracket.NotClosed(8) { )\n"
+            "Syntax.Type.Name(29) )\n"
+            "Syntax.ClassDecl.RightCurryBracket(29) )\n", Format());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'break' statement
 //
 TEST_F(ParserTest, BreakBasic) {
@@ -514,7 +541,8 @@ TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
       "    System.Console<A;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.MemberAccess.RightAngleBracket(43) ;\n", Format());
+  EXPECT_EQ("Syntax.Bracket.NotClosed(41) < }\n"   // from method F
+            "Syntax.MemberAccess.RightAngleBracket(43) ;\n", Format());
 }
 
 TEST_F(ParserTest, MemberAccessTypeArg) {
@@ -545,10 +573,11 @@ TEST_F(ParserTest, MethodErrorTypeArg) {
   Prepare(
       "class A {\n"
       "  void Run(B<foo x) {\n"  // Missing right angle bracket.
-      "    return x;\n"
+      "    return 123;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Type.RightAngleBracket(27) x\n", Format());
+  EXPECT_EQ("Syntax.Bracket.NotClosed(22) < )\n"
+            "Syntax.Type.RightAngleBracket(27) x\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////

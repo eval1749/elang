@@ -44,11 +44,14 @@ class TokenData {
   AtomicString* id() const { return simple_name(); }
   bool is_contextual_keyword() const;
   bool is_keyword() const;
+  bool is_left_bracket() const;
   bool is_literal() const;
   bool is_name() const;
   bool is_operator() const;
+  bool is_right_bracket() const;
   bool is_type_name() const;
   int precedence() const;
+  TokenType right_bracket() const;
   AtomicString* simple_name() const;
   base::StringPiece16 string_data() const;
   TokenType type() const { return type_; }

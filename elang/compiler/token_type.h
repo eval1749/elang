@@ -33,7 +33,9 @@ namespace compiler {
 //
 // Second characters are
 //  'L' keyword literal, e.g. false, null, true.
+//  'L' left bracket
 //  'M' modifier
+//  'R' right bracket
 //  'T' type
 //  'a' operator precedence (highest)
 //  ...
@@ -43,15 +45,15 @@ namespace compiler {
                                                                             \
   T(Colon, ":", "P")                                                        \
   T(SemiColon, ";", "P")                                                    \
-  T(LeftParenthesis, ")", "P")                                              \
-  T(RightParenthesis, ")", "P")                                             \
-  T(LeftSquareBracket, "]", "P")                                            \
-  T(RightSquareBracket, "]", "P")                                           \
-  T(LeftCurryBracket, "{", "P")                                             \
-  T(RightCurryBracket, "}", "P")                                            \
+  T(LeftParenthesis, "(", "PL")                                             \
+  T(RightParenthesis, ")", "PR")                                            \
+  T(LeftSquareBracket, "[", "PL")                                           \
+  T(RightSquareBracket, "]", "PR")                                          \
+  T(LeftCurryBracket, "{", "PL")                                            \
+  T(RightCurryBracket, "}", "PR")                                           \
   /* For type arguments |G<T>| */                                           \
-  T(LeftAngleBracket, "<", "P")                                             \
-  T(RightAngleBracket, ">", "P")                                            \
+  T(LeftAngleBracket, "<", "PL")                                            \
+  T(RightAngleBracket, ">", "PR")                                           \
   /* For nullable type, e.g. |int?| */                                      \
   T(OptionalType, "?", "P")                                                 \
   T(Dot, ".", "P")                                                          \
