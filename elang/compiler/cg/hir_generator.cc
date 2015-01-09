@@ -68,7 +68,7 @@ void HirGenerator::VisitMethod(ast::Method* method) {
   // TODO(eval1749) NYI do following steps:
   //  1 Convert ast::FunctionType to hir::FunctionType
   //  2 NewFunction()
-  method->statement()->Accept(this);
+  method->body()->Accept(this);
   methods_[method] = function_;
   function_ = nullptr;
 }

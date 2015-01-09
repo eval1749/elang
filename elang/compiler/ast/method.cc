@@ -28,21 +28,21 @@ Method::Method(Zone* zone,
                const std::vector<Token*>& type_parameters,
                const std::vector<LocalVariable*>& parameters)
     : NamedNode(name, name),
+      body_(nullptr),
       method_group_(method_group),
       modifiers_(modifiers),
       namespace_body_(namespace_body),
       parameters_(zone, parameters),
       return_type_(return_type),
-      statement_(nullptr),
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
 }
 
-void Method::SetStatement(ast::Statement* statement) {
-  DCHECK(!statement_);
+void Method::SetBody(ast::Statement* statement) {
+  DCHECK(!body_);
   DCHECK(statement);
-  statement_ = statement;
+  body_ = statement;
 }
 
 //////////////////////////////////////////////////////////////////////

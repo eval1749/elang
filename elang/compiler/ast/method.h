@@ -22,14 +22,14 @@ class Method final : public NamedNode {
   DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamedNode);
 
  public:
+  // Returns method body. Its is null when parsing is failed or |extern|
+  // method.
+  Statement* body() const { return body_; }
+
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
   const ZoneVector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
-
-  // Returns method body. Its is null when parsing is failed or |extern|
-  // method.
-  Statement* statement() const { return statement_; }
 
   // Type parameters for generic method.
   const ZoneVector<Token*>& type_parameters() { return type_parameters_; }
@@ -37,7 +37,7 @@ class Method final : public NamedNode {
   // Set method body to |statement|. |statement| can be |BlockStatement| or
   // |Expression|, by shortcut syntax |int Foo(int x) => x + 1;|.
   // |statement| can't be null.
-  void SetStatement(Statement* statement);
+  void SetBody(Statement* statement);
 
  private:
   Method(Zone* zone,
@@ -49,12 +49,12 @@ class Method final : public NamedNode {
          const std::vector<Token*>& type_parameters,
          const std::vector<LocalVariable*>& parameters);
 
+  Statement* body_;
   MethodGroup* const method_group_;
   const Modifiers modifiers_;
   NamespaceBody* const namespace_body_;
   const ZoneVector<LocalVariable*> parameters_;
   Expression* const return_type_;
-  Statement* statement_;
   const ZoneVector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);

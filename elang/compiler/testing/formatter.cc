@@ -399,7 +399,7 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
       separator = ", ";
     }
     stream_ << ")";
-    auto const statement = method->statement();
+    auto const statement = method->body();
     if (!statement) {
       stream_ << ";" << std::endl;
       continue;

@@ -476,7 +476,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
 
   auto const method_body = ConsumeStatement();
   DCHECK(method_body->is<ast::BlockStatement>());
-  method->SetStatement(method_body);
+  method->SetBody(method_body);
   return true;
 }
 
