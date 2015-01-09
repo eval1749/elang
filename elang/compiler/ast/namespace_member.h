@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/compiler/ast/named_node.h"
+#include "elang/compiler/ast/node.h"
 
 #include "elang/compiler/modifiers.h"
 

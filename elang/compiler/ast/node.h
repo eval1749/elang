@@ -118,6 +118,26 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// NamedNode
+//
+class NamedNode : public Node {
+  DECLARE_AST_NODE_CLASS(NamedNode, Node);
+
+ public:
+  Token* keyword() const { return token(); }
+  Token* name() const { return name_; }
+
+ protected:
+  NamedNode(Token* keyword, Token* name);
+
+ private:
+  Token* const name_;
+
+  DISALLOW_COPY_AND_ASSIGN(NamedNode);
+};
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

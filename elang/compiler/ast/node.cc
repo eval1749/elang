@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/node.h"
 
 #include "base/logging.h"
+#include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
@@ -20,6 +21,14 @@ Node::Node(Token* token) : token_(token) {
 void Node::Accept(Visitor* visitor) {
   __assume(visitor);
   NOTREACHED();
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// NamedNode
+//
+NamedNode::NamedNode(Token* keyword, Token* name) : Node(keyword), name_(name) {
+  DCHECK(name->is_name());
 }
 
 }  // namespace ast
