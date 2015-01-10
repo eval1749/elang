@@ -15,7 +15,7 @@ namespace elang {
 //////////////////////////////////////////////////////////////////////
 //
 // ZoneUnorderedMap
-// A wrapper subclass for |std::vector|.
+// A wrapper subclass for |std::unordered_map|.
 //
 template <typename K, typename T>
 class ZoneUnorderedMap
