@@ -11,6 +11,7 @@
 #include "base/macros.h"
 #include "elang/base/maybe.h"
 #include "elang/base/zone_owner.h"
+#include "elang/compiler/ast/visitor.h"
 
 namespace elang {
 namespace compiler {
@@ -36,7 +37,7 @@ class NameReference;
 //
 // NamespaceAnalyzer
 //
-class NamespaceAnalyzer final : public ZoneOwner {
+class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
  public:
   NamespaceAnalyzer(CompilationSession* session, NameResolver* resolver);
   ~NamespaceAnalyzer();
@@ -47,13 +48,7 @@ class NamespaceAnalyzer final : public ZoneOwner {
   class AnalyzeNode;
   struct ResolveContext;
 
-  void AnalyzeAlias(ast::Alias* alias);
   void AnalyzeClass(ast::Class* clazz);
-  void AnalyzeImport(ast::Import* import);
-  // Build namespace tree and schedule member to resolve.
-  void AnalyzeNamespace(ast::Namespace* ast_Namespace);
-  void AnalyzeNamespaceMember(ast::NamespaceMember* member);
-
   void DidResolve(AnalyzeNode* node);
   std::unordered_set<ast::NamespaceMember*> FindInClass(Token* name,
                                                         ast::Class* clazz);
@@ -74,6 +69,14 @@ class NamespaceAnalyzer final : public ZoneOwner {
       ast::NameReference* reference);
   Maybe<ast::NamespaceMember*> ResolveReference(const ResolveContext& context,
                                                 ast::Expression* reference);
+
+  // ast::Visitor
+  void VisitAlias(ast::Alias* alias);
+  void VisitClass(ast::Class* clazz);
+  void VisitImport(ast::Import* import);
+  // Build namespace tree and schedule member to resolve.
+  void VisitNamespace(ast::Namespace* ast_Namespace);
+
   // Cache for mapping reference to resolved entity for alias target and
   // base class list.
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> reference_cache_;

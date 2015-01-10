@@ -127,22 +127,6 @@ NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session,
 NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
-void NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
-  auto const alias_node = GetOrCreateNode(alias);
-  if (alias_node->is_resolved())
-    return;
-  ResolveContext context(alias_node, alias->outer(),
-                         alias->namespace_body()->outer());
-  auto const result = ResolveReference(context, alias->reference());
-  if (!result.has_value)
-    return;
-  if (result.value && !result.value->as<ast::MemberContainer>()) {
-    session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
-                       alias->reference()->token());
-  }
-  DidResolve(alias_node);
-}
-
 void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
   auto const class_node = GetOrCreateNode(clazz);
   if (class_node->is_resolved())
@@ -228,60 +212,6 @@ void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
   return;
 }
 
-void NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
-  auto const import_node = GetOrCreateNode(import);
-  if (import_node->is_resolved())
-    return;
-  ResolveContext context(import_node, import->outer(),
-                         import->namespace_body()->outer());
-  auto const result = ResolveReference(context, import->reference());
-  if (!result.has_value)
-    return;
-  if (result.value && !result.value->as<ast::MemberContainer>()) {
-    session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
-                       import->reference()->token());
-  }
-  DidResolve(import_node);
-}
-
-// Builds namespace tree and schedule members to resolve.
-void NamespaceAnalyzer::AnalyzeNamespace(ast::Namespace* enclosing_namespace) {
-  DCHECK(enclosing_namespace->is<ast::Namespace>());
-  for (auto const body : enclosing_namespace->bodies()) {
-    for (auto const import : body->imports())
-      AnalyzeImport(import);
-    for (auto const alias : body->aliases())
-      AnalyzeAlias(alias);
-    for (auto const member : body->members()) {
-      AnalyzeNamespaceMember(member);
-    }
-  }
-}
-
-void NamespaceAnalyzer::AnalyzeNamespaceMember(ast::NamespaceMember* member) {
-  if (auto const alias = member->as<ast::Alias>()) {
-    AnalyzeAlias(alias);
-    return;
-  }
-  if (auto const clazz = member->as<ast::Class>()) {
-    AnalyzeClass(clazz);
-    for (auto const body : clazz->bodies()) {
-      for (auto const member : body->members())
-        AnalyzeNamespaceMember(member);
-    }
-    return;
-  }
-  if (auto const import = member->as<ast::Import>()) {
-    AnalyzeImport(import);
-    return;
-  }
-  if (auto const namespaze = member->as<ast::Namespace>()) {
-    AnalyzeNamespace(namespaze);
-    return;
-  }
-  NOTREACHED();
-}
-
 void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {
   node->DidResolve();
   unresolved_nodes_.erase(node);
@@ -292,7 +222,7 @@ void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {
     user->RemoveUse(node);
     if (!user->uses().empty())
       continue;
-    AnalyzeNamespaceMember(user->member());
+    user->member()->Accept(this);
   }
 }
 
@@ -488,7 +418,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveReference(
 }
 
 bool NamespaceAnalyzer::Run() {
-  AnalyzeNamespace(session_->global_namespace());
+  VisitNamespace(session_->global_namespace());
   if (!session_->errors().empty())
     return false;
   if (unresolved_nodes_.empty())
@@ -496,10 +426,64 @@ bool NamespaceAnalyzer::Run() {
   // If there are odd number of self referenced node, |unresolved_nodes_.size()|
   // is odd number.
   for (auto const node : unresolved_nodes_) {
-    session_->AddError(ErrorCode::NameResolutionNameCycle,
-                       node->member()->name(), node->GetFirstUserName());
+    auto const name = node->member()->name();
+    if (auto const user = node->GetFirstUserName())
+      session_->AddError(ErrorCode::NameResolutionNameCycle, name, user);
+    else
+      session_->AddError(ErrorCode::NameResolutionNameCycle, name);
   }
   return false;
+}
+
+// ast::Visitor
+void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
+  auto const alias_node = GetOrCreateNode(alias);
+  if (alias_node->is_resolved())
+    return;
+  ResolveContext context(alias_node, alias->outer(),
+                         alias->namespace_body()->outer());
+  auto const result = ResolveReference(context, alias->reference());
+  if (!result.has_value)
+    return;
+  if (result.value && !result.value->as<ast::MemberContainer>()) {
+    session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
+                       alias->reference()->token());
+  }
+  DidResolve(alias_node);
+}
+
+void NamespaceAnalyzer::VisitClass(ast::Class* clazz) {
+  AnalyzeClass(clazz);
+  clazz->AcceptForMembers(this);
+}
+
+void NamespaceAnalyzer::VisitImport(ast::Import* import) {
+  auto const import_node = GetOrCreateNode(import);
+  if (import_node->is_resolved())
+    return;
+  ResolveContext context(import_node, import->outer(),
+                         import->namespace_body()->outer());
+  auto const result = ResolveReference(context, import->reference());
+  if (!result.has_value)
+    return;
+  if (result.value && !result.value->as<ast::MemberContainer>()) {
+    session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
+                       import->reference()->token());
+  }
+  DidResolve(import_node);
+}
+
+// Builds namespace tree and schedule members to resolve.
+void NamespaceAnalyzer::VisitNamespace(ast::Namespace* namespaze) {
+  DCHECK(namespaze->is<ast::Namespace>());
+  for (auto const body : namespaze->bodies()) {
+    for (auto const import : body->imports())
+      VisitImport(import);
+    for (auto const alias : body->aliases())
+      VisitAlias(alias);
+    for (auto const member : body->members())
+      member->Accept(this);
+  }
 }
 
 }  // namespace compiler
