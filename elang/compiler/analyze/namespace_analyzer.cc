@@ -127,27 +127,26 @@ NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session,
 NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
-bool NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
+void NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
   auto const alias_node = GetOrCreateNode(alias);
   if (alias_node->is_resolved())
-    return true;
+    return;
   ResolveContext context(alias_node, alias->outer(),
                          alias->namespace_body()->outer());
   auto const result = ResolveReference(context, alias->reference());
   if (!result.has_value)
-    return false;
+    return;
   if (result.value && !result.value->as<ast::MemberContainer>()) {
     session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
                        alias->reference()->token());
   }
   DidResolve(alias_node);
-  return true;
 }
 
-bool NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
+void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
   auto const class_node = GetOrCreateNode(clazz);
   if (class_node->is_resolved())
-    return true;
+    return;
 
   auto has_value = true;
 
@@ -219,35 +218,34 @@ bool NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
 
   if (!are_base_classes_valid) {
     DidResolve(class_node);
-    return true;
+    return;
   }
 
   if (!has_value)
-    return false;
+    return;
 
   DidResolve(class_node);
-  return true;
+  return;
 }
 
-bool NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
+void NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
   auto const import_node = GetOrCreateNode(import);
   if (import_node->is_resolved())
-    return true;
+    return;
   ResolveContext context(import_node, import->outer(),
                          import->namespace_body()->outer());
   auto const result = ResolveReference(context, import->reference());
   if (!result.has_value)
-    return false;
+    return;
   if (result.value && !result.value->as<ast::MemberContainer>()) {
     session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
                        import->reference()->token());
   }
   DidResolve(import_node);
-  return true;
 }
 
 // Builds namespace tree and schedule members to resolve.
-bool NamespaceAnalyzer::AnalyzeNamespace(ast::Namespace* enclosing_namespace) {
+void NamespaceAnalyzer::AnalyzeNamespace(ast::Namespace* enclosing_namespace) {
   DCHECK(enclosing_namespace->is<ast::Namespace>());
   for (auto const body : enclosing_namespace->bodies()) {
     for (auto const import : body->imports())
@@ -258,26 +256,30 @@ bool NamespaceAnalyzer::AnalyzeNamespace(ast::Namespace* enclosing_namespace) {
       AnalyzeNamespaceMember(member);
     }
   }
-  return true;
 }
 
-bool NamespaceAnalyzer::AnalyzeNamespaceMember(ast::NamespaceMember* member) {
-  if (auto const alias = member->as<ast::Alias>())
-    return AnalyzeAlias(alias);
+void NamespaceAnalyzer::AnalyzeNamespaceMember(ast::NamespaceMember* member) {
+  if (auto const alias = member->as<ast::Alias>()) {
+    AnalyzeAlias(alias);
+    return;
+  }
   if (auto const clazz = member->as<ast::Class>()) {
-    auto const result = AnalyzeClass(clazz);
+    AnalyzeClass(clazz);
     for (auto const body : clazz->bodies()) {
       for (auto const member : body->members())
         AnalyzeNamespaceMember(member);
     }
-    return result;
+    return;
   }
-  if (auto const import = member->as<ast::Import>())
-    return AnalyzeImport(import);
-  if (auto const namespaze = member->as<ast::Namespace>())
-    return AnalyzeNamespace(namespaze);
+  if (auto const import = member->as<ast::Import>()) {
+    AnalyzeImport(import);
+    return;
+  }
+  if (auto const namespaze = member->as<ast::Namespace>()) {
+    AnalyzeNamespace(namespaze);
+    return;
+  }
   NOTREACHED();
-  return false;
 }
 
 void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {

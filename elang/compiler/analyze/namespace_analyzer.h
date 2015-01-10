@@ -47,12 +47,12 @@ class NamespaceAnalyzer final : public ZoneOwner {
   class AnalyzeNode;
   struct ResolveContext;
 
-  bool AnalyzeAlias(ast::Alias* alias);
-  bool AnalyzeClass(ast::Class* clazz);
-  bool AnalyzeImport(ast::Import* import);
+  void AnalyzeAlias(ast::Alias* alias);
+  void AnalyzeClass(ast::Class* clazz);
+  void AnalyzeImport(ast::Import* import);
   // Build namespace tree and schedule member to resolve.
-  bool AnalyzeNamespace(ast::Namespace* ast_Namespace);
-  bool AnalyzeNamespaceMember(ast::NamespaceMember* member);
+  void AnalyzeNamespace(ast::Namespace* ast_Namespace);
+  void AnalyzeNamespaceMember(ast::NamespaceMember* member);
 
   void DidResolve(AnalyzeNode* node);
   std::unordered_set<ast::NamespaceMember*> FindInClass(Token* name,

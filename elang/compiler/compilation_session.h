@@ -28,6 +28,8 @@ class NodeFactory;
 class CompilationUnit;
 enum class ErrorCode;
 class ErrorData;
+enum class PredefinedName;
+class PredefinedNames;
 class SourceCode;
 class SourceCodeRange;
 class Token;
@@ -46,6 +48,8 @@ class CompilationSession final : public ZoneOwner {
   ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
+  AtomicString* name_for(PredefinedName name) const;
+  ast::Namespace* system_namespace() const { return system_namespace_; }
   const std::vector<ErrorData*>& warnings() const { return warnings_; }
 
   void AddError(ErrorCode error_code, Token* token);
@@ -60,6 +64,7 @@ class CompilationSession final : public ZoneOwner {
   Token* NewUniqueNameToken(const SourceCodeRange& location,
                             const base::char16* format);
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
+  Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
 
  private:
   void AddError(const SourceCodeRange& location,
@@ -70,11 +75,13 @@ class CompilationSession final : public ZoneOwner {
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
-  std::unique_ptr<TokenFactory> token_factory_;
+  const std::unique_ptr<TokenFactory> token_factory_;
+  const std::unique_ptr<PredefinedNames> predefined_names_;
   std::vector<ErrorData*> warnings_;
 
-  std::unique_ptr<SourceCode> source_code_;
+  const std::unique_ptr<SourceCode> source_code_;
   ast::Namespace* const global_namespace_;
+  ast::Namespace* const system_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);
 };

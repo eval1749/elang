@@ -5,6 +5,7 @@
 #ifndef ELANG_COMPILER_ANALYZE_NAME_RESOLVER_H_
 #define ELANG_COMPILER_ANALYZE_NAME_RESOLVER_H_
 
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -24,6 +25,8 @@ class NamespaceMember;
 
 class AnalyzeFactory;
 class CompilationSession;
+enum class PredefinedName;
+class PredefinedTypes;
 class Token;
 class TokenData;
 enum class TokenType;
@@ -40,6 +43,7 @@ class NameResolver final {
   ~NameResolver();
 
   AnalyzeFactory* factory() const { return factory_.get(); }
+  ast::Class* type_from(PredefinedName name) const;
 
   void DidResolveReference(ast::Expression* reference,
                            ast::NamespaceMember* member);
@@ -49,6 +53,7 @@ class NameResolver final {
   const std::unique_ptr<AnalyzeFactory> factory_;
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> map_;
   std::unordered_map<TokenType, ast::Class*> keyword_types_;
+  const std::unique_ptr<PredefinedTypes> predefined_types_;
   CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);

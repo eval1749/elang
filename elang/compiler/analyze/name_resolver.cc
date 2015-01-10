@@ -6,10 +6,12 @@
 
 #include "base/logging.h"
 #include "elang/compiler/analyze/analyze_factory.h"
+#include "elang/compiler/analyze/predefined_types.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
 
@@ -54,17 +56,21 @@ ast::Class* GetClass(CompilationSession* session,
 // NameResolver
 //
 NameResolver::NameResolver(CompilationSession* session)
-    : factory_(new AnalyzeFactory()), session_(session) {
-  auto const ns_system = GetMember(session_, session->global_namespace(),
-                                   L"System")->as<ast::Namespace>();
+    : factory_(new AnalyzeFactory()),
+      predefined_types_(new PredefinedTypes(session)),
+      session_(session) {
 #define V(Name) \
-  keyword_types_[TokenType::Name] = GetClass(session_, ns_system, L## #Name);
+  keyword_types_[TokenType::Name] = type_from(PredefinedName::Name);
   FOR_EACH_KEYWORD_TYPE(V)
 #undef V
-  keyword_types_[TokenType::Int] = GetClass(session, ns_system, L"Int32");
+  keyword_types_[TokenType::Int] = type_from(PredefinedName::Int32);
 }
 
 NameResolver::~NameResolver() {
+}
+
+ast::Class* NameResolver::type_from(PredefinedName name) const {
+  return predefined_types_->type_from(name);
 }
 
 void NameResolver::DidResolveReference(ast::Expression* reference,
