@@ -28,6 +28,7 @@ static_library("ast") {
     "namespace_member.h",
     "node.cc",
     "node.h",
+    "nodes_forward.h",
     "node_factory.cc",
     "node_factory.h",
     "statements.cc",

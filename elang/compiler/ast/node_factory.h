@@ -10,14 +10,13 @@
 
 #include "base/strings/string_piece.h"
 #include "elang/base/float_types.h"
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
 class Zone;
 namespace compiler {
 class Modifiers;
-class QualifiedName;
 class Token;
 
 namespace ast {

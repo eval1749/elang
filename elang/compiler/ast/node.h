@@ -7,89 +7,11 @@
 
 #include <memory>
 
-#include "elang/base/castable.h"
-#include "elang/base/float_types.h"
-#include "elang/base/visitable.h"
-#include "elang/base/zone_allocated.h"
-#include "elang/compiler/token.h"
+#include "elang/compiler/ast/nodes_forward.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
-
-#define FOR_EACH_AST_MEMBER(V) \
-  V(Alias)                     \
-  V(Import)                    \
-  V(Class)                     \
-  V(Enum)                      \
-  V(Field)                     \
-  V(MethodGroup)               \
-  V(Namespace)
-
-#define FOR_EACH_DECLARATION_NODE(V) \
-  FOR_EACH_AST_MEMBER(V)             \
-  V(Method)
-
-#define FOR_EACH_EXPRESSION_NODE(V) \
-  V(ArrayAccess)                    \
-  V(ArrayType)                      \
-  V(Assignment)                     \
-  V(BinaryOperation)                \
-  V(Call)                           \
-  V(Conditional)                    \
-  V(ConstructedType)                \
-  V(InvalidExpression)              \
-  V(Literal)                        \
-  V(MemberAccess)                   \
-  V(NameReference)                  \
-  V(UnaryOperation)                 \
-  V(VariableReference)
-
-#define FOR_EACH_STATEMENT_NODE(V) \
-  V(BlockStatement)                \
-  V(BreakStatement)                \
-  V(DoStatement)                   \
-  V(ContinueStatement)             \
-  V(EmptyStatement)                \
-  V(ExpressionStatement)           \
-  V(ExpressionList)                \
-  V(ForEachStatement)              \
-  V(ForStatement)                  \
-  V(IfStatement)                   \
-  V(InvalidStatement)              \
-  V(ReturnStatement)               \
-  V(ThrowStatement)                \
-  V(TryStatement)                  \
-  V(UsingStatement)                \
-  V(VarStatement)                  \
-  V(WhileStatement)                \
-  V(YieldStatement)
-
-#define FOR_EACH_AST_NODE(V)   \
-  FOR_EACH_DECLARATION_NODE(V) \
-  FOR_EACH_EXPRESSION_NODE(V)  \
-  FOR_EACH_STATEMENT_NODE(V)
-
-//////////////////////////////////////////////////////////////////////
-//
-// Forward class declarations
-//
-#define FORWARD_DECLARATION(type) class type;
-FOR_EACH_AST_NODE(FORWARD_DECLARATION)
-#undef FORWARD_DECLARATION
-
-class CatchClause;
-class NamedNode;
-class EnumMember;
-class Expression;
-class LocalVariable;
-class Method;
-class MemberContainer;
-class MemberVisitor;
-class NamespaceBody;
-class NodeFactory;
-class Statement;
-class Visitor;
 
 #define DECLARE_AST_NODE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);      \
