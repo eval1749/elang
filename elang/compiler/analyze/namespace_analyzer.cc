@@ -7,6 +7,8 @@
 #include "elang/compiler/analyze/namespace_analyzer.h"
 
 #include "base/logging.h"
+#include "elang/base/zone_allocated.h"
+#include "elang/base/zone_unordered_set.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
@@ -27,15 +29,14 @@ namespace compiler {
 // NamespaceAnalyzer::AnalyzeNode
 // Represents a dependency graph node.
 //
-class NamespaceAnalyzer::AnalyzeNode final {
+class NamespaceAnalyzer::AnalyzeNode final : public ZoneAllocated {
  public:
-  explicit AnalyzeNode(ast::NamespaceMember* member);
-  ~AnalyzeNode();
+  AnalyzeNode(Zone* zone, ast::NamespaceMember* member);
 
   bool is_resolved() const { return is_resolved_; }
   ast::NamespaceMember* member() const { return member_; }
-  const std::unordered_set<AnalyzeNode*> uses() const { return uses_; }
-  const std::unordered_set<AnalyzeNode*> users() const { return users_; }
+  const ZoneUnorderedSet<AnalyzeNode*> uses() const { return uses_; }
+  const ZoneUnorderedSet<AnalyzeNode*> users() const { return users_; }
 
   void DidResolve();
   Token* GetFirstUserName() const;
@@ -43,19 +44,20 @@ class NamespaceAnalyzer::AnalyzeNode final {
   void Use(AnalyzeNode* node);
 
  private:
+  ~AnalyzeNode() = default;
+
   bool is_resolved_;
   ast::NamespaceMember* const member_;
-  std::unordered_set<AnalyzeNode*> uses_;
-  std::unordered_set<AnalyzeNode*> users_;
+  ZoneUnorderedSet<AnalyzeNode*> uses_;
+  ZoneUnorderedSet<AnalyzeNode*> users_;
 
   DISALLOW_COPY_AND_ASSIGN(AnalyzeNode);
 };
 
-NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(ast::NamespaceMember* member)
-    : is_resolved_(member->is<ast::Namespace>()), member_(member) {
-}
-
-NamespaceAnalyzer::AnalyzeNode::~AnalyzeNode() {
+NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(Zone* zone,
+                                            ast::NamespaceMember* member)
+    : is_resolved_(member->is<ast::Namespace>()), member_(member),
+      uses_(zone), users_(zone) {
 }
 
 void NamespaceAnalyzer::AnalyzeNode::DidResolve() {
@@ -123,8 +125,6 @@ NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session,
 }
 
 NamespaceAnalyzer::~NamespaceAnalyzer() {
-  for (const auto& pair : map_)
-    delete pair.second;
 }
 
 bool NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
@@ -321,7 +321,7 @@ NamespaceAnalyzer::AnalyzeNode* NamespaceAnalyzer::GetOrCreateNode(
   auto const it = map_.find(member);
   if (it != map_.end())
     return it->second;
-  auto const node = new AnalyzeNode(member);
+  auto const node = new (zone()) AnalyzeNode(zone(), member);
   map_[member] = node;
   return node;
 }

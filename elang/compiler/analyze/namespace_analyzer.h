@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "elang/base/maybe.h"
+#include "elang/base/zone_owner.h"
 
 namespace elang {
 namespace compiler {
@@ -35,7 +36,7 @@ class NameReference;
 //
 // NamespaceAnalyzer
 //
-class NamespaceAnalyzer final {
+class NamespaceAnalyzer final : public ZoneOwner {
  public:
   NamespaceAnalyzer(CompilationSession* session, NameResolver* resolver);
   ~NamespaceAnalyzer();
@@ -73,6 +74,8 @@ class NamespaceAnalyzer final {
       ast::NameReference* reference);
   Maybe<ast::NamespaceMember*> ResolveReference(const ResolveContext& context,
                                                 ast::Expression* reference);
+  // Cache for mapping reference to resolved entity for alias target and
+  // base class list.
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> reference_cache_;
   std::unordered_map<ast::NamespaceMember*, AnalyzeNode*> map_;
   NameResolver* const resolver_;
