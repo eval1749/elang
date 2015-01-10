@@ -26,10 +26,17 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-#define IMPLEMENT_ACCEPT(type) \
-  void type::Accept(Visitor* visitor) { visitor->Visit##type(this); }
-FOR_EACH_AST_NODE(IMPLEMENT_ACCEPT)
-#undef IMPLEMENT_ACCEPT
+#define V(Name) \
+  void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
+FOR_EACH_AST_NODE(V)
+#undef V
+
+#define V(Name)                                            \
+  void Name::AcceptMemberVisitor(MemberVisitor* visitor) { \
+    visitor->Visit##Name(this);                            \
+  }
+FOR_EACH_AST_MEMBER(V)
+#undef V
 
 //////////////////////////////////////////////////////////////////////
 //

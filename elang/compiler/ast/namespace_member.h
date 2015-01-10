@@ -29,6 +29,7 @@ class NamespaceMember : public NamedNode {
   MemberContainer* outer() const;
   MemberContainer* owner() const { return outer(); }
 
+  virtual void AcceptMemberVisitor(MemberVisitor* visitor) = 0;
   bool IsDescendantOf(const NamespaceMember* other) const;
 
  protected:

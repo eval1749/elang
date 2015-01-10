@@ -20,7 +20,7 @@ class NodeFactory;
 // Alias
 //
 class Alias final : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(Alias, NamespaceMember);
+  DECLARE_AST_NODE_CONCRETE_CLASS(Alias, NamespaceMember);
 
  public:
   Expression* reference() const { return reference_; }
@@ -31,8 +31,8 @@ class Alias final : public NamespaceMember {
         Token* alias_name,
         Expression* reference);
 
-  // Node
-  void Accept(Visitor* visitor) override;
+  // NamespaceMember
+  void AcceptMemberVisitor(MemberVisitor* visitor) final;
 
   Expression* const reference_;
 

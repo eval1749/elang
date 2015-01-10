@@ -58,6 +58,9 @@ class Namespace final : public MemberContainer {
             Token* keyword,
             Token* name);
 
+  // NamespaceMember
+  void AcceptMemberVisitor(MemberVisitor* visitor) final;
+
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
 

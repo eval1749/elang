@@ -20,7 +20,7 @@ class NodeFactory;
 // Import
 //
 class Import final : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(Import, NamespaceMember);
+  DECLARE_AST_NODE_CONCRETE_CLASS(Import, NamespaceMember);
 
  public:
   Expression* reference() const { return reference_; }
@@ -28,8 +28,8 @@ class Import final : public NamespaceMember {
  private:
   Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
 
-  // Node
-  void Accept(Visitor* visitor) override;
+  // NamespaceMember
+  void AcceptMemberVisitor(MemberVisitor* visitor) final;
 
   Expression* const reference_;
 

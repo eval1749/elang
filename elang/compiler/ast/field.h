@@ -29,6 +29,9 @@ class Field final : public NamespaceMember {
         Token* name,
         Expression* expression);
 
+  // NamespaceMember
+  void AcceptMemberVisitor(MemberVisitor* visitor) final;
+
   Expression* const expression_;
   Expression* const type_;
 

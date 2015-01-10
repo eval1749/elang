@@ -13,6 +13,23 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
+// MemberVisitor
+//
+class MemberVisitor {
+ public:
+  MemberVisitor();
+  ~MemberVisitor();
+
+#define V(Name) virtual void Visit##Name(Name* member) = 0;
+  FOR_EACH_AST_MEMBER(V)
+#undef V
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MemberVisitor);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Visitor
 //
 class Visitor {

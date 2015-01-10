@@ -17,15 +17,18 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-#define FOR_EACH_DECLARATION_NODE(V) \
-  V(Alias)                           \
-  V(Class)                           \
-  V(Enum)                            \
-  V(Field)                           \
-  V(Import)                          \
-  V(Method)                          \
-  V(MethodGroup)                     \
+#define FOR_EACH_AST_MEMBER(V) \
+  V(Alias)                     \
+  V(Import)                    \
+  V(Class)                     \
+  V(Enum)                      \
+  V(Field)                     \
+  V(MethodGroup)               \
   V(Namespace)
+
+#define FOR_EACH_DECLARATION_NODE(V) \
+  FOR_EACH_AST_MEMBER(V)             \
+  V(Method)
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
   V(ArrayAccess)                    \
@@ -82,6 +85,7 @@ class Expression;
 class LocalVariable;
 class Method;
 class MemberContainer;
+class MemberVisitor;
 class NamespaceBody;
 class NodeFactory;
 class Statement;

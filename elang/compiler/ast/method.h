@@ -75,6 +75,9 @@ class MethodGroup final : public NamespaceMember {
  private:
   MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name);
 
+  // NamespaceMember
+  void AcceptMemberVisitor(MemberVisitor* visitor) final;
+
   ZoneVector<Method*> methods_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodGroup);
