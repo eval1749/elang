@@ -51,10 +51,9 @@ class Formatter final : public ast::Visitor {
   void FormatChildStatement(ast::Statement* statement);
   void Indent();
   void IndentPlusOne();
+  void Visit(ast::Node* node);
 
   // ast::Visitor
-  void Visit(ast::Node* node) final;
-
 #define DECLARE_VISIT(type) void Visit##type(ast::type* node) final;
   FOR_EACH_AST_NODE(DECLARE_VISIT)
 #undef DECLARE_VISIT

@@ -103,11 +103,11 @@ std::string Formatter::Run(ast::Namespace* ns) {
   return stream_.str();
 }
 
-// ast::Vistior
 void Formatter::Visit(ast::Node* node) {
   node->Accept(this);
 }
 
+// ast::Visitor
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
   stream_ << alias->keyword() << " " << alias->name() << " = ";
