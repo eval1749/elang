@@ -65,6 +65,13 @@ NameResolver::NameResolver(CompilationSession* session) : session_(session) {
 NameResolver::~NameResolver() {
 }
 
+void NameResolver::DidResolveReference(ast::Expression* reference,
+                                       ast::NamespaceMember* member) {
+  DCHECK(member);
+  DCHECK(!map_.count(reference));
+  map_[reference] = member;
+}
+
 ast::NamespaceMember* NameResolver::FindReference(ast::Expression* reference) {
   auto const it = map_.find(reference);
   if (it != map_.end())
@@ -75,13 +82,6 @@ ast::NamespaceMember* NameResolver::FindReference(ast::Expression* reference) {
       return it->second;
   }
   return nullptr;
-}
-
-void NameResolver::Resolved(ast::Expression* reference,
-                            ast::NamespaceMember* member) {
-  DCHECK(member);
-  DCHECK(!map_.count(reference));
-  map_[reference] = member;
 }
 
 }  // namespace compiler

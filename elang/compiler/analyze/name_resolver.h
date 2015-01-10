@@ -38,8 +38,9 @@ class NameResolver final {
   explicit NameResolver(CompilationSession* session);
   ~NameResolver();
 
+  void DidResolveReference(ast::Expression* reference,
+                           ast::NamespaceMember* member);
   ast::NamespaceMember* FindReference(ast::Expression* reference);
-  void Resolved(ast::Expression* reference, ast::NamespaceMember* member);
 
  private:
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> map_;

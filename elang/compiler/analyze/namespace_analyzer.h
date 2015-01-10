@@ -53,6 +53,7 @@ class NamespaceAnalyzer final {
   bool AnalyzeNamespace(ast::Namespace* ast_Namespace);
   bool AnalyzeNamespaceMember(ast::NamespaceMember* member);
 
+  void DidResolve(AnalyzeNode* node);
   std::unordered_set<ast::NamespaceMember*> FindInClass(Token* name,
                                                         ast::Class* clazz);
   ast::NamespaceMember* FindResolved(ast::Expression* reference);
@@ -72,8 +73,6 @@ class NamespaceAnalyzer final {
       ast::NameReference* reference);
   Maybe<ast::NamespaceMember*> ResolveReference(const ResolveContext& context,
                                                 ast::Expression* reference);
-  void Resolved(AnalyzeNode* node);
-
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> reference_cache_;
   std::unordered_map<ast::NamespaceMember*, AnalyzeNode*> map_;
   NameResolver* const resolver_;

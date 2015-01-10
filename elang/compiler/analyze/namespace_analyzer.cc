@@ -37,9 +37,9 @@ class NamespaceAnalyzer::AnalyzeNode final {
   const std::unordered_set<AnalyzeNode*> uses() const { return uses_; }
   const std::unordered_set<AnalyzeNode*> users() const { return users_; }
 
+  void DidResolve();
   Token* GetFirstUserName() const;
   void RemoveUse(AnalyzeNode* node);
-  void Resolved();
   void Use(AnalyzeNode* node);
 
  private:
@@ -58,6 +58,11 @@ NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(ast::NamespaceMember* member)
 NamespaceAnalyzer::AnalyzeNode::~AnalyzeNode() {
 }
 
+void NamespaceAnalyzer::AnalyzeNode::DidResolve() {
+  DCHECK(!is_resolved_);
+  is_resolved_ = true;
+}
+
 Token* NamespaceAnalyzer::AnalyzeNode::GetFirstUserName() const {
   auto node = static_cast<AnalyzeNode*>(nullptr);
   for (auto const runner : users_) {
@@ -73,11 +78,6 @@ Token* NamespaceAnalyzer::AnalyzeNode::GetFirstUserName() const {
 void NamespaceAnalyzer::AnalyzeNode::RemoveUse(AnalyzeNode* node) {
   uses_.erase(node);
   node->users_.erase(this);
-}
-
-void NamespaceAnalyzer::AnalyzeNode::Resolved() {
-  DCHECK(!is_resolved_);
-  is_resolved_ = true;
 }
 
 void NamespaceAnalyzer::AnalyzeNode::Use(AnalyzeNode* node) {
@@ -140,7 +140,7 @@ bool NamespaceAnalyzer::AnalyzeAlias(ast::Alias* alias) {
     session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
                        alias->reference()->token());
   }
-  Resolved(alias_node);
+  DidResolve(alias_node);
   return true;
 }
 
@@ -218,14 +218,14 @@ bool NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
   }
 
   if (!are_base_classes_valid) {
-    Resolved(class_node);
+    DidResolve(class_node);
     return true;
   }
 
   if (!has_value)
     return false;
 
-  Resolved(class_node);
+  DidResolve(class_node);
   return true;
 }
 
@@ -242,7 +242,7 @@ bool NamespaceAnalyzer::AnalyzeImport(ast::Import* import) {
     session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
                        import->reference()->token());
   }
-  Resolved(import_node);
+  DidResolve(import_node);
   return true;
 }
 
@@ -278,6 +278,20 @@ bool NamespaceAnalyzer::AnalyzeNamespaceMember(ast::NamespaceMember* member) {
     return AnalyzeNamespace(namespaze);
   NOTREACHED();
   return false;
+}
+
+void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {
+  node->DidResolve();
+  unresolved_nodes_.erase(node);
+  std::vector<AnalyzeNode*> users;
+  for (auto const user : node->users())
+    users.push_back(user);
+  for (auto const user : users) {
+    user->RemoveUse(node);
+    if (!user->uses().empty())
+      continue;
+    AnalyzeNamespaceMember(user->member());
+  }
 }
 
 // Find |name| in class tree rooted by |clazz|.
@@ -333,7 +347,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Remember(
   DCHECK(!reference_cache_.count(reference));
   reference_cache_[reference] = member;
   if (member)
-    resolver_->Resolved(reference, member);
+    resolver_->DidResolveReference(reference, member);
   return Maybe<ast::NamespaceMember*>(member);
 }
 
@@ -381,6 +395,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
       auto const clazz_node = GetOrCreateNode(clazz);
       if (!clazz_node->is_resolved())
         return Postpone(context.node, clazz_node);
+      // TODO(eval1749) We should check |System.Object| base classes.
       for (auto const base_class_name : clazz->base_class_names()) {
         auto const resolved = FindResolved(base_class_name);
         if (!resolved)
@@ -418,6 +433,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
           auto const clazz_node = GetOrCreateNode(clazz);
           if (!clazz_node->is_resolved())
             return Postpone(context.node, clazz_node);
+          // TODO(eval1749) We should check |System.Object| base classes.
           for (auto const base_class_name : clazz->base_class_names()) {
             auto const base_class =
                 GetResolved(base_class_name)->as<ast::Class>();
@@ -467,20 +483,6 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveReference(
 #endif
   NOTREACHED();
   return Maybe<ast::NamespaceMember*>(nullptr);
-}
-
-void NamespaceAnalyzer::Resolved(AnalyzeNode* node) {
-  node->Resolved();
-  unresolved_nodes_.erase(node);
-  std::vector<AnalyzeNode*> users;
-  for (auto const user : node->users())
-    users.push_back(user);
-  for (auto const user : users) {
-    user->RemoveUse(node);
-    if (!user->uses().empty())
-      continue;
-    AnalyzeNamespaceMember(user->member());
-  }
 }
 
 bool NamespaceAnalyzer::Run() {
