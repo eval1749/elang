@@ -22,6 +22,7 @@ class Namespace;
 class NamespaceMember;
 }
 
+class AnalyzeFactory;
 class CompilationSession;
 class Token;
 class TokenData;
@@ -38,11 +39,14 @@ class NameResolver final {
   explicit NameResolver(CompilationSession* session);
   ~NameResolver();
 
+  AnalyzeFactory* factory() const { return factory_.get(); }
+
   void DidResolveReference(ast::Expression* reference,
                            ast::NamespaceMember* member);
   ast::NamespaceMember* FindReference(ast::Expression* reference);
 
  private:
+  const std::unique_ptr<AnalyzeFactory> factory_;
   std::unordered_map<ast::Expression*, ast::NamespaceMember*> map_;
   std::unordered_map<TokenType, ast::Class*> keyword_types_;
   CompilationSession* const session_;

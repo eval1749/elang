@@ -32,7 +32,6 @@ Factory::Factory()
     : atomic_string_factory_(new AtomicStringFactory()),
       code_memory_pool_(new MemoryPool(MemoryPool::Kind::Code, 16)),
       data_memory_pool_(new MemoryPool(MemoryPool::Kind::Data, 16)),
-      zone_(new Zone()),
       global_namespace_(CreateGlobalNamespace(this)) {
 }
 
@@ -46,7 +45,7 @@ AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
 Class* Factory::NewClass(Namespace* outer,
                          AtomicString* name,
                          const std::vector<Class*>& base_classes) {
-  return new (zone_.get()) Class(zone_.get(), outer, name, base_classes);
+  return new (zone()) Class(zone(), outer, name, base_classes);
 }
 
 EntryPoint Factory::NewCodeBlob(int size) {
@@ -58,7 +57,7 @@ void* Factory::NewDataBlob(int size) {
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* name) {
-  return new (zone_.get()) Namespace(zone_.get(), outer, name);
+  return new (zone()) Namespace(zone(), outer, name);
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string) {

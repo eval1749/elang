@@ -14,7 +14,6 @@
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
-class Zone;
 namespace compiler {
 class Modifiers;
 class Token;

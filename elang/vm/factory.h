@@ -11,12 +11,12 @@
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_owner.h"
 #include "elang/vm/entry_point.h"
 
 namespace elang {
 class AtomicString;
 class AtomicStringFactory;
-class Zone;
 
 namespace vm {
 class Class;
@@ -27,13 +27,12 @@ class Namespace;
 //
 // Factory
 //
-class Factory final {
+class Factory final : public ZoneOwner {
  public:
   Factory();
   ~Factory();
 
   Namespace* global_namespace() const { return global_namespace_; }
-  Zone* zone() const { return zone_.get(); }
 
   AtomicString* NewAtomicString(base::StringPiece16 string);
   Class* NewClass(Namespace* outer,
@@ -45,12 +44,9 @@ class Factory final {
   base::StringPiece16 NewString(base::StringPiece16 string);
 
  private:
+  const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   const std::unique_ptr<MemoryPool> code_memory_pool_;
   const std::unique_ptr<MemoryPool> data_memory_pool_;
-  const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
-  const std::unique_ptr<Zone> zone_;
-
-  // |global_namespace_| must be initialized after |zone_|.
   Namespace* const global_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

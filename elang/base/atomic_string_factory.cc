@@ -14,8 +14,7 @@ namespace elang {
 //
 // AtomicStringFactory
 //
-AtomicStringFactory::AtomicStringFactory()
-    : unique_name_counter_(0), zone_(new Zone()) {
+AtomicStringFactory::AtomicStringFactory() : unique_name_counter_(0) {
 }
 
 AtomicStringFactory::~AtomicStringFactory() {
@@ -25,7 +24,7 @@ AtomicString* AtomicStringFactory::NewAtomicString(base::StringPiece16 string) {
   auto const it = map_.find(string);
   if (it != map_.end())
     return it->second;
-  auto const atomic_string = new (zone_.get()) AtomicString(NewString(string));
+  auto const atomic_string = new (zone()) AtomicString(NewString(string));
   map_[atomic_string->string()] = atomic_string;
   return atomic_string;
 }
@@ -33,7 +32,7 @@ AtomicString* AtomicStringFactory::NewAtomicString(base::StringPiece16 string) {
 base::StringPiece16 AtomicStringFactory::NewString(
     base::StringPiece16 string_piece) {
   auto const size = string_piece.size() * sizeof(base::char16);
-  auto const string = static_cast<base::char16*>(zone_->Allocate(size));
+  auto const string = static_cast<base::char16*>(Allocate(size));
   ::memcpy(string, string_piece.data(), size);
   return base::StringPiece16(string, string_piece.size());
 }

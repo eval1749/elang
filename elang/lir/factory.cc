@@ -20,8 +20,7 @@ base::StringPiece GetMnemonic(const lir::Instruction* instruction);
 //
 // Factory
 //
-Factory::Factory()
-    : last_basic_block_id_(0), last_instruction_id_(0), zone_(new Zone()) {
+Factory::Factory() : last_basic_block_id_(0), last_instruction_id_(0) {
 }
 
 Factory::~Factory() {
@@ -115,7 +114,7 @@ FOR_EACH_LIR_INSTRUCTION(V)
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
   auto const size = string_piece.size() * sizeof(base::char16);
-  auto const data = static_cast<base::char16*>(zone_->Allocate(size));
+  auto const data = static_cast<base::char16*>(Allocate(size));
   ::memcpy(data, string_piece.data(), size);
   return base::StringPiece16(data, string_piece.size());
 }

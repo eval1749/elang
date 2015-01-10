@@ -5,6 +5,7 @@
 #include "elang/compiler/analyze/name_resolver.h"
 
 #include "base/logging.h"
+#include "elang/compiler/analyze/analyze_factory.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/node_factory.h"
@@ -52,7 +53,8 @@ ast::Class* GetClass(CompilationSession* session,
 //
 // NameResolver
 //
-NameResolver::NameResolver(CompilationSession* session) : session_(session) {
+NameResolver::NameResolver(CompilationSession* session)
+    : factory_(new AnalyzeFactory()), session_(session) {
   auto const ns_system = GetMember(session_, session->global_namespace(),
                                    L"System")->as<ast::Namespace>();
 #define V(Name) \

@@ -23,8 +23,7 @@ namespace hir {
 Factory::Factory()
     : InstructionFactory(this),
       last_basic_block_id_(0),
-      last_instruction_id_(0),
-      zone_(new Zone()) {
+      last_instruction_id_(0) {
 }
 
 Factory::~Factory() {

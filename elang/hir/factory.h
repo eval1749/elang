@@ -9,12 +9,12 @@
 #include <memory>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_owner.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_factory.h"
 #include "elang/hir/type_factory.h"
 
 namespace elang {
-class Zone;
 namespace hir {
 
 //////////////////////////////////////////////////////////////////////
@@ -25,8 +25,6 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  public:
   Factory();
   ~Factory();
-
-  Zone* zone() const { return zone_.get(); }
 
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
@@ -40,7 +38,6 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  private:
   int last_basic_block_id_;
   int last_instruction_id_;
-  const std::unique_ptr<Zone> zone_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

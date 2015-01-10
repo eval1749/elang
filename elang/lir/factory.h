@@ -11,13 +11,13 @@
 #include <vector>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_owner.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/literals_forward.h"
 #include "elang/lir/value.h"
 
 namespace elang {
-class Zone;
 namespace lir {
 class BasicBlock;
 class Function;
@@ -27,13 +27,10 @@ class Literal;
 //
 // Factory
 //
-class ELANG_LIR_EXPORT Factory final {
+class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
  public:
   Factory();
   ~Factory();
-
-  // Expose for |Instruction::operands_|.
-  Zone* zone() const { return zone_.get(); }
 
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value);
@@ -75,7 +72,6 @@ class ELANG_LIR_EXPORT Factory final {
   int last_instruction_id_;
   std::unordered_map<base::StringPiece16, Value> string_map_;
   std::vector<Literal*> literals_;
-  const std::unique_ptr<Zone> zone_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

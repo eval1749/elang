@@ -9,13 +9,13 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_owner.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"
 
 namespace elang {
-class Zone;
 namespace hir {
 
 class Factory;
@@ -24,7 +24,7 @@ class Factory;
 //
 // InstructionFactory
 //
-class ELANG_HIR_EXPORT InstructionFactory {
+class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
  public:
   explicit InstructionFactory(Factory* factory);
   ~InstructionFactory() = default;
@@ -38,10 +38,7 @@ class ELANG_HIR_EXPORT InstructionFactory {
   VoidType* GetVoidType() const;
 
  private:
-  Zone* zone() const { return zone_.get(); }
-
   Factory* const factory_;
-  const std::unique_ptr<Zone> zone_;
   const std::unique_ptr<TypeFactory> type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionFactory);

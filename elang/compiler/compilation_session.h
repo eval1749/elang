@@ -12,12 +12,12 @@
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_owner.h"
 #include "elang/compiler/token_data.h"
 
 namespace elang {
 class AtomicString;
 class AtomicStringFactory;
-class Zone;
 
 namespace compiler {
 namespace ast {
@@ -38,7 +38,7 @@ enum class TokenType;
 //
 // CompilationSession
 //
-class CompilationSession final {
+class CompilationSession final : public ZoneOwner {
  public:
   CompilationSession();
   ~CompilationSession();
@@ -47,7 +47,6 @@ class CompilationSession final {
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   const std::vector<ErrorData*>& warnings() const { return warnings_; }
-  Zone* zone() const { return zone_.get(); }
 
   void AddError(ErrorCode error_code, Token* token);
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
@@ -66,9 +65,6 @@ class CompilationSession final {
   void AddError(const SourceCodeRange& location,
                 ErrorCode error_code,
                 const std::vector<Token*>& tokens);
-
-  // |zone_| must be constructed before factories.
-  const std::unique_ptr<Zone> zone_;
 
   const std::unique_ptr<ast::NodeFactory> ast_factory_;
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;

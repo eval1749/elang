@@ -8,11 +8,11 @@
 #include <memory>
 
 #include "base/macros.h"
+#include "elang/base/zone_owner.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/types_forward.h"
 
 namespace elang {
-class Zone;
 namespace hir {
 
 class Factory;
@@ -21,12 +21,10 @@ class Factory;
 //
 // TypeFactory
 //
-class ELANG_HIR_EXPORT TypeFactory {
+class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
  public:
   TypeFactory();
   ~TypeFactory();
-
-  Zone* zone() const { return zone_.get(); }
 
   StringType* GetStringType() const { return string_type_; }
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
@@ -37,8 +35,6 @@ class ELANG_HIR_EXPORT TypeFactory {
 
  private:
   class FunctionTypeFactory;
-
-  const std::unique_ptr<Zone> zone_;
 
 #define V(Name, name, ...) Name##Type* const name##_type_;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)

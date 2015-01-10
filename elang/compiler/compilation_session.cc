@@ -36,11 +36,10 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 }  // namespace
 
 CompilationSession::CompilationSession()
-    : zone_(new Zone()),
-      ast_factory_(new ast::NodeFactory(zone_.get())),
+    : ast_factory_(new ast::NodeFactory(zone())),
       atomic_string_factory_(new AtomicStringFactory()),
       source_code_(new StringSourceCode(L"-", L"")),
-      token_factory_(new TokenFactory(zone_.get())),
+      token_factory_(new TokenFactory(zone())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())) {
 }
 
@@ -67,8 +66,7 @@ void CompilationSession::AddError(const SourceCodeRange& location,
                                   const std::vector<Token*>& tokens) {
   std::vector<ErrorData*>* list =
       error_code > ErrorCode::WarningCodeZero ? &warnings_ : &errors_;
-  list->push_back(new (zone_.get())
-                      ErrorData(zone_.get(), location, error_code, tokens));
+  list->push_back(new (zone()) ErrorData(zone(), location, error_code, tokens));
   std::sort(list->begin(), list->end(),
             [](const ErrorData* a, const ErrorData* b) {
     return a->location().start_offset() < b->location().start_offset();
@@ -88,7 +86,7 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
 
 base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
   auto const buffer = atomic_string_factory_->NewString(string);
-  return new (zone_->Allocate(sizeof(base::StringPiece16)))
+  return new (Allocate(sizeof(base::StringPiece16)))
       base::StringPiece16(buffer.data(), buffer.size());
 }
 

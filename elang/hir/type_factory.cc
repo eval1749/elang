@@ -67,7 +67,7 @@ FunctionType* TypeFactory::FunctionTypeFactory::NewFunctionType(
 // TypeFactory
 //
 TypeFactory::TypeFactory()
-    : zone_(new Zone()),
+    :
 #define V(Name, name, ...) name##_type_(new (zone()) Name##Type(zone())),
       FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
