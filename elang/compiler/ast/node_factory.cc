@@ -31,13 +31,6 @@ namespace ast {
 FOR_EACH_AST_NODE(V)
 #undef V
 
-#define V(Name)                                            \
-  void Name::AcceptMemberVisitor(MemberVisitor* visitor) { \
-    visitor->Visit##Name(this);                            \
-  }
-FOR_EACH_AST_MEMBER(V)
-#undef V
-
 //////////////////////////////////////////////////////////////////////
 //
 // NodeFactory

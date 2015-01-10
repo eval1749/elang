@@ -35,9 +35,6 @@ class Class final : public MemberContainer {
         Token* keyword,
         Token* name);
 
-  // NamespaceMember
-  void AcceptMemberVisitor(MemberVisitor* visitor) final;
-
   ZoneVector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);

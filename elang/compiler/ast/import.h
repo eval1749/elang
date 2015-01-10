@@ -28,9 +28,6 @@ class Import final : public NamespaceMember {
  private:
   Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
 
-  // NamespaceMember
-  void AcceptMemberVisitor(MemberVisitor* visitor) final;
-
   Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(Import);

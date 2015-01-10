@@ -5,8 +5,6 @@
 #ifndef ELANG_COMPILER_AST_NAMESPACE_MEMBER_H_
 #define ELANG_COMPILER_AST_NAMESPACE_MEMBER_H_
 
-#include <vector>
-
 #include "elang/compiler/ast/node.h"
 
 #include "elang/compiler/modifiers.h"
@@ -29,7 +27,6 @@ class NamespaceMember : public NamedNode {
   MemberContainer* outer() const;
   MemberContainer* owner() const { return outer(); }
 
-  virtual void AcceptMemberVisitor(MemberVisitor* visitor) = 0;
   bool IsDescendantOf(const NamespaceMember* other) const;
 
  protected:

@@ -38,9 +38,6 @@ class Enum final : public NamespaceMember {
        Token* keyword,
        Token* name);
 
-  // NamespaceMember
-  void AcceptMemberVisitor(MemberVisitor* visitor) final;
-
   ZoneUnorderedMap<AtomicString*, EnumMember*> map_;
   ZoneVector<EnumMember*> members_;
 

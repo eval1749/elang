@@ -31,9 +31,6 @@ class Alias final : public NamespaceMember {
         Token* alias_name,
         Expression* reference);
 
-  // NamespaceMember
-  void AcceptMemberVisitor(MemberVisitor* visitor) final;
-
   Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
