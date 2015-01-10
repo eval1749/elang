@@ -39,8 +39,6 @@ class HirGenerator final : ast::Visitor {
   FOR_EACH_AST_NODE(V)
 #undef V
 
-  void ProcessMemberContainer(ast::MemberContainer* container);
-
   hir::Factory* const factory_;
   hir::Function* function_;
   std::unordered_map<ast::Method*, hir::Function*> methods_;

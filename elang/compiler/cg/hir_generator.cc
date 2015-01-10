@@ -32,12 +32,7 @@ HirGenerator::~HirGenerator() {
 }
 
 void HirGenerator::Generate() {
-  ProcessMemberContainer(session_->global_namespace());
-}
-
-void HirGenerator::ProcessMemberContainer(ast::MemberContainer* container) {
-  for (auto const name_member : container->name_map())
-    name_member.second->Accept(this);
+  session_->global_namespace()->AcceptForMembers(this);
 }
 
 // ast::Visitor
@@ -48,7 +43,7 @@ void HirGenerator::VisitAlias(ast::Alias* node) {
 }
 
 void HirGenerator::VisitClass(ast::Class* clazz) {
-  ProcessMemberContainer(clazz);
+  clazz->AcceptForMembers(this);
 }
 
 void HirGenerator::VisitEnum(ast::Enum* node) {
@@ -79,7 +74,7 @@ void HirGenerator::VisitMethodGroup(ast::MethodGroup* method_group) {
 }
 
 void HirGenerator::VisitNamespace(ast::Namespace* namespaze) {
-  ProcessMemberContainer(namespaze);
+  namespaze->AcceptForMembers(this);
 }
 
 // Expression nodes

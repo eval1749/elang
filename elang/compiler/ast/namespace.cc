@@ -37,6 +37,11 @@ MemberContainer::MemberContainer(Zone* zone,
       map_(zone) {
 }
 
+void MemberContainer::AcceptForMembers(Visitor* visitor) {
+  for (auto const name_member : map_)
+    name_member.second->Accept(visitor);
+}
+
 void MemberContainer::AddMember(NamespaceMember* member) {
   DCHECK_EQ(this, member->owner());
   DCHECK(!member->is<Alias>());
