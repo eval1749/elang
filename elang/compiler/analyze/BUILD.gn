@@ -1,0 +1,32 @@
+# Copyright 2014 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+static_library("analyze") {
+  sources = [
+    "namespace_analyzer.cc",
+    "namespace_analyzer.h",
+    "name_resolver.cc",
+    "name_resolver.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/compiler/ast",
+    "//elang/compiler/ir",
+  ]
+}
+
+source_set("compiler_analyze_test") {
+  testonly = true
+  sources = [
+    "namespace_analyzer_unittest.cc",
+    "name_resolver_unittest.cc",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":analyze",
+  ]
+}
+

@@ -17,7 +17,11 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/ir/factory.h"
+#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token_type.h"
 
@@ -39,7 +43,7 @@ class NamespaceAnalyzer::AnalyzeNode final : public ZoneAllocated {
   const ZoneUnorderedSet<AnalyzeNode*> users() const { return users_; }
 
   void DidResolve();
-  Token* GetFirstUserName() const;
+  ast::Node* GetFirstUser() const;
   void RemoveUse(AnalyzeNode* node);
   void Use(AnalyzeNode* node);
 
@@ -56,8 +60,10 @@ class NamespaceAnalyzer::AnalyzeNode final : public ZoneAllocated {
 
 NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(Zone* zone,
                                             ast::NamespaceMember* member)
-    : is_resolved_(member->is<ast::Namespace>()), member_(member),
-      uses_(zone), users_(zone) {
+    : is_resolved_(member->is<ast::Namespace>()),
+      member_(member),
+      uses_(zone),
+      users_(zone) {
 }
 
 void NamespaceAnalyzer::AnalyzeNode::DidResolve() {
@@ -65,7 +71,7 @@ void NamespaceAnalyzer::AnalyzeNode::DidResolve() {
   is_resolved_ = true;
 }
 
-Token* NamespaceAnalyzer::AnalyzeNode::GetFirstUserName() const {
+ast::Node* NamespaceAnalyzer::AnalyzeNode::GetFirstUser() const {
   auto node = static_cast<AnalyzeNode*>(nullptr);
   for (auto const runner : users_) {
     if (!node ||
@@ -74,7 +80,7 @@ Token* NamespaceAnalyzer::AnalyzeNode::GetFirstUserName() const {
       node = runner;
     }
   }
-  return node ? node->member()->name() : nullptr;
+  return node ? node->member() : nullptr;
 }
 
 void NamespaceAnalyzer::AnalyzeNode::RemoveUse(AnalyzeNode* node) {
@@ -127,15 +133,24 @@ NamespaceAnalyzer::NamespaceAnalyzer(CompilationSession* session,
 NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
-void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
-  auto const class_node = GetOrCreateNode(clazz);
+ir::Factory* NamespaceAnalyzer::factory() const {
+  return resolver_->factory();
+}
+
+void NamespaceAnalyzer::AnalyzeClass(ast::Class* ast_class) {
+  auto const class_node = GetOrCreateNode(ast_class);
   if (class_node->is_resolved())
     return;
+
+  if (resolver_->Resolve(ast_class)) {
+    DidResolve(class_node);
+    return;
+  }
 
   auto has_value = true;
 
   // Check enclosing class
-  if (auto const enclosing_class = clazz->outer()->as<ast::Class>()) {
+  if (auto const enclosing_class = ast_class->outer()->as<ast::Class>()) {
     auto const enclosing_class_node = GetOrCreateNode(enclosing_class);
     if (!enclosing_class_node->is_resolved()) {
       Postpone(class_node, enclosing_class_node);
@@ -143,13 +158,17 @@ void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
     }
   }
 
+  std::vector<ir::Class*> base_classes;
+
   // Resolve base classes
   auto are_base_classes_valid = true;
   auto nth = 0;
-  ResolveContext context(class_node, clazz->outer(), clazz->namespace_body());
-  for (auto const base_class_name : clazz->base_class_names()) {
+  ResolveContext context(class_node, ast_class->outer(),
+                         ast_class->namespace_body());
+  for (auto const base_class_name : ast_class->base_class_names()) {
     ++nth;
-    auto const result = ResolveReference(context, base_class_name);
+    auto const result =
+        ResolveBaseClass(context, base_class_name, nth, ast_class);
     if (!result.has_value) {
       has_value = false;
       continue;
@@ -158,46 +177,7 @@ void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
       are_base_classes_valid = false;
       continue;
     }
-    auto const base_class = result.value->as<ast::Class>();
-    if (!base_class) {
-      session_->AddError(ErrorCode::NameResolutionNameNotClass,
-                         base_class_name->token());
-      are_base_classes_valid = false;
-      continue;
-    }
-    // |base_class| must be an interface except for first one.
-    if (base_class->token() == TokenType::Class) {
-      if (nth >= 2) {
-        session_->AddError(ErrorCode::NameResolutionNameNotInterface,
-                           base_class_name->token());
-        are_base_classes_valid = false;
-        continue;
-      }
-    } else if (base_class->token()->type() != TokenType::Interface) {
-      session_->AddError(
-          nth == 1 ? ErrorCode::NameResolutionNameNeitherClassNortInterface
-                   : ErrorCode::NameResolutionNameNotInterface,
-          base_class_name->token());
-      are_base_classes_valid = false;
-      continue;
-    }
-
-    // TODO(eval1749) Check |base_class| isn't |final|.
-    // TODO(eval1749) We should check accessibility of |base_class|.
-
-    if (base_class == clazz->outer() ||
-        clazz->outer()->IsDescendantOf(base_class)) {
-      session_->AddError(ErrorCode::NameResolutionClassContaining,
-                         base_class_name->token(), clazz->name());
-      are_base_classes_valid = false;
-      continue;
-    }
-
-    auto const base_class_node = GetOrCreateNode(base_class);
-    if (!base_class_node->is_resolved()) {
-      Postpone(class_node, base_class_node);
-      has_value = false;
-    }
+    base_classes.push_back(result.value);
   }
 
   if (!are_base_classes_valid) {
@@ -208,8 +188,21 @@ void NamespaceAnalyzer::AnalyzeClass(ast::Class* clazz) {
   if (!has_value)
     return;
 
+  if (!ast_class->is_interface() &&
+      (base_classes.empty() || !base_classes.front()->is_class())) {
+    auto const result = ResolveDefaultBaseClass(context, ast_class);
+    if (!result.has_value)
+      return;
+    if (!result.value) {
+      DidResolve(class_node);
+      return;
+    }
+    base_classes.insert(base_classes.begin(), result.value);
+  }
+
+  resolver_->DidResolve(ast_class,
+                        factory()->NewClass(ast_class, base_classes));
   DidResolve(class_node);
-  return;
 }
 
 void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {
@@ -224,6 +217,16 @@ void NamespaceAnalyzer::DidResolve(AnalyzeNode* node) {
       continue;
     user->member()->Accept(this);
   }
+}
+
+void NamespaceAnalyzer::Error(ErrorCode error_code, ast::Node* node) {
+  session_->AddError(error_code, node->name());
+}
+
+void NamespaceAnalyzer::Error(ErrorCode error_code,
+                              ast::Node* node,
+                              ast::Node* node2) {
+  session_->AddError(error_code, node->name(), node2->name());
 }
 
 // Find |name| in class tree rooted by |clazz|.
@@ -258,6 +261,22 @@ NamespaceAnalyzer::AnalyzeNode* NamespaceAnalyzer::GetOrCreateNode(
   return node;
 }
 
+Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
+  return session_->NewToken(
+      clazz->name()->location(),
+      session_->name_for(clazz->is_class() ? PredefinedName::Object
+                                           : PredefinedName::Value));
+}
+
+ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(
+    ast::Class* clazz) {
+  return session_->ast_factory()->NewMemberAccess(
+      clazz->name(), {session_->ast_factory()->NewNameReference(
+                          session_->system_namespace()->name()),
+                      session_->ast_factory()->NewNameReference(
+                          GetDefaultBaseClassName(clazz))});
+}
+
 ast::NamespaceMember* NamespaceAnalyzer::GetResolved(
     ast::Expression* reference) {
   auto const present = FindResolved(reference);
@@ -278,9 +297,95 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Remember(
     ast::NamespaceMember* member) {
   DCHECK(!reference_cache_.count(reference));
   reference_cache_[reference] = member;
-  if (member)
-    resolver_->DidResolveReference(reference, member);
   return Maybe<ast::NamespaceMember*>(member);
+}
+
+Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
+    const ResolveContext& context,
+    ast::Expression* base_class_name,
+    int nth,
+    ast::Class* clazz) {
+  DCHECK_GE(nth, 1);
+  auto const result = ResolveReference(context, base_class_name);
+  if (!result.has_value)
+    return Maybe<ir::Class*>();
+  if (!result.value)
+    return Maybe<ir::Class*>(nullptr);
+
+  auto const base_class = result.value->as<ast::Class>();
+  if (!base_class) {
+    Error(ErrorCode::NameResolutionNameNeitherClassNorInterface,
+          base_class_name);
+    return Maybe<ir::Class*>(nullptr);
+  }
+
+  if (clazz->is_class()) {
+    if (nth == 1) {
+      if (base_class->is_struct()) {
+        Error(ErrorCode::NameResolutionNameNeitherClassNorInterface,
+              base_class_name);
+        return Maybe<ir::Class*>(nullptr);
+      }
+    } else if (nth >= 2 && !base_class->is_interface()) {
+      Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
+      return Maybe<ir::Class*>(nullptr);
+    }
+  } else if (!base_class->is_interface()) {
+    // interface and struct have interface only.
+    Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
+    return Maybe<ir::Class*>(nullptr);
+  }
+
+  // TODO(eval1749) Check |base_class| isn't |final|.
+  // TODO(eval1749) We should check accessibility of |base_class|.
+  if (base_class == clazz->outer() ||
+      clazz->outer()->IsDescendantOf(base_class)) {
+    Error(ErrorCode::NameResolutionClassContaining, base_class_name, clazz);
+    return Maybe<ir::Class*>(nullptr);
+  }
+
+  auto const base_class_node = GetOrCreateNode(base_class);
+  if (!base_class_node->is_resolved()) {
+    Postpone(GetOrCreateNode(clazz), base_class_node);
+    return Maybe<ir::Class*>();
+  }
+
+  auto const data = resolver_->Resolve(base_class);
+  if (!data) {
+    Error(ErrorCode::NameResolutionClassNotResolved, base_class_name);
+    return Maybe<ir::Class*>(nullptr);
+  }
+  if (!data->is<ir::Class>()) {
+    Error(ErrorCode::NameResolutionClassNotClass, base_class_name);
+    return Maybe<ir::Class*>(nullptr);
+  }
+  return Maybe<ir::Class*>(data->as<ir::Class>());
+}
+
+Maybe<ir::Class*> NamespaceAnalyzer::ResolveDefaultBaseClass(
+    const ResolveContext& context,
+    ast::Class* clazz) {
+  auto const default_base_class_name = GetDefaultBaseClassNameAccess(clazz);
+  auto const result = ResolveReference(context, default_base_class_name);
+  if (!result.has_value)
+    return Maybe<ir::Class*>();
+  if (!result.value)
+    return Maybe<ir::Class*>(nullptr);
+  auto const default_base_class = result.value;
+  auto const default_base_class_node = GetOrCreateNode(default_base_class);
+  if (!default_base_class_node->is_resolved()) {
+    Postpone(GetOrCreateNode(clazz), default_base_class_node);
+    return Maybe<ir::Class*>();
+  }
+  auto const resolved = resolver_->Resolve(default_base_class);
+  if (!resolved) {
+    Error(ErrorCode::PredefinedNamesNameNotFound, default_base_class);
+    return Maybe<ir::Class*>(nullptr);
+  }
+  if (auto const base_class = resolved->as<ir::Class>())
+    return Maybe<ir::Class*>(base_class);
+  Error(ErrorCode::PredefinedNamesNameNotClass, default_base_class);
+  return Maybe<ir::Class*>(nullptr);
 }
 
 Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveMemberAccess(
@@ -293,8 +398,8 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveMemberAccess(
     if (resolved) {
       auto const container = resolved->as<ast::MemberContainer>();
       if (!container) {
-        session_->AddError(ErrorCode::NameResolutionNameNeitherNamespaceNorType,
-                           component->token(), reference->token());
+        Error(ErrorCode::NameResolutionNameNeitherNamespaceNorType, component,
+              reference);
         return Remember(reference, nullptr);
       }
       context.name_space = container;
@@ -383,7 +488,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
     }
 
     if (founds.size() >= 2u) {
-      session_->AddError(ErrorCode::NameResolutionNameAmbiguous, name);
+      Error(ErrorCode::NameResolutionNameAmbiguous, reference);
       return Remember(reference, nullptr);
     }
 
@@ -393,9 +498,9 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
     name_space = name_space->outer();
   }
   if (context.member_access)
-    session_->AddError(ErrorCode::NameResolutionNameNotResolved, name);
+    Error(ErrorCode::NameResolutionNameNotResolved, reference);
   else
-    session_->AddError(ErrorCode::NameResolutionNameNotFound, name);
+    Error(ErrorCode::NameResolutionNameNotFound, reference);
   return Remember(reference, nullptr);
 }
 
@@ -426,11 +531,10 @@ bool NamespaceAnalyzer::Run() {
   // If there are odd number of self referenced node, |unresolved_nodes_.size()|
   // is odd number.
   for (auto const node : unresolved_nodes_) {
-    auto const name = node->member()->name();
-    if (auto const user = node->GetFirstUserName())
-      session_->AddError(ErrorCode::NameResolutionNameCycle, name, user);
+    if (auto const user = node->GetFirstUser())
+      Error(ErrorCode::NameResolutionNameCycle, node->member(), user);
     else
-      session_->AddError(ErrorCode::NameResolutionNameCycle, name);
+      Error(ErrorCode::NameResolutionNameCycle, node->member());
   }
   return false;
 }
@@ -446,8 +550,8 @@ void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
   if (!result.has_value)
     return;
   if (result.value && !result.value->as<ast::MemberContainer>()) {
-    session_->AddError(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
-                       alias->reference()->token());
+    Error(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
+          alias->reference());
   }
   DidResolve(alias_node);
 }
@@ -467,8 +571,8 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
   if (!result.has_value)
     return;
   if (result.value && !result.value->as<ast::MemberContainer>()) {
-    session_->AddError(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
-                       import->reference()->token());
+    Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
+          import->reference());
   }
   DidResolve(import_node);
 }

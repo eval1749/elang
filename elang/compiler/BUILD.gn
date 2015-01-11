@@ -4,10 +4,6 @@
 
 static_library("compiler") {
   sources = [
-    "analyze/namespace_analyzer.cc",
-    "analyze/namespace_analyzer.h",
-    "analyze/name_resolver.cc",
-    "analyze/name_resolver.h",
     "cg/hir_generator.cc",
     "cg/hir_generator.h",
     "character_stream.h",
@@ -20,6 +16,8 @@ static_library("compiler") {
     "modifiers.h",
     "modifiers_builder.cc",
     "modifiers_builder.h",
+    "predefined_names.cc",
+    "predefined_names.h",
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",
     "public/compiler_error_data.h",
@@ -55,6 +53,7 @@ static_library("compiler") {
   deps = [
     "//base",
     "//elang/base",
+    "//elang/compiler/analyze",
     "//elang/compiler/ast",
   ]
 }
@@ -75,14 +74,13 @@ source_set("compiler_test") {
 
 test("compiler_unittests") {
   sources = [
-    "analyze/namespace_analyzer_unittest.cc",
-    "analyze/name_resolver_unittest.cc",
     "syntax/lexer_unittest.cc",
     "syntax/parser_unittest.cc",
   ]
 
   deps = [
-    ":compiler_test",
     "//base/test:run_all_unittests",
+    "//elang/compiler/analyze:compiler_analyze_test",
+    ":compiler_test",
   ]
 }

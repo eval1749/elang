@@ -140,8 +140,8 @@ TEST_F(NamespaceAnalyzerTest, ClassBasic) {
 TEST_F(NamespaceAnalyzerTest, ClassNested) {
   Prepare("class A { class B {} }");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("", GetBaseClasses("A"));
-  EXPECT_EQ("", GetBaseClasses("A.B"));
+  EXPECT_EQ("System.Object", GetBaseClasses("A"));
+  EXPECT_EQ("System.Object", GetBaseClasses("A.B"));
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseNotInterface) {
@@ -166,13 +166,13 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsStruct) {
   Prepare(
       "class A : B {}"
       "struct B {}");
-  EXPECT_EQ("NameResolution.Name.NeitherClassNortInterface(10) B\n",
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(10) B\n",
             AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsNamespace) {
   Prepare("namespace N1 { class A : N1 {} }");
-  EXPECT_EQ("NameResolution.Name.NotClass(25) N1\n",
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(25) N1\n",
             AnalyzeNamespace());
 }
 
@@ -211,6 +211,19 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorSelfReference) {
   Prepare("class A : A {}");
   EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n",
             AnalyzeNamespace());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Predefined types
+//
+TEST_F(NamespaceAnalyzerTest, PredefinedTypes) {
+  Prepare("class A {}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("", GetBaseClasses("System.Object"));
+  EXPECT_EQ("System.Object", GetBaseClasses("System.Value"));
+  EXPECT_EQ("System.Value", GetBaseClasses("System.Bool"));
+  EXPECT_EQ("System.Value", GetBaseClasses("System.Void"));
 }
 
 }  // namespace

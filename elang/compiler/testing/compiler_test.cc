@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <memory>
 #include <vector>
 
 #include "elang/compiler/testing/compiler_test.h"
@@ -10,14 +11,17 @@
 #include "base/macros.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/simple_directed_graph.h"
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
-#include "elang/compiler/analyze/predefined_types.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
+#include "elang/compiler/ir/factory.h"
+#include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -71,6 +75,116 @@ std::string GetQualifiedName(ast::NamespaceMember* member) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// IrClassBuilder
+//
+class IrClassBuilder final : public ast::Visitor {
+ public:
+  explicit IrClassBuilder(NameResolver* resolver);
+  ~IrClassBuilder() = default;
+
+  void Run();
+
+ private:
+  CompilationSession* session() const { return resolver_->session(); }
+
+  void DidResolved(ast::NamedNode* ast_node, ir::Node* node);
+  void Postpone(ast::NamedNode* user, ast::NamedNode* used);
+  void ProcessClass(ast::Class* ast_class);
+  ast::NamedNode* Resolve(ast::Expression* reference,
+                          ast::MemberContainer* container);
+
+  // ast::Visitor
+  void VisitClass(ast::Class* node);
+  void VisitNamespace(ast::Namespace* node);
+
+  bool collecting_;
+  SimpleDirectedGraph<ast::NamedNode*> node_graph_;
+  NameResolver* const resolver_;
+  std::unordered_set<ast::NamedNode*> unresolved_nodes_;
+  std::vector<ast::Class*> pending_classes_;
+
+  DISALLOW_COPY_AND_ASSIGN(IrClassBuilder);
+};
+
+IrClassBuilder::IrClassBuilder(NameResolver* resolver)
+    : collecting_(true), resolver_(resolver) {
+}
+
+void IrClassBuilder::DidResolved(ast::NamedNode* ast_node, ir::Node* node) {
+  resolver_->DidResolve(ast_node, node);
+  unresolved_nodes_.erase(ast_node);
+  for (auto const user : node_graph_.GetInEdges(ast_node)) {
+    node_graph_.RemoveEdge(user, ast_node);
+    if (node_graph_.HasOutEdge(user))
+      continue;
+    user->Accept(this);
+  }
+}
+
+void IrClassBuilder::Postpone(ast::NamedNode* user, ast::NamedNode* used) {
+  node_graph_.AddEdge(user, used);
+  unresolved_nodes_.insert(user);
+}
+
+void IrClassBuilder::ProcessClass(ast::Class* ast_class) {
+  if (resolver_->Resolve(ast_class))
+    return;
+  auto const ast_enclosing_class = ast_class->outer()->as<ast::Class>();
+  if (ast_enclosing_class && !resolver_->Resolve(ast_enclosing_class))
+    Postpone(ast_class, ast_enclosing_class);
+
+  std::vector<ir::Class*> base_classes;
+  for (auto const base_class_name : ast_class->base_class_names()) {
+    auto const ast_base_class = Resolve(base_class_name, ast_class);
+    DCHECK(ast_base_class);
+    auto const base_class = resolver_->Resolve(ast_base_class);
+    if (base_class) {
+      base_classes.push_back(base_class->as<ir::Class>());
+      continue;
+    }
+    Postpone(ast_class, ast_base_class);
+  }
+  if (node_graph_.HasOutEdge(ast_class))
+    return;
+  DidResolved(ast_class,
+              resolver_->factory()->NewClass(ast_class, base_classes));
+}
+
+ast::NamedNode* IrClassBuilder::Resolve(ast::Expression* reference,
+                                        ast::MemberContainer* container) {
+  auto const name_ref = reference->as<ast::NameReference>();
+  DCHECK(name_ref);
+  auto const name = name_ref->name();
+  for (auto runner = container; runner; runner = runner->outer()) {
+    if (auto const member = runner->FindMember(name))
+      return member;
+  }
+  return nullptr;
+}
+
+void IrClassBuilder::Run() {
+  VisitNamespace(session()->global_namespace());
+  collecting_ = false;
+  for (auto ast_class : pending_classes_)
+    ProcessClass(ast_class);
+  DCHECK(unresolved_nodes_.empty());
+}
+
+// ast::Visitor
+void IrClassBuilder::VisitClass(ast::Class* ast_class) {
+  if (collecting_) {
+    pending_classes_.push_back(ast_class);
+    return;
+  }
+  ProcessClass(ast_class);
+}
+
+void IrClassBuilder::VisitNamespace(ast::Namespace* ns) {
+  ns->AcceptForMembers(this);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // SystemNamespaceBuilder
 //
 class SystemNamespaceBuilder final {
@@ -81,7 +195,10 @@ class SystemNamespaceBuilder final {
   void Build();
 
  private:
-  ast::Class* InstallPredefinedName(PredefinedName type);
+  ast::Class* FindClass(PredefinedName name);
+  void FixValueClass(PredefinedName name);
+  void InstallPredefinedName(PredefinedName name);
+  ast::NameReference* NewNameReference(PredefinedName name);
   Token* NewToken(TokenData token_data);
   Token* NewToken(TokenType token_type);
   CompilationSession* const session_;
@@ -97,19 +214,48 @@ void SystemNamespaceBuilder::Build() {
 #define V(Name) InstallPredefinedName(PredefinedName::Name);
   FOR_EACH_PREDEFINED_NAME(V)
 #undef V
+  // The base class of |String| and |Value| classes are |Object|.
+  FindClass(PredefinedName::String)
+      ->AddBaseClassName(NewNameReference(PredefinedName::Object));
+  FindClass(PredefinedName::Value)
+      ->AddBaseClassName(NewNameReference(PredefinedName::Object));
+#define V(Name) FixValueClass(PredefinedName::Name);
+  FOR_EACH_PREDEFINED_NAME(V)
+#undef V
 }
 
-ast::Class* SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {
+ast::Class* SystemNamespaceBuilder::FindClass(PredefinedName name_id) {
+  auto const name = session_->name_for(name_id);
+  return session_->system_namespace()->FindMember(name)->as<ast::Class>();
+}
+
+void SystemNamespaceBuilder::FixValueClass(PredefinedName name) {
+  auto const ast_class = FindClass(name);
+  if (!ast_class->base_class_names().empty())
+    return;
+  auto const object_name = session_->name_for(PredefinedName::Object);
+  if (ast_class->name()->simple_name() == object_name)
+    return;
+  ast_class->AddBaseClassName(NewNameReference(PredefinedName::Value));
+}
+
+void SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {
   ModifiersBuilder modifiers_builder;
   modifiers_builder.SetPublic();
   auto const container = session_->system_namespace();
+  auto const container_body = container->bodies().front();
   auto const modifiers = modifiers_builder.Get();
   auto const name = session_->name_for(type);
   auto const new_class = session_->ast_factory()->NewClass(
-      container->bodies().front(), modifiers, NewToken(TokenType::Class),
+      container_body, modifiers, NewToken(TokenType::Class),
       NewToken(TokenData(name)));
-  container->AddMember(new_class);
-  return new_class;
+  container_body->AddMember(new_class);
+}
+
+ast::NameReference* SystemNamespaceBuilder::NewNameReference(
+    PredefinedName name) {
+  return session_->ast_factory()->NewNameReference(
+      NewToken(TokenData(session_->name_for(name))));
 }
 
 Token* SystemNamespaceBuilder::NewToken(TokenData token_data) {
@@ -120,10 +266,13 @@ Token* SystemNamespaceBuilder::NewToken(TokenType token_type) {
   return NewToken(TokenData(token_type));
 }
 
-NameResolver* NewNameResolver(CompilationSession* session) {
+std::unique_ptr<NameResolver> NewNameResolver(CompilationSession* session) {
   SystemNamespaceBuilder builder(session);
   builder.Build();
-  return new NameResolver(session);
+  auto resolver = std::make_unique<NameResolver>(session);
+  IrClassBuilder installer(resolver.get());
+  installer.Run();
+  return resolver;
 }
 
 }  // namespace
@@ -193,17 +342,22 @@ std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
   auto const member = FindMember(name);
   if (!member)
     return base::StringPrintf("No such class %s", name.as_string().c_str());
-  auto const clazz = member->as<ast::Class>();
-  if (!clazz)
+  auto const ast_clazz = member->as<ast::Class>();
+  if (!ast_clazz)
     return base::StringPrintf("%s isn't class", name.as_string().c_str());
+  auto const resolved = name_resolver_->Resolve(ast_clazz);
+  if (!resolved)
+    return base::StringPrintf("%s isn't resolved", name.as_string().c_str());
+  auto const clazz = resolved->as<ir::Class>();
+  if (!clazz) {
+    return base::StringPrintf("%s isn't resolved to class",
+                              name.as_string().c_str());
+  }
   std::stringstream stream;
   const char* separator = "";
-  for (auto const base_class_name : clazz->base_class_names()) {
+  for (auto const base_class : clazz->base_classes()) {
     stream << separator;
-    if (auto const base_class = name_resolver_->FindReference(base_class_name))
-      stream << GetQualifiedName(base_class);
-    else
-      stream << "Not resolved " << base_class_name->token();
+    stream << GetQualifiedName(base_class->ast_class());
     separator = ", ";
   }
   return stream.str();

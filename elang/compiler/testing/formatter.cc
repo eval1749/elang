@@ -433,6 +433,12 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
 
 void Formatter::VisitNamespace(ast::Namespace* ns) {
   for (auto const body : ns->bodies()) {
+    // TODO(eval1749) We should have a flag in |NamespaceBody| to denote
+    // imported namespace body or compiling namespace body.
+    if (!body->members().empty() &&
+        !body->members().front()->token()->location().source_code()) {
+      continue;
+    }
     Indent();
     stream_ << ns->token() << " " << ns->name() << " ";
     FormatBlock block(this);

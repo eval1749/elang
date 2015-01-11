@@ -26,8 +26,6 @@ class NameResolverTest : public testing::CompilerTest {
  protected:
   NameResolverTest();
 
-  NameResolver* resolver() { return &name_resolver_; }
-
   ast::NameReference* NewNameReference(TokenType type);
   Token* NewToken(TokenType type);
 
@@ -48,12 +46,13 @@ Token* NameResolverTest::NewToken(TokenType token_type) {
   return session()->NewToken(SourceCodeRange(), TokenData(token_type));
 }
 
-TEST_F(NameResolverTest, Basic) {
-  auto const int_name_ref = NewNameReference(TokenType::Int);
-  auto const int32_class = resolver()->FindReference(int_name_ref);
-  ASSERT_TRUE(int32_class);
-  EXPECT_EQ(int32_class->name()->simple_name(),
-            session()->NewAtomicString(L"Int32"));
+TEST_F(NameResolverTest, SystemInt32) {
+  auto const system_ast_ns = FindMember("System.Int32");
+  ASSERT_TRUE(system_ast_ns) << "namespace System not found";
+  auto const int32_ast_class = FindMember("System.Int32");
+  ASSERT_TRUE(int32_ast_class) << "class System.Int32 isn't installed.";
+  auto const int32_class = name_resolver()->Resolve(int32_ast_class);
+  EXPECT_TRUE(int32_class) << "class System.Int32 isn't resolved.";
 }
 
 }  // namespace

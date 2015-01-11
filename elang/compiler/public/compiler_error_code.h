@@ -15,10 +15,12 @@ namespace compiler {
   /* * Name Resolver */                               \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
+  E(NameResolution, Class, NotClass)                  \
+  E(NameResolution, Class, NotResolved)               \
   E(NameResolution, Import, NeitherNamespaceNorType)  \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
-  E(NameResolution, Name, NeitherClassNortInterface)  \
+  E(NameResolution, Name, NeitherClassNorInterface)   \
   E(NameResolution, Name, NeitherNamespaceNorType)    \
   E(NameResolution, Name, NotClass)                   \
   E(NameResolution, Name, NotFound)                   \

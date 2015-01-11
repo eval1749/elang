@@ -11,49 +11,39 @@
 #include <unordered_map>
 
 #include "base/macros.h"
-#include "base/strings/string_piece.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
-class Class;
-class Expression;
-class MemberContainer;
-class Namespace;
-class NamespaceMember;
+class NamedNode;
+}
+namespace ir {
+class Node;
+class Factory;
 }
 
-class AnalyzeFactory;
 class CompilationSession;
-enum class PredefinedName;
-class PredefinedTypes;
-class Token;
-class TokenData;
-enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
 // NameResolver
 // Keeps analysis results from |NamespaceAnalyzer| for mapping name reference
-// to |ast::NamespaceMember|.
+// to |ast::NamedNode|.
 //
 class NameResolver final {
  public:
   explicit NameResolver(CompilationSession* session);
   ~NameResolver();
 
-  AnalyzeFactory* factory() const { return factory_.get(); }
-  ast::Class* type_from(PredefinedName name) const;
+  ir::Factory* factory() const { return factory_.get(); }
+  CompilationSession* session() const { return session_; }
 
-  void DidResolveReference(ast::Expression* reference,
-                           ast::NamespaceMember* member);
-  ast::NamespaceMember* FindReference(ast::Expression* reference);
+  void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
+  ir::Node* Resolve(ast::NamedNode* ast_node) const;
 
  private:
-  const std::unique_ptr<AnalyzeFactory> factory_;
-  std::unordered_map<ast::Expression*, ast::NamespaceMember*> map_;
-  std::unordered_map<TokenType, ast::Class*> keyword_types_;
-  const std::unique_ptr<PredefinedTypes> predefined_types_;
+  const std::unique_ptr<ir::Factory> factory_;
+  std::unordered_map<ast::NamedNode*, ir::Node*> node_map_;
   CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);

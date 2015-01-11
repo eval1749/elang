@@ -35,6 +35,7 @@ class CompilerTest : public ::testing::Test {
   CompilerTest();
   ~CompilerTest() override;
 
+  NameResolver* name_resolver() const { return name_resolver_.get(); }
   CompilationSession* session() const { return session_.get(); }
   SourceCode* source_code() const;
 
