@@ -16,11 +16,11 @@ namespace ast {
 // Class
 //
 Class::Class(Zone* zone,
-             NamespaceBody* namespace_body,
+             ContainerNode* outer,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : MemberContainer(zone, namespace_body, keyword, name),
+    : ContainerNode(zone, outer, keyword, name),
       WithModifiers(modifiers),
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
@@ -46,6 +46,21 @@ void Class::AddBaseClassName(Expression* class_name) {
 // Node
 bool Class::is_type() const {
   return true;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Field
+//
+Field::Field(Class* outer,
+             Modifiers modifiers,
+             Expression* type,
+             Token* name,
+             Expression* expression)
+    : NamedNode(outer, name, name),
+      WithModifiers(modifiers),
+      expression_(expression),
+      type_(type) {
 }
 
 }  // namespace ast

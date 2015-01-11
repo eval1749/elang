@@ -9,7 +9,6 @@
 
 #include "elang/base/atomic_string_factory.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/predefined_names.h"
@@ -30,27 +29,29 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
       SourceCodeRange(source_code, 0, 0),
       TokenData(TokenType::Namespace, session->NewAtomicString(L"namespace")));
 
-  auto const ns_global = session->ast_factory()->NewNamespace(
+  return session->ast_factory()->NewNamespace(
       nullptr, keyword, session->NewToken(keyword->location(),
                                           session->NewAtomicString(L"global")));
-  ns_global->AddNamespaceBody(
-      session->ast_factory()->NewNamespaceBody(nullptr, ns_global));
-  return ns_global;
 }
 
 ast::Namespace* CreateNamespace(CompilationSession* session,
-                                ast::Namespace* enclosing_namespace,
+                                ast::NamespaceBody* ns_body,
                                 base::StringPiece16 name) {
-  auto const enclosing_body = enclosing_namespace->bodies().front();
+  auto const enclosing_ns = ns_body->owner();
   auto const ns = session->ast_factory()->NewNamespace(
-      enclosing_body, enclosing_namespace->keyword(),
-      session->NewToken(enclosing_namespace->keyword()->location(),
+      enclosing_ns, enclosing_ns->keyword(),
+      session->NewToken(enclosing_ns->keyword()->location(),
                         session->NewAtomicString(name)));
-  enclosing_body->AddMember(ns);
-  enclosing_namespace->AddMember(ns);
-  ns->AddNamespaceBody(
-      session->ast_factory()->NewNamespaceBody(enclosing_body, ns));
+  enclosing_ns->AddNamedMember(ns);
   return ns;
+}
+
+ast::NamespaceBody* CreateRootNode(CompilationSession* session,
+                                   ast::Namespace* global_ns) {
+  auto const ns_body =
+      session->ast_factory()->NewNamespaceBody(nullptr, global_ns);
+  global_ns->AddMember(ns_body);
+  return ns_body;
 }
 
 }  // namespace
@@ -66,7 +67,8 @@ CompilationSession::CompilationSession()
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())),
-      system_namespace_(CreateNamespace(this, global_namespace(), L"System")) {
+      root_node_(CreateRootNode(this, global_namespace())),
+      system_namespace_(CreateNamespace(this, root_node(), L"System")) {
 }
 
 CompilationSession::~CompilationSession() {

@@ -5,10 +5,7 @@
 #ifndef ELANG_COMPILER_AST_ENUM_H_
 #define ELANG_COMPILER_AST_ENUM_H_
 
-#include "elang/base/zone_unordered_map.h"
-
-#include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/container_node.h"
 #include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
@@ -23,27 +20,19 @@ class NodeFactory;
 //
 // Enum
 //
-class Enum final : public NamespaceMember, WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Enum, NamespaceMember);
-
- public:
-  const ZoneVector<EnumMember*> members() const { return members_; }
-
-  void AddMember(EnumMember* member);
-  EnumMember* FindMember(Token* simple_name);
+class Enum final : public ContainerNode, WithModifiers {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Enum, ContainerNode);
 
  private:
   Enum(Zone* zone,
-       NamespaceBody* namespace_body,
+       ContainerNode* namespace_body,
        Modifiers modifies,
        Token* keyword,
        Token* name);
 
   // Node
+  bool CanBeInNamespaceBody() const final { return true; }
   bool is_type() const final;
-
-  ZoneUnorderedMap<AtomicString*, EnumMember*> map_;
-  ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
@@ -61,7 +50,7 @@ class EnumMember final : public NamedNode {
  private:
   EnumMember(Enum* owner, Token* name, Expression* expression);
 
-  Expression* expression_;
+  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };

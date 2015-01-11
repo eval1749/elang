@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/container_node.h"
 #include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
@@ -18,8 +18,8 @@ namespace ast {
 //
 // Class
 //
-class Class final : public MemberContainer, public WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Class, MemberContainer);
+class Class final : public ContainerNode, public WithModifiers {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Class, ContainerNode);
 
  public:
   const ZoneVector<Expression*>& base_class_names() const {
@@ -34,17 +34,42 @@ class Class final : public MemberContainer, public WithModifiers {
 
  private:
   Class(Zone* zone,
-        NamespaceBody* namespace_body,
+        ContainerNode* outer,
         Modifiers modifiers,
         Token* keyword,
         Token* name);
 
   // Node
+  bool CanBeInNamespaceBody() const final { return true; }
   bool is_type() const final;
 
   ZoneVector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Field
+//
+class Field final : public NamedNode, public WithModifiers {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Field, NamedNode);
+
+ public:
+  Expression* expression() const { return expression_; }
+  Expression* type() const { return type_; }
+
+ private:
+  Field(Class* outer,
+        Modifiers modifiers,
+        Expression* Type,
+        Token* name,
+        Expression* expression);
+
+  Expression* const expression_;
+  Expression* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(Field);
 };
 
 }  // namespace ast

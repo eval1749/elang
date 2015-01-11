@@ -16,7 +16,7 @@ namespace ast {
 //
 // Expression
 //
-Expression::Expression(Token* op) : Node(op) {
+Expression::Expression(Token* op) : Node(nullptr, op) {
 }
 
 ArrayAccess::ArrayAccess(Zone* zone,

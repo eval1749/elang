@@ -7,17 +7,12 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/field.h"
-#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/namespace_body.h"
-#include "elang/compiler/ast/namespace_member.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
@@ -93,13 +88,10 @@ void Formatter::IndentPlusOne() {
   --depth_;
 }
 
-std::string Formatter::Run(ast::Namespace* ns) {
+std::string Formatter::Run(ast::Node* node) {
   stream_.clear();
   depth_ = 0;
-  for (auto const namespace_body : ns->bodies()) {
-    for (auto const member : namespace_body->members())
-      Visit(member);
-  }
+  node->Accept(this);
   return stream_.str();
 }
 
@@ -182,22 +174,19 @@ void Formatter::VisitConditional(ast::Conditional* cond) {
   Visit(cond->else_expression());
 }
 
-void Formatter::VisitClass(ast::Class* klass) {
-  for (auto const body : klass->bodies()) {
-    Indent();
-    stream_ << klass->token() << " " << klass->name();
-    const char* separator = " : ";
-    for (auto const base_class_name : klass->base_class_names()) {
-      stream_ << separator;
-      Visit(base_class_name);
-      separator = ", ";
-    }
-
-    stream_ << " ";
-    FormatBlock block(this);
-    for (auto const member : body->members())
-      Visit(member);
+void Formatter::VisitClass(ast::Class* clazz) {
+  Indent();
+  stream_ << clazz->token() << " " << clazz->name();
+  const char* separator = " : ";
+  for (auto const base_class_name : clazz->base_class_names()) {
+    stream_ << separator;
+    Visit(base_class_name);
+    separator = ", ";
   }
+
+  stream_ << " ";
+  FormatBlock block(this);
+  clazz->AcceptForMembers(this);
 }
 
 void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
@@ -238,7 +227,7 @@ void Formatter::VisitEnum(ast::Enum* enumx) {
   for (auto const member : enumx->members()) {
     Indent();
     stream_ << member->name();
-    if (auto const expression = member->expression()) {
+    if (auto const expression = member->as<ast::EnumMember>()->expression()) {
       stream_ << " = ";
       Visit(expression);
     }
@@ -425,20 +414,31 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
   stream_ << operation->token();
 }
 
-void Formatter::VisitNamespace(ast::Namespace* ns) {
-  for (auto const body : ns->bodies()) {
-    // TODO(eval1749) We should have a flag in |NamespaceBody| to denote
-    // imported namespace body or compiling namespace body.
-    if (!body->members().empty() &&
-        !body->members().front()->token()->location().source_code()) {
-      continue;
+void Formatter::VisitNamespace(ast::Namespace* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
+void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
+  // TODO(eval1749) We should have specific way to detect loaded classes.
+  if (ns_body->loaded_) {
+    for (auto const member : ns_body->members()) {
+      auto const node = member->as<ast::NamespaceBody>();
+      if (!node)
+        continue;
+      VisitNamespaceBody(node);
     }
-    Indent();
-    stream_ << ns->token() << " " << ns->name() << " ";
-    FormatBlock block(this);
-    for (auto const member : body->members())
-      Visit(member);
+    return;
   }
+  if (!ns_body->owner()->parent()) {
+    // We don't print "namespace" text for global namespace.
+    ns_body->AcceptForMembers(this);
+    return;
+  }
+  Indent();
+  stream_ << "namespace " << ns_body->name() << " ";
+  FormatBlock block(this);
+  ns_body->AcceptForMembers(this);
 }
 
 void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {

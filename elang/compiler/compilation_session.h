@@ -22,6 +22,7 @@ class AtomicStringFactory;
 namespace compiler {
 namespace ast {
 class Namespace;
+class NamespaceBody;
 class NodeFactory;
 }
 
@@ -49,6 +50,7 @@ class CompilationSession final : public ZoneOwner {
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   AtomicString* name_for(PredefinedName name) const;
+  ast::NamespaceBody* root_node() const { return root_node_; }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   const std::vector<ErrorData*>& warnings() const { return warnings_; }
 
@@ -81,6 +83,7 @@ class CompilationSession final : public ZoneOwner {
 
   const std::unique_ptr<SourceCode> source_code_;
   ast::Namespace* const global_namespace_;
+  ast::NamespaceBody* const root_node_;
   ast::Namespace* const system_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);

@@ -5,11 +5,8 @@
 #include "elang/compiler/ast/namespace.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/import.h"
-#include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -18,60 +15,72 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// MemberContainer
+// Alias
 //
-MemberContainer::MemberContainer(Zone* zone,
-                                 NamespaceBody* namespace_body,
-                                 Token* keyword,
-                                 Token* name)
-    : NamespaceMember(namespace_body, keyword, name),
-      bodies_(zone),
-      map_(zone) {
+Alias::Alias(NamespaceBody* namespace_body,
+             Token* keyword,
+             Token* name,
+             Expression* reference)
+    : NamedNode(namespace_body, keyword, name), reference_(reference) {
+  DCHECK_EQ(keyword, TokenType::Using);
 }
 
-void MemberContainer::AcceptForMembers(Visitor* visitor) {
-  for (auto const body : bodies_) {
-    for (auto const member : body->members())
-      member->Accept(visitor);
-  }
-}
-
-void MemberContainer::AddMember(NamedNode* member) {
-  DCHECK_EQ(this, member->parent());
-  DCHECK(!member->is<Alias>() && !member->is<Import>() &&
-         !member->is<Method>());
-  // We keep first member declaration.
-  if (FindMember(member->name()))
-    return;
-  map_[member->name()->simple_name()] = member;
-}
-
-void MemberContainer::AddNamespaceBody(NamespaceBody* namespace_body) {
-  bodies_.push_back(namespace_body);
-}
-
-NamedNode* MemberContainer::FindMember(AtomicString* name) {
-  auto const it = map_.find(name);
-  return it == map_.end() ? nullptr : it->second;
-}
-
-NamedNode* MemberContainer::FindMember(Token* name) {
-  return FindMember(name->simple_name());
+//////////////////////////////////////////////////////////////////////
+//
+// Import
+//
+Import::Import(NamespaceBody* namespace_body,
+               Token* keyword,
+               Expression* reference)
+    : NamedNode(namespace_body, keyword, reference->token()),
+      reference_(reference) {
+  DCHECK_EQ(keyword, TokenType::Using);
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
-Namespace::Namespace(Zone* zone,
-                     NamespaceBody* namespace_body,
-                     Token* keyword,
-                     Token* name)
-    : MemberContainer(zone,
-                      namespace_body,
-                      keyword,
-                      name) {
+Namespace::Namespace(Zone* zone, Namespace* parent, Token* keyword, Token* name)
+    : ContainerNode(zone, parent, keyword, name) {
   DCHECK_EQ(keyword, TokenType::Namespace);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// NamespaceBody
+//
+NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
+    : ContainerNode(zone, outer, owner->name(), owner->name()),
+      imports_(zone),
+      loaded_(false),
+      namespace_(owner) {
+}
+
+NamespaceBody* NamespaceBody::outer() const {
+  return parent() ? parent()->as<ast::NamespaceBody>() : nullptr;
+}
+
+void NamespaceBody::AddMember(Node* member) {
+  DCHECK(member->CanBeInNamespaceBody());
+  ContainerNode::AddMember(member);
+}
+
+void NamespaceBody::AddNamedMember(NamedNode* member) {
+  if (auto const import = member->as<ast::Import>())
+    imports_.push_back(import);
+  ContainerNode::AddNamedMember(member);
+  namespace_->AddNamedMember(member);
+}
+
+// Node
+bool NamespaceBody::CanBeInNamespaceBody() const {
+  return true;
+}
+
+// ContainerNode
+NamedNode* NamespaceBody::FindMemberMore(AtomicString* name) {
+  return namespace_->FindMember(name);
 }
 
 }  // namespace ast

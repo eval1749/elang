@@ -8,6 +8,7 @@
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
@@ -68,8 +69,12 @@ void HirGenerator::VisitMethod(ast::Method* method) {
   function_ = nullptr;
 }
 
-void HirGenerator::VisitNamespace(ast::Namespace* namespaze) {
-  namespaze->AcceptForMembers(this);
+void HirGenerator::VisitNamespace(ast::Namespace* node) {
+  DCHECK(node);
+}
+
+void HirGenerator::VisitNamespaceBody(ast::NamespaceBody* node) {
+  node->AcceptForMembers(this);
 }
 
 // Expression nodes

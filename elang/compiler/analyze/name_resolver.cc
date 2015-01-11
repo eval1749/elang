@@ -8,10 +8,9 @@
 
 #include "base/logging.h"
 #include "elang/compiler/analyze/analyzer.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
@@ -29,7 +28,7 @@ class NameResolver::ReferenceResolver final : public Analyzer,
                                               private ast::Visitor {
  public:
   explicit ReferenceResolver(NameResolver* name_resolver,
-                             ast::MemberContainer* container);
+                             ast::ContainerNode* container);
   ~ReferenceResolver() = default;
 
   ast::NamedNode* Resolve(ast::Expression* expression);
@@ -43,7 +42,7 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   // ast::Visitor
   void VisitNameReference(ast::NameReference* node) final;
 
-  ast::MemberContainer* const container_;
+  ast::ContainerNode* const container_;
   ast::NamedNode* result_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceResolver);
@@ -51,7 +50,7 @@ class NameResolver::ReferenceResolver final : public Analyzer,
 
 NameResolver::ReferenceResolver::ReferenceResolver(
     NameResolver* name_resolver,
-    ast::MemberContainer* container)
+    ast::ContainerNode* container)
     : Analyzer(name_resolver), container_(container), result_(nullptr) {
 }
 
@@ -106,11 +105,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   if (auto const present = container_->FindMember(name))
     founds.insert(present);
 
-  auto const alias_space = container_->namespace_body();
-  if (alias_space->owner() == container_) {
-    if (auto const alias_member = alias_space->FindAlias(name))
-      founds.insert(alias_member);
-  }
+  // TODO(eval1749) Look up in imports
 
   if (founds.empty()) {
     if (auto const ast_class = container_->as<ast::Class>())
@@ -118,15 +113,12 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   }
 
   if (founds.empty()) {
-    for (auto runner = container_->outer(); !runner; runner = runner->outer()) {
-      if (auto const member = runner->FindMember(name))
+    for (auto runner = container_->parent(); !runner;
+         runner = runner->parent()) {
+      if (auto const member = runner->FindMember(name)) {
         founds.insert(member);
-      if (alias_space->owner() == runner) {
-        if (auto const alias_member = alias_space->FindAlias(name))
-          founds.insert(alias_member);
-      }
-      if (!founds.empty())
         break;
+      }
     }
   }
 
@@ -164,9 +156,8 @@ ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
   return it == node_map_.end() ? nullptr : it->second;
 }
 
-ast::NamedNode* NameResolver::ResolveReference(
-    ast::Expression* expression,
-    ast::MemberContainer* container) {
+ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,
+                                               ast::ContainerNode* container) {
   ReferenceResolver resolver(this, container);
   return resolver.Resolve(expression);
 }

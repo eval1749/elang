@@ -85,11 +85,11 @@ class NamespaceAnalyzer final : public Analyzer,
                                           ast::Expression* reference);
 
   // ast::Visitor
-  void VisitAlias(ast::Alias* alias);
-  void VisitClass(ast::Class* clazz);
-  void VisitImport(ast::Import* import);
-  // Build namespace tree and schedule member to resolve.
-  void VisitNamespace(ast::Namespace* ast_Namespace);
+  void VisitAlias(ast::Alias* node);
+  void VisitClass(ast::Class* node);
+  void VisitImport(ast::Import* node);
+  // Builds namespace tree and schedule members to resolve.
+  void VisitNamespaceBody(ast::NamespaceBody* node);
 
   // Cache for mapping reference to resolved entity for alias target and
   // base class list.

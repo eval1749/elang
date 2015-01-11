@@ -15,15 +15,14 @@ namespace elang {
 namespace compiler {
 
 namespace ast {
-class NamedNode;
+class ContainerNode;
 class Expression;
 class LocalVariable;
 class Namespace;
 class NamespaceBody;
-class NamespaceMember;
+class NamedNode;
 class NodeFactory;
 class Statement;
-class VarStatement;
 }  // namespace ast
 
 class CompilationUnit;
@@ -54,14 +53,13 @@ class Parser final {
   bool Run();
 
  private:
+  class ContainerScope;
   class ModifierParser;
-  class NamespaceBodyScope;
-
   class QualifiedNameBuilder;
 
   ast::NodeFactory* factory() const;
 
-  void AddMember(ast::NamespaceMember* member);
+  void AddMember(ast::NamedNode* member);
   void Advance();
   bool AdvanceIf(TokenType type);
 
@@ -82,19 +80,18 @@ class Parser final {
   ast::NamedNode* FindMember(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
-  bool ParseClassDecl();
-  bool ParseEnumDecl();
-  bool ParseFunctionDecl();
+  bool ParseClass();
+  void ParseEnum();
+  void ParseFunction();
   bool ParseCompilationUnit();
   bool ParseNamespace();
   bool ParseNamespace(Token* namespace_keyword,
                       const std::vector<Token*>& names,
                       size_t index);
-  bool ParseNamespaceMembers();
+  bool ParseNamedNodes();
   bool ParseQualifiedName();
   void ParseUsingDirectives();
   Token* PeekToken();
-  ast::NamedNode* ResolveMember(Token* token) const;
   void ValidateClassModifiers();
   void ValidateEnumModifiers();
   void ValidateFieldModifiers();
@@ -171,13 +168,13 @@ class Parser final {
   ast::Expression* ProduceType(ast::Expression* expression);
 
   CompilationUnit* compilation_unit_;
+  ast::ContainerNode* container_;
   LocalDeclarationSpace* declaration_space_;
   std::vector<Token*> delimiters_;
   ast::Expression* expression_;
   const std::unique_ptr<Lexer> lexer_;
   int last_source_offset_;
   std::unique_ptr<ModifierParser> modifiers_;
-  ast::NamespaceBody* namespace_body_;
   std::unique_ptr<QualifiedNameBuilder> name_builder_;
   CompilationSession* session_;
   ast::Statement* statement_;

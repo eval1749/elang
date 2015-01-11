@@ -26,7 +26,7 @@ class Formatter final : public ast::Visitor {
   Formatter();
   ~Formatter() = default;
 
-  std::string Run(ast::Namespace* ns);
+  std::string Run(ast::Node* node);
 
  private:
   enum class NewlineAtEnd {
@@ -53,7 +53,7 @@ class Formatter final : public ast::Visitor {
   void IndentPlusOne();
   void Visit(ast::Node* node);
 
-  // ast::Visitor
+// ast::Visitor
 #define DECLARE_VISIT(type) void Visit##type(ast::type* node) final;
   FOR_EACH_AST_NODE(DECLARE_VISIT)
 #undef DECLARE_VISIT

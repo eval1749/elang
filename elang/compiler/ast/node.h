@@ -20,6 +20,9 @@ namespace ast {
  protected:                                 \
   ~self() = default;
 
+#define DECLARE_AST_NODE_ABSTRACT_CLASS(self, super) \
+  DECLARE_AST_NODE_CLASS(self, super);
+
 #define DECLARE_AST_NODE_CONCRETE_CLASS(self, super) \
   DECLARE_AST_NODE_CLASS(self, super);               \
   void Accept(Visitor* visitor) final;
@@ -29,7 +32,7 @@ namespace ast {
 // Node
 //
 class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
-  DECLARE_AST_NODE_CLASS(Node, Castable);
+  DECLARE_AST_NODE_ABSTRACT_CLASS(Node, Castable);
 
  public:
   // Returns true if C++ class represents type, e.g. |ArrayType|, |Class|,
@@ -40,17 +43,23 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   // Associated name like thing for error message and debug log.
   virtual Token* name() const;
 
+  ContainerNode* parent() const { return parent_; }
+
   // A token which parser created this not for.
   Token* token() const { return token_; }
+
+  virtual bool CanBeInNamespaceBody() const;
+  bool IsDescendantOf(const Node* other) const;
 
   // Visitable<Visitor>
   // Default implementation for node classes not in |FOR_EACH_AST_NODE()|.
   void Accept(Visitor* visitor) override;
 
  protected:
-  explicit Node(Token* token);
+  Node(ContainerNode* parent, Token* token);
 
  private:
+  ContainerNode* const parent_;
   Token* const token_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);
@@ -61,20 +70,17 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
 // NamedNode
 //
 class NamedNode : public Node {
-  DECLARE_AST_NODE_CLASS(NamedNode, Node);
+  DECLARE_AST_NODE_ABSTRACT_CLASS(NamedNode, Node);
 
  public:
   Token* keyword() const { return token(); }
   Token* name() const override;
-  Node* parent() const { return parent_; }
 
  protected:
-  // TODO(eval1749) |parent| should be |ContainerNode|.
-  NamedNode(Node* parent, Token* keyword, Token* name);
+  NamedNode(ContainerNode* parent, Token* keyword, Token* name);
 
  private:
   Token* const name_;
-  Node* const parent_;
 
   DISALLOW_COPY_AND_ASSIGN(NamedNode);
 };

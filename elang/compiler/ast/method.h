@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/node.h"
 #include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
@@ -19,8 +19,8 @@ namespace ast {
 //
 // Method
 //
-class Method final : public NamespaceMember, public WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamespaceMember);
+class Method final : public Node, public WithModifiers {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Method, Node);
 
  public:
   // Returns method body. Its is null when parsing is failed or |extern|
@@ -41,7 +41,7 @@ class Method final : public NamespaceMember, public WithModifiers {
 
  private:
   Method(Zone* zone,
-         NamespaceBody* namespace_body,
+         Class* owner,
          MethodGroup* method_group,
          Modifiers modifies,
          Expression* return_type,

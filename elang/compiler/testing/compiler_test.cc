@@ -18,7 +18,7 @@
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
@@ -85,11 +85,16 @@ std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
   return stream.str();
 }
 
-std::string GetQualifiedName(ast::NamespaceMember* member) {
+std::string GetQualifiedName(ast::NamedNode* member) {
   std::vector<Token*> names;
   names.push_back(member->name());
-  for (auto ns = member->outer(); ns && ns->outer(); ns = ns->outer())
-    names.push_back(ns->name());
+  for (auto runner = member->parent(); runner; runner = runner->parent()) {
+    if (auto const ns_body = runner->as<ast::NamespaceBody>())
+      runner = ns_body->owner();
+    if (!runner->parent())
+      break;
+    names.push_back(runner->name());
+  }
   std::reverse(names.begin(), names.end());
   std::stringstream stream;
   const char* separator = "";
@@ -118,11 +123,11 @@ class IrClassBuilder final : public ast::Visitor {
   void Postpone(ast::NamedNode* user, ast::NamedNode* used);
   void ProcessClass(ast::Class* ast_class);
   ast::NamedNode* Resolve(ast::Expression* reference,
-                          ast::MemberContainer* container);
+                          ast::ContainerNode* container);
 
   // ast::Visitor
   void VisitClass(ast::Class* node);
-  void VisitNamespace(ast::Namespace* node);
+  void VisitNamespaceBody(ast::NamespaceBody* node);
 
   bool collecting_;
   SimpleDirectedGraph<ast::NamedNode*> node_graph_;
@@ -156,7 +161,7 @@ void IrClassBuilder::Postpone(ast::NamedNode* user, ast::NamedNode* used) {
 void IrClassBuilder::ProcessClass(ast::Class* ast_class) {
   if (resolver_->Resolve(ast_class))
     return;
-  auto const ast_enclosing_class = ast_class->outer()->as<ast::Class>();
+  auto const ast_enclosing_class = ast_class->parent()->as<ast::Class>();
   if (ast_enclosing_class && !resolver_->Resolve(ast_enclosing_class))
     Postpone(ast_class, ast_enclosing_class);
 
@@ -178,11 +183,11 @@ void IrClassBuilder::ProcessClass(ast::Class* ast_class) {
 }
 
 ast::NamedNode* IrClassBuilder::Resolve(ast::Expression* reference,
-                                        ast::MemberContainer* container) {
+                                        ast::ContainerNode* container) {
   auto const name_ref = reference->as<ast::NameReference>();
   DCHECK(name_ref);
   auto const name = name_ref->name();
-  for (auto runner = container; runner; runner = runner->outer()) {
+  for (auto runner = container; runner; runner = runner->parent()) {
     if (auto const member = runner->FindMember(name))
       return member;
   }
@@ -190,7 +195,7 @@ ast::NamedNode* IrClassBuilder::Resolve(ast::Expression* reference,
 }
 
 void IrClassBuilder::Run() {
-  VisitNamespace(session()->global_namespace());
+  VisitNamespaceBody(session()->root_node());
   collecting_ = false;
   for (auto ast_class : pending_classes_)
     ProcessClass(ast_class);
@@ -206,8 +211,8 @@ void IrClassBuilder::VisitClass(ast::Class* ast_class) {
   ProcessClass(ast_class);
 }
 
-void IrClassBuilder::VisitNamespace(ast::Namespace* ns) {
-  ns->AcceptForMembers(this);
+void IrClassBuilder::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
+  ns_body->AcceptForMembers(this);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -228,13 +233,20 @@ class SystemNamespaceBuilder final {
   ast::NameReference* NewNameReference(PredefinedName name);
   Token* NewToken(TokenData token_data);
   Token* NewToken(TokenType token_type);
+
   CompilationSession* const session_;
+  ast::NamespaceBody* system_namespace_body_;
 
   DISALLOW_COPY_AND_ASSIGN(SystemNamespaceBuilder);
 };
 
 SystemNamespaceBuilder::SystemNamespaceBuilder(CompilationSession* session)
-    : session_(session) {
+    : session_(session),
+      system_namespace_body_(session->ast_factory()->NewNamespaceBody(
+          session->root_node(),
+          session->system_namespace())) {
+  system_namespace_body_->loaded_ = true;
+  session_->root_node()->AddMember(system_namespace_body_);
 }
 
 void SystemNamespaceBuilder::Build() {
@@ -270,14 +282,14 @@ void SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {
   ModifiersBuilder modifiers_builder;
   modifiers_builder.SetPublic();
   auto const container = session_->system_namespace();
-  auto const container_body = container->bodies().front();
   auto const modifiers = modifiers_builder.Get();
   auto const name = session_->name_for(type);
+  auto const class_string = session_->NewAtomicString(L"class");
   auto const new_class = session_->ast_factory()->NewClass(
-      container_body, modifiers, NewToken(TokenType::Class),
+      container, modifiers, NewToken(TokenData(TokenType::Class, class_string)),
       NewToken(TokenData(name)));
-  container_body->AddMember(new_class);
-  container->AddMember(new_class);
+  container->AddNamedMember(new_class);
+  system_namespace_body_->AddMember(new_class);
 }
 
 ast::NameReference* SystemNamespaceBuilder::NewNameReference(
@@ -345,7 +357,7 @@ ast::Class* CompilerTest::FindClass(base::StringPiece name) {
 
 ast::NamedNode* CompilerTest::FindMember(base::StringPiece name) {
   auto enclosing =
-      static_cast<ast::MemberContainer*>(session_->global_namespace());
+      static_cast<ast::ContainerNode*>(session_->global_namespace());
   auto found = static_cast<ast::NamedNode*>(nullptr);
   for (size_t pos = 0u; pos < name.length(); ++pos) {
     auto dot_pos = name.find('.', pos);
@@ -356,7 +368,7 @@ ast::NamedNode* CompilerTest::FindMember(base::StringPiece name) {
     found = enclosing->FindMember(simple_name);
     if (!found)
       return nullptr;
-    enclosing = found->as<ast::MemberContainer>();
+    enclosing = found->as<ast::ContainerNode>();
     if (!enclosing)
       return nullptr;
     pos = dot_pos;
@@ -373,7 +385,7 @@ std::string CompilerTest::Format() {
   if (!Parse())
     return GetErrors();
   Formatter formatter;
-  return formatter.Run(session_->global_namespace());
+  return formatter.Run(session_->root_node());
 }
 
 std::string CompilerTest::GetBaseClasses(base::StringPiece name) {

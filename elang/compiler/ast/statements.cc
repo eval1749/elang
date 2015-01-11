@@ -17,7 +17,7 @@ namespace ast {
 //
 // Statement
 //
-Statement::Statement(Token* op) : Node(op) {
+Statement::Statement(Token* op) : Node(nullptr, op) {
 }
 
 BlockStatement::BlockStatement(Zone* zone,
@@ -35,7 +35,7 @@ CatchClause::CatchClause(Token* keyword,
                          Expression* type,
                          LocalVariable* variable,
                          BlockStatement* block)
-    : Node(keyword), block_(block), type_(type), variable_(variable) {
+    : Node(nullptr, keyword), block_(block), type_(type), variable_(variable) {
   DCHECK_EQ(keyword, TokenType::Catch);
   DCHECK(block_);
 }

@@ -16,7 +16,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 class Expression;
-class MemberContainer;
+class ContainerNode;
 class NamedNode;
 }
 namespace ir {
@@ -43,7 +43,7 @@ class NameResolver final {
   void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
   ast::NamedNode* ResolveReference(ast::Expression* expression,
-                                   ast::MemberContainer* container);
+                                   ast::ContainerNode* container);
 
  private:
   class ReferenceResolver;

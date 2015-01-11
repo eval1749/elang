@@ -12,7 +12,7 @@
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
@@ -442,7 +442,8 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     }
   }
 
-  auto const owner = namespace_body_->owner()->as<ast::Class>();
+  auto const owner = container_->as<ast::Class>();
+  DCHECK(owner);
   auto method_group = static_cast<ast::MethodGroup*>(nullptr);
   if (auto const present = owner->FindMember(method_name)) {
     method_group = present->as<ast::MethodGroup>();
@@ -451,14 +452,14 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   }
   if (!method_group) {
     method_group = factory()->NewMethodGroup(owner, method_name);
-    owner->AddMember(method_group);
+    owner->AddNamedMember(method_group);
   }
 
-  auto const method = factory()->NewMethod(
-      namespace_body_, method_group, method_modifiers, method_type, method_name,
-      type_parameters, parameters);
+  auto const method =
+      factory()->NewMethod(owner, method_group, method_modifiers, method_type,
+                           method_name, type_parameters, parameters);
   method_group->AddMethod(method);
-  namespace_body_->AddMember(method);
+  container_->AddMember(method);
 
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasExtern())

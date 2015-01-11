@@ -5,9 +5,7 @@
 #ifndef ELANG_COMPILER_AST_NAMESPACE_H_
 #define ELANG_COMPILER_AST_NAMESPACE_H_
 
-#include "elang/base/zone_unordered_map.h"
-#include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/container_node.h"
 
 namespace elang {
 namespace compiler {
@@ -15,49 +13,94 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// MemberContainer
+// Alias
 //
-class MemberContainer : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(MemberContainer, NamespaceMember);
+class Alias final : public NamedNode {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Alias, NamedNode);
 
  public:
-  const ZoneVector<NamespaceBody*> bodies() const { return bodies_; }
-
-  // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
-  // member.
-  void AcceptForMembers(Visitor* visitor);
-  void AddMember(NamedNode* member);
-  void AddNamespaceBody(NamespaceBody* outer);
-  NamedNode* FindMember(AtomicString* simple_name);
-  NamedNode* FindMember(Token* simple_name);
-
- protected:
-  MemberContainer(Zone* zone,
-                  NamespaceBody* namespace_body,
-                  Token* keyword,
-                  Token* simple_name);
+  Expression* reference() const { return reference_; }
 
  private:
-  ZoneVector<NamespaceBody*> bodies_;
-  ZoneUnorderedMap<AtomicString*, NamedNode*> map_;
+  Alias(NamespaceBody* namespace_body,
+        Token* keyword,
+        Token* alias_name,
+        Expression* reference);
 
-  DISALLOW_COPY_AND_ASSIGN(MemberContainer);
+  // Node
+  bool CanBeInNamespaceBody() const final { return true; }
+
+  Expression* const reference_;
+
+  DISALLOW_COPY_AND_ASSIGN(Alias);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Import
+//
+class Import final : public NamedNode {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Import, NamedNode);
+
+ public:
+  Expression* reference() const { return reference_; }
+
+ private:
+  Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
+
+  // Node
+  bool CanBeInNamespaceBody() const final { return true; }
+
+  Expression* const reference_;
+
+  DISALLOW_COPY_AND_ASSIGN(Import);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
 //
-class Namespace final : public MemberContainer {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Namespace, MemberContainer);
+class Namespace final : public ContainerNode {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Namespace, ContainerNode);
 
  private:
-  Namespace(Zone* zone,
-            NamespaceBody* namespace_body,
-            Token* keyword,
-            Token* name);
+  Namespace(Zone* zone, Namespace* outer, Token* keyword, Token* name);
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// NamespaceBody
+//
+class NamespaceBody final : public ContainerNode {
+  DECLARE_AST_NODE_CONCRETE_CLASS(NamespaceBody, ContainerNode);
+
+ public:
+  const ZoneVector<Import*>& imports() const { return imports_; }
+  NamespaceBody* outer() const;
+  Namespace* owner() const { return namespace_; }
+
+  // ContainerNode
+  void AddMember(Node* member) final;
+  void AddNamedMember(NamedNode* member) final;
+
+  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
+  bool loaded_;
+
+ private:
+  NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
+
+  // Node
+  bool CanBeInNamespaceBody() const final;
+
+  // ContainerNode
+  NamedNode* FindMemberMore(AtomicString* simple_name) final;
+
+  ZoneVector<Import*> imports_;
+  Namespace* const namespace_;
+
+  DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };
 
 }  // namespace ast

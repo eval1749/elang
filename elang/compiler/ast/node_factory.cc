@@ -6,16 +6,12 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/field.h"
-#include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/qualified_name.h"
@@ -51,18 +47,18 @@ Alias* NodeFactory::NewAlias(NamespaceBody* namespace_body,
   return new (zone_) Alias(namespace_body, keyword, alias_name, reference);
 }
 
-Class* NodeFactory::NewClass(NamespaceBody* namespace_body,
+Class* NodeFactory::NewClass(ContainerNode* container,
                              Modifiers modifiers,
                              Token* keyword,
                              Token* name) {
-  return new (zone_) Class(zone_, namespace_body, modifiers, keyword, name);
+  return new (zone_) Class(zone_, container, modifiers, keyword, name);
 }
 
-Enum* NodeFactory::NewEnum(NamespaceBody* namespace_body,
+Enum* NodeFactory::NewEnum(ContainerNode* container,
                            Modifiers modifiers,
                            Token* keyword,
                            Token* name) {
-  return new (zone_) Enum(zone_, namespace_body, modifiers, keyword, name);
+  return new (zone_) Enum(zone_, container, modifiers, keyword, name);
 }
 
 EnumMember* NodeFactory::NewEnumMember(Enum* owner,
@@ -71,12 +67,12 @@ EnumMember* NodeFactory::NewEnumMember(Enum* owner,
   return new (zone_) EnumMember(owner, name, expression);
 }
 
-Field* NodeFactory::NewField(NamespaceBody* namespace_body,
+Field* NodeFactory::NewField(Class* outer,
                              Modifiers modifiers,
                              Expression* type,
                              Token* name,
                              Expression* expression) {
-  return new (zone_) Field(namespace_body, modifiers, type, name, expression);
+  return new (zone_) Field(outer, modifiers, type, name, expression);
 }
 
 Import* NodeFactory::NewImport(NamespaceBody* namespace_body,
@@ -85,15 +81,15 @@ Import* NodeFactory::NewImport(NamespaceBody* namespace_body,
   return new (zone_) Import(namespace_body, keyword, reference);
 }
 
-Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
+Method* NodeFactory::NewMethod(Class* outer,
                                MethodGroup* method_group,
                                Modifiers modifies,
                                Expression* type,
                                Token* name,
                                const std::vector<Token*>& type_parameters,
                                const std::vector<LocalVariable*>& parameters) {
-  return new (zone_) Method(zone_, namespace_body, method_group, modifies, type,
-                            name, type_parameters, parameters);
+  return new (zone_) Method(zone_, outer, method_group, modifies, type, name,
+                            type_parameters, parameters);
 }
 
 MethodGroup* NodeFactory::NewMethodGroup(Class* owner, Token* name) {
@@ -101,15 +97,15 @@ MethodGroup* NodeFactory::NewMethodGroup(Class* owner, Token* name) {
   return new (zone_) MethodGroup(zone_, owner, name);
 }
 
-Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,
+Namespace* NodeFactory::NewNamespace(Namespace* outer,
                                      Token* keyword,
                                      Token* name) {
   DCHECK_EQ(keyword->type(), TokenType::Namespace);
-  return new (zone_) Namespace(zone_, namespace_body, keyword, name);
+  return new (zone_) Namespace(zone_, outer, keyword, name);
 }
 
 NamespaceBody* NodeFactory::NewNamespaceBody(NamespaceBody* outer,
-                                             MemberContainer* owner) {
+                                             Namespace* owner) {
   return new (zone_) NamespaceBody(zone_, outer, owner);
 }
 

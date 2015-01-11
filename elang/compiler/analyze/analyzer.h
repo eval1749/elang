@@ -14,7 +14,7 @@ namespace compiler {
 
 namespace ir {
 class Factory;
-class MemberContainer;
+class ContainerNode;
 class Node;
 }
 
@@ -43,7 +43,7 @@ class Analyzer {
   // Shortcut to |NameResolver|.
   ir::Node* Resolve(ast::NamedNode* ast_node);
   ir::Node* ResolveTypeReference(ast::Expression* reference,
-                                 ast::MemberContainer* container);
+                                 ast::ContainerNode* container);
 
  private:
   NameResolver* const resolver_;

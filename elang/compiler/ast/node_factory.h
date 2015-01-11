@@ -34,16 +34,16 @@ class NodeFactory final {
                   Token* keyword,
                   Token* alias_name,
                   Expression* reference);
-  Class* NewClass(NamespaceBody* namespace_body,
+  Class* NewClass(ContainerNode* outer,
                   Modifiers modifiers,
                   Token* keyword,
                   Token* name);
-  Enum* NewEnum(NamespaceBody* namespace_body,
+  Enum* NewEnum(ContainerNode* outer,
                 Modifiers modifiers,
                 Token* keyword,
                 Token* name);
   EnumMember* NewEnumMember(Enum* owner, Token* name, Expression* expression);
-  Field* NewField(NamespaceBody* namespace_body,
+  Field* NewField(Class* clazz,
                   Modifiers modifiers,
                   Expression* type,
                   Token* name,
@@ -51,7 +51,7 @@ class NodeFactory final {
   Import* NewImport(NamespaceBody* namespace_body,
                     Token* keyword,
                     Expression* reference);
-  Method* NewMethod(NamespaceBody* namespace_body,
+  Method* NewMethod(Class* owner,
                     MethodGroup* method_group,
                     Modifiers modifies,
                     Expression* type,
@@ -59,10 +59,8 @@ class NodeFactory final {
                     const std::vector<Token*>& type_parameters,
                     const std::vector<LocalVariable*>& parameters);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
-  Namespace* NewNamespace(NamespaceBody* namespace_body,
-                          Token* keyword,
-                          Token* name);
-  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, MemberContainer* owner);
+  Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
+  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
 
   // Expression nodes
   ArrayAccess* NewArrayAccess(Token* bracket,

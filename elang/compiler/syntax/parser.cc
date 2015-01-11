@@ -9,26 +9,24 @@
 #include <unordered_set>
 
 #include "base/logging.h"
-#include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/field.h"
-#include "elang/compiler/ast/import.h"
-#include "elang/compiler/ast/namespace_body.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/syntax/lexer.h"
 #include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/qualified_name.h"
+#include "elang/compiler/syntax/lexer.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 
 namespace {
-Token* GetQualifiedNameToken(ast::Expression* thing) {
+Token* MakeQualifiedNameToken(ast::Expression* thing) {
   if (auto const name_reference = thing->as<ast::NameReference>())
     return name_reference->name();
   auto const member_access = thing->as<ast::MemberAccess>();
@@ -41,6 +39,34 @@ Token* GetQualifiedNameToken(ast::Expression* thing) {
   return member_access->token();
 }
 }  // namespace
+
+//////////////////////////////////////////////////////////////////////
+//
+// ContainerScope
+//
+class Parser::ContainerScope {
+ public:
+  ContainerScope(Parser* parser, ast::ContainerNode* new_container);
+  ~ContainerScope();
+
+ private:
+  Parser* const parser_;
+  ast::ContainerNode* const container_;
+
+  DISALLOW_COPY_AND_ASSIGN(ContainerScope);
+};
+
+Parser::ContainerScope::ContainerScope(Parser* parser,
+                                       ast::ContainerNode* new_container)
+    : container_(parser->container_), parser_(parser) {
+  DCHECK(new_container->is<ast::Class>() ||
+         new_container->is<ast::NamespaceBody>());
+  parser->container_ = new_container;
+}
+
+Parser::ContainerScope::~ContainerScope() {
+  parser_->container_ = container_;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -97,36 +123,6 @@ void Parser::ModifierParser::Reset() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NamespaceBodyScope
-//
-class Parser::NamespaceBodyScope {
- public:
-  NamespaceBodyScope(Parser* parser, ast::MemberContainer* new_container);
-  ~NamespaceBodyScope();
-
- private:
-  Parser* const parser_;
-  ast::NamespaceBody* const namespace_body_;
-
-  DISALLOW_COPY_AND_ASSIGN(NamespaceBodyScope);
-};
-
-Parser::NamespaceBodyScope::NamespaceBodyScope(
-    Parser* parser,
-    ast::MemberContainer* new_container)
-    : namespace_body_(parser->namespace_body_), parser_(parser) {
-  auto const namespace_body = parser->session_->ast_factory()->NewNamespaceBody(
-      namespace_body_, new_container);
-  new_container->AddNamespaceBody(namespace_body);
-  parser->namespace_body_ = namespace_body;
-}
-
-Parser::NamespaceBodyScope::~NamespaceBodyScope() {
-  parser_->namespace_body_ = namespace_body_;
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // QualifiedNameBuilder
 //
 class Parser::QualifiedNameBuilder final {
@@ -170,20 +166,20 @@ void Parser::QualifiedNameBuilder::Reset() {
 //
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
+      container_(session->ast_factory()->NewNamespaceBody(
+          session->root_node(),
+          session->global_namespace())),
       declaration_space_(nullptr),
       expression_(nullptr),
       last_source_offset_(0),
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
-      namespace_body_(session->ast_factory()->NewNamespaceBody(
-          nullptr,
-          session->global_namespace())),
       session_(session),
       statement_(nullptr),
       statement_scope_(nullptr),
       token_(nullptr) {
-  namespace_body_->owner()->AddNamespaceBody(namespace_body_);
+  session->root_node()->AddMember(container_);
 }
 
 Parser::~Parser() {
@@ -193,10 +189,10 @@ ast::NodeFactory* Parser::factory() const {
   return session_->ast_factory();
 }
 
-void Parser::AddMember(ast::NamespaceMember* member) {
+void Parser::AddMember(ast::NamedNode* member) {
   DCHECK(!member->is<ast::Alias>() && !member->is<ast::Import>());
-  namespace_body_->AddMember(member);
-  namespace_body_->owner()->AddMember(member);
+  container_->AddMember(member);
+  container_->AddNamedMember(member);
 }
 
 void Parser::Advance() {
@@ -242,11 +238,7 @@ bool Parser::Error(ErrorCode error_code) {
 }
 
 ast::NamedNode* Parser::FindMember(Token* name) const {
-  if (auto const present = namespace_body_->FindAlias(name))
-    return present;
-  if (auto const present = namespace_body_->FindMember(name))
-    return present;
-  return nullptr;
+  return container_->FindMember(name);
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
@@ -268,7 +260,7 @@ Token* Parser::NewUniqueNameToken(const base::char16* format) {
 //
 // ClassBody ::= '{' ClassMemberDecl* '}'
 //
-bool Parser::ParseClassDecl() {
+bool Parser::ParseClass() {
   ValidateClassModifiers();
   // TODO(eval1749) Support partial class.
   auto const class_modifiers = modifiers_->Get();
@@ -278,10 +270,10 @@ bool Parser::ParseClassDecl() {
     return Error(ErrorCode::SyntaxClassDeclName, class_name);
   if (FindMember(class_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate, class_name);
-  auto const clazz = factory()->NewClass(namespace_body_, class_modifiers,
+  auto const clazz = factory()->NewClass(container_, class_modifiers,
                                          class_keyword, class_name);
   AddMember(clazz);
-  NamespaceBodyScope namespace_body_scope(this, clazz);
+  ContainerScope container_scope(this, clazz);
 
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
@@ -326,13 +318,13 @@ bool Parser::ParseClassDecl() {
       case TokenType::Class:
       case TokenType::Interface:
       case TokenType::Struct:
-        ParseClassDecl();
+        ParseClass();
         continue;
       case TokenType::Enum:
-        ParseEnumDecl();
+        ParseEnum();
         continue;
       case TokenType::Function:
-        ParseFunctionDecl();
+        ParseFunction();
         continue;
       case TokenType::RightCurryBracket:
         Advance();
@@ -384,9 +376,8 @@ bool Parser::ParseClassDecl() {
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())
         return false;
-      AddMember(factory()->NewField(namespace_body_, member_modifiers,
-                                    member_type, member_name,
-                                    ConsumeExpression()));
+      AddMember(factory()->NewField(clazz, member_modifiers, member_type,
+                                    member_name, ConsumeExpression()));
       if (!AdvanceIf(TokenType::SemiColon))
         Error(ErrorCode::SyntaxClassMemberSemiColon);
       continue;
@@ -398,8 +389,8 @@ bool Parser::ParseClassDecl() {
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
 
-    AddMember(factory()->NewField(namespace_body_, member_modifiers,
-                                  member_type, member_name, nullptr));
+    AddMember(factory()->NewField(clazz, member_modifiers, member_type,
+                                  member_name, nullptr));
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxClassMemberSemiColon);
   }
@@ -409,10 +400,10 @@ bool Parser::ParseClassDecl() {
 //      ExternalAliasDirective
 //      UsingDirective*
 //      GlobalAttribute*
-//      NamespaceMemberDecl*
+//      NamedNodeDecl*
 bool Parser::ParseCompilationUnit() {
   ParseUsingDirectives();
-  if (!ParseNamespaceMembers())
+  if (!ParseNamedNodes())
     return false;
   if (PeekToken() == TokenType::EndOfSource)
     return true;
@@ -424,22 +415,24 @@ bool Parser::ParseCompilationUnit() {
 // EnumBase ::= ':' IntegralType
 // EnumField ::= Name ("=" Expression)? ","?
 // EnumModifier ::= 'new' | 'public' | 'protected' | 'private'
-bool Parser::ParseEnumDecl() {
+void Parser::ParseEnum() {
   // TODO(eval1749) Validate EnumModifier
   auto const enum_modifiers = modifiers_->Get();
   auto const enum_keyword = ConsumeToken();
   DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
-  if (!PeekToken()->is_name())
-    return Error(ErrorCode::SyntaxEnumDeclNameInvalid);
+  if (!PeekToken()->is_name()) {
+    Error(ErrorCode::SyntaxEnumDeclNameInvalid);
+    token_ = session()->NewUniqueNameToken(token_->location(), L"enum%d");
+  }
   auto const enum_name = ConsumeToken();
   if (FindMember(enum_name))
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
-  auto const enum_decl = factory()->NewEnum(namespace_body_, enum_modifiers,
-                                            enum_keyword, enum_name);
-  AddMember(enum_decl);
+  auto const enum_node =
+      factory()->NewEnum(container_, enum_modifiers, enum_keyword, enum_name);
+  AddMember(enum_node);
   // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
-    return Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
+    Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
   while (PeekToken()->is_name()) {
     auto const member_name = ConsumeToken();
     auto member_value = static_cast<ast::Expression*>(nullptr);
@@ -449,25 +442,26 @@ bool Parser::ParseEnumDecl() {
       else
         Error(ErrorCode::SyntaxEnumDeclExpression);
     }
-    enum_decl->AddMember(
-        factory()->NewEnumMember(enum_decl, member_name, member_value));
+    auto const enum_member =
+        factory()->NewEnumMember(enum_node, member_name, member_value);
+    enum_node->AddMember(enum_member);
+    enum_node->AddNamedMember(enum_member);
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
     if (AdvanceIf(TokenType::Comma))
       continue;
   }
   if (!AdvanceIf(TokenType::RightCurryBracket))
-    return Error(ErrorCode::SyntaxEnumDeclRightCurryBracket);
-  return true;
+    Error(ErrorCode::SyntaxEnumDeclRightCurryBracket);
 }
 
-bool Parser::ParseFunctionDecl() {
-  return false;
+void Parser::ParseFunction() {
+  // TODO(eval1749) Implement 'function' parser.
 }
 
 //  NamespaceDecl ::= "namespace" QualifiedName Namespace ";"?
 //  Namespace ::= "{" ExternAliasDirective* UsingDirective*
-//                        NamespaceMemberDecl* "}"
+//                        NamedNodeDecl* "}"
 bool Parser::ParseNamespace() {
   auto const namespace_keyword = ConsumeToken();
   DCHECK_EQ(namespace_keyword->type(), TokenType::Namespace);
@@ -480,6 +474,8 @@ bool Parser::ParseNamespace() {
 bool Parser::ParseNamespace(Token* namespace_keyword,
                             const std::vector<Token*>& names,
                             size_t index) {
+  auto const ns_body = container_->as<ast::NamespaceBody>();
+  DCHECK(ns_body);
   auto const name = names[index];
   ast::Namespace* new_namespace = nullptr;
   if (auto const present = FindMember(name)) {
@@ -489,16 +485,18 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   }
   if (!new_namespace) {
     new_namespace =
-        factory()->NewNamespace(namespace_body_, namespace_keyword, name);
-    AddMember(new_namespace);
+        factory()->NewNamespace(ns_body->owner(), namespace_keyword, name);
+    ns_body->owner()->AddNamedMember(new_namespace);
   }
-  NamespaceBodyScope namespace_body_scope(this, new_namespace);
+  auto const new_ns_body = factory()->NewNamespaceBody(ns_body, new_namespace);
+  ns_body->AddMember(new_ns_body);
+  ContainerScope container_scope(this, new_ns_body);
   if (index + 1 < names.size())
     return ParseNamespace(namespace_keyword, names, index + 1);
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxNamespaceLeftCurryBracket);
   ParseUsingDirectives();
-  if (!ParseNamespaceMembers())
+  if (!ParseNamedNodes())
     return false;
   if (!AdvanceIf(TokenType::RightCurryBracket))
     return Error(ErrorCode::SyntaxNamespaceRightCurryBracket);
@@ -506,10 +504,10 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   return true;
 }
 
-// NamespaceMemberDecl ::= NamespaceDecl | TypeDecl
+// NamedNodeDecl ::= NamespaceDecl | TypeDecl
 // TypeDecl ::= ClassDecl | InterfaceDecl | StructDecl | EnumDecl |
 //              FunctionDecl
-bool Parser::ParseNamespaceMembers() {
+bool Parser::ParseNamedNodes() {
   for (;;) {
     modifiers_->Reset();
     while (modifiers_->Add(PeekToken()))
@@ -518,16 +516,14 @@ bool Parser::ParseNamespaceMembers() {
       case TokenType::Class:
       case TokenType::Interface:
       case TokenType::Struct:
-        if (!ParseClassDecl())
+        if (!ParseClass())
           return false;
         break;
       case TokenType::Enum:
-        if (!ParseEnumDecl())
-          return false;
+        ParseEnum();
         break;
       case TokenType::Function:
-        if (!ParseFunctionDecl())
-          return false;
+        ParseFunction();
         break;
       case TokenType::Namespace:
         if (!ParseNamespace())
@@ -557,7 +553,8 @@ bool Parser::ParseQualifiedName() {
 // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
 // ImportNamespace ::= 'using' QualfiedName ';'
 void Parser::ParseUsingDirectives() {
-  DCHECK(namespace_body_->owner()->as<ast::Namespace>());
+  auto const ns_body = container_->as<ast::NamespaceBody>();
+  DCHECK(ns_body);
   while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
     if (!ParseNamespaceOrTypeName()) {
       AdvanceIf(TokenType::SemiColon);
@@ -575,7 +572,7 @@ void Parser::ParseUsingDirectives() {
       auto const alias_name = thing->as<ast::NameReference>()->name();
       // Note: 'using' directive comes before other declarations. We don't
       // need to use enclosing namespace's |FindMember()|.
-      if (auto const present = namespace_body_->FindAlias(alias_name)) {
+      if (auto const present = container_->FindDirectMember(alias_name)) {
         is_valid = false;
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
               present->name());
@@ -583,24 +580,32 @@ void Parser::ParseUsingDirectives() {
       if (ParseNamespaceOrTypeName()) {
         auto const reference = ConsumeType();
         if (is_valid) {
-          namespace_body_->AddAlias(factory()->NewAlias(
-              namespace_body_, using_keyword, alias_name, reference));
+          auto const alias = factory()->NewAlias(ns_body, using_keyword,
+                                                 alias_name, reference);
+          container_->AddNamedMember(alias);
+          container_->AddMember(alias);
         }
       }
     } else {
       // ImportNamespace ::= 'using' QualfiedName ';'
-      auto const qualified_name = GetQualifiedNameToken(thing);
+      auto const qualified_name = MakeQualifiedNameToken(thing);
       if (!qualified_name) {
         Error(ErrorCode::SyntaxUsingDirectiveImport);
         AdvanceIf(TokenType::SemiColon);
         continue;
       }
-      if (auto const present = namespace_body_->FindImport(qualified_name)) {
-        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
-              present->reference()->token());
+      if (auto const present = container_->FindDirectMember(qualified_name)) {
+        if (auto const import = present->as<ast::Import>()) {
+          Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
+                import->reference()->token());
+        } else {
+          Error(ErrorCode::SyntaxUsingDirectiveConflict, qualified_name,
+                present->token());
+        }
       } else {
-        namespace_body_->AddImport(
-            factory()->NewImport(namespace_body_, using_keyword, thing));
+        auto const import = factory()->NewImport(ns_body, using_keyword, thing);
+        container_->AddNamedMember(import);
+        container_->AddMember(import);
       }
     }
     if (!AdvanceIf(TokenType::SemiColon))
@@ -642,17 +647,6 @@ Token* Parser::PeekToken() {
   else
     Error(ErrorCode::SyntaxBracketExtra);
   return token_;
-}
-
-ast::NamedNode* Parser::ResolveMember(Token* name) const {
-  DCHECK(name->is_name());
-  for (auto runner = namespace_body_; runner; runner = runner->outer()) {
-    if (auto const present = runner->FindAlias(name))
-      return present;
-    if (auto const present = runner->FindMember(name))
-      return present;
-  }
-  return nullptr;
 }
 
 bool Parser::Run() {

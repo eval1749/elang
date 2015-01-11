@@ -6,8 +6,6 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -20,14 +18,14 @@ namespace ast {
 // Method
 //
 Method::Method(Zone* zone,
-               NamespaceBody* namespace_body,
+               Class* owner,
                MethodGroup* method_group,
                Modifiers modifiers,
                Expression* return_type,
                Token* name,
                const std::vector<Token*>& type_parameters,
                const std::vector<LocalVariable*>& parameters)
-    : NamespaceMember(namespace_body, name, name),
+    : Node(owner, name),
       WithModifiers(modifiers),
       body_(nullptr),
       method_group_(method_group),

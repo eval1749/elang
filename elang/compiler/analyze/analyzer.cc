@@ -43,7 +43,7 @@ ir::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
 }
 
 ir::Node* Analyzer::ResolveTypeReference(ast::Expression* reference,
-                                         ast::MemberContainer* container) {
+                                         ast::ContainerNode* container) {
   auto const ast_node = resolver_->ResolveReference(reference, container);
   if (!ast_node) {
     Error(ErrorCode::AnalyzeTypeNotFound, reference);

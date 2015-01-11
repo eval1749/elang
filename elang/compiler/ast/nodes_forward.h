@@ -64,7 +64,13 @@ namespace ast {
 #define FOR_EACH_AST_NODE(V)   \
   FOR_EACH_DECLARATION_NODE(V) \
   FOR_EACH_EXPRESSION_NODE(V)  \
-  FOR_EACH_STATEMENT_NODE(V)
+  FOR_EACH_STATEMENT_NODE(V)   \
+  V(NamespaceBody)
+
+#define FOR_EACH_ABSTRACT_AST_NODE(V) \
+  V(ContainerNode)                    \
+  V(Node)                             \
+  V(NamedNode)
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -72,18 +78,16 @@ namespace ast {
 //
 #define V(Name) class Name;
 FOR_EACH_AST_NODE(V)
+FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
 class CatchClause;
-class NamedNode;
 class EnumMember;
 class Expression;
 class LocalVariable;
 class MethodGroup;
-class MemberContainer;
+class ContainerNode;
 class NamespaceBody;
-class NamespaceMember;
-class Node;
 class NodeFactory;
 class Statement;
 typedef Node Type;

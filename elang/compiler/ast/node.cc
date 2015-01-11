@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/node.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/container_node.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -15,7 +16,8 @@ namespace ast {
 //
 // Node
 //
-Node::Node(Token* token) : token_(token) {
+Node::Node(ContainerNode* parent, Token* token)
+    : parent_(parent), token_(token) {
 }
 
 bool Node::is_type() const {
@@ -26,6 +28,19 @@ Token* Node::name() const {
   return token();
 }
 
+bool Node::CanBeInNamespaceBody() const {
+  return false;
+}
+
+bool Node::IsDescendantOf(const Node* other) const {
+  for (auto runner = parent(); runner; runner = runner->parent()) {
+    if (runner == other)
+      return true;
+  }
+  return false;
+}
+
+// Visitable<Visitor>
 void Node::Accept(Visitor* visitor) {
   __assume(visitor);
   NOTREACHED();
@@ -35,8 +50,8 @@ void Node::Accept(Visitor* visitor) {
 //
 // NamedNode
 //
-NamedNode::NamedNode(Node* parent, Token* keyword, Token* name)
-    : Node(keyword), name_(name), parent_(parent) {
+NamedNode::NamedNode(ContainerNode* parent, Token* keyword, Token* name)
+    : Node(parent, keyword), name_(name) {
   DCHECK(name->is_name());
 }
 
