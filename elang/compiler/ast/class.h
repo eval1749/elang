@@ -31,7 +31,6 @@ class Class final : public MemberContainer {
   bool is_struct() const;
 
   void AddBaseClassName(Expression* class_name);
-  void AddMethodGroup(MethodGroup* method_group);
 
  private:
   Class(Zone* zone,

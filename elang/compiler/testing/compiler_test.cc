@@ -250,6 +250,7 @@ void SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {
       container_body, modifiers, NewToken(TokenType::Class),
       NewToken(TokenData(name)));
   container_body->AddMember(new_class);
+  container->AddMember(new_class);
 }
 
 ast::NameReference* SystemNamespaceBuilder::NewNameReference(

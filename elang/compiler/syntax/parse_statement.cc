@@ -8,10 +8,10 @@
 #include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/statements.h"
@@ -451,7 +451,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   }
   if (!method_group) {
     method_group = factory()->NewMethodGroup(namespace_body_, method_name);
-    namespace_body_->owner()->as<ast::Class>()->AddMethodGroup(method_group);
+    namespace_body_->owner()->AddMember(method_group);
   }
 
   auto const method = factory()->NewMethod(

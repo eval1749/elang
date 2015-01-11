@@ -47,6 +47,7 @@ ast::Namespace* CreateNamespace(CompilationSession* session,
       session->NewToken(enclosing_namespace->keyword()->location(),
                         session->NewAtomicString(name)));
   enclosing_body->AddMember(ns);
+  enclosing_namespace->AddMember(ns);
   ns->AddNamespaceBody(
       session->ast_factory()->NewNamespaceBody(enclosing_body, ns));
   return ns;

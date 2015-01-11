@@ -26,6 +26,7 @@ class MemberContainer : public NamespaceMember {
   // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
   // member.
   void AcceptForMembers(Visitor* visitor);
+  void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);
   NamespaceMember* FindMember(AtomicString* simple_name);
   NamespaceMember* FindMember(Token* simple_name);
@@ -37,11 +38,7 @@ class MemberContainer : public NamespaceMember {
                   Token* keyword,
                   Token* simple_name);
 
-  void AddMember(NamespaceMember* member);
-
  private:
-  friend class NamespaceBody;  // for calling |AddMember()|.
-
   ZoneVector<NamespaceBody*> bodies_;
   ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
 

@@ -194,8 +194,9 @@ ast::NodeFactory* Parser::factory() const {
 }
 
 void Parser::AddMember(ast::NamespaceMember* member) {
-  DCHECK(!member->is<ast::Alias>());
+  DCHECK(!member->is<ast::Alias>() && !member->is<ast::Import>());
   namespace_body_->AddMember(member);
+  namespace_body_->owner()->AddMember(member);
 }
 
 void Parser::Advance() {
