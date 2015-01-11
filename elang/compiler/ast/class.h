@@ -26,6 +26,10 @@ class Class final : public MemberContainer {
     return base_class_names_;
   }
 
+  bool is_class() const;
+  bool is_interface() const;
+  bool is_struct() const;
+
   void AddBaseClassName(Expression* class_name);
 
  private:

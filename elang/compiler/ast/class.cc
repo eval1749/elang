@@ -27,6 +27,18 @@ Class::Class(Zone* zone,
          keyword == TokenType::Struct);
 }
 
+bool Class::is_class() const {
+  return keyword() == TokenType::Class;
+}
+
+bool Class::is_interface() const {
+  return keyword() == TokenType::Interface;
+}
+
+bool Class::is_struct() const {
+  return keyword() == TokenType::Struct;
+}
+
 void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
 }
