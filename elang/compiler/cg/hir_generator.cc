@@ -68,11 +68,6 @@ void HirGenerator::VisitMethod(ast::Method* method) {
   function_ = nullptr;
 }
 
-void HirGenerator::VisitMethodGroup(ast::MethodGroup* method_group) {
-  for (auto const method : method_group->methods())
-    VisitMethod(method);
-}
-
 void HirGenerator::VisitNamespace(ast::Namespace* namespaze) {
   namespaze->AcceptForMembers(this);
 }

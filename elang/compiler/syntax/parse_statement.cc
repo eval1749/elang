@@ -8,9 +8,11 @@
 #include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
@@ -449,13 +451,14 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   }
   if (!method_group) {
     method_group = factory()->NewMethodGroup(namespace_body_, method_name);
-    AddMember(method_group);
+    namespace_body_->owner()->as<ast::Class>()->AddMethodGroup(method_group);
   }
 
   auto const method = factory()->NewMethod(
       namespace_body_, method_group, method_modifiers, method_type, method_name,
       type_parameters, parameters);
   method_group->AddMethod(method);
+  AddMember(method);
 
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasExtern())

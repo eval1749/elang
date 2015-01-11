@@ -18,8 +18,8 @@ namespace ast {
 //
 // Method
 //
-class Method final : public NamedNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamedNode);
+class Method final : public NamespaceMember {
+  DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamespaceMember);
 
  public:
   // Returns method body. Its is null when parsing is failed or |extern|
@@ -27,7 +27,6 @@ class Method final : public NamedNode {
   Statement* body() const { return body_; }
 
   MethodGroup* method_group() const { return method_group_; }
-  Modifiers modifiers() const { return modifiers_; }
   const ZoneVector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
 
@@ -51,8 +50,6 @@ class Method final : public NamedNode {
 
   Statement* body_;
   MethodGroup* const method_group_;
-  const Modifiers modifiers_;
-  NamespaceBody* const namespace_body_;
   const ZoneVector<LocalVariable*> parameters_;
   Expression* const return_type_;
   const ZoneVector<Token*> type_parameters_;
@@ -65,7 +62,7 @@ class Method final : public NamedNode {
 // MethodGroup
 //
 class MethodGroup final : public NamespaceMember {
-  DECLARE_AST_NODE_CONCRETE_CLASS(MethodGroup, NamespaceMember);
+  DECLARE_AST_NODE_CLASS(MethodGroup, NamespaceMember);
 
  public:
   const ZoneVector<Method*>& methods() const { return methods_; }

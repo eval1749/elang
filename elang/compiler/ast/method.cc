@@ -27,11 +27,9 @@ Method::Method(Zone* zone,
                Token* name,
                const std::vector<Token*>& type_parameters,
                const std::vector<LocalVariable*>& parameters)
-    : NamedNode(name, name),
+    : NamespaceMember(namespace_body, modifiers, name, name),
       body_(nullptr),
       method_group_(method_group),
-      modifiers_(modifiers),
-      namespace_body_(namespace_body),
       parameters_(zone, parameters),
       return_type_(return_type),
       type_parameters_(zone, type_parameters) {

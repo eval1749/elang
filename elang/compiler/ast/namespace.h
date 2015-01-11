@@ -37,10 +37,10 @@ class MemberContainer : public NamespaceMember {
                   Token* keyword,
                   Token* simple_name);
 
+  void AddMember(NamespaceMember* member);
+
  private:
   friend class NamespaceBody;  // for calling |AddMember()|.
-
-  void AddMember(NamespaceMember* member);
 
   ZoneVector<NamespaceBody*> bodies_;
   ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;

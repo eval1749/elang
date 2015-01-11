@@ -382,49 +382,43 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
 }
 
 void Formatter::VisitMethod(ast::Method* method) {
-  DCHECK(method);
-}
-
-void Formatter::VisitMethodGroup(ast::MethodGroup* method_group) {
-  for (auto const method : method_group->methods()) {
-    Indent();
-    stream_ << method->modifiers();
-    if (method->modifiers().value())
-      stream_ << " ";
-    Visit(method->return_type());
-    stream_ << " " << method->name();
-    if (!method->type_parameters().empty()) {
-      const char* separator = "<";
-      for (auto const name : method->type_parameters()) {
-        stream_ << separator << name;
-        separator = ", ";
-      }
-      stream_ << ">";
-    }
-    stream_ << "(";
-    const char* separator = "";
-    for (auto const param : method->parameters()) {
-      stream_ << separator;
-      Visit(param->type());
-      stream_ << " " << param->name();
+  Indent();
+  stream_ << method->modifiers();
+  if (method->modifiers().value())
+    stream_ << " ";
+  Visit(method->return_type());
+  stream_ << " " << method->name();
+  if (!method->type_parameters().empty()) {
+    const char* separator = "<";
+    for (auto const name : method->type_parameters()) {
+      stream_ << separator << name;
       separator = ", ";
     }
-    stream_ << ")";
-    auto const statement = method->body();
-    if (!statement) {
-      stream_ << ";" << std::endl;
-      continue;
-    }
-    if (statement->is<ast::BlockStatement>()) {
-      stream_ << " ";
-      Visit(statement);
-      stream_ << std::endl;
-      continue;
-    }
-    stream_ << "=> ";
-    Visit(statement);
-    stream_ << ";" << std::endl;
+    stream_ << ">";
   }
+  stream_ << "(";
+  const char* separator = "";
+  for (auto const param : method->parameters()) {
+    stream_ << separator;
+    Visit(param->type());
+    stream_ << " " << param->name();
+    separator = ", ";
+  }
+  stream_ << ")";
+  auto const statement = method->body();
+  if (!statement) {
+    stream_ << ";" << std::endl;
+    return;
+  }
+  if (statement->is<ast::BlockStatement>()) {
+    stream_ << " ";
+    Visit(statement);
+    stream_ << std::endl;
+    return;
+  }
+  stream_ << "=> ";
+  Visit(statement);
+  stream_ << ";" << std::endl;
 }
 
 void Formatter::VisitNameReference(ast::NameReference* operation) {

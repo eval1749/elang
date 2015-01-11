@@ -17,8 +17,6 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-// Note: |Method| is derived from |NamedNode| rather than |NamespaceMember|.
-// |MethodGroup| contains |Method| instances.
 #define FOR_EACH_DECLARATION_NODE(V) \
   V(Alias)                           \
   V(Import)                          \
@@ -26,7 +24,6 @@ namespace ast {
   V(Enum)                            \
   V(Field)                           \
   V(Method)                          \
-  V(MethodGroup)                     \
   V(Namespace)
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
@@ -82,7 +79,7 @@ class NamedNode;
 class EnumMember;
 class Expression;
 class LocalVariable;
-class Method;
+class MethodGroup;
 class MemberContainer;
 class NamespaceBody;
 class NamespaceMember;

@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/class.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
@@ -41,6 +42,10 @@ bool Class::is_struct() const {
 
 void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
+}
+
+void Class::AddMethodGroup(MethodGroup* method_group) {
+  AddMember(method_group);
 }
 
 }  // namespace ast
