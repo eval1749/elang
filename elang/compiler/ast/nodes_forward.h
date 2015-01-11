@@ -85,9 +85,11 @@ class LocalVariable;
 class Method;
 class MemberContainer;
 class NamespaceBody;
+class NamespaceMember;
 class Node;
 class NodeFactory;
 class Statement;
+typedef Node Type;
 class Visitor;
 
 }  // namespace ast
