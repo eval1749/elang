@@ -306,10 +306,10 @@ ast::Class* CompilerTest::FindClass(base::StringPiece name) {
   return member ? member->as<ast::Class>() : nullptr;
 }
 
-ast::NamespaceMember* CompilerTest::FindMember(base::StringPiece name) {
+ast::NamedNode* CompilerTest::FindMember(base::StringPiece name) {
   auto enclosing =
       static_cast<ast::MemberContainer*>(session_->global_namespace());
-  auto found = static_cast<ast::NamespaceMember*>(nullptr);
+  auto found = static_cast<ast::NamedNode*>(nullptr);
   for (size_t pos = 0u; pos < name.length(); ++pos) {
     auto dot_pos = name.find('.', pos);
     if (dot_pos == base::StringPiece::npos)

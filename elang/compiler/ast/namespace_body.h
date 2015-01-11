@@ -34,14 +34,16 @@ class NamespaceBody final : public ZoneAllocated {
   void AddMember(NamespaceMember* member);
   Alias* FindAlias(Token* simple_name);
   Import* FindImport(Token* simple_name);
-  NamespaceMember* FindMember(Token* simple_name);
+
+  // Shortcut function for finding member in enclosing namespace or class.
+  NamedNode* FindMember(Token* simple_name);
 
  private:
   friend class NodeFactory;
   NamespaceBody(Zone* zone, NamespaceBody* outer, MemberContainer* owner);
   ~NamespaceBody() = delete;
 
-  // TODO(eval1749) Use |AstVector| instead of |ZoneVector|
+  // For formatter we keep order of alias and import declarations.
   ZoneVector<Alias*> aliases_;
   ZoneUnorderedMap<AtomicString*, Alias*> alias_map_;
   ZoneVector<Import*> imports_;

@@ -77,7 +77,7 @@ Import* NamespaceBody::FindImport(Token* name) {
   return it == import_map_.end() ? nullptr : it->second;
 }
 
-NamespaceMember* NamespaceBody::FindMember(Token* name) {
+NamedNode* NamespaceBody::FindMember(Token* name) {
   return owner_->FindMember(name);
 }
 

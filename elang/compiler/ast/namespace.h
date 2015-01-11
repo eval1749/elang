@@ -28,8 +28,8 @@ class MemberContainer : public NamespaceMember {
   void AcceptForMembers(Visitor* visitor);
   void AddMember(NamespaceMember* member);
   void AddNamespaceBody(NamespaceBody* outer);
-  NamespaceMember* FindMember(AtomicString* simple_name);
-  NamespaceMember* FindMember(Token* simple_name);
+  NamedNode* FindMember(AtomicString* simple_name);
+  NamedNode* FindMember(Token* simple_name);
 
  protected:
   MemberContainer(Zone* zone,
@@ -40,7 +40,7 @@ class MemberContainer : public NamespaceMember {
 
  private:
   ZoneVector<NamespaceBody*> bodies_;
-  ZoneUnorderedMap<AtomicString*, NamespaceMember*> map_;
+  ZoneUnorderedMap<AtomicString*, NamedNode*> map_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberContainer);
 };

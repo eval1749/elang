@@ -16,7 +16,7 @@ namespace compiler {
 
 namespace ast {
 class Class;
-class NamespaceMember;
+class NamedNode;
 }
 
 class CompilationSession;
@@ -41,7 +41,7 @@ class CompilerTest : public ::testing::Test {
 
   std::string AnalyzeNamespace();
   ast::Class* FindClass(base::StringPiece name);
-  ast::NamespaceMember* FindMember(base::StringPiece name);
+  ast::NamedNode* FindMember(base::StringPiece name);
   std::string Format();
   std::string Format(base::StringPiece source_code);
   std::string GetBaseClasses(base::StringPiece name);

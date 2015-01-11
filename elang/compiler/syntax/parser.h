@@ -79,7 +79,7 @@ class Parser final {
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
   bool Error(ErrorCode error_code, Token* token, Token* token2);
-  ast::NamespaceMember* FindMember(Token* token) const;
+  ast::NamedNode* FindMember(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
   bool ParseClassDecl();
@@ -94,7 +94,7 @@ class Parser final {
   bool ParseQualifiedName();
   void ParseUsingDirectives();
   Token* PeekToken();
-  ast::NamespaceMember* ResolveMember(Token* token) const;
+  ast::NamedNode* ResolveMember(Token* token) const;
   void ValidateClassModifiers();
   void ValidateEnumModifiers();
   void ValidateFieldModifiers();

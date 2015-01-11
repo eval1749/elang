@@ -241,7 +241,7 @@ bool Parser::Error(ErrorCode error_code) {
   return Error(error_code, token_);
 }
 
-ast::NamespaceMember* Parser::FindMember(Token* name) const {
+ast::NamedNode* Parser::FindMember(Token* name) const {
   if (auto const present = namespace_body_->FindAlias(name))
     return present;
   if (auto const present = namespace_body_->FindMember(name))
@@ -637,7 +637,7 @@ Token* Parser::PeekToken() {
   return token_;
 }
 
-ast::NamespaceMember* Parser::ResolveMember(Token* name) const {
+ast::NamedNode* Parser::ResolveMember(Token* name) const {
   DCHECK(name->is_name());
   for (auto runner = namespace_body_; runner; runner = runner->outer()) {
     if (auto const present = runner->FindAlias(name))

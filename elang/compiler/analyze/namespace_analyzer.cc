@@ -35,10 +35,10 @@ namespace compiler {
 //
 class NamespaceAnalyzer::AnalyzeNode final : public ZoneAllocated {
  public:
-  AnalyzeNode(Zone* zone, ast::NamespaceMember* member);
+  AnalyzeNode(Zone* zone, ast::NamedNode* member);
 
   bool is_resolved() const { return is_resolved_; }
-  ast::NamespaceMember* member() const { return member_; }
+  ast::NamedNode* member() const { return member_; }
   const ZoneUnorderedSet<AnalyzeNode*> uses() const { return uses_; }
   const ZoneUnorderedSet<AnalyzeNode*> users() const { return users_; }
 
@@ -51,15 +51,14 @@ class NamespaceAnalyzer::AnalyzeNode final : public ZoneAllocated {
   ~AnalyzeNode() = default;
 
   bool is_resolved_;
-  ast::NamespaceMember* const member_;
+  ast::NamedNode* const member_;
   ZoneUnorderedSet<AnalyzeNode*> uses_;
   ZoneUnorderedSet<AnalyzeNode*> users_;
 
   DISALLOW_COPY_AND_ASSIGN(AnalyzeNode);
 };
 
-NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(Zone* zone,
-                                            ast::NamespaceMember* member)
+NamespaceAnalyzer::AnalyzeNode::AnalyzeNode(Zone* zone, ast::NamedNode* member)
     : is_resolved_(member->is<ast::Namespace>()),
       member_(member),
       uses_(zone),
@@ -230,13 +229,13 @@ void NamespaceAnalyzer::Error(ErrorCode error_code,
 }
 
 // Find |name| in class tree rooted by |clazz|.
-std::unordered_set<ast::NamespaceMember*> NamespaceAnalyzer::FindInClass(
+std::unordered_set<ast::NamedNode*> NamespaceAnalyzer::FindInClass(
     Token* name,
     ast::Class* clazz) {
   DCHECK(GetOrCreateNode(clazz)->is_resolved());
   if (auto const present = clazz->FindMember(name))
     return {present};
-  std::unordered_set<ast::NamespaceMember*> founds;
+  std::unordered_set<ast::NamedNode*> founds;
   for (auto const base_class_name : clazz->base_class_names()) {
     auto const base_class = GetResolved(base_class_name)->as<ast::Class>();
     for (auto const present : FindInClass(name, base_class))
@@ -245,14 +244,13 @@ std::unordered_set<ast::NamespaceMember*> NamespaceAnalyzer::FindInClass(
   return founds;
 }
 
-ast::NamespaceMember* NamespaceAnalyzer::FindResolved(
-    ast::Expression* reference) {
+ast::NamedNode* NamespaceAnalyzer::FindResolved(ast::Expression* reference) {
   auto const it = reference_cache_.find(reference);
   return it == reference_cache_.end() ? nullptr : it->second;
 }
 
 NamespaceAnalyzer::AnalyzeNode* NamespaceAnalyzer::GetOrCreateNode(
-    ast::NamespaceMember* member) {
+    ast::NamedNode* member) {
   auto const it = map_.find(member);
   if (it != map_.end())
     return it->second;
@@ -277,27 +275,24 @@ ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(
                           GetDefaultBaseClassName(clazz))});
 }
 
-ast::NamespaceMember* NamespaceAnalyzer::GetResolved(
-    ast::Expression* reference) {
+ast::NamedNode* NamespaceAnalyzer::GetResolved(ast::Expression* reference) {
   auto const present = FindResolved(reference);
   DCHECK(present);
   return present;
 }
 
-Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Postpone(
-    AnalyzeNode* node,
-    AnalyzeNode* using_node) {
+Maybe<ast::NamedNode*> NamespaceAnalyzer::Postpone(AnalyzeNode* node,
+                                                   AnalyzeNode* using_node) {
   node->Use(using_node);
   unresolved_nodes_.insert(node);
-  return Maybe<ast::NamespaceMember*>();
+  return Maybe<ast::NamedNode*>();
 }
 
-Maybe<ast::NamespaceMember*> NamespaceAnalyzer::Remember(
-    ast::Expression* reference,
-    ast::NamespaceMember* member) {
+Maybe<ast::NamedNode*> NamespaceAnalyzer::Remember(ast::Expression* reference,
+                                                   ast::NamedNode* member) {
   DCHECK(!reference_cache_.count(reference));
   reference_cache_[reference] = member;
-  return Maybe<ast::NamespaceMember*>(member);
+  return Maybe<ast::NamedNode*>(member);
 }
 
 Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
@@ -388,12 +383,12 @@ Maybe<ir::Class*> NamespaceAnalyzer::ResolveDefaultBaseClass(
   return Maybe<ir::Class*>(nullptr);
 }
 
-Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveMemberAccess(
+Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveMemberAccess(
     const ResolveContext& start_context,
     ast::MemberAccess* reference) {
   ResolveContext context(start_context);
   context.member_access = reference;
-  auto resolved = static_cast<ast::NamespaceMember*>(nullptr);
+  auto resolved = static_cast<ast::NamedNode*>(nullptr);
   for (auto const component : reference->components()) {
     if (resolved) {
       auto const container = resolved->as<ast::MemberContainer>();
@@ -417,14 +412,14 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveMemberAccess(
   return Remember(reference, resolved);
 }
 
-Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
+Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
     const ResolveContext& context,
     ast::NameReference* reference) {
   auto const name = reference->name();
   auto name_space = context.name_space;
   auto alias_space = context.alias_space;
   while (name_space) {
-    std::unordered_set<ast::NamespaceMember*> founds;
+    std::unordered_set<ast::NamedNode*> founds;
     if (auto const present = name_space->FindMember(name)) {
       DCHECK(!present->is<ast::Alias>());
       founds.insert(present);
@@ -504,11 +499,11 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveNameReference(
   return Remember(reference, nullptr);
 }
 
-Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveReference(
+Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
     const ResolveContext& context,
     ast::Expression* reference) {
   if (auto const resolved = FindResolved(reference))
-    return Maybe<ast::NamespaceMember*>(resolved);
+    return Maybe<ast::NamedNode*>(resolved);
   if (auto const name_reference = reference->as<ast::NameReference>())
     return ResolveNameReference(context, name_reference);
   if (auto const member_access = reference->as<ast::MemberAccess>())
@@ -519,7 +514,7 @@ Maybe<ast::NamespaceMember*> NamespaceAnalyzer::ResolveReference(
     return ResolveConstructedType(context, cons_type);
 #endif
   NOTREACHED();
-  return Maybe<ast::NamespaceMember*>(nullptr);
+  return Maybe<ast::NamedNode*>(nullptr);
 }
 
 bool NamespaceAnalyzer::Run() {

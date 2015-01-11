@@ -52,9 +52,9 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
   void Error(ErrorCode error_code, ast::Node* node);
   void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
 
-  std::unordered_set<ast::NamespaceMember*> FindInClass(Token* name,
-                                                        ast::Class* clazz);
-  ast::NamespaceMember* FindResolved(ast::Expression* reference);
+  std::unordered_set<ast::NamedNode*> FindInClass(Token* name,
+                                                  ast::Class* clazz);
+  ast::NamedNode* FindResolved(ast::Expression* reference);
 
   // Returns default base class name for |clazz|, for class it is |Object|,
   // for struct it is |Value|.
@@ -63,13 +63,12 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
   // Returns access node to default base class name for |clazz|.
   ast::Expression* GetDefaultBaseClassNameAccess(ast::Class* clazz);
 
-  AnalyzeNode* GetOrCreateNode(ast::NamespaceMember* member);
-  ast::NamespaceMember* GetResolved(ast::Expression* reference);
+  AnalyzeNode* GetOrCreateNode(ast::NamedNode* member);
+  ast::NamedNode* GetResolved(ast::Expression* reference);
 
-  Maybe<ast::NamespaceMember*> Postpone(AnalyzeNode* node,
-                                        AnalyzeNode* using_node);
-  Maybe<ast::NamespaceMember*> Remember(ast::Expression* reference,
-                                        ast::NamespaceMember* member);
+  Maybe<ast::NamedNode*> Postpone(AnalyzeNode* node, AnalyzeNode* using_node);
+  Maybe<ast::NamedNode*> Remember(ast::Expression* reference,
+                                  ast::NamedNode* member);
 
   // Resolve |nth| |base_class_name| of |clazz|.
   Maybe<ir::Class*> ResolveBaseClass(const ResolveContext& context,
@@ -81,14 +80,12 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
   Maybe<ir::Class*> ResolveDefaultBaseClass(const ResolveContext& context,
                                             ast::Class* clazz);
 
-  Maybe<ast::NamespaceMember*> ResolveMemberAccess(
-      const ResolveContext& context,
-      ast::MemberAccess* reference);
-  Maybe<ast::NamespaceMember*> ResolveNameReference(
-      const ResolveContext& context,
-      ast::NameReference* reference);
-  Maybe<ast::NamespaceMember*> ResolveReference(const ResolveContext& context,
-                                                ast::Expression* reference);
+  Maybe<ast::NamedNode*> ResolveMemberAccess(const ResolveContext& context,
+                                             ast::MemberAccess* reference);
+  Maybe<ast::NamedNode*> ResolveNameReference(const ResolveContext& context,
+                                              ast::NameReference* reference);
+  Maybe<ast::NamedNode*> ResolveReference(const ResolveContext& context,
+                                          ast::Expression* reference);
 
   // ast::Visitor
   void VisitAlias(ast::Alias* alias);
@@ -99,8 +96,8 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
 
   // Cache for mapping reference to resolved entity for alias target and
   // base class list.
-  std::unordered_map<ast::Expression*, ast::NamespaceMember*> reference_cache_;
-  std::unordered_map<ast::NamespaceMember*, AnalyzeNode*> map_;
+  std::unordered_map<ast::Expression*, ast::NamedNode*> reference_cache_;
+  std::unordered_map<ast::NamedNode*, AnalyzeNode*> map_;
   std::array<ast::Expression*, kNumberOfPredefinedNames> predefine_names_;
   NameResolver* const resolver_;
   CompilationSession* const session_;
