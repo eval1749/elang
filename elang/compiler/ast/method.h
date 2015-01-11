@@ -61,16 +61,17 @@ class Method final : public NamespaceMember {
 //
 // MethodGroup
 //
-class MethodGroup final : public NamespaceMember {
-  DECLARE_AST_NODE_CLASS(MethodGroup, NamespaceMember);
+class MethodGroup final : public NamedNode {
+  DECLARE_AST_NODE_CLASS(MethodGroup, NamedNode);
 
  public:
   const ZoneVector<Method*>& methods() const { return methods_; }
+  Class* owner() const;
 
   void AddMethod(Method* method);
 
  private:
-  MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name);
+  MethodGroup(Zone* zone, Class* owner, Token* name);
 
   ZoneVector<Method*> methods_;
 

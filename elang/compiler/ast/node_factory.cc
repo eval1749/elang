@@ -97,11 +97,9 @@ Method* NodeFactory::NewMethod(NamespaceBody* namespace_body,
                             name, type_parameters, parameters);
 }
 
-MethodGroup* NodeFactory::NewMethodGroup(NamespaceBody* namespace_body,
-                                         Token* name) {
-  DCHECK(namespace_body->owner()->is<Class>());
+MethodGroup* NodeFactory::NewMethodGroup(Class* owner, Token* name) {
   DCHECK(name->is_name());
-  return new (zone_) MethodGroup(zone_, namespace_body, name);
+  return new (zone_) MethodGroup(zone_, owner, name);
 }
 
 Namespace* NodeFactory::NewNamespace(NamespaceBody* namespace_body,

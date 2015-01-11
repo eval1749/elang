@@ -10,8 +10,8 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/local_variable.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/ast/statements.h"
@@ -250,7 +250,6 @@ bool Parser::ParseForStatement(Token* for_keyword) {
     TypeOrExpression,
   } state = State::Start;
 
-
   LocalDeclarationSpace for_var_scope(this, for_keyword);
   std::vector<ast::Expression*> initializers;
   std::vector<ast::LocalVariable*> variables;
@@ -432,8 +431,8 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
           PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
       if (method_space.FindMember(param_name))
         Error(ErrorCode::SyntaxMethodNameDuplicate);
-      auto const parameter = factory()->NewLocalVariable(nullptr, param_type,
-                                                         param_name, nullptr);
+      auto const parameter =
+          factory()->NewLocalVariable(nullptr, param_type, param_name, nullptr);
       method_space.AddMember(parameter);
       parameters.push_back(parameter);
       if (AdvanceIf(TokenType::RightParenthesis))
@@ -443,22 +442,23 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     }
   }
 
+  auto const owner = namespace_body_->owner()->as<ast::Class>();
   auto method_group = static_cast<ast::MethodGroup*>(nullptr);
-  if (auto const present = FindMember(method_name)) {
+  if (auto const present = owner->FindMember(method_name)) {
     method_group = present->as<ast::MethodGroup>();
     if (!method_group)
-      Error(ErrorCode::SyntaxClassMemberDuplicate, method_name);
+      Error(ErrorCode::SyntaxClassMemberConflict, method_name, present->name());
   }
   if (!method_group) {
-    method_group = factory()->NewMethodGroup(namespace_body_, method_name);
-    namespace_body_->owner()->AddMember(method_group);
+    method_group = factory()->NewMethodGroup(owner, method_name);
+    owner->AddMember(method_group);
   }
 
   auto const method = factory()->NewMethod(
       namespace_body_, method_group, method_modifiers, method_type, method_name,
       type_parameters, parameters);
   method_group->AddMethod(method);
-  AddMember(method);
+  namespace_body_->AddMember(method);
 
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasExtern())

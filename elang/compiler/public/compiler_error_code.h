@@ -55,6 +55,7 @@ namespace compiler {
   E(Syntax, ClassDecl, SemiColon)                     \
   E(Syntax, ClassDecl, TypeParamInvalid)              \
   /* ClassMember */                                   \
+  E(Syntax, ClassMember, Conflict)                    \
   E(Syntax, ClassMember, Duplicate)                   \
   E(Syntax, ClassMember, Name)                        \
   E(Syntax, ClassMember, Parenthesis)                 \

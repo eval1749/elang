@@ -14,6 +14,12 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
+namespace {
+MemberContainer* owner_of(NamespaceBody* namespace_body) {
+  return namespace_body ? namespace_body->owner() : nullptr;
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceMember
@@ -22,12 +28,13 @@ NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
                                  Modifiers modifiers,
                                  Token* keyword,
                                  Token* name)
-    : NamedNode(keyword, name), namespace_body_(namespace_body) {
+    : NamedNode(owner_of(namespace_body), keyword, name),
+      namespace_body_(namespace_body) {
   DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }
 
 MemberContainer* NamespaceMember::outer() const {
-  return namespace_body_ ? namespace_body_->owner() : nullptr;
+  return parent() ? parent()->as<MemberContainer>() : nullptr;
 }
 
 bool NamespaceMember::IsDescendantOf(const NamespaceMember* other) const {

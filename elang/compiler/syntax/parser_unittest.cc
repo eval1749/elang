@@ -172,9 +172,14 @@ TEST_F(ParserTest, ClassErrorConflictToAlias) {
   EXPECT_EQ("Syntax.ClassDecl.NameDuplicate(22) R\n", Format());
 }
 
+TEST_F(ParserTest, ClassErrorFieldConflict) {
+  Prepare("class A { int x() {} bool x; }");
+  EXPECT_EQ("Syntax.ClassMember.Conflict(26) x x\n", Format());
+}
+
 TEST_F(ParserTest, ClassErrorFieldDuplicate) {
   Prepare("class A { int x; bool x; }");
-  EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x\n", Format());
+  EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x x\n", Format());
 }
 
 TEST_F(ParserTest, ClassErrorFieldVar) {

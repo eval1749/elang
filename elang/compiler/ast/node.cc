@@ -31,7 +31,8 @@ void Node::Accept(Visitor* visitor) {
 //
 // NamedNode
 //
-NamedNode::NamedNode(Token* keyword, Token* name) : Node(keyword), name_(name) {
+NamedNode::NamedNode(Node* parent, Token* keyword, Token* name)
+    : Node(keyword), name_(name), parent_(parent) {
   DCHECK(name->is_name());
 }
 

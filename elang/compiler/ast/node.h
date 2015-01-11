@@ -58,12 +58,15 @@ class NamedNode : public Node {
  public:
   Token* keyword() const { return token(); }
   Token* name() const override;
+  Node* parent() const { return parent_; }
 
  protected:
-  NamedNode(Token* keyword, Token* name);
+  // TODO(eval1749) |parent| should be |ContainerNode|.
+  NamedNode(Node* parent, Token* keyword, Token* name);
 
  private:
   Token* const name_;
+  Node* const parent_;
 
   DISALLOW_COPY_AND_ASSIGN(NamedNode);
 };

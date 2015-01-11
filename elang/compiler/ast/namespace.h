@@ -26,7 +26,7 @@ class MemberContainer : public NamespaceMember {
   // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
   // member.
   void AcceptForMembers(Visitor* visitor);
-  void AddMember(NamespaceMember* member);
+  void AddMember(NamedNode* member);
   void AddNamespaceBody(NamespaceBody* outer);
   NamedNode* FindMember(AtomicString* simple_name);
   NamedNode* FindMember(Token* simple_name);

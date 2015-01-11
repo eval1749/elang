@@ -7,6 +7,8 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/import.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/token_type.h"
@@ -44,9 +46,10 @@ void MemberContainer::AcceptForMembers(Visitor* visitor) {
   }
 }
 
-void MemberContainer::AddMember(NamespaceMember* member) {
-  DCHECK_EQ(this, member->owner());
-  DCHECK(!member->is<Alias>());
+void MemberContainer::AddMember(NamedNode* member) {
+  DCHECK_EQ(this, member->parent());
+  DCHECK(!member->is<Alias>() && !member->is<Import>() &&
+         !member->is<Method>());
   // We keep first member declaration.
   if (FindMember(member->name()))
     return;

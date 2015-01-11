@@ -19,7 +19,7 @@ LocalVariable::LocalVariable(Token* keyword,
                              Expression* type,
                              Token* name,
                              Expression* value)
-    : NamedNode(keyword, name), type_(type), value_(value) {
+    : NamedNode(nullptr, keyword, name), type_(type), value_(value) {
   DCHECK(!keyword || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
          keyword == TokenType::Using);

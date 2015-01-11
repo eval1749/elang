@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/alias.h"
 #include "elang/compiler/ast/import.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
@@ -62,8 +63,8 @@ void NamespaceBody::AddImport(Import* import) {
 }
 
 void NamespaceBody::AddMember(NamespaceMember* member) {
-  DCHECK(!member->as<Alias>());
-  owner()->AddMember(member);
+  DCHECK(!member->is<Alias>() && !member->is<Import>() &&
+         !member->is<MethodGroup>());
   members_.push_back(member);
 }
 

@@ -46,7 +46,7 @@ EnumMember* Enum::FindMember(Token* name) {
 // EnumMember
 //
 EnumMember::EnumMember(Enum* owner, Token* name, Expression* expression)
-    : NamedNode(name, name), expression_(expression) {
+    : NamedNode(owner, name, name), expression_(expression) {
   DCHECK(name->is_name());
 }
 

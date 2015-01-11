@@ -47,10 +47,13 @@ void Method::SetBody(ast::Statement* statement) {
 //
 // MethodGroup
 //
-MethodGroup::MethodGroup(Zone* zone, NamespaceBody* namespace_body, Token* name)
-    : NamespaceMember(namespace_body, Modifiers(), name, name), methods_(zone) {
+MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
+    : NamedNode(owner, name, name), methods_(zone) {
   DCHECK(name->is_name());
-  DCHECK(namespace_body->owner()->is<Class>());
+}
+
+Class* MethodGroup::owner() const {
+  return parent()->as<ast::Class>();
 }
 
 void MethodGroup::AddMethod(Method* method) {

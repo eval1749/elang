@@ -371,8 +371,15 @@ bool Parser::ParseClassDecl() {
 
     // FieldDecl ::= Type Name ('=' Expression)? ';'
     //
-    if (FindMember(member_name))
-      Error(ErrorCode::SyntaxClassMemberDuplicate, member_name);
+    if (auto const present = FindMember(member_name)) {
+      if (present->is<ast::Field>()) {
+        Error(ErrorCode::SyntaxClassMemberDuplicate, member_name,
+              present->name());
+      } else {
+        Error(ErrorCode::SyntaxClassMemberConflict, member_name,
+              present->name());
+      }
+    }
     ValidateFieldModifiers();
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())

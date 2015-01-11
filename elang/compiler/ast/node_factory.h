@@ -58,7 +58,7 @@ class NodeFactory final {
                     Token* name,
                     const std::vector<Token*>& type_parameters,
                     const std::vector<LocalVariable*>& parameters);
-  MethodGroup* NewMethodGroup(NamespaceBody* namespace_body, Token* name);
+  MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(NamespaceBody* namespace_body,
                           Token* keyword,
                           Token* name);
