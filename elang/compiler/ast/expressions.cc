@@ -28,6 +28,7 @@ ArrayAccess::ArrayAccess(Zone* zone,
   DCHECK(!indexes.empty());
 }
 
+// ArrayType
 ArrayType::ArrayType(Zone* zone,
                      Token* op,
                      Expression* element_type,
@@ -35,6 +36,11 @@ ArrayType::ArrayType(Zone* zone,
     : Expression(op), element_type_(element_type), ranks_(zone, ranks) {
 }
 
+bool ArrayType::is_type() const {
+  return true;
+}
+
+// Assignment
 Assignment::Assignment(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
 }
@@ -58,6 +64,7 @@ Conditional::Conditional(Token* op,
     : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
 }
 
+// ConstructedType
 ConstructedType::ConstructedType(Zone* zone,
                                  Expression* type,
                                  const std::vector<Expression*>& args)
@@ -65,6 +72,11 @@ ConstructedType::ConstructedType(Zone* zone,
   DCHECK(!arguments_.empty());
 }
 
+bool ConstructedType::is_type() const {
+  return true;
+}
+
+// InvalidExpression
 InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
   // We should have non-null |token| for source code location.
   DCHECK(token);

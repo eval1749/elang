@@ -38,6 +38,9 @@ class Enum final : public NamespaceMember {
        Token* keyword,
        Token* name);
 
+  // Node
+  bool is_type() const final;
+
   ZoneUnorderedMap<AtomicString*, EnumMember*> map_;
   ZoneVector<EnumMember*> members_;
 

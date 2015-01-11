@@ -69,6 +69,9 @@ class ArrayType final : public Expression {
             Expression* expression,
             const std::vector<int>& ranks);
 
+  // Node
+  bool is_type() const final;
+
   Expression* const element_type_;
   const ZoneVector<int> ranks_;
 
@@ -168,6 +171,9 @@ class ConstructedType final : public Expression {
   ConstructedType(Zone* zone,
                   Expression* expression,
                   const std::vector<Expression*>& arguments);
+
+  // Node
+  bool is_type() const final;
 
   const ZoneVector<Expression*> arguments_;
   Expression* const blueprint_type_;

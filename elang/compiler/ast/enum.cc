@@ -41,6 +41,11 @@ EnumMember* Enum::FindMember(Token* name) {
   return it == map_.end() ? nullptr : it->second;
 }
 
+// Node
+bool Enum::is_type() const {
+  return true;
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // EnumMember

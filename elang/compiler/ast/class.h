@@ -39,6 +39,9 @@ class Class final : public MemberContainer {
         Token* keyword,
         Token* name);
 
+  // Node
+  bool is_type() const final;
+
   ZoneVector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);

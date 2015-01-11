@@ -18,6 +18,10 @@ namespace ast {
 Node::Node(Token* token) : token_(token) {
 }
 
+bool Node::is_type() const {
+  return false;
+}
+
 Token* Node::name() const {
   return token();
 }

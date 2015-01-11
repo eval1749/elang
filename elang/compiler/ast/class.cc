@@ -43,6 +43,11 @@ void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
 }
 
+// Node
+bool Class::is_type() const {
+  return true;
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
