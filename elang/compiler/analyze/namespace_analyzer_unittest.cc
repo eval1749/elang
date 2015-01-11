@@ -88,8 +88,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorAmbiguous) {
       "  using A = N1.N2.A;"
       "  class B : A {}"  // A can be N1.N2.A or N3.A.
       "}");
-  EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n", AnalyzeNamespace());
 }
 
 // Scope of using alias directive is limited into namespace body.
@@ -98,8 +97,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorScope) {
       "namespace N1.N2 { class A {} }"
       "namespace N3 { using R = N1.N2; }"
       "namespace N3 { class B : R.A {} }");  // Error: R unknown
-  EXPECT_EQ("NameResolution.Name.NotResolved(88) R\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.NotResolved(88) R\n", AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasErrorScopeHide) {
@@ -110,8 +108,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorScopeHide) {
       "  class R {}"        // Class R hides alias R in toplevel.
       "  class B : R.A {}"  // Error: R has no member A.
       "}");
-  EXPECT_EQ("NameResolution.Name.NotResolved(86) A\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.NotResolved(86) A\n", AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasErrorScopeResolution) {
@@ -122,8 +119,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorScopeResolution) {
       "  using R2 = N1.N2;"
       "  using R3 = R1.N2;"  // Error: R1 is unknown.
       "}");
-  EXPECT_EQ("NameResolution.Name.NotResolved(80) R1\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.NotResolved(80) R1\n", AnalyzeNamespace());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -149,7 +145,14 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseNotInterface) {
       "class A : B, C {}"  // C must be an interface.
       "class B {}"
       "class C {}");
-  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
+  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n", AnalyzeNamespace());
+}
+
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseStruct) {
+  Prepare(
+      "class A : S {}"
+      "struct S {}");
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(10) S\n",
             AnalyzeNamespace());
 }
 
@@ -158,8 +161,7 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsInterface) {
       "class A : B, C {}"
       "interface B {}"
       "class C {}");
-  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.NotInterface(13) C\n", AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsStruct) {
@@ -203,14 +205,32 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorCircularlyDependencyNested) {
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorNestedDependency) {
   Prepare("class A { class B : A {} }");
-  EXPECT_EQ("NameResolution.Class.Containing(20) A B\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Class.Containing(20) A B\n", AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorSelfReference) {
   Prepare("class A : A {}");
-  EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n",
-            AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n", AnalyzeNamespace());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Interface
+//
+TEST_F(NamespaceAnalyzerTest, InterfaceBasic) {
+  Prepare(
+      "interface I {}"
+      "interface J {}"
+      "interface K : I, J {}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("I, J", GetBaseClasses("K"));
+}
+
+TEST_F(NamespaceAnalyzerTest, InterfaceErrorBaseClass) {
+  Prepare(
+      "class A {}"
+      "interface I : A {}");
+  EXPECT_EQ("NameResolution.Name.NotInterface(24) A\n", AnalyzeNamespace());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -224,6 +244,26 @@ TEST_F(NamespaceAnalyzerTest, PredefinedTypes) {
   EXPECT_EQ("System.Object", GetBaseClasses("System.Value"));
   EXPECT_EQ("System.Value", GetBaseClasses("System.Bool"));
   EXPECT_EQ("System.Value", GetBaseClasses("System.Void"));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Struct
+//
+TEST_F(NamespaceAnalyzerTest, StructBasic) {
+  Prepare(
+      "interface I {}"
+      "interface J {}"
+      "struct S : I, J {}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("System.Value, I, J", GetBaseClasses("S"));
+}
+
+TEST_F(NamespaceAnalyzerTest, StructErrorBaseClass) {
+  Prepare(
+      "class A {}"
+      "struct S : A {}");
+  EXPECT_EQ("NameResolution.Name.NotInterface(21) A\n", AnalyzeNamespace());
 }
 
 }  // namespace
