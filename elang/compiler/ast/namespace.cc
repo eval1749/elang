@@ -38,8 +38,10 @@ MemberContainer::MemberContainer(Zone* zone,
 }
 
 void MemberContainer::AcceptForMembers(Visitor* visitor) {
-  for (auto const name_member : map_)
-    name_member.second->Accept(visitor);
+  for (auto const body : bodies_) {
+    for (auto const member : body->members())
+      member->Accept(visitor);
+  }
 }
 
 void MemberContainer::AddMember(NamespaceMember* member) {
