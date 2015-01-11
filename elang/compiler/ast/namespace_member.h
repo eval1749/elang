@@ -7,7 +7,7 @@
 
 #include "elang/compiler/ast/node.h"
 
-#include "elang/compiler/modifiers.h"
+#include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -18,11 +18,10 @@ namespace ast {
 //
 // NamespaceMember
 //
-class NamespaceMember : public NamedNode {
+class NamespaceMember : public NamedNode, public WithModifiers {
   DECLARE_AST_NODE_CLASS(NamespaceMember, NamedNode);
 
  public:
-  Modifiers modifiers() const { return modifiers_; }
   NamespaceBody* namespace_body() const { return namespace_body_; }
   MemberContainer* outer() const;
   MemberContainer* owner() const { return outer(); }

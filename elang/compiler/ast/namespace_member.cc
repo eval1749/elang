@@ -29,6 +29,7 @@ NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
                                  Token* keyword,
                                  Token* name)
     : NamedNode(owner_of(namespace_body), keyword, name),
+      WithModifiers(modifiers),
       namespace_body_(namespace_body) {
   DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }
