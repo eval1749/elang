@@ -12,7 +12,11 @@ namespace compiler {
 
 #define FOR_EACH_COMPILER_ERROR_CODE(E, W)            \
   E(Error, Code, Zero)                                \
-  /* * Name Resolver */                               \
+  /* Analyzer */                                      \
+  E(Analyze, Type, NotFound)                          \
+  /* Class Analyzer */                                \
+  E(ClassAnalyze, Method, Duplicate)                  \
+  /* Name Resolver */                                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
   E(NameResolution, Class, NotClass)                  \

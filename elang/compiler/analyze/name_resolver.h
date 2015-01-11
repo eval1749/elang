@@ -15,6 +15,8 @@
 namespace elang {
 namespace compiler {
 namespace ast {
+class Expression;
+class MemberContainer;
 class NamedNode;
 }
 namespace ir {
@@ -40,8 +42,12 @@ class NameResolver final {
 
   void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
+  ast::NamedNode* ResolveReference(ast::Expression* expression,
+                                   ast::MemberContainer* container);
 
  private:
+  class ReferenceResolver;
+
   const std::unique_ptr<ir::Factory> factory_;
   std::unordered_map<ast::NamedNode*, ir::Node*> node_map_;
   CompilationSession* const session_;

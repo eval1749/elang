@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <deque>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "elang/compiler/testing/compiler_test.h"
@@ -39,6 +41,31 @@ namespace compiler {
 namespace testing {
 
 namespace {
+
+std::vector<ir::Class*> ComputeBaseClassList(
+    const ZoneVector<ir::Class*>& direct_base_classes) {
+  std::vector<ir::Class*> base_classes(direct_base_classes.size());
+  base_classes.resize(0);
+  std::unordered_set<ir::Class*> seen;
+  std::deque<ir::Class*> pending_classes(direct_base_classes.begin(),
+                                         direct_base_classes.end());
+  while (!pending_classes.empty()) {
+    auto const current = pending_classes.front();
+    pending_classes.pop_front();
+    if (seen.count(current))
+      continue;
+    base_classes.push_back(current);
+    seen.insert(current);
+    for (auto base_class : current->base_classes()) {
+      if (seen.count(base_class))
+        continue;
+      pending_classes.push_back(base_class);
+    }
+  }
+  DCHECK_GE(base_classes.size(), direct_base_classes.size());
+  return base_classes;
+}
+
 std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
   static const char* const mnemonic[] = {
 #define V(category, subcategory, name) #category "." #subcategory "." #name,
@@ -280,6 +307,16 @@ std::unique_ptr<NameResolver> NewNameResolver(CompilationSession* session) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// CompilerTest::ClassOrStrig
+//
+CompilerTest::ClassOrString::ClassOrString(const char* format,
+                                           base::StringPiece name)
+    : ir_class(nullptr),
+      message(base::StringPrintf(format, name.as_string().c_str())) {
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // CompilerTest
 //
 CompilerTest::CompilerTest()
@@ -297,7 +334,7 @@ SourceCode* CompilerTest::source_code() const {
 std::string CompilerTest::AnalyzeNamespace() {
   if (!Parse())
     return GetErrors();
-  NamespaceAnalyzer resolver(session_.get(), name_resolver_.get());
+  NamespaceAnalyzer resolver(name_resolver_.get());
   return resolver.Run() ? "" : GetErrors();
 }
 
@@ -340,28 +377,34 @@ std::string CompilerTest::Format() {
 }
 
 std::string CompilerTest::GetBaseClasses(base::StringPiece name) {
+  auto const thing = GetClass(name);
+  if (!thing.ir_class)
+    return thing.message;
+  return MakeClassListString(
+      ComputeBaseClassList(thing.ir_class->base_classes()));
+}
+
+CompilerTest::ClassOrString CompilerTest::GetClass(base::StringPiece name) {
   auto const member = FindMember(name);
   if (!member)
-    return base::StringPrintf("No such class %s", name.as_string().c_str());
-  auto const ast_clazz = member->as<ast::Class>();
-  if (!ast_clazz)
-    return base::StringPrintf("%s isn't class", name.as_string().c_str());
-  auto const resolved = name_resolver_->Resolve(ast_clazz);
+    return ClassOrString("No such class %s", name);
+  auto const ast_class = member->as<ast::Class>();
+  if (!ast_class)
+    return ClassOrString("%s isn't class", name);
+  auto const resolved = name_resolver_->Resolve(ast_class);
   if (!resolved)
-    return base::StringPrintf("%s isn't resolved", name.as_string().c_str());
-  auto const clazz = resolved->as<ir::Class>();
-  if (!clazz) {
-    return base::StringPrintf("%s isn't resolved to class",
-                              name.as_string().c_str());
-  }
-  std::stringstream stream;
-  const char* separator = "";
-  for (auto const base_class : clazz->base_classes()) {
-    stream << separator;
-    stream << GetQualifiedName(base_class->ast_class());
-    separator = ", ";
-  }
-  return stream.str();
+    return ClassOrString("%s isn't resolved", name);
+  auto const ir_class = resolved->as<ir::Class>();
+  if (!ir_class)
+    return ClassOrString("%s isn't resolved to class", name);
+  return ClassOrString(ir_class);
+}
+
+std::string CompilerTest::GetDirectBaseClasses(base::StringPiece name) {
+  auto const thing = GetClass(name);
+  if (!thing.ir_class)
+    return thing.message;
+  return MakeClassListString(thing.ir_class->base_classes());
 }
 
 std::string CompilerTest::GetErrors() {
@@ -370,6 +413,24 @@ std::string CompilerTest::GetErrors() {
 
 std::string CompilerTest::GetWarnings() {
   return ConvertErrorListToString(session_->warnings());
+}
+
+std::string CompilerTest::MakeClassListString(
+    const std::vector<ir::Class*>& ir_classes) {
+  std::stringstream stream;
+  const char* separator = "";
+  for (auto const ir_base_class : ir_classes) {
+    stream << separator;
+    stream << GetQualifiedName(ir_base_class->ast_class());
+    separator = " ";
+  }
+  return stream.str();
+}
+
+std::string CompilerTest::MakeClassListString(
+    const ZoneVector<ir::Class*>& classes) {
+  return MakeClassListString(
+      std::vector<ir::Class*>(classes.begin(), classes.end()));
 }
 
 bool CompilerTest::Parse() {

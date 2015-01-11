@@ -9,20 +9,25 @@ namespace elang {
 namespace compiler {
 namespace ir {
 
-#define FOR_EACH_ANALYZED_DATA(V) \
-  V(Class) \
-  V(Enum) \
-  V(Parameter) \
+#define FOR_EACH_ABSTRACT_IR_NODE(V) \
+  V(Node)                            \
+  V(Type)                            \
+  V(Value)
+
+#define FOR_EACH_CONCRETE_IR_NODE(V) \
+  V(Class)                           \
+  V(Enum)                            \
+  V(Method)                          \
+  V(Parameter)                       \
   V(Signature)
 
 #define V(Name) class Name;
-FOR_EACH_ANALYZED_DATA(V)
+FOR_EACH_ABSTRACT_IR_NODE(V)
+FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
 class Factory;
-class Node;
-class Type;
-class Value;
+enum class ParameterKind;
 
 }  // namespace ir
 }  // namespace compiler

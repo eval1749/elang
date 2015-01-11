@@ -17,14 +17,17 @@ namespace elang {
 namespace compiler {
 namespace ir {
 
-#define DECLARE_ANALYZED_DATA_CLASS(self, super) \
-  DECLARE_CASTABLE_CLASS(self, super);           \
-                                                 \
- protected:                                      \
+#define DECLARE_IR_NODE_CLASS(self, super) \
+  DECLARE_CASTABLE_CLASS(self, super);     \
+                                           \
+ protected:                                \
   ~self() = default;
 
-#define DECLARE_ANALYZED_DATA_CONCRETE_CLASS(self, super) \
-  DECLARE_ANALYZED_DATA_CLASS(self, super);               \
+#define DECLARE_ABSTRACT_IR_NODE_CLASS(self, super) \
+  DECLARE_IR_NODE_CLASS(self, super);
+
+#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super) \
+  DECLARE_IR_NODE_CLASS(self, super);               \
   friend class Factory;
 
 //////////////////////////////////////////////////////////////////////
@@ -32,7 +35,7 @@ namespace ir {
 // Node
 //
 class Node : public Castable, public ZoneAllocated {
-  DECLARE_ANALYZED_DATA_CLASS(Node, Castable);
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Node, Castable);
 
  protected:
   Node();
@@ -46,7 +49,7 @@ class Node : public Castable, public ZoneAllocated {
 // Type
 //
 class Type : public Node {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Type, Node);
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Type, Node);
 
  protected:
   Type();
@@ -60,11 +63,16 @@ class Type : public Node {
 // Class
 //
 class Class final : public Type {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Class, Type);
+  DECLARE_CONCRETE_IR_NODE_CLASS(Class, Type);
 
  public:
+  // Associated AST class object.
   ast::Class* ast_class() const { return ast_class_; }
+
+  // Direct base classes of this class
   const ZoneVector<Class*>& base_classes() const { return base_classes_; }
+
+  // Returns true if |this| is 'class'.
   bool is_class() const;
 
  private:
@@ -83,7 +91,7 @@ class Class final : public Type {
 // Enum
 //
 class Enum final : public Type {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Enum, Type);
+  DECLARE_CONCRETE_IR_NODE_CLASS(Enum, Type);
 
  public:
   ast::Enum* ast_enum() const { return ast_enum_; }
@@ -99,20 +107,57 @@ class Enum final : public Type {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Parameter
+// Method
 //
-class Parameter final : public Node {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Parameter, Node);
+class Method final : public Node {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Method, Node);
 
  public:
+  ast::Method* ast_method() const { return ast_method_; }
+  const ZoneVector<Parameter*>& parameters() const;
+  Type* return_type();
+  Signature* signature() const { return signature_; }
+
+  bool IsIdenticalParameters(const ZoneVector<Parameter*>& other) const;
+
+ private:
+  Method(ast::Method* ast_method, Signature* signature);
+
+  ast::Method* const ast_method_;
+  Signature* const signature_;
+
+  DISALLOW_COPY_AND_ASSIGN(Method);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Parameter
+//
+enum class ParameterKind {
+  Required,
+  Optional,
+  Array,
+};
+
+class Parameter final : public Node {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Parameter, Node);
+
+ public:
+  bool operator==(const Parameter& other) const;
+  bool operator!=(const Parameter& other) const;
+
   Value* default_value() const { return default_value_; }
+  ParameterKind kind() const { return kind_; }
   Token* name() const { return name_; }
   Type* type() const { return type_; }
 
+  bool IsIdentical(const Parameter& other) const;
+
  private:
-  Parameter(Token* name, Type* type, Value* default_value);
+  Parameter(ParameterKind kind, Token* name, Type* type, Value* default_value);
 
   Value* const default_value_;
+  ParameterKind const kind_;
   Token* const name_;
   Type* const type_;
 
@@ -124,22 +169,22 @@ class Parameter final : public Node {
 // Signature
 //
 class Signature final : public Type {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Signature, Type);
+  DECLARE_CONCRETE_IR_NODE_CLASS(Signature, Type);
 
  public:
-  Token* name() const { return name_; }
+  bool operator==(const Signature& other) const;
+  bool operator!=(const Signature& other) const;
+
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() { return return_type_; }
 
- private:
-  friend class CompilationSession;
+  bool IsIdenticalParameters(const Signature& other) const;
 
+ private:
   Signature(Zone* zone,
-            Token* name,
             Type* return_type,
             const std::vector<Parameter*>& parameters);
 
-  Token* const name_;
   ZoneVector<Parameter*> parameters_;
   Type* const return_type_;
 
@@ -151,7 +196,7 @@ class Signature final : public Type {
 // Value
 //
 class Value final : public Node {
-  DECLARE_ANALYZED_DATA_CONCRETE_CLASS(Value, Node);
+  DECLARE_CONCRETE_IR_NODE_CLASS(Value, Node);
 
  public:
   Token* value() const { return value_; }

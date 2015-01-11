@@ -5,13 +5,13 @@
 #ifndef ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 #define ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
 
-#include <array>
 #include <unordered_set>
 #include <unordered_map>
 
 #include "base/macros.h"
 #include "elang/base/maybe.h"
 #include "elang/base/zone_owner.h"
+#include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/predefined_names.h"
 
@@ -32,9 +32,11 @@ class Token;
 //
 // NamespaceAnalyzer
 //
-class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
+class NamespaceAnalyzer final : public Analyzer,
+                                public ZoneOwner,
+                                private ast::Visitor {
  public:
-  NamespaceAnalyzer(CompilationSession* session, NameResolver* resolver);
+  explicit NamespaceAnalyzer(NameResolver* resolver);
   ~NamespaceAnalyzer();
 
   bool Run();
@@ -43,17 +45,12 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
   class AnalyzeNode;
   struct ResolveContext;
 
-  ir::Factory* factory() const;
-
   void AnalyzeClass(ast::Class* clazz);
   void DidResolve(AnalyzeNode* node);
 
-  // Report error caused by |node|.
-  void Error(ErrorCode error_code, ast::Node* node);
-  void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
-
-  std::unordered_set<ast::NamedNode*> FindInClass(Token* name,
-                                                  ast::Class* clazz);
+  void FindInClass(Token* name,
+                   ast::Class* clazz,
+                   std::unordered_set<ast::NamedNode*>* founds);
   ast::NamedNode* FindResolved(ast::Expression* reference);
 
   // Returns default base class name for |clazz|, for class it is |Object|,
@@ -98,9 +95,6 @@ class NamespaceAnalyzer final : public ZoneOwner, private ast::Visitor {
   // base class list.
   std::unordered_map<ast::Expression*, ast::NamedNode*> reference_cache_;
   std::unordered_map<ast::NamedNode*, AnalyzeNode*> map_;
-  std::array<ast::Expression*, kNumberOfPredefinedNames> predefine_names_;
-  NameResolver* const resolver_;
-  CompilationSession* const session_;
   std::unordered_set<AnalyzeNode*> unresolved_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceAnalyzer);

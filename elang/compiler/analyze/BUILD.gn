@@ -4,6 +4,8 @@
 
 static_library("analyze") {
   sources = [
+    "analyzer.cc",
+    "analyzer.h",
     "namespace_analyzer.cc",
     "namespace_analyzer.h",
     "name_resolver.cc",

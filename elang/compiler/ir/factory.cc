@@ -17,21 +17,24 @@ Factory::~Factory() {
 }
 
 Class* Factory::NewClass(ast::Class* ast_class,
-                                const std::vector<Class*>& base_classes) {
+                         const std::vector<Class*>& base_classes) {
   return new (zone()) Class(zone(), ast_class, base_classes);
 }
 
-Parameter* Factory::NewParameter(Token* name,
-                                        Type* type,
-                                        Value* default_value) {
-  return new (zone()) Parameter(name, type, default_value);
+Parameter* Factory::NewParameter(ParameterKind kind,
+                                 Token* name,
+                                 Type* type,
+                                 Value* default_value) {
+  return new (zone()) Parameter(kind, name, type, default_value);
 }
 
-Signature* Factory::NewSignature(
-    Token* name,
-    Type* return_type,
-    const std::vector<Parameter*>& parameters) {
-  return new (zone()) Signature(zone(), name, return_type, parameters);
+Method* Factory::NewMethod(ast::Method* ast_method, Signature* signature) {
+  return new (zone()) Method(ast_method, signature);
+}
+
+Signature* Factory::NewSignature(Type* return_type,
+                                 const std::vector<Parameter*>& parameters) {
+  return new (zone()) Signature(zone(), return_type, parameters);
 }
 
 }  // namespace ir

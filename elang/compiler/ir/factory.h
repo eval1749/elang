@@ -28,12 +28,16 @@ class Factory final : public ZoneOwner {
                   const std::vector<Class*>& base_classes);
   Enum* NewEnum(ast::Type* ast_type, const std::vector<int64_t>& values);
 
+  Method* NewMethod(ast::Method* ast_method, Signature* signature);
+
   // Allocate |Parameter| for analyzer
-  Parameter* NewParameter(Token* name, Type* type, Value* default_value);
+  Parameter* NewParameter(ParameterKind kind,
+                          Token* name,
+                          Type* type,
+                          Value* default_value);
 
   // Allocate |Signature| for analyzer
-  Signature* NewSignature(Token* name,
-                          Type* return_type,
+  Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
 
  private:

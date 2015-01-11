@@ -30,7 +30,8 @@ TEST_F(NamespaceAnalyzerTest, AliasBasic) {
       "namespace N1.N2 { class A {} }"
       "namespace N3 { using C = N1.N2.A; class B : C {} }");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("N1.N2.A", GetBaseClasses("N3.B"));
+  EXPECT_EQ("N1.N2.A System.Object", GetBaseClasses("N3.B"));
+  EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.B"));
 }
 
 // Same as |AliasBasic|, but order of declaration is different.
@@ -39,7 +40,7 @@ TEST_F(NamespaceAnalyzerTest, AliasLayout) {
       "namespace N3 { using C = N1.N2.A; class B : C {} }"
       "namespace N1.N2 { class A {} }");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("N1.N2.A", GetBaseClasses("N3.B"));
+  EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.B"));
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasExtent) {
@@ -49,8 +50,8 @@ TEST_F(NamespaceAnalyzerTest, AliasExtent) {
       "namespace N3 { class B : R.A {} }"
       "namespace N3 { class C : R.A {} }");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("N1.N2.A", GetBaseClasses("N3.B"));
-  EXPECT_EQ("N1.N2.A", GetBaseClasses("N3.C"));
+  EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.B"));
+  EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.C"));
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasToAlias) {
@@ -62,7 +63,7 @@ TEST_F(NamespaceAnalyzerTest, AliasToAlias) {
       "  class D : R2.C {}"
       "}");
   ASSERT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("A.B.C", GetBaseClasses("N1.D"));
+  EXPECT_EQ("A.B.C", GetDirectBaseClasses("N1.D"));
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasToAliasDeep) {
@@ -76,7 +77,7 @@ TEST_F(NamespaceAnalyzerTest, AliasToAliasDeep) {
       "  }"
       "}");
   ASSERT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("N1.N2.A.B.C", GetBaseClasses("N1.D"));
+  EXPECT_EQ("N1.N2.A.B.C", GetDirectBaseClasses("N1.D"));
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.
@@ -129,15 +130,15 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorScopeResolution) {
 TEST_F(NamespaceAnalyzerTest, ClassBasic) {
   Prepare("class A : C {} class B : A {} class C {}");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("C", GetBaseClasses("A"));
-  EXPECT_EQ("A", GetBaseClasses("B"));
+  EXPECT_EQ("C", GetDirectBaseClasses("A"));
+  EXPECT_EQ("A", GetDirectBaseClasses("B"));
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassNested) {
   Prepare("class A { class B {} }");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("System.Object", GetBaseClasses("A"));
-  EXPECT_EQ("System.Object", GetBaseClasses("A.B"));
+  EXPECT_EQ("System.Object", GetDirectBaseClasses("A"));
+  EXPECT_EQ("System.Object", GetDirectBaseClasses("A.B"));
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseNotInterface) {
@@ -221,9 +222,39 @@ TEST_F(NamespaceAnalyzerTest, InterfaceBasic) {
   Prepare(
       "interface I {}"
       "interface J {}"
-      "interface K : I, J {}");
+      "interface K : I {}"
+      "interface L : K, J {}");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("I, J", GetBaseClasses("K"));
+  EXPECT_EQ("K J I", GetBaseClasses("L"));
+  EXPECT_EQ("K J", GetDirectBaseClasses("L"));
+}
+
+TEST_F(NamespaceAnalyzerTest, InterfaceBaseClasses) {
+  // Taken from common-lisp sample
+  Prepare(
+      "interface A {}"
+      "interface B {}"
+      "interface C {}"
+      "interface S : A, B {}"
+      "interface R : A, C {}"
+      "interface Q : S, R {}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  // common-lisp result = "S R A C B"
+  EXPECT_EQ("S R A B C", GetBaseClasses("Q"));
+}
+
+TEST_F(NamespaceAnalyzerTest, InterfaceBaseClasses2) {
+  // Taken from common-lisp sample
+  Prepare(
+      "interface pie : apple, cinnamon {}"
+      "interface apple : fruit {}"
+      "interface cinnamon : spice {}"
+      "interface fruit : food {}"
+      "interface spice  : food {}"
+      "interface food {}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  // common-lisp result = "apple fruit cinnamon spice food"
+  EXPECT_EQ("apple cinnamon fruit spice food", GetBaseClasses("pie"));
 }
 
 TEST_F(NamespaceAnalyzerTest, InterfaceErrorBaseClass) {
@@ -240,10 +271,10 @@ TEST_F(NamespaceAnalyzerTest, InterfaceErrorBaseClass) {
 TEST_F(NamespaceAnalyzerTest, PredefinedTypes) {
   Prepare("class A {}");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("", GetBaseClasses("System.Object"));
-  EXPECT_EQ("System.Object", GetBaseClasses("System.Value"));
-  EXPECT_EQ("System.Value", GetBaseClasses("System.Bool"));
-  EXPECT_EQ("System.Value", GetBaseClasses("System.Void"));
+  EXPECT_EQ("", GetDirectBaseClasses("System.Object"));
+  EXPECT_EQ("System.Object", GetDirectBaseClasses("System.Value"));
+  EXPECT_EQ("System.Value", GetDirectBaseClasses("System.Bool"));
+  EXPECT_EQ("System.Value", GetDirectBaseClasses("System.Void"));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -256,7 +287,8 @@ TEST_F(NamespaceAnalyzerTest, StructBasic) {
       "interface J {}"
       "struct S : I, J {}");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("System.Value, I, J", GetBaseClasses("S"));
+  EXPECT_EQ("System.Value I J System.Object", GetBaseClasses("S"));
+  EXPECT_EQ("System.Value I J", GetDirectBaseClasses("S"));
 }
 
 TEST_F(NamespaceAnalyzerTest, StructErrorBaseClass) {

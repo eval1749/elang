@@ -7,8 +7,10 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_vector.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace elang {
@@ -17,6 +19,10 @@ namespace compiler {
 namespace ast {
 class Class;
 class NamedNode;
+}
+
+namespace ir {
+class Class;
 }
 
 class CompilationSession;
@@ -32,6 +38,13 @@ namespace testing {
 //
 class CompilerTest : public ::testing::Test {
  protected:
+  struct ClassOrString {
+    ir::Class* ir_class;
+    std::string message;
+    explicit ClassOrString(ir::Class* ir_class) : ir_class(ir_class) {}
+    ClassOrString(const char* format, base::StringPiece name);
+  };
+
   CompilerTest();
   ~CompilerTest() override;
 
@@ -45,8 +58,12 @@ class CompilerTest : public ::testing::Test {
   std::string Format();
   std::string Format(base::StringPiece source_code);
   std::string GetBaseClasses(base::StringPiece name);
+  ClassOrString GetClass(base::StringPiece name);
+  std::string GetDirectBaseClasses(base::StringPiece name);
   std::string GetErrors();
   std::string GetWarnings();
+  std::string MakeClassListString(const std::vector<ir::Class*>& classes);
+  std::string MakeClassListString(const ZoneVector<ir::Class*>& classes);
   bool Parse();
   void PopulateSystemNamespace();
   void Prepare(base::StringPiece16 source_code);
