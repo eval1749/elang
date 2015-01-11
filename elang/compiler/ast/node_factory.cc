@@ -18,7 +18,6 @@
 #include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
 

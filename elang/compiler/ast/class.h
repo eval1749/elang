@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/qualified_name.h"
+#include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -18,7 +18,7 @@ namespace ast {
 //
 // Class
 //
-class Class final : public MemberContainer {
+class Class final : public MemberContainer, public WithModifiers {
   DECLARE_AST_NODE_CONCRETE_CLASS(Class, MemberContainer);
 
  public:

@@ -7,8 +7,6 @@
 
 #include "elang/compiler/ast/namespace_member.h"
 
-#include "elang/compiler/qualified_name.h"
-
 namespace elang {
 namespace compiler {
 namespace ast {

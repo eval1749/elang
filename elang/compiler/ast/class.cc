@@ -5,7 +5,6 @@
 #include "elang/compiler/ast/class.h"
 
 #include "base/logging.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -21,7 +20,8 @@ Class::Class(Zone* zone,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : MemberContainer(zone, namespace_body, modifiers, keyword, name),
+    : MemberContainer(zone, namespace_body, keyword, name),
+      WithModifiers(modifiers),
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);

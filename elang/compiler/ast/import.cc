@@ -6,7 +6,6 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -20,9 +19,9 @@ namespace ast {
 Import::Import(NamespaceBody* namespace_body,
                Token* keyword,
                Expression* reference)
-    : NamespaceMember(namespace_body, Modifiers(), keyword, reference->token()),
+    : NamespaceMember(namespace_body, keyword, reference->token()),
       reference_(reference) {
-  DCHECK_EQ(keyword->type(), TokenType::Using);
+  DCHECK_EQ(keyword, TokenType::Using);
 }
 
 }  // namespace ast

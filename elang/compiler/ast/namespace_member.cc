@@ -7,7 +7,6 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/namespace_body.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -25,11 +24,9 @@ MemberContainer* owner_of(NamespaceBody* namespace_body) {
 // NamespaceMember
 //
 NamespaceMember::NamespaceMember(NamespaceBody* namespace_body,
-                                 Modifiers modifiers,
                                  Token* keyword,
                                  Token* name)
     : NamedNode(owner_of(namespace_body), keyword, name),
-      WithModifiers(modifiers),
       namespace_body_(namespace_body) {
   DCHECK(namespace_body_ || keyword == TokenType::Namespace);
 }

@@ -9,6 +9,7 @@
 
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -18,7 +19,7 @@ namespace ast {
 //
 // Method
 //
-class Method final : public NamespaceMember {
+class Method final : public NamespaceMember, public WithModifiers {
   DECLARE_AST_NODE_CONCRETE_CLASS(Method, NamespaceMember);
 
  public:

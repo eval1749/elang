@@ -7,7 +7,6 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace_body.h"
-#include "elang/compiler/modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -22,7 +21,8 @@ Field::Field(NamespaceBody* namespace_body,
              Expression* type,
              Token* name,
              Expression* expression)
-    : NamespaceMember(namespace_body, modifiers, name, name),
+    : NamespaceMember(namespace_body, name, name),
+      WithModifiers(modifiers),
       expression_(expression),
       type_(type) {
   DCHECK(namespace_body->owner()->is<Class>());

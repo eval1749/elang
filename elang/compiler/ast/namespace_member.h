@@ -7,18 +7,15 @@
 
 #include "elang/compiler/ast/node.h"
 
-#include "elang/compiler/ast/with_modifiers.h"
-
 namespace elang {
 namespace compiler {
-class Modifiers;
 namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
 // NamespaceMember
 //
-class NamespaceMember : public NamedNode, public WithModifiers {
+class NamespaceMember : public NamedNode {
   DECLARE_AST_NODE_CLASS(NamespaceMember, NamedNode);
 
  public:
@@ -30,12 +27,10 @@ class NamespaceMember : public NamedNode, public WithModifiers {
 
  protected:
   NamespaceMember(NamespaceBody* namespace_body,
-                  Modifiers modifiers,
                   Token* keyword_or_name,
                   Token* simple_name);
 
  private:
-  const Modifiers modifiers_;
   // We use |namespace_body_| for name resolution to look up alias and
   // import.
   NamespaceBody* const namespace_body_;

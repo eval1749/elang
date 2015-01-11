@@ -34,7 +34,6 @@ class MemberContainer : public NamespaceMember {
  protected:
   MemberContainer(Zone* zone,
                   NamespaceBody* namespace_body,
-                  Modifiers modifiers,
                   Token* keyword,
                   Token* simple_name);
 

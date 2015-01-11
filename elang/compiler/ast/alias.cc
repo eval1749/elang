@@ -5,7 +5,6 @@
 #include "elang/compiler/ast/alias.h"
 
 #include "base/logging.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -20,9 +19,9 @@ Alias::Alias(NamespaceBody* namespace_body,
              Token* keyword,
              Token* name,
              Expression* reference)
-    : NamespaceMember(namespace_body, Modifiers(), keyword, name),
+    : NamespaceMember(namespace_body, keyword, name),
       reference_(reference) {
-  DCHECK_EQ(keyword->type(), TokenType::Using);
+  DCHECK_EQ(keyword, TokenType::Using);
 }
 
 }  // namespace ast

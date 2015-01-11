@@ -6,7 +6,6 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/namespace_member.h"
-#include "elang/compiler/modifiers.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -23,7 +22,8 @@ Enum::Enum(Zone* zone,
            Modifiers modifiers,
            Token* keyword,
            Token* name)
-    : NamespaceMember(namespace_body, modifiers, keyword, name),
+    : NamespaceMember(namespace_body, keyword, name),
+      WithModifiers(modifiers),
       map_(zone),
       members_(zone) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);

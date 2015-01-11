@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_AST_FIELD_H_
 
 #include "elang/compiler/ast/namespace_member.h"
+#include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -15,7 +16,7 @@ namespace ast {
 //
 // Field
 //
-class Field final : public NamespaceMember {
+class Field final : public NamespaceMember, public WithModifiers {
   DECLARE_AST_NODE_CONCRETE_CLASS(Field, NamespaceMember);
 
  public:

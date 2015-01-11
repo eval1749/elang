@@ -10,20 +10,11 @@
 #include "elang/compiler/ast/import.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace_body.h"
-#include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
-
-namespace {
-Modifiers GetNamespaceModifiers() {
-  ModifiersBuilder builder;
-  builder.SetPublic();
-  return builder.Get();
-}
-}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -31,10 +22,9 @@ Modifiers GetNamespaceModifiers() {
 //
 MemberContainer::MemberContainer(Zone* zone,
                                  NamespaceBody* namespace_body,
-                                 Modifiers modifiers,
                                  Token* keyword,
                                  Token* name)
-    : NamespaceMember(namespace_body, modifiers, keyword, name),
+    : NamespaceMember(namespace_body, keyword, name),
       bodies_(zone),
       map_(zone) {
 }
@@ -79,7 +69,6 @@ Namespace::Namespace(Zone* zone,
                      Token* name)
     : MemberContainer(zone,
                       namespace_body,
-                      GetNamespaceModifiers(),
                       keyword,
                       name) {
   DCHECK_EQ(keyword, TokenType::Namespace);
