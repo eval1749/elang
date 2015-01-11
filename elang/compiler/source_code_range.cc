@@ -34,10 +34,14 @@ bool SourceCodeRange::operator!=(const SourceCodeRange& other) const {
 }
 
 SourceCodePosition SourceCodeRange::end() const {
+  if (!source_code_)
+    return SourceCodePosition(nullptr, end_offset_, 0, end_offset_);
   return source_code_->ComputePosition(end_offset_);
 }
 
 SourceCodePosition SourceCodeRange::start() const {
+  if (!source_code_)
+    return SourceCodePosition(nullptr, start_offset_, 0, start_offset_);
   return source_code_->ComputePosition(start_offset_);
 }
 
