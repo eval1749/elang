@@ -34,6 +34,22 @@ TEST_F(ParserTest, AliasBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, AliasErrorConflictWithClass) {
+  auto const source_code =
+      "class R1 {}\n"
+      "using R1 = B;\n";
+  EXPECT_EQ("Syntax.CompilationUnit.Invalid(12) using\n", Format(source_code))
+      << "using directive should come before class";
+}
+
+TEST_F(ParserTest, AliasErrorConflictWithNamespace) {
+  auto const source_code =
+      "namespace R1 {}\n"
+      "using R1 = B;\n";
+  EXPECT_EQ("Syntax.CompilationUnit.Invalid(16) using\n", Format(source_code))
+      << "using directive should come before namespace";
+}
+
 TEST_F(ParserTest, AliasErrorDot) {
   EXPECT_EQ("Syntax.Type.Name(13) ;\n", Format("using R1 = A.;\n"));
 }
@@ -42,10 +58,7 @@ TEST_F(ParserTest, AliasErrorDuplicate) {
   auto const source_code =
       "using R1 = A;\n"
       "using R1 = B;\n";
-  EXPECT_EQ(
-      "Syntax.UsingDirective.Duplicate(20) R1 using\n"
-      "Syntax.CompilationUnit.Invalid(25) B\n",
-      Format(source_code));
+  EXPECT_EQ("Syntax.UsingDirective.Duplicate(20) R1 R1\n", Format(source_code));
 }
 
 TEST_F(ParserTest, AliasErrorReference) {
@@ -57,14 +70,17 @@ TEST_F(ParserTest, AliasErrorReference) {
 // Bracket statement
 //
 TEST_F(ParserTest, BracketErrorExtra) {
-  EXPECT_EQ("Syntax.Bracket.Extra(0) }\n"
-            "Syntax.CompilationUnit.Invalid(0) }\n", Format("}"));
+  EXPECT_EQ(
+      "Syntax.Bracket.Extra(0) }\n"
+      "Syntax.CompilationUnit.Invalid(0) }\n",
+      Format("}"));
 }
 
 TEST_F(ParserTest, BracketErrorNotClosed) {
-  EXPECT_EQ("Syntax.Bracket.NotClosed(12) { )\n"
-            "Syntax.NamespaceDecl.RightCurryBracket(14) )\n",
-            Format("namespace A { )"));
+  EXPECT_EQ(
+      "Syntax.Bracket.NotClosed(12) { )\n"
+      "Syntax.Namespace.RightCurryBracket(14) )\n",
+      Format("namespace A { )"));
 }
 
 TEST_F(ParserTest, BracketErrorNotClosed2) {
@@ -74,9 +90,11 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
       "    )\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Bracket.NotClosed(8) { )\n"
-            "Syntax.Type.Name(29) )\n"
-            "Syntax.ClassDecl.RightCurryBracket(29) )\n", Format());
+  EXPECT_EQ(
+      "Syntax.Bracket.NotClosed(8) { )\n"
+      "Syntax.Type.Name(29) )\n"
+      "Syntax.ClassDecl.RightCurryBracket(29) )\n",
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -369,8 +387,10 @@ TEST_F(ParserTest, ExpressionArrayErrorRightSquareBracket) {
       "    args[1;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Bracket.NotClosed(47) [ }\n"
-            "Syntax.Expression.RightSquareBracket(49) ;\n", Format());
+  EXPECT_EQ(
+      "Syntax.Bracket.NotClosed(47) [ }\n"
+      "Syntax.Expression.RightSquareBracket(49) ;\n",
+      Format());
 }
 
 TEST_F(ParserTest, ExpressionArrayMultiple) {
@@ -407,7 +427,7 @@ TEST_F(ParserTest, ExpressionErrorSemiColon) {
   Prepare(
       "class A {\n"
       "  void Run() {\n"
-      "    foo(x) if (x) bar;\n"   // missing ";" before "if".
+      "    foo(x) if (x) bar;\n"  // missing ";" before "if".
       "  }\n"
       "}\n");
   EXPECT_EQ("Syntax.Statement.SemiColon(36) if\n", Format());
@@ -420,11 +440,13 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
       "    x<T>;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Expression.LeftAngleBracket(35) <\n"
-            "Syntax.Var.Type(36) T\n"
-            "Syntax.Var.SemiColon(37) >\n"
-            "Syntax.Type.Name(37) >\n"
-            "Syntax.ClassDecl.RightCurryBracket(37) >\n", Format());
+  EXPECT_EQ(
+      "Syntax.Expression.LeftAngleBracket(35) <\n"
+      "Syntax.Var.Type(36) T\n"
+      "Syntax.Var.SemiColon(37) >\n"
+      "Syntax.Type.Name(37) >\n"
+      "Syntax.ClassDecl.RightCurryBracket(37) >\n",
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -567,18 +589,12 @@ TEST_F(ParserTest, ImportErrorDuplicate) {
   Prepare(
       "using A.B;"
       "using A.B;");
-  EXPECT_EQ(
-      "Syntax.UsingDirective.Duplicate(16) A.B A.B\n"
-      "Syntax.CompilationUnit.Invalid(19) ;\n",
-      Format());
+  EXPECT_EQ("Syntax.UsingDirective.Duplicate(16) A.B A.B\n", Format());
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
   Prepare("using A.B<T>;\n");
-  EXPECT_EQ(
-      "Syntax.UsingDirective.Import(12) ;\n"
-      "Syntax.CompilationUnit.Invalid(12) ;\n",
-      Format());
+  EXPECT_EQ("Syntax.UsingDirective.Import(12) ;\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -612,8 +628,10 @@ TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
       "    System.Console<A;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Bracket.NotClosed(41) < }\n"   // from method F
-            "Syntax.MemberAccess.RightAngleBracket(43) ;\n", Format());
+  EXPECT_EQ(
+      "Syntax.Bracket.NotClosed(41) < }\n"  // from method F
+      "Syntax.MemberAccess.RightAngleBracket(43) ;\n",
+      Format());
 }
 
 TEST_F(ParserTest, MemberAccessTypeArg) {
@@ -647,8 +665,10 @@ TEST_F(ParserTest, MethodErrorTypeArg) {
       "    return 123;\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ("Syntax.Bracket.NotClosed(22) < )\n"
-            "Syntax.Type.RightAngleBracket(27) x\n", Format());
+  EXPECT_EQ(
+      "Syntax.Bracket.NotClosed(22) < )\n"
+      "Syntax.Type.RightAngleBracket(27) x\n",
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -674,6 +694,20 @@ TEST_F(ParserTest, NamespaceBasic) {
       "namespace D {\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceErrorConflictWithAlias) {
+  auto const source_code =
+      "using R1 = B;\n"
+      "namespace R1 {}\n";
+  EXPECT_EQ("Syntax.Namespace.Conflict(24) R1 using\n", Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceErrorConflictWithClass) {
+  auto const source_code =
+      "class A {}\n"
+      "namespace A {}\n";
+  EXPECT_EQ("Syntax.Namespace.Conflict(21) A class\n", Format(source_code));
 }
 
 TEST_F(ParserTest, NamespaceNestedShortcut) {

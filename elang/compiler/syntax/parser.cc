@@ -404,7 +404,8 @@ bool Parser::ParseClassDecl() {
 //      GlobalAttribute*
 //      NamespaceMemberDecl*
 bool Parser::ParseCompilationUnit() {
-  if (!ParseUsingDirectives() || !ParseNamespaceMembers())
+  ParseUsingDirectives();
+  if (!ParseNamespaceMembers())
     return false;
   if (PeekToken() == TokenType::EndOfSource)
     return true;
@@ -470,34 +471,30 @@ bool Parser::ParseNamespace() {
 }
 
 bool Parser::ParseNamespace(Token* namespace_keyword,
-                                const std::vector<Token*>& names,
-                                size_t index) {
-  auto const simple_name = names[index];
+                            const std::vector<Token*>& names,
+                            size_t index) {
+  auto const name = names[index];
   ast::Namespace* new_namespace = nullptr;
-  if (auto const present = FindMember(simple_name)) {
+  if (auto const present = FindMember(name)) {
     new_namespace = present->as<ast::Namespace>();
     if (!new_namespace)
-      Error(ErrorCode::SyntaxNamespaceDeclNameDuplicate, simple_name);
+      Error(ErrorCode::SyntaxNamespaceConflict, name, present->keyword());
   }
   if (!new_namespace) {
-    new_namespace = factory()->NewNamespace(namespace_body_, namespace_keyword,
-                                            simple_name);
+    new_namespace =
+        factory()->NewNamespace(namespace_body_, namespace_keyword, name);
     AddMember(new_namespace);
   }
   NamespaceBodyScope namespace_body_scope(this, new_namespace);
   if (index + 1 < names.size())
     return ParseNamespace(namespace_keyword, names, index + 1);
-  // TODO(eval1749) Record position of left bracket for error message
-  // when there is no matching right bracket.
   if (!AdvanceIf(TokenType::LeftCurryBracket))
-    return Error(ErrorCode::SyntaxNamespaceDeclLeftCurryBracket);
-  if (!ParseUsingDirectives())
-    return false;
+    return Error(ErrorCode::SyntaxNamespaceLeftCurryBracket);
+  ParseUsingDirectives();
   if (!ParseNamespaceMembers())
     return false;
-  // TODO(eval1749) Report unmatched left bracket when token is EOS.
   if (!AdvanceIf(TokenType::RightCurryBracket))
-    return Error(ErrorCode::SyntaxNamespaceDeclRightCurryBracket);
+    return Error(ErrorCode::SyntaxNamespaceRightCurryBracket);
   AdvanceIf(TokenType::SemiColon);
   return true;
 }
@@ -552,45 +549,56 @@ bool Parser::ParseQualifiedName() {
 // UsingDirective ::= AliasDef | ImportNamespace
 // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
 // ImportNamespace ::= 'using' QualfiedName ';'
-bool Parser::ParseUsingDirectives() {
+void Parser::ParseUsingDirectives() {
   DCHECK(namespace_body_->owner()->as<ast::Namespace>());
   while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
-    if (!ParseNamespaceOrTypeName())
+    if (!ParseNamespaceOrTypeName()) {
+      AdvanceIf(TokenType::SemiColon);
       continue;
+    }
     auto const thing = ConsumeType();
     if (AdvanceIf(TokenType::Assign)) {
+      // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
       if (!thing->is<ast::NameReference>()) {
         Error(ErrorCode::SyntaxUsingDirectiveAlias);
+        AdvanceIf(TokenType::SemiColon);
         continue;
       }
+      auto is_valid = true;
       auto const alias_name = thing->as<ast::NameReference>()->name();
+      // Note: 'using' directive comes before other declarations. We don't
+      // need to use enclosing namespace's |FindMember()|.
       if (auto const present = namespace_body_->FindAlias(alias_name)) {
+        is_valid = false;
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
-              present->keyword());
-        continue;
+              present->name());
       }
       if (ParseNamespaceOrTypeName()) {
-        namespace_body_->AddAlias(factory()->NewAlias(
-            namespace_body_, using_keyword, alias_name, ConsumeType()));
+        auto const reference = ConsumeType();
+        if (is_valid) {
+          namespace_body_->AddAlias(factory()->NewAlias(
+              namespace_body_, using_keyword, alias_name, reference));
+        }
       }
     } else {
+      // ImportNamespace ::= 'using' QualfiedName ';'
       auto const qualified_name = GetQualifiedNameToken(thing);
       if (!qualified_name) {
         Error(ErrorCode::SyntaxUsingDirectiveImport);
+        AdvanceIf(TokenType::SemiColon);
         continue;
       }
       if (auto const present = namespace_body_->FindImport(qualified_name)) {
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
               present->reference()->token());
-        continue;
+      } else {
+        namespace_body_->AddImport(
+            factory()->NewImport(namespace_body_, using_keyword, thing));
       }
-      namespace_body_->AddImport(
-          factory()->NewImport(namespace_body_, using_keyword, thing));
     }
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
   }
-  return true;
 }
 
 Token* Parser::PeekToken() {

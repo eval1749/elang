@@ -113,10 +113,10 @@ namespace compiler {
   E(Syntax, Modifier, Duplicate)                      \
   /* 'partial' modifier must be the last modifier. */ \
   E(Syntax, Modifier, Partial)                        \
-  /* NamespaceDecl */                                 \
-  E(Syntax, NamespaceDecl, LeftCurryBracket)          \
-  E(Syntax, NamespaceDecl, NameDuplicate)             \
-  E(Syntax, NamespaceDecl, RightCurryBracket)         \
+  /* Namespace */                                     \
+  E(Syntax, Namespace, Conflict)                      \
+  E(Syntax, Namespace, LeftCurryBracket)              \
+  E(Syntax, Namespace, RightCurryBracket)             \
   /* Return */                                        \
   E(Syntax, Return, SemiColon)                        \
   /* Statement */                                     \

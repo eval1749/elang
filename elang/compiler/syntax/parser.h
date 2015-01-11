@@ -92,7 +92,7 @@ class Parser final {
                       size_t index);
   bool ParseNamespaceMembers();
   bool ParseQualifiedName();
-  bool ParseUsingDirectives();
+  void ParseUsingDirectives();
   Token* PeekToken();
   ast::NamespaceMember* ResolveMember(Token* token) const;
   void ValidateClassModifiers();
