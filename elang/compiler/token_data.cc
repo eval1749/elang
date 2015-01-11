@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/atomic_string.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -21,8 +22,21 @@ const char* const kTokenDetails[] = {
 #undef T
 };
 
+PredefinedName const kMappedTypeNames[] = {
+#define Int Int32
+#define V(Name) PredefinedName::Name,
+    FOR_EACH_TYPE_KEYWORD(V)
+#undef V
+#undef Int
+};
+
 const char* GetTokenDetails(TokenType type) {
   return kTokenDetails[static_cast<size_t>(type)];
+}
+
+size_t GetTypeKeywordIndex(TokenType type) {
+  return static_cast<size_t>(static_cast<int>(type) -
+                             static_cast<int>(TokenType::Bool));
 }
 
 }  // namespace
@@ -44,8 +58,7 @@ TokenData::TokenData(float64_t f64) : type_(TokenType::Float64Literal) {
   data_.f64 = f64;
 }
 
-TokenData::TokenData(TokenType type, AtomicString* simple_name)
-    : type_(type) {
+TokenData::TokenData(TokenType type, AtomicString* simple_name) : type_(type) {
   data_.u64 = reinterpret_cast<uintptr_t>(simple_name);
 }
 
@@ -164,7 +177,13 @@ bool TokenData::is_right_bracket() const {
 }
 
 bool TokenData::is_type_name() const {
-  return GetTokenDetails(type_)[1] == 'T';
+  // For speed, we use ordinal number instead of accessing details.
+  return GetTypeKeywordIndex(type_) < arraysize(kMappedTypeNames);
+}
+
+PredefinedName TokenData::mapped_type_name() const {
+  DCHECK(is_type_name());
+  return kMappedTypeNames[GetTypeKeywordIndex(type_)];
 }
 
 // '0', '1', and '2' come from |ExpressionCategory::Unary| in
@@ -216,22 +235,22 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
     case TokenType::CharacterLiteral: {
       auto const ch = token.char_data();
       char buffer[7];
-        if (ch == '\'' || ch == '\\') {
-          buffer[0] = '\\';
-          buffer[1] = ch;
-          buffer[2] = 0;
-        } else if (ch < ' ' || ch >= 0x7F) {
-          buffer[0] = '\\';
-          buffer[1] = 'u';
-          buffer[2] = xdigits[(ch >> 12) & 15];
-          buffer[3] = xdigits[(ch >> 8) & 15];
-          buffer[4] = xdigits[(ch >> 4) & 15];
-          buffer[5] = xdigits[ch & 15];
-          buffer[6] = 0;
-        } else {
-          buffer[0] = ch;
-          buffer[1] = 0;
-        }
+      if (ch == '\'' || ch == '\\') {
+        buffer[0] = '\\';
+        buffer[1] = ch;
+        buffer[2] = 0;
+      } else if (ch < ' ' || ch >= 0x7F) {
+        buffer[0] = '\\';
+        buffer[1] = 'u';
+        buffer[2] = xdigits[(ch >> 12) & 15];
+        buffer[3] = xdigits[(ch >> 8) & 15];
+        buffer[4] = xdigits[(ch >> 4) & 15];
+        buffer[5] = xdigits[ch & 15];
+        buffer[6] = 0;
+      } else {
+        buffer[0] = ch;
+        buffer[1] = 0;
+      }
       return ostream << "'" << buffer << "'";
     }
     case TokenType::Float32Literal:

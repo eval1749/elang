@@ -76,6 +76,7 @@ test("compiler_unittests") {
   sources = [
     "syntax/lexer_unittest.cc",
     "syntax/parser_unittest.cc",
+    "token_unittest.cc",
   ]
 
   deps = [

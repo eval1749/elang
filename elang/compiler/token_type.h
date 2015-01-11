@@ -170,27 +170,27 @@ namespace compiler {
   /* V */                                                                   \
   K(Var, "var", "K-")                                                       \
   K(Virtual, "virtual", "KM")                                               \
-  K(Void, "void", "KT")                                                     \
   K(Volatile, "volatile", "KM")                                             \
   /* W */                                                                   \
   K(Where, "where", "C-")                                                   \
   K(While, "while", "K-")                                                   \
   /* Y */                                                                   \
   K(Yield, "yield", "K-")                                                   \
-  /* known types */                                                         \
+  /* keyword types */                                                       \
   K(Bool, "bool", "KT")                                                     \
   K(Char, "char", "KT")                                                     \
   K(Float32, "float32", "KT")                                               \
   K(Float64, "float64", "KT")                                               \
   K(Int, "int", "KT") /* |int| is alias of |int32|. */                      \
-  K(Int8, "int8", "KT")                                                     \
   K(Int16, "int16", "KT")                                                   \
   K(Int32, "int32", "KT")                                                   \
   K(Int64, "int64", "KT")                                                   \
-  K(UInt8, "uint8", "KT")                                                   \
+  K(Int8, "int8", "KT")                                                     \
   K(UInt16, "uint16", "KT")                                                 \
   K(UInt32, "uint32", "KT")                                                 \
   K(UInt64, "uint64", "KT")                                                 \
+  K(UInt8, "uint8", "KT")                                                   \
+  K(Void, "void", "KT")                                                     \
   /* literals */                                                            \
   K(NullLiteral, "null", "KL")                                              \
   K(TrueLiteral, "true", "KL")                                              \
@@ -217,6 +217,23 @@ enum class TokenType {
   FOR_EACH_TOKEN(T, T)
 #undef T
 };
+
+// Order of this list must be synced with FOR_EACH_TOKEN.
+#define FOR_EACH_TYPE_KEYWORD(V) \
+  V(Bool)                        \
+  V(Char)                        \
+  V(Float32)                     \
+  V(Float64)                     \
+  V(Int)                         \
+  V(Int16)                       \
+  V(Int32)                       \
+  V(Int64)                       \
+  V(Int8)                        \
+  V(UInt16)                      \
+  V(UInt32)                      \
+  V(UInt64)                      \
+  V(UInt8)                       \
+  V(Void)
 
 std::ostream& operator<<(std::ostream& ostream, TokenType token_type);
 

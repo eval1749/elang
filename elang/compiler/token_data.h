@@ -14,6 +14,7 @@ namespace elang {
 class AtomicString;
 namespace compiler {
 
+enum class PredefinedName;
 class Token;
 enum class TokenType;
 
@@ -50,6 +51,7 @@ class TokenData {
   bool is_operator() const;
   bool is_right_bracket() const;
   bool is_type_name() const;
+  PredefinedName mapped_type_name() const;
   int precedence() const;
   TokenType right_bracket() const;
   AtomicString* simple_name() const;
