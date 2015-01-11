@@ -47,6 +47,7 @@ size_t GetTypeKeywordIndex(TokenType type) {
 //
 TokenData::TokenData(TokenType type) : type_(type) {
   data_.u64 = static_cast<uint64_t>(0);
+  DCHECK(!has_simple_name());
 }
 
 TokenData::TokenData(float32_t f32) : type_(TokenType::Float32Literal) {
@@ -121,7 +122,7 @@ bool TokenData::has_int_data() const {
 
 bool TokenData::has_simple_name() const {
   auto const detail = GetTokenDetails(type_)[0];
-  return detail == 'N' || detail == 'K';
+  return detail == 'N' || detail == 'K' || detail == 'C';
 }
 
 bool TokenData::has_string_data() const {

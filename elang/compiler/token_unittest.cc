@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
+#include "elang/base/atomic_string_factory.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -17,17 +18,19 @@ namespace compiler {
 namespace {
 
 TEST(TokenTest, TypeKeyword) {
+  AtomicStringFactory factory;
+  auto const dummy = factory.NewAtomicString(L"dummy");
 #define Int Int32
 #define V(Name)                                           \
-  EXPECT_TRUE(TokenData(TokenType::Name).is_type_name()); \
+  EXPECT_TRUE(TokenData(TokenType::Name, dummy).is_type_name()); \
   EXPECT_EQ(PredefinedName::Name,                         \
-            TokenData(TokenType::Name).mapped_type_name());
+            TokenData(TokenType::Name, dummy).mapped_type_name());
   FOR_EACH_TYPE_KEYWORD(V)
 #undef V
 #undef Int
-  EXPECT_TRUE(TokenData(TokenType::Int).is_type_name());
+  EXPECT_TRUE(TokenData(TokenType::Int, dummy).is_type_name());
   EXPECT_EQ(PredefinedName::Int32,
-            TokenData(TokenType::Int).mapped_type_name());
+            TokenData(TokenType::Int, dummy).mapped_type_name());
 }
 
 }  // namespace
