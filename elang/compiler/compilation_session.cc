@@ -9,6 +9,7 @@
 
 #include "elang/base/atomic_string_factory.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/namespace_body.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/predefined_names.h"
@@ -40,12 +41,14 @@ ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
 ast::Namespace* CreateNamespace(CompilationSession* session,
                                 ast::Namespace* enclosing_namespace,
                                 base::StringPiece16 name) {
+  auto const enclosing_body = enclosing_namespace->bodies().front();
   auto const ns = session->ast_factory()->NewNamespace(
-      enclosing_namespace->bodies().front(), enclosing_namespace->keyword(),
+      enclosing_body, enclosing_namespace->keyword(),
       session->NewToken(enclosing_namespace->keyword()->location(),
                         session->NewAtomicString(name)));
-  ns->AddNamespaceBody(session->ast_factory()->NewNamespaceBody(
-      enclosing_namespace->bodies().front(), ns));
+  enclosing_body->AddMember(ns);
+  ns->AddNamespaceBody(
+      session->ast_factory()->NewNamespaceBody(enclosing_body, ns));
   return ns;
 }
 
