@@ -32,6 +32,7 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DECLARE_AST_NODE_CLASS(Node, Castable);
 
  public:
+  virtual Token* name() const;
   Token* token() const { return token_; }
 
   // Visitable<Visitor>
@@ -56,7 +57,7 @@ class NamedNode : public Node {
 
  public:
   Token* keyword() const { return token(); }
-  Token* name() const { return name_; }
+  Token* name() const override;
 
  protected:
   NamedNode(Token* keyword, Token* name);

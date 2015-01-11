@@ -18,6 +18,10 @@ namespace ast {
 Node::Node(Token* token) : token_(token) {
 }
 
+Token* Node::name() const {
+  return token();
+}
+
 void Node::Accept(Visitor* visitor) {
   __assume(visitor);
   NOTREACHED();
@@ -29,6 +33,10 @@ void Node::Accept(Visitor* visitor) {
 //
 NamedNode::NamedNode(Token* keyword, Token* name) : Node(keyword), name_(name) {
   DCHECK(name->is_name());
+}
+
+Token* NamedNode::name() const {
+  return name_;
 }
 
 }  // namespace ast
