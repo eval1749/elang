@@ -24,7 +24,7 @@ class Castable {
   virtual const char* class_name() const { return static_class_name(); }
   template <class Class>
   bool is() const {
-    return is_class_of(Class::static_class_name());
+    return this && is_class_of(Class::static_class_name());
   }
   virtual bool is_class_of(const char* other_name) const {
     return static_class_name() == other_name;

@@ -90,7 +90,7 @@ NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
 }
 
 NamespaceBody* NamespaceBody::outer() const {
-  return parent() ? parent()->as<ast::NamespaceBody>() : nullptr;
+  return parent()->as<ast::NamespaceBody>();
 }
 
 void NamespaceBody::AddImport(Import* import) {
