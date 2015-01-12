@@ -98,7 +98,7 @@ Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
   return session()->NewToken(
       clazz->name()->location(),
       session()->name_for(clazz->is_class() ? PredefinedName::Object
-                                            : PredefinedName::Value));
+                                            : PredefinedName::ValueType));
 }
 
 ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(

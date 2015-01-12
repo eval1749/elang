@@ -230,7 +230,7 @@ void SystemNamespaceBuilder::Build() {
   // The base class of |String| and |Value| classes are |Object|.
   FindClass(PredefinedName::String)
       ->AddBaseClassName(NewNameReference(PredefinedName::Object));
-  FindClass(PredefinedName::Value)
+  FindClass(PredefinedName::ValueType)
       ->AddBaseClassName(NewNameReference(PredefinedName::Object));
 #define V(Name) FixValueClass(PredefinedName::Name);
   FOR_EACH_PREDEFINED_NAME(V)
@@ -249,7 +249,7 @@ void SystemNamespaceBuilder::FixValueClass(PredefinedName name) {
   auto const object_name = session_->name_for(PredefinedName::Object);
   if (ast_class->name()->atomic_string() == object_name)
     return;
-  ast_class->AddBaseClassName(NewNameReference(PredefinedName::Value));
+  ast_class->AddBaseClassName(NewNameReference(PredefinedName::ValueType));
 }
 
 void SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {

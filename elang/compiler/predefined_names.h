@@ -34,7 +34,7 @@ class CompilationSession;
   V(UInt32)                         \
   V(UInt64)                         \
   V(UInt8)                          \
-  V(Value)                          \
+  V(ValueType)                      \
   V(Void)
 
 enum class PredefinedName {
