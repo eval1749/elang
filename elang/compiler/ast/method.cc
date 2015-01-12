@@ -33,7 +33,7 @@ Method::Method(Zone* zone,
       return_type_(return_type),
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
-  DCHECK_EQ(method_group_->name()->simple_name(), name->simple_name());
+  DCHECK_EQ(method_group_->name()->atomic_string(), name->atomic_string());
 }
 
 void Method::SetBody(ast::Statement* statement) {

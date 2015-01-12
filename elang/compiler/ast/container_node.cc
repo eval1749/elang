@@ -38,7 +38,7 @@ void ContainerNode::AddNamedMember(NamedNode* member) {
   // We keep first member declaration.
   if (FindMember(member->name()))
     return;
-  named_members_[member->name()->simple_name()] = member;
+  named_members_[member->name()->atomic_string()] = member;
 }
 
 NamedNode* ContainerNode::FindMember(AtomicString* name) const {
@@ -47,7 +47,7 @@ NamedNode* ContainerNode::FindMember(AtomicString* name) const {
 }
 
 NamedNode* ContainerNode::FindMember(Token* name) const {
-  return FindMember(name->simple_name());
+  return FindMember(name->atomic_string());
 }
 
 }  // namespace ast

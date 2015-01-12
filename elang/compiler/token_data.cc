@@ -47,7 +47,7 @@ size_t GetTypeKeywordIndex(TokenType type) {
 //
 TokenData::TokenData(TokenType type) : type_(type) {
   data_.u64 = static_cast<uint64_t>(0);
-  DCHECK(!has_simple_name());
+  DCHECK(!has_atomic_string());
 }
 
 TokenData::TokenData(float32_t f32) : type_(TokenType::Float32Literal) {
@@ -110,19 +110,24 @@ bool TokenData::operator!=(const TokenData& other) const {
   return !operator==(other);
 }
 
+AtomicString* TokenData::atomic_string() const {
+  DCHECK(has_atomic_string());
+  return data_.name;
+}
+
 base::char16 TokenData::char_data() const {
   DCHECK_EQ(type_, TokenType::CharacterLiteral);
   return data_.ch;
 }
 
+bool TokenData::has_atomic_string() const {
+  auto const detail = GetTokenDetails(type_)[0];
+  return detail == 'N' || detail == 'K' || detail == 'C';
+}
+
 bool TokenData::has_int_data() const {
   auto const detail = GetTokenDetails(type_)[1];
   return detail == 'I' || detail == 'U' || detail == 'C';
-}
-
-bool TokenData::has_simple_name() const {
-  auto const detail = GetTokenDetails(type_)[0];
-  return detail == 'N' || detail == 'K' || detail == 'C';
 }
 
 bool TokenData::has_string_data() const {
@@ -198,11 +203,6 @@ int TokenData::precedence() const {
   if (is_keyword() && details[1] == 'L')
     return 1;
   return 0;
-}
-
-AtomicString* TokenData::simple_name() const {
-  DCHECK(has_simple_name());
-  return data_.name;
 }
 
 TokenType TokenData::right_bracket() const {
@@ -292,7 +292,7 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
 
     default:
       if (token.is_name() || token.is_keyword())
-        return ostream << *token.simple_name();
+        return ostream << *token.atomic_string();
       return ostream << kTokenTypeString[static_cast<int>(token.type())];
   }
 }

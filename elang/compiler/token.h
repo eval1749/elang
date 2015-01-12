@@ -29,6 +29,7 @@ class Token final : public ZoneAllocated {
   bool operator==(const Token& other) const;
   bool operator!=(const Token& other) const;
 
+  AtomicString* atomic_string() const { return data_.atomic_string(); }
   base::char16 char_data() const { return data_.char_data(); }
   TokenData data() const { return data_; }
   float32_t f32_data() const { return data_.f32_data(); }
@@ -46,7 +47,6 @@ class Token final : public ZoneAllocated {
   PredefinedName mapped_type_name() const { return data_.mapped_type_name(); }
   int precedence() const { return data_.precedence(); }
   TokenType right_bracket() const { return data_.right_bracket(); }
-  AtomicString* simple_name() const { return data_.simple_name(); }
   base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }
 

@@ -131,7 +131,7 @@ bool NamespaceAnalyzer::IsSystemObject(ast::NamedNode* node) const {
   auto const ast_class = node->as<ast::Class>();
   if (!ast_class)
     return false;
-  if (ast_class->name()->simple_name() !=
+  if (ast_class->name()->atomic_string() !=
       session()->name_for(PredefinedName::Object)) {
     return false;
   }

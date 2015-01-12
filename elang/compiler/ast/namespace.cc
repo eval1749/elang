@@ -94,7 +94,7 @@ NamespaceBody* NamespaceBody::outer() const {
 }
 
 void NamespaceBody::AddImport(Import* import) {
-  import_map_[import->name()->simple_name()] = import;
+  import_map_[import->name()->atomic_string()] = import;
   AddMember(import);
 }
 
@@ -104,7 +104,7 @@ Alias* NamespaceBody::FindAlias(Token* name) const {
 }
 
 Import* NamespaceBody::FindImport(Token* name) const {
-  auto const it = import_map_.find(name->simple_name());
+  auto const it = import_map_.find(name->atomic_string());
   return it == import_map_.end() ? nullptr : it->second;
 }
 

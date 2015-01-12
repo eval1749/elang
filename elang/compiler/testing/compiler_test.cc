@@ -273,7 +273,7 @@ void SystemNamespaceBuilder::FixValueClass(PredefinedName name) {
   if (!ast_class->base_class_names().empty())
     return;
   auto const object_name = session_->name_for(PredefinedName::Object);
-  if (ast_class->name()->simple_name() == object_name)
+  if (ast_class->name()->atomic_string() == object_name)
     return;
   ast_class->AddBaseClassName(NewNameReference(PredefinedName::Value));
 }

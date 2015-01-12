@@ -38,11 +38,11 @@ class TokenData {
   bool operator==(const TokenData& other) const;
   bool operator!=(const TokenData& other) const;
 
+  AtomicString* atomic_string() const;
   base::char16 char_data() const;
   float32_t f32_data() const;
   float64_t f64_data() const;
   int64_t int64_data() const;
-  AtomicString* id() const { return simple_name(); }
   bool is_contextual_keyword() const;
   bool is_keyword() const;
   bool is_left_bracket() const;
@@ -54,7 +54,6 @@ class TokenData {
   PredefinedName mapped_type_name() const;
   int precedence() const;
   TokenType right_bracket() const;
-  AtomicString* simple_name() const;
   base::StringPiece16 string_data() const;
   TokenType type() const { return type_; }
 
@@ -72,8 +71,8 @@ class TokenData {
   static_assert(sizeof(Data) == sizeof(uint64_t),
                 "sizeof(TokenData) must equal to sizeof(uint64_t).");
 
+  bool has_atomic_string() const;
   bool has_int_data() const;
-  bool has_simple_name() const;
   bool has_string_data() const;
 
   Data data_;

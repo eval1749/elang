@@ -66,7 +66,7 @@ Parser::LocalDeclarationSpace::~LocalDeclarationSpace() {
 }
 
 void Parser::LocalDeclarationSpace::AddMember(ast::NamedNode* member) {
-  auto const name = member->name()->simple_name();
+  auto const name = member->name()->atomic_string();
   if (map_.count(name))
     return;
   map_[name] = member;
@@ -74,12 +74,12 @@ void Parser::LocalDeclarationSpace::AddMember(ast::NamedNode* member) {
 
 ast::NamedNode* Parser::LocalDeclarationSpace::FindMember(Token* name) const {
   DCHECK(name->is_name());
-  auto const present = map_.find(name->simple_name());
+  auto const present = map_.find(name->atomic_string());
   return present == map_.end() ? nullptr : present->second;
 }
 
 void Parser::LocalDeclarationSpace::RecordReference(ast::NamedNode* member) {
-  DCHECK(map_.count(member->name()->simple_name()));
+  DCHECK(map_.count(member->name()->atomic_string()));
   referenced_set_.insert(member);
 }
 
