@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/testing/compiler_test.h"
+#include "elang/compiler/testing/analyzer_test.h"
 
 namespace elang {
 namespace compiler {
@@ -12,7 +12,7 @@ namespace {
 //
 // NamespaceAnalyzerTest
 //
-class NamespaceAnalyzerTest : public testing::CompilerTest {
+class NamespaceAnalyzerTest : public testing::AnalyzerTest {
  protected:
   NamespaceAnalyzerTest() = default;
   ~NamespaceAnalyzerTest() override = default;

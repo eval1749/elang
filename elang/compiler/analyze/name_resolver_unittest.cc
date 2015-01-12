@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/testing/compiler_test.h"
+#include "elang/compiler/testing/analyzer_test.h"
 
 #include "base/macros.h"
 #include "elang/compiler/analyze/name_resolver.h"
@@ -22,7 +22,7 @@ namespace {
 //
 // NameResolverTest
 //
-class NameResolverTest : public testing::CompilerTest {
+class NameResolverTest : public testing::AnalyzerTest {
  protected:
   NameResolverTest();
 

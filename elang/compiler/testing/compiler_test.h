@@ -26,7 +26,6 @@ class Class;
 }
 
 class CompilationSession;
-class NameResolver;
 class SourceCode;
 class StringSourceCode;
 
@@ -38,32 +37,19 @@ namespace testing {
 //
 class CompilerTest : public ::testing::Test {
  protected:
-  struct ClassOrString {
-    ir::Class* ir_class;
-    std::string message;
-    explicit ClassOrString(ir::Class* ir_class) : ir_class(ir_class) {}
-    ClassOrString(const char* format, base::StringPiece name);
-  };
-
   CompilerTest();
   ~CompilerTest() override;
 
-  NameResolver* name_resolver() const { return name_resolver_.get(); }
   CompilationSession* session() const { return session_.get(); }
+
+  // Since we don't want to include "string_source_code.h" in "compiler_test.h",
+  // we implement |source_code()| function in ".cc".
   SourceCode* source_code() const;
 
-  std::string AnalyzeNamespace();
-  ast::Class* FindClass(base::StringPiece name);
-  ast::NamedNode* FindMember(base::StringPiece name);
   std::string Format();
   std::string Format(base::StringPiece source_code);
-  std::string GetBaseClasses(base::StringPiece name);
-  ClassOrString GetClass(base::StringPiece name);
-  std::string GetDirectBaseClasses(base::StringPiece name);
   std::string GetErrors();
   std::string GetWarnings();
-  std::string MakeClassListString(const std::vector<ir::Class*>& classes);
-  std::string MakeClassListString(const ZoneVector<ir::Class*>& classes);
   bool Parse();
   void PopulateSystemNamespace();
   void Prepare(base::StringPiece16 source_code);
@@ -71,8 +57,6 @@ class CompilerTest : public ::testing::Test {
 
  private:
   const std::unique_ptr<CompilationSession> session_;
-
-  std::unique_ptr<NameResolver> name_resolver_;
   std::unique_ptr<StringSourceCode> source_code_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerTest);

@@ -61,6 +61,8 @@ static_library("compiler") {
 source_set("compiler_test") {
   testonly = true
   sources = [
+    "testing/analyzer_test.cc",
+    "testing/analyzer_test.h",
     "testing/compiler_test.cc",
     "testing/compiler_test.h",
     "testing/formatter.cc",
