@@ -29,39 +29,25 @@ void ContainerNode::AcceptForMembers(Visitor* visitor) {
 }
 
 void ContainerNode::AddMember(Node* member) {
-  DCHECK(!member->is<ast::MethodGroup>() && !member->is<ast::Namespace>());
+  DCHECK(member->CanBeMemberOf(this));
   members_.push_back(member);
 }
 
 void ContainerNode::AddNamedMember(NamedNode* member) {
+  DCHECK(member->CanBeNamedMemberOf(this));
   // We keep first member declaration.
   if (FindMember(member->name()))
     return;
   named_members_[member->name()->simple_name()] = member;
 }
 
-NamedNode* ContainerNode::FindDirectMember(AtomicString* name) {
+NamedNode* ContainerNode::FindMember(AtomicString* name) const {
   auto const it = named_members_.find(name);
   return it == named_members_.end() ? nullptr : it->second;
 }
 
-NamedNode* ContainerNode::FindDirectMember(Token* name) {
-  return FindDirectMember(name->simple_name());
-}
-
-NamedNode* ContainerNode::FindMember(AtomicString* name) {
-  if (auto const found = FindDirectMember(name))
-    return found;
-  return FindMemberMore(name);
-}
-
-NamedNode* ContainerNode::FindMember(Token* name) {
+NamedNode* ContainerNode::FindMember(Token* name) const {
   return FindMember(name->simple_name());
-}
-
-NamedNode* ContainerNode::FindMemberMore(AtomicString* name) {
-  DCHECK(name);
-  return nullptr;
 }
 
 }  // namespace ast

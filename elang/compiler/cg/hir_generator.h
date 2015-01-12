@@ -36,7 +36,7 @@ class HirGenerator final : ast::Visitor {
 
  private:
 #define V(Name) void Visit##Name(ast::Name* node) final;
-  FOR_EACH_AST_NODE(V)
+  FOR_EACH_AST_CONCRETE_NODE(V)
 #undef V
 
   hir::Factory* const factory_;

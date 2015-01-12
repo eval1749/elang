@@ -27,8 +27,12 @@ class Alias final : public NamedNode {
         Token* alias_name,
         Expression* reference);
 
+#if _DEBUG
   // Node
-  bool CanBeInNamespaceBody() const final { return true; }
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   Expression* const reference_;
 
@@ -48,8 +52,12 @@ class Import final : public NamedNode {
  private:
   Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
 
+#if _DEBUG
   // Node
-  bool CanBeInNamespaceBody() const final { return true; }
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   Expression* const reference_;
 
@@ -66,6 +74,13 @@ class Namespace final : public ContainerNode {
  private:
   Namespace(Zone* zone, Namespace* outer, Token* keyword, Token* name);
 
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
+
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
 
@@ -81,9 +96,8 @@ class NamespaceBody final : public ContainerNode {
   NamespaceBody* outer() const;
   Namespace* owner() const { return namespace_; }
 
-  // ContainerNode
-  void AddMember(Node* member) final;
-  void AddNamedMember(NamedNode* member) final;
+  // Returns |Alias| named |name| in this namespace or null if not found.
+  Alias* FindAlias(Token* name) const;
 
   // TODO(eval1749) We should use Creator::Parser, Loader, etc.
   bool loaded_;
@@ -91,11 +105,10 @@ class NamespaceBody final : public ContainerNode {
  private:
   NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
 
+#if _DEBUG
   // Node
-  bool CanBeInNamespaceBody() const final;
-
-  // ContainerNode
-  NamedNode* FindMemberMore(AtomicString* simple_name) final;
+  bool CanBeMemberOf(ContainerNode* container) const final;
+#endif
 
   ZoneVector<Import*> imports_;
   Namespace* const namespace_;

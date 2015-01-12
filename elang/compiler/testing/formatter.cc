@@ -166,6 +166,11 @@ void Formatter::VisitCall(ast::Call* call) {
   stream_ << ")";
 }
 
+void Formatter::VisitCatchClause(ast::CatchClause* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
 void Formatter::VisitConditional(ast::Conditional* cond) {
   Visit(cond->conditional());
   stream_ << " ? ";
@@ -225,13 +230,17 @@ void Formatter::VisitEnum(ast::Enum* enumx) {
   stream_ << "enum " << enumx->name() << " ";
   FormatBlock block(this);
   for (auto const member : enumx->members()) {
-    Indent();
-    stream_ << member->name();
-    if (auto const expression = member->as<ast::EnumMember>()->expression()) {
-      stream_ << " = ";
-      Visit(expression);
-    }
+    member->Accept(this);
     stream_ << "," << std::endl;
+  }
+}
+
+void Formatter::VisitEnumMember(ast::EnumMember* node) {
+  Indent();
+  stream_ << node->name();
+  if (auto const expression = node->expression()) {
+    stream_ << " = ";
+    Visit(expression);
   }
 }
 
@@ -361,6 +370,11 @@ void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
 
+void Formatter::VisitLocalVariable(ast::LocalVariable* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   const char* separator = "";
   for (auto const component : member_access->components()) {
@@ -408,6 +422,11 @@ void Formatter::VisitMethod(ast::Method* method) {
   stream_ << "=> ";
   Visit(statement);
   stream_ << ";" << std::endl;
+}
+
+void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
+  DCHECK(node);
+  NOTREACHED();
 }
 
 void Formatter::VisitNameReference(ast::NameReference* operation) {

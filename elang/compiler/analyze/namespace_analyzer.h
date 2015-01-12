@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "elang/base/maybe.h"
+#include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
@@ -42,16 +43,15 @@ class NamespaceAnalyzer final : public Analyzer,
   bool Run();
 
  private:
-  class AnalyzeNode;
   struct ResolveContext;
 
   void AnalyzeClass(ast::Class* clazz);
-  void DidResolve(AnalyzeNode* node);
+  void DidResolve(ast::NamedNode* node);
 
   void FindInClass(Token* name,
                    ast::Class* clazz,
                    std::unordered_set<ast::NamedNode*>* founds);
-  ast::NamedNode* FindResolved(ast::Expression* reference);
+  ast::NamedNode* FindResolvedReference(ast::Expression* reference);
 
   // Returns default base class name for |clazz|, for class it is |Object|,
   // for struct it is |Value|.
@@ -60,10 +60,15 @@ class NamespaceAnalyzer final : public Analyzer,
   // Returns access node to default base class name for |clazz|.
   ast::Expression* GetDefaultBaseClassNameAccess(ast::Class* clazz);
 
-  AnalyzeNode* GetOrCreateNode(ast::NamedNode* member);
-  ast::NamedNode* GetResolved(ast::Expression* reference);
+  ast::NamedNode* GetResolvedReference(ast::Expression* reference);
 
-  Maybe<ast::NamedNode*> Postpone(AnalyzeNode* node, AnalyzeNode* using_node);
+  bool HasDependency(ast::NamedNode* node) const;
+  bool IsResolved(ast::NamedNode* node) const;
+  bool IsSystemObject(ast::NamedNode* node) const;
+  bool IsVisited(ast::NamedNode* node) const;
+
+  Maybe<ast::NamedNode*> Postpone(ast::NamedNode* node,
+                                  ast::NamedNode* using_node);
   Maybe<ast::NamedNode*> Remember(ast::Expression* reference,
                                   ast::NamedNode* member);
 
@@ -91,11 +96,13 @@ class NamespaceAnalyzer final : public Analyzer,
   // Builds namespace tree and schedule members to resolve.
   void VisitNamespaceBody(ast::NamespaceBody* node);
 
+  SimpleDirectedGraph<ast::NamedNode*> dependency_graph_;
+
   // Cache for mapping reference to resolved entity for alias target and
   // base class list.
   std::unordered_map<ast::Expression*, ast::NamedNode*> reference_cache_;
-  std::unordered_map<ast::NamedNode*, AnalyzeNode*> map_;
-  std::unordered_set<AnalyzeNode*> unresolved_nodes_;
+  std::unordered_set<ast::NamedNode*> resolved_nodes_;
+  std::unordered_set<ast::NamedNode*> visited_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceAnalyzer);
 };

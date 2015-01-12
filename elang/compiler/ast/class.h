@@ -40,8 +40,14 @@ class Class final : public ContainerNode, public WithModifiers {
         Token* name);
 
   // Node
-  bool CanBeInNamespaceBody() const final { return true; }
   bool is_type() const final;
+
+#if _DEBUG
+  // Node
+  virtual bool CanBeMemberOf(ContainerNode* container) const;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   ZoneVector<Expression*> base_class_names_;
 
@@ -65,6 +71,13 @@ class Field final : public NamedNode, public WithModifiers {
         Expression* Type,
         Token* name,
         Expression* expression);
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   Expression* const expression_;
   Expression* const type_;

@@ -30,17 +30,13 @@ class ContainerNode : public NamedNode {
   // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
   // member.
   void AcceptForMembers(Visitor* visitor);
-  virtual void AddMember(Node* member);
-  virtual void AddNamedMember(NamedNode* member);
-  NamedNode* FindDirectMember(AtomicString* name);
-  NamedNode* FindDirectMember(Token* name);
-  NamedNode* FindMember(AtomicString* name);
-  NamedNode* FindMember(Token* name);
+  void AddMember(Node* member);
+  void AddNamedMember(NamedNode* member);
+  NamedNode* FindMember(AtomicString* name) const;
+  NamedNode* FindMember(Token* name) const;
 
  protected:
   ContainerNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
-
-  virtual NamedNode* FindMemberMore(AtomicString* name);
 
  private:
   ZoneUnorderedMap<AtomicString*, NamedNode*> named_members_;

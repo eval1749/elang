@@ -34,6 +34,20 @@ TEST_F(NamespaceAnalyzerTest, AliasBasic) {
   EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.B"));
 }
 
+TEST_F(NamespaceAnalyzerTest, AliasConfusing) {
+  Prepare(
+      "namespace N1 {"
+      "  class A {}"
+      "  namespace N2 {"
+      "    using R1 = A;"   // R1 = N1.A
+      "    class A {}"
+      "    class B : R1 {}"  // base_class_of(B) = N1.A
+      "  }"
+      "}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("N1.A", GetDirectBaseClasses("N1.N2.B"));
+}
+
 // Same as |AliasBasic|, but order of declaration is different.
 TEST_F(NamespaceAnalyzerTest, AliasLayout) {
   Prepare(

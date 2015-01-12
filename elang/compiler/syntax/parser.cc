@@ -193,6 +193,8 @@ void Parser::AddMember(ast::NamedNode* member) {
   DCHECK(!member->is<ast::Alias>() && !member->is<ast::Import>());
   container_->AddMember(member);
   container_->AddNamedMember(member);
+  if (auto const ns_body = container_->as<ast::NamespaceBody>())
+    ns_body->owner()->AddNamedMember(member);
 }
 
 void Parser::Advance() {
@@ -238,7 +240,11 @@ bool Parser::Error(ErrorCode error_code) {
 }
 
 ast::NamedNode* Parser::FindMember(Token* name) const {
-  return container_->FindMember(name);
+  if (auto const present = container_->FindMember(name))
+    return present;
+  if (auto const ns_body = container_->as<ast::NamespaceBody>())
+    return ns_body->owner()->FindMember(name);
+  return nullptr;
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
@@ -572,7 +578,7 @@ void Parser::ParseUsingDirectives() {
       auto const alias_name = thing->as<ast::NameReference>()->name();
       // Note: 'using' directive comes before other declarations. We don't
       // need to use enclosing namespace's |FindMember()|.
-      if (auto const present = container_->FindDirectMember(alias_name)) {
+      if (auto const present = ns_body->FindMember(alias_name)) {
         is_valid = false;
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
               present->name());
@@ -582,8 +588,8 @@ void Parser::ParseUsingDirectives() {
         if (is_valid) {
           auto const alias = factory()->NewAlias(ns_body, using_keyword,
                                                  alias_name, reference);
-          container_->AddNamedMember(alias);
-          container_->AddMember(alias);
+          ns_body->AddNamedMember(alias);
+          ns_body->AddMember(alias);
         }
       }
     } else {
@@ -594,7 +600,7 @@ void Parser::ParseUsingDirectives() {
         AdvanceIf(TokenType::SemiColon);
         continue;
       }
-      if (auto const present = container_->FindDirectMember(qualified_name)) {
+      if (auto const present = ns_body->FindMember(qualified_name)) {
         if (auto const import = present->as<ast::Import>()) {
           Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
                 import->reference()->token());
@@ -604,8 +610,8 @@ void Parser::ParseUsingDirectives() {
         }
       } else {
         auto const import = factory()->NewImport(ns_body, using_keyword, thing);
-        container_->AddNamedMember(import);
-        container_->AddMember(import);
+        ns_body->AddNamedMember(import);
+        ns_body->AddMember(import);
       }
     }
     if (!AdvanceIf(TokenType::SemiColon))

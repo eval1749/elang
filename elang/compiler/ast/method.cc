@@ -42,6 +42,13 @@ void Method::SetBody(ast::Statement* statement) {
   body_ = statement;
 }
 
+#if _DEBUG
+// Node
+bool Method::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>();
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////
 //
 // MethodGroup
@@ -60,6 +67,13 @@ void MethodGroup::AddMethod(Method* method) {
   DCHECK(std::find(methods_.begin(), methods_.end(), method) == methods_.end());
   methods_.push_back(method);
 }
+
+#if _DEBUG
+// NamedNode
+bool MethodGroup::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>();
+}
+#endif
 
 }  // namespace ast
 }  // namespace compiler

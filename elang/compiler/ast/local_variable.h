@@ -16,7 +16,7 @@ namespace ast {
 // LocalVariable
 //
 class LocalVariable final : public NamedNode {
-  DECLARE_AST_NODE_CLASS(LocalVariable, NamedNode);
+  DECLARE_AST_NODE_CONCRETE_CLASS(LocalVariable, NamedNode);
 
  public:
   bool is_const() const;

@@ -21,7 +21,7 @@ class NodeFactory;
 // Expression
 //
 class Expression : public Node {
-  DECLARE_AST_NODE_CLASS(Expression, Node);
+  DECLARE_AST_NODE_ABSTRACT_CLASS(Expression, Node);
 
  public:
   Token* op() const { return token(); }

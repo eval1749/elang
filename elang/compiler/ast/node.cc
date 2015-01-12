@@ -28,9 +28,12 @@ Token* Node::name() const {
   return token();
 }
 
-bool Node::CanBeInNamespaceBody() const {
+#if _DEBUG
+bool Node::CanBeMemberOf(ContainerNode* container) const {
+  DCHECK(container);
   return false;
 }
+#endif
 
 bool Node::IsDescendantOf(const Node* other) const {
   for (auto runner = parent(); runner; runner = runner->parent()) {
@@ -58,6 +61,13 @@ NamedNode::NamedNode(ContainerNode* parent, Token* keyword, Token* name)
 Token* NamedNode::name() const {
   return name_;
 }
+
+#if _DEBUG
+bool NamedNode::CanBeNamedMemberOf(ContainerNode* container) const {
+  DCHECK(container);
+  return false;
+}
+#endif
 
 }  // namespace ast
 }  // namespace compiler

@@ -31,6 +31,7 @@ namespace compiler {
   E(NameResolution, Name, NotInterface)               \
   E(NameResolution, Name, NotNamespace)               \
   E(NameResolution, Name, NotResolved)                \
+  E(NameResolution, SystemObject, HasBaseClass)       \
   /*  Predefined names */                             \
   E(PredefinedNames, Name, NotClass)                  \
   E(PredefinedNames, Name, NotFound)                  \

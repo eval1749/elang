@@ -19,7 +19,7 @@ namespace ast {
 // Statement
 //
 class Statement : public Node {
-  DECLARE_AST_NODE_CLASS(Statement, Node);
+  DECLARE_AST_NODE_ABSTRACT_CLASS(Statement, Node);
 
  public:
   Token* keyword() const { return token(); }
@@ -63,7 +63,7 @@ class BreakStatement final : public Statement {
 // Represents 'catch' clause:
 //  'catch' '(' Type Name? ')' '(' Statement* '}'
 class CatchClause final : public Node {
-  DECLARE_AST_NODE_CLASS(CatchClause, Node);
+  DECLARE_AST_NODE_CONCRETE_CLASS(CatchClause, Node);
 
  public:
   BlockStatement* block() const { return block_; }

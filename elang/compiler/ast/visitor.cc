@@ -20,11 +20,12 @@ Visitor::Visitor() {
 Visitor::~Visitor() {
 }
 
-
-#define DEF_VISIT(type) \
+// Default implementations do nothing. Each derived visitor class implements
+// override for interested classes.
+#define V(type) \
   void Visitor::Visit##type(type* node) { DCHECK(node); }
-  FOR_EACH_AST_NODE(DEF_VISIT)
-#undef DEF_VISIT
+FOR_EACH_AST_CONCRETE_NODE(V)
+#undef V
 
 }  // namespace ast
 }  // namespace compiler

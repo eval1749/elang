@@ -31,8 +31,14 @@ class Enum final : public ContainerNode, WithModifiers {
        Token* name);
 
   // Node
-  bool CanBeInNamespaceBody() const final { return true; }
   bool is_type() const final;
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
@@ -42,13 +48,20 @@ class Enum final : public ContainerNode, WithModifiers {
 // EnumMember
 //
 class EnumMember final : public NamedNode {
-  DECLARE_AST_NODE_CLASS(EnumMember, NamedNode);
+  DECLARE_AST_NODE_CONCRETE_CLASS(EnumMember, NamedNode);
 
  public:
   Expression* expression() const { return expression_; }
 
  private:
   EnumMember(Enum* owner, Token* name, Expression* expression);
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   Expression* const expression_;
 

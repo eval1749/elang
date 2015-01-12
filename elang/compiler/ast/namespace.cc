@@ -25,6 +25,18 @@ Alias::Alias(NamespaceBody* namespace_body,
   DCHECK_EQ(keyword, TokenType::Using);
 }
 
+#if _DEBUG
+// Node
+bool Alias::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::NamespaceBody>();
+}
+
+// NamedNode
+bool Alias::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::NamespaceBody>();
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////
 //
 // Import
@@ -37,6 +49,18 @@ Import::Import(NamespaceBody* namespace_body,
   DCHECK_EQ(keyword, TokenType::Using);
 }
 
+#if _DEBUG
+// Node
+bool Import::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::NamespaceBody>();
+}
+
+// NamedNode
+bool Import::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::NamespaceBody>();
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////
 //
 // Namespace
@@ -45,6 +69,19 @@ Namespace::Namespace(Zone* zone, Namespace* parent, Token* keyword, Token* name)
     : ContainerNode(zone, parent, keyword, name) {
   DCHECK_EQ(keyword, TokenType::Namespace);
 }
+
+#if _DEBUG
+// Node
+bool Namespace::CanBeMemberOf(ContainerNode* container) const {
+  DCHECK(container);
+  return false;
+}
+
+// NamedNode
+bool Namespace::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Namespace>();
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -61,27 +98,17 @@ NamespaceBody* NamespaceBody::outer() const {
   return parent() ? parent()->as<ast::NamespaceBody>() : nullptr;
 }
 
-void NamespaceBody::AddMember(Node* member) {
-  DCHECK(member->CanBeInNamespaceBody());
-  ContainerNode::AddMember(member);
+Alias* NamespaceBody::FindAlias(Token* name) const {
+  auto const present = FindMember(name);
+  return present ? present->as<ast::Alias>() : nullptr;
 }
 
-void NamespaceBody::AddNamedMember(NamedNode* member) {
-  if (auto const import = member->as<ast::Import>())
-    imports_.push_back(import);
-  ContainerNode::AddNamedMember(member);
-  namespace_->AddNamedMember(member);
-}
-
+#if _DEBUG
 // Node
-bool NamespaceBody::CanBeInNamespaceBody() const {
-  return true;
+bool NamespaceBody::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Namespace>() || container->is<ast::NamespaceBody>();
 }
-
-// ContainerNode
-NamedNode* NamespaceBody::FindMemberMore(AtomicString* name) {
-  return namespace_->FindMember(name);
-}
+#endif
 
 }  // namespace ast
 }  // namespace compiler

@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/class.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -48,6 +49,18 @@ bool Class::is_type() const {
   return true;
 }
 
+#if _DEBUG
+// Node
+bool Class::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::NamespaceBody>() || container->is<ast::Class>();
+}
+
+// NamedNode
+bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Namespace>() || CanBeMemberOf(container);
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////
 //
 // Field
@@ -62,6 +75,18 @@ Field::Field(Class* outer,
       expression_(expression),
       type_(type) {
 }
+
+#if _DEBUG
+// Node
+bool Field::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>();
+}
+
+// NamedNode
+bool Field::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>();
+}
+#endif
 
 }  // namespace ast
 }  // namespace compiler

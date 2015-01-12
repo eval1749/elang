@@ -49,6 +49,11 @@ class Method final : public Node, public WithModifiers {
          const std::vector<Token*>& type_parameters,
          const std::vector<LocalVariable*>& parameters);
 
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+#endif
+
   Statement* body_;
   MethodGroup* const method_group_;
   const ZoneVector<LocalVariable*> parameters_;
@@ -63,7 +68,7 @@ class Method final : public Node, public WithModifiers {
 // MethodGroup
 //
 class MethodGroup final : public NamedNode {
-  DECLARE_AST_NODE_CLASS(MethodGroup, NamedNode);
+  DECLARE_AST_NODE_CONCRETE_CLASS(MethodGroup, NamedNode);
 
  public:
   const ZoneVector<Method*>& methods() const { return methods_; }
@@ -73,6 +78,11 @@ class MethodGroup final : public NamedNode {
 
  private:
   MethodGroup(Zone* zone, Class* owner, Token* name);
+
+#if _DEBUG
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
 
   ZoneVector<Method*> methods_;
 

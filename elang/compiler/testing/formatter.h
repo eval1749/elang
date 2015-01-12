@@ -55,7 +55,7 @@ class Formatter final : public ast::Visitor {
 
 // ast::Visitor
 #define DECLARE_VISIT(type) void Visit##type(ast::type* node) final;
-  FOR_EACH_AST_NODE(DECLARE_VISIT)
+  FOR_EACH_AST_CONCRETE_NODE(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
   std::stringstream stream_;

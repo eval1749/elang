@@ -61,35 +61,33 @@ namespace ast {
   V(WhileStatement)                \
   V(YieldStatement)
 
-#define FOR_EACH_AST_NODE(V)   \
-  FOR_EACH_DECLARATION_NODE(V) \
-  FOR_EACH_EXPRESSION_NODE(V)  \
-  FOR_EACH_STATEMENT_NODE(V)   \
+#define FOR_EACH_AST_CONCRETE_NODE(V) \
+  FOR_EACH_DECLARATION_NODE(V)        \
+  FOR_EACH_EXPRESSION_NODE(V)         \
+  FOR_EACH_STATEMENT_NODE(V)          \
+  V(CatchClause)                      \
+  V(EnumMember)                       \
+  V(LocalVariable)                    \
+  V(MethodGroup)                      \
   V(NamespaceBody)
 
 #define FOR_EACH_ABSTRACT_AST_NODE(V) \
   V(ContainerNode)                    \
+  V(Expression)                       \
   V(Node)                             \
-  V(NamedNode)
+  V(NamedNode)                        \
+  V(Statement)
 
 //////////////////////////////////////////////////////////////////////
 //
 // Forward class declarations
 //
 #define V(Name) class Name;
-FOR_EACH_AST_NODE(V)
+FOR_EACH_AST_CONCRETE_NODE(V)
 FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
-class CatchClause;
-class EnumMember;
-class Expression;
-class LocalVariable;
-class MethodGroup;
-class ContainerNode;
-class NamespaceBody;
 class NodeFactory;
-class Statement;
 typedef Node Type;
 class Visitor;
 

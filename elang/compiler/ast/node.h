@@ -48,11 +48,15 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   // A token which parser created this not for.
   Token* token() const { return token_; }
 
-  virtual bool CanBeInNamespaceBody() const;
+#if _DEBUG
+  virtual bool CanBeMemberOf(ContainerNode* container) const;
+#endif
+
   bool IsDescendantOf(const Node* other) const;
 
   // Visitable<Visitor>
-  // Default implementation for node classes not in |FOR_EACH_AST_NODE()|.
+  // Default implementation for node classes not in
+  // |FOR_EACH_AST_CONCRETE_NODE()|.
   void Accept(Visitor* visitor) override;
 
  protected:
@@ -75,6 +79,10 @@ class NamedNode : public Node {
  public:
   Token* keyword() const { return token(); }
   Token* name() const override;
+
+#if _DEBUG
+  virtual bool CanBeNamedMemberOf(ContainerNode* container) const;
+#endif
 
  protected:
   NamedNode(ContainerNode* parent, Token* keyword, Token* name);
