@@ -145,7 +145,6 @@ namespace compiler {
   E(Syntax, Using, Name)                              \
   /* Using directive*/                                \
   E(Syntax, UsingDirective, Alias)                    \
-  E(Syntax, UsingDirective, Conflict)                 \
   E(Syntax, UsingDirective, Duplicate)                \
   E(Syntax, UsingDirective, Import)                   \
   E(Syntax, UsingDirective, Name)                     \

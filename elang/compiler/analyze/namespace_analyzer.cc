@@ -320,23 +320,22 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
         founds.insert(resolved);
       }
 
-      // Handle imports
-      for (auto const import : ns_body->imports()) {
-        if (!IsResolved(import))
-          return Postpone(context.node, import);
-        auto const imported = GetResolvedReference(import->reference());
-        if (auto const present =
-                imported->as<ast::ContainerNode>()->FindMember(name)) {
+      if (!ns_body->FindMember(name)) {
+        // When |name| isn't defined in namespace body, looking in imported
+        // namespaces.
+        for (auto const pair : ns_body->imports()) {
+          auto const import = pair.second;
+          if (!IsResolved(import))
+            return Postpone(context.node, import);
+          auto const imported = GetResolvedReference(import->reference());
+          auto const imported_ns = imported->as<ast::Namespace>();
+          if (!imported_ns)
+            continue;
+          auto const present = imported_ns->FindMember(name);
+          if (!present || present->is<ast::Namespace>())
+            continue;
+          // Import directive doesn't import nested namespace.
           founds.insert(present);
-        } else if (auto const clazz = imported->as<ast::Class>()) {
-          if (!IsResolved(clazz))
-            return Postpone(context.node, clazz);
-          // TODO(eval1749) We should check |System.Object| base classes.
-          for (auto const base_class_name : clazz->base_class_names()) {
-            auto const base_class =
-                GetResolvedReference(base_class_name)->as<ast::Class>();
-            FindInClass(name, base_class, &founds);
-          }
         }
       }
     } else {
@@ -504,11 +503,13 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
   auto const result = ResolveReference(context, import->reference());
   if (!result.has_value)
     return;
-  if (result.value && !result.value->as<ast::ContainerNode>()) {
-    Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
-          import->reference());
-  }
   DidResolve(import);
+  if (!result.value || result.value->is<ast::Namespace>() ||
+      result.value->is<ast::Class>()) {
+    return;
+  }
+  Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
+        import->reference());
 }
 
 // Builds namespace tree and schedule members to resolve.

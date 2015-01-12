@@ -42,6 +42,8 @@ class Alias final : public NamedNode {
 //////////////////////////////////////////////////////////////////////
 //
 // Import
+// Note: Instances of |Import| class aren't appeared in |ContainerNode|'s
+// named map.
 //
 class Import final : public NamedNode {
   DECLARE_AST_NODE_CONCRETE_CLASS(Import, NamedNode);
@@ -55,8 +57,6 @@ class Import final : public NamedNode {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Expression* const reference_;
@@ -92,12 +92,19 @@ class NamespaceBody final : public ContainerNode {
   DECLARE_AST_NODE_CONCRETE_CLASS(NamespaceBody, ContainerNode);
 
  public:
-  const ZoneVector<Import*>& imports() const { return imports_; }
+  typedef ZoneUnorderedMap<AtomicString*, Import*> ImportMap;
+
+  const ImportMap& imports() const { return import_map_; }
   NamespaceBody* outer() const;
   Namespace* owner() const { return namespace_; }
 
-  // Returns |Alias| named |name| in this namespace or null if not found.
+  void AddImport(Import* import);
+
+  // Returns |Alias| named by |name| in this namespace or null if not found.
   Alias* FindAlias(Token* name) const;
+
+  // Returns |Import| named by |name| in this namespace or null if not found.
+  Import* FindImport(Token* name) const;
 
   // TODO(eval1749) We should use Creator::Parser, Loader, etc.
   bool loaded_;
@@ -110,7 +117,7 @@ class NamespaceBody final : public ContainerNode {
   bool CanBeMemberOf(ContainerNode* container) const final;
 #endif
 
-  ZoneVector<Import*> imports_;
+  ImportMap import_map_;
   Namespace* const namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);

@@ -39,7 +39,7 @@ TEST_F(NamespaceAnalyzerTest, AliasConfusing) {
       "namespace N1 {"
       "  class A {}"
       "  namespace N2 {"
-      "    using R1 = A;"   // R1 = N1.A
+      "    using R1 = A;"  // R1 = N1.A
       "    class A {}"
       "    class B : R1 {}"  // base_class_of(B) = N1.A
       "  }"
@@ -226,6 +226,71 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorNestedDependency) {
 TEST_F(NamespaceAnalyzerTest, ClassErrorSelfReference) {
   Prepare("class A : A {}");
   EXPECT_EQ("NameResolution.Name.Cycle(6) A A\n", AnalyzeNamespace());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Import
+//
+TEST_F(NamespaceAnalyzerTest, ImportBasic) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1.N2;"
+      "  class B : A {}"
+      "}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("N1.N2.A", GetDirectBaseClasses("N3.B"));
+}
+
+TEST_F(NamespaceAnalyzerTest, ImportConfusing) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N1 = N2;"
+      "  class B : N1.A {}"
+      "}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("N2.A", GetDirectBaseClasses("N3.B"));
+}
+
+TEST_F(NamespaceAnalyzerTest, ImportErrorAmbiguous) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N2;"
+      "  class B : A {}"  // A is ambiguous
+      "}");
+  EXPECT_EQ("NameResolution.Name.Ambiguous(102) A\n", AnalyzeNamespace());
+}
+
+TEST_F(NamespaceAnalyzerTest, ImportNotImportNestedNamespace) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  class B : N2.A {}"
+      "}");
+  EXPECT_EQ("NameResolution.Name.NotResolved(67) N2\n", AnalyzeNamespace())
+      << "using N1 should not import namespace N1.N2 into N3.";
+}
+
+TEST_F(NamespaceAnalyzerTest, ImportNotAmbiguous) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N2;"
+      "  using A = N1.A;"
+      "  class B : A {}"  // A means N1.A
+      "}");
+  EXPECT_EQ("", AnalyzeNamespace());
+  EXPECT_EQ("N1.A", GetDirectBaseClasses("N3.B"));
 }
 
 //////////////////////////////////////////////////////////////////////

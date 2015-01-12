@@ -54,11 +54,6 @@ Import::Import(NamespaceBody* namespace_body,
 bool Import::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::NamespaceBody>();
 }
-
-// NamedNode
-bool Import::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::NamespaceBody>();
-}
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -89,7 +84,7 @@ bool Namespace::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
     : ContainerNode(zone, outer, owner->name(), owner->name()),
-      imports_(zone),
+      import_map_(zone),
       loaded_(false),
       namespace_(owner) {
 }
@@ -98,9 +93,19 @@ NamespaceBody* NamespaceBody::outer() const {
   return parent() ? parent()->as<ast::NamespaceBody>() : nullptr;
 }
 
+void NamespaceBody::AddImport(Import* import) {
+  import_map_[import->name()->simple_name()] = import;
+  AddMember(import);
+}
+
 Alias* NamespaceBody::FindAlias(Token* name) const {
   auto const present = FindMember(name);
   return present ? present->as<ast::Alias>() : nullptr;
+}
+
+Import* NamespaceBody::FindImport(Token* name) const {
+  auto const it = import_map_.find(name->simple_name());
+  return it == import_map_.end() ? nullptr : it->second;
 }
 
 #if _DEBUG

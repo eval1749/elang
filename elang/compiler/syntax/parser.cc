@@ -600,18 +600,11 @@ void Parser::ParseUsingDirectives() {
         AdvanceIf(TokenType::SemiColon);
         continue;
       }
-      if (auto const present = ns_body->FindMember(qualified_name)) {
-        if (auto const import = present->as<ast::Import>()) {
-          Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
-                import->reference()->token());
-        } else {
-          Error(ErrorCode::SyntaxUsingDirectiveConflict, qualified_name,
-                present->token());
-        }
+      if (auto const import = ns_body->FindImport(qualified_name)) {
+        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, qualified_name,
+              import->reference()->token());
       } else {
-        auto const import = factory()->NewImport(ns_body, using_keyword, thing);
-        ns_body->AddNamedMember(import);
-        ns_body->AddMember(import);
+        ns_body->AddImport(factory()->NewImport(ns_body, using_keyword, thing));
       }
     }
     if (!AdvanceIf(TokenType::SemiColon))
