@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "base/logging.h"
 #include "base/macros.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
@@ -26,11 +27,13 @@ class SimpleDirectedGraph : public ZoneOwner {
   ~SimpleDirectedGraph() = default;
 
   void AddEdge(const T& from, const T& to);
-  std::vector<T> GetInEdges(const T& to);
-  std::vector<T> GetOutEdges(const T& from);
-  bool HasEdge(const T& from, const T& to);
-  bool HasInEdge(const T& data);
-  bool HasOutEdge(const T& data);
+  // Returns all vertices used so far including vertices without in/out edges.
+  std::vector<T> GetAllVertices() const;
+  std::vector<T> GetInEdges(const T& to) const;
+  std::vector<T> GetOutEdges(const T& from) const;
+  bool HasEdge(const T& from, const T& to) const;
+  bool HasInEdge(const T& data) const;
+  bool HasOutEdge(const T& data) const;
   void RemoveEdge(const T& from, const T& to);
 
  private:
@@ -41,9 +44,12 @@ class SimpleDirectedGraph : public ZoneOwner {
     Vertex(Zone* zone, const T& data) : data(data), ins(zone), outs(zone) {}
   };
 
+  Vertex* GetOrNewVertex(const T& data) const {
+    return const_cast<SimpleDirectedGraph*>(this)->GetOrNewVertex(data);
+  }
   Vertex* GetOrNewVertex(const T& data);
 
-  ZoneUnorderedMap<T, Vertex*> vertex_map_;
+  mutable ZoneUnorderedMap<T, Vertex*> vertex_map_;
 
   DISALLOW_COPY_AND_ASSIGN(SimpleDirectedGraph);
 };
@@ -54,6 +60,35 @@ void SimpleDirectedGraph<T>::AddEdge(const T& from, const T& to) {
   auto const to_vertex = GetOrNewVertex(to);
   from_vertex->outs.insert(to_vertex);
   to_vertex->ins.insert(from_vertex);
+}
+
+template <typename T>
+std::vector<T> SimpleDirectedGraph<T>::GetAllVertices() const {
+  std::vector<T> vertices(vertex_map_.size());
+  vertices.resize(0);
+  for (const auto& pair : vertex_map_)
+    vertices.push_back(pair.first);
+  return vertices;
+}
+
+template <typename T>
+std::vector<T> SimpleDirectedGraph<T>::GetInEdges(const T& data) const {
+  auto const vertex = GetOrNewVertex(data);
+  std::vector<T> ins(vertex->ins.size());
+  ins.resize(0);
+  for (const auto& in : vertex->ins)
+    ins.push_back(in->data);
+  return ins;
+}
+
+template <typename T>
+std::vector<T> SimpleDirectedGraph<T>::GetOutEdges(const T& data) const {
+  auto const vertex = GetOrNewVertex(data);
+  std::vector<T> outs(vertex->outs.size());
+  outs.resize(0);
+  for (const auto& out : vertex->outs)
+    outs.push_back(out->data);
+  return outs;
 }
 
 template <typename T>
@@ -68,40 +103,20 @@ typename SimpleDirectedGraph<T>::Vertex* SimpleDirectedGraph<T>::GetOrNewVertex(
 }
 
 template <typename T>
-std::vector<T> SimpleDirectedGraph<T>::GetInEdges(const T& data) {
-  auto const vertex = GetOrNewVertex(data);
-  std::vector<T> ins(vertex->ins.size());
-  ins.resize(0);
-  for (const auto& in : vertex->ins)
-    ins.push_back(in->data);
-  return ins;
-}
-
-template <typename T>
-std::vector<T> SimpleDirectedGraph<T>::GetOutEdges(const T& data) {
-  auto const vertex = GetOrNewVertex(data);
-  std::vector<T> outs(vertex->outs.size());
-  outs.resize(0);
-  for (const auto& out : vertex->outs)
-    outs.push_back(out->data);
-  return outs;
-}
-
-template <typename T>
-bool SimpleDirectedGraph<T>::HasEdge(const T& from, const T& to) {
+bool SimpleDirectedGraph<T>::HasEdge(const T& from, const T& to) const {
   auto const from_vertex = GetOrNewVertex(from);
   auto const to_vertex = GetOrNewVertex(to);
   return from_vertex->outs.count(to_vertex);
 }
 
 template <typename T>
-bool SimpleDirectedGraph<T>::HasInEdge(const T& data) {
+bool SimpleDirectedGraph<T>::HasInEdge(const T& data) const {
   auto const vertex = GetOrNewVertex(data);
   return !vertex->ins.empty();
 }
 
 template <typename T>
-bool SimpleDirectedGraph<T>::HasOutEdge(const T& data) {
+bool SimpleDirectedGraph<T>::HasOutEdge(const T& data) const {
   auto const vertex = GetOrNewVertex(data);
   return !vertex->outs.empty();
 }
@@ -110,8 +125,14 @@ template <typename T>
 void SimpleDirectedGraph<T>::RemoveEdge(const T& from, const T& to) {
   auto const from_vertex = GetOrNewVertex(from);
   auto const to_vertex = GetOrNewVertex(to);
-  from_vertex->outs.erase(to_vertex);
-  to_vertex->ins.erase(from_vertex);
+
+  auto const from_it = from_vertex->outs.find(to_vertex);
+  DCHECK(from_it != from_vertex->outs.end());
+  from_vertex->outs.erase(from_it);
+
+  auto const to_it = to_vertex->ins.find(from_vertex);
+  DCHECK(to_it != to_vertex->ins.end());
+  to_vertex->ins.erase(to_it);
 }
 
 }  // namespace elang

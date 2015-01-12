@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+
 #include "elang/base/simple_directed_graph.h"
 #include "gtest/gtest.h"
 
@@ -56,6 +58,13 @@ TEST_F(SimpleDirectedGraphTest, AddEdge) {
   // Vertex 4
   EXPECT_FALSE(graph()->HasOutEdge(4));
   EXPECT_TRUE(graph()->HasInEdge(4));
+}
+
+TEST_F(SimpleDirectedGraphTest, GetAllVertices) {
+  auto vertices = graph()->GetAllVertices();
+  std::sort(vertices.begin(), vertices.end(),
+            [](int a, int b) { return a <= b; });
+  EXPECT_EQ((std::vector<int>{1, 2, 3, 4}), vertices);
 }
 
 TEST_F(SimpleDirectedGraphTest, GetInEdgets) {
