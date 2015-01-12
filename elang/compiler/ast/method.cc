@@ -25,7 +25,7 @@ Method::Method(Zone* zone,
                Token* name,
                const std::vector<Token*>& type_parameters,
                const std::vector<LocalVariable*>& parameters)
-    : Node(owner, name),
+    : ContainerNode(zone, owner, name, name),
       WithModifiers(modifiers),
       body_(nullptr),
       method_group_(method_group),
@@ -34,6 +34,10 @@ Method::Method(Zone* zone,
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->atomic_string(), name->atomic_string());
+}
+
+ast::Class* Method::owner() const {
+  return parent()->as<ast::Class>();
 }
 
 void Method::SetBody(ast::Statement* statement) {

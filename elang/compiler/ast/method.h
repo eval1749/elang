@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/container_node.h"
 #include "elang/compiler/ast/with_modifiers.h"
 
 namespace elang {
@@ -17,9 +17,9 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Method
+// Method contains type parameters in named map.
 //
-class Method final : public Node, public WithModifiers {
+class Method final : public ContainerNode, public WithModifiers {
   DECLARE_AST_NODE_CONCRETE_CLASS(Method, Node);
 
  public:
@@ -28,6 +28,7 @@ class Method final : public Node, public WithModifiers {
   Statement* body() const { return body_; }
 
   MethodGroup* method_group() const { return method_group_; }
+  Class* owner() const;
   const ZoneVector<LocalVariable*>& parameters() const { return parameters_; }
   Expression* return_type() const { return return_type_; }
 
