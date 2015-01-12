@@ -40,6 +40,7 @@ class NamespaceAnalyzer final : public Analyzer,
   explicit NamespaceAnalyzer(NameResolver* resolver);
   ~NamespaceAnalyzer();
 
+  // Returns true if resolution succeeded, otherwise false.
   bool Run();
 
  private:

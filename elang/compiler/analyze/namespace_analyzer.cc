@@ -386,19 +386,15 @@ bool NamespaceAnalyzer::Run() {
   VisitNamespaceBody(session()->root_node());
   if (!session()->errors().empty())
     return false;
-  std::unordered_set<ast::NamedNode*> unresolved_nodes;
-  for (auto const node : visited_nodes_) {
-    if (IsResolved(node))
+  auto succeeded = true;
+  for (auto const node : dependency_graph_.GetAllVertices()) {
+    auto const users = dependency_graph_.GetInEdges(node);
+    if (users.empty())
       continue;
-    unresolved_nodes.insert(node);
+    Error(ErrorCode::NameResolutionNameCycle, node, users.front());
+    succeeded = false;
   }
-  if (unresolved_nodes.empty())
-    return true;
-  for (auto const node : unresolved_nodes) {
-    Error(ErrorCode::NameResolutionNameCycle, node,
-          dependency_graph_.GetInEdges(node).front());
-  }
-  return false;
+  return succeeded;
 }
 
 // ast::Visitor
