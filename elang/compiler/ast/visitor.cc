@@ -24,7 +24,7 @@ Visitor::~Visitor() {
 // override for interested classes.
 #define V(type) \
   void Visitor::Visit##type(type* node) { DCHECK(node); }
-FOR_EACH_AST_CONCRETE_NODE(V)
+FOR_EACH_CONCRETE_AST_NODE(V)
 #undef V
 
 }  // namespace ast

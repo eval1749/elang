@@ -21,7 +21,7 @@ class NodeFactory;
 // Enum
 //
 class Enum final : public ContainerNode, WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Enum, ContainerNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Enum, ContainerNode);
 
  private:
   Enum(Zone* zone,
@@ -48,7 +48,7 @@ class Enum final : public ContainerNode, WithModifiers {
 // EnumMember
 //
 class EnumMember final : public NamedNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(EnumMember, NamedNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(EnumMember, NamedNode);
 
  public:
   Expression* expression() const { return expression_; }

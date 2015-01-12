@@ -16,7 +16,7 @@ namespace ast {
 // Alias
 //
 class Alias final : public NamedNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Alias, NamedNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Alias, NamedNode);
 
  public:
   Expression* reference() const { return reference_; }
@@ -46,7 +46,7 @@ class Alias final : public NamedNode {
 // named map.
 //
 class Import final : public NamedNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Import, NamedNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Import, NamedNode);
 
  public:
   Expression* reference() const { return reference_; }
@@ -69,7 +69,7 @@ class Import final : public NamedNode {
 // Namespace
 //
 class Namespace final : public ContainerNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Namespace, ContainerNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Namespace, ContainerNode);
 
  private:
   Namespace(Zone* zone, Namespace* outer, Token* keyword, Token* name);
@@ -89,7 +89,7 @@ class Namespace final : public ContainerNode {
 // NamespaceBody
 //
 class NamespaceBody final : public ContainerNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(NamespaceBody, ContainerNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(NamespaceBody, ContainerNode);
 
  public:
   typedef ZoneUnorderedMap<AtomicString*, Import*> ImportMap;

@@ -19,7 +19,7 @@ namespace ast {
 // Statement
 //
 class Statement : public Node {
-  DECLARE_AST_NODE_ABSTRACT_CLASS(Statement, Node);
+  DECLARE_ABSTRACT_AST_NODE_CLASS(Statement, Node);
 
  public:
   Token* keyword() const { return token(); }
@@ -34,7 +34,7 @@ class Statement : public Node {
 // Represents block statement:
 //  '{' Statement* '}'
 class BlockStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(BlockStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(BlockStatement, Statement);
 
  public:
   const ZoneVector<Statement*>& statements() const { return statements_; }
@@ -52,7 +52,7 @@ class BlockStatement final : public Statement {
 // Represents 'break' statement
 //  'break' ';'
 class BreakStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(BreakStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(BreakStatement, Statement);
 
  private:
   explicit BreakStatement(Token* keyword);
@@ -63,7 +63,7 @@ class BreakStatement final : public Statement {
 // Represents 'catch' clause:
 //  'catch' '(' Type Name? ')' '(' Statement* '}'
 class CatchClause final : public Node {
-  DECLARE_AST_NODE_CONCRETE_CLASS(CatchClause, Node);
+  DECLARE_CONCRETE_AST_NODE_CLASS(CatchClause, Node);
 
  public:
   BlockStatement* block() const { return block_; }
@@ -86,7 +86,7 @@ class CatchClause final : public Node {
 // Represents 'continue' statement
 //  'continue' ';'
 class ContinueStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ContinueStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ContinueStatement, Statement);
 
  private:
   explicit ContinueStatement(Token* keyword);
@@ -97,7 +97,7 @@ class ContinueStatement final : public Statement {
 // Represents 'do' statement:
 //   'do' EmbededStatement 'while' '(' BooleanExpression ')' ';'
 class DoStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(DoStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(DoStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -115,7 +115,7 @@ class DoStatement final : public Statement {
 // Represents empty statement:
 //  ';'
 class EmptyStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(EmptyStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(EmptyStatement, Statement);
 
  private:
   explicit EmptyStatement(Token* keyword);
@@ -125,7 +125,7 @@ class EmptyStatement final : public Statement {
 
 // Represents comma separated expressions used in 'for' statement.
 class ExpressionList : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ExpressionList, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ExpressionList, Statement);
 
  public:
   const std::vector<Expression*>& expressions() const { return expressions_; }
@@ -142,7 +142,7 @@ class ExpressionList : public Statement {
 // Represents expression statement:
 //  Expression ';'
 class ExpressionStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ExpressionStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ExpressionStatement, Statement);
 
  public:
   Expression* expression() const { return expression_; }
@@ -157,7 +157,7 @@ class ExpressionStatement final : public Statement {
 
 // Represents 'for' + ':' statement.
 class ForEachStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ForEachStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ForEachStatement, Statement);
 
  public:
   Expression* enumerable() const { return enumerable_; }
@@ -179,7 +179,7 @@ class ForEachStatement final : public Statement {
 
 // Represents 'for' statement.
 class ForStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ForStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ForStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -205,7 +205,7 @@ class ForStatement final : public Statement {
 // Represents 'if' statement:
 //  'if' '(' BooleanExpression ')' EmbededStatement ('else' EmbededStatement)?
 class IfStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(IfStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(IfStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -228,7 +228,7 @@ class IfStatement final : public Statement {
 // Represents invalid statement. This statement is used for continuing parsing
 // after syntax error.
 class InvalidStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(InvalidStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(InvalidStatement, Statement);
 
  private:
   explicit InvalidStatement(Token* token);
@@ -239,7 +239,7 @@ class InvalidStatement final : public Statement {
 // Represents 'return' statement:
 //  'return' Expression? ';'
 class ReturnStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ReturnStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ReturnStatement, Statement);
 
  public:
   Expression* value() const { return value_; }
@@ -255,7 +255,7 @@ class ReturnStatement final : public Statement {
 // Represents 'throw' statement:
 //  'throw' Expression
 class ThrowStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ThrowStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ThrowStatement, Statement);
 
  public:
   Expression* value() const { return value_; }
@@ -271,7 +271,7 @@ class ThrowStatement final : public Statement {
 // Represents 'try' statement:
 //  'try' BlockStatement (CatchCaluse*) ('finally' BlockStatement)?
 class TryStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(TryStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(TryStatement, Statement);
 
  public:
   BlockStatement* finally_block() const { return finally_block_; }
@@ -297,7 +297,7 @@ class TryStatement final : public Statement {
 // Represents 'using' statement:
 //  'using' '(' ResouceDecl ')' EmbededStatement
 class UsingStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(UsingStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(UsingStatement, Statement);
 
  public:
   Expression* resource() const { return resource_; }
@@ -321,7 +321,7 @@ class UsingStatement final : public Statement {
 //  'var' VarDecl (',' VarDecl)* ';'
 //  VarDecl ::= Name ('=' Expression)
 class VarStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(VarStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(VarStatement, Statement);
 
  public:
   const ZoneVector<LocalVariable*>& variables() const { return variables_; }
@@ -340,7 +340,7 @@ class VarStatement final : public Statement {
 // Represents 'while' statement:
 //  'while' '(' BooleanExpression ')' EmbededStatement
 class WhileStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(WhileStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(WhileStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
@@ -358,7 +358,7 @@ class WhileStatement final : public Statement {
 // Represents 'yield' statement:
 //  'yield' Expression
 class YieldStatement final : public Statement {
-  DECLARE_AST_NODE_CONCRETE_CLASS(YieldStatement, Statement);
+  DECLARE_CONCRETE_AST_NODE_CLASS(YieldStatement, Statement);
 
  public:
   Expression* value() const { return value_; }

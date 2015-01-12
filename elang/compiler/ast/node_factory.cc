@@ -23,7 +23,7 @@ namespace ast {
 
 #define V(Name) \
   void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
-FOR_EACH_AST_CONCRETE_NODE(V)
+FOR_EACH_CONCRETE_AST_NODE(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////

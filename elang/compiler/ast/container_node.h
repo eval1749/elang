@@ -18,7 +18,7 @@ namespace ast {
 // ContainerNode
 //
 class ContainerNode : public NamedNode {
-  DECLARE_AST_NODE_ABSTRACT_CLASS(ContainerNode, NamedNode);
+  DECLARE_ABSTRACT_AST_NODE_CLASS(ContainerNode, NamedNode);
 
  public:
   // List of members ordered by source code location.

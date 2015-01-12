@@ -19,7 +19,7 @@ namespace ast {
 // Class
 //
 class Class final : public ContainerNode, public WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Class, ContainerNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Class, ContainerNode);
 
  public:
   const ZoneVector<Expression*>& base_class_names() const {
@@ -59,7 +59,7 @@ class Class final : public ContainerNode, public WithModifiers {
 // Field
 //
 class Field final : public NamedNode, public WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Field, NamedNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Field, NamedNode);
 
  public:
   Expression* expression() const { return expression_; }

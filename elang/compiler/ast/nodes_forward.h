@@ -61,7 +61,7 @@ namespace ast {
   V(WhileStatement)                \
   V(YieldStatement)
 
-#define FOR_EACH_AST_CONCRETE_NODE(V) \
+#define FOR_EACH_CONCRETE_AST_NODE(V) \
   FOR_EACH_DECLARATION_NODE(V)        \
   FOR_EACH_EXPRESSION_NODE(V)         \
   FOR_EACH_STATEMENT_NODE(V)          \
@@ -83,7 +83,7 @@ namespace ast {
 // Forward class declarations
 //
 #define V(Name) class Name;
-FOR_EACH_AST_CONCRETE_NODE(V)
+FOR_EACH_CONCRETE_AST_NODE(V)
 FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 

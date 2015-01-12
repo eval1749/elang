@@ -21,7 +21,7 @@ class NodeFactory;
 // Expression
 //
 class Expression : public Node {
-  DECLARE_AST_NODE_ABSTRACT_CLASS(Expression, Node);
+  DECLARE_ABSTRACT_AST_NODE_CLASS(Expression, Node);
 
  public:
   Token* op() const { return token(); }
@@ -35,7 +35,7 @@ class Expression : public Node {
 
 // Represents array access, e.g. array[index (',' index)*]
 class ArrayAccess final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ArrayAccess, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ArrayAccess, Expression);
 
  public:
   Expression* array() const { return array_; }
@@ -57,7 +57,7 @@ class ArrayAccess final : public Expression {
 //  PrimaryExpresion Rank+
 //  Rank ::= '[' ','* ']'
 class ArrayType final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ArrayType, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ArrayType, Expression);
 
  public:
   Expression* element_type() const { return element_type_; }
@@ -82,7 +82,7 @@ class ArrayType final : public Expression {
 //  UnaryExpresion AssignmentOperator Expression
 //  AssignmentOperator ::= '=' | '+=' | ...
 class Assignment final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Assignment, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Assignment, Expression);
 
  public:
   Expression* left() const { return left_; }
@@ -99,7 +99,7 @@ class Assignment final : public Expression {
 
 // Represents BinaryOperation
 class BinaryOperation final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(BinaryOperation, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(BinaryOperation, Expression);
 
  public:
   Expression* left() const { return left_; }
@@ -118,7 +118,7 @@ class BinaryOperation final : public Expression {
 //  PrimaryExpresion '(' ArgumentList? ')'
 //  ArgumentList ::= Expression | Expression (',' Expression) *
 class Call final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Call, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Call, Expression);
 
  public:
   const ZoneVector<Expression*>& arguments() const { return arguments_; }
@@ -138,7 +138,7 @@ class Call final : public Expression {
 // Represents conditional expression:
 //  Expression '?' Expression ":' Expression
 class Conditional final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Conditional, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Conditional, Expression);
 
  public:
   Expression* conditional() const { return cond_; }
@@ -161,7 +161,7 @@ class Conditional final : public Expression {
 // Represents constructed type:
 //  Type '<' Type (',' Type)* '>'
 class ConstructedType final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(ConstructedType, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedType, Expression);
 
  public:
   const ZoneVector<Expression*>& arguments() const { return arguments_; }
@@ -184,7 +184,7 @@ class ConstructedType final : public Expression {
 // Represents invalid expression. This expression is used for continuing parsing
 // after syntax error.
 class InvalidExpression final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(InvalidExpression, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(InvalidExpression, Expression);
 
  private:
   explicit InvalidExpression(Token* token);
@@ -193,7 +193,7 @@ class InvalidExpression final : public Expression {
 };
 
 class Literal final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Literal, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Literal, Expression);
 
  private:
   explicit Literal(Token* literal);
@@ -203,7 +203,7 @@ class Literal final : public Expression {
 
 // Represents type components connected by '.', e.g. |G<S, T>.F<X>.A|.
 class MemberAccess final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(MemberAccess, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(MemberAccess, Expression);
 
  public:
   const ZoneVector<Expression*>& components() const { return components_; }
@@ -220,7 +220,7 @@ class MemberAccess final : public Expression {
 
 // Represents non-local name reference
 class NameReference final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(NameReference, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(NameReference, Expression);
 
  public:
   Token* name() const { return token(); }
@@ -239,7 +239,7 @@ class NameReference final : public Expression {
 //  'dynamic_cast' '<' Type '>' '(' Expression ')' |
 //  'static_cast' '<' Type '>' '(' Expression ')'
 class UnaryOperation final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(UnaryOperation, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(UnaryOperation, Expression);
 
  public:
   Expression* expression() const { return expression_; }
@@ -254,7 +254,7 @@ class UnaryOperation final : public Expression {
 
 // Represents local variable reference
 class VariableReference final : public Expression {
-  DECLARE_AST_NODE_CONCRETE_CLASS(VariableReference, Expression);
+  DECLARE_CONCRETE_AST_NODE_CLASS(VariableReference, Expression);
 
  public:
   // Returns name token where local variable referenced.

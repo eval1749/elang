@@ -20,7 +20,7 @@ namespace ast {
 // Method contains type parameters in named map.
 //
 class Method final : public ContainerNode, public WithModifiers {
-  DECLARE_AST_NODE_CONCRETE_CLASS(Method, Node);
+  DECLARE_CONCRETE_AST_NODE_CLASS(Method, Node);
 
  public:
   // Returns method body. Its is null when parsing is failed or |extern|
@@ -69,7 +69,7 @@ class Method final : public ContainerNode, public WithModifiers {
 // MethodGroup
 //
 class MethodGroup final : public NamedNode {
-  DECLARE_AST_NODE_CONCRETE_CLASS(MethodGroup, NamedNode);
+  DECLARE_CONCRETE_AST_NODE_CLASS(MethodGroup, NamedNode);
 
  public:
   const ZoneVector<Method*>& methods() const { return methods_; }

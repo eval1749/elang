@@ -20,10 +20,10 @@ namespace ast {
  protected:                                 \
   ~self() = default;
 
-#define DECLARE_AST_NODE_ABSTRACT_CLASS(self, super) \
+#define DECLARE_ABSTRACT_AST_NODE_CLASS(self, super) \
   DECLARE_AST_NODE_CLASS(self, super);
 
-#define DECLARE_AST_NODE_CONCRETE_CLASS(self, super) \
+#define DECLARE_CONCRETE_AST_NODE_CLASS(self, super) \
   DECLARE_AST_NODE_CLASS(self, super);               \
   void Accept(Visitor* visitor) final;
 
@@ -32,7 +32,7 @@ namespace ast {
 // Node
 //
 class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
-  DECLARE_AST_NODE_ABSTRACT_CLASS(Node, Castable);
+  DECLARE_ABSTRACT_AST_NODE_CLASS(Node, Castable);
 
  public:
   // Returns true if C++ class represents type, e.g. |ArrayType|, |Class|,
@@ -56,7 +56,7 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
 
   // Visitable<Visitor>
   // Default implementation for node classes not in
-  // |FOR_EACH_AST_CONCRETE_NODE()|.
+  // |FOR_EACH_CONCRETE_AST_NODE()|.
   void Accept(Visitor* visitor) override;
 
  protected:
@@ -74,7 +74,7 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
 // NamedNode
 //
 class NamedNode : public Node {
-  DECLARE_AST_NODE_ABSTRACT_CLASS(NamedNode, Node);
+  DECLARE_ABSTRACT_AST_NODE_CLASS(NamedNode, Node);
 
  public:
   Token* keyword() const { return token(); }
