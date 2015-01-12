@@ -106,6 +106,16 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorAmbiguous) {
   EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n", AnalyzeNamespace());
 }
 
+TEST_F(NamespaceAnalyzerTest, AliasErrorNotFound) {
+  Prepare(
+      "namespace N {"
+      "  using R1 = Foo;"  // |Foo| isn't defined anywhere.
+      "  class A : R1 {}"
+      "}");
+  EXPECT_EQ("NameResolution.Name.NotFound(26) Foo\n", AnalyzeNamespace())
+      << "Alias references non-existing thing Foo.";
+}
+
 // Scope of using alias directive is limited into namespace body.
 TEST_F(NamespaceAnalyzerTest, AliasErrorScope) {
   Prepare(
@@ -268,7 +278,7 @@ TEST_F(NamespaceAnalyzerTest, ImportErrorAmbiguous) {
   EXPECT_EQ("NameResolution.Name.Ambiguous(102) A\n", AnalyzeNamespace());
 }
 
-TEST_F(NamespaceAnalyzerTest, ImportNotImportNestedNamespace) {
+TEST_F(NamespaceAnalyzerTest, ImportErrorNestNamespace) {
   Prepare(
       "namespace N1.N2 { class A {} }"
       "namespace N3 {"
