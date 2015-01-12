@@ -370,9 +370,9 @@ TEST_F(NamespaceAnalyzerTest, PredefinedTypes) {
   Prepare("class A {}");
   EXPECT_EQ("", AnalyzeNamespace());
   EXPECT_EQ("", GetDirectBaseClasses("System.Object"));
-  EXPECT_EQ("System.Object", GetDirectBaseClasses("System.Value"));
-  EXPECT_EQ("System.Value", GetDirectBaseClasses("System.Bool"));
-  EXPECT_EQ("System.Value", GetDirectBaseClasses("System.Void"));
+  EXPECT_EQ("System.Object", GetDirectBaseClasses("System.ValueType"));
+  EXPECT_EQ("System.ValueType", GetDirectBaseClasses("System.Bool"));
+  EXPECT_EQ("System.ValueType", GetDirectBaseClasses("System.Void"));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -385,8 +385,8 @@ TEST_F(NamespaceAnalyzerTest, StructBasic) {
       "interface J {}"
       "struct S : I, J {}");
   EXPECT_EQ("", AnalyzeNamespace());
-  EXPECT_EQ("System.Value I J System.Object", GetBaseClasses("S"));
-  EXPECT_EQ("System.Value I J", GetDirectBaseClasses("S"));
+  EXPECT_EQ("System.ValueType I J System.Object", GetBaseClasses("S"));
+  EXPECT_EQ("System.ValueType I J", GetDirectBaseClasses("S"));
 }
 
 TEST_F(NamespaceAnalyzerTest, StructErrorBaseClass) {
