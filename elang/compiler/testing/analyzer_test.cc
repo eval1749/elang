@@ -14,10 +14,12 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/simple_directed_graph.h"
+#include "elang/compiler/analyze/class_analyzer.h"
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
@@ -70,13 +72,13 @@ std::string GetQualifiedName(ast::NamedNode* member) {
     names.push_back(runner->name());
   }
   std::reverse(names.begin(), names.end());
-  std::stringstream stream;
+  std::stringstream ostream;
   const char* separator = "";
   for (auto const name : names) {
-    stream << separator << name;
+    ostream << separator << name;
     separator = ".";
   }
-  return stream.str();
+  return ostream.str();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -305,11 +307,17 @@ AnalyzerTest::ClassOrString::ClassOrString(const char* format,
 //
 // AnalyzerTest
 //
-AnalyzerTest::AnalyzerTest()
-    : name_resolver_(NewNameResolver(session())) {
+AnalyzerTest::AnalyzerTest() : name_resolver_(NewNameResolver(session())) {
 }
 
 AnalyzerTest::~AnalyzerTest() {
+}
+
+std::string AnalyzerTest::AnalyzeClass() {
+  if (!Parse())
+    return GetErrors();
+  ClassAnalyzer resolver(name_resolver());
+  return resolver.Run() ? "" : GetErrors();
 }
 
 std::string AnalyzerTest::AnalyzeNamespace() {
@@ -337,10 +345,12 @@ ast::NamedNode* AnalyzerTest::FindMember(base::StringPiece name) {
     found = enclosing->FindMember(simple_name);
     if (!found)
       return nullptr;
+    pos = dot_pos;
+    if (pos == name.length())
+      break;
     enclosing = found->as<ast::ContainerNode>();
     if (!enclosing)
       return nullptr;
-    pos = dot_pos;
   }
   return found;
 }
@@ -376,16 +386,37 @@ std::string AnalyzerTest::GetDirectBaseClasses(base::StringPiece name) {
   return MakeClassListString(thing.ir_class->base_classes());
 }
 
+std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
+  auto const ast_node = FindMember(name);
+  if (!ast_node)
+    return base::StringPrintf("%s isn't found", name.as_string().c_str());
+  auto const ast_method_group = ast_node->as<ast::MethodGroup>();
+  if (!ast_method_group) {
+    return base::StringPrintf("%s isn't method group",
+                              name.as_string().c_str());
+  }
+  std::stringstream ostream;
+  for (auto const ast_method : ast_method_group->methods()) {
+    auto const ir_method = name_resolver()->Resolve(ast_method);
+    if (!ir_method) {
+      ostream << "Not resolved " << ast_method->token() << std::endl;
+      continue;
+    }
+    ostream << *ir_method << std::endl;
+  }
+  return ostream.str();
+}
+
 std::string AnalyzerTest::MakeClassListString(
     const std::vector<ir::Class*>& ir_classes) {
-  std::stringstream stream;
+  std::stringstream ostream;
   const char* separator = "";
   for (auto const ir_base_class : ir_classes) {
-    stream << separator;
-    stream << GetQualifiedName(ir_base_class->ast_class());
+    ostream << separator;
+    ostream << GetQualifiedName(ir_base_class->ast_class());
     separator = " ";
   }
-  return stream.str();
+  return ostream.str();
 }
 
 std::string AnalyzerTest::MakeClassListString(

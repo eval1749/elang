@@ -40,6 +40,7 @@ class AnalyzerTest : public CompilerTest {
   std::string GetBaseClasses(base::StringPiece name);
   ClassOrString GetClass(base::StringPiece name);
   std::string GetDirectBaseClasses(base::StringPiece name);
+  std::string GetMethodGroup(base::StringPiece name);
   std::string MakeClassListString(const std::vector<ir::Class*>& classes);
   std::string MakeClassListString(const ZoneVector<ir::Class*>& classes);
 
