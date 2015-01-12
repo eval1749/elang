@@ -14,14 +14,13 @@ namespace compiler {
 
 namespace ir {
 class Factory;
-class ContainerNode;
 class Node;
+class Type;
 }
 
 class CompilationSession;
 enum class ErrorCode;
 class NameResolver;
-class Signature;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -42,7 +41,7 @@ class Analyzer {
 
   // Shortcut to |NameResolver|.
   ir::Node* Resolve(ast::NamedNode* ast_node);
-  ir::Node* ResolveTypeReference(ast::Expression* reference,
+  ir::Type* ResolveTypeReference(ast::Expression* reference,
                                  ast::ContainerNode* container);
 
  private:

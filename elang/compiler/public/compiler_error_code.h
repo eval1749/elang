@@ -15,8 +15,10 @@ namespace compiler {
   /* Analyzer */                                      \
   E(Analyze, Type, NotFound)                          \
   /* Class Analyzer */                                \
-  E(ClassAnalyze, Method, Duplicate)                  \
-  /* Name Resolver */                                 \
+  E(ClassResolution, Method, Conflict)                \
+  E(ClassResolution, Method, Duplicate)               \
+  /* Namespace Analyzer */                            \
+  E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Containing)                \
   E(NameResolution, Class, NotClass)                  \
