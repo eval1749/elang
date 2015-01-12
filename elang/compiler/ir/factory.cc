@@ -5,11 +5,22 @@
 #include "elang/compiler/ir/factory.h"
 
 #include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/ir/visitor.h"
 
 namespace elang {
 namespace compiler {
 namespace ir {
 
+// Implementation of "visitor" pattern.
+#define V(Name) \
+  void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
+  FOR_EACH_CONCRETE_IR_NODE(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// Factory
+//
 Factory::Factory() {
 }
 

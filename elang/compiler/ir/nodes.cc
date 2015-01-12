@@ -30,8 +30,17 @@ Enum::Enum(Zone* zone, ast::Enum* ast_enum, const std::vector<int64_t>& values)
     : ast_enum_(ast_enum), values_(zone, values) {
 }
 
+// Method
 Method::Method(ast::Method* ast_method, Signature* signature)
     : ast_method_(ast_method), signature_(signature) {
+}
+
+const ZoneVector<Parameter*>& Method::parameters() const {
+  return signature_->parameters();
+}
+
+Type* Method::return_type() const {
+  return signature_->return_type();
 }
 
 // Parameter
@@ -74,12 +83,12 @@ bool Signature::operator!=(const Signature& other) const {
   return !operator==(other);
 }
 
-bool Signature::IsIdenticalParameters(const Signature& other) const {
-  if (this == &other)
+bool Signature::IsIdenticalParameters(const Signature* other) const {
+  if (this == other)
     return true;
-  if (parameters_.size() != other.parameters_.size())
+  if (parameters_.size() != other->parameters_.size())
     return false;
-  auto other_parameters = other.parameters_.begin();
+  auto other_parameters = other->parameters_.begin();
   for (auto const parameter : parameters_) {
     if (!parameter->IsIdentical(**other_parameters))
       return false;

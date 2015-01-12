@@ -28,6 +28,7 @@ FOR_EACH_CONCRETE_IR_NODE(V)
 
 class Factory;
 enum class ParameterKind;
+class Visitor;
 
 }  // namespace ir
 }  // namespace compiler

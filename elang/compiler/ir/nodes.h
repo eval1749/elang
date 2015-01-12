@@ -5,6 +5,7 @@
 #ifndef ELANG_COMPILER_IR_NODES_H_
 #define ELANG_COMPILER_IR_NODES_H_
 
+#include <ostream>
 #include <vector>
 
 #include "elang/base/castable.h"
@@ -26,15 +27,20 @@ namespace ir {
 #define DECLARE_ABSTRACT_IR_NODE_CLASS(self, super) \
   DECLARE_IR_NODE_CLASS(self, super);
 
-#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super) \
-  DECLARE_IR_NODE_CLASS(self, super);               \
-  friend class Factory;
+#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super)  \
+  DECLARE_IR_NODE_CLASS(self, super);                \
+ private:                                            \
+  /* |Factory| class if friend of concrete |Node| */ \
+  /* class, for accessing constructor. */            \
+  friend class Factory;                              \
+  /* Visitor pattern */                              \
+  void Accept(Visitor* visitor) final;
 
 //////////////////////////////////////////////////////////////////////
 //
 // Node
 //
-class Node : public Castable, public ZoneAllocated {
+class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DECLARE_ABSTRACT_IR_NODE_CLASS(Node, Castable);
 
  protected:
@@ -43,6 +49,9 @@ class Node : public Castable, public ZoneAllocated {
  private:
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
+
+// Print for formatting and debugging.
+std::ostream& operator<<(std::ostream& ostream, const Node& node);
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -115,10 +124,8 @@ class Method final : public Node {
  public:
   ast::Method* ast_method() const { return ast_method_; }
   const ZoneVector<Parameter*>& parameters() const;
-  Type* return_type();
+  Type* return_type() const;
   Signature* signature() const { return signature_; }
-
-  bool IsIdenticalParameters(const ZoneVector<Parameter*>& other) const;
 
  private:
   Method(ast::Method* ast_method, Signature* signature);
@@ -178,7 +185,7 @@ class Signature final : public Type {
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() { return return_type_; }
 
-  bool IsIdenticalParameters(const Signature& other) const;
+  bool IsIdenticalParameters(const Signature* other) const;
 
  private:
   Signature(Zone* zone,
