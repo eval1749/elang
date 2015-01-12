@@ -94,6 +94,15 @@ TEST_F(NamespaceAnalyzerTest, AliasToAliasDeep) {
   EXPECT_EQ("N1.N2.A.B.C", GetDirectBaseClasses("N1.D"));
 }
 
+TEST_F(NamespaceAnalyzerTest, AliasErrorAlreadyExists) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 { class A {} }"
+      "namespace N3 { using A = N1.N2.A; }");
+  EXPECT_EQ("NameResolution.Alias.Duplicate(78) A A\n", AnalyzeNamespace())
+    << "Alias name must be unique in namespace.";
+}
+
 // Note: MS C# compiler doesn't report error if alias A isn't used.
 TEST_F(NamespaceAnalyzerTest, AliasErrorAmbiguous) {
   Prepare(
@@ -103,7 +112,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorAmbiguous) {
       "  using A = N1.N2.A;"
       "  class B : A {}"  // A can be N1.N2.A or N3.A.
       "}");
-  EXPECT_EQ("NameResolution.Name.Ambiguous(103) A\n", AnalyzeNamespace());
+  EXPECT_EQ("NameResolution.Alias.Duplicate(79) A A\n", AnalyzeNamespace());
 }
 
 TEST_F(NamespaceAnalyzerTest, AliasErrorNotFound) {

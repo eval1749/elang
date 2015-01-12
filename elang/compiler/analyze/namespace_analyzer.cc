@@ -416,6 +416,14 @@ void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
     visited_nodes_.insert(alias);
   if (IsResolved(alias))
     return;
+  auto const enclosing_ns = alias->parent()->as<ast::NamespaceBody>()->owner();
+  if (auto const present = enclosing_ns->FindMember(alias->name())) {
+    // An name of alias must be unique in enclosing namespace.
+    DCHECK_NE(present, alias);
+    Error(ErrorCode::NameResolutionAliasDuplicate, alias, present);
+    DidResolve(alias);
+    return;
+  }
   ResolveContext context(alias, alias->parent()->parent());
   auto const result = ResolveReference(context, alias->reference());
   if (!result.has_value)
