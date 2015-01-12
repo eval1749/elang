@@ -24,6 +24,13 @@ class SimpleDirectedGraphTest : public ::testing::Test {
   DISALLOW_COPY_AND_ASSIGN(SimpleDirectedGraphTest);
 };
 
+std::vector<int> Sort(const std::vector<int>& vector) {
+  auto result = vector;
+  std::sort(result.begin(), result.end(),
+            [](int a, int b) { return a < b; });
+  return result;
+}
+
 // Build graph
 //      1
 //     / \
@@ -61,20 +68,17 @@ TEST_F(SimpleDirectedGraphTest, AddEdge) {
 }
 
 TEST_F(SimpleDirectedGraphTest, GetAllVertices) {
-  auto vertices = graph()->GetAllVertices();
-  std::sort(vertices.begin(), vertices.end(),
-            [](int a, int b) { return a <= b; });
-  EXPECT_EQ((std::vector<int>{1, 2, 3, 4}), vertices);
+  EXPECT_EQ((std::vector<int>{1, 2, 3, 4}), Sort(graph()->GetAllVertices()));
 }
 
-TEST_F(SimpleDirectedGraphTest, GetInEdgets) {
-  EXPECT_EQ(std::vector<int>{1}, graph()->GetInEdges(2));
-  EXPECT_EQ((std::vector<int>{2, 3}), graph()->GetInEdges(4));
+TEST_F(SimpleDirectedGraphTest, GetInEdges) {
+  EXPECT_EQ(std::vector<int>{1}, Sort(graph()->GetInEdges(2)));
+  EXPECT_EQ((std::vector<int>{2, 3}), Sort(graph()->GetInEdges(4)));
 }
 
-TEST_F(SimpleDirectedGraphTest, GetOutEdgets) {
-  EXPECT_EQ((std::vector<int>{2, 3}), graph()->GetOutEdges(1));
-  EXPECT_EQ(std::vector<int>{4}, graph()->GetOutEdges(2));
+TEST_F(SimpleDirectedGraphTest, GetOutEdges) {
+  EXPECT_EQ((std::vector<int>{2, 3}), Sort(graph()->GetOutEdges(1)));
+  EXPECT_EQ(std::vector<int>{4}, Sort(graph()->GetOutEdges(2)));
 }
 
 TEST_F(SimpleDirectedGraphTest, RemoveEdge) {
