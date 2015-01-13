@@ -41,6 +41,7 @@ class NameResolver::ReferenceResolver final : public Analyzer,
 
   // ast::Visitor
   void VisitNameReference(ast::NameReference* node) final;
+  void VisitTypeNameReference(ast::TypeNameReference* node) final;
 
   ast::ContainerNode* const container_;
   ast::NamedNode* result_;
@@ -132,6 +133,11 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   }
   ProduceResult(*founds.begin());
   return;
+}
+
+void NameResolver::ReferenceResolver::VisitTypeNameReference(
+    ast::TypeNameReference* node) {
+  VisitNameReference(node->reference());
 }
 
 //////////////////////////////////////////////////////////////////////
