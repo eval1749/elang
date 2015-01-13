@@ -21,7 +21,7 @@ namespace compiler {
 //
 // Parser::ExpressionCategory
 //
-#define EXPRESSION_CATEGORY_LIST(V)         \
+#define FOR_EACH_EXPRESSION_CATEGORY(V)     \
   V(None)                                   \
   V(Primary)                                \
   V(Unary)          /* '++' '--' '~' '!' */ \
@@ -40,16 +40,16 @@ namespace compiler {
   V(Assignment)     /* '=' '+=' ... */
 
 enum class Parser::ExpressionCategory {
-#define ENUM_MEMBER(name) name,
-  EXPRESSION_CATEGORY_LIST(ENUM_MEMBER)
-#undef ENUM_MEMBER
+#define V(name) name,
+  FOR_EACH_EXPRESSION_CATEGORY(V)
+#undef V
 };
 
 std::ostream& operator<<(std::ostream& ostream,
                          Parser::ExpressionCategory category) {
   static const char* const strings[] = {
 #define V(name) #name,
-      EXPRESSION_CATEGORY_LIST(V)
+      FOR_EACH_EXPRESSION_CATEGORY(V)
 #undef V
   };
   return ostream << strings[static_cast<int>(category)];
