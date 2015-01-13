@@ -1,9 +1,9 @@
-// Copyright 2014 Project Vogue. All rights reserved.
+// Copyright 2014-2015 Project Vogue. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#if !defined(INCLUDE_elang_compiler_character_stream_h)
-#define INCLUDE_elang_compiler_character_stream_h
+#ifndef ELANG_COMPILER_CHARACTER_STREAM_H_
+#define ELANG_COMPILER_CHARACTER_STREAM_H_
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
@@ -32,4 +32,4 @@ class CharacterStream {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // !defined(INCLUDE_elang_compiler_character_stream_h)
+#endif  // ELANG_COMPILER_CHARACTER_STREAM_H_
