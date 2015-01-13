@@ -39,9 +39,6 @@ class Class final : public ContainerNode, public WithModifiers {
         Token* keyword,
         Token* name);
 
-  // Node
-  bool is_type() const final;
-
 #if _DEBUG
   // Node
   virtual bool CanBeMemberOf(ContainerNode* container) const;
@@ -63,12 +60,12 @@ class Field final : public NamedNode, public WithModifiers {
 
  public:
   Expression* expression() const { return expression_; }
-  Expression* type() const { return type_; }
+  Type* type() const { return type_; }
 
  private:
   Field(Class* outer,
         Modifiers modifiers,
-        Expression* Type,
+        Type* Type,
         Token* name,
         Expression* expression);
 
@@ -80,7 +77,7 @@ class Field final : public NamedNode, public WithModifiers {
 #endif
 
   Expression* const expression_;
-  Expression* const type_;
+  Type* const type_;
 
   DISALLOW_COPY_AND_ASSIGN(Field);
 };

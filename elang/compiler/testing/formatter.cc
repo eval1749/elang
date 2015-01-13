@@ -194,7 +194,7 @@ void Formatter::VisitClass(ast::Class* clazz) {
 }
 
 void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
-  Visit(cons_type->blueprint_type());
+  Visit(cons_type->base_type());
   stream_ << "<";
   const char* separator = "";
   for (auto const type_arg : cons_type->arguments()) {
@@ -365,6 +365,10 @@ void Formatter::VisitInvalidStatement(ast::InvalidStatement* statement) {
   stream_ << "INVALID '" << statement->token() << "';";
 }
 
+void Formatter::VisitInvalidType(ast::InvalidType* type) {
+  stream_ << "INVALID '" << type->token() << "';";
+}
+
 void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
@@ -459,6 +463,11 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
   ns_body->AcceptForMembers(this);
 }
 
+void Formatter::VisitOptionalType(ast::OptionalType* type) {
+  Visit(type->base_type());
+  stream_ << "?";
+}
+
 void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {
   stream_ << "return";
   if (auto const value = return_statement->value()) {
@@ -493,6 +502,14 @@ void Formatter::VisitTryStatement(ast::TryStatement* try_statement) {
     return;
   stream_ << " finally ";
   Visit(finally_block);
+}
+
+void Formatter::VisitTypeMemberAccess(ast::TypeMemberAccess* type) {
+  Visit(type->reference());
+}
+
+void Formatter::VisitTypeNameReference(ast::TypeNameReference* type) {
+  Visit(type->reference());
 }
 
 void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {

@@ -35,11 +35,6 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DECLARE_ABSTRACT_AST_NODE_CLASS(Node, Castable);
 
  public:
-  // Returns true if C++ class represents type, e.g. |ArrayType|, |Class|,
-  // |Enum|, and so on. For |MemberAccess| and |NameReference| always return
-  // false.
-  virtual bool is_type() const;
-
   // Associated name like thing for error message and debug log.
   virtual Token* name() const;
 

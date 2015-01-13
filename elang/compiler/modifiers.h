@@ -62,7 +62,7 @@ class Modifiers final {
 
   static Modifiers Class();
   static Modifiers Enum();
-  static Modifiers Filed();
+  static Modifiers Field();
   static Modifiers Method();
 
   Modifiers& operator=(const Modifiers& other);

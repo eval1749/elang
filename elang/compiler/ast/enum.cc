@@ -29,11 +29,6 @@ Enum::Enum(Zone* zone,
   DCHECK_EQ(modifiers, Modifiers::Enum() & modifiers);
 }
 
-// Node
-bool Enum::is_type() const {
-  return true;
-}
-
 #if _DEBUG
 // Node
 bool Enum::CanBeMemberOf(ContainerNode* container) const {

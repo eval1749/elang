@@ -17,11 +17,15 @@ namespace compiler {
 namespace ast {
 class ContainerNode;
 class Expression;
+class MemberAccess;
+class NamedNode;
 class Namespace;
 class NamespaceBody;
-class NamedNode;
+class NameReference;
+class Node;
 class Factory;
 class Statement;
+class Type;
 class Variable;
 }  // namespace ast
 
@@ -100,6 +104,7 @@ class Parser final {
   // in "parse_expression.cc"
   // Returns last produced expression.
   ast::Expression* ConsumeExpression();
+  ast::Expression* ConsumeExpressionOrType();
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
@@ -111,6 +116,8 @@ class Parser final {
                                           ast::Expression* left,
                                           ast::Expression* right);
   ast::Expression* ProduceExpression(ast::Expression* expression);
+  ast::Expression* ProduceExpressionOrType(ast::Expression* expression);
+  ast::Expression* ProduceNameReference(Token* token);
   ast::Expression* ProduceUnaryOperation(Token* op_token,
                                          ast::Expression* expression);
   Token* TryConsumeUnaryOperator();
@@ -131,7 +138,7 @@ class Parser final {
   bool ParseForStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);
   bool ParseMethod(Modifiers modifiers,
-                   ast::Expression* method_type,
+                   ast::Type* method_type,
                    Token* method_name,
                    const std::vector<Token*> type_parameters);
   bool ParseReturnStatement(Token* keyword);
@@ -141,7 +148,7 @@ class Parser final {
   bool ParseWhileStatement(Token* keyword);
   bool ParseUsingStatement(Token* keyword);
   bool ParseVarStatement(Token* keyword);
-  void ParseVariables(Token* keyword, ast::Expression* type);
+  void ParseVariables(Token* keyword, ast::Type* type);
   bool ParseYieldStatement(Token* keyword);
   ast::Statement* ProduceStatement(ast::Statement* statement);
 
@@ -151,13 +158,15 @@ class Parser final {
 
   // in "parse_type.cc"
   // Returns last produced expression.
-  ast::Expression* ConsumeType();
+  ast::Type* ConsumeExpressionAsType();
+  ast::Type* ConsumeType();
   // Returns true if |expression| can be type. Since we've not yet resolved
   // name references, |expression| may not be type.
   bool MaybeType(ast::Expression* expression) const;
   // Returns true if |expression| can be type name. Since we've not yet resolved
   // name references, |expression| may not be type name.
   bool MaybeTypeName(ast::Expression* expression) const;
+  ast::Type* NewTypeNameReference(Token* token);
   void ParseArrayType(Token* bracket);
   bool ParseNamespaceOrTypeName();
   bool ParseType();
@@ -165,7 +174,12 @@ class Parser final {
   bool ParseTypePost();
   ast::Expression* ProduceMemberAccess(
       const std::vector<ast::Expression*>& names);
-  ast::Expression* ProduceType(ast::Expression* expression);
+  ast::Type* ProduceType(ast::Type* type);
+  ast::Type* ProduceTypeMemberAccess(
+      const std::vector<ast::Expression*>& names);
+  ast::Type* ProduceTypeMemberAccess(ast::MemberAccess* node);
+  ast::Type* ProduceTypeNameReference(ast::NameReference* node);
+  ast::Type* ProduceTypeNameReference(Token* token);
 
   CompilationUnit* compilation_unit_;
   ast::ContainerNode* container_;

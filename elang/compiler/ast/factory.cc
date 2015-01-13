@@ -68,7 +68,7 @@ EnumMember* Factory::NewEnumMember(Enum* owner,
 
 Field* Factory::NewField(Class* outer,
                          Modifiers modifiers,
-                         Expression* type,
+                         Type* type,
                          Token* name,
                          Expression* expression) {
   return new (zone_) Field(outer, modifiers, type, name, expression);
@@ -83,7 +83,7 @@ Import* Factory::NewImport(NamespaceBody* namespace_body,
 Method* Factory::NewMethod(Class* outer,
                            MethodGroup* method_group,
                            Modifiers modifies,
-                           Expression* type,
+                           Type* type,
                            Token* name,
                            const std::vector<Token*>& type_parameters,
                            const std::vector<Variable*>& parameters,
@@ -119,12 +119,6 @@ ArrayAccess* Factory::NewArrayAccess(Token* bracket,
   return new (zone_) ArrayAccess(zone_, bracket, array, indexes);
 }
 
-ArrayType* Factory::NewArrayType(Token* op,
-                                 Expression* element_type,
-                                 const std::vector<int>& ranks) {
-  return new (zone_) ArrayType(zone_, op, element_type, ranks);
-}
-
 Assignment* Factory::NewAssignment(Token* op,
                                    Expression* left,
                                    Expression* right) {
@@ -142,12 +136,6 @@ Conditional* Factory::NewConditional(Token* op,
                                      Expression* then_expr,
                                      Expression* else_expr) {
   return new (zone_) Conditional(op, cond_expr, then_expr, else_expr);
-}
-
-ConstructedType* Factory::NewConstructedType(
-    Expression* blueprint_type,
-    const std::vector<Expression*>& arguments) {
-  return new (zone_) ConstructedType(zone_, blueprint_type, arguments);
 }
 
 InvalidExpression* Factory::NewInvalidExpression(Token* token) {
@@ -173,7 +161,7 @@ UnaryOperation* Factory::NewUnaryOperation(Token* op, Expression* expr) {
 }
 
 Variable* Factory::NewVariable(Token* keyword,
-                               Expression* type,
+                               Type* type,
                                Token* name,
                                Expression* value) {
   return new (zone_) Variable(keyword, type, name, value);
@@ -204,7 +192,7 @@ Call* Factory::NewCall(Expression* callee,
 }
 
 CatchClause* Factory::NewCatchClause(Token* keyword,
-                                     Expression* type,
+                                     Type* type,
                                      Variable* variable,
                                      BlockStatement* block) {
   return new (zone_) CatchClause(keyword, type, variable, block);
@@ -301,6 +289,38 @@ WhileStatement* Factory::NewWhileStatement(Token* keyword,
 
 YieldStatement* Factory::NewYieldStatement(Token* keyword, Expression* value) {
   return new (zone_) YieldStatement(keyword, value);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Types
+//
+ArrayType* Factory::NewArrayType(Token* op,
+                                 Type* element_type,
+                                 const std::vector<int>& ranks) {
+  return new (zone_) ArrayType(zone_, op, element_type, ranks);
+}
+
+ConstructedType* Factory::NewConstructedType(
+    Type* base_type,
+    const std::vector<Type*>& arguments) {
+  return new (zone_) ConstructedType(zone_, base_type, arguments);
+}
+
+InvalidType* Factory::NewInvalidType(Expression* expression) {
+  return new (zone_) InvalidType(expression);
+}
+
+OptionalType* Factory::NewOptionalType(Token* token, Type* base_type) {
+  return new (zone_) OptionalType(token, base_type);
+}
+
+TypeMemberAccess* Factory::NewTypeMemberAccess(MemberAccess* reference) {
+  return new (zone_) TypeMemberAccess(reference);
+}
+
+TypeNameReference* Factory::NewTypeNameReference(NameReference* reference) {
+  return new (zone_) TypeNameReference(reference);
 }
 
 //////////////////////////////////////////////////////////////////////

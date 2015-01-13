@@ -26,7 +26,7 @@ Class::Class(Zone* zone,
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
-  DCHECK_EQ(modifiers, modifiers & Modifiers::Class());
+  DCHECK_EQ(modifiers, Modifiers::Class() & modifiers);
 }
 
 bool Class::is_class() const {
@@ -43,11 +43,6 @@ bool Class::is_struct() const {
 
 void Class::AddBaseClassName(Expression* class_name) {
   base_class_names_.push_back(class_name);
-}
-
-// Node
-bool Class::is_type() const {
-  return true;
 }
 
 #if _DEBUG
@@ -68,18 +63,14 @@ bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 Field::Field(Class* outer,
              Modifiers modifiers,
-             Expression* type,
+             Type* type,
              Token* name,
              Expression* expression)
     : NamedNode(outer, name, name),
       WithModifiers(modifiers),
       expression_(expression),
       type_(type) {
-  Modifiers valid_modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
-                            Modifier::Private, Modifier::Protected,
-                            Modifier::Public, Modifier::Static,
-                            Modifier::Volatile);
-  DCHECK_EQ(modifiers, modifiers & valid_modifiers);
+  DCHECK_EQ(modifiers, Modifiers::Field() & modifiers);
 }
 
 #if _DEBUG

@@ -30,9 +30,6 @@ class Enum final : public ContainerNode, WithModifiers {
        Token* keyword,
        Token* name);
 
-  // Node
-  bool is_type() const final;
-
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;

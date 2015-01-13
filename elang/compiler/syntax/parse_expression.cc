@@ -67,6 +67,14 @@ Parser::ExpressionCategory RaisePrecedence(
 
 ast::Expression* Parser::ConsumeExpression() {
   DCHECK(expression_);
+  auto const result = ConsumeExpressionOrType();
+  if (result->is<ast::Type>())
+    Error(ErrorCode::SyntaxExpressionType, result->token());
+  return result;
+}
+
+ast::Expression* Parser::ConsumeExpressionOrType() {
+  DCHECK(expression_);
   auto const result = expression_;
   expression_ = nullptr;
   return result;
@@ -194,7 +202,10 @@ bool Parser::ParsePrimaryExpression() {
     }
 
     // Non-local name reference
-    ProduceExpression(factory()->NewNameReference(name));
+    if (PeekToken()->is_name())
+      ProduceTypeNameReference(name);
+    else
+      ProduceNameReference(name);
     ParsePrimaryExpressionName();
     ParsePrimaryExpressionPost();
     return true;
@@ -202,12 +213,12 @@ bool Parser::ParsePrimaryExpression() {
 
   if (PeekToken()->is_type_name()) {
     // Type name: 'bool', 'char', 'int', 'int16', and so on.
-    ProduceType(factory()->NewNameReference(ConsumeToken()));
+    ProduceTypeNameReference(ConsumeToken());
     if (AdvanceIf(TokenType::LeftAngleBracket)) {
       // TODO(eval1749) Skip until right angle bracket
       Error(ErrorCode::SyntaxExpressionLeftAngleBracket);
     }
-    ParseTypePost();
+    ParsePrimaryExpressionPost();
     return true;
   }
 
@@ -229,8 +240,8 @@ bool Parser::ParsePrimaryExpression() {
 void Parser::ParsePrimaryExpressionName() {
   if (!AdvanceIf(TokenType::LeftAngleBracket))
     return;
-  auto const generic_type = ConsumeExpression();
-  std::vector<ast::Expression*> type_args;
+  auto const generic_type = ConsumeExpressionAsType();
+  std::vector<ast::Type*> type_args;
   do {
     if (!ParseType()) {
       // TODO(eval1749) Skip to right angle bracket.
@@ -244,7 +255,7 @@ void Parser::ParsePrimaryExpressionName() {
   }
   if (!AdvanceIf(TokenType::RightAngleBracket))
     Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
-  ProduceExpression(factory()->NewConstructedType(generic_type, type_args));
+  ProduceType(factory()->NewConstructedType(generic_type, type_args));
 }
 
 void Parser::ParsePrimaryExpressionPost() {
@@ -259,7 +270,7 @@ void Parser::ParsePrimaryExpressionPost() {
         return;
       }
       std::vector<ast::Expression*> components;
-      auto const container = ConsumeExpression();
+      auto const container = ConsumeExpressionOrType();
       if (auto const member_access = container->as<ast::MemberAccess>()) {
         components.insert(components.begin(),
                           member_access->components().begin(),
@@ -375,6 +386,12 @@ Parser::ExpressionCategory Parser::PeekTokenCategory() {
 }
 
 ast::Expression* Parser::ProduceExpression(ast::Expression* expression) {
+  if (expression->is<ast::Type>())
+    Error(ErrorCode::SyntaxExpressionType, expression->token());
+  return ProduceExpressionOrType(expression);
+}
+
+ast::Expression* Parser::ProduceExpressionOrType(ast::Expression* expression) {
   DCHECK(!expression_);
   return expression_ = expression;
 }
@@ -384,6 +401,10 @@ ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
                                                 ast::Expression* right) {
   return ProduceExpression(
       factory()->NewBinaryOperation(op_token, left, right));
+}
+
+ast::Expression* Parser::ProduceNameReference(Token* token) {
+  return ProduceExpression(factory()->NewNameReference(token));
 }
 
 ast::Expression* Parser::ProduceUnaryOperation(Token* op_token,

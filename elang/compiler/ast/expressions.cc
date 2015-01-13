@@ -28,18 +28,6 @@ ArrayAccess::ArrayAccess(Zone* zone,
   DCHECK(!indexes.empty());
 }
 
-// ArrayType
-ArrayType::ArrayType(Zone* zone,
-                     Token* op,
-                     Expression* element_type,
-                     const std::vector<int>& ranks)
-    : Expression(op), element_type_(element_type), ranks_(zone, ranks) {
-}
-
-bool ArrayType::is_type() const {
-  return true;
-}
-
 // Assignment
 Assignment::Assignment(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
@@ -62,18 +50,6 @@ Conditional::Conditional(Token* op,
                          Expression* then_expr,
                          Expression* else_expr)
     : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
-}
-
-// ConstructedType
-ConstructedType::ConstructedType(Zone* zone,
-                                 Expression* type,
-                                 const std::vector<Expression*>& args)
-    : Expression(type->token()), arguments_(zone, args), blueprint_type_(type) {
-  DCHECK(!arguments_.empty());
-}
-
-bool ConstructedType::is_type() const {
-  return true;
 }
 
 // InvalidExpression
@@ -101,10 +77,7 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
 }
 
 // Variable
-Variable::Variable(Token* keyword,
-                   Expression* type,
-                   Token* name,
-                   Expression* value)
+Variable::Variable(Token* keyword, Type* type, Token* name, Expression* value)
     : NamedNode(nullptr, keyword, name), type_(type), value_(value) {
   DCHECK(!keyword || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
@@ -118,6 +91,56 @@ bool Variable::is_const() const {
 // VariableReference
 VariableReference::VariableReference(Token* name, Variable* variable)
     : Expression(name), variable_(variable) {
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Types
+//
+
+// Type
+Type::Type(Token* token) : Expression(token) {
+}
+
+// ArrayType
+ArrayType::ArrayType(Zone* zone,
+                     Token* op,
+                     Type* element_type,
+                     const std::vector<int>& ranks)
+    : Type(op), element_type_(element_type), ranks_(zone, ranks) {
+}
+
+// ConstructedType
+ConstructedType::ConstructedType(Zone* zone,
+                                 Type* type,
+                                 const std::vector<Type*>& args)
+    : Type(type->token()), arguments_(zone, args), base_type_(type) {
+  DCHECK(!arguments_.empty());
+}
+
+// InvalidType
+InvalidType::InvalidType(Expression* expression)
+    : Type(expression->token()), expression_(expression) {
+}
+
+// OptionalType
+OptionalType::OptionalType(Token* op, Type* base_type)
+    : Type(op), base_type_(base_type) {
+  DCHECK_EQ(op, TokenType::OptionalType);
+}
+
+// TypeMemberAccess
+TypeMemberAccess::TypeMemberAccess(MemberAccess* reference)
+    : Type(reference->token()), reference_(reference) {
+}
+
+// TypeNameReference
+TypeNameReference::TypeNameReference(NameReference* reference)
+    : Type(reference->token()), reference_(reference) {
+}
+
+Token* TypeNameReference::name() const {
+  return reference_->name();
 }
 
 }  // namespace ast

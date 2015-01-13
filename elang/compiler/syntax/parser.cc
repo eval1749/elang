@@ -26,17 +26,16 @@ namespace elang {
 namespace compiler {
 
 namespace {
-Token* MakeQualifiedNameToken(ast::Expression* thing) {
+Token* MakeQualifiedNameToken(ast::Node* thing) {
   if (auto const name_reference = thing->as<ast::NameReference>())
     return name_reference->name();
-  auto const member_access = thing->as<ast::MemberAccess>();
-  if (!member_access)
-    return false;
-  for (auto const component : member_access->components()) {
-    if (!component->is<ast::NameReference>())
-      return nullptr;
-  }
-  return member_access->token();
+  if (auto const type_name_reference = thing->as<ast::TypeNameReference>())
+    return type_name_reference->name();
+  if (auto const type_member_access = thing->as<ast::TypeMemberAccess>())
+    return MakeQualifiedNameToken(type_member_access->reference());
+  if (auto const member_access = thing->as<ast::MemberAccess>())
+    return member_access->token();
+  return nullptr;
 }
 }  // namespace
 
@@ -342,7 +341,7 @@ bool Parser::ParseClass() {
     //    Type Name TypeParameterList? ParameterDecl '{'
     //    Statement* '}'
     if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
-      ProduceType(factory()->NewNameReference(var_keyword));
+      ProduceTypeNameReference(var_keyword);
     } else if (!ParseType()) {
       return Error(ErrorCode::SyntaxClassDeclRightCurryBracket);
     }
@@ -390,7 +389,7 @@ bool Parser::ParseClass() {
     }
 
     // |var| field must have initial value.
-    if (auto const name_ref = member_type->as<ast::NameReference>()) {
+    if (auto const name_ref = member_type->as<ast::TypeNameReference>()) {
       if (name_ref->name() == TokenType::Var)
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
@@ -569,13 +568,14 @@ void Parser::ParseUsingDirectives() {
     auto const thing = ConsumeType();
     if (AdvanceIf(TokenType::Assign)) {
       // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
-      if (!thing->is<ast::NameReference>()) {
+      auto const type_name_ref = thing->as<ast::TypeNameReference>();
+      if (!type_name_ref) {
         Error(ErrorCode::SyntaxUsingDirectiveAlias);
         AdvanceIf(TokenType::SemiColon);
         continue;
       }
       auto is_valid = true;
-      auto const alias_name = thing->as<ast::NameReference>()->name();
+      auto const alias_name = type_name_ref->name();
       // Note: 'using' directive comes before other declarations. We don't
       // need to use enclosing namespace's |FindMember()|.
       if (auto const present = ns_body->FindMember(alias_name)) {

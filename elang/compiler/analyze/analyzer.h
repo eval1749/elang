@@ -41,7 +41,7 @@ class Analyzer {
 
   // Shortcut to |NameResolver|.
   ir::Node* Resolve(ast::NamedNode* ast_node);
-  ir::Type* ResolveTypeReference(ast::Expression* reference,
+  ir::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
 
  private:

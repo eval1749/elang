@@ -28,12 +28,10 @@ namespace ast {
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
   V(ArrayAccess)                    \
-  V(ArrayType)                      \
   V(Assignment)                     \
   V(BinaryOperation)                \
   V(Call)                           \
   V(Conditional)                    \
-  V(ConstructedType)                \
   V(InvalidExpression)              \
   V(Literal)                        \
   V(MemberAccess)                   \
@@ -61,10 +59,19 @@ namespace ast {
   V(WhileStatement)                \
   V(YieldStatement)
 
+#define FOR_EACH_TYPE_NODE(V) \
+  V(ArrayType)                \
+  V(ConstructedType)          \
+  V(InvalidType)              \
+  V(OptionalType)             \
+  V(TypeMemberAccess)         \
+  V(TypeNameReference)
+
 #define FOR_EACH_CONCRETE_AST_NODE(V) \
   FOR_EACH_DECLARATION_NODE(V)        \
   FOR_EACH_EXPRESSION_NODE(V)         \
   FOR_EACH_STATEMENT_NODE(V)          \
+  FOR_EACH_TYPE_NODE(V)               \
   V(CatchClause)                      \
   V(EnumMember)                       \
   V(Variable)                         \
@@ -76,7 +83,8 @@ namespace ast {
   V(Expression)                       \
   V(Node)                             \
   V(NamedNode)                        \
-  V(Statement)
+  V(Statement)                        \
+  V(Type)
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -88,7 +96,6 @@ FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
 class Factory;
-typedef Node Type;
 class Visitor;
 
 }  // namespace ast

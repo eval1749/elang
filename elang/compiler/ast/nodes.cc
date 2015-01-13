@@ -20,10 +20,6 @@ Node::Node(ContainerNode* parent, Token* token)
     : parent_(parent), token_(token) {
 }
 
-bool Node::is_type() const {
-  return false;
-}
-
 Token* Node::name() const {
   return token();
 }

@@ -53,31 +53,6 @@ class ArrayAccess final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(ArrayAccess);
 };
 
-// Represents ArrayType expression:
-//  PrimaryExpresion Rank+
-//  Rank ::= '[' ','* ']'
-class ArrayType final : public Expression {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ArrayType, Expression);
-
- public:
-  Expression* element_type() const { return element_type_; }
-  const ZoneVector<int>& ranks() const { return ranks_; }
-
- private:
-  ArrayType(Zone* zone,
-            Token* op_token,
-            Expression* expression,
-            const std::vector<int>& ranks);
-
-  // Node
-  bool is_type() const final;
-
-  Expression* const element_type_;
-  const ZoneVector<int> ranks_;
-
-  DISALLOW_COPY_AND_ASSIGN(ArrayType);
-};
-
 // Represents assignment:
 //  UnaryExpresion AssignmentOperator Expression
 //  AssignmentOperator ::= '=' | '+=' | ...
@@ -158,29 +133,6 @@ class Conditional final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
 
-// Represents constructed type:
-//  Type '<' Type (',' Type)* '>'
-class ConstructedType final : public Expression {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedType, Expression);
-
- public:
-  const ZoneVector<Expression*>& arguments() const { return arguments_; }
-  Expression* blueprint_type() const { return blueprint_type_; }
-
- private:
-  ConstructedType(Zone* zone,
-                  Expression* expression,
-                  const std::vector<Expression*>& arguments);
-
-  // Node
-  bool is_type() const final;
-
-  const ZoneVector<Expression*> arguments_;
-  Expression* const blueprint_type_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstructedType);
-};
-
 // Represents invalid expression. This expression is used for continuing parsing
 // after syntax error.
 class InvalidExpression final : public Expression {
@@ -258,14 +210,14 @@ class Variable final : public NamedNode {
 
  public:
   bool is_const() const;
-  Expression* type() const { return type_; }
+  Type* type() const { return type_; }
   Expression* value() const { return value_; }
 
  private:
   // |keyword| one of 'catch', 'const', 'for', 'using', or |nullptr|
-  Variable(Token* keyword, Expression* type, Token* name, Expression* value);
+  Variable(Token* keyword, Type* type, Token* name, Expression* value);
 
-  Expression* const type_;
+  Type* const type_;
   Expression* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(Variable);
@@ -286,6 +238,123 @@ class VariableReference final : public Expression {
   Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableReference);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Types
+//
+class Type : public Expression {
+  DECLARE_ABSTRACT_AST_NODE_CLASS(Type, Expression);
+
+ protected:
+  explicit Type(Token* op);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Type);
+};
+
+// Represents ArrayType expression:
+//  PrimaryExpresion Rank+
+//  Rank ::= '[' ','* ']'
+class ArrayType final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ArrayType, Type);
+
+ public:
+  Expression* element_type() const { return element_type_; }
+  const ZoneVector<int>& ranks() const { return ranks_; }
+
+ private:
+  ArrayType(Zone* zone,
+            Token* op_token,
+            Type* element_type,
+            const std::vector<int>& ranks);
+
+  Type* const element_type_;
+  const ZoneVector<int> ranks_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayType);
+};
+
+// Represents constructed type:
+//  Type '<' Type (',' Type)* '>'
+class ConstructedType final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedType, Type);
+
+ public:
+  const ZoneVector<Type*>& arguments() const { return arguments_; }
+  Expression* base_type() const { return base_type_; }
+
+ private:
+  ConstructedType(Zone* zone,
+                  Type* base_type,
+                  const std::vector<Type*>& arguments);
+
+  const ZoneVector<Type*> arguments_;
+  Expression* const base_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstructedType);
+};
+
+// InvalidType
+class InvalidType final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(InvalidType, Type);
+
+ public:
+  Expression* expression() const { return expression_; }
+
+ private:
+  explicit InvalidType(Expression* expression);
+
+  Expression* const expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(InvalidType);
+};
+
+// OptionalType
+class OptionalType final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(OptionalType, Type);
+
+ public:
+  Type* base_type() const { return base_type_; }
+
+ private:
+  OptionalType(Token* op, Type* base_type);
+
+  Type* const base_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(OptionalType);
+};
+
+// TypeMemberAccess
+class TypeMemberAccess final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(TypeMemberAccess, Type);
+
+ public:
+  MemberAccess* reference() const { return reference_; }
+
+ private:
+  explicit TypeMemberAccess(MemberAccess* reference);
+
+  MemberAccess* const reference_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypeMemberAccess);
+};
+
+// TypeNameReference
+class TypeNameReference final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(TypeNameReference, Type);
+
+ public:
+  Token* name() const;
+  NameReference* reference() const { return reference_; }
+
+ private:
+  explicit TypeNameReference(NameReference* reference);
+
+  NameReference* const reference_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypeNameReference);
 };
 
 }  // namespace ast

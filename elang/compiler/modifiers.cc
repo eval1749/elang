@@ -63,7 +63,7 @@ Modifiers Modifiers::Enum() {
                    Modifier::Public);
 }
 
-Modifiers Modifiers::Filed() {
+Modifiers Modifiers::Field() {
   return Modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
                    Modifier::Private, Modifier::Protected, Modifier::Public,
                    Modifier::Static, Modifier::Volatile);

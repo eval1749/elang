@@ -45,7 +45,7 @@ class Factory final {
   EnumMember* NewEnumMember(Enum* owner, Token* name, Expression* expression);
   Field* NewField(Class* clazz,
                   Modifiers modifiers,
-                  Expression* type,
+                  Type* type,
                   Token* name,
                   Expression* expression);
   Import* NewImport(NamespaceBody* namespace_body,
@@ -54,7 +54,7 @@ class Factory final {
   Method* NewMethod(Class* owner,
                     MethodGroup* method_group,
                     Modifiers modifies,
-                    Expression* type,
+                    Type* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters,
                     const std::vector<Variable*>& parameters,
@@ -67,9 +67,6 @@ class Factory final {
   ArrayAccess* NewArrayAccess(Token* bracket,
                               Expression* array,
                               const std::vector<Expression*> indexes);
-  ArrayType* NewArrayType(Token* op,
-                          Expression* element_type,
-                          const std::vector<int>& ranks);
   Assignment* NewAssignment(Token* op, Expression* left, Expression* right);
   BinaryOperation* NewBinaryOperation(Token* op,
                                       Expression* left,
@@ -79,9 +76,6 @@ class Factory final {
                               Expression* cond_expr,
                               Expression* then_expr,
                               Expression* else_expr);
-  ConstructedType* NewConstructedType(
-      Expression* blueprint_type,
-      const std::vector<Expression*>& arguments);
   InvalidExpression* NewInvalidExpression(Token* token);
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,
@@ -89,7 +83,7 @@ class Factory final {
   NameReference* NewNameReference(Token* literal);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
   Variable* NewVariable(Token* keyword,
-                        Expression* type,
+                        Type* type,
                         Token* name,
                         Expression* expression);
   VariableReference* NewVariableReference(Token* name, Variable* var);
@@ -99,7 +93,7 @@ class Factory final {
                                     const std::vector<Statement*> statements);
   BreakStatement* NewBreakStatement(Token* keyword);
   CatchClause* NewCatchClause(Token* keyword,
-                              Expression* type,
+                              Type* type,
                               Variable* variable,
                               BlockStatement* block);
   ContinueStatement* NewContinueStatement(Token* keyword);
@@ -145,6 +139,18 @@ class Factory final {
                                     Expression* condition,
                                     Statement* statement);
   YieldStatement* NewYieldStatement(Token* keyword, Expression* value);
+
+  // Type nodes
+  ArrayType* NewArrayType(Token* op,
+                          Type* element_type,
+                          const std::vector<int>& ranks);
+  ConstructedType* NewConstructedType(Type* blueprint_type,
+                                      const std::vector<Type*>& arguments);
+
+  InvalidType* NewInvalidType(Expression* expression);
+  OptionalType* NewOptionalType(Token* op, Type* base_type);
+  TypeMemberAccess* NewTypeMemberAccess(MemberAccess* node);
+  TypeNameReference* NewTypeNameReference(NameReference* node);
 
  private:
   Node* RememberNode(Node* node);

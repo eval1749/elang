@@ -372,6 +372,18 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
     return ResolveNameReference(context, name_reference);
   if (auto const member_access = reference->as<ast::MemberAccess>())
     return ResolveMemberAccess(context, member_access);
+  if (auto const type = reference->as<ast::TypeMemberAccess>()) {
+    auto const result = ResolveReference(context, type->reference());
+    if (result.has_value)
+      Remember(reference, result.value);
+    return result;
+  }
+  if (auto const type = reference->as<ast::TypeNameReference>()) {
+    auto const result = ResolveReference(context, type->reference());
+    if (result.has_value)
+      Remember(reference, result.value);
+    return result;
+  }
 #if 0
   // TODO(eval1749) Support |ConstructedType| in |NamespaceAnalyzer|.
   if (auto const cons_type = reference->as<ast::ConstructedType>())

@@ -30,7 +30,7 @@ class Method final : public ContainerNode, public WithModifiers {
   MethodGroup* method_group() const { return method_group_; }
   Class* owner() const;
   const ZoneVector<Variable*>& parameters() const { return parameters_; }
-  Expression* return_type() const { return return_type_; }
+  Type* return_type() const { return return_type_; }
 
   // Type parameters for generic method.
   const ZoneVector<Token*>& type_parameters() { return type_parameters_; }
@@ -40,7 +40,7 @@ class Method final : public ContainerNode, public WithModifiers {
          Class* owner,
          MethodGroup* method_group,
          Modifiers modifies,
-         Expression* return_type,
+         Type* return_type,
          Token* name,
          const std::vector<Token*>& type_parameters,
          const std::vector<Variable*>& parameters,
@@ -57,7 +57,7 @@ class Method final : public ContainerNode, public WithModifiers {
   Statement* const body_;
   MethodGroup* const method_group_;
   const ZoneVector<Variable*> parameters_;
-  Expression* const return_type_;
+  Type* const return_type_;
   const ZoneVector<Token*> type_parameters_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);

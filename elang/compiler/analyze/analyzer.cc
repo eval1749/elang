@@ -43,15 +43,13 @@ ir::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return resolver_->Resolve(ast_node);
 }
 
-ir::Type* Analyzer::ResolveTypeReference(ast::Expression* reference,
+ir::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
-  auto const ast_node = resolver_->ResolveReference(reference, container);
+  auto const ast_node = resolver_->ResolveReference(type, container);
   if (!ast_node) {
-    Error(ErrorCode::AnalyzeTypeNotFound, reference);
+    Error(ErrorCode::AnalyzeTypeNotFound, type);
     return nullptr;
   }
-  if (!ast_node->is_type())
-    return nullptr;
   return Resolve(ast_node)->as<ir::Type>();
 }
 

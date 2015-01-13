@@ -182,12 +182,11 @@ bool Parser::ParseBreakStatement(Token* break_keyword) {
 // ConstStatement ::= 'const' ('var' | Type) (Name '=' Expression)+ ';'
 bool Parser::ParseConstStatement(Token* const_keyword) {
   DCHECK_EQ(const_keyword, TokenType::Const);
-  auto type = static_cast<ast::Expression*>(nullptr);
-  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
-    type = factory()->NewNameReference(var_keyword);
-  } else if (ParseType()) {
+  auto type = static_cast<ast::Type*>(nullptr);
+  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
+    type = NewTypeNameReference(var_keyword);
+  else if (ParseType())
     type = ConsumeType();
-  }
   ParseVariables(const_keyword, type);
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxVarSemiColon);
@@ -340,7 +339,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           continue;
         }
         if (PeekToken() == TokenType::Var) {
-          ProduceType(factory()->NewNameReference(ConsumeToken()));
+          ProduceTypeNameReference(ConsumeToken());
           state = State::Type;
           continue;
         }
@@ -417,7 +416,7 @@ bool Parser::ParseIfStatement(Token* if_keyword) {
 
 // Called after '(' read.
 bool Parser::ParseMethod(Modifiers method_modifiers,
-                         ast::Expression* method_type,
+                         ast::Type* method_type,
                          Token* method_name,
                          const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
@@ -454,7 +453,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     owner->AddNamedMember(method_group);
   }
 
-  auto method_body = static_cast<ast::Statement* >(nullptr);
+  auto method_body = static_cast<ast::Statement*>(nullptr);
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasAbstract() && !method_modifiers.HasExtern())
       Error(ErrorCode::SyntaxMethodSemiColon);
@@ -470,10 +469,9 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     Error(ErrorCode::SyntaxMethodLeftCurryBracket);
   }
 
-  auto const method =
-      factory()->NewMethod(owner, method_group, method_modifiers, method_type,
-                           method_name, type_parameters, parameters,
-                           method_body);
+  auto const method = factory()->NewMethod(
+      owner, method_group, method_modifiers, method_type, method_name,
+      type_parameters, parameters, method_body);
   method_group->AddMethod(method);
   container_->AddMember(method);
   return true;
@@ -611,7 +609,7 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
 }
 
 // |keyword| is 'const', 'var' or token of |type|.
-void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
+void Parser::ParseVariables(Token* keyword, ast::Type* type) {
   std::vector<ast::Variable*> variables;
   while (PeekToken()->is_name()) {
     auto const name = ConsumeToken();
@@ -644,7 +642,7 @@ void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
 // VarDecl ::= Name ('=' Expression')
 bool Parser::ParseVarStatement(Token* var_keyword) {
   DCHECK_EQ(var_keyword, TokenType::Var);
-  ParseVariables(var_keyword, factory()->NewNameReference(var_keyword));
+  ParseVariables(var_keyword, NewTypeNameReference(var_keyword));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxVarSemiColon);
   return true;
@@ -754,21 +752,19 @@ bool Parser::ParseStatement() {
   if (!ParseExpression())
     return false;
 
-  auto const expression = ConsumeExpression();
   if (PeekToken()->is_name()) {
     // VariableDeclration ::=
     //    Type VariableDeclarator (',' VariableDeclarator)*
     // VariableDeclarator ::= Name ('=' Expression)
-    if (!MaybeType(expression))
-      Error(ErrorCode::SyntaxVarType);
-    ParseVariables(expression->token(), expression);
+    auto const type = ConsumeType();
+    ParseVariables(type->token(), type);
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxVarSemiColon);
     return true;
   }
 
   // Expression statement
-  ProduceStatement(factory()->NewExpressionStatement(expression));
+  ProduceStatement(factory()->NewExpressionStatement(ConsumeExpression()));
   if (!AdvanceIf(TokenType::SemiColon))
     Error(ErrorCode::SyntaxStatementSemiColon);
   return true;

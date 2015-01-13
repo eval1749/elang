@@ -446,8 +446,8 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
       "  }\n"
       "}\n");
   EXPECT_EQ(
+      "Syntax.Type.NotType(34) x\n"
       "Syntax.Expression.LeftAngleBracket(35) <\n"
-      "Syntax.Var.Type(36) T\n"
       "Syntax.Var.SemiColon(37) >\n"
       "Syntax.Type.Name(37) >\n"
       "Syntax.ClassDecl.RightCurryBracket(37) >\n",
@@ -634,7 +634,8 @@ TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
       "  }\n"
       "}\n");
   EXPECT_EQ(
-      "Syntax.Bracket.NotClosed(41) < }\n"  // from method F
+      "Syntax.Expression.Type(27) System.Console\n"
+      "Syntax.Bracket.NotClosed(41) < }\n"
       "Syntax.MemberAccess.RightAngleBracket(43) ;\n",
       Format());
 }
@@ -646,7 +647,8 @@ TEST_F(ParserTest, MemberAccessTypeArg) {
       "    System.Console<A, int>(123);\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ(source_code, Format(source_code));
+  EXPECT_EQ("Syntax.Expression.Type(27) System.Console\n", Format(source_code))
+      << "Constructed method call isn't allowed.";
 }
 
 //////////////////////////////////////////////////////////////////////

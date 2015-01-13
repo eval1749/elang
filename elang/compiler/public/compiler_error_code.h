@@ -138,6 +138,7 @@ namespace compiler {
   /* Type */                                          \
   E(Syntax, Type, Comma)                              \
   E(Syntax, Type, Name)                               \
+  E(Syntax, Type, NotType)                            \
   E(Syntax, Type, RightAngleBracket)                  \
   E(Syntax, Type, RightSquareBracket)                 \
   E(Syntax, Type, TypeArgument)                       \
