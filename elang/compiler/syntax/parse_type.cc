@@ -191,6 +191,7 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
 ast::Expression* Parser::ProduceMemberAccess(
     const std::vector<ast::Expression*>& names) {
   DCHECK(!names.empty());
+  DCHECK(!names.front()->is<ast::MemberAccess>());
   if (names.size() == 1)
     return ProduceType(names.back());
   // TODO(eval1749) We should use |base::string16| for creating name for

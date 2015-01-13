@@ -258,9 +258,17 @@ void Parser::ParsePrimaryExpressionPost() {
         Error(ErrorCode::SyntaxMemberAccessName, ConsumeToken());
         return;
       }
+      std::vector<ast::Expression*> components;
       auto const container = ConsumeExpression();
-      auto const member_name = factory()->NewNameReference(ConsumeToken());
-      ProduceMemberAccess({container, member_name});
+      if (auto const member_access = container->as<ast::MemberAccess>()) {
+        components.insert(components.begin(),
+                          member_access->components().begin(),
+                          member_access->components().end());
+      } else {
+        components.push_back(container);
+      }
+      components.push_back(factory()->NewNameReference(ConsumeToken()));
+      ProduceMemberAccess(components);
       ParsePrimaryExpressionName();
       continue;
     }
