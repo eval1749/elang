@@ -32,6 +32,50 @@ Modifiers& Modifiers::operator=(const Modifiers& other) {
   return *this;
 }
 
+bool Modifiers::operator==(const Modifiers& other) const {
+  return flags_ == other.flags_;
+}
+
+bool Modifiers::operator!=(const Modifiers& other) const {
+  return flags_ != other.flags_;
+}
+
+Modifiers Modifiers::operator&(const Modifiers& other) const {
+  return Modifiers(flags_ & other.flags_);
+}
+
+Modifiers Modifiers::operator|(const Modifiers& other) const {
+  return Modifiers(flags_ | other.flags_);
+}
+
+Modifiers Modifiers::operator^(const Modifiers& other) const {
+  return Modifiers(flags_ ^ other.flags_);
+}
+
+Modifiers Modifiers::Class() {
+  return Modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
+                   Modifier::Partial, Modifier::Private, Modifier::Protected,
+                   Modifier::Public, Modifier::Static);
+}
+
+Modifiers Modifiers::Enum() {
+  return Modifiers(Modifier::New, Modifier::Private, Modifier::Protected,
+                   Modifier::Public);
+}
+
+Modifiers Modifiers::Filed() {
+  return Modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
+                   Modifier::Private, Modifier::Protected, Modifier::Public,
+                   Modifier::Static, Modifier::Volatile);
+}
+
+Modifiers Modifiers::Method() {
+  return Modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
+                   Modifier::Override, Modifier::Partial, Modifier::Private,
+                   Modifier::Protected, Modifier::Public, Modifier::Static,
+                   Modifier::Virtual);
+}
+
 std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers) {
   static const char* const strings[] = {
 #define STRING(name, string, details) string,

@@ -35,6 +35,7 @@ Method::Method(Zone* zone,
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
   DCHECK_EQ(method_group_->name()->atomic_string(), name->atomic_string());
+  DCHECK_EQ(modifiers, Modifiers::Method() & modifiers);
 }
 
 ast::Class* Method::owner() const {

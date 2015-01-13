@@ -26,6 +26,7 @@ Class::Class(Zone* zone,
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
+  DCHECK_EQ(modifiers, modifiers & Modifiers::Class());
 }
 
 bool Class::is_class() const {
@@ -74,6 +75,11 @@ Field::Field(Class* outer,
       WithModifiers(modifiers),
       expression_(expression),
       type_(type) {
+  Modifiers valid_modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
+                            Modifier::Private, Modifier::Protected,
+                            Modifier::Public, Modifier::Static,
+                            Modifier::Volatile);
+  DCHECK_EQ(modifiers, modifiers & valid_modifiers);
 }
 
 #if _DEBUG

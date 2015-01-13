@@ -26,6 +26,7 @@ Enum::Enum(Zone* zone,
     : ContainerNode(zone, outer, keyword, name), WithModifiers(modifiers) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);
   DCHECK(name->is_name());
+  DCHECK_EQ(modifiers, Modifiers::Enum() & modifiers);
 }
 
 // Node

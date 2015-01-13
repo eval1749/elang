@@ -23,6 +23,7 @@ namespace compiler {
   V(Extern, "extern", "I")                           \
   V(Final, "final", "I")                             \
   V(New, "new", "M")                                 \
+  V(Override, "override", "I")                       \
   /* 'partial' modifier must be the last modifier */ \
   V(Partial, "partial", "D")                         \
   V(Private, "private", "A")                         \
@@ -50,20 +51,36 @@ class Modifiers final {
   friend class ModifiersBuilder;
 
  public:
+  // Helper for constructing |Modifiers| with list of modifiers.
+  template <typename... Rest>
+  explicit Modifiers(Modifier modifier, Rest... modifiers)
+      : Modifiers((1 << static_cast<int>(modifier)) |
+                  Modifiers(modifiers...).flags_) {}  // NOLINT
   Modifiers(const Modifiers& other);
   Modifiers();
   ~Modifiers();
 
+  static Modifiers Class();
+  static Modifiers Enum();
+  static Modifiers Filed();
+  static Modifiers Method();
+
   Modifiers& operator=(const Modifiers& other);
+
+  bool operator==(const Modifiers& other) const;
+  bool operator!=(const Modifiers& other) const;
+  Modifiers operator&(const Modifiers& other) const;
+  Modifiers operator|(const Modifiers& other) const;
+  Modifiers operator^(const Modifiers& other) const;
 
   int value() const { return flags_; }
 
-#define DEFINE_HAS(name, string, details)                           \
-  bool Has##name() const {                                          \
-    return (flags_ & (1 << static_cast<int>(Modifier::name))) != 0; \
+#define V(name, string, details)                                 \
+  bool Has##name() const {                                       \
+    return !!(flags_ & (1 << static_cast<int>(Modifier::name))); \
   }
-  FOR_EACH_MODIFIER(DEFINE_HAS)
-#undef DEFINE_HAS
+  FOR_EACH_MODIFIER(V)
+#undef V
 
  private:
   explicit Modifiers(int flags);
