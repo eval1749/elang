@@ -36,7 +36,7 @@ bool ClassAnalyzer::Run() {
   return session()->errors().empty();
 }
 
-// ast::MemberVisitor
+// ast::Visitor
 void ClassAnalyzer::VisitClass(ast::Class* node) {
   node->AcceptForMembers(this);
 }

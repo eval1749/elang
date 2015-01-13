@@ -11,15 +11,10 @@
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {
-namespace ast {
-class Method;
-class Factory;
-}
 namespace compiler {
 
 class CompilationSession;
 class NameResolver;
-class Signature;
 
 //////////////////////////////////////////////////////////////////////
 //
