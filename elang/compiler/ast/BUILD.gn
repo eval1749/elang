@@ -14,8 +14,6 @@ static_library("ast") {
     "expressions.h",
     "factory.cc",
     "factory.h",
-    "local_variable.cc",
-    "local_variable.h",
     "method.cc",
     "method.h",
     "namespace.cc",

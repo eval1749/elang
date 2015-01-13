@@ -6,7 +6,6 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/local_variable.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {

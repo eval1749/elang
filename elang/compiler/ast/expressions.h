@@ -252,6 +252,25 @@ class UnaryOperation final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(UnaryOperation);
 };
 
+// Represents locally declared variable.
+class Variable final : public NamedNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Variable, NamedNode);
+
+ public:
+  bool is_const() const;
+  Expression* type() const { return type_; }
+  Expression* value() const { return value_; }
+
+ private:
+  // |keyword| one of 'catch', 'const', 'for', 'using', or |nullptr|
+  Variable(Token* keyword, Expression* type, Token* name, Expression* value);
+
+  Expression* const type_;
+  Expression* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(Variable);
+};
+
 // Represents local variable reference
 class VariableReference final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(VariableReference, Expression);

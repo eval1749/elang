@@ -9,7 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/local_variable.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
