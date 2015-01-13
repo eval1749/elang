@@ -51,6 +51,7 @@ class TokenData {
   bool is_operator() const;
   bool is_right_bracket() const;
   bool is_type_name() const;
+  PredefinedName literal_type() const;
   PredefinedName mapped_type_name() const;
   int precedence() const;
   TokenType right_bracket() const;

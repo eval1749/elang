@@ -8,6 +8,8 @@ static_library("analyze") {
     "analyzer.h",
     "class_analyzer.cc",
     "class_analyzer.h",
+    "method_analyzer.cc",
+    "method_analyzer.h",
     "namespace_analyzer.cc",
     "namespace_analyzer.h",
     "name_resolver.cc",
@@ -26,6 +28,7 @@ source_set("compiler_analyze_test") {
   testonly = true
   sources = [
     "class_analyzer_unittest.cc",
+    "method_analyzer_unittest.cc",
     "namespace_analyzer_unittest.cc",
     "name_resolver_unittest.cc",
   ]

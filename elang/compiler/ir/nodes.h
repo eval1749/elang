@@ -29,6 +29,7 @@ namespace ir {
 
 #define DECLARE_CONCRETE_IR_NODE_CLASS(self, super)  \
   DECLARE_IR_NODE_CLASS(self, super);                \
+                                                     \
  private:                                            \
   /* |Factory| class if friend of concrete |Node| */ \
   /* class, for accessing constructor. */            \
@@ -114,6 +115,21 @@ class Enum final : public Type {
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
 
+// LiteralType represents type having literal.
+class LiteralType final : public Type {
+  DECLARE_CONCRETE_IR_NODE_CLASS(LiteralType, Type);
+
+ public:
+  ast::Literal* literal() const { return literal_; }
+
+ private:
+  explicit LiteralType(Literal* literal);
+
+  ast::Literal* const literal_;
+
+  DISALLOW_COPY_AND_ASSIGN(LiteralType);
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Method
@@ -134,6 +150,21 @@ class Method final : public Node {
   Signature* const signature_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
+};
+
+// NullType
+class NullType final : public Type {
+  DECLARE_CONCRETE_IR_NODE_CLASS(NullType, Type);
+
+ public:
+  Type* type() const { return type_; }
+
+ private:
+  explicit NullType(Type* type);
+
+  Type* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(NullType);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -196,6 +227,22 @@ class Signature final : public Type {
   Type* const return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(Signature);
+};
+
+// TypeVariable
+class TypeVariable final : public Type {
+  DECLARE_CONCRETE_IR_NODE_CLASS(TypeVariable, Type);
+
+ public:
+  void Intersection(ir::Type* type);
+  void Union(ir::Type* type);
+
+ private:
+  explicit TypeVariable(Zone* zone);
+
+  Type* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(TypeVariable);
 };
 
 //////////////////////////////////////////////////////////////////////

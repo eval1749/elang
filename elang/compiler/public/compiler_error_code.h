@@ -17,6 +17,8 @@ namespace compiler {
   /* Class Analyzer */                                \
   E(ClassResolution, Method, Conflict)                \
   E(ClassResolution, Method, Duplicate)               \
+  /* Method Analyzer */                               \
+  E(Method, Callee, NotSupported)                     \
   /* Namespace Analyzer */                            \
   E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
