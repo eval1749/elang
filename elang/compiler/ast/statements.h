@@ -68,17 +68,17 @@ class CatchClause final : public Node {
  public:
   BlockStatement* block() const { return block_; }
   Expression* type() const { return type_; }
-  LocalVariable* variable() const { return variable_; }
+  Variable* variable() const { return variable_; }
 
  private:
   CatchClause(Token* keyword,
               Expression* type,
-              LocalVariable* variable,
+              Variable* variable,
               BlockStatement* block);
 
   BlockStatement* const block_;
   Expression* const type_;
-  LocalVariable* const variable_;
+  Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchClause);
 };
@@ -162,17 +162,17 @@ class ForEachStatement final : public Statement {
  public:
   Expression* enumerable() const { return enumerable_; }
   Statement* statement() const { return statement_; }
-  LocalVariable* variable() const { return variable_; }
+  Variable* variable() const { return variable_; }
 
  private:
   ForEachStatement(Token* keyword,
-                   LocalVariable* variable,
+                   Variable* variable,
                    Expression* enumerable,
                    Statement* statement);
 
   Expression* const enumerable_;
   Statement* const statement_;
-  LocalVariable* const variable_;
+  Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(ForEachStatement);
 };
@@ -302,17 +302,17 @@ class UsingStatement final : public Statement {
  public:
   Expression* resource() const { return resource_; }
   Statement* statement() const { return statement_; }
-  LocalVariable* variable() const { return variable_; }
+  Variable* variable() const { return variable_; }
 
  private:
   UsingStatement(Token* keyword,
-                 LocalVariable* variable,
+                 Variable* variable,
                  Expression* resource,
                  Statement* statement);
 
   Expression* const resource_;
   Statement* const statement_;
-  LocalVariable* const variable_;
+  Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(UsingStatement);
 };
@@ -324,15 +324,15 @@ class VarStatement final : public Statement {
   DECLARE_CONCRETE_AST_NODE_CLASS(VarStatement, Statement);
 
  public:
-  const ZoneVector<LocalVariable*>& variables() const { return variables_; }
+  const ZoneVector<Variable*>& variables() const { return variables_; }
 
  private:
   // |type_token| comes from variable type node.
   VarStatement(Zone* zone,
                Token* type_token,
-               const std::vector<LocalVariable*>& variables);
+               const std::vector<Variable*>& variables);
 
-  const ZoneVector<LocalVariable*> variables_;
+  const ZoneVector<Variable*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(VarStatement);
 };

@@ -259,12 +259,12 @@ class VariableReference final : public Expression {
  public:
   // Returns name token where local variable referenced.
   Token* name() const { return token(); }
-  LocalVariable* variable() const { return variable_; }
+  Variable* variable() const { return variable_; }
 
  private:
-  VariableReference(Token* name, LocalVariable* variable);
+  VariableReference(Token* name, Variable* variable);
 
-  LocalVariable* const variable_;
+  Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableReference);
 };

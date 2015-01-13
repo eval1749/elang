@@ -100,7 +100,7 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
     : Expression(op), expression_(expression) {
 }
 
-VariableReference::VariableReference(Token* name, LocalVariable* variable)
+VariableReference::VariableReference(Token* name, Variable* variable)
     : Expression(name), variable_(variable) {
 }
 

@@ -57,7 +57,7 @@ class Factory final {
                     Expression* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters,
-                    const std::vector<LocalVariable*>& parameters);
+                    const std::vector<Variable*>& parameters);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
@@ -87,7 +87,11 @@ class Factory final {
                                 const std::vector<Expression*>& members);
   NameReference* NewNameReference(Token* literal);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
-  VariableReference* NewVariableReference(Token* name, LocalVariable* var);
+  Variable* NewVariable(Token* keyword,
+                        Expression* type,
+                        Token* name,
+                        Expression* expression);
+  VariableReference* NewVariableReference(Token* name, Variable* var);
 
   // Statement nodes
   BlockStatement* NewBlockStatement(Token* keyword,
@@ -95,7 +99,7 @@ class Factory final {
   BreakStatement* NewBreakStatement(Token* keyword);
   CatchClause* NewCatchClause(Token* keyword,
                               Expression* type,
-                              LocalVariable* variable,
+                              Variable* variable,
                               BlockStatement* block);
   ContinueStatement* NewContinueStatement(Token* keyword);
   DoStatement* NewDoStatement(Token* keyword,
@@ -109,7 +113,7 @@ class Factory final {
       const std::vector<Expression*>& expressions);
 
   ForEachStatement* NewForEachStatement(Token* keyword,
-                                        LocalVariable* variable,
+                                        Variable* variable,
                                         Expression* enumerable,
                                         Statement* statement);
 
@@ -124,10 +128,6 @@ class Factory final {
                               Statement* then_statement,
                               Statement* else_statement);
   InvalidStatement* NewInvalidStatement(Token* token);
-  LocalVariable* NewLocalVariable(Token* keyword,
-                                  Expression* type,
-                                  Token* name,
-                                  Expression* expression);
   ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
   ThrowStatement* NewThrowStatement(Token* keyword, Expression* value);
   TryStatement* NewTryStatement(Token* keyword,
@@ -135,11 +135,11 @@ class Factory final {
                                 const std::vector<CatchClause*>& catch_clauses,
                                 BlockStatement* finally_block);
   UsingStatement* NewUsingStatement(Token* keyword,
-                                    LocalVariable* variable,
+                                    Variable* variable,
                                     Expression* resource,
                                     Statement* statement);
   VarStatement* NewVarStatement(Token* keyword,
-                                const std::vector<LocalVariable*>& variables);
+                                const std::vector<Variable*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,
                                     Expression* condition,
                                     Statement* statement);

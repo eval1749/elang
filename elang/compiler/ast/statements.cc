@@ -33,7 +33,7 @@ BreakStatement::BreakStatement(Token* keyword) : Statement(keyword) {
 
 CatchClause::CatchClause(Token* keyword,
                          Expression* type,
-                         LocalVariable* variable,
+                         Variable* variable,
                          BlockStatement* block)
     : Node(nullptr, keyword), block_(block), type_(type), variable_(variable) {
   DCHECK_EQ(keyword, TokenType::Catch);
@@ -65,7 +65,7 @@ ExpressionStatement::ExpressionStatement(Expression* expression)
 }
 
 ForEachStatement::ForEachStatement(Token* keyword,
-                                   LocalVariable* variable,
+                                   Variable* variable,
                                    Expression* enumerable,
                                    Statement* statement)
     : Statement(keyword),
@@ -125,7 +125,7 @@ TryStatement::TryStatement(Zone* zone,
 }
 
 UsingStatement::UsingStatement(Token* keyword,
-                               LocalVariable* variable,
+                               Variable* variable,
                                Expression* resource,
                                Statement* statement)
     : Statement(keyword),
@@ -138,7 +138,7 @@ UsingStatement::UsingStatement(Token* keyword,
 
 VarStatement::VarStatement(Zone* zone,
                            Token* type_token,
-                           const std::vector<LocalVariable*>& variables)
+                           const std::vector<Variable*>& variables)
     : Statement(type_token), variables_(zone, variables) {
 }
 

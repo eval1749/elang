@@ -13,10 +13,10 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LocalVariable
+// Variable
 //
-class LocalVariable final : public NamedNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(LocalVariable, NamedNode);
+class Variable final : public NamedNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Variable, NamedNode);
 
  public:
   bool is_const() const;
@@ -25,15 +25,12 @@ class LocalVariable final : public NamedNode {
 
  private:
   // |keyword| one of 'catch', 'const', 'for', 'using', or |nullptr|
-  LocalVariable(Token* keyword,
-                Expression* type,
-                Token* name,
-                Expression* value);
+  Variable(Token* keyword, Expression* type, Token* name, Expression* value);
 
   Expression* const type_;
   Expression* const value_;
 
-  DISALLOW_COPY_AND_ASSIGN(LocalVariable);
+  DISALLOW_COPY_AND_ASSIGN(Variable);
 };
 
 }  // namespace ast

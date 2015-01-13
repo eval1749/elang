@@ -13,19 +13,19 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LocalVariable
+// Variable
 //
-LocalVariable::LocalVariable(Token* keyword,
-                             Expression* type,
-                             Token* name,
-                             Expression* value)
+Variable::Variable(Token* keyword,
+                   Expression* type,
+                   Token* name,
+                   Expression* value)
     : NamedNode(nullptr, keyword, name), type_(type), value_(value) {
   DCHECK(!keyword || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
          keyword == TokenType::Using);
 }
 
-bool LocalVariable::is_const() const {
+bool Variable::is_const() const {
   return token() == TokenType::Const || token() == TokenType::Using;
 }
 

@@ -17,12 +17,12 @@ namespace compiler {
 namespace ast {
 class ContainerNode;
 class Expression;
-class LocalVariable;
 class Namespace;
 class NamespaceBody;
 class NamedNode;
 class Factory;
 class Statement;
+class Variable;
 }  // namespace ast
 
 class CompilationUnit;
@@ -147,7 +147,7 @@ class Parser final {
 
   // Produce local variable reference at |name| token.
   ast::Expression* ProduceVariableReference(Token* name,
-                                            ast::LocalVariable* variable);
+                                            ast::Variable* variable);
 
   // in "parse_type.cc"
   // Returns last produced expression.

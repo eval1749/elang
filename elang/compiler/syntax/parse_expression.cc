@@ -184,7 +184,7 @@ bool Parser::ParsePrimaryExpression() {
     auto const name = ConsumeToken();
     if (auto const local_member = FindLocalMember(name)) {
       // Local name reference
-      if (auto const var = local_member->as<ast::LocalVariable>()) {
+      if (auto const var = local_member->as<ast::Variable>()) {
         ProduceVariableReference(name, var);
       } else {
         Error(ErrorCode::SyntaxExpressionLabel, name);

@@ -24,7 +24,7 @@ Method::Method(Zone* zone,
                Expression* return_type,
                Token* name,
                const std::vector<Token*>& type_parameters,
-               const std::vector<LocalVariable*>& parameters)
+               const std::vector<Variable*>& parameters)
     : ContainerNode(zone, owner, name, name),
       WithModifiers(modifiers),
       body_(nullptr),

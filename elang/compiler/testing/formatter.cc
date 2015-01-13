@@ -370,7 +370,7 @@ void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
 
-void Formatter::VisitLocalVariable(ast::LocalVariable* node) {
+void Formatter::VisitVariable(ast::Variable* node) {
   DCHECK(node);
   NOTREACHED();
 }

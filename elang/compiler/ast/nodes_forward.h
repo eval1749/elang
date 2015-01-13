@@ -67,7 +67,7 @@ namespace ast {
   FOR_EACH_STATEMENT_NODE(V)          \
   V(CatchClause)                      \
   V(EnumMember)                       \
-  V(LocalVariable)                    \
+  V(Variable)                         \
   V(MethodGroup)                      \
   V(NamespaceBody)
 

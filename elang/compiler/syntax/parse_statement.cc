@@ -252,7 +252,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
 
   LocalDeclarationSpace for_var_scope(this, for_keyword);
   std::vector<ast::Expression*> initializers;
-  std::vector<ast::LocalVariable*> variables;
+  std::vector<ast::Variable*> variables;
 
   for (;;) {
     switch (state) {
@@ -363,7 +363,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
                               : static_cast<ast::Expression*>(nullptr);
 
         variables.push_back(
-            factory()->NewLocalVariable(for_keyword, type, name, init));
+            factory()->NewVariable(for_keyword, type, name, init));
 
         if (PeekToken() == TokenType::Colon) {
           if (init)
@@ -423,7 +423,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
                          const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
   LocalDeclarationSpace method_space(this, PeekToken());
-  std::vector<ast::LocalVariable*> parameters;
+  std::vector<ast::Variable*> parameters;
   if (!AdvanceIf(TokenType::RightParenthesis)) {
     for (;;) {
       auto const param_type = ParseType() ? ConsumeType() : nullptr;
@@ -432,7 +432,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
       if (method_space.FindMember(param_name))
         Error(ErrorCode::SyntaxMethodNameDuplicate);
       auto const parameter =
-          factory()->NewLocalVariable(nullptr, param_type, param_name, nullptr);
+          factory()->NewVariable(nullptr, param_type, param_name, nullptr);
       method_space.AddMember(parameter);
       parameters.push_back(parameter);
       if (AdvanceIf(TokenType::RightParenthesis))
@@ -535,13 +535,13 @@ bool Parser::ParseTryStatement(Token* try_keyword) {
     if (!ParseType())
       continue;
     auto const catch_type = ConsumeType();
-    auto catch_var = static_cast<ast::LocalVariable*>(nullptr);
+    auto catch_var = static_cast<ast::Variable*>(nullptr);
     StatementScope catch_scope(this, catch_keyword);
     LocalDeclarationSpace catch_var_scope(this, catch_keyword);
     if (PeekToken()->is_name()) {
       auto const catch_name = ConsumeToken();
-      catch_var = factory()->NewLocalVariable(catch_keyword, catch_type,
-                                              catch_name, nullptr);
+      catch_var = factory()->NewVariable(catch_keyword, catch_type, catch_name,
+                                         nullptr);
       catch_var_scope.AddMember(catch_var);
     }
     if (!AdvanceIf(TokenType::RightParenthesis))
@@ -590,8 +590,8 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
       Error(ErrorCode::SyntaxUsingRightParenthesis);
 
     LocalDeclarationSpace using_scope(this, using_keyword);
-    auto const variable = factory()->NewLocalVariable(
-        using_keyword, nullptr, var_name, ConsumeExpression());
+    auto const variable = factory()->NewVariable(using_keyword, nullptr,
+                                                 var_name, ConsumeExpression());
     using_scope.AddMember(variable);
     if (!ParseStatement())
       return false;
@@ -614,7 +614,7 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
 
 // |keyword| is 'const', 'var' or token of |type|.
 void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
-  std::vector<ast::LocalVariable*> variables;
+  std::vector<ast::Variable*> variables;
   while (PeekToken()->is_name()) {
     auto const name = ConsumeToken();
     auto const assign = ConsumeTokenIf(TokenType::Assign);
@@ -626,8 +626,7 @@ void Parser::ParseVariables(Token* keyword, ast::Expression* type) {
       else if (keyword == TokenType::Const)
         Error(ErrorCode::SyntaxVarConst);
     }
-    auto const variable =
-        factory()->NewLocalVariable(nullptr, type, name, init);
+    auto const variable = factory()->NewVariable(nullptr, type, name, init);
     if (FindLocalMember(name))
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
@@ -759,9 +758,9 @@ bool Parser::ParseStatement() {
 
   auto const expression = ConsumeExpression();
   if (PeekToken()->is_name()) {
-    // LocalVariableDeclration ::=
-    //    Type LocalVariableDeclarator (',' LocalVariableDeclarator)*
-    // LocalVariableDeclarator ::= Name ('=' Expression)
+    // VariableDeclration ::=
+    //    Type VariableDeclarator (',' VariableDeclarator)*
+    // VariableDeclarator ::= Name ('=' Expression)
     if (!MaybeType(expression))
       Error(ErrorCode::SyntaxVarType);
     ParseVariables(expression->token(), expression);
@@ -782,9 +781,8 @@ ast::Statement* Parser::ProduceStatement(ast::Statement* statement) {
   return statement_ = statement;
 }
 
-ast::Expression* Parser::ProduceVariableReference(
-    Token* name,
-    ast::LocalVariable* variable) {
+ast::Expression* Parser::ProduceVariableReference(Token* name,
+                                                  ast::Variable* variable) {
   DCHECK(name->is_name());
   auto enclosing_space = static_cast<LocalDeclarationSpace*>(nullptr);
   for (auto runner = declaration_space_; runner; runner = runner->outer()) {

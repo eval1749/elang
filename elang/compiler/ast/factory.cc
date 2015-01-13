@@ -87,7 +87,7 @@ Method* Factory::NewMethod(Class* outer,
                            Expression* type,
                            Token* name,
                            const std::vector<Token*>& type_parameters,
-                           const std::vector<LocalVariable*>& parameters) {
+                           const std::vector<Variable*>& parameters) {
   return new (zone_) Method(zone_, outer, method_group, modifies, type, name,
                             type_parameters, parameters);
 }
@@ -172,8 +172,15 @@ UnaryOperation* Factory::NewUnaryOperation(Token* op, Expression* expr) {
   return new (zone_) UnaryOperation(op, expr);
 }
 
+Variable* Factory::NewVariable(Token* keyword,
+                               Expression* type,
+                               Token* name,
+                               Expression* value) {
+  return new (zone_) Variable(keyword, type, name, value);
+}
+
 VariableReference* Factory::NewVariableReference(Token* name,
-                                                 LocalVariable* variable) {
+                                                 Variable* variable) {
   return new (zone_) VariableReference(name, variable);
 }
 
@@ -198,7 +205,7 @@ Call* Factory::NewCall(Expression* callee,
 
 CatchClause* Factory::NewCatchClause(Token* keyword,
                                      Expression* type,
-                                     LocalVariable* variable,
+                                     Variable* variable,
                                      BlockStatement* block) {
   return new (zone_) CatchClause(keyword, type, variable, block);
 }
@@ -228,7 +235,7 @@ ExpressionStatement* Factory::NewExpressionStatement(Expression* expression) {
 }
 
 ForEachStatement* Factory::NewForEachStatement(Token* keyword,
-                                               LocalVariable* variable,
+                                               Variable* variable,
                                                Expression* enumerable,
                                                Statement* statement) {
   return new (zone_) ForEachStatement(keyword, variable, enumerable, statement);
@@ -255,13 +262,6 @@ InvalidStatement* Factory::NewInvalidStatement(Token* token) {
   return new (zone_) InvalidStatement(token);
 }
 
-LocalVariable* Factory::NewLocalVariable(Token* keyword,
-                                         Expression* type,
-                                         Token* name,
-                                         Expression* value) {
-  return new (zone_) LocalVariable(keyword, type, name, value);
-}
-
 ReturnStatement* Factory::NewReturnStatement(Token* keyword,
                                              Expression* value) {
   return new (zone_) ReturnStatement(keyword, value);
@@ -281,7 +281,7 @@ TryStatement* Factory::NewTryStatement(
 }
 
 UsingStatement* Factory::NewUsingStatement(Token* keyword,
-                                           LocalVariable* variable,
+                                           Variable* variable,
                                            Expression* resource,
                                            Statement* statement) {
   return new (zone_) UsingStatement(keyword, variable, resource, statement);
@@ -289,7 +289,7 @@ UsingStatement* Factory::NewUsingStatement(Token* keyword,
 
 VarStatement* Factory::NewVarStatement(
     Token* keyword,
-    const std::vector<ast::LocalVariable*>& variables) {
+    const std::vector<ast::Variable*>& variables) {
   return new (zone_) VarStatement(zone_, keyword, variables);
 }
 
