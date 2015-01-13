@@ -57,7 +57,8 @@ class Factory final {
                     Expression* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters,
-                    const std::vector<Variable*>& parameters);
+                    const std::vector<Variable*>& parameters,
+                    Statement* body);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);

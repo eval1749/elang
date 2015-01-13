@@ -454,29 +454,28 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     owner->AddNamedMember(method_group);
   }
 
+  auto method_body = static_cast<ast::Statement* >(nullptr);
+  if (AdvanceIf(TokenType::SemiColon)) {
+    if (!method_modifiers.HasAbstract() && !method_modifiers.HasExtern())
+      Error(ErrorCode::SyntaxMethodSemiColon);
+  } else if (PeekToken() == TokenType::LeftCurryBracket) {
+    if (method_modifiers.HasAbstract() || method_modifiers.HasExtern())
+      Error(ErrorCode::SyntaxMethodBody);
+    LocalDeclarationSpace method_body_space(this, PeekToken());
+    if (ParseStatement()) {
+      method_body = ConsumeStatement();
+      DCHECK(method_body->is<ast::BlockStatement>());
+    }
+  } else {
+    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
+  }
+
   auto const method =
       factory()->NewMethod(owner, method_group, method_modifiers, method_type,
-                           method_name, type_parameters, parameters);
+                           method_name, type_parameters, parameters,
+                           method_body);
   method_group->AddMethod(method);
   container_->AddMember(method);
-
-  if (AdvanceIf(TokenType::SemiColon)) {
-    if (!method_modifiers.HasExtern())
-      Error(ErrorCode::SyntaxMethodSemiColon);
-    return true;
-  }
-
-  if (PeekToken() != TokenType::LeftCurryBracket) {
-    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
-    return true;
-  }
-
-  LocalDeclarationSpace method_body_space(this, PeekToken());
-  if (!ParseStatement())
-    return true;
-  auto const method_body = ConsumeStatement();
-  DCHECK(method_body->is<ast::BlockStatement>());
-  method->SetBody(method_body);
   return true;
 }
 

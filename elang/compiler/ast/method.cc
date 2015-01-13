@@ -24,10 +24,11 @@ Method::Method(Zone* zone,
                Expression* return_type,
                Token* name,
                const std::vector<Token*>& type_parameters,
-               const std::vector<Variable*>& parameters)
+               const std::vector<Variable*>& parameters,
+               Statement* body)
     : ContainerNode(zone, owner, name, name),
       WithModifiers(modifiers),
-      body_(nullptr),
+      body_(body),
       method_group_(method_group),
       parameters_(zone, parameters),
       return_type_(return_type),
@@ -38,12 +39,6 @@ Method::Method(Zone* zone,
 
 ast::Class* Method::owner() const {
   return parent()->as<ast::Class>();
-}
-
-void Method::SetBody(ast::Statement* statement) {
-  DCHECK(!body_);
-  DCHECK(statement);
-  body_ = statement;
 }
 
 #if _DEBUG

@@ -86,9 +86,10 @@ Method* Factory::NewMethod(Class* outer,
                            Expression* type,
                            Token* name,
                            const std::vector<Token*>& type_parameters,
-                           const std::vector<Variable*>& parameters) {
+                           const std::vector<Variable*>& parameters,
+                           Statement* body) {
   return new (zone_) Method(zone_, outer, method_group, modifies, type, name,
-                            type_parameters, parameters);
+                            type_parameters, parameters, body);
 }
 
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {

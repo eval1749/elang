@@ -35,11 +35,6 @@ class Method final : public ContainerNode, public WithModifiers {
   // Type parameters for generic method.
   const ZoneVector<Token*>& type_parameters() { return type_parameters_; }
 
-  // Set method body to |statement|. |statement| can be |BlockStatement| or
-  // |Expression|, by shortcut syntax |int Foo(int x) => x + 1;|.
-  // |statement| can't be null.
-  void SetBody(Statement* statement);
-
  private:
   Method(Zone* zone,
          Class* owner,
@@ -48,14 +43,18 @@ class Method final : public ContainerNode, public WithModifiers {
          Expression* return_type,
          Token* name,
          const std::vector<Token*>& type_parameters,
-         const std::vector<Variable*>& parameters);
+         const std::vector<Variable*>& parameters,
+         Statement* body);
 
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
 #endif
 
-  Statement* body_;
+  // |body_| can be |BlockStatement| or |ExpressionStatement|, by shortcut
+  // syntax |int Foo(int x) => x + 1;|. It can be |nullptr| on parsing error,
+  // or abstract/external method.
+  Statement* const body_;
   MethodGroup* const method_group_;
   const ZoneVector<Variable*> parameters_;
   Expression* const return_type_;

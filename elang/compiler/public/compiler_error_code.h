@@ -111,6 +111,7 @@ namespace compiler {
   E(Syntax, MemberAccess, RightAngleBracket)          \
   E(Syntax, MemberAccess, TypeArgument)               \
   /* Method */                                        \
+  E(Syntax, Method, Body)                             \
   E(Syntax, Method, Comma)                            \
   E(Syntax, Method, LeftCurryBracket)                 \
   E(Syntax, Method, NameDuplicate)                    \
