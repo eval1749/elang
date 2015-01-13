@@ -14,7 +14,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-class NodeFactory;
+class Factory;
 
 //////////////////////////////////////////////////////////////////////
 //

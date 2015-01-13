@@ -23,7 +23,7 @@ namespace compiler {
 namespace ast {
 class Namespace;
 class NamespaceBody;
-class NodeFactory;
+class Factory;
 }
 
 class CompilationUnit;
@@ -46,7 +46,7 @@ class CompilationSession final : public ZoneOwner {
   CompilationSession();
   ~CompilationSession();
 
-  ast::NodeFactory* ast_factory() const { return ast_factory_.get(); }
+  ast::Factory* ast_factory() const { return ast_factory_.get(); }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   AtomicString* name_for(PredefinedName name) const;
@@ -73,7 +73,7 @@ class CompilationSession final : public ZoneOwner {
                 ErrorCode error_code,
                 const std::vector<Token*>& tokens);
 
-  const std::unique_ptr<ast::NodeFactory> ast_factory_;
+  const std::unique_ptr<ast::Factory> ast_factory_;
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;

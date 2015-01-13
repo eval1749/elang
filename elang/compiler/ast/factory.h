@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_AST_NODE_FACTORY_H_
-#define ELANG_COMPILER_AST_NODE_FACTORY_H_
+#ifndef ELANG_COMPILER_AST_FACTORY_H_
+#define ELANG_COMPILER_AST_FACTORY_H_
 
 #include <memory>
 #include <vector>
@@ -22,12 +22,12 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// NodeFactory
+// Factory
 //
-class NodeFactory final {
+class Factory final {
  public:
-  explicit NodeFactory(Zone* zone);
-  ~NodeFactory();
+  explicit Factory(Zone* zone);
+  ~Factory();
 
   // Declaration related nodes
   Alias* NewAlias(NamespaceBody* namespace_body,
@@ -150,11 +150,11 @@ class NodeFactory final {
 
   Zone* const zone_;
 
-  DISALLOW_COPY_AND_ASSIGN(NodeFactory);
+  DISALLOW_COPY_AND_ASSIGN(Factory);
 };
 
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_AST_NODE_FACTORY_H_
+#endif  // ELANG_COMPILER_AST_FACTORY_H_

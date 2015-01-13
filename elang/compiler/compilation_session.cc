@@ -8,8 +8,8 @@
 #include "elang/compiler/compilation_session.h"
 
 #include "elang/base/atomic_string_factory.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -61,7 +61,7 @@ ast::NamespaceBody* CreateRootNode(CompilationSession* session,
 // CompilationSession
 //
 CompilationSession::CompilationSession()
-    : ast_factory_(new ast::NodeFactory(zone())),
+    : ast_factory_(new ast::Factory(zone())),
       atomic_string_factory_(new AtomicStringFactory()),
       predefined_names_(new PredefinedNames(this)),
       source_code_(new StringSourceCode(L"-", L"")),

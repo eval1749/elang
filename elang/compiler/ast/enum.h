@@ -14,7 +14,7 @@ namespace ast {
 
 class Class;
 class EnumMember;
-class NodeFactory;
+class Factory;
 
 //////////////////////////////////////////////////////////////////////
 //

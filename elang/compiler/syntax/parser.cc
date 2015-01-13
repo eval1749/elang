@@ -12,8 +12,8 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/modifiers_builder.h"
@@ -185,7 +185,7 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
 Parser::~Parser() {
 }
 
-ast::NodeFactory* Parser::factory() const {
+ast::Factory* Parser::factory() const {
   return session_->ast_factory();
 }
 

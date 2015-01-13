@@ -10,7 +10,7 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/node_factory.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -30,8 +30,7 @@ ast::Expression* Parser::ConsumeType() {
 }
 
 bool Parser::MaybeType(ast::Expression* maybe_type) const {
-  return MaybeTypeName(maybe_type) ||
-         maybe_type->is<ast::ArrayType>() ||
+  return MaybeTypeName(maybe_type) || maybe_type->is<ast::ArrayType>() ||
          maybe_type->is<ast::ConstructedType>();
 }
 

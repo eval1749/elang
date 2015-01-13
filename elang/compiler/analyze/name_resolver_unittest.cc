@@ -8,7 +8,7 @@
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
-#include "elang/compiler/ast/node_factory.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token_data.h"

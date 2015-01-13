@@ -4,8 +4,8 @@
 
 #include "elang/compiler/compilation_unit.h"
 
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
-#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/token_type.h"
 

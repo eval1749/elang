@@ -87,7 +87,7 @@ FOR_EACH_CONCRETE_AST_NODE(V)
 FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
-class NodeFactory;
+class Factory;
 typedef Node Type;
 class Visitor;
 

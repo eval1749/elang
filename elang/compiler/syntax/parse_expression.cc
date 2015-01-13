@@ -8,8 +8,8 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/local_variable.h"
-#include "elang/compiler/ast/node_factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"

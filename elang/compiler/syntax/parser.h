@@ -21,7 +21,7 @@ class LocalVariable;
 class Namespace;
 class NamespaceBody;
 class NamedNode;
-class NodeFactory;
+class Factory;
 class Statement;
 }  // namespace ast
 
@@ -57,7 +57,7 @@ class Parser final {
   class ModifierParser;
   class QualifiedNameBuilder;
 
-  ast::NodeFactory* factory() const;
+  ast::Factory* factory() const;
 
   void AddMember(ast::NamedNode* member);
   void Advance();

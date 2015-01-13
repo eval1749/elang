@@ -15,7 +15,7 @@ namespace ast {
 
 #define DECLARE_AST_NODE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);      \
-  friend class NodeFactory;                 \
+  friend class Factory;                     \
                                             \
  protected:                                 \
   ~self() = default;
