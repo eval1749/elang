@@ -5,7 +5,7 @@
 #ifndef ELANG_COMPILER_AST_LOCAL_VARIABLE_H_
 #define ELANG_COMPILER_AST_LOCAL_VARIABLE_H_
 
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/nodes.h"
 
 namespace elang {
 namespace compiler {

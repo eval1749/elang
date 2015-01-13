@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/nodes.h"
 
 #include "base/logging.h"
 #include "elang/compiler/ast/container_node.h"

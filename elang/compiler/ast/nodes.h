@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_AST_NODE_H_
-#define ELANG_COMPILER_AST_NODE_H_
+#ifndef ELANG_COMPILER_AST_NODES_H_
+#define ELANG_COMPILER_AST_NODES_H_
 
 #include <memory>
 
@@ -97,4 +97,4 @@ class NamedNode : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_AST_NODE_H_
+#endif  // ELANG_COMPILER_AST_NODES_H_

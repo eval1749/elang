@@ -7,7 +7,7 @@
 
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/node.h"
+#include "elang/compiler/ast/nodes.h"
 
 namespace elang {
 namespace compiler {
