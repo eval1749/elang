@@ -24,204 +24,289 @@ namespace elang {
 namespace compiler {
 
 namespace {
-class Value : public ZoneAllocable {
+
+class ConstraintFactory;
+
+#define FOR_EACH_ABSTRACT_VALUE_CLASS(V) V(Value)
+
+#define FOR_EACH_CONCRETE_VALUE_CLASS(V) \
+  V(CallSite)                            \
+  V(TypeVariable)                        \
+  V(UnionType)
+
+#define FOR_EACH_VALUE_CLASS(V)    \
+  FOR_EACH_ABSTRACT_VALUE_CLASS(V) \
+  FOR_EACH_CONCRETE_VALUE_CLASS(V)
+
+class CallSite final : public Value {
+ public:
+  CallSite(ast::Call* call, const std::vector<Ir::Method*> methods);
+
+  ZoneVector<ir::Method*> methods() const { return methods_; }
+
  private:
-  DISALLOW_COPY_AND_ASSIGN(Value);
+  ast::Call* const call_;
+  ZoneVector<ir::Method*> methods_;
+
+  DISALLOW_COPY_AND_ASSIGN(CallValue);
 };
 
-class Argument : public Value {
+//////////////////////////////////////////////////////////////////////
+//
+// Constraint
+//
+#define FOR_EACH_ABSTRACT_CONSTRAINT_CLASS(V) V(Constraint)
+
+#define FOR_EACH_CONCRETE_CONSTRAINT_CLASS(V) \
+  V(ArgumentConstraint)                       \
+  V(CallConstraint)                           \
+  V(LiteralConstraint)                        \
+  V(TypeConstraint)                           \
+  V(TypeVariableConstraint)
+
+#define FOR_EACH_CONSTRAINT_CLASS(V)    \
+  FOR_EACH_ABSTRACT_CONSTRAINT_CLASS(V) \
+  FOR_EACH_CONCRETE_CONSTRAINT_CLASS(V)
+
+class Constraint : public ZoneAllocable {
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Constraint);
+};
+
+class ArgumentConstraint final : public Constraint {
  public:
-  Argument(Call* call, int position);
+  ArgumentConstraint(CallConstraint* call, int position);
 
  private:
-  Call* const call_;
+  CallConstraint* const call_;
   int const position_;
 
-  DISALLOW_COPY_AND_ASSIGN(Argument);
+  DISALLOW_COPY_AND_ASSIGN(ArgumentConstraint);
 };
 
-class Call : public Value {
+class CallConstraint final : public Constraint {
  public:
-  Call(ast::MethodGroup* method_group,
-       Value* value_type,
-       const std::vector<Value*>& arguments);
+  // Constructor creates |ArgumentConstraint| and stores into |arguments_|.
+  CallConstraint(CallSite call, Constraint* output);
+
+  const ZoneVector<Constraint*> arguments() const { return arguments_; }
+  const Constraint* output() const { return output_; }
 
  private:
-  ast::MethodGroup* const method_group_;
-  Value* const value_type_;
-  ZoneVector<Value*> arguments_;
+  CallSite const call_;
+  Constraint* const output_;
+  ZoneVector<Constraint*> arguments_;
 
-  DISALLOW_COPY_AND_ASSIGN(Call);
+  DISALLOW_COPY_AND_ASSIGN(CallConstraint);
 };
 
-class Literal : public Value {
+class LiteralConstraint final : public Constraint {
  public:
-  explicit Literal(ir::Type* type);
+  explicit LiteralConstraint(Constraint* constraint, Token* literal);
+
+ private:
+  Constraint* const constraint_;
+  Token* const literal_;
+
+  DISALLOW_COPY_AND_ASSIGN(LiteralConstraint);
+};
+
+class TypeConstraint : public Constraint {
+ public:
+  explicit TypeConstraint(ir::Type* type);
 
  private:
   ir::Type* const type_;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Literal);
+  DISALLOW_COPY_AND_ASSIGN(TypeConstraint);
 };
 
-class Null : public Value {
+class TypeVariableConstraint final : public Constraint {
  public:
-  explicit Null(Value* node);
-
- private:
-  Value* const node_;
-
-  DISALLOW_COPY_AND_ASSIGN(Null);
-};
-
-class Variable : public Value {
- public:
-  explicit Variable(Token* name);
+  explicit TypeVariableConstraint(Token* name);
 
  private:
   Token* const name_;  // for debugging
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Variable);
+  DISALLOW_COPY_AND_ASSIGN(TypeVariableConstraint);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// TypeEvaluator
+// ConstraintFactory
 //
-class TypeEvaluator final : public Analyzer, public ValueFactoryUser {
+class ConstraintFactory final : public ZoneOwner {
  public:
-  TypeEvaluator(NameResolver* name_resolver, ValueFactory* value_factory);
-  ~TypeEvaluator() final = default;
+  ConstraintFactory();
+  ~ConstraintFactory() final = default;
 
-  Value* Evaluate(ast::Expression* expression, Value* output);
-  bool Finish();
+  void Use(ast::Constraint* user, Constraint* using_value);
+
+ private:
+  SimpleDirectedGraph<Constraint*> dependency_graph_;
+  ZoneUnorderedMap<ir::Type*, Constraint*> value_map_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstraintFactory);
+};
+
+ConstraintFactory::ConstraintFactory() {
+}
+
+void ConstraintFactory::Use(Constraint* user, Constraint* using_value) {
+  DCHECK(!user->is<Literal>());
+  DCHECK(!using_value->is<Literal>());
+  dependency_graph_->AddEdge(user, using_value);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ConstraintFactoryUser
+//
+class ConstraintFactoryUser {
+ public:
+  explicit ConstraintFactoryUser(ConstraintFactory* factory);
+
+  void AddConstraint(Constraint* user, Constraint* constraint);
+  Constraint* GetOrNewConstraint(ir::Type* type);
+  ArgumentConstraint* NewArgumentConstraint(Call* call, int position);
+  Call* NewCall(ast::Call* call, const std::vector<ir::Method*> methods);
+  InvalidConstraint* NewInvalidConstraint(ast::Node* node);
+  Literal* NewLiteral(ir::Type* type);
+  Null* NewNull(Constraint* value);
+  void Use(Constraint* user, Constraint* using_value);
+
+ private:
+  ConstraintFactory* const factory_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstraintFactoryUser);
+};
+
+ConstraintFactoryUser::ConstraintFactoryUser(ConstraintFactory* factory)
+    : factory_(factory) {
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ConstraintBuilder
+//
+class ConstraintBuilder final : public Analyzer, public ConstraintFactoryUser {
+ public:
+  ConstraintBuilder(NameResolver* name_resolver,
+                    ConstraintFactory* value_factory);
+  ~ConstraintBuilder() final = default;
+
+  Constraint* AddConstraint(ast::Expression* expression, Constraint* output);
+  void DidAddAllConstraints();
 
  private:
   struct Context {
     bool has_result;
-    Value* output;
-    Value* result;
+    Constraint* output;
+    Constraint* result;
   };
 
   class ScopedContext {
    public:
-    ScopedContext(TypeEvaluator* evaluator,
+    ScopedContext(ConstraintBuilder* builder,
                   ast::Expression* expression,
-                  Value* output);
+                  Constraint* output);
     ~ScopedContext();
 
-    Value* GetResult() const;
+    Constraint* GetResult() const;
 
    private:
     Context context;
-    TypeEvaluator* const evaluator_;
+    ConstraintBuilder* const builder_;
     Context* saved_context_;
 
     DISALLOW_COPY_AND_ASSIGN(ScopedContext);
   };
 
+  // Returns list of ir::Method which takes at least |arity| arguments and
+  // its value is subtype of |output|.
+  std::vector<ir::Method*> CollectMethods(const ast::MethodGroup* method_group,
+                                          Constraint* output,
+                                          int arity);
   void ProcessMethodCall(ast::MethodGroup* method_group, ast::Call* ast_call);
-  void ProduceResult(Value* result);
-  void TryFix(Value* value);
-  void Use(ast::Value* user, Value* using_value);
+  void ProduceResult(Constraint* result);
 
   // ast::Visitor
   void VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
 
   Context* context_;
-  SimpleDirectedGraph<Value*> dependency_graph_;
 
-  DISALLOW_COPY_AND_ASSIGN(TypeEvaluator);
+  DISALLOW_COPY_AND_ASSIGN(ConstraintBuilder);
 };
 
-// TypeEvaluator::ScopedContext
-TypeEvaluator::ScopedContext::ScopedContext(TypeEvaluator* evaluator,
-                                            ast::Expression* expression,
-                                            Value* value)
-    : evaluator_(evaluator), saved_context_(evaluator->context_) {
+// ConstraintBuilder::ScopedContext
+ConstraintBuilder::ScopedContext::ScopedContext(ConstraintBuilder* builder,
+                                                ast::Expression* expression,
+                                                Constraint* value)
+    : builder_(builder), saved_context_(builder->context_) {
   context.has_result = false;
   context.output = output;
   context.result = nullptr;
-  expression->Accept(evaluator);
+  expression->Accept(builder);
 }
 
-TypeEvaluator::ScopedContext::~ScopedContext() {
+ConstraintBuilder::ScopedContext::~ScopedContext() {
   DCHECK(context.has_result);
-  evaluator_->context_ = saved_context_;
+  builder_->context_ = saved_context_;
 }
 
-Value* TypeEvaluator::ScopedContext::GetResult() {
+Constraint* ConstraintBuilder::ScopedContext::GetResult() {
   DCHECK(context_.has_result);
   return context.result;
 }
 
-// TypeEvaluator
-TypeEvaluator::TypeEvaluator(NameResolver* name_resolver,
-                             ValueFactory* value_factory)
+// ConstraintBuilder
+ConstraintBuilder::ConstraintBuilder(NameResolver* name_resolver,
+                                     ConstraintFactory* value_factory)
     : Analyzer(name_resolver),
-      ValueFactoryUser(value_factory),
+      ConstraintFactoryUser(value_factory),
       context_(nullptr) {
 }
 
-Value* TypeEvaluator::Evaluate(ast::Expression* expression, Value* output) {
+Constraint* ConstraintBuilder::AddConstraint(ast::Expression* expression,
+                                             Constraint* output) {
   ScopedContext context(this, expression, output);
   return context.GetResult();
 }
 
-bool TypeEvaluator::Finish() {
-  for (auto const value : dependency_graph_.GetAllVertices())
-    TryFix(value);
-  // Check everything resolved.
-  for (auto const user : dependency_graph_.GetAllVertices()) {
-    if (user->HasInEdge())
-      return false;
-  }
-  return true;
+void ConstraintBuilder::DidAddAllConstraint() {
 }
 
-void TypeEvaluator::ProcessMethodCall(ast::MethodGroup* method_group,
-                                      ast::Call* ast_call) {
-  auto methods = CollectMethods(method_group,
-                                context_.output,
-                                static_cast<int>(ast_call.arguments().size()));
+void ConstraintBuilder::ProcessMethodCall(ast::MethodGroup* method_group,
+                                          ast::Call* ast_call) {
+  auto const arity = static_cast<int>(ast_call.arguments().size());
+  const auto methods = CollectMethods(method_group, context_.output, arity);
   auto const call = NewCall(ast_call, methods);
-  std::vector<Value*> arguments;
+  std::vector<Constraint*> arguments;
+  auto nth = 0;
   for (auto const ast_argument : ast_call->arguments()) {
-    auto const argument = NewArgument(call, static_cast<int>(arguments.size()));
-    Use(argument, call);
-    Evaluate(ast_argument, argument);
+    auto const argument = NewArgumentConstraint(call, nth);
+    Use(call, argument);
+    AddConstraint(ast_argument, argument);
+    arguments.push_back(argument);
+    ++nth;
   }
-  ProduceValue(call);
+  call->SetArgumentConstraints(arguments);
 }
 
-void TypeEvaluator::ProduceResult(Value* result) {
+void ConstraintBuilder::ProduceResult(Constraint* result) {
   DCHECK(!context_->has_result);
-  context->output->AddConstraint(result);
+  AddConstraint(context->output, result);
   if (!result->is<Literal>())
     Use(context->output, result);
   context_->has_result = true;
   context_->result = result;
 }
 
-void TypeEvaluator::TryFix(Value* value) {
-  if (value->HasOutEdge(value))
-    return;
-  auto const users = dependency_graph_->GetInEdges(value);
-  for (auto const user : users)
-    TryFix(user);
-}
-
-void TypeEvaluator::Use(Value* user, Value* using_value) {
-  DCHECK(!user->is<Literal>());
-  DCHECK(!using_value->is<Literal>());
-  dependency_graph_->AddEdge(user, using_value);
-}
-
 // ast::Visitor
-void TypeEvaluator::VisitCall(ast::Call* call) {
+void ConstraintBuilder::VisitCall(ast::Call* call) {
   auto const callee = ResolveReference(call->callee());
   if (auto const method_group = callee->as<ast::MethodGroup>()) {
     ProcessMethodCall(method_call, call);
@@ -230,9 +315,9 @@ void TypeEvaluator::VisitCall(ast::Call* call) {
   Error(ErrorCode::TypeCalleeNotSupported);
 }
 
-void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
+void ConstraintBuilder::VisitLiteral(ast::Literal* literal) {
   if (auto const resolved = Resolve(node)) {
-    ProduceResult(GetOrNewValue(resolve));
+    ProduceResult(GetOrNewConstraint(resolve));
     return;
   }
   if (node->token() == TokenType::NullLiteral) {
@@ -245,17 +330,65 @@ void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
   if (!ast_type) {
     Error(ErrorCode::PredefinednameNameNotFound, type_name);
     Remember(node, nullptr);
-    ProduceResult(NewInvalidValue(literal));
+    ProduceResult(NewInvalidConstraint(literal));
     return;
   }
   auto const type = Resolve(ast_type);
   if (!type) {
     Error(ErrorCode::PredefinednameNameNotClass, type_name);
     Remember(node, nullptr);
-    ProduceResult(NewInvalidValue(ast_type));
+    ProduceResult(NewInvalidConstraint(ast_type));
     return;
   }
-  ProduceResult(GetOrNewValue(type));
+  ProduceResult(GetOrNewConstraint(type));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ConstraintResolver
+// Resolves constraints in built into |ConstraintFactory|, and stores following
+// mapping into |NameResolver|:
+//    * ast::Type -> ir:Type
+//    * ast::Call -> ir:Method
+class ConstraintResolver final : public ConstraintFactoryUser {
+ public:
+  explicit ConstraintResolver(ConstraintFactory* factory);
+  ~ConstraintResolver() final = default;
+
+  bool Run();
+
+ private:
+  Constraint* Evaluate(Constraint* constraint);
+  void ResolveConstraint(Call* call);
+
+  DISALLOW_COPY_AND_ASSIGN(ConstraintResolver);
+};
+
+ConstraintResolver::ConstraintResolver(ConstraintFactory* factory)
+    : ConstraintFactoryUser(factory) {
+}
+
+void ConstraintResolver::ResolveConstraint(Call* call) {
+  std::vector<Constraint*> arguments;
+  for (auto const constraint : call->arguments()) {
+    arguments.push_back(Evaluate(constraint));
+  }
+  std::vector<ir::Method*> methods;
+  for (auto const method : call->methods()) {
+    if (CanCall(method, output, arguments))
+      methods.push_back(method);
+  }
+  if (methods.empty() {
+    Error(ErrorCode::TypeCallNoMatc, call);
+    return;
+  }
+  if (methods == call->methods())
+    return;
+}
+
+void ConstraintResolver::Run() {
+  for (auto const call : factory()->calls())
+    ResolveConstraint(call);
 }
 
 }  // namespace
@@ -264,7 +397,7 @@ void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
 //
 // TypeResolver::Impl
 //
-class TypeResolver::Impl final : public Analyzer, public ValueFactoryOwner {
+class TypeResolver::Impl final : public Analyzer {
  public:
   explicit Impl(NameResolver* name_resolver);
   ~Impl() final = default;
@@ -275,23 +408,24 @@ class TypeResolver::Impl final : public Analyzer, public ValueFactoryOwner {
   bool Run();
 
  private:
-  Value* Evaluate(ast::Expression* expression, Value* output_value);
+  Constraint* Evaluate(ast::Expression* expression, Constraint* output_value);
 
-  TypeEvaluator evaluator_;
+  ConstraintBuilder builder_;
+  ConstraintFactory factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Impl);
 };
 
 TypeResolver::Impl::Impl(NameResolver* name_resolver)
-    : Analyzer(analyzer), evaluator_(name_resolver, value_factory()) {
+    : Analyzer(analyzer), builder_(name_resolver, &factory_) {
 }
 
 void TypeResolver::Impl::AddExpression(ast::Expression* expression,
                                        ir::Type* result_type) {
   if (auto const type_var = type->is<ir::TypeVariable>())
-    Evaluate(expression, NewVariable(type_var);
+    Build(expression, NewVariable(type_var));
   else
-    Evaluate(expression, NewLiteral(result_type));
+    Build(expression, NewLiteral(result_type));
 }
 
 void TypeResolver::Impl::AddVariable(ast::Variable* variable) {
@@ -301,13 +435,15 @@ void TypeResolver::Impl::AddVariable(ast::Variable* variable) {
   AddExpression(variable->expression(), type);
 }
 
-Value* TypeResolver::Evaluate(ast::Expression* expression,
-                              Value* output_value) {
-  return evaluator_.Evaluate(expression, output_value);
+Constraint* TypeResolver::Build(ast::Expression* expression,
+                                Constraint* output_value) {
+  return builder_.Build(expression, output_value);
 }
 
-bool TypeResolver::Run() {
-  return evaluator_.Finish();
+bool TypeResolver::Impl::Run() {
+  builder_.DidAddAllConstraints();
+  ConstraintResolver resolver(&factory_);
+  return resolver.Run();
 }
 
 //////////////////////////////////////////////////////////////////////
