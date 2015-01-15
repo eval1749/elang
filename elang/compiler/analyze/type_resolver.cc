@@ -7,8 +7,7 @@
 #include "elang/compiler/analyze/type_resolver.h"
 
 #include "base/logging.h"
-#include "elang/base/simple_directed_graph.h"
-#include "elang/base/zone_owner.h"
+#include "elang/compiler/analyze/method_resolver.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -16,458 +15,143 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/ir/factory.h"
-#include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
 
 namespace elang {
 namespace compiler {
 
-namespace {
+//////////////////////////////////////////////////////////////////////
+//
+// TypeResolver::Context
+//
+struct TypeResolver::Context {
+  ts::Value* result;
+  ts::Value* value;
+  ast::Node* user;
 
-class ConstraintFactory;
-
-#define FOR_EACH_ABSTRACT_VALUE_CLASS(V) V(Value)
-
-#define FOR_EACH_CONCRETE_VALUE_CLASS(V) \
-  V(CallSite)                            \
-  V(TypeVariable)                        \
-  V(UnionType)
-
-#define FOR_EACH_VALUE_CLASS(V)    \
-  FOR_EACH_ABSTRACT_VALUE_CLASS(V) \
-  FOR_EACH_CONCRETE_VALUE_CLASS(V)
-
-class CallSite final : public Value {
- public:
-  CallSite(ast::Call* call, const std::vector<Ir::Method*> methods);
-
-  ZoneVector<ir::Method*> methods() const { return methods_; }
-
- private:
-  ast::Call* const call_;
-  ZoneVector<ir::Method*> methods_;
-
-  DISALLOW_COPY_AND_ASSIGN(CallValue);
+  Context(ts::Value* value, ast::Node* user)
+      : result(nullptr), user(user), value(value) {}
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// Constraint
+// TypeResolver::ScopedContext
 //
-#define FOR_EACH_ABSTRACT_CONSTRAINT_CLASS(V) V(Constraint)
-
-#define FOR_EACH_CONCRETE_CONSTRAINT_CLASS(V) \
-  V(ArgumentConstraint)                       \
-  V(CallConstraint)                           \
-  V(LiteralConstraint)                        \
-  V(TypeConstraint)                           \
-  V(TypeVariableConstraint)
-
-#define FOR_EACH_CONSTRAINT_CLASS(V)    \
-  FOR_EACH_ABSTRACT_CONSTRAINT_CLASS(V) \
-  FOR_EACH_CONCRETE_CONSTRAINT_CLASS(V)
-
-class Constraint : public ZoneAllocable {
- private:
-  DISALLOW_COPY_AND_ASSIGN(Constraint);
-};
-
-class ArgumentConstraint final : public Constraint {
+class TypeResolver::ScopedContext {
  public:
-  ArgumentConstraint(CallConstraint* call, int position);
+  ScopedContext(TypeResolver* resolver, ts::Value* value, ast::Node* user);
+  ~ScopedContext();
 
  private:
-  CallConstraint* const call_;
-  int const position_;
+  Context context_;
+  TypeResolver* const resolver_;
+  Context* const saved_context_;
 
-  DISALLOW_COPY_AND_ASSIGN(ArgumentConstraint);
+  DISALLOW_COPY_AND_ASSIGN(ScopedContext);
 };
 
-class CallConstraint final : public Constraint {
- public:
-  // Constructor creates |ArgumentConstraint| and stores into |arguments_|.
-  CallConstraint(CallSite call, Constraint* output);
-
-  const ZoneVector<Constraint*> arguments() const { return arguments_; }
-  const Constraint* output() const { return output_; }
-
- private:
-  CallSite const call_;
-  Constraint* const output_;
-  ZoneVector<Constraint*> arguments_;
-
-  DISALLOW_COPY_AND_ASSIGN(CallConstraint);
-};
-
-class LiteralConstraint final : public Constraint {
- public:
-  explicit LiteralConstraint(Constraint* constraint, Token* literal);
-
- private:
-  Constraint* const constraint_;
-  Token* const literal_;
-
-  DISALLOW_COPY_AND_ASSIGN(LiteralConstraint);
-};
-
-class TypeConstraint : public Constraint {
- public:
-  explicit TypeConstraint(ir::Type* type);
-
- private:
-  ir::Type* const type_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(TypeConstraint);
-};
-
-class TypeVariableConstraint final : public Constraint {
- public:
-  explicit TypeVariableConstraint(Token* name);
-
- private:
-  Token* const name_;  // for debugging
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(TypeVariableConstraint);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// ConstraintFactory
-//
-class ConstraintFactory final : public ZoneOwner {
- public:
-  ConstraintFactory();
-  ~ConstraintFactory() final = default;
-
-  void Use(ast::Constraint* user, Constraint* using_value);
-
- private:
-  SimpleDirectedGraph<Constraint*> dependency_graph_;
-  ZoneUnorderedMap<ir::Type*, Constraint*> value_map_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstraintFactory);
-};
-
-ConstraintFactory::ConstraintFactory() {
+TypeResolver::ScopedContext::ScopedContext(TypeResolver* resolver,
+                                           ts::Value* value,
+                                           ast::Node* user)
+    : context_(value, user),
+      resolver_(resolver),
+      saved_context_(resolver->context_) {
+  resolver_->context_ = &context_;
 }
 
-void ConstraintFactory::Use(Constraint* user, Constraint* using_value) {
-  DCHECK(!user->is<Literal>());
-  DCHECK(!using_value->is<Literal>());
-  dependency_graph_->AddEdge(user, using_value);
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// ConstraintFactoryUser
-//
-class ConstraintFactoryUser {
- public:
-  explicit ConstraintFactoryUser(ConstraintFactory* factory);
-
-  void AddConstraint(Constraint* user, Constraint* constraint);
-  Constraint* GetOrNewConstraint(ir::Type* type);
-  ArgumentConstraint* NewArgumentConstraint(Call* call, int position);
-  Call* NewCall(ast::Call* call, const std::vector<ir::Method*> methods);
-  InvalidConstraint* NewInvalidConstraint(ast::Node* node);
-  Literal* NewLiteral(ir::Type* type);
-  Null* NewNull(Constraint* value);
-  void Use(Constraint* user, Constraint* using_value);
-
- private:
-  ConstraintFactory* const factory_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstraintFactoryUser);
-};
-
-ConstraintFactoryUser::ConstraintFactoryUser(ConstraintFactory* factory)
-    : factory_(factory) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// ConstraintBuilder
-//
-class ConstraintBuilder final : public Analyzer, public ConstraintFactoryUser {
- public:
-  ConstraintBuilder(NameResolver* name_resolver,
-                    ConstraintFactory* value_factory);
-  ~ConstraintBuilder() final = default;
-
-  Constraint* AddConstraint(ast::Expression* expression, Constraint* output);
-  void DidAddAllConstraints();
-
- private:
-  struct Context {
-    bool has_result;
-    Constraint* output;
-    Constraint* result;
-  };
-
-  class ScopedContext {
-   public:
-    ScopedContext(ConstraintBuilder* builder,
-                  ast::Expression* expression,
-                  Constraint* output);
-    ~ScopedContext();
-
-    Constraint* GetResult() const;
-
-   private:
-    Context context;
-    ConstraintBuilder* const builder_;
-    Context* saved_context_;
-
-    DISALLOW_COPY_AND_ASSIGN(ScopedContext);
-  };
-
-  // Returns list of ir::Method which takes at least |arity| arguments and
-  // its value is subtype of |output|.
-  std::vector<ir::Method*> CollectMethods(const ast::MethodGroup* method_group,
-                                          Constraint* output,
-                                          int arity);
-  void ProcessMethodCall(ast::MethodGroup* method_group, ast::Call* ast_call);
-  void ProduceResult(Constraint* result);
-
-  // ast::Visitor
-  void VisitCall(ast::Call* node);
-  void VisitLiteral(ast::Literal* node);
-
-  Context* context_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstraintBuilder);
-};
-
-// ConstraintBuilder::ScopedContext
-ConstraintBuilder::ScopedContext::ScopedContext(ConstraintBuilder* builder,
-                                                ast::Expression* expression,
-                                                Constraint* value)
-    : builder_(builder), saved_context_(builder->context_) {
-  context.has_result = false;
-  context.output = output;
-  context.result = nullptr;
-  expression->Accept(builder);
-}
-
-ConstraintBuilder::ScopedContext::~ScopedContext() {
-  DCHECK(context.has_result);
-  builder_->context_ = saved_context_;
-}
-
-Constraint* ConstraintBuilder::ScopedContext::GetResult() {
-  DCHECK(context_.has_result);
-  return context.result;
-}
-
-// ConstraintBuilder
-ConstraintBuilder::ConstraintBuilder(NameResolver* name_resolver,
-                                     ConstraintFactory* value_factory)
-    : Analyzer(name_resolver),
-      ConstraintFactoryUser(value_factory),
-      context_(nullptr) {
-}
-
-Constraint* ConstraintBuilder::AddConstraint(ast::Expression* expression,
-                                             Constraint* output) {
-  ScopedContext context(this, expression, output);
-  return context.GetResult();
-}
-
-void ConstraintBuilder::DidAddAllConstraint() {
-}
-
-void ConstraintBuilder::ProcessMethodCall(ast::MethodGroup* method_group,
-                                          ast::Call* ast_call) {
-  auto const arity = static_cast<int>(ast_call.arguments().size());
-  const auto methods = CollectMethods(method_group, context_.output, arity);
-  auto const call = NewCall(ast_call, methods);
-  std::vector<Constraint*> arguments;
-  auto nth = 0;
-  for (auto const ast_argument : ast_call->arguments()) {
-    auto const argument = NewArgumentConstraint(call, nth);
-    Use(call, argument);
-    AddConstraint(ast_argument, argument);
-    arguments.push_back(argument);
-    ++nth;
-  }
-  call->SetArgumentConstraints(arguments);
-}
-
-void ConstraintBuilder::ProduceResult(Constraint* result) {
-  DCHECK(!context_->has_result);
-  AddConstraint(context->output, result);
-  if (!result->is<Literal>())
-    Use(context->output, result);
-  context_->has_result = true;
-  context_->result = result;
-}
-
-// ast::Visitor
-void ConstraintBuilder::VisitCall(ast::Call* call) {
-  auto const callee = ResolveReference(call->callee());
-  if (auto const method_group = callee->as<ast::MethodGroup>()) {
-    ProcessMethodCall(method_call, call);
-    return;
-  }
-  Error(ErrorCode::TypeCalleeNotSupported);
-}
-
-void ConstraintBuilder::VisitLiteral(ast::Literal* literal) {
-  if (auto const resolved = Resolve(node)) {
-    ProduceResult(GetOrNewConstraint(resolve));
-    return;
-  }
-  if (node->token() == TokenType::NullLiteral) {
-    ProduceResult(NewNull(output_type_));
-    return;
-  }
-  auto const literal_type = node->token()->literal_type();
-  auto const type_name = session()->name_for(literal_type);
-  auto const ast_type = session()->system_namespace()->FindMember(type_name);
-  if (!ast_type) {
-    Error(ErrorCode::PredefinednameNameNotFound, type_name);
-    Remember(node, nullptr);
-    ProduceResult(NewInvalidConstraint(literal));
-    return;
-  }
-  auto const type = Resolve(ast_type);
-  if (!type) {
-    Error(ErrorCode::PredefinednameNameNotClass, type_name);
-    Remember(node, nullptr);
-    ProduceResult(NewInvalidConstraint(ast_type));
-    return;
-  }
-  ProduceResult(GetOrNewConstraint(type));
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// ConstraintResolver
-// Resolves constraints in built into |ConstraintFactory|, and stores following
-// mapping into |NameResolver|:
-//    * ast::Type -> ir:Type
-//    * ast::Call -> ir:Method
-class ConstraintResolver final : public ConstraintFactoryUser {
- public:
-  explicit ConstraintResolver(ConstraintFactory* factory);
-  ~ConstraintResolver() final = default;
-
-  bool Run();
-
- private:
-  Constraint* Evaluate(Constraint* constraint);
-  void ResolveConstraint(Call* call);
-
-  DISALLOW_COPY_AND_ASSIGN(ConstraintResolver);
-};
-
-ConstraintResolver::ConstraintResolver(ConstraintFactory* factory)
-    : ConstraintFactoryUser(factory) {
-}
-
-void ConstraintResolver::ResolveConstraint(Call* call) {
-  std::vector<Constraint*> arguments;
-  for (auto const constraint : call->arguments()) {
-    arguments.push_back(Evaluate(constraint));
-  }
-  std::vector<ir::Method*> methods;
-  for (auto const method : call->methods()) {
-    if (CanCall(method, output, arguments))
-      methods.push_back(method);
-  }
-  if (methods.empty() {
-    Error(ErrorCode::TypeCallNoMatc, call);
-    return;
-  }
-  if (methods == call->methods())
-    return;
-}
-
-void ConstraintResolver::Run() {
-  for (auto const call : factory()->calls())
-    ResolveConstraint(call);
-}
-
-}  // namespace
-
-//////////////////////////////////////////////////////////////////////
-//
-// TypeResolver::Impl
-//
-class TypeResolver::Impl final : public Analyzer {
- public:
-  explicit Impl(NameResolver* name_resolver);
-  ~Impl() final = default;
-
-  ir::Method* ResolveCall(ast::Call* call);
-  ir::Type* ResolveExpression(ast::Expression* expression);
-  void AddExpression(ast::Expression* expression, ir::Type* result_type);
-  bool Run();
-
- private:
-  Constraint* Evaluate(ast::Expression* expression, Constraint* output_value);
-
-  ConstraintBuilder builder_;
-  ConstraintFactory factory_;
-
-  DISALLOW_COPY_AND_ASSIGN(Impl);
-};
-
-TypeResolver::Impl::Impl(NameResolver* name_resolver)
-    : Analyzer(analyzer), builder_(name_resolver, &factory_) {
-}
-
-void TypeResolver::Impl::AddExpression(ast::Expression* expression,
-                                       ir::Type* result_type) {
-  if (auto const type_var = type->is<ir::TypeVariable>())
-    Build(expression, NewVariable(type_var));
-  else
-    Build(expression, NewLiteral(result_type));
-}
-
-void TypeResolver::Impl::AddVariable(ast::Variable* variable) {
-  if (!variable->expression())
-    return;
-  auto const type = ResolveTypeReference(variable->type());
-  AddExpression(variable->expression(), type);
-}
-
-Constraint* TypeResolver::Build(ast::Expression* expression,
-                                Constraint* output_value) {
-  return builder_.Build(expression, output_value);
-}
-
-bool TypeResolver::Impl::Run() {
-  builder_.DidAddAllConstraints();
-  ConstraintResolver resolver(&factory_);
-  return resolver.Run();
+TypeResolver::ScopedContext::~ScopedContext() {
+  resolver_->context_ = saved_context_;
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // TypeResolver
 //
-TypeResolver::TypeResolver(NameResolver* name_resolver)
-    : impl_(new impl(name_resolver)) {
+TypeResolver::TypeResolver(NameResolver* name_resolver, ast::Method* method)
+    : Analyzer(name_resolver),
+      context_(nullptr),
+      method_(method),
+      method_resolver_(new MethodResolver()) {
 }
 
 TypeResolver::~TypeResolver() {
 }
 
-void TypeResolver::AddExpression(ast::Expression* expression,
-                                 ir::Type* result_type) {
-  impl_->AddExpression(expression, result_type);
+void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
+  DCHECK(result);
+  DCHECK(context_);
+  DCHECK(!context_->result);
+  DCHECK(producer);
+  context_->result = result;
+  // TODO(eval1749) If |result| is |EmptyValue|, report error with |producer|.
 }
 
-void TypeResolver::AddVariable(ast::Variable* variable) {
-  impl_->AddVariable(variable);
+ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
+  return resolver()->ResolveReference(expression, method_);
 }
 
-bool TypeResolver::Run() {
-  return impl_->Run();
+bool TypeResolver::Unify(ast::Expression* expression, ts::Value* value) {
+  ScopedContext context(this, value, expression);
+  expression->Accept(this);
+  // TODO(eval1749) Returns false if |context_.result| is |EmptyType|.
+  return true;
+}
+
+// ats::Visitor
+void TypeResolver::VisitCall(ast::Call* call) {
+  std::vector<ts::Value*> arguments;
+  for (auto const argument : call->arguments())
+    arguments.push_back(Evaluate(argument, call));
+  auto const callee = ResolveReference(call->callee());
+  auto const method_group = callee->as<ast::MethodGroup>();
+  if (!method_group) {
+    // TODO(eval1749) NYI call site other than method call.
+    Error(ErrorCode::TypeResolverCalleeNotSupported, call->callee());
+    ProduceResult(NewInvalidValue(call->callee()), call);
+    return;
+  }
+  // Compute matching methods.
+  auto const methods =
+      method_resolver_->Resolve(method_group, context_->value, arguments);
+  if (methods.empty()) {
+    Error(ErrorCode::TypeResolverMethodNoMatch, call);
+    ProduceResult(NewInvalidValue(call->callee()), call);
+    return;
+  }
+  if (methods.size() == 1) {
+    // The value of this call site is determined. We compute argument values
+    // and return value and propagate them to users.
+    auto const method = methods.front();
+    auto parameters = method->parameters().begin();
+    auto succeeded = true;
+    for (auto const argument : call->arguments()) {
+      // Propagate argument value to users.
+      if (!Unify(argument, Evaluate(*parameters, call))) {
+        Error(ErrorCode::TypeResolverArgumentUnify, argument);
+        succeeded = false;
+      }
+      ++parameters;
+    }
+    if (!succeeded) {
+      ProduceResult(NewInvalidValue(call->callee()), call);
+      return;
+    }
+    // TODO(eval1749) Update users of this call site.
+    ProduceResult(Intersect(Evaluate(method->return_type(), context_->user),
+                            context_->value),
+                  call);
+    return;
+  }
+  // The result value is union of return value of candidate methods.
+  auto result = EmptyValue();
+  for (auto const method : methods)
+    result = Union(Evaluate(method->return_type(), context_->user), result);
+  ProduceResult(Intersect(result, context_->value), call);
+}
+
+void TypeResolver::VisitLiteral(ast::Literal* literal) {
+  auto const literal_value = Evaluate(literal, literal);
+  ProduceResult(Intersect(literal_value, context_->value), literal);
 }
 
 }  // namespace compiler

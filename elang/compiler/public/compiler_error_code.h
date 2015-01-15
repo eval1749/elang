@@ -179,6 +179,12 @@ namespace compiler {
   E(Token, Real, TooManyDigits)                       \
   E(Token, String, HasNewline)                        \
   E(Token, String, Unclosed)                          \
+  /* Type Resolver */                                 \
+  E(TypeResolver, Argument, Unify)                    \
+  E(TypeResolver, Callee, NotSupported)               \
+  E(TypeResolver, Method, NoMatch)                    \
+  E(TypeResolver, Method, Return)                     \
+  /* Warnings */                                      \
   W(Warning, Code, Zero)                              \
   W(Syntax, Var, NotUsed)
 

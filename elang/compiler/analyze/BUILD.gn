@@ -10,10 +10,14 @@ static_library("analyze") {
     "class_analyzer.h",
     "method_analyzer.cc",
     "method_analyzer.h",
+    "method_resolver.cc",
+    "method_resolver.h",
     "namespace_analyzer.cc",
     "namespace_analyzer.h",
     "name_resolver.cc",
     "name_resolver.h",
+    "type_resolver.cc",
+    "type_resolver.h",
   ]
 
   public_deps = [

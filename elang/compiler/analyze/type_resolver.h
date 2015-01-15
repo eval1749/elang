@@ -5,44 +5,51 @@
 #ifndef ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 #define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 
-#include <array>
-#include <memory>
-#include <string>
-#include <unordered_map>
-
 #include "base/macros.h"
+#include "elang/compiler/analyze/analyzer.h"
+#include "elang/compiler/ast/visitor.h"
 
 namespace elang {
 namespace compiler {
-namespace ast {
-class Expression;
-class ContainerNode;
-class NamedNode;
-}
-namespace ir {
-class Node;
-class Factory;
+namespace ts {
+class Value;
 }
 
 class CompilationSession;
+class MethodResolver;
 
 //////////////////////////////////////////////////////////////////////
 //
 // TypeResolver
 //
-class TypeResolver final {
+class TypeResolver final : public Analyzer, public ast::Visitor {
  public:
-  explicit TypeResolver(NameResolver* name_resolver);
+  TypeResolver(NameResolver* name_resolver, ast::Method* method);
   ~TypeResolver();
 
-  ir::Method* ResolveCall(ast::Call* call);
-  ir::Type* ResolveExpression(ast::Expression* expression);
-  void AddExpression(ast::Expression* expression, ir::Type* result_type);
-  bool Run();
+  // Evaluate type value of |node| for |user|.
+  ts::Value* Evaluate(ast::Node* node, ast::Node* user);
+  // Unify type value of |expression| with |value|.
+  bool Unify(ast::Expression* expression, ts::Value* value);
 
  private:
-  class Impl;
-  std::unique_ptr<Impl> impl_;
+  struct Context;
+  class ScopedContext;
+
+  ts::Value* EmptyValue();
+  ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
+  ts::Value* NewInvalidValue(ast::Node* node);
+  void ProduceResult(ts::Value* value, ast::Node* producer);
+  ast::NamedNode* ResolveReference(ast::Expression* expression);
+  ts::Value* Union(ts::Value* value1, ts::Value* value2);
+
+  // ast::Visitor
+  void VisitCall(ast::Call* call);
+  void VisitLiteral(ast::Literal* literal);
+
+  Context* context_;
+  ast::Method* const method_;
+  MethodResolver* const method_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };

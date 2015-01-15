@@ -40,11 +40,6 @@ class Factory final : public ZoneOwner {
   Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
 
-  // Types
-  LiteralType* NewLiteralType(ast::Literal* literal);
-  NullType* NewNullType(ir::Type* type);
-  TypeVariable* NewTypeVariable();
-
  private:
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

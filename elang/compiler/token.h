@@ -43,7 +43,7 @@ class Token final : public ZoneAllocated {
   bool is_operator() const { return data_.is_operator(); }
   bool is_right_bracket() const { return data_.is_right_bracket(); }
   bool is_type_name() const { return data_.is_type_name(); }
-  PredefineName literal_type() const { return data.literal_type(); }
+  PredefinedName literal_type() const { return data_.literal_type(); }
   const SourceCodeRange& location() const { return location_; }
   PredefinedName mapped_type_name() const { return data_.mapped_type_name(); }
   int precedence() const { return data_.precedence(); }

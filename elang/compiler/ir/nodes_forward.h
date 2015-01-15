@@ -15,16 +15,11 @@ namespace ir {
   V(Value)
 
 #define FOR_EACH_CONCRETE_IR_TYPE_NODE(V) \
-  V(AnyType)                              \
-  V(LiteralType)                          \
-  V(NullType)                             \
-  V(TypeVariable)                         \
-  V(VoidType)
+  V(Class)                                \
+  V(Enum)
 
 #define FOR_EACH_CONCRETE_IR_NODE(V) \
   FOR_EACH_CONCRETE_IR_TYPE_NODE(V)  \
-  V(Class)                           \
-  V(Enum)                            \
   V(Method)                          \
   V(Parameter)                       \
   V(Signature)
