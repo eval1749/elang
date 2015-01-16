@@ -74,6 +74,7 @@ TokenData::TokenData(base::StringPiece16* string)
 }
 
 TokenData::TokenData(TokenType type, uint64_t u64) : type_(type) {
+  DCHECK(!has_atomic_string());
   data_.u64 = u64;
 }
 
@@ -185,6 +186,25 @@ bool TokenData::is_right_bracket() const {
 bool TokenData::is_type_name() const {
   // For speed, we use ordinal number instead of accessing details.
   return GetTypeKeywordIndex(type_) < arraysize(kMappedTypeNames);
+}
+
+PredefinedName TokenData::literal_type() const {
+  static const PredefinedName kLiteralTypeNames[] = {
+      PredefinedName::Char,
+      PredefinedName::Bool,  // false
+      PredefinedName::Float32,
+      PredefinedName::Float64,
+      PredefinedName::Int32,
+      PredefinedName::Int64,
+      PredefinedName::UInt32,
+      PredefinedName::UInt64,
+      PredefinedName::String,
+      PredefinedName::Bool,  // true
+  };
+  auto const index = static_cast<size_t>(
+      static_cast<int>(type_) - static_cast<int>(TokenType::CharacterLiteral));
+  DCHECK_LT(index, arraysize(kLiteralTypeNames)) << type_;
+  return kLiteralTypeNames[index];
 }
 
 PredefinedName TokenData::mapped_type_name() const {
