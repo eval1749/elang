@@ -83,6 +83,10 @@ ts::Value* TypeResolver::Evaluate(ast::Node* node, ast::Node* user) {
   return type_evaluator_->Evaluate(node, user);
 }
 
+ts::Value* TypeResolver::GetAnyValue() {
+  return type_evaluator_->GetAnyValue();
+}
+
 ts::Value* TypeResolver::GetEmptyValue() {
   return type_evaluator_->GetEmptyValue();
 }
@@ -125,6 +129,8 @@ void TypeResolver::VisitCall(ast::Call* call) {
   for (auto const argument : call->arguments())
     arguments.push_back(Evaluate(argument, call));
   auto const callee = ResolveReference(call->callee());
+  if (!callee)
+    return;
   auto const method_group = callee->as<ast::MethodGroup>();
   if (!method_group) {
     // TODO(eval1749) NYI call site other than method call.

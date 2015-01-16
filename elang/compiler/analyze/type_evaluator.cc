@@ -46,8 +46,8 @@ class TypeEvaluator::ScopedContext {
 };
 
 TypeEvaluator::ScopedContext::ScopedContext(TypeEvaluator* resolver,
-                                           ast::Node* node,
-                                           ast::Node* user)
+                                            ast::Node* node,
+                                            ast::Node* user)
     : context_(node, user),
       resolver_(resolver),
       saved_context_(resolver->context_) {
@@ -77,6 +77,7 @@ ts::Value* TypeEvaluator::Evaluate(ast::Node* node, ast::Node* user) {
   DCHECK(node);
   DCHECK(user);
   ScopedContext scoped_context(this, node, user);
+  node->Accept(this);
   DCHECK(context_->result);
   return context_->result;
 }
@@ -126,6 +127,11 @@ void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
   // Other than |null| literal, the type of literal is predefined.
   auto const type =
       resolver()->ResolvePredefinedType(token, token->literal_type());
+  if (!type) {
+    // Predefined type isn't defined.
+    ProduceResult(type_factory_->NewInvalidValue(literal));
+    return;
+  }
   auto const it = literal_cache_map_.find(type);
   if (it != literal_cache_map_.end()) {
     ProduceResult(it->second);

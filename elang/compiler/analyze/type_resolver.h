@@ -31,6 +31,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
 
   // Evaluate type value of |node| for |user|.
   ts::Value* Evaluate(ast::Node* node, ast::Node* user);
+  ts::Value* GetAnyValue();
   // Unify type value of |expression| with |value|.
   bool Unify(ast::Expression* expression, ts::Value* value);
 

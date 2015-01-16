@@ -80,7 +80,7 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver_->Evaluate(node->expression(), node);
+  type_resolver_->Unify(node->expression(), type_resolver_->GetAnyValue());
 }
 
 }  // namespace

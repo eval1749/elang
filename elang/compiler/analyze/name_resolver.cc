@@ -41,7 +41,9 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   void ProduceResult(ast::NamedNode* result);
 
   // ast::Visitor
+  void VisitMemberAccess(ast::MemberAccess* node) final;
   void VisitNameReference(ast::NameReference* node) final;
+  void VisitTypeMemberAccess(ast::TypeMemberAccess* node) final;
   void VisitTypeNameReference(ast::TypeNameReference* node) final;
 
   ast::ContainerNode* const container_;
@@ -91,6 +93,11 @@ ast::NamedNode* NameResolver::ReferenceResolver::Resolve(
 }
 
 // ast::Visitor
+void NameResolver::ReferenceResolver::VisitMemberAccess(
+    ast::MemberAccess* node) {
+  DCHECK(node);
+}
+
 void NameResolver::ReferenceResolver::VisitNameReference(
     ast::NameReference* node) {
   auto const name = node->name();
@@ -136,6 +143,11 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   return;
 }
 
+void NameResolver::ReferenceResolver::VisitTypeMemberAccess(
+    ast::TypeMemberAccess* node) {
+  VisitMemberAccess(node->reference());
+}
+
 void NameResolver::ReferenceResolver::VisitTypeNameReference(
     ast::TypeNameReference* node) {
   VisitNameReference(node->reference());
@@ -171,11 +183,11 @@ ir::Type* NameResolver::ResolvePredefinedType(Token* token,
     session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);
     return nullptr;
   }
-  auto const type = Resolve(ast_type)->as<ir::Type>();
-  if (!type)
-    session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
-  DidResolve(ast_type, type);
-  return type;
+  if (auto const type = Resolve(ast_type)->as<ir::Type>())
+    return type;
+  session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
+  DidResolve(ast_type, nullptr);
+  return nullptr;
 }
 
 ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,

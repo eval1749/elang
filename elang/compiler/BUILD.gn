@@ -67,6 +67,8 @@ source_set("compiler_test") {
     "testing/compiler_test.h",
     "testing/formatter.cc",
     "testing/formatter.h",
+    "testing/namespace_builder.cc",
+    "testing/namespace_builder.h",
   ]
   public_deps = [
     ":compiler",
