@@ -22,9 +22,12 @@ class NamedNode;
 namespace ir {
 class Node;
 class Factory;
+class Type;
 }
 
 class CompilationSession;
+enum class PredefinedName;
+class Token;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -42,6 +45,8 @@ class NameResolver final {
 
   void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
+  // Resolve to |ir::Type| named |name| for |token|.
+  ir::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,
                                    ast::ContainerNode* container);
 

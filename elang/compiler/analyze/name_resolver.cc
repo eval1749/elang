@@ -16,6 +16,7 @@
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/predefined_names.h"
 
 namespace elang {
 namespace compiler {
@@ -160,6 +161,21 @@ void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
 ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
   auto const it = node_map_.find(member);
   return it == node_map_.end() ? nullptr : it->second;
+}
+
+ir::Type* NameResolver::ResolvePredefinedType(Token* token,
+                                              PredefinedName name) {
+  auto const type_name = session()->name_for(name);
+  auto const ast_type = session()->system_namespace()->FindMember(type_name);
+  if (!ast_type) {
+    session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);
+    return nullptr;
+  }
+  auto const type = Resolve(ast_type)->as<ir::Type>();
+  if (!type)
+    session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
+  DidResolve(ast_type, type);
+  return type;
 }
 
 ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,

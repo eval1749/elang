@@ -14,6 +14,9 @@ namespace compiler {
 namespace ast {
 class Node;
 }
+namespace ir {
+class Type;
+}
 namespace ts {
 
 //////////////////////////////////////////////////////////////////////
@@ -28,6 +31,9 @@ class Factory final : public ZoneOwner {
   AnyValue* GetAnyValue() { return any_value_; }
   EmptyValue* GetEmptyValue() { return empty_value_; }
   InvalidValue* NewInvalidValue(ast::Node* node);
+  Literal* NewLiteral(ir::Type* type);
+  NullValue* NewNullValue(Value* value);
+  Variable* NewVariable(ast::Node* node);
 
  private:
   AnyValue* const any_value_;

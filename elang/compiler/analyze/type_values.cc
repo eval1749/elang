@@ -21,8 +21,20 @@ EmptyValue::EmptyValue() {
 InvalidValue::InvalidValue(ast::Node* node) : node_(node) {
 }
 
+// Literal
+Literal::Literal(ir::Type* value) : value_(value) {
+}
+
+// NullValue
+NullValue::NullValue(Value* value) : value_(value) {
+}
+
 // Value
 Value::Value() {
+}
+
+// Variable
+Variable::Variable(ast::Node* node) : node_(node) {
 }
 
 }  // namespace ts

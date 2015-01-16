@@ -22,6 +22,18 @@ InvalidValue* Factory::NewInvalidValue(ast::Node* node) {
   return new (zone()) InvalidValue(node);
 }
 
+Literal* Factory::NewLiteral(ir::Type* type) {
+  return new (zone()) Literal(type);
+}
+
+NullValue* Factory::NewNullValue(Value* value) {
+  return new (zone()) NullValue(value);
+}
+
+Variable* Factory::NewVariable(ast::Node* node) {
+  return new (zone()) Variable(node);
+}
+
 }  // namespace ts
 }  // namespace compiler
 }  // namespace elang

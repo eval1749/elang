@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "base/macros.h"
+#include "elang/base/zone_unordered_map.h"
 #include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 
@@ -29,7 +30,9 @@ class TypeEvaluator final : public Analyzer, public ast::Visitor {
 
   // Evaluate type value of |node| for |user|.
   ts::Value* Evaluate(ast::Node* node, ast::Node* user);
+  // Get singleton |AnyValue| instance.
   ts::Value* GetAnyValue();
+  // Get singleton |EmpyValue| instance.
   ts::Value* GetEmptyValue();
   // Unify type value of |expression| with |value|.
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
@@ -37,7 +40,20 @@ class TypeEvaluator final : public Analyzer, public ast::Visitor {
   ts::Value* Union(ts::Value* value1, ts::Value* value2);
 
  private:
+  struct Context;
+  class ScopedContext;
+
+  void ProduceResult(ts::Value* value);
+
+  // ast::Visitor
+  void VisitLiteral(ast::Literal* node) final;
+
+  Context* context_;
+
   std::unique_ptr<ts::Factory> type_factory_;
+  // Zone allocated objects must be constructed after |ts::Factory|.
+  ZoneUnorderedMap<ir::Type*, ts::Value*> literal_cache_map_;
+  ZoneUnorderedMap<ast::Node*, ts::Value*> value_cache_map_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeEvaluator);
 };

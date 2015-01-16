@@ -19,6 +19,11 @@ namespace compiler {
 namespace ast {
 class Node;
 }
+
+namespace ir {
+class Type;
+}
+
 namespace ts {
 
 #define DECLARE_TYPE_VALUE_CLASS(self, super) \
@@ -95,6 +100,48 @@ class InvalidValue : public Value {
   ast::Node* const node_;
 
   DISALLOW_COPY_AND_ASSIGN(InvalidValue);
+};
+
+// Represents literal type
+class Literal : public Value {
+  DECLARE_CONCRETE_TYPE_VALUE_CLASS(Literal, Value);
+
+  ir::Type* value() const { return value_; }
+
+ private:
+  explicit Literal(ir::Type* value);
+
+  ir::Type* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(Literal);
+};
+
+// Represents 'null' literal of type |value|.
+class NullValue : public Value {
+  DECLARE_CONCRETE_TYPE_VALUE_CLASS(NullValue, Value);
+
+  Value* value() const { return value_; }
+
+ private:
+  explicit NullValue(Value* value);
+
+  Value* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(NullValue);
+};
+
+// Type variable for |node|.
+class Variable : public Value {
+  DECLARE_CONCRETE_TYPE_VALUE_CLASS(Variable, Value);
+
+  ast::Node* node() const { return node_; }
+
+ private:
+  explicit Variable(ast::Node* node);
+
+  ast::Node* const node_;
+
+  DISALLOW_COPY_AND_ASSIGN(Variable);
 };
 
 }  // namespace ts
