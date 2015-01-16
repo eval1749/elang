@@ -193,7 +193,8 @@ namespace compiler {
   K(Void, "void", "KT")                                                     \
   /* literals */                                                            \
   K(NullLiteral, "null", "KL")                                              \
-  K(TrueLiteral, "true", "KL")                                              \
+  /* typed literals */                                                      \
+  T(CharacterLiteral, "'c'", "LC")                                          \
   K(FalseLiteral, "false", "KL")                                            \
   T(Float32Literal, "f32", "LF")                                            \
   T(Float64Literal, "f64", "LF")                                            \
@@ -201,8 +202,8 @@ namespace compiler {
   T(Int64Literal, "I64", "LI")                                              \
   T(UInt32Literal, "U32", "LU")                                             \
   T(UInt64Literal, "U64", "LU")                                             \
-  T(CharacterLiteral, "'c'", "LC")                                          \
   T(StringLiteral, "\"string\"", "LS")                                      \
+  K(TrueLiteral, "true", "KL")                                              \
                                                                             \
   T(SimpleName, "SimpleName", "NN")                                         \
   T(TempName, "TempName", "NN")                                             \
