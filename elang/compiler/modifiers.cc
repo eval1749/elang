@@ -70,10 +70,10 @@ Modifiers Modifiers::Field() {
 }
 
 Modifiers Modifiers::Method() {
-  return Modifiers(Modifier::Abstract, Modifier::Final, Modifier::New,
-                   Modifier::Override, Modifier::Partial, Modifier::Private,
-                   Modifier::Protected, Modifier::Public, Modifier::Static,
-                   Modifier::Virtual);
+  return Modifiers(Modifier::Abstract, Modifier::Extern, Modifier::Final,
+                   Modifier::New, Modifier::Override, Modifier::Partial,
+                   Modifier::Private, Modifier::Protected, Modifier::Public,
+                   Modifier::Static, Modifier::Virtual);
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers) {
