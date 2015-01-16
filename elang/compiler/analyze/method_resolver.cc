@@ -17,5 +17,13 @@ MethodResolver::MethodResolver() {
 MethodResolver::~MethodResolver() {
 }
 
+std::unordered_set<ast::Method*> MethodResolver::Resolve(
+    ast::MethodGroup* method_group,
+    ts::Value* output,
+    const std::vector<ts::Value*>& argument) {
+  // TODO(eval1749) NYI MethodResolver::Resolve
+  return std::unordered_set<ast::Method*>();
+}
+
 }  // namespace compiler
 }  // namespace elang

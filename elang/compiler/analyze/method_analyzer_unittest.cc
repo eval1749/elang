@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "elang/compiler/testing/analyzer_test.h"
+#include "elang/compiler/analyze/method_analyzer.h"
 
 namespace elang {
 namespace compiler {
@@ -31,8 +32,8 @@ TEST_F(MethodAnalyzerTest, Method) {
       "    void Main() { ConsoleWrite(\"Hello world!\"); }"
       "  }");
   EXPECT_EQ("", AnalyzeClass());
-  EXPECT_EQ("(method Main (signature (class Void) ()))\n",
-            GetMethodGroup("Sample.Main"));
+  MethodAnalyzer method_analyzer(name_resolver());
+  EXPECT_TRUE(method_analyzer.Run());
 }
 
 }  // namespace

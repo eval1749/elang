@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_ANALYZE_METHOD_RESOLVER_H_
 
 #include <vector>
+#include <unordered_set>
 
 #include "base/macros.h"
 
@@ -30,9 +31,10 @@ class MethodResolver final {
   MethodResolver();
   ~MethodResolver();
 
-  std::vector<ast::Method*> Resolve(ast::MethodGroup* method_group,
-                                    ts::Value* output,
-                                    const std::vector<ts::Value*>& argument);
+  std::unordered_set<ast::Method*> Resolve(
+      ast::MethodGroup* method_group,
+      ts::Value* output,
+      const std::vector<ts::Value*>& argument);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MethodResolver);

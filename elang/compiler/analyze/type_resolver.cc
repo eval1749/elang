@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/analyze/method_resolver.h"
 #include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/analyze/type_evaluator.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -71,10 +72,27 @@ TypeResolver::TypeResolver(NameResolver* name_resolver, ast::Method* method)
     : Analyzer(name_resolver),
       context_(nullptr),
       method_(method),
-      method_resolver_(new MethodResolver()) {
+      method_resolver_(new MethodResolver()),
+      type_evaluator_(new TypeEvaluator(name_resolver)) {
 }
 
 TypeResolver::~TypeResolver() {
+}
+
+ts::Value* TypeResolver::Evaluate(ast::Node* node, ast::Node* user) {
+  return type_evaluator_->Evaluate(node, user);
+}
+
+ts::Value* TypeResolver::GetEmptyValue() {
+  return type_evaluator_->GetEmptyValue();
+}
+
+ts::Value* TypeResolver::Intersect(ts::Value* value1, ts::Value* value2) {
+  return type_evaluator_->Intersect(value1, value2);
+}
+
+ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
+  return type_evaluator_->NewInvalidValue(node);
 }
 
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
@@ -95,6 +113,10 @@ bool TypeResolver::Unify(ast::Expression* expression, ts::Value* value) {
   expression->Accept(this);
   // TODO(eval1749) Returns false if |context_.result| is |EmptyType|.
   return true;
+}
+
+ts::Value* TypeResolver::Union(ts::Value* value1, ts::Value* value2) {
+  return type_evaluator_->Union(value1, value2);
 }
 
 // ats::Visitor
@@ -121,7 +143,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
   if (methods.size() == 1) {
     // The value of this call site is determined. We compute argument values
     // and return value and propagate them to users.
-    auto const method = methods.front();
+    auto const method = *methods.begin();
     auto parameters = method->parameters().begin();
     auto succeeded = true;
     for (auto const argument : call->arguments()) {
@@ -143,7 +165,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
     return;
   }
   // The result value is union of return value of candidate methods.
-  auto result = EmptyValue();
+  auto result = GetEmptyValue();
   for (auto const method : methods)
     result = Union(Evaluate(method->return_type(), context_->user), result);
   ProduceResult(Intersect(result, context_->value), call);

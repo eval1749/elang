@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 #define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 
+#include <memory>
+
 #include "base/macros.h"
 #include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
@@ -15,8 +17,8 @@ namespace ts {
 class Value;
 }
 
-class CompilationSession;
 class MethodResolver;
+class TypeEvaluator;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -36,7 +38,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   struct Context;
   class ScopedContext;
 
-  ts::Value* EmptyValue();
+  ts::Value* GetEmptyValue();
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
   void ProduceResult(ts::Value* value, ast::Node* producer);
@@ -50,6 +52,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   Context* context_;
   ast::Method* const method_;
   MethodResolver* const method_resolver_;
+  std::unique_ptr<TypeEvaluator> type_evaluator_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };
