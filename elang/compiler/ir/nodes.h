@@ -5,11 +5,11 @@
 #ifndef ELANG_COMPILER_IR_NODES_H_
 #define ELANG_COMPILER_IR_NODES_H_
 
-#include <ostream>
 #include <vector>
 
 #include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/base/zone_unordered_set.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/ir/nodes_forward.h"
@@ -51,15 +51,15 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
-// Print for formatting and debugging.
-std::ostream& operator<<(std::ostream& ostream, const Node& node);
-
 //////////////////////////////////////////////////////////////////////
 //
 // Type
 //
 class Type : public Node {
   DECLARE_ABSTRACT_IR_NODE_CLASS(Type, Node);
+
+ public:
+  virtual bool IsSubtypeOf(const Type* other) const = 0;
 
  protected:
   Type();
@@ -79,8 +79,13 @@ class Class final : public Type {
   // Associated AST class object.
   ast::Class* ast_class() const { return ast_class_; }
 
+  // base classes of this class
+  const ZoneUnorderedSet<Class*>& base_classes() const { return base_classes_; }
+
   // Direct base classes of this class
-  const ZoneVector<Class*>& base_classes() const { return base_classes_; }
+  const ZoneVector<Class*>& direct_base_classes() const {
+    return direct_base_classes_;
+  }
 
   // Returns true if |this| is 'class'.
   bool is_class() const;
@@ -88,10 +93,14 @@ class Class final : public Type {
  private:
   Class(Zone* zone,
         ast::Class* ast_type,
-        const std::vector<Class*>& base_classes);
+        const std::vector<Class*>& direct_base_classes);
+
+  // Type
+  bool IsSubtypeOf(const Type* other) const final;
 
   ast::Class* const ast_class_;
-  const ZoneVector<Class*> base_classes_;
+  ZoneUnorderedSet<Class*> base_classes_;
+  const ZoneVector<Class*> direct_base_classes_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
@@ -105,11 +114,19 @@ class Enum final : public Type {
 
  public:
   ast::Enum* ast_enum() const { return ast_enum_; }
+  ir::Class* base_type() const { return base_type_; }
 
  private:
-  Enum(Zone* zone, ast::Enum* ast_enum, const std::vector<int64_t>& values);
+  Enum(Zone* zone,
+       ast::Enum* ast_enum,
+       ir::Class* base_type,
+       const std::vector<int64_t>& values);
+
+  // Type
+  bool IsSubtypeOf(const Type* other) const final;
 
   ast::Enum* const ast_enum_;
+  ir::Class* const base_type_;
   const ZoneVector<int64_t> values_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
@@ -141,12 +158,6 @@ class Method final : public Node {
 //
 // Parameter
 //
-enum class ParameterKind {
-  Required,
-  Optional,
-  Array,
-};
-
 class Parameter final : public Node {
   DECLARE_CONCRETE_IR_NODE_CLASS(Parameter, Node);
 
@@ -155,18 +166,18 @@ class Parameter final : public Node {
   bool operator!=(const Parameter& other) const;
 
   Value* default_value() const { return default_value_; }
-  ParameterKind kind() const { return kind_; }
-  Token* name() const { return name_; }
+  bool is_rest() const;
+  ParameterKind kind() const;
+  Token* name() const;
   Type* type() const { return type_; }
 
   bool IsIdentical(const Parameter& other) const;
 
  private:
-  Parameter(ParameterKind kind, Token* name, Type* type, Value* default_value);
+  Parameter(ast::Parameter* ast_parameter, Type* type, Value* default_value);
 
+  ast::Parameter* const ast_parameter_;
   Value* const default_value_;
-  ParameterKind const kind_;
-  Token* const name_;
   Type* const type_;
 
   DISALLOW_COPY_AND_ASSIGN(Parameter);
@@ -180,9 +191,19 @@ class Signature final : public Type {
   DECLARE_CONCRETE_IR_NODE_CLASS(Signature, Type);
 
  public:
+  struct Arity {
+    // TODO(eval1749) We should move |Signature::Arity::kMaximum| to
+    // public place.
+    static const int kMaximum = 100;
+    int maximum;
+    int minimum;
+  };
+
   bool operator==(const Signature& other) const;
   bool operator!=(const Signature& other) const;
 
+  int maximum_arity() const { return arity_.minimum; }
+  int minimum_arity() const { return arity_.maximum; }
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() { return return_type_; }
 
@@ -193,26 +214,14 @@ class Signature final : public Type {
             Type* return_type,
             const std::vector<Parameter*>& parameters);
 
-  ZoneVector<Parameter*> parameters_;
+  // Type
+  bool IsSubtypeOf(const Type* other) const final;
+
+  const Arity arity_;
+  const ZoneVector<Parameter*> parameters_;
   Type* const return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(Signature);
-};
-
-// TypeVariable
-class TypeVariable final : public Type {
-  DECLARE_CONCRETE_IR_NODE_CLASS(TypeVariable, Type);
-
- public:
-  void Intersection(ir::Type* type);
-  void Union(ir::Type* type);
-
- private:
-  explicit TypeVariable(Zone* zone);
-
-  Type* const type_;
-
-  DISALLOW_COPY_AND_ASSIGN(TypeVariable);
 };
 
 //////////////////////////////////////////////////////////////////////

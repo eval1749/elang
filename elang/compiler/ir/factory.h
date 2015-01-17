@@ -31,8 +31,7 @@ class Factory final : public ZoneOwner {
   Method* NewMethod(ast::Method* ast_method, Signature* signature);
 
   // Allocate |Parameter| for analyzer
-  Parameter* NewParameter(ParameterKind kind,
-                          Token* name,
+  Parameter* NewParameter(ast::Parameter* parameter,
                           Type* type,
                           Value* default_value);
 

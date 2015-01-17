@@ -14,7 +14,7 @@ namespace ir {
 // Implementation of "visitor" pattern.
 #define V(Name) \
   void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
-  FOR_EACH_CONCRETE_IR_NODE(V)
+FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////
@@ -32,11 +32,10 @@ Class* Factory::NewClass(ast::Class* ast_class,
   return new (zone()) Class(zone(), ast_class, base_classes);
 }
 
-Parameter* Factory::NewParameter(ParameterKind kind,
-                                 Token* name,
+Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
                                  Type* type,
                                  Value* default_value) {
-  return new (zone()) Parameter(kind, name, type, default_value);
+  return new (zone()) Parameter(ast_parameter, type, default_value);
 }
 
 Method* Factory::NewMethod(ast::Method* ast_method, Signature* signature) {

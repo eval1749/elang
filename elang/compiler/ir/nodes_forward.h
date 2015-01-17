@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_IR_NODES_FORWARD_H_
 #define ELANG_COMPILER_IR_NODES_FORWARD_H_
 
+#include <ostream>
+
 namespace elang {
 namespace compiler {
 namespace ir {
@@ -30,8 +32,10 @@ FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
 class Factory;
-enum class ParameterKind;
 class Visitor;
+
+// Print for formatting and debugging.
+std::ostream& operator<<(std::ostream& ostream, const Node& node);
 
 }  // namespace ir
 }  // namespace compiler
