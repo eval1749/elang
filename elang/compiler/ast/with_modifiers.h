@@ -19,6 +19,11 @@ class WithModifiers {
  public:
   Modifiers modifiers() const { return modifiers_; }
 
+#define V(name, string, details) \
+  bool Has##name() const { return modifiers_.Has##name(); }
+  FOR_EACH_MODIFIER(V)
+#undef V
+
  protected:
   explicit WithModifiers(Modifiers modifiers);
   ~WithModifiers();
