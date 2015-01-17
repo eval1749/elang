@@ -99,7 +99,7 @@ SystemNamespaceBuilder::SystemNamespaceBuilder(NameResolver* name_resolver)
   NewClass("Int16", "ValueType");
   NewClass("Int32", "ValueType");
   NewClass("Int64", "ValueType");
-  NewClass("UInt8", "ValueType");
+  NewClass("Int8", "ValueType");
   NewClass("UInt16", "ValueType");
   NewClass("UInt32", "ValueType");
   NewClass("UInt64", "ValueType");
