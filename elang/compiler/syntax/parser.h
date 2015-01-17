@@ -89,6 +89,7 @@ class Parser final {
   // Returns last produced expression.
   ast::Expression* ConsumeExpression();
   ast::Expression* ConsumeExpressionOrType();
+  ast::Expression* NewInvalidExpression(Token* token);
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
@@ -121,7 +122,7 @@ class Parser final {
   bool ParseDoStatement(Token* keyword);
   bool ParseForStatement(Token* keyword);
   bool ParseIfStatement(Token* keyword);
-  bool ParseMethod(Modifiers modifiers,
+  void ParseMethod(Modifiers modifiers,
                    ast::Type* method_type,
                    Token* method_name,
                    const std::vector<Token*> type_parameters);
@@ -136,9 +137,9 @@ class Parser final {
   bool ParseYieldStatement(Token* keyword);
   ast::Statement* ProduceStatement(ast::Statement* statement);
 
-  // Produce local variable reference at |name| token.
+  // Produce local variable or parameter reference at |name| token.
   ast::Expression* ProduceVariableReference(Token* name,
-                                            ast::Variable* variable);
+                                            ast::NamedNode* variable);
 
   // in "parse_type.cc"
   // Returns last produced expression.

@@ -90,11 +90,9 @@ Method* Factory::NewMethod(ClassBody* outer,
                            Modifiers modifies,
                            Type* type,
                            Token* name,
-                           const std::vector<Token*>& type_parameters,
-                           const std::vector<Variable*>& parameters,
-                           Statement* body) {
-  return new (zone_) Method(zone_, outer, method_group, modifies, type, name,
-                            type_parameters, parameters, body);
+                           const std::vector<Token*>& type_parameters) {
+  return new (zone_)
+      Method(zone_, outer, method_group, modifies, type, name, type_parameters);
 }
 
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
@@ -161,15 +159,13 @@ NameReference* Factory::NewNameReference(Token* name) {
   return new (zone_) NameReference(name);
 }
 
-UnaryOperation* Factory::NewUnaryOperation(Token* op, Expression* expr) {
-  return new (zone_) UnaryOperation(op, expr);
+ParameterReference* Factory::NewParameterReference(Token* name,
+                                                   Parameter* parameter) {
+  return new (zone_) ParameterReference(name, parameter);
 }
 
-Variable* Factory::NewVariable(Token* keyword,
-                               Type* type,
-                               Token* name,
-                               Expression* value) {
-  return new (zone_) Variable(keyword, type, name, value);
+UnaryOperation* Factory::NewUnaryOperation(Token* op, Expression* expr) {
+  return new (zone_) UnaryOperation(op, expr);
 }
 
 VariableReference* Factory::NewVariableReference(Token* name,
@@ -326,6 +322,26 @@ TypeMemberAccess* Factory::NewTypeMemberAccess(MemberAccess* reference) {
 
 TypeNameReference* Factory::NewTypeNameReference(NameReference* reference) {
   return new (zone_) TypeNameReference(reference);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Misc
+//
+Parameter* Factory::NewParameter(Method* owner,
+                                 ParameterKind kind,
+                                 int position,
+                                 Type* type,
+                                 Token* name,
+                                 Expression* value) {
+  return new (zone_) Parameter(owner, kind, position, type, name, value);
+}
+
+Variable* Factory::NewVariable(Token* keyword,
+                               Type* type,
+                               Token* name,
+                               Expression* value) {
+  return new (zone_) Variable(keyword, type, name, value);
 }
 
 //////////////////////////////////////////////////////////////////////

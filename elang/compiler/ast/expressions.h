@@ -183,6 +183,23 @@ class NameReference final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(NameReference);
 };
 
+// Represents parameter reference
+class ParameterReference final : public Expression {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ParameterReference, Expression);
+
+ public:
+  // Returns name token where parameter referenced.
+  Token* name() const { return token(); }
+  Parameter* parameter() const { return parameter_; }
+
+ private:
+  ParameterReference(Token* name, Parameter* parameter);
+
+  Parameter* const parameter_;
+
+  DISALLOW_COPY_AND_ASSIGN(ParameterReference);
+};
+
 // Represents unary expression:
 //  '+' UnaryExpression |
 //  '-' UnaryExpression |

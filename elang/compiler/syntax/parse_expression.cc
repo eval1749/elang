@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"
@@ -83,6 +84,10 @@ ast::Expression* Parser::ConsumeExpressionOrType() {
 Token* Parser::ConsumeTokenAs(TokenType type) {
   auto const original = ConsumeToken();
   return session_->NewToken(original->location(), TokenData(type));
+}
+
+ast::Expression* Parser::NewInvalidExpression(Token* token) {
+  return factory()->NewInvalidExpression(token);
 }
 
 bool Parser::ParseExpression() {
@@ -193,9 +198,11 @@ bool Parser::ParsePrimaryExpression() {
       // Local name reference
       if (auto const var = local_member->as<ast::Variable>()) {
         ProduceVariableReference(name, var);
+      } else if (auto const param = local_member->as<ast::Parameter>()) {
+        ProduceVariableReference(name, param);
       } else {
         Error(ErrorCode::SyntaxExpressionLabel, name);
-        ProduceExpression(factory()->NewInvalidExpression(name));
+        ProduceExpression(NewInvalidExpression(name));
       }
       ParsePrimaryExpressionPost();
       return true;
@@ -226,7 +233,7 @@ bool Parser::ParsePrimaryExpression() {
     // ParenthesizedExpression:
     // '(' Expression ')'
     if (!ParseExpression())
-      ProduceExpression(factory()->NewInvalidExpression(parenthesis));
+      ProduceExpression(NewInvalidExpression(parenthesis));
     ParsePrimaryExpressionPost();
     if (!AdvanceIf(TokenType::RightParenthesis))
       Error(ErrorCode::SyntaxExpressionRightParenthesis);
@@ -336,7 +343,7 @@ void Parser::ParsePrimaryExpressionPost() {
           indexes.push_back(ConsumeExpression());
         } else {
           Error(ErrorCode::SyntaxExpressionArrayAccess);
-          indexes.push_back(factory()->NewInvalidExpression(bracket));
+          indexes.push_back(NewInvalidExpression(bracket));
         }
         if (PeekToken() == TokenType::RightSquareBracket)
           break;

@@ -60,9 +60,7 @@ class Factory final {
                     Modifiers modifies,
                     Type* type,
                     Token* name,
-                    const std::vector<Token*>& type_parameters,
-                    const std::vector<Variable*>& parameters,
-                    Statement* body);
+                    const std::vector<Token*>& type_parameters);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
@@ -85,11 +83,8 @@ class Factory final {
   MemberAccess* NewMemberAccess(Token* name,
                                 const std::vector<Expression*>& members);
   NameReference* NewNameReference(Token* literal);
+  ParameterReference* NewParameterReference(Token* name, Parameter* param);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
-  Variable* NewVariable(Token* keyword,
-                        Type* type,
-                        Token* name,
-                        Expression* expression);
   VariableReference* NewVariableReference(Token* name, Variable* var);
 
   // Statement nodes
@@ -155,6 +150,18 @@ class Factory final {
   OptionalType* NewOptionalType(Token* op, Type* base_type);
   TypeMemberAccess* NewTypeMemberAccess(MemberAccess* node);
   TypeNameReference* NewTypeNameReference(NameReference* node);
+
+  // Misc nodes
+  Parameter* NewParameter(Method* owner,
+                          ParameterKind kind,
+                          int position,
+                          Type* type,
+                          Token* name,
+                          Expression* expression);
+  Variable* NewVariable(Token* keyword,
+                        Type* type,
+                        Token* name,
+                        Expression* expression);
 
  private:
   Node* RememberNode(Node* node);

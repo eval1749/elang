@@ -50,16 +50,19 @@ void MyNamespaceBuilder::Build() {
   auto const write_line_string = session()->ast_factory()->NewMethod(
       console_class_body, write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {},
-      {NewParameter("System.String", "string")}, nullptr);
+      NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string->SetParameters({
+      NewParameter(write_line_string, 0, "System.String", "string"),
+  });
 
   auto const write_line_string_object = session()->ast_factory()->NewMethod(
       console_class_body, write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {},
-      {NewParameter("System.String", "string"),
-       NewParameter("System.Object", "object")},
-      nullptr);
+      NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string_object->SetParameters({
+      NewParameter(write_line_string_object, 0, "System.String", "string"),
+      NewParameter(write_line_string_object, 1, "System.Object", "object"),
+  });
 
   write_line->AddMethod(write_line_string);
   console_class_body->AddMember(write_line_string);

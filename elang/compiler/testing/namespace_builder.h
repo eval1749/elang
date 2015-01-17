@@ -48,7 +48,10 @@ class NamespaceBuilder {
                            base::StringPiece base_names);
   Token* NewKeyword(TokenType type);
   Token* NewName(base::StringPiece name);
-  ast::Variable* NewParameter(base::StringPiece type, base::StringPiece name);
+  ast::Parameter* NewParameter(ast::Method* method,
+                               int position,
+                               base::StringPiece type,
+                               base::StringPiece name);
   ast::Type* NewTypeReference(TokenType keyword);
   ast::Type* NewTypeReference(base::StringPiece name);
 

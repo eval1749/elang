@@ -29,11 +29,14 @@ class Method final : public NamespaceNode, public WithModifiers {
 
   MethodGroup* method_group() const { return method_group_; }
   Class* owner() const;
-  const ZoneVector<Variable*>& parameters() const { return parameters_; }
+  const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() const { return return_type_; }
 
   // Type parameters for generic method.
   const ZoneVector<Token*>& type_parameters() { return type_parameters_; }
+
+  void SetParameters(const std::vector<Parameter*>& parameters);
+  void SetBody(ast::Statement* body);
 
  private:
   Method(Zone* zone,
@@ -42,9 +45,7 @@ class Method final : public NamespaceNode, public WithModifiers {
          Modifiers modifies,
          Type* return_type,
          Token* name,
-         const std::vector<Token*>& type_parameters,
-         const std::vector<Variable*>& parameters,
-         Statement* body);
+         const std::vector<Token*>& type_parameters);
 
 #if _DEBUG
   // Node
@@ -54,9 +55,9 @@ class Method final : public NamespaceNode, public WithModifiers {
   // |body_| can be |BlockStatement| or |ExpressionStatement|, by shortcut
   // syntax |int Foo(int x) => x + 1;|. It can be |nullptr| on parsing error,
   // or abstract/external method.
-  Statement* const body_;
+  Statement* body_;
   MethodGroup* const method_group_;
-  const ZoneVector<Variable*> parameters_;
+  ZoneVector<Parameter*> parameters_;
   Type* const return_type_;
   const ZoneVector<Token*> type_parameters_;
 
@@ -87,6 +88,40 @@ class MethodGroup final : public NamedNode {
   ZoneVector<Method*> methods_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodGroup);
+};
+
+// Represents kind of parameter.
+enum class ParameterKind {
+  Optional,
+  Required,
+  Rest,
+};
+
+// Represents parameter.
+class Parameter final : public NamedNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Parameter, NamedNode);
+
+ public:
+  ParameterKind kind() const { return kind_; }
+  Method* owner() const;
+  int position() const { return position_; }
+  Type* type() const { return type_; }
+  Expression* value() const { return value_; }
+
+ private:
+  Parameter(Method* owner,
+            ParameterKind kind,
+            int position,
+            Type* type,
+            Token* name,
+            Expression* value);
+
+  ParameterKind const kind_;
+  int const position_;
+  Type* const type_;
+  Expression* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(Parameter);
 };
 
 }  // namespace ast

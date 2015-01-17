@@ -72,6 +72,11 @@ NameReference::NameReference(Token* name) : Expression(name) {
   DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var);
 }
 
+// ParameterReference
+ParameterReference::ParameterReference(Token* name, Parameter* parameter)
+    : Expression(name), parameter_(parameter) {
+}
+
 UnaryOperation::UnaryOperation(Token* op, Expression* expression)
     : Expression(op), expression_(expression) {
 }

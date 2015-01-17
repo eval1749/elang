@@ -262,7 +262,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         if (variables.size() != 1u)
           Error(ErrorCode::SyntaxForColon);
         if (!ParseExpression())
-          ProduceExpression(factory()->NewInvalidExpression(colon));
+          ProduceExpression(NewInvalidExpression(colon));
         if (!AdvanceIf(TokenType::RightParenthesis))
           Error(ErrorCode::SyntaxForRightParenthesis);
         auto const enumerable = ConsumeExpression();
@@ -287,7 +287,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         }
         if (!AdvanceIf(TokenType::Comma)) {
           Error(ErrorCode::SyntaxForInit);
-          ProduceExpression(factory()->NewInvalidExpression(PeekToken()));
+          ProduceExpression(NewInvalidExpression(PeekToken()));
         }
         continue;
 
@@ -344,7 +344,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           continue;
         }
         if (!ParseExpression())
-          ProduceExpression(factory()->NewInvalidExpression(for_keyword));
+          ProduceExpression(NewInvalidExpression(for_keyword));
         state = State::TypeOrExpression;
         break;
 
@@ -415,30 +415,11 @@ bool Parser::ParseIfStatement(Token* if_keyword) {
 }
 
 // Called after '(' read.
-bool Parser::ParseMethod(Modifiers method_modifiers,
+void Parser::ParseMethod(Modifiers method_modifiers,
                          ast::Type* method_type,
                          Token* method_name,
                          const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
-  LocalDeclarationSpace method_space(this, PeekToken());
-  std::vector<ast::Variable*> parameters;
-  if (!AdvanceIf(TokenType::RightParenthesis)) {
-    for (;;) {
-      auto const param_type = ParseType() ? ConsumeType() : nullptr;
-      auto const param_name =
-          PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
-      if (method_space.FindMember(param_name))
-        Error(ErrorCode::SyntaxMethodNameDuplicate);
-      auto const parameter =
-          factory()->NewVariable(nullptr, param_type, param_name, nullptr);
-      method_space.AddMember(parameter);
-      parameters.push_back(parameter);
-      if (AdvanceIf(TokenType::RightParenthesis))
-        break;
-      if (!AdvanceIf(TokenType::Comma))
-        Error(ErrorCode::SyntaxMethodComma);
-    }
-  }
 
   auto const owner = container_->owner()->as<ast::Class>();
   DCHECK(owner);
@@ -456,28 +437,54 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   if (!container_->FindMember(method_name))
     container_->AddNamedMember(method_group);
 
-  auto method_body = static_cast<ast::Statement*>(nullptr);
+  auto const method = factory()->NewMethod(
+      container_->as<ast::ClassBody>(), method_group, method_modifiers,
+      method_type, method_name, type_parameters);
+  method_group->AddMethod(method);
+  container_->AddMember(method);
+
+  LocalDeclarationSpace method_space(this, PeekToken());
+  if (!AdvanceIf(TokenType::RightParenthesis)) {
+    std::vector<ast::Parameter*> parameters;
+    auto position = 0;
+    for (;;) {
+      auto const param_type = ParseType() ? ConsumeType() : nullptr;
+      auto const param_name =
+          PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
+      if (method_space.FindMember(param_name))
+        Error(ErrorCode::SyntaxMethodNameDuplicate);
+      auto const parameter =
+          factory()->NewParameter(method, ast::ParameterKind::Required,
+                                  position, param_type, param_name, nullptr);
+      method_space.AddMember(parameter);
+      parameters.push_back(parameter);
+      ++position;
+      if (AdvanceIf(TokenType::RightParenthesis))
+        break;
+      if (!AdvanceIf(TokenType::Comma))
+        Error(ErrorCode::SyntaxMethodComma);
+    }
+    method->SetParameters(parameters);
+  }
+
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!method_modifiers.HasAbstract() && !method_modifiers.HasExtern())
       Error(ErrorCode::SyntaxMethodSemiColon);
-  } else if (PeekToken() == TokenType::LeftCurryBracket) {
-    if (method_modifiers.HasAbstract() || method_modifiers.HasExtern())
-      Error(ErrorCode::SyntaxMethodBody);
-    LocalDeclarationSpace method_body_space(this, PeekToken());
-    if (ParseStatement()) {
-      method_body = ConsumeStatement();
-      DCHECK(method_body->is<ast::BlockStatement>());
-    }
-  } else {
-    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
+    return;
   }
 
-  auto const method = factory()->NewMethod(
-      container_->as<ast::ClassBody>(), method_group, method_modifiers,
-      method_type, method_name, type_parameters, parameters, method_body);
-  method_group->AddMethod(method);
-  container_->AddMember(method);
-  return true;
+  if (PeekToken() != TokenType::LeftCurryBracket) {
+    Error(ErrorCode::SyntaxMethodLeftCurryBracket);
+    return;
+  }
+
+  if (method_modifiers.HasAbstract() || method_modifiers.HasExtern())
+    Error(ErrorCode::SyntaxMethodBody);
+
+  LocalDeclarationSpace method_body_space(this, PeekToken());
+  if (!ParseStatement())
+    return;
+  method->SetBody(ConsumeStatement());
 }
 
 // ReturnStatement ::= 'return' Expression? ';'
@@ -779,7 +786,7 @@ ast::Statement* Parser::ProduceStatement(ast::Statement* statement) {
 }
 
 ast::Expression* Parser::ProduceVariableReference(Token* name,
-                                                  ast::Variable* variable) {
+                                                  ast::NamedNode* thing) {
   DCHECK(name->is_name());
   auto enclosing_space = static_cast<LocalDeclarationSpace*>(nullptr);
   for (auto runner = declaration_space_; runner; runner = runner->outer()) {
@@ -789,8 +796,13 @@ ast::Expression* Parser::ProduceVariableReference(Token* name,
     }
   }
   DCHECK(enclosing_space);
-  enclosing_space->RecordReference(variable);
-  return ProduceExpression(factory()->NewVariableReference(name, variable));
+  enclosing_space->RecordReference(thing);
+  if (auto const var = thing->as<ast::Variable>())
+    return ProduceExpression(factory()->NewVariableReference(name, var));
+  if (auto const param = thing->as<ast::Parameter>())
+    return ProduceExpression(factory()->NewParameterReference(name, param));
+  NOTREACHED();
+  return ProduceExpression(NewInvalidExpression(name));
 }
 
 }  // namespace compiler

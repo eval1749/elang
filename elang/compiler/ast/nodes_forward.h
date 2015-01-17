@@ -36,6 +36,7 @@ namespace ast {
   V(Literal)                        \
   V(MemberAccess)                   \
   V(NameReference)                  \
+  V(ParameterReference)             \
   V(UnaryOperation)                 \
   V(VariableReference)
 
@@ -75,6 +76,7 @@ namespace ast {
   V(CatchClause)                      \
   V(ClassBody)                        \
   V(EnumMember)                       \
+  V(Parameter)                        \
   V(Variable)                         \
   V(MethodGroup)                      \
   V(NamespaceBody)
@@ -99,6 +101,7 @@ FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
 class Factory;
+enum class ParameterKind;
 class Visitor;
 
 }  // namespace ast

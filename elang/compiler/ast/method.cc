@@ -23,14 +23,12 @@ Method::Method(Zone* zone,
                Modifiers modifiers,
                Type* return_type,
                Token* name,
-               const std::vector<Token*>& type_parameters,
-               const std::vector<Variable*>& parameters,
-               Statement* body)
+               const std::vector<Token*>& type_parameters)
     : NamespaceNode(zone, outer, name, name),
       WithModifiers(modifiers),
-      body_(body),
+      body_(nullptr),
       method_group_(method_group),
-      parameters_(zone, parameters),
+      parameters_(zone),
       return_type_(return_type),
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
@@ -48,6 +46,19 @@ bool Method::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::ClassBody>();
 }
 #endif
+
+void Method::SetParameters(const std::vector<Parameter*>& parameters) {
+  DCHECK(parameters_.empty());
+  parameters_.reserve(parameters.size());
+  parameters_.resize(0);
+  for (auto const parameter : parameters)
+    parameters_.push_back(parameter);
+}
+
+void Method::SetBody(Statement* body) {
+  DCHECK(!body_);
+  body_ = body;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -74,6 +85,27 @@ bool MethodGroup::CanBeNamedMemberOf(ContainerNode* container) const {
   return container->is<ast::Class>() || container->is<ast::ClassBody>();
 }
 #endif
+
+//////////////////////////////////////////////////////////////////////
+//
+// Parameter
+//
+Parameter::Parameter(Method* owner,
+                     ParameterKind kind,
+                     int position,
+                     Type* type,
+                     Token* name,
+                     Expression* expression)
+    : NamedNode(owner, name, name),
+      kind_(kind),
+      position_(position),
+      type_(type),
+      value_(expression) {
+}
+
+Method* Parameter::owner() const {
+  return parent()->as<ast::Method>();
+}
 
 }  // namespace ast
 }  // namespace compiler

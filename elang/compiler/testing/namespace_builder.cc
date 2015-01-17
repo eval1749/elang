@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
@@ -115,10 +116,13 @@ Token* NamespaceBuilder::NewName(base::StringPiece name) {
       SourceCodeRange(), session()->NewAtomicString(base::UTF8ToUTF16(name)));
 }
 
-ast::Variable* NamespaceBuilder::NewParameter(base::StringPiece type,
-                                              base::StringPiece name) {
-  return session()->ast_factory()->NewVariable(nullptr, NewTypeReference(type),
-                                               NewName(name), nullptr);
+ast::Parameter* NamespaceBuilder::NewParameter(ast::Method* method,
+                                               int position,
+                                               base::StringPiece type,
+                                               base::StringPiece name) {
+  return session()->ast_factory()->NewParameter(
+      method, ast::ParameterKind::Required, position, NewTypeReference(type),
+      NewName(name), nullptr);
 }
 
 ast::Type* NamespaceBuilder::NewTypeReference(TokenType keyword) {

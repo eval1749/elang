@@ -382,11 +382,6 @@ void Formatter::VisitLiteral(ast::Literal* operation) {
   stream_ << operation->token();
 }
 
-void Formatter::VisitVariable(ast::Variable* node) {
-  DCHECK(node);
-  NOTREACHED();
-}
-
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   const char* separator = "";
   for (auto const component : member_access->components()) {
@@ -475,6 +470,15 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
 void Formatter::VisitOptionalType(ast::OptionalType* type) {
   Visit(type->base_type());
   stream_ << "?";
+}
+
+void Formatter::VisitParameter(ast::Parameter* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
+void Formatter::VisitParameterReference(ast::ParameterReference* param) {
+  stream_ << param->token();
 }
 
 void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {
@@ -570,6 +574,11 @@ void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
     }
   }
   stream_ << ";";
+}
+
+void Formatter::VisitVariable(ast::Variable* node) {
+  DCHECK(node);
+  NOTREACHED();
 }
 
 void Formatter::VisitVariableReference(ast::VariableReference* var) {
