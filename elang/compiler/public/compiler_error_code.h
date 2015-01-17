@@ -86,12 +86,13 @@ namespace compiler {
   E(Syntax, Do, SemiColon)                            \
   E(Syntax, Do, While)                                \
   /* EnumDecl */                                      \
-  E(Syntax, EnumDecl, Expression)                     \
-  E(Syntax, EnumDecl, LeftCurryBracket)               \
-  E(Syntax, EnumDecl, Modifier)                       \
-  E(Syntax, EnumDecl, NameDuplicate)                  \
-  E(Syntax, EnumDecl, NameInvalid)                    \
-  E(Syntax, EnumDecl, RightCurryBracket)              \
+  E(Syntax, Enum, Conflict)                           \
+  E(Syntax, Enum, Duplicate)                          \
+  E(Syntax, Enum, Expression)                         \
+  E(Syntax, Enum, LeftCurryBracket)                   \
+  E(Syntax, Enum, Modifier)                           \
+  E(Syntax, Enum, NameInvalid)                        \
+  E(Syntax, Enum, RightCurryBracket)                  \
   /* Expression */                                    \
   E(Syntax, Expression, ArrayAccess)                  \
   E(Syntax, Expression, Call)                         \

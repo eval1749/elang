@@ -442,14 +442,18 @@ void Parser::ParseEnum() {
   auto const enum_keyword = ConsumeToken();
   DCHECK_EQ(enum_keyword->type(), TokenType::Enum);
   if (!PeekToken()->is_name()) {
-    Error(ErrorCode::SyntaxEnumDeclNameInvalid);
+    Error(ErrorCode::SyntaxEnumNameInvalid);
     token_ = session()->NewUniqueNameToken(token_->location(), L"enum%d");
   }
   auto const enum_name = ConsumeToken();
   auto const local = container_->FindMember(enum_name);
   auto const global = container_->owner()->FindMember(enum_name);
-  if (auto const present = local ? local : global)
-    Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
+  if (auto const present = local ? local : global) {
+    if (present->is<ast::Enum>())
+      Error(ErrorCode::SyntaxEnumDuplicate, enum_name, present->name());
+    else
+      Error(ErrorCode::SyntaxEnumConflict, enum_name, present->name());
+  }
   auto const enum_node =
       factory()->NewEnum(container_, enum_modifiers, enum_keyword, enum_name);
   container_->AddMember(enum_node);
@@ -457,7 +461,7 @@ void Parser::ParseEnum() {
   container_->owner()->AddNamedMember(enum_node);
   // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
-    Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
+    Error(ErrorCode::SyntaxEnumLeftCurryBracket);
   auto position = 0;
   while (PeekToken()->is_name()) {
     auto const member_name = ConsumeToken();
@@ -466,7 +470,7 @@ void Parser::ParseEnum() {
       if (ParseExpression())
         member_value = ConsumeExpression();
       else
-        Error(ErrorCode::SyntaxEnumDeclExpression);
+        Error(ErrorCode::SyntaxEnumExpression);
     }
     auto const enum_member = factory()->NewEnumMember(enum_node, member_name,
                                                       position, member_value);
@@ -478,7 +482,7 @@ void Parser::ParseEnum() {
       continue;
   }
   if (!AdvanceIf(TokenType::RightCurryBracket))
-    Error(ErrorCode::SyntaxEnumDeclRightCurryBracket);
+    Error(ErrorCode::SyntaxEnumRightCurryBracket);
 }
 
 void Parser::ParseFunction() {

@@ -358,7 +358,7 @@ TEST_F(ParserTest, DoBasic) {
 //
 // enum
 //
-TEST_F(ParserTest, EnumBasic) {
+TEST_F(ParserTest, Enum) {
   auto const source_code =
       "enum Color {\n"
       "  Red,\n"
@@ -376,6 +376,20 @@ TEST_F(ParserTest, EnumComma) {
       "  Blue,\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code)) << "Comma following last member";
+}
+
+TEST_F(ParserTest, EnumErrorConflict) {
+  auto const source_code =
+    "class A {}"
+    "enum A { M }";
+  EXPECT_EQ("Syntax.Enum.Conflict(15) A A\n", Format(source_code));
+}
+
+TEST_F(ParserTest, EnumErrorDuplicate) {
+  auto const source_code =
+    "enum A { B }"
+    "enum A { M }";
+  EXPECT_EQ("Syntax.Enum.Duplicate(17) A A\n", Format(source_code));
 }
 
 TEST_F(ParserTest, EnumValue) {
