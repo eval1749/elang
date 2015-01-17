@@ -67,8 +67,6 @@ class NamespaceAnalyzer final : public Analyzer,
   bool IsResolved(ast::NamedNode* node) const;
   bool IsSystemObject(ast::NamedNode* node) const;
   bool IsVisited(ast::NamedNode* node) const;
-  // Find |name| in declaration space.
-  ast::NamedNode* LookupMember(Token* name, ast::ContainerNode* container);
 
   Maybe<ast::NamedNode*> Postpone(ast::NamedNode* node,
                                   ast::NamedNode* using_node);

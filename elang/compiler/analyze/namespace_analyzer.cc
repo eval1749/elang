@@ -60,7 +60,10 @@ NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
 void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
-  auto const present = LookupMember(class_body->name(), class_body->parent());
+  auto const name = class_body->name();
+  auto const immediate = class_body->FindMember(name);
+  auto const present =
+      immediate ? immediate : class_body->parent()->FindMember(name);
   if (!present)
     return;
   auto const ast_class = class_body->owner();
@@ -171,15 +174,6 @@ bool NamespaceAnalyzer::IsSystemObject(ast::NamedNode* node) const {
 
 bool NamespaceAnalyzer::IsVisited(ast::NamedNode* node) const {
   return !!visited_nodes_.count(node);
-}
-
-ast::NamedNode* NamespaceAnalyzer::LookupMember(Token* name,
-                                                ast::ContainerNode* container) {
-  for (auto runner = container; runner; runner = runner->parent()) {
-    if (auto const present = runner->FindMember(name))
-      return present;
-  }
-  return nullptr;
 }
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::Postpone(ast::NamedNode* node,
