@@ -25,8 +25,14 @@ bool Token::operator!=(const Token& other) const {
   return !operator==(other);
 }
 
-std::ostream& operator<<(std::ostream& ostream, Token* token) {
-  return ostream << token->data();
+std::ostream& operator<<(std::ostream& ostream, const Token& token) {
+  return ostream << token.data();
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Token* token) {
+  if (token)
+    return ostream << *token;
+  return ostream << "(null)";
 }
 
 }  // namespace compiler

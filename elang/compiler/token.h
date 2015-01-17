@@ -72,7 +72,8 @@ inline bool operator!=(const Token* token, TokenType type) {
   return !operator==(token, type);
 }
 
-std::ostream& operator<<(std::ostream& ostream, Token* token);
+std::ostream& operator<<(std::ostream& ostream, const Token& token);
+std::ostream& operator<<(std::ostream& ostream, const Token* token);
 
 }  // namespace compiler
 }  // namespace elang
