@@ -287,7 +287,7 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
     case TokenType::UInt64Literal:
       return ostream << token.int64_data() << "lu";
     case TokenType::StringLiteral:
-      ostream << " \"";
+      ostream << "\"";
       for (auto const ch : token.string_data()) {
         char buffer[7];
         if (ch == '"' || ch == '\\') {
