@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_AST_NODES_FORWARD_H_
 
 #include <memory>
+#include <ostream>
 
 #include "elang/base/castable.h"
 #include "elang/base/float_types.h"
@@ -15,6 +16,7 @@
 
 namespace elang {
 namespace compiler {
+enum class ParameterKind;
 namespace ast {
 
 #define FOR_EACH_DECLARATION_NODE(V) \
@@ -101,8 +103,9 @@ FOR_EACH_ABSTRACT_AST_NODE(V)
 #undef V
 
 class Factory;
-enum class ParameterKind;
 class Visitor;
+
+std::ostream& operator<<(std::ostream& ostream, const Node& node);
 
 }  // namespace ast
 }  // namespace compiler

@@ -6,7 +6,6 @@
 #define ELANG_COMPILER_AST_NODES_H_
 
 #include <memory>
-#include <ostream>
 
 #include "elang/compiler/ast/nodes_forward.h"
 
@@ -64,8 +63,6 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(Node);
 };
-
-std::ostream& operator<<(std::ostream& ostream, const Node& node);
 
 //////////////////////////////////////////////////////////////////////
 //

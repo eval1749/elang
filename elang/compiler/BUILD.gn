@@ -16,6 +16,8 @@ static_library("compiler") {
     "modifiers.h",
     "modifiers_builder.cc",
     "modifiers_builder.h",
+    "parameter_kind.h",
+    "parameter_kind.cc",
     "predefined_names.cc",
     "predefined_names.h",
     "public/compiler_error_code.h",

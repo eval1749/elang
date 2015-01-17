@@ -15,6 +15,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -454,8 +455,8 @@ void Parser::ParseMethod(Modifiers method_modifiers,
       if (method_space.FindMember(param_name))
         Error(ErrorCode::SyntaxMethodNameDuplicate);
       auto const parameter =
-          factory()->NewParameter(method, ast::ParameterKind::Required,
-                                  position, param_type, param_name, nullptr);
+          factory()->NewParameter(method, ParameterKind::Required, position,
+                                  param_type, param_name, nullptr);
       method_space.AddMember(parameter);
       parameters.push_back(parameter);
       ++position;

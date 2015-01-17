@@ -90,13 +90,6 @@ class MethodGroup final : public NamedNode {
   DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };
 
-// Represents kind of parameter.
-enum class ParameterKind {
-  Optional,
-  Required,
-  Rest,
-};
-
 // Represents parameter.
 class Parameter final : public NamedNode {
   DECLARE_CONCRETE_AST_NODE_CLASS(Parameter, NamedNode);
