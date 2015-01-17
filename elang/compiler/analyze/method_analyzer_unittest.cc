@@ -2,14 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "elang/compiler/testing/analyzer_test.h"
 #include "elang/compiler/testing/namespace_builder.h"
 #include "elang/compiler/analyze/method_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/statements.h"
+#include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
@@ -94,6 +101,73 @@ void MethodAnalyzerTest::SetUp() {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Collector
+//
+class Collector final : private ast::Visitor {
+ public:
+  Collector(NameResolver* name_resolver, ast::Method* method);
+  Collector() = default;
+
+  NameResolver* name_resolver() const { return name_resolver_; }
+
+  std::string GetCalls() const;
+
+ private:
+  // ast::Visitor
+  void VisitBlockStatement(ast::BlockStatement* node);
+  void VisitCall(ast::Call* node);
+  void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitVariableReference(ast::VariableReference* node);
+
+  std::vector<ast::Call*> calls_;
+  NameResolver* const name_resolver_;
+  std::vector<ast::Variable*> variables_;
+
+  DISALLOW_COPY_AND_ASSIGN(Collector);
+};
+
+Collector::Collector(NameResolver* name_resolver, ast::Method* method)
+    : name_resolver_(name_resolver) {
+  auto const body = method->body();
+  if (!body)
+    return;
+  body->Accept(this);
+}
+
+std::string Collector::GetCalls() const {
+  std::stringstream ostream;
+  for (auto const call : calls_) {
+    if (auto const method = name_resolver()->ResolveCall(call))
+      ostream << *method;
+    else
+      ostream << "Not resolved: " << *call;
+    ostream << std::endl;
+  }
+  return ostream.str();
+}
+
+// ast::Visitor
+void Collector::VisitBlockStatement(ast::BlockStatement* node) {
+  for (auto const child : node->statements())
+    child->Accept(this);
+}
+
+void Collector::VisitCall(ast::Call* node) {
+  for (auto const child : node->arguments())
+    child->Accept(this);
+  calls_.push_back(node);
+}
+
+void Collector::VisitExpressionStatement(ast::ExpressionStatement* node) {
+  node->expression()->Accept(this);
+}
+
+void Collector::VisitVariableReference(ast::VariableReference* node) {
+  variables_.push_back(node->variable());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Method resolution
 //
 TEST_F(MethodAnalyzerTest, Method) {
@@ -106,6 +180,11 @@ TEST_F(MethodAnalyzerTest, Method) {
   MethodAnalyzer method_analyzer(name_resolver());
   EXPECT_TRUE(method_analyzer.Run());
   EXPECT_EQ("", GetErrors());
+  auto const main_group = FindMember("Sample.Main")->as<ast::MethodGroup>();
+  ASSERT_TRUE(main_group);
+  auto const method_main = main_group->methods()[0];
+  Collector collector(name_resolver(), method_main);
+  EXPECT_EQ("foo", collector.GetCalls());
 }
 
 }  // namespace

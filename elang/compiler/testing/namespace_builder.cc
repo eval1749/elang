@@ -19,6 +19,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -121,7 +122,7 @@ ast::Parameter* NamespaceBuilder::NewParameter(ast::Method* method,
                                                base::StringPiece type,
                                                base::StringPiece name) {
   return session()->ast_factory()->NewParameter(
-      method, ast::ParameterKind::Required, position, NewTypeReference(type),
+      method, ParameterKind::Required, position, NewTypeReference(type),
       NewName(name), nullptr);
 }
 

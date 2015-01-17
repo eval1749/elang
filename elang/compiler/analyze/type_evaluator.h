@@ -37,6 +37,7 @@ class TypeEvaluator final : public Analyzer, public ast::Visitor {
   // Unify type value of |expression| with |value|.
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
+  ts::Value* NewLiteral(ir::Type* literal);
   ts::Value* Union(ts::Value* value1, ts::Value* value2);
 
  private:

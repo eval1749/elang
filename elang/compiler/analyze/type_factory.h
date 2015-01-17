@@ -33,7 +33,7 @@ class Factory final : public ZoneOwner {
   InvalidValue* NewInvalidValue(ast::Node* node);
   Literal* NewLiteral(ir::Type* type);
   NullValue* NewNullValue(Value* value);
-  Variable* NewVariable(ast::Node* node);
+  Variable* NewVariable(ast::Node* node, Value* value);
 
  private:
   AnyValue* const any_value_;

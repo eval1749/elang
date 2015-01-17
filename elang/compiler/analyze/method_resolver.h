@@ -14,13 +14,19 @@ namespace elang {
 namespace compiler {
 
 namespace ast {
-class Method;
 class MethodGroup;
+}
+
+namespace ir {
+class Method;
 }
 
 namespace ts {
 class Value;
 }
+
+class NameResolver;
+class TypeEvaluator;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -28,15 +34,23 @@ class Value;
 //
 class MethodResolver final {
  public:
-  MethodResolver();
+  explicit MethodResolver(TypeEvaluator* type_evaluator);
   ~MethodResolver();
 
-  std::unordered_set<ast::Method*> Resolve(
+  std::unordered_set<ir::Method*> Resolve(
       ast::MethodGroup* method_group,
       ts::Value* output,
       const std::vector<ts::Value*>& argument);
 
  private:
+  NameResolver* name_resolver();
+
+  // Returns true if |method| is applicable with |arguments|.
+  bool IsApplicable(const ir::Method* method,
+                    const std::vector<ts::Value*>& arguments);
+
+  TypeEvaluator* const type_evaluator_;
+
   DISALLOW_COPY_AND_ASSIGN(MethodResolver);
 };
 

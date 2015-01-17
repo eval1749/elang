@@ -16,6 +16,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
 
 namespace elang {
@@ -72,8 +73,8 @@ TypeResolver::TypeResolver(NameResolver* name_resolver, ast::Method* method)
     : Analyzer(name_resolver),
       context_(nullptr),
       method_(method),
-      method_resolver_(new MethodResolver()),
-      type_evaluator_(new TypeEvaluator(name_resolver)) {
+      type_evaluator_(new TypeEvaluator(name_resolver)),
+      method_resolver_(new MethodResolver(type_evaluator_.get())) {
 }
 
 TypeResolver::~TypeResolver() {
@@ -97,6 +98,10 @@ ts::Value* TypeResolver::Intersect(ts::Value* value1, ts::Value* value2) {
 
 ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
   return type_evaluator_->NewInvalidValue(node);
+}
+
+ts::Value* TypeResolver::NewLiteral(ir::Type* literal) {
+  return type_evaluator_->NewLiteral(literal);
 }
 
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
@@ -154,26 +159,29 @@ void TypeResolver::VisitCall(ast::Call* call) {
     auto succeeded = true;
     for (auto const argument : call->arguments()) {
       // Propagate argument value to users.
-      if (!Unify(argument, Evaluate(*parameters, call))) {
+      auto const parameter = *parameters;
+      auto const parameter_value = NewLiteral(parameter->type());
+      if (!Unify(argument, parameter_value)) {
         Error(ErrorCode::TypeResolverArgumentUnify, argument);
         succeeded = false;
       }
-      ++parameters;
+      if (!parameter->is_rest())
+        ++parameters;
     }
     if (!succeeded) {
       ProduceResult(NewInvalidValue(call->callee()), call);
       return;
     }
     // TODO(eval1749) Update users of this call site.
-    ProduceResult(Intersect(Evaluate(method->return_type(), context_->user),
-                            context_->value),
-                  call);
+    resolver()->DidResolveCall(call, method);
+    auto const return_value = NewLiteral(method->return_type());
+    ProduceResult(Intersect(return_value, context_->value), call);
     return;
   }
   // The result value is union of return value of candidate methods.
   auto result = GetEmptyValue();
   for (auto const method : methods)
-    result = Union(Evaluate(method->return_type(), context_->user), result);
+    result = Union(NewLiteral(method->return_type()), result);
   ProduceResult(Intersect(result, context_->value), call);
 }
 

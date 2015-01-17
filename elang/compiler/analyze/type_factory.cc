@@ -30,8 +30,8 @@ NullValue* Factory::NewNullValue(Value* value) {
   return new (zone()) NullValue(value);
 }
 
-Variable* Factory::NewVariable(ast::Node* node) {
-  return new (zone()) Variable(node);
+Variable* Factory::NewVariable(ast::Node* node, Value* value) {
+  return new (zone()) Variable(node, value);
 }
 
 }  // namespace ts

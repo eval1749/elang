@@ -42,6 +42,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   ts::Value* GetEmptyValue();
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
+  ts::Value* NewLiteral(ir::Type* literal);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
   ts::Value* Union(ts::Value* value1, ts::Value* value2);
@@ -52,8 +53,10 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
 
   Context* context_;
   ast::Method* const method_;
-  MethodResolver* const method_resolver_;
   std::unique_ptr<TypeEvaluator> type_evaluator_;
+
+  // |MethodResolver| requires |TypeEvaluator|.
+  MethodResolver* const method_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };

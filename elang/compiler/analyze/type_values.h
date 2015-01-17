@@ -50,6 +50,9 @@ namespace ts {
 class Value : public Castable, public ZoneAllocated {
   DECLARE_ABSTRACT_TYPE_VALUE_CLASS(Value, Castable);
 
+ public:
+  virtual bool Contains(const Value* other) const = 0;
+
  protected:
   Value();
 
@@ -69,6 +72,9 @@ class AnyValue : public Value {
  private:
   AnyValue();
 
+  // Value
+  bool Contains(const Value* other) const final;
+
   DISALLOW_COPY_AND_ASSIGN(AnyValue);
 };
 
@@ -82,6 +88,9 @@ class EmptyValue : public Value {
  private:
   EmptyValue();
 
+  // Value
+  bool Contains(const Value* other) const final;
+
   DISALLOW_COPY_AND_ASSIGN(EmptyValue);
 };
 
@@ -92,10 +101,14 @@ class EmptyValue : public Value {
 class InvalidValue : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(InvalidValue, Value);
 
+ public:
   ast::Node* node() const { return node_; }
 
  private:
   explicit InvalidValue(ast::Node* node);
+
+  // Value
+  bool Contains(const Value* other) const final;
 
   ast::Node* const node_;
 
@@ -106,10 +119,14 @@ class InvalidValue : public Value {
 class Literal : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(Literal, Value);
 
+ public:
   ir::Type* value() const { return value_; }
 
  private:
   explicit Literal(ir::Type* value);
+
+  // Value
+  bool Contains(const Value* other) const final;
 
   ir::Type* const value_;
 
@@ -120,7 +137,11 @@ class Literal : public Value {
 class NullValue : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(NullValue, Value);
 
+ public:
   Value* value() const { return value_; }
+
+  // Value
+  bool Contains(const Value* other) const final;
 
  private:
   explicit NullValue(Value* value);
@@ -134,12 +155,18 @@ class NullValue : public Value {
 class Variable : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(Variable, Value);
 
+ public:
   ast::Node* node() const { return node_; }
+  Value* value() const { return value_; }
+
+  // Value
+  bool Contains(const Value* other) const final;
 
  private:
-  explicit Variable(ast::Node* node);
+  explicit Variable(ast::Node* node, Value* value);
 
   ast::Node* const node_;
+  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(Variable);
 };

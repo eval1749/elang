@@ -9,6 +9,7 @@
 #include "elang/compiler/analyze/type_factory.h"
 #include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -100,6 +101,15 @@ ts::Value* TypeEvaluator::NewInvalidValue(ast::Node* node) {
   return type_factory_->NewInvalidValue(node);
 }
 
+ts::Value* TypeEvaluator::NewLiteral(ir::Type* type) {
+  auto const it = literal_cache_map_.find(type);
+  if (it != literal_cache_map_.end())
+    return it->second;
+  auto const value = type_factory_->NewLiteral(type);
+  literal_cache_map_[type] = value;
+  return value;
+}
+
 void TypeEvaluator::ProduceResult(ts::Value* result) {
   DCHECK(result);
   DCHECK(context_);
@@ -119,7 +129,10 @@ ts::Value* TypeEvaluator::Union(ts::Value* value1, ts::Value* value2) {
 void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
   auto const token = literal->token();
   if (token == TokenType::NullLiteral) {
-    auto const variable = type_factory_->NewVariable(literal);
+    auto const system_object =
+        name_resolver()->ResolvePredefinedType(token, PredefinedName::Object);
+    auto const object_value = NewLiteral(system_object);
+    auto const variable = type_factory_->NewVariable(literal, object_value);
     ProduceResult(type_factory_->NewNullValue(variable));
     return;
   }
@@ -132,14 +145,7 @@ void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
     ProduceResult(type_factory_->NewInvalidValue(literal));
     return;
   }
-  auto const it = literal_cache_map_.find(type);
-  if (it != literal_cache_map_.end()) {
-    ProduceResult(it->second);
-    return;
-  }
-  auto const value = type_factory_->NewLiteral(type);
-  literal_cache_map_[type] = value;
-  ProduceResult(value);
+  ProduceResult(NewLiteral(type));
 }
 
 }  // namespace compiler

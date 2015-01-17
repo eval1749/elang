@@ -219,6 +219,12 @@ void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
   node_map_[ast_node] = node;
 }
 
+void NameResolver::DidResolveCall(ast::Call* ast_call, ir::Method* method) {
+  DCHECK(ast_call);
+  DCHECK(!call_map_.count(ast_call));
+  call_map_[ast_call] = method;
+}
+
 void NameResolver::DidResolveUsing(ast::NamedNode* node,
                                    ast::ContainerNode* container) {
   DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
@@ -236,6 +242,11 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
 ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
   auto const it = node_map_.find(member);
   return it == node_map_.end() ? nullptr : it->second;
+}
+
+ir::Method* NameResolver::ResolveCall(ast::Call* ast_call) const {
+  auto const it = call_map_.find(ast_call);
+  return it == call_map_.end() ? nullptr : it->second;
 }
 
 ir::Type* NameResolver::ResolvePredefinedType(Token* token,
