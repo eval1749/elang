@@ -97,7 +97,7 @@ MethodAnalyzer::~MethodAnalyzer() {
 
 // The entry point of |MethodAnalyzer|.
 bool MethodAnalyzer::Run() {
-  VisitNamespaceBody(session()->root_node());
+  VisitNamespaceBody(session()->global_namespace_body());
   return session()->errors().empty();
 }
 

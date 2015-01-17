@@ -67,9 +67,11 @@ CompilationSession::CompilationSession()
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())),
       global_namespace_body_(
           CreateNamespaceBody(this, nullptr, global_namespace())),
-      system_namespace_(CreateNamespace(this, root_node(), L"System")),
-      system_namespace_body_(
-          CreateNamespaceBody(this, root_node(), system_namespace())) {
+      system_namespace_(
+          CreateNamespace(this, global_namespace_body(), L"System")),
+      system_namespace_body_(CreateNamespaceBody(this,
+                                                 global_namespace_body(),
+                                                 system_namespace())) {
 }
 
 CompilationSession::~CompilationSession() {

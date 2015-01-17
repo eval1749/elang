@@ -164,7 +164,7 @@ void Parser::QualifiedNameBuilder::Reset() {
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : compilation_unit_(compilation_unit),
       container_(session->ast_factory()->NewNamespaceBody(
-          session->root_node(),
+          session->global_namespace_body(),
           session->global_namespace())),
       declaration_space_(nullptr),
       expression_(nullptr),
@@ -176,7 +176,7 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       statement_(nullptr),
       statement_scope_(nullptr),
       token_(nullptr) {
-  session->root_node()->AddMember(container_);
+  session->global_namespace_body()->AddMember(container_);
 }
 
 Parser::~Parser() {

@@ -172,7 +172,7 @@ ast::NamedNode* IrClassBuilder::Resolve(ast::Expression* reference,
 }
 
 void IrClassBuilder::Run() {
-  VisitNamespaceBody(session()->root_node());
+  VisitNamespaceBody(session()->global_namespace_body());
   collecting_ = false;
   for (auto ast_class : pending_classes_)
     ProcessClass(ast_class);
@@ -225,10 +225,10 @@ class SystemNamespaceBuilder final {
 SystemNamespaceBuilder::SystemNamespaceBuilder(CompilationSession* session)
     : session_(session),
       system_namespace_body_(session->ast_factory()->NewNamespaceBody(
-          session->root_node(),
+          session->global_namespace_body(),
           session->system_namespace())) {
   system_namespace_body_->loaded_ = true;
-  session_->root_node()->AddMember(system_namespace_body_);
+  session_->global_namespace_body()->AddMember(system_namespace_body_);
 }
 
 void SystemNamespaceBuilder::Build() {

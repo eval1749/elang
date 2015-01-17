@@ -50,7 +50,9 @@ class CompilationSession final : public ZoneOwner {
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   AtomicString* name_for(PredefinedName name) const;
-  ast::NamespaceBody* root_node() const { return global_namespace_body_; }
+  ast::NamespaceBody* global_namespace_body() const {
+    return global_namespace_body_;
+  }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   ast::NamespaceBody* system_namespace_body() const {
     return system_namespace_body_;

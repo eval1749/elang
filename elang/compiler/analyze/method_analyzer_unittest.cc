@@ -48,7 +48,7 @@ void MyNamespaceBuilder::Build() {
 
   auto const console_class_body = session()->ast_factory()->NewClassBody(
       system_namespace_body(), console_class);
-  session()->root_node()->AddMember(console_class_body);
+  session()->global_namespace_body()->AddMember(console_class_body);
 
   auto const write_line = session()->ast_factory()->NewMethodGroup(
       console_class, NewName("WriteLine"));

@@ -395,7 +395,7 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
 
 // The entry point of |NamespaceAnalyzer|.
 bool NamespaceAnalyzer::Run() {
-  VisitNamespaceBody(session()->root_node());
+  VisitNamespaceBody(session()->global_namespace_body());
   if (!session()->errors().empty())
     return false;
   auto succeeded = true;

@@ -66,7 +66,7 @@ std::string CompilerTest::Format() {
   if (!Parse())
     return GetErrors();
   Formatter formatter;
-  return formatter.Run(session_->root_node());
+  return formatter.Run(session_->global_namespace_body());
 }
 
 std::string CompilerTest::GetErrors() {
@@ -78,8 +78,7 @@ std::string CompilerTest::GetWarnings() {
 }
 
 bool CompilerTest::Parse() {
-  auto const compilation_unit =
-      session_->NewCompilationUnit(source_code());
+  auto const compilation_unit = session_->NewCompilationUnit(source_code());
   Parser parser(session_.get(), compilation_unit);
   return parser.Run();
 }
