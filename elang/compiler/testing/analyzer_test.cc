@@ -47,7 +47,7 @@ std::vector<ir::Class*> ComputeBaseClassList(
       continue;
     base_classes.push_back(current);
     seen.insert(current);
-    for (auto base_class : current->base_classes()) {
+    for (auto base_class : current->direct_base_classes()) {
       if (seen.count(base_class))
         continue;
       pending_classes.push_back(base_class);
@@ -151,40 +151,12 @@ std::string AnalyzerTest::AnalyzeNamespace() {
   return resolver.Run() ? "" : GetErrors();
 }
 
-ast::Class* AnalyzerTest::FindClass(base::StringPiece name) {
-  auto const member = FindMember(name);
-  return member ? member->as<ast::Class>() : nullptr;
-}
-
-ast::NamedNode* AnalyzerTest::FindMember(base::StringPiece name) {
-  auto enclosing =
-      static_cast<ast::ContainerNode*>(session()->global_namespace());
-  auto found = static_cast<ast::NamedNode*>(nullptr);
-  for (size_t pos = 0u; pos < name.length(); ++pos) {
-    auto dot_pos = name.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = name.length();
-    auto const simple_name = session()->NewAtomicString(
-        base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
-    found = enclosing->FindMember(simple_name);
-    if (!found)
-      return nullptr;
-    pos = dot_pos;
-    if (pos == name.length())
-      break;
-    enclosing = found->as<ast::NamespaceNode>();
-    if (!enclosing)
-      return nullptr;
-  }
-  return found;
-}
-
 std::string AnalyzerTest::GetBaseClasses(base::StringPiece name) {
   auto const thing = GetClass(name);
   if (!thing.ir_class)
     return thing.message;
   return MakeClassListString(
-      ComputeBaseClassList(thing.ir_class->base_classes()));
+      ComputeBaseClassList(thing.ir_class->direct_base_classes()));
 }
 
 AnalyzerTest::ClassOrString AnalyzerTest::GetClass(base::StringPiece name) {
@@ -207,7 +179,7 @@ std::string AnalyzerTest::GetDirectBaseClasses(base::StringPiece name) {
   auto const thing = GetClass(name);
   if (!thing.ir_class)
     return thing.message;
-  return MakeClassListString(thing.ir_class->base_classes());
+  return MakeClassListString(thing.ir_class->direct_base_classes());
 }
 
 std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {

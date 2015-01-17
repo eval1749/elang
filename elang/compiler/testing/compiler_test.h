@@ -46,6 +46,8 @@ class CompilerTest : public ::testing::Test {
   // we implement |source_code()| function in ".cc".
   SourceCode* source_code() const;
 
+  ast::Class* FindClass(base::StringPiece name);
+  ast::NamedNode* FindMember(base::StringPiece name);
   std::string Format();
   std::string Format(base::StringPiece source_code);
   std::string GetErrors();

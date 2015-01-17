@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -55,6 +56,34 @@ CompilerTest::~CompilerTest() {
 // we implement |source_code()| function here.
 SourceCode* CompilerTest::source_code() const {
   return source_code_.get();
+}
+
+ast::Class* CompilerTest::FindClass(base::StringPiece name) {
+  auto const member = FindMember(name);
+  return member ? member->as<ast::Class>() : nullptr;
+}
+
+ast::NamedNode* CompilerTest::FindMember(base::StringPiece name) {
+  auto enclosing =
+      static_cast<ast::ContainerNode*>(session()->global_namespace());
+  auto found = static_cast<ast::NamedNode*>(nullptr);
+  for (size_t pos = 0u; pos < name.length(); ++pos) {
+    auto dot_pos = name.find('.', pos);
+    if (dot_pos == base::StringPiece::npos)
+      dot_pos = name.length();
+    auto const simple_name = session()->NewAtomicString(
+        base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
+    found = enclosing->FindMember(simple_name);
+    if (!found)
+      return nullptr;
+    pos = dot_pos;
+    if (pos == name.length())
+      break;
+    enclosing = found->as<ast::NamespaceNode>();
+    if (!enclosing)
+      return nullptr;
+  }
+  return found;
 }
 
 std::string CompilerTest::Format(base::StringPiece source_code) {

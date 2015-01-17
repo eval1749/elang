@@ -35,8 +35,6 @@ class AnalyzerTest : public CompilerTest {
 
   std::string AnalyzeClass();
   std::string AnalyzeNamespace();
-  ast::Class* FindClass(base::StringPiece name);
-  ast::NamedNode* FindMember(base::StringPiece name);
   std::string GetBaseClasses(base::StringPiece name);
   ClassOrString GetClass(base::StringPiece name);
   std::string GetDirectBaseClasses(base::StringPiece name);
