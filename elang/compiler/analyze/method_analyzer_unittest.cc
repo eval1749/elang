@@ -41,14 +41,8 @@ void MyNamespaceBuilder::Build() {
   // public class Console {
   //   public static void WriteLine(String string);
   // }
-  auto const console_class = session()->ast_factory()->NewClass(
-      system_namespace(), Modifiers(Modifier::Public),
-      NewKeyword(TokenType::Class), NewName("Console"));
-  system_namespace()->AddNamedMember(console_class);
-
-  auto const console_class_body = session()->ast_factory()->NewClassBody(
-      system_namespace_body(), console_class);
-  session()->global_namespace_body()->AddMember(console_class_body);
+  auto const console_class_body = NewClass("Console", "Object");
+  auto const console_class = console_class_body->owner();
 
   auto const write_line = session()->ast_factory()->NewMethodGroup(
       console_class, NewName("WriteLine"));
@@ -72,11 +66,6 @@ void MyNamespaceBuilder::Build() {
   write_line->AddMethod(write_line_string_object);
   console_class_body->AddMember(write_line_string_object);
   console_class->AddNamedMember(write_line);
-
-  auto const console_ir_class =
-      name_resolver()->factory()->NewClass(console_class, {system_object()});
-
-  name_resolver()->DidResolve(console_class, console_ir_class);
 }
 
 //////////////////////////////////////////////////////////////////////

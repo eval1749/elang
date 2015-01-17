@@ -44,6 +44,8 @@ class NamespaceBuilder {
   ir::Class* system_object();
 
   ast::Class* GetPredefinedType(PredefinedName name);
+  ast::ClassBody* NewClass(base::StringPiece name,
+                           base::StringPiece base_names);
   Token* NewKeyword(TokenType type);
   Token* NewName(base::StringPiece name);
   ast::Variable* NewParameter(base::StringPiece type, base::StringPiece name);

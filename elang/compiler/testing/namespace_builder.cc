@@ -4,6 +4,8 @@
 
 #include "elang/compiler/testing/namespace_builder.h"
 
+#include <algorithm>
+
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/strings/stringprintf.h"
@@ -14,6 +16,7 @@
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token.h"
@@ -52,6 +55,46 @@ ast::Class* NamespaceBuilder::GetPredefinedType(PredefinedName name) {
       ->system_namespace()
       ->FindMember(session()->name_for(name))
       ->as<ast::Class>();
+}
+
+ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
+                                           base::StringPiece base_names) {
+  auto const ast_class = session()->ast_factory()->NewClass(
+      session()->system_namespace(), Modifiers(Modifier::Public),
+      NewKeyword(TokenType::Class), NewName(name));
+  session()->system_namespace()->AddNamedMember(ast_class);
+
+  std::vector<ast::Type*> base_class_names;
+  for (size_t pos = 0; pos < base_names.size(); ++pos) {
+    auto const space_pos =
+        std::min(base_names.find(' ', pos), base_names.size());
+    auto const base_name = base_names.substr(pos, space_pos - pos);
+    base_class_names.push_back(NewTypeReference(base_name));
+    pos = space_pos;
+  }
+
+  auto const ast_class_body = session()->ast_factory()->NewClassBody(
+      session()->system_namespace_body(), ast_class);
+  ast_class_body->SetBaseClassNames(base_class_names);
+  session()->system_namespace_body()->AddMember(ast_class_body);
+  session()->system_namespace_body()->AddNamedMember(ast_class);
+
+  // ir::Class
+  std::vector<ir::Class*> base_classes;
+  for (auto const base_name : ast_class_body->base_class_names()) {
+    auto const ast_base_class =
+        name_resolver()->ResolveReference(base_name, ast_class_body->parent());
+    DCHECK(ast_base_class) << " Not found " << *base_name;
+    auto const base_class =
+        name_resolver()->Resolve(ast_base_class)->as<ir::Class>();
+    DCHECK(base_class);
+    base_classes.push_back(base_class);
+  }
+  auto const clazz =
+      name_resolver()->factory()->NewClass(ast_class, base_classes);
+  name_resolver()->DidResolve(ast_class, clazz);
+
+  return ast_class_body;
 }
 
 Token* NamespaceBuilder::NewKeyword(TokenType type) {
