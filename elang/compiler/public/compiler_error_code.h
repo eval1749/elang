@@ -22,9 +22,13 @@ namespace compiler {
   /* Namespace Analyzer */                            \
   E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
+  E(NameResolution, Class, Conflict)                  \
   E(NameResolution, Class, Containing)                \
+  E(NameResolution, Class, Duplicate)                 \
+  E(NameResolution, Class, Modifiers)                 \
   E(NameResolution, Class, NotClass)                  \
   E(NameResolution, Class, NotResolved)               \
+  E(NameResolution, Class, Partial)                   \
   E(NameResolution, Import, NeitherNamespaceNorType)  \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
@@ -45,24 +49,20 @@ namespace compiler {
   E(Syntax, Bracket, NotClosed)                       \
   /* CompilationUnit */                               \
   E(Syntax, CompilationUnit, Invalid)                 \
-  /* EnumDecl */                                      \
-  E(Syntax, EnumDecl, Expression)                     \
-  E(Syntax, EnumDecl, LeftCurryBracket)               \
-  E(Syntax, EnumDecl, Modifier)                       \
-  E(Syntax, EnumDecl, NameDuplicate)                  \
-  E(Syntax, EnumDecl, NameInvalid)                    \
-  E(Syntax, EnumDecl, RightCurryBracket)              \
   /* ClassDecl */                                     \
-  E(Syntax, ClassDecl, LeftCurryBracket)              \
-  E(Syntax, ClassDecl, Modifier)                      \
-  /* Expect name for class. */                        \
-  E(Syntax, ClassDecl, Name)                          \
+  E(Syntax, Class, Conflict)                          \
   /* Class name is already defined. */                \
-  E(Syntax, ClassDecl, NameDuplicate)                 \
-  E(Syntax, ClassDecl, RightCurryBracket)             \
+  E(Syntax, Class, Duplicate)                         \
+  E(Syntax, Class, LeftCurryBracket)                  \
+  E(Syntax, Class, Modifier)                          \
+  /* Expect name for class. */                        \
+  E(Syntax, Class, Name)                              \
+  E(Syntax, Class, Partial)                           \
+  E(Syntax, Class, PartialModifiers)                  \
+  E(Syntax, Class, RightCurryBracket)                 \
   /* Expect ";" for |extern| class. */                \
-  E(Syntax, ClassDecl, SemiColon)                     \
-  E(Syntax, ClassDecl, TypeParamInvalid)              \
+  E(Syntax, Class, SemiColon)                         \
+  E(Syntax, Class, TypeParamInvalid)                  \
   /* ClassMember */                                   \
   E(Syntax, ClassMember, Conflict)                    \
   E(Syntax, ClassMember, Duplicate)                   \
@@ -85,6 +85,13 @@ namespace compiler {
   E(Syntax, Do, RightParenthesis)                     \
   E(Syntax, Do, SemiColon)                            \
   E(Syntax, Do, While)                                \
+  /* EnumDecl */                                      \
+  E(Syntax, EnumDecl, Expression)                     \
+  E(Syntax, EnumDecl, LeftCurryBracket)               \
+  E(Syntax, EnumDecl, Modifier)                       \
+  E(Syntax, EnumDecl, NameDuplicate)                  \
+  E(Syntax, EnumDecl, NameInvalid)                    \
+  E(Syntax, EnumDecl, RightCurryBracket)              \
   /* Expression */                                    \
   E(Syntax, Expression, ArrayAccess)                  \
   E(Syntax, Expression, Call)                         \

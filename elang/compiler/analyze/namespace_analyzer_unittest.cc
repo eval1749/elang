@@ -237,6 +237,13 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorCircularlyDependencyNested) {
       AnalyzeNamespace());
 }
 
+TEST_F(NamespaceAnalyzerTest, ClassErrorDuplicate) {
+  Prepare("namespace System { class Int32 {} }");
+  // Note: class 'System.Int32' i installed by |NamespaceAnalyzerTest|, before
+  // paring.
+  EXPECT_EQ("Syntax.Class.Duplicate(25) Int32 Int32\n", Format());
+}
+
 TEST_F(NamespaceAnalyzerTest, ClassErrorNestedDependency) {
   Prepare("class A { class B : A {} }");
   EXPECT_EQ("NameResolution.Class.Containing(20) A B\n", AnalyzeNamespace());

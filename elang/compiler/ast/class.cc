@@ -21,9 +21,7 @@ Class::Class(Zone* zone,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : NamespaceNode(zone, outer, keyword, name),
-      WithModifiers(modifiers),
-      base_class_names_(zone) {
+    : NamespaceNode(zone, outer, keyword, name), WithModifiers(modifiers) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
   DCHECK_EQ(modifiers, Modifiers::Class() & modifiers);
@@ -41,14 +39,11 @@ bool Class::is_struct() const {
   return keyword() == TokenType::Struct;
 }
 
-void Class::AddBaseClassName(Expression* class_name) {
-  base_class_names_.push_back(class_name);
-}
-
 #if _DEBUG
 // NamedNode
 bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::Namespace>();
+  return container->is<ast::Class>() || container->is<ast::Namespace>() ||
+         container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
 }
 #endif
 
@@ -57,11 +52,20 @@ bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
 // ClassBody
 //
 ClassBody::ClassBody(Zone* zone, BodyNode* outer, Class* owner)
-    : BodyNode(zone, outer, owner) {
+    : BodyNode(zone, outer, owner),
+      WithModifiers(owner->modifiers()),
+      base_class_names_(zone) {
 }
 
 Class* ClassBody::owner() const {
   return BodyNode::owner()->as<ast::Class>();
+}
+
+void ClassBody::SetBaseClassNames(const std::vector<Type*>& base_class_names) {
+  DCHECK(base_class_names_.empty());
+  base_class_names_.reserve(base_class_names.size());
+  for (auto const base_class_name : base_class_names)
+    base_class_names_.push_back(base_class_name);
 }
 
 #if _DEBUG

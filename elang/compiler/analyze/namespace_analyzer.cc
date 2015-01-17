@@ -59,6 +59,33 @@ NamespaceAnalyzer::NamespaceAnalyzer(NameResolver* resolver)
 NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
+void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
+  auto const present = LookupMember(class_body->name(), class_body->parent());
+  if (!present)
+    return;
+  auto const ast_class = class_body->owner();
+  auto const present_class = present->as<ast::Class>();
+  if (present_class == ast_class)
+    return;
+  if (!present_class) {
+    Error(ErrorCode::NameResolutionClassConflict, class_body, present);
+    return;
+  }
+
+  if (present_class->HasPartial() && ast_class->HasPartial()) {
+    if (present_class->modifiers() != ast_class->modifiers())
+      Error(ErrorCode::NameResolutionClassModifiers, class_body);
+    return;
+  }
+
+  if (!present_class->HasPartial() && !ast_class->HasPartial()) {
+    Error(ErrorCode::NameResolutionClassDuplicate, class_body, present_class);
+    return;
+  }
+
+  Error(ErrorCode::NameResolutionClassPartial, class_body);
+}
+
 void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
   DCHECK(!resolved_nodes_.count(node));
   resolved_nodes_.insert(node);
@@ -74,24 +101,24 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
 // Find |name| in class tree rooted by |clazz|.
 void NamespaceAnalyzer::FindInClass(
     Token* name,
-    ast::Class* ast_class,
+    ir::Class* clazz,
     std::unordered_set<ast::NamedNode*>* founds) {
-  DCHECK(IsResolved(ast_class));
-  if (auto const present = ast_class->FindMember(name)) {
+  if (auto const present = clazz->ast_class()->FindMember(name)) {
     founds->insert(present);
     return;
   }
-  for (auto const base_class_name : ast_class->base_class_names()) {
-    auto const base_class =
-        GetResolvedReference(base_class_name)->as<ast::Class>();
+  for (auto const base_class : clazz->base_classes())
     FindInClass(name, base_class, founds);
-  }
 }
 
 ast::NamedNode* NamespaceAnalyzer::FindResolvedReference(
     ast::Expression* reference) {
   auto const it = reference_cache_.find(reference);
   return it == reference_cache_.end() ? nullptr : it->second;
+}
+
+ir::Class* NamespaceAnalyzer::GetClass(ast::Class* ast_class) {
+  return resolver()->Resolve(ast_class)->as<ir::Class>();
 }
 
 Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
@@ -144,6 +171,15 @@ bool NamespaceAnalyzer::IsSystemObject(ast::NamedNode* node) const {
 
 bool NamespaceAnalyzer::IsVisited(ast::NamedNode* node) const {
   return !!visited_nodes_.count(node);
+}
+
+ast::NamedNode* NamespaceAnalyzer::LookupMember(Token* name,
+                                                ast::ContainerNode* container) {
+  for (auto runner = container; runner; runner = runner->parent()) {
+    if (auto const present = runner->FindMember(name))
+      return present;
+  }
+  return nullptr;
 }
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::Postpone(ast::NamedNode* node,
@@ -278,32 +314,18 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
     ast::NameReference* reference) {
   auto const name = reference->name();
   for (auto runner = context.container; runner; runner = runner->parent()) {
-    std::unordered_set<ast::NamedNode*> founds;
-
     auto const container = runner->is<ast::ClassBody>()
                                ? runner->as<ast::ClassBody>()->owner()
                                : runner;
-
+    std::unordered_set<ast::NamedNode*> founds;
     if (auto const ast_class = container->as<ast::Class>()) {
       if (auto const present = ast_class->FindMember(name)) {
         founds.insert(present);
-      } else if (!IsResolved(ast_class)) {
-        return Postpone(context.node, ast_class);
+      } else if (auto const clazz = GetClass(ast_class)) {
+        FindInClass(name, clazz, &founds);
       } else {
-        // |name| isn't member of |ast_class|. We try to search |name| in
-        // base class tree.
-        for (auto const base_class_name : ast_class->base_class_names()) {
-          auto const resolved = FindResolvedReference(base_class_name);
-          if (!resolved)
-            return Remember(reference, nullptr);
-          auto const base_class = resolved->as<ast::Class>();
-          FindInClass(name, base_class, &founds);
-        }
+        Postpone(context.node, ast_class);
       }
-
-    } else if (auto const ns = container->as<ast::Namespace>()) {
-      if (auto const present = ns->FindMember(name))
-        founds.insert(present);
 
     } else if (auto const ns_body = container->as<ast::NamespaceBody>()) {
       // Find in namespace
@@ -341,8 +363,8 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
           founds.insert(present);
         }
       }
-    } else {
-      NOTREACHED() << " Unexpected container " << *container;
+    } else if (auto const present = container->FindMember(name)) {
+      founds.insert(present);
     }
 
     if (founds.size() == 1u) {
@@ -457,23 +479,21 @@ void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
   DidResolve(alias);
 }
 
-void NamespaceAnalyzer::VisitClass(ast::Class* node) {
-  DCHECK(node);
-}
-
 void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   auto const ast_class = class_body->owner();
-  if (IsResolved(ast_class))
+  if (IsResolved(class_body))
     return;
 
   if (!IsVisited(class_body)) {
     visited_nodes_.insert(class_body);
     Postpone(ast_class, class_body);
-    if (auto const enclosing_class_body =
-            class_body->parent()->as<ast::ClassBody>()) {
-      if (!IsResolved(enclosing_class_body)) {
-        Postpone(class_body, enclosing_class_body);
-      }
+    // Since enclosing namespace or class may come from another compilation
+    // unit, we need to register class into declaration space.
+    class_body->owner()->parent()->AddNamedMember(ast_class);
+    CheckPartialClass(class_body);
+    if (auto const enclosing_class = ast_class->parent()->as<ast::Class>()) {
+      if (!IsResolved(enclosing_class))
+        Postpone(class_body, enclosing_class);
     }
     class_body->AcceptForMembers(this);
   }
@@ -483,7 +503,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   auto nth = 0;
   ResolveContext context(class_body, class_body->parent());
   std::vector<ir::Class*> direct_base_classes;
-  for (auto const base_class_name : ast_class->base_class_names()) {
+  for (auto const base_class_name : class_body->base_class_names()) {
     ++nth;
     auto const result =
         ResolveBaseClass(context, base_class_name, nth, ast_class);
@@ -498,7 +518,6 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
 
   if (!are_direct_base_classes_valid) {
     DidResolve(class_body);
-    DidResolve(ast_class);
     return;
   }
 
@@ -519,10 +538,17 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
       return;
     if (!result.value) {
       DidResolve(class_body);
-      DidResolve(ast_class);
       return;
     }
     direct_base_classes.insert(direct_base_classes.begin(), result.value);
+  }
+
+  auto const present = resolver()->Resolve(ast_class)->as<ir::Class>();
+  if (present) {
+    // TODO(eval1749) Check base classes are matched with |present|.
+    resolver()->DidResolve(class_body, present);
+    DidResolve(class_body);
+    return;
   }
 
   auto const clazz = factory()->NewClass(ast_class, direct_base_classes);

@@ -93,7 +93,7 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
   EXPECT_EQ(
       "Syntax.Bracket.NotClosed(8) { )\n"
       "Syntax.Type.Name(29) )\n"
-      "Syntax.ClassDecl.RightCurryBracket(29) )\n",
+      "Syntax.Class.RightCurryBracket(29) )\n",
       Format());
 }
 
@@ -167,9 +167,19 @@ TEST_F(ParserTest, ClassField) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
-TEST_F(ParserTest, ClassErrorConflictToAlias) {
+TEST_F(ParserTest, ClassErrorConflictWithAlias) {
   Prepare("using R = N1.A; class R {}");
-  EXPECT_EQ("Syntax.ClassDecl.NameDuplicate(22) R\n", Format());
+  EXPECT_EQ("Syntax.Class.Conflict(22) R R\n", Format());
+}
+
+TEST_F(ParserTest, ClassErrorConflictWithNamespace) {
+  Prepare("namespace N1 {} class N1 {}");
+  EXPECT_EQ("Syntax.Class.Conflict(22) N1 N1\n", Format());
+}
+
+TEST_F(ParserTest, ClassErrorDuplicate) {
+  Prepare("class A {} class A {}");
+  EXPECT_EQ("Syntax.Class.Duplicate(17) A A\n", Format());
 }
 
 TEST_F(ParserTest, ClassErrorFieldConflict) {
@@ -186,6 +196,33 @@ TEST_F(ParserTest, ClassErrorFieldVar) {
   Prepare("class A { var x; }");
   EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n", Format())
       << "var field must be initialized";
+}
+
+TEST_F(ParserTest, ClassErrorPartial) {
+  auto const source_code =
+      "partial class A {\n"
+      "}\n"
+      "class A {\n"  // missing 'partial' modifier
+      "}\n";
+  EXPECT_EQ("Syntax.Class.Partial(26) A\n", Format(source_code));
+}
+
+TEST_F(ParserTest, ClassErrorPartial2) {
+  auto const source_code =
+      "class A {\n"
+      "}\n"
+      "partial class A {\n"  // extra 'partial' modifier
+      "}\n";
+  EXPECT_EQ("Syntax.Class.Partial(26) A\n", Format(source_code));
+}
+
+TEST_F(ParserTest, ClassPartial) {
+  auto const source_code =
+      "partial class A {\n"
+      "}\n"
+      "partial class A {\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -450,7 +487,7 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
       "Syntax.Expression.LeftAngleBracket(35) <\n"
       "Syntax.Var.SemiColon(37) >\n"
       "Syntax.Type.Name(37) >\n"
-      "Syntax.ClassDecl.RightCurryBracket(37) >\n",
+      "Syntax.Class.RightCurryBracket(37) >\n",
       Format());
 }
 

@@ -74,7 +74,7 @@ bool Namespace::CanBeMemberOf(ContainerNode* container) const {
 
 // NamedNode
 bool Namespace::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Namespace>();
+  return container->is<ast::Namespace>() || container->is<ast::NamespaceBody>();
 }
 #endif
 

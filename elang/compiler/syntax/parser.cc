@@ -92,8 +92,6 @@ Parser::ModifierParser::ModifierParser(Parser* parser) : parser_(parser) {
 }
 
 bool Parser::ModifierParser::Add(Token* token) {
-  if (builder_.HasPartial())
-    parser_->Error(ErrorCode::SyntaxModifierPartial);
   switch (token->type()) {
 #define CASE_CLAUSE(name, string, details)                \
   case TokenType::name:                                   \
@@ -254,15 +252,38 @@ bool Parser::ParseClass() {
   auto const class_keyword = ConsumeToken();
   auto const class_name = ConsumeToken();
   if (!class_name->is_name())
-    return Error(ErrorCode::SyntaxClassDeclName, class_name);
-  if (container_->FindMember(class_name))
-    Error(ErrorCode::SyntaxClassDeclNameDuplicate, class_name);
-  auto const clazz = factory()->NewClass(container_->owner(), class_modifiers,
-                                         class_keyword, class_name);
+    return Error(ErrorCode::SyntaxClassName, class_name);
+
+  auto clazz = static_cast<ast::Class*>(nullptr);
+  auto const local = container_->FindMember(class_name);
+  auto const global = container_->owner()->FindMember(class_name);
+  if (auto const present = local ? local : global) {
+    clazz = present->as<ast::Class>();
+    if (!clazz) {
+      Error(ErrorCode::SyntaxClassConflict, class_name, present->name());
+    } else if (clazz->HasPartial()) {
+      if (!class_modifiers.HasPartial()) {
+        // Existing declaration has 'partial' but this doesn't.
+        Error(ErrorCode::SyntaxClassPartial, class_name);
+      } else if (clazz->modifiers() != class_modifiers) {
+        Error(ErrorCode::SyntaxClassPartialModifiers, class_name);
+      }
+    } else if (class_modifiers.HasPartial()) {
+      // Existing declaration has no 'partial' but this has.
+      Error(ErrorCode::SyntaxClassPartial, class_name);
+    } else {
+      // Both existing and this declaration don't have 'partial'.
+      Error(ErrorCode::SyntaxClassDuplicate, class_name, clazz->name());
+    }
+  }
+  if (!clazz) {
+    clazz = factory()->NewClass(container_->owner(), class_modifiers,
+                                class_keyword, class_name);
+    container_->owner()->AddNamedMember(clazz);
+  }
   auto const class_body = factory()->NewClassBody(container_, clazz);
-  container_->owner()->AddNamedMember(clazz);
   container_->AddMember(class_body);
-  container_->AddNamedMember(class_body);
+  container_->AddNamedMember(clazz);
 
   ContainerScope container_scope(this, class_body);
 
@@ -272,16 +293,18 @@ bool Parser::ParseClass() {
 
   // ClassBase
   if (AdvanceIf(TokenType::Colon)) {
+    std::vector<ast::Type*> base_class_names;
     while (ParseNamespaceOrTypeName()) {
-      clazz->AddBaseClassName(ConsumeType());
+      base_class_names.push_back(ConsumeType());
       if (!AdvanceIf(TokenType::Comma))
         break;
     }
+    class_body->SetBaseClassNames(base_class_names);
   }
 
   if (class_modifiers.HasExtern()) {
     if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxClassDeclSemiColon);
+      Error(ErrorCode::SyntaxClassSemiColon);
     return true;
   }
 
@@ -298,7 +321,7 @@ bool Parser::ParseClass() {
   //    StaticConstructorDecl |
   //    TypeDecl
   if (!AdvanceIf(TokenType::LeftCurryBracket))
-    return Error(ErrorCode::SyntaxClassDeclLeftCurryBracket);
+    return Error(ErrorCode::SyntaxClassLeftCurryBracket);
 
   for (;;) {
     modifiers_->Reset();
@@ -329,7 +352,7 @@ bool Parser::ParseClass() {
     if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
       ProduceTypeNameReference(var_keyword);
     } else if (!ParseType()) {
-      return Error(ErrorCode::SyntaxClassDeclRightCurryBracket);
+      return Error(ErrorCode::SyntaxClassRightCurryBracket);
     }
     // TODO(eval1749) Validate FieldMoifiers
     auto const member_modifiers = modifiers_->Get();
@@ -423,7 +446,9 @@ void Parser::ParseEnum() {
     token_ = session()->NewUniqueNameToken(token_->location(), L"enum%d");
   }
   auto const enum_name = ConsumeToken();
-  if (container_->owner()->FindMember(enum_name))
+  auto const local = container_->FindMember(enum_name);
+  auto const global = container_->owner()->FindMember(enum_name);
+  if (auto const present = local ? local : global)
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
   auto const enum_node =
       factory()->NewEnum(container_, enum_modifiers, enum_keyword, enum_name);
@@ -493,6 +518,7 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   }
   auto const new_ns_body = factory()->NewNamespaceBody(ns_body, new_namespace);
   ns_body->AddMember(new_ns_body);
+  ns_body->AddNamedMember(new_namespace);
   ContainerScope container_scope(this, new_ns_body);
   if (index + 1 < names.size())
     return ParseNamespace(namespace_keyword, names, index + 1);
@@ -660,7 +686,7 @@ void Parser::ValidateClassModifiers() {
       case TokenType::New:
       case TokenType::Static:
         if (has_inheritance)
-          Error(ErrorCode::SyntaxClassDeclModifier, token);
+          Error(ErrorCode::SyntaxClassModifier, token);
         else
           has_inheritance = true;
         break;
@@ -668,13 +694,13 @@ void Parser::ValidateClassModifiers() {
       case TokenType::Protected:
       case TokenType::Public:
         if (has_accessibility)
-          Error(ErrorCode::SyntaxClassDeclModifier, token);
+          Error(ErrorCode::SyntaxClassModifier, token);
         else
           has_accessibility = true;
         break;
       case TokenType::Virtual:
       case TokenType::Volatile:
-        Error(ErrorCode::SyntaxClassDeclModifier, token);
+        Error(ErrorCode::SyntaxClassModifier, token);
         break;
     }
   }

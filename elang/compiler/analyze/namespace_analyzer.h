@@ -46,12 +46,13 @@ class NamespaceAnalyzer final : public Analyzer,
  private:
   struct ResolveContext;
 
+  void CheckPartialClass(ast::ClassBody* class_body);
   void DidResolve(ast::NamedNode* node);
-
   void FindInClass(Token* name,
-                   ast::Class* clazz,
+                   ir::Class* clazz,
                    std::unordered_set<ast::NamedNode*>* founds);
   ast::NamedNode* FindResolvedReference(ast::Expression* reference);
+  ir::Class* GetClass(ast::Class* ast_class);
 
   // Returns default base class name for |clazz|, for class it is |Object|,
   // for struct it is |Value|.
@@ -66,6 +67,8 @@ class NamespaceAnalyzer final : public Analyzer,
   bool IsResolved(ast::NamedNode* node) const;
   bool IsSystemObject(ast::NamedNode* node) const;
   bool IsVisited(ast::NamedNode* node) const;
+  // Find |name| in declaration space.
+  ast::NamedNode* LookupMember(Token* name, ast::ContainerNode* container);
 
   Maybe<ast::NamedNode*> Postpone(ast::NamedNode* node,
                                   ast::NamedNode* using_node);
@@ -91,7 +94,6 @@ class NamespaceAnalyzer final : public Analyzer,
 
   // ast::Visitor
   void VisitAlias(ast::Alias* node);
-  void VisitClass(ast::Class* node);
   void VisitClassBody(ast::ClassBody* node);
   void VisitImport(ast::Import* node);
   // Builds namespace tree and schedule members to resolve.

@@ -22,15 +22,9 @@ class Class final : public NamespaceNode, public WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(Class, NamespaceNode);
 
  public:
-  const ZoneVector<Expression*>& base_class_names() const {
-    return base_class_names_;
-  }
-
   bool is_class() const;
   bool is_interface() const;
   bool is_struct() const;
-
-  void AddBaseClassName(Expression* class_name);
 
  private:
   Class(Zone* zone,
@@ -44,20 +38,26 @@ class Class final : public NamespaceNode, public WithModifiers {
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
-  ZoneVector<Expression*> base_class_names_;
-
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
 // ClassBody
+// Since base class name list comes after type parameters list, we set
+// base class name list after construction.
 //
-class ClassBody final : public BodyNode {
+class ClassBody final : public BodyNode, public WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, BodyNode);
 
  public:
+  const ZoneVector<Type*>& base_class_names() const {
+    return base_class_names_;
+  }
+
   Class* owner() const;
+
+  void SetBaseClassNames(const std::vector<Type*>& base_class_names);
 
  private:
   ClassBody(Zone* zone, BodyNode* outer, Class* owner);
@@ -68,6 +68,8 @@ class ClassBody final : public BodyNode {
   // NamedNode
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
+
+  ZoneVector<Type*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassBody);
 };

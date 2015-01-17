@@ -201,7 +201,7 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
     if (AdvanceIf(TokenType::RightAngleBracket))
       break;
     if (!AdvanceIf(TokenType::Comma))
-      Error(ErrorCode::SyntaxClassDeclTypeParamInvalid);
+      Error(ErrorCode::SyntaxClassTypeParamInvalid);
   }
   return type_params;
 }
