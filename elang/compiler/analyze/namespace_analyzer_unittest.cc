@@ -4,6 +4,9 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 
+#include "elang/compiler/analyze/namespace_analyzer.h"
+#include "elang/compiler/testing/namespace_builder.h"
+
 namespace elang {
 namespace compiler {
 namespace {
@@ -242,6 +245,17 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorDuplicate) {
   // Note: class 'System.Int32' i installed by |NamespaceAnalyzerTest|, before
   // paring.
   EXPECT_EQ("Syntax.Class.Duplicate(25) Int32 Int32\n", Format());
+}
+
+TEST_F(NamespaceAnalyzerTest, ClassErrorDuplicateWithExtern) {
+  Prepare("namespace System { class A {} }");
+  EXPECT_TRUE(Parse());
+  // Simulate extern module.
+  testing::NamespaceBuilder builder(name_resolver());
+  builder.NewClass("A", "Object");
+  NamespaceAnalyzer resolver(name_resolver());
+  resolver.Run();
+  EXPECT_EQ("NameResolution.Class.Duplicate(25) A A\n", GetErrors());
 }
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorNestedDependency) {

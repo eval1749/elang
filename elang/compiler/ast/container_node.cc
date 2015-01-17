@@ -34,9 +34,6 @@ void ContainerNode::AddMember(Node* member) {
 void ContainerNode::AddNamedMember(NamedNode* member) {
   DCHECK(member->CanBeNamedMemberOf(this));
   auto const name = member->name()->atomic_string();
-  // We keep first member declaration.
-  if (named_members_.count(name))
-    return;
   named_members_[name] = member;
 }
 

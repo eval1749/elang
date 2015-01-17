@@ -60,13 +60,16 @@ NamespaceAnalyzer::~NamespaceAnalyzer() {
 }
 
 void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
-  auto const name = class_body->name();
-  auto const immediate = class_body->FindMember(name);
-  auto const present =
-      immediate ? immediate : class_body->parent()->FindMember(name);
-  if (!present)
-    return;
   auto const ast_class = class_body->owner();
+  auto const enclosing_namespace = ast_class->parent();
+  auto const name = ast_class->name();
+  auto const present = enclosing_namespace->FindMember(name);
+  if (!present) {
+    // Since enclosing namespace or class may come from another compilation
+    // unit, we need to register class into declaration space.
+    enclosing_namespace->AddNamedMember(ast_class);
+    return;
+  }
   auto const present_class = present->as<ast::Class>();
   if (present_class == ast_class)
     return;
@@ -481,9 +484,6 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   if (!IsVisited(class_body)) {
     visited_nodes_.insert(class_body);
     Postpone(ast_class, class_body);
-    // Since enclosing namespace or class may come from another compilation
-    // unit, we need to register class into declaration space.
-    class_body->owner()->parent()->AddNamedMember(ast_class);
     CheckPartialClass(class_body);
     if (auto const enclosing_class = ast_class->parent()->as<ast::Class>()) {
       if (!IsResolved(enclosing_class))

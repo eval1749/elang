@@ -105,6 +105,8 @@ SystemNamespaceBuilder::SystemNamespaceBuilder(NameResolver* name_resolver)
   NewClass("UInt64", "ValueType");
   NewClass("UInt8", "ValueType");
   NewClass("Void", "ValueType");
+
+  NewClass("String", "Object");
 }
 
 std::unique_ptr<NameResolver> NewNameResolver(CompilationSession* session) {

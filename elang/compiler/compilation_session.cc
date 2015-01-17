@@ -49,7 +49,12 @@ ast::Namespace* CreateNamespace(CompilationSession* session,
 ast::NamespaceBody* CreateNamespaceBody(CompilationSession* session,
                                         ast::NamespaceBody* outer,
                                         ast::Namespace* owner) {
-  return session->ast_factory()->NewNamespaceBody(outer, owner);
+  auto const body = session->ast_factory()->NewNamespaceBody(outer, owner);
+  if (outer)
+    outer->AddMember(body);
+  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
+  body->loaded_ = true;
+  return body;
 }
 
 }  // namespace

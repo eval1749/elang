@@ -93,6 +93,7 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   auto const clazz =
       name_resolver()->factory()->NewClass(ast_class, base_classes);
   name_resolver()->DidResolve(ast_class, clazz);
+  name_resolver()->DidResolve(ast_class_body, clazz);
 
   return ast_class_body;
 }

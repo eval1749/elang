@@ -33,7 +33,7 @@ namespace testing {
 // Builds namespace, class, method and so on.
 //
 class NamespaceBuilder {
- protected:
+ public:
   explicit NamespaceBuilder(NameResolver* name_resolver);
   ~NamespaceBuilder();
 
