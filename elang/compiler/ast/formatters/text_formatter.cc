@@ -56,7 +56,9 @@ class Formatter final : public ast::Visitor {
 
  private:
   // ast::Visitor
+  void VisitCall(ast::Call* node);
   void VisitClass(ast::Class* node);
+  void VisitLiteral(ast::Literal* node);
   void VisitMemberAccess(ast::MemberAccess* node);
   void VisitMethod(ast::Method* node);
   void VisitMethodGroup(ast::MethodGroup* node);
@@ -78,12 +80,26 @@ void Formatter::Format(const ast::Node* node) {
 }
 
 // Visitor
+void Formatter::VisitCall(ast::Call* node) {
+  ostream_ << *node->callee() << "(";
+  auto separator = "";
+  for (auto const argument : node->arguments()) {
+    ostream_ << separator << *argument;
+    separator = ", ";
+  }
+  ostream_ << ")";
+}
+
 void Formatter::VisitClass(ast::Class* node) {
   ostream_ << "class " << GetQualifiedName(node);
 }
 
+void Formatter::VisitLiteral(ast::Literal* node) {
+  ostream_ << *node->token();
+}
+
 void Formatter::VisitMemberAccess(ast::MemberAccess* node) {
-  const char* separator = "";
+  auto separator = "";
   for (auto const component : node->components()) {
     ostream_ << separator << *component;
     separator = ".";
@@ -95,10 +111,10 @@ void Formatter::VisitMethod(ast::Method* node) {
 }
 
 void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
-  ostream_ << "method group " << GetQualifiedName(node) << "";
+  ostream_ << "method group " << GetQualifiedName(node);
 }
 void Formatter::VisitNameReference(ast::NameReference* node) {
-  ostream_ << node->name();
+  ostream_ << *node->name();
 }
 
 void Formatter::VisitNamespace(ast::Namespace* node) {
@@ -112,7 +128,6 @@ void Formatter::VisitTypeMemberAccess(ast::TypeMemberAccess* node) {
 void Formatter::VisitTypeNameReference(ast::TypeNameReference* node) {
   VisitNameReference(node->reference());
 }
-
 
 }  // namespace
 
