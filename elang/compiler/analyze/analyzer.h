@@ -27,12 +27,15 @@ class NameResolver;
 // Analyzer
 //
 class Analyzer {
+ public:
+  NameResolver* name_resolver() const { return name_resolver_; }
+
  protected:
   explicit Analyzer(NameResolver* resolver);
   virtual ~Analyzer();
 
   ir::Factory* factory() const;
-  NameResolver* resolver() const { return resolver_; }
+  NameResolver* resolver() const { return name_resolver_; }
   CompilationSession* session() const;
 
   // Report error caused by |node|.
@@ -45,7 +48,7 @@ class Analyzer {
                                  ast::ContainerNode* container);
 
  private:
-  NameResolver* const resolver_;
+  NameResolver* const name_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(Analyzer);
 };
