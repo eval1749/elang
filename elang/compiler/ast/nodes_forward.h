@@ -73,16 +73,19 @@ namespace ast {
   FOR_EACH_STATEMENT_NODE(V)          \
   FOR_EACH_TYPE_NODE(V)               \
   V(CatchClause)                      \
+  V(ClassBody)                        \
   V(EnumMember)                       \
   V(Variable)                         \
   V(MethodGroup)                      \
   V(NamespaceBody)
 
 #define FOR_EACH_ABSTRACT_AST_NODE(V) \
+  V(BodyNode)                         \
   V(ContainerNode)                    \
   V(Expression)                       \
   V(Node)                             \
   V(NamedNode)                        \
+  V(NamespaceNode)                    \
   V(Statement)                        \
   V(Type)
 

@@ -179,6 +179,12 @@ void Formatter::VisitConditional(ast::Conditional* cond) {
 }
 
 void Formatter::VisitClass(ast::Class* clazz) {
+  DCHECK(clazz);
+  NOTREACHED();
+}
+
+void Formatter::VisitClassBody(ast::ClassBody* class_body) {
+  auto const clazz = class_body->owner();
   Indent();
   stream_ << clazz->token() << " " << clazz->name();
   const char* separator = " : ";
@@ -190,7 +196,7 @@ void Formatter::VisitClass(ast::Class* clazz) {
 
   stream_ << " ";
   FormatBlock block(this);
-  clazz->AcceptForMembers(this);
+  class_body->AcceptForMembers(this);
 }
 
 void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {

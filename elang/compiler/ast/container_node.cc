@@ -5,6 +5,7 @@
 #include "elang/compiler/ast/container_node.h"
 
 #include "base/logging.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 
@@ -12,15 +13,12 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-//////////////////////////////////////////////////////////////////////
-//
 // ContainerNode
-//
 ContainerNode::ContainerNode(Zone* zone,
                              ContainerNode* parent,
                              Token* keyword,
                              Token* name)
-    : NamedNode(parent, keyword, name), named_members_(zone), members_(zone) {
+    : NamedNode(parent, keyword, name), members_(zone), named_members_(zone) {
 }
 
 void ContainerNode::AcceptForMembers(Visitor* visitor) {
@@ -35,10 +33,11 @@ void ContainerNode::AddMember(Node* member) {
 
 void ContainerNode::AddNamedMember(NamedNode* member) {
   DCHECK(member->CanBeNamedMemberOf(this));
+  auto const name = member->name()->atomic_string();
   // We keep first member declaration.
-  if (FindMember(member->name()))
+  if (named_members_.count(name))
     return;
-  named_members_[member->name()->atomic_string()] = member;
+  named_members_[name] = member;
 }
 
 NamedNode* ContainerNode::FindMember(AtomicString* name) const {
@@ -48,6 +47,21 @@ NamedNode* ContainerNode::FindMember(AtomicString* name) const {
 
 NamedNode* ContainerNode::FindMember(Token* name) const {
   return FindMember(name->atomic_string());
+}
+
+// BodyNode
+BodyNode::BodyNode(Zone* zone, BodyNode* parent, NamespaceNode* owner)
+    : ContainerNode(zone, parent, owner->keyword(), owner->name()),
+      owner_(owner) {
+  DCHECK(owner->is<ast::Class>() || owner->is<ast::Namespace>());
+}
+
+// NamespaceNode
+NamespaceNode::NamespaceNode(Zone* zone,
+                             ContainerNode* outer,
+                             Token* keyword,
+                             Token* name)
+    : ContainerNode(zone, outer, keyword, name) {
 }
 
 }  // namespace ast

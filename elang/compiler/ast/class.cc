@@ -17,11 +17,11 @@ namespace ast {
 // Class
 //
 Class::Class(Zone* zone,
-             ContainerNode* outer,
+             NamespaceNode* outer,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : ContainerNode(zone, outer, keyword, name),
+    : NamespaceNode(zone, outer, keyword, name),
       WithModifiers(modifiers),
       base_class_names_(zone) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
@@ -46,14 +46,34 @@ void Class::AddBaseClassName(Expression* class_name) {
 }
 
 #if _DEBUG
+// NamedNode
+bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>() || container->is<ast::Namespace>();
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////
+//
+// ClassBody
+//
+ClassBody::ClassBody(Zone* zone, BodyNode* outer, Class* owner)
+    : BodyNode(zone, outer, owner) {
+}
+
+Class* ClassBody::owner() const {
+  return BodyNode::owner()->as<ast::Class>();
+}
+
+#if _DEBUG
 // Node
-bool Class::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::NamespaceBody>() || container->is<ast::Class>();
+bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>() || container->is<ast::ClassBody>() ||
+         container->is<ast::NamespaceBody>();
 }
 
 // NamedNode
-bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Namespace>() || CanBeMemberOf(container);
+bool ClassBody::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::BodyNode>();
 }
 #endif
 
@@ -61,7 +81,7 @@ bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 // Field
 //
-Field::Field(Class* outer,
+Field::Field(ClassBody* outer,
              Modifiers modifiers,
              Type* type,
              Token* name,
@@ -76,12 +96,12 @@ Field::Field(Class* outer,
 #if _DEBUG
 // Node
 bool Field::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>();
+  return container->is<ast::ClassBody>();
 }
 
 // NamedNode
 bool Field::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>();
+  return container->is<ast::Class>() || container->is<ast::ClassBody>();
 }
 #endif
 

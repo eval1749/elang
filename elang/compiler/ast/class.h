@@ -18,8 +18,8 @@ namespace ast {
 //
 // Class
 //
-class Class final : public ContainerNode, public WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Class, ContainerNode);
+class Class final : public NamespaceNode, public WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Class, NamespaceNode);
 
  public:
   const ZoneVector<Expression*>& base_class_names() const {
@@ -34,14 +34,12 @@ class Class final : public ContainerNode, public WithModifiers {
 
  private:
   Class(Zone* zone,
-        ContainerNode* outer,
+        NamespaceNode* outer,
         Modifiers modifiers,
         Token* keyword,
         Token* name);
 
 #if _DEBUG
-  // Node
-  virtual bool CanBeMemberOf(ContainerNode* container) const;
   // NamedNode
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
@@ -49,6 +47,29 @@ class Class final : public ContainerNode, public WithModifiers {
   ZoneVector<Expression*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// ClassBody
+//
+class ClassBody final : public BodyNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, BodyNode);
+
+ public:
+  Class* owner() const;
+
+ private:
+  ClassBody(Zone* zone, BodyNode* outer, Class* owner);
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
+
+  DISALLOW_COPY_AND_ASSIGN(ClassBody);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -63,7 +84,7 @@ class Field final : public NamedNode, public WithModifiers {
   Type* type() const { return type_; }
 
  private:
-  Field(Class* outer,
+  Field(ClassBody* outer,
         Modifiers modifiers,
         Type* Type,
         Token* name,

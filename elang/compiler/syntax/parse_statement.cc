@@ -440,7 +440,7 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     }
   }
 
-  auto const owner = container_->as<ast::Class>();
+  auto const owner = container_->owner()->as<ast::Class>();
   DCHECK(owner);
   auto method_group = static_cast<ast::MethodGroup*>(nullptr);
   if (auto const present = owner->FindMember(method_name)) {
@@ -452,6 +452,9 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
     method_group = factory()->NewMethodGroup(owner, method_name);
     owner->AddNamedMember(method_group);
   }
+
+  if (!container_->FindMember(method_name))
+    container_->AddNamedMember(method_group);
 
   auto method_body = static_cast<ast::Statement*>(nullptr);
   if (AdvanceIf(TokenType::SemiColon)) {
@@ -470,8 +473,8 @@ bool Parser::ParseMethod(Modifiers method_modifiers,
   }
 
   auto const method = factory()->NewMethod(
-      owner, method_group, method_modifiers, method_type, method_name,
-      type_parameters, parameters, method_body);
+      container_->as<ast::ClassBody>(), method_group, method_modifiers,
+      method_type, method_name, type_parameters, parameters, method_body);
   method_group->AddMethod(method);
   container_->AddMember(method);
   return true;

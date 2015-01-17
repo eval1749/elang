@@ -19,11 +19,11 @@ namespace ast {
 // Enum
 //
 Enum::Enum(Zone* zone,
-           ContainerNode* outer,
+           BodyNode* outer,
            Modifiers modifiers,
            Token* keyword,
            Token* name)
-    : ContainerNode(zone, outer, keyword, name), WithModifiers(modifiers) {
+    : NamespaceNode(zone, outer, keyword, name), WithModifiers(modifiers) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);
   DCHECK(name->is_name());
   DCHECK_EQ(modifiers, Modifiers::Enum() & modifiers);
@@ -32,12 +32,13 @@ Enum::Enum(Zone* zone,
 #if _DEBUG
 // Node
 bool Enum::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::NamespaceBody>() || container->is<ast::Class>();
+  return container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
 }
 
 // NamedNode
 bool Enum::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Namespace>() || CanBeMemberOf(container);
+  return container->is<ast::Class>() || container->is<ast::Namespace>() ||
+         CanBeMemberOf(container);
 }
 #endif
 
@@ -45,8 +46,13 @@ bool Enum::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 // EnumMember
 //
-EnumMember::EnumMember(Enum* owner, Token* name, Expression* expression)
-    : NamedNode(owner, name, name), expression_(expression) {
+EnumMember::EnumMember(Enum* owner,
+                       Token* name,
+                       int position,
+                       Expression* expression)
+    : NamedNode(owner, name, name),
+      expression_(expression),
+      position_(position) {
   DCHECK(name->is_name());
 }
 

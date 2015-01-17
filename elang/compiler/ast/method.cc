@@ -18,7 +18,7 @@ namespace ast {
 // Method
 //
 Method::Method(Zone* zone,
-               Class* owner,
+               ClassBody* outer,
                MethodGroup* method_group,
                Modifiers modifiers,
                Type* return_type,
@@ -26,7 +26,7 @@ Method::Method(Zone* zone,
                const std::vector<Token*>& type_parameters,
                const std::vector<Variable*>& parameters,
                Statement* body)
-    : ContainerNode(zone, owner, name, name),
+    : NamespaceNode(zone, outer, name, name),
       WithModifiers(modifiers),
       body_(body),
       method_group_(method_group),
@@ -39,13 +39,13 @@ Method::Method(Zone* zone,
 }
 
 ast::Class* Method::owner() const {
-  return parent()->as<ast::Class>();
+  return parent()->as<ast::ClassBody>()->owner();
 }
 
 #if _DEBUG
 // Node
 bool Method::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>();
+  return container->is<ast::ClassBody>();
 }
 #endif
 
@@ -71,7 +71,7 @@ void MethodGroup::AddMethod(Method* method) {
 #if _DEBUG
 // NamedNode
 bool MethodGroup::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>();
+  return container->is<ast::Class>() || container->is<ast::ClassBody>();
 }
 #endif
 

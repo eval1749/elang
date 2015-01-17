@@ -50,8 +50,11 @@ class CompilationSession final : public ZoneOwner {
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   AtomicString* name_for(PredefinedName name) const;
-  ast::NamespaceBody* root_node() const { return root_node_; }
+  ast::NamespaceBody* root_node() const { return global_namespace_body_; }
   ast::Namespace* system_namespace() const { return system_namespace_; }
+  ast::NamespaceBody* system_namespace_body() const {
+    return system_namespace_body_;
+  }
   const std::vector<ErrorData*>& warnings() const { return warnings_; }
 
   void AddError(ErrorCode error_code, Token* token);
@@ -83,8 +86,9 @@ class CompilationSession final : public ZoneOwner {
 
   const std::unique_ptr<SourceCode> source_code_;
   ast::Namespace* const global_namespace_;
-  ast::NamespaceBody* const root_node_;
+  ast::NamespaceBody* const global_namespace_body_;
   ast::Namespace* const system_namespace_;
+  ast::NamespaceBody* const system_namespace_body_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);
 };

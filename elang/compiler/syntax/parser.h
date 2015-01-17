@@ -9,25 +9,11 @@
 #include <vector>
 
 #include "base/basictypes.h"
+#include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
-
-namespace ast {
-class ContainerNode;
-class Expression;
-class MemberAccess;
-class NamedNode;
-class Namespace;
-class NamespaceBody;
-class NameReference;
-class Node;
-class Factory;
-class Statement;
-class Type;
-class Variable;
-}  // namespace ast
 
 class CompilationUnit;
 class CompilationSession;
@@ -63,7 +49,6 @@ class Parser final {
 
   ast::Factory* factory() const;
 
-  void AddMember(ast::NamedNode* member);
   void Advance();
   bool AdvanceIf(TokenType type);
 
@@ -81,7 +66,6 @@ class Parser final {
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
   bool Error(ErrorCode error_code, Token* token, Token* token2);
-  ast::NamedNode* FindMember(Token* token) const;
   Token* Parser::NewUniqueNameToken(const base::char16* format);
 
   bool ParseClass();
@@ -182,7 +166,7 @@ class Parser final {
   ast::Type* ProduceTypeNameReference(Token* token);
 
   CompilationUnit* compilation_unit_;
-  ast::ContainerNode* container_;
+  ast::BodyNode* container_;
   LocalDeclarationSpace* declaration_space_;
   std::vector<Token*> delimiters_;
   ast::Expression* expression_;

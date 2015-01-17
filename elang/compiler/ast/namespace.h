@@ -68,8 +68,8 @@ class Import final : public NamedNode {
 //
 // Namespace
 //
-class Namespace final : public ContainerNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Namespace, ContainerNode);
+class Namespace final : public NamespaceNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Namespace, NamespaceNode);
 
  private:
   Namespace(Zone* zone, Namespace* outer, Token* keyword, Token* name);
@@ -88,15 +88,15 @@ class Namespace final : public ContainerNode {
 //
 // NamespaceBody
 //
-class NamespaceBody final : public ContainerNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(NamespaceBody, ContainerNode);
+class NamespaceBody final : public BodyNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(NamespaceBody, BodyNode);
 
  public:
   typedef ZoneUnorderedMap<AtomicString*, Import*> ImportMap;
 
   const ImportMap& imports() const { return import_map_; }
   NamespaceBody* outer() const;
-  Namespace* owner() const { return namespace_; }
+  Namespace* owner() const;
 
   void AddImport(Import* import);
 
@@ -118,7 +118,6 @@ class NamespaceBody final : public ContainerNode {
 #endif
 
   ImportMap import_map_;
-  Namespace* const namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBody);
 };

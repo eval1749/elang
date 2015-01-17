@@ -14,6 +14,8 @@ static_library("ast") {
     "expressions.h",
     "factory.cc",
     "factory.h",
+    "formatters/text_formatter.cc",
+    "formatters/text_formatter.h",
     "method.cc",
     "method.h",
     "namespace.cc",

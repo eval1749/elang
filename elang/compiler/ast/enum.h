@@ -20,12 +20,13 @@ class Factory;
 //
 // Enum
 //
-class Enum final : public ContainerNode, WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Enum, ContainerNode);
+class Enum final : public NamespaceNode, WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Enum, NamespaceNode);
 
+ public:
  private:
   Enum(Zone* zone,
-       ContainerNode* namespace_body,
+       BodyNode* container,
        Modifiers modifies,
        Token* keyword,
        Token* name);
@@ -49,9 +50,10 @@ class EnumMember final : public NamedNode {
 
  public:
   Expression* expression() const { return expression_; }
+  int position() const { return position_; }
 
  private:
-  EnumMember(Enum* owner, Token* name, Expression* expression);
+  EnumMember(Enum* owner, Token* name, int position, Expression* expression);
 
 #if _DEBUG
   // Node
@@ -61,6 +63,7 @@ class EnumMember final : public NamedNode {
 #endif
 
   Expression* const expression_;
+  int const position_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };

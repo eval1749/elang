@@ -46,12 +46,10 @@ ast::Namespace* CreateNamespace(CompilationSession* session,
   return ns;
 }
 
-ast::NamespaceBody* CreateRootNode(CompilationSession* session,
-                                   ast::Namespace* global_ns) {
-  auto const ns_body =
-      session->ast_factory()->NewNamespaceBody(nullptr, global_ns);
-  global_ns->AddMember(ns_body);
-  return ns_body;
+ast::NamespaceBody* CreateNamespaceBody(CompilationSession* session,
+                                        ast::NamespaceBody* outer,
+                                        ast::Namespace* owner) {
+  return session->ast_factory()->NewNamespaceBody(outer, owner);
 }
 
 }  // namespace
@@ -67,8 +65,11 @@ CompilationSession::CompilationSession()
       source_code_(new StringSourceCode(L"-", L"")),
       token_factory_(new TokenFactory(zone())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())),
-      root_node_(CreateRootNode(this, global_namespace())),
-      system_namespace_(CreateNamespace(this, root_node(), L"System")) {
+      global_namespace_body_(
+          CreateNamespaceBody(this, nullptr, global_namespace())),
+      system_namespace_(CreateNamespace(this, root_node(), L"System")),
+      system_namespace_body_(
+          CreateNamespaceBody(this, root_node(), system_namespace())) {
 }
 
 CompilationSession::~CompilationSession() {

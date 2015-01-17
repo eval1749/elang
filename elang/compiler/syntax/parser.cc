@@ -45,21 +45,19 @@ Token* MakeQualifiedNameToken(ast::Node* thing) {
 //
 class Parser::ContainerScope {
  public:
-  ContainerScope(Parser* parser, ast::ContainerNode* new_container);
+  ContainerScope(Parser* parser, ast::BodyNode* new_container);
   ~ContainerScope();
 
  private:
   Parser* const parser_;
-  ast::ContainerNode* const container_;
+  ast::BodyNode* const container_;
 
   DISALLOW_COPY_AND_ASSIGN(ContainerScope);
 };
 
 Parser::ContainerScope::ContainerScope(Parser* parser,
-                                       ast::ContainerNode* new_container)
+                                       ast::BodyNode* new_container)
     : container_(parser->container_), parser_(parser) {
-  DCHECK(new_container->is<ast::Class>() ||
-         new_container->is<ast::NamespaceBody>());
   parser->container_ = new_container;
 }
 
@@ -188,14 +186,6 @@ ast::Factory* Parser::factory() const {
   return session_->ast_factory();
 }
 
-void Parser::AddMember(ast::NamedNode* member) {
-  DCHECK(!member->is<ast::Alias>() && !member->is<ast::Import>());
-  container_->AddMember(member);
-  container_->AddNamedMember(member);
-  if (auto const ns_body = container_->as<ast::NamespaceBody>())
-    ns_body->owner()->AddNamedMember(member);
-}
-
 void Parser::Advance() {
   DCHECK(token_);
   token_ = nullptr;
@@ -238,14 +228,6 @@ bool Parser::Error(ErrorCode error_code) {
   return Error(error_code, token_);
 }
 
-ast::NamedNode* Parser::FindMember(Token* name) const {
-  if (auto const present = container_->FindMember(name))
-    return present;
-  if (auto const ns_body = container_->as<ast::NamespaceBody>())
-    return ns_body->owner()->FindMember(name);
-  return nullptr;
-}
-
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
   return session_->NewUniqueNameToken(
       SourceCodeRange(compilation_unit_->source_code(), last_source_offset_,
@@ -273,12 +255,16 @@ bool Parser::ParseClass() {
   auto const class_name = ConsumeToken();
   if (!class_name->is_name())
     return Error(ErrorCode::SyntaxClassDeclName, class_name);
-  if (FindMember(class_name))
+  if (container_->FindMember(class_name))
     Error(ErrorCode::SyntaxClassDeclNameDuplicate, class_name);
-  auto const clazz = factory()->NewClass(container_, class_modifiers,
+  auto const clazz = factory()->NewClass(container_->owner(), class_modifiers,
                                          class_keyword, class_name);
-  AddMember(clazz);
-  ContainerScope container_scope(this, clazz);
+  auto const class_body = factory()->NewClassBody(container_, clazz);
+  container_->owner()->AddNamedMember(clazz);
+  container_->AddMember(class_body);
+  container_->AddNamedMember(class_body);
+
+  ContainerScope container_scope(this, class_body);
 
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
@@ -368,7 +354,7 @@ bool Parser::ParseClass() {
 
     // FieldDecl ::= Type Name ('=' Expression)? ';'
     //
-    if (auto const present = FindMember(member_name)) {
+    if (auto const present = container_->FindMember(member_name)) {
       if (present->is<ast::Field>()) {
         Error(ErrorCode::SyntaxClassMemberDuplicate, member_name,
               present->name());
@@ -381,8 +367,12 @@ bool Parser::ParseClass() {
     if (AdvanceIf(TokenType::Assign)) {
       if (!ParseExpression())
         return false;
-      AddMember(factory()->NewField(clazz, member_modifiers, member_type,
-                                    member_name, ConsumeExpression()));
+      auto const field =
+          factory()->NewField(class_body, member_modifiers, member_type,
+                              member_name, ConsumeExpression());
+      class_body->AddMember(field);
+      class_body->AddNamedMember(field);
+      clazz->AddNamedMember(field);
       if (!AdvanceIf(TokenType::SemiColon))
         Error(ErrorCode::SyntaxClassMemberSemiColon);
       continue;
@@ -394,8 +384,11 @@ bool Parser::ParseClass() {
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
 
-    AddMember(factory()->NewField(clazz, member_modifiers, member_type,
-                                  member_name, nullptr));
+    auto const field = factory()->NewField(class_body, member_modifiers,
+                                           member_type, member_name, nullptr);
+    class_body->AddMember(field);
+    class_body->AddNamedMember(field);
+    clazz->AddNamedMember(field);
     if (!AdvanceIf(TokenType::SemiColon))
       Error(ErrorCode::SyntaxClassMemberSemiColon);
   }
@@ -430,14 +423,17 @@ void Parser::ParseEnum() {
     token_ = session()->NewUniqueNameToken(token_->location(), L"enum%d");
   }
   auto const enum_name = ConsumeToken();
-  if (FindMember(enum_name))
+  if (container_->owner()->FindMember(enum_name))
     Error(ErrorCode::SyntaxEnumDeclNameDuplicate);
   auto const enum_node =
       factory()->NewEnum(container_, enum_modifiers, enum_keyword, enum_name);
-  AddMember(enum_node);
+  container_->AddMember(enum_node);
+  container_->AddNamedMember(enum_node);
+  container_->owner()->AddNamedMember(enum_node);
   // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     Error(ErrorCode::SyntaxEnumDeclLeftCurryBracket);
+  auto position = 0;
   while (PeekToken()->is_name()) {
     auto const member_name = ConsumeToken();
     auto member_value = static_cast<ast::Expression*>(nullptr);
@@ -447,10 +443,10 @@ void Parser::ParseEnum() {
       else
         Error(ErrorCode::SyntaxEnumDeclExpression);
     }
-    auto const enum_member =
-        factory()->NewEnumMember(enum_node, member_name, member_value);
+    auto const enum_member = factory()->NewEnumMember(enum_node, member_name,
+                                                      position, member_value);
     enum_node->AddMember(enum_member);
-    enum_node->AddNamedMember(enum_member);
+    ++position;
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
     if (AdvanceIf(TokenType::Comma))
@@ -483,7 +479,9 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   DCHECK(ns_body);
   auto const name = names[index];
   ast::Namespace* new_namespace = nullptr;
-  if (auto const present = FindMember(name)) {
+  auto const local = container_->FindMember(name);
+  auto const global = container_->owner()->FindMember(name);
+  if (auto const present = local ? local : global) {
     new_namespace = present->as<ast::Namespace>();
     if (!new_namespace)
       Error(ErrorCode::SyntaxNamespaceConflict, name, present->keyword());

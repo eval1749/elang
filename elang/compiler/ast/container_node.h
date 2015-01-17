@@ -39,10 +39,44 @@ class ContainerNode : public NamedNode {
   ContainerNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
 
  private:
-  ZoneUnorderedMap<AtomicString*, NamedNode*> named_members_;
   ZoneVector<Node*> members_;
+  ZoneUnorderedMap<AtomicString*, NamedNode*> named_members_;
 
   DISALLOW_COPY_AND_ASSIGN(ContainerNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// BodyNode
+//
+class BodyNode : public ContainerNode {
+  DECLARE_ABSTRACT_AST_NODE_CLASS(BodyNode, ContainerNode);
+
+ public:
+  NamespaceNode* owner() const { return owner_; }
+
+ protected:
+  BodyNode(Zone* zone, BodyNode* parent, NamespaceNode* owner);
+
+ private:
+  NamespaceNode* const owner_;
+
+  DISALLOW_COPY_AND_ASSIGN(BodyNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// NamespaceNode
+//
+class NamespaceNode : public ContainerNode {
+  DECLARE_ABSTRACT_AST_NODE_CLASS(NamespaceNode, ContainerNode);
+
+ public:
+ protected:
+  NamespaceNode(Zone* zone, ContainerNode* outer, Token* keyword, Token* name);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NamespaceNode);
 };
 
 }  // namespace ast

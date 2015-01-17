@@ -61,7 +61,7 @@ bool Import::CanBeMemberOf(ContainerNode* container) const {
 // Namespace
 //
 Namespace::Namespace(Zone* zone, Namespace* parent, Token* keyword, Token* name)
-    : ContainerNode(zone, parent, keyword, name) {
+    : NamespaceNode(zone, parent, keyword, name) {
   DCHECK_EQ(keyword, TokenType::Namespace);
 }
 
@@ -83,14 +83,15 @@ bool Namespace::CanBeNamedMemberOf(ContainerNode* container) const {
 // NamespaceBody
 //
 NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
-    : ContainerNode(zone, outer, owner->name(), owner->name()),
-      import_map_(zone),
-      loaded_(false),
-      namespace_(owner) {
+    : BodyNode(zone, outer, owner), import_map_(zone), loaded_(false) {
 }
 
 NamespaceBody* NamespaceBody::outer() const {
   return parent()->as<ast::NamespaceBody>();
+}
+
+Namespace* NamespaceBody::owner() const {
+  return BodyNode::owner()->as<ast::Namespace>();
 }
 
 void NamespaceBody::AddImport(Import* import) {
@@ -111,7 +112,7 @@ Import* NamespaceBody::FindImport(Token* name) const {
 #if _DEBUG
 // Node
 bool NamespaceBody::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Namespace>() || container->is<ast::NamespaceBody>();
+  return container->is<ast::NamespaceBody>();
 }
 #endif
 

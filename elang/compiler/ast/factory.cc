@@ -46,14 +46,18 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
   return new (zone_) Alias(namespace_body, keyword, alias_name, reference);
 }
 
-Class* Factory::NewClass(ContainerNode* container,
+Class* Factory::NewClass(NamespaceNode* outer,
                          Modifiers modifiers,
                          Token* keyword,
                          Token* name) {
-  return new (zone_) Class(zone_, container, modifiers, keyword, name);
+  return new (zone_) Class(zone_, outer, modifiers, keyword, name);
 }
 
-Enum* Factory::NewEnum(ContainerNode* container,
+ClassBody* Factory::NewClassBody(BodyNode* outer, Class* owner) {
+  return new (zone_) ClassBody(zone_, outer, owner);
+}
+
+Enum* Factory::NewEnum(BodyNode* container,
                        Modifiers modifiers,
                        Token* keyword,
                        Token* name) {
@@ -62,11 +66,12 @@ Enum* Factory::NewEnum(ContainerNode* container,
 
 EnumMember* Factory::NewEnumMember(Enum* owner,
                                    Token* name,
+                                   int position,
                                    Expression* expression) {
-  return new (zone_) EnumMember(owner, name, expression);
+  return new (zone_) EnumMember(owner, name, position, expression);
 }
 
-Field* Factory::NewField(Class* outer,
+Field* Factory::NewField(ClassBody* outer,
                          Modifiers modifiers,
                          Type* type,
                          Token* name,
@@ -80,7 +85,7 @@ Import* Factory::NewImport(NamespaceBody* namespace_body,
   return new (zone_) Import(namespace_body, keyword, reference);
 }
 
-Method* Factory::NewMethod(Class* outer,
+Method* Factory::NewMethod(ClassBody* outer,
                            MethodGroup* method_group,
                            Modifiers modifies,
                            Type* type,

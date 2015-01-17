@@ -34,16 +34,20 @@ class Factory final {
                   Token* keyword,
                   Token* alias_name,
                   Expression* reference);
-  Class* NewClass(ContainerNode* outer,
+  Class* NewClass(NamespaceNode* outer,
                   Modifiers modifiers,
                   Token* keyword,
                   Token* name);
-  Enum* NewEnum(ContainerNode* outer,
+  ClassBody* NewClassBody(BodyNode* outer, Class* owner);
+  Enum* NewEnum(BodyNode* outer,
                 Modifiers modifiers,
                 Token* keyword,
                 Token* name);
-  EnumMember* NewEnumMember(Enum* owner, Token* name, Expression* expression);
-  Field* NewField(Class* clazz,
+  EnumMember* NewEnumMember(Enum* owner,
+                            Token* name,
+                            int position,
+                            Expression* expression);
+  Field* NewField(ClassBody* class_body,
                   Modifiers modifiers,
                   Type* type,
                   Token* name,
@@ -51,7 +55,7 @@ class Factory final {
   Import* NewImport(NamespaceBody* namespace_body,
                     Token* keyword,
                     Expression* reference);
-  Method* NewMethod(Class* owner,
+  Method* NewMethod(ClassBody* owner,
                     MethodGroup* method_group,
                     Modifiers modifies,
                     Type* type,
