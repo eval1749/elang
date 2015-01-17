@@ -186,9 +186,12 @@ void Formatter::VisitClass(ast::Class* clazz) {
 void Formatter::VisitClassBody(ast::ClassBody* class_body) {
   auto const clazz = class_body->owner();
   Indent();
+  stream_ << clazz->modifiers();
+  if (clazz->modifiers().value())
+    stream_ << " ";
   stream_ << clazz->token() << " " << clazz->name();
   const char* separator = " : ";
-  for (auto const base_class_name : clazz->base_class_names()) {
+  for (auto const base_class_name : class_body->base_class_names()) {
     stream_ << separator;
     Visit(base_class_name);
     separator = ", ";
