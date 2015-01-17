@@ -45,19 +45,22 @@ void MyNamespaceBuilder::Build() {
       system_namespace(), Modifiers(Modifier::Public),
       NewKeyword(TokenType::Class), NewName("Console"));
   system_namespace()->AddNamedMember(console_class);
-  session()->root_node()->AddMember(console_class);
+
+  auto const console_class_body = session()->ast_factory()->NewClassBody(
+      system_namespace_body(), console_class);
+  session()->root_node()->AddMember(console_class_body);
 
   auto const write_line = session()->ast_factory()->NewMethodGroup(
       console_class, NewName("WriteLine"));
 
   auto const write_line_string = session()->ast_factory()->NewMethod(
-      console_class, write_line,
+      console_class_body, write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
       NewTypeReference(TokenType::Void), write_line->name(), {},
       {NewParameter("System.String", "string")}, nullptr);
 
   auto const write_line_string_object = session()->ast_factory()->NewMethod(
-      console_class, write_line,
+      console_class_body, write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
       NewTypeReference(TokenType::Void), write_line->name(), {},
       {NewParameter("System.String", "string"),
@@ -65,9 +68,9 @@ void MyNamespaceBuilder::Build() {
       nullptr);
 
   write_line->AddMethod(write_line_string);
-  console_class->AddMember(write_line_string);
+  console_class_body->AddMember(write_line_string);
   write_line->AddMethod(write_line_string_object);
-  console_class->AddMember(write_line_string_object);
+  console_class_body->AddMember(write_line_string_object);
   console_class->AddNamedMember(write_line);
 
   auto const console_ir_class =
@@ -103,8 +106,9 @@ void MethodAnalyzerTest::SetUp() {
 //
 TEST_F(MethodAnalyzerTest, Method) {
   Prepare(
+      "using System;"
       "class Sample {"
-      "    void Main() { ConsoleWrite(\"Hello world!\"); }"
+      "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
   EXPECT_EQ("", AnalyzeClass());
   MethodAnalyzer method_analyzer(name_resolver());

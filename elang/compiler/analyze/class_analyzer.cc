@@ -37,7 +37,7 @@ bool ClassAnalyzer::Run() {
 }
 
 // ast::Visitor
-void ClassAnalyzer::VisitClass(ast::Class* node) {
+void ClassAnalyzer::VisitClassBody(ast::ClassBody* node) {
   node->AcceptForMembers(this);
 }
 

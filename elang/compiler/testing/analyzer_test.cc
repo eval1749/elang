@@ -103,6 +103,7 @@ class IrClassBuilder final : public ast::Visitor {
 
   // ast::Visitor
   void VisitClass(ast::Class* node);
+  void VisitClassBody(ast::ClassBody* node);
   void VisitNamespaceBody(ast::NamespaceBody* node);
 
   bool collecting_;
@@ -187,8 +188,13 @@ void IrClassBuilder::VisitClass(ast::Class* ast_class) {
   ProcessClass(ast_class);
 }
 
-void IrClassBuilder::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
-  ns_body->AcceptForMembers(this);
+void IrClassBuilder::VisitClassBody(ast::ClassBody* body) {
+  VisitClass(body->owner());
+  body->AcceptForMembers(this);
+}
+
+void IrClassBuilder::VisitNamespaceBody(ast::NamespaceBody* body) {
+  body->AcceptForMembers(this);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -265,7 +271,9 @@ void SystemNamespaceBuilder::InstallPredefinedName(PredefinedName type) {
       container, modifiers, NewToken(TokenData(TokenType::Class, class_string)),
       NewToken(TokenData(name)));
   container->AddNamedMember(new_class);
-  system_namespace_body_->AddMember(new_class);
+  auto const new_class_body =
+      session_->ast_factory()->NewClassBody(system_namespace_body_, new_class);
+  system_namespace_body_->AddMember(new_class_body);
 }
 
 ast::NameReference* SystemNamespaceBuilder::NewNameReference(
@@ -348,7 +356,7 @@ ast::NamedNode* AnalyzerTest::FindMember(base::StringPiece name) {
     pos = dot_pos;
     if (pos == name.length())
       break;
-    enclosing = found->as<ast::ContainerNode>();
+    enclosing = found->as<ast::NamespaceNode>();
     if (!enclosing)
       return nullptr;
   }

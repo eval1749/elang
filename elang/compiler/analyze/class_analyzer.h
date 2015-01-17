@@ -31,7 +31,7 @@ class ClassAnalyzer final : public Analyzer, private ast::Visitor {
 
  private:
   // ast::Visitor
-  void VisitClass(ast::Class* node) final;
+  void VisitClassBody(ast::ClassBody* node) final;
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
   void VisitMethod(ast::Method* node) final;

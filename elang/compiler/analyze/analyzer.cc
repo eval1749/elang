@@ -4,8 +4,10 @@
 
 #include "elang/compiler/analyze/analyzer.h"
 
+#include "base/logging.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
@@ -47,6 +49,8 @@ ir::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
   auto const ast_node = resolver_->ResolveReference(type, container);
   if (!ast_node) {
+    DVLOG(0) << "Type not found: " << *type << " in " << *container
+             << std::endl;
     Error(ErrorCode::AnalyzeTypeNotFound, type);
     return nullptr;
   }

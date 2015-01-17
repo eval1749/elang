@@ -44,6 +44,7 @@ class NameResolver final {
   CompilationSession* session() const { return session_; }
 
   void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
+  void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
   // Resolve to |ir::Type| named |name| for |token|.
   ir::Type* ResolvePredefinedType(Token* token, PredefinedName name);
@@ -53,8 +54,13 @@ class NameResolver final {
  private:
   class ReferenceResolver;
 
+  // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
+  ast::ContainerNode* GetUsingReference(ast::NamedNode* node);
+
   const std::unique_ptr<ir::Factory> factory_;
   std::unordered_map<ast::NamedNode*, ir::Node*> node_map_;
+  // Mapping from |Alias| or |Import| to |ContainerNode|.
+  std::unordered_map<ast::NamedNode*, ast::ContainerNode*> using_map_;
   CompilationSession* const session_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);

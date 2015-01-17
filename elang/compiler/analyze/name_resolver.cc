@@ -10,6 +10,7 @@
 #include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
@@ -94,14 +95,37 @@ ast::NamedNode* NameResolver::ReferenceResolver::Resolve(
 
 // ast::Visitor
 void NameResolver::ReferenceResolver::VisitMemberAccess(
-    ast::MemberAccess* node) {
-  DCHECK(node);
+    ast::MemberAccess* reference) {
+  auto resolved = static_cast<ast::NamedNode*>(nullptr);
+  auto container = container_;
+  for (auto const component : reference->components()) {
+    if (resolved) {
+      container = resolved->as<ast::ContainerNode>();
+      if (!container) {
+        Error(ErrorCode::NameResolutionNameNeitherNamespaceNorType, component,
+              reference);
+        ProduceResult(nullptr);
+        return;
+      }
+    }
+
+    resolved = resolver()->ResolveReference(component, container);
+    if (!resolved) {
+      ProduceResult(nullptr);
+      return;
+    }
+  }
+  DCHECK(resolved);
+  ProduceResult(resolved);
 }
 
+// Algorithm of this function should be equivalent to
+// |NamespaceAnalyzer::ResolveNameReference()|.
 void NameResolver::ReferenceResolver::VisitNameReference(
     ast::NameReference* node) {
   auto const name = node->name();
   if (name->is_type_name()) {
+    // type keyword is mapped into |System.XXX|.
     auto const ast_class = session()->system_namespace()->FindMember(
         session()->name_for(name->mapped_type_name()));
     if (!ast_class)
@@ -110,37 +134,62 @@ void NameResolver::ReferenceResolver::VisitNameReference(
     return;
   }
 
-  std::unordered_set<ast::NamedNode*> founds;
-  if (auto const present = container_->FindMember(name))
-    founds.insert(present);
+  for (auto runner = container_; runner; runner = runner->parent()) {
+    auto const container = runner->is<ast::ClassBody>()
+                               ? runner->as<ast::ClassBody>()->owner()
+                               : runner;
 
-  // TODO(eval1749) Look up in imports
+    std::unordered_set<ast::NamedNode*> founds;
 
-  if (founds.empty()) {
-    if (auto const ast_class = container_->as<ast::Class>())
-      FindInClass(name, ast_class, &founds);
-  }
+    if (auto const clazz = container->as<ast::Class>()) {
+      if (auto const present = clazz->FindMember(name))
+        FindInClass(name, clazz, &founds);
 
-  if (founds.empty()) {
-    for (auto runner = container_->parent(); !runner;
-         runner = runner->parent()) {
-      if (auto const member = runner->FindMember(name)) {
-        founds.insert(member);
-        break;
+    } else if (auto const ns_body = container->as<ast::NamespaceBody>()) {
+      // Find in enclosing namespace
+      if (auto const present = ns_body->owner()->FindMember(name))
+        founds.insert(present);
+
+      // Find alias
+      if (auto const alias = ns_body->FindAlias(name)) {
+        if (auto const present = resolver()->GetUsingReference(alias))
+          founds.insert(present);
       }
+
+      if (!ns_body->FindMember(name)) {
+        // When |name| isn't defined in namespace body, looking in imported
+        // namespaces.
+        for (auto const pair : ns_body->imports()) {
+          auto const imported = resolver()->GetUsingReference(pair.second);
+          if (!imported)
+            continue;
+          if (auto const present = imported->FindMember(name)) {
+            if (present && !present->is<ast::Namespace>())
+              founds.insert(present);
+          }
+        }
+      }
+    } else {
+      DCHECK(container->is<ast::Method>() || container->is<ast::Namespace>())
+          << " container=" << *container;
+      // Note: |ast::Method| holds type parameters in named node map.
+      if (auto const present = container->FindMember(name))
+        founds.insert(present);
+    }
+
+    if (founds.size() == 1) {
+      ProduceResult(*founds.begin());
+      return;
+    }
+
+    if (founds.size() > 1) {
+      Error(ErrorCode::NameResolutionNameAmbiguous, node, *founds.begin());
+      return;
     }
   }
 
-  if (founds.empty()) {
-    Error(ErrorCode::NameResolutionNameNotFound, node);
-    return;
-  }
-  if (founds.size() > 1) {
-    Error(ErrorCode::NameResolutionNameAmbiguous, node, *founds.begin());
-    return;
-  }
-  ProduceResult(*founds.begin());
-  return;
+  DVLOG(0) << "Not found " << name << " in " << *container_ << std::endl;
+  Error(ErrorCode::NameResolutionNameNotFound, node);
 }
 
 void NameResolver::ReferenceResolver::VisitTypeMemberAccess(
@@ -168,6 +217,20 @@ void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
   DCHECK(ast_node);
   DCHECK(!node_map_.count(ast_node));
   node_map_[ast_node] = node;
+}
+
+void NameResolver::DidResolveUsing(ast::NamedNode* node,
+                                   ast::ContainerNode* container) {
+  DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
+  DCHECK(container->is<ast::Class>() || container->is<ast::Namespace>());
+  DCHECK(!using_map_.count(node));
+  using_map_[node] = container;
+}
+
+ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
+  DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
+  auto const it = using_map_.find(node);
+  return it == using_map_.end() ? nullptr : it->second;
 }
 
 ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {

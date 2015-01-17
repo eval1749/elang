@@ -204,7 +204,7 @@ Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
   }
 
   if (!IsResolved(base_class)) {
-    Postpone(clazz, base_class);
+    Postpone(context.node, base_class);
     return Maybe<ir::Class*>();
   }
 
@@ -277,9 +277,12 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
     const ResolveContext& context,
     ast::NameReference* reference) {
   auto const name = reference->name();
-  auto container = context.container;
-  while (container) {
+  for (auto runner = context.container; runner; runner = runner->parent()) {
     std::unordered_set<ast::NamedNode*> founds;
+
+    auto const container = runner->is<ast::ClassBody>()
+                               ? runner->as<ast::ClassBody>()->owner()
+                               : runner;
 
     if (auto const ast_class = container->as<ast::Class>()) {
       if (auto const present = ast_class->FindMember(name)) {
@@ -339,7 +342,7 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
         }
       }
     } else {
-      NOTREACHED();
+      NOTREACHED() << " Unexpected container " << *container;
     }
 
     if (founds.size() == 1u) {
@@ -352,9 +355,6 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
       Error(ErrorCode::NameResolutionNameAmbiguous, reference);
       return Remember(reference, nullptr);
     }
-
-    // Current name space doesn't contain |name|. Ge enclosing name space.
-    container = container->parent();
   }
   if (context.member_access)
     Error(ErrorCode::NameResolutionNameNotResolved, reference);
@@ -403,7 +403,13 @@ bool NamespaceAnalyzer::Run() {
     auto const users = dependency_graph_.GetInEdges(node);
     if (users.empty())
       continue;
-    Error(ErrorCode::NameResolutionNameCycle, node, users.front());
+    for (auto const user : users) {
+      if (auto const class_body = node->as<ast::ClassBody>()) {
+        if (class_body->owner() == user)
+          continue;
+      }
+      Error(ErrorCode::NameResolutionNameCycle, node, user);
+    }
     succeeded = false;
   }
   return succeeded;
@@ -440,30 +446,42 @@ void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
   auto const result = ResolveReference(context, alias->reference());
   if (!result.has_value)
     return;
-  if (result.value && !result.value->as<ast::ContainerNode>()) {
+  auto const container = result.value->as<ast::ContainerNode>();
+  if (container->is<ast::Class>() || container->is<ast::Namespace>()) {
+    resolver()->DidResolveUsing(alias, container);
+  } else if (result.value) {
+    // Note: we've already report "not found" in |ResolveReference()|.
     Error(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
           alias->reference());
   }
   DidResolve(alias);
 }
 
-void NamespaceAnalyzer::VisitClass(ast::Class* ast_class) {
+void NamespaceAnalyzer::VisitClass(ast::Class* node) {
+  DCHECK(node);
+}
+
+void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
+  auto const ast_class = class_body->owner();
   if (IsResolved(ast_class))
     return;
 
-  if (!IsVisited(ast_class)) {
-    visited_nodes_.insert(ast_class);
-    if (auto const enclosing_class = ast_class->parent()->as<ast::Class>()) {
-      if (!IsResolved(enclosing_class))
-        Postpone(ast_class, enclosing_class);
+  if (!IsVisited(class_body)) {
+    visited_nodes_.insert(class_body);
+    Postpone(ast_class, class_body);
+    if (auto const enclosing_class_body =
+            class_body->parent()->as<ast::ClassBody>()) {
+      if (!IsResolved(enclosing_class_body)) {
+        Postpone(class_body, enclosing_class_body);
+      }
     }
-    ast_class->AcceptForMembers(this);
+    class_body->AcceptForMembers(this);
   }
 
   // Resolve direct base classes
   auto are_direct_base_classes_valid = true;
   auto nth = 0;
-  ResolveContext context(ast_class, ast_class->parent());
+  ResolveContext context(class_body, class_body->parent());
   std::vector<ir::Class*> direct_base_classes;
   for (auto const base_class_name : ast_class->base_class_names()) {
     ++nth;
@@ -479,11 +497,12 @@ void NamespaceAnalyzer::VisitClass(ast::Class* ast_class) {
   }
 
   if (!are_direct_base_classes_valid) {
+    DidResolve(class_body);
     DidResolve(ast_class);
     return;
   }
 
-  if (HasDependency(ast_class))
+  if (HasDependency(class_body))
     return;
 
   if (IsSystemObject(ast_class)) {
@@ -499,14 +518,17 @@ void NamespaceAnalyzer::VisitClass(ast::Class* ast_class) {
     if (!result.has_value)
       return;
     if (!result.value) {
+      DidResolve(class_body);
       DidResolve(ast_class);
       return;
     }
     direct_base_classes.insert(direct_base_classes.begin(), result.value);
   }
 
-  resolver()->DidResolve(ast_class,
-                         factory()->NewClass(ast_class, direct_base_classes));
+  auto const clazz = factory()->NewClass(ast_class, direct_base_classes);
+  resolver()->DidResolve(class_body, clazz);
+  resolver()->DidResolve(ast_class, clazz);
+  DidResolve(class_body);
   DidResolve(ast_class);
 }
 
@@ -519,18 +541,19 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
   auto const result = ResolveReference(context, import->reference());
   if (!result.has_value)
     return;
-  DidResolve(import);
-  if (!result.value || result.value->is<ast::Namespace>() ||
-      result.value->is<ast::Class>()) {
-    return;
+  auto const container = result.value->as<ast::ContainerNode>();
+  if (container->is<ast::Namespace>()) {
+    resolver()->DidResolveUsing(import, container);
+  } else if (result.value) {
+    Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
+          import->reference());
   }
-  Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
-        import->reference());
+  DidResolve(import);
 }
 
 // Builds namespace tree and schedule members to resolve.
-void NamespaceAnalyzer::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
-  ns_body->AcceptForMembers(this);
+void NamespaceAnalyzer::VisitNamespaceBody(ast::NamespaceBody* body) {
+  body->AcceptForMembers(this);
 }
 
 }  // namespace compiler

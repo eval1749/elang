@@ -38,6 +38,10 @@ ast::Namespace* NamespaceBuilder::system_namespace() {
   return session()->system_namespace();
 }
 
+ast::NamespaceBody* NamespaceBuilder::system_namespace_body() {
+  return session()->system_namespace_body();
+}
+
 ir::Class* NamespaceBuilder::system_object() {
   auto const ast_class = GetPredefinedType(PredefinedName::Object);
   return name_resolver()->Resolve(ast_class)->as<ir::Class>();
@@ -91,10 +95,10 @@ ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece name) {
   DCHECK(!names.empty());
   if (names.size() == 1) {
     return session()->ast_factory()->NewTypeNameReference(
-        names.front()->as<ast::NameReference>());
+        names[0]->as<ast::NameReference>());
   }
   return session()->ast_factory()->NewTypeMemberAccess(
-      session()->ast_factory()->NewMemberAccess(nullptr, names));
+      session()->ast_factory()->NewMemberAccess(names[0]->token(), names));
 }
 
 }  // namespace testing

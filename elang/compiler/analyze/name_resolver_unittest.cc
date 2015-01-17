@@ -24,31 +24,13 @@ namespace {
 //
 class NameResolverTest : public testing::AnalyzerTest {
  protected:
-  NameResolverTest();
-
-  ast::NameReference* NewNameReference(TokenType type);
-  Token* NewToken(TokenType type);
+  NameResolverTest() = default;
 
  private:
-  NameResolver name_resolver_;
-
   DISALLOW_COPY_AND_ASSIGN(NameResolverTest);
 };
 
-NameResolverTest::NameResolverTest() : name_resolver_(session()) {
-}
-
-ast::NameReference* NameResolverTest::NewNameReference(TokenType token_type) {
-  return session()->ast_factory()->NewNameReference(NewToken(token_type));
-}
-
-Token* NameResolverTest::NewToken(TokenType token_type) {
-  return session()->NewToken(SourceCodeRange(), TokenData(token_type));
-}
-
 TEST_F(NameResolverTest, SystemInt32) {
-  auto const system_ast_ns = FindMember("System.Int32");
-  ASSERT_TRUE(system_ast_ns) << "namespace System not found";
   auto const int32_ast_class = FindMember("System.Int32");
   ASSERT_TRUE(int32_ast_class) << "class System.Int32 isn't installed.";
   auto const int32_class = name_resolver()->Resolve(int32_ast_class);

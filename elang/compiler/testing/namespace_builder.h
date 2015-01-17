@@ -40,6 +40,7 @@ class NamespaceBuilder {
   NameResolver* name_resolver() { return name_resolver_; }
   CompilationSession* session();
   ast::Namespace* system_namespace();
+  ast::NamespaceBody* system_namespace_body();
   ir::Class* system_object();
 
   ast::Class* GetPredefinedType(PredefinedName name);

@@ -46,7 +46,6 @@ class NamespaceAnalyzer final : public Analyzer,
  private:
   struct ResolveContext;
 
-  void AnalyzeClass(ast::Class* clazz);
   void DidResolve(ast::NamedNode* node);
 
   void FindInClass(Token* name,
@@ -93,6 +92,7 @@ class NamespaceAnalyzer final : public Analyzer,
   // ast::Visitor
   void VisitAlias(ast::Alias* node);
   void VisitClass(ast::Class* node);
+  void VisitClassBody(ast::ClassBody* node);
   void VisitImport(ast::Import* node);
   // Builds namespace tree and schedule members to resolve.
   void VisitNamespaceBody(ast::NamespaceBody* node);
