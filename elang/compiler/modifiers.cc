@@ -82,7 +82,7 @@ std::ostream& operator<<(std::ostream& ostream, const Modifiers& modifiers) {
       FOR_EACH_MODIFIER(STRING)
 #undef STRING
   };
-  const char* separator = "";
+  auto separator = "";
   const char* const* name = strings;
   auto value = modifiers.value();
   while (value) {

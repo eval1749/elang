@@ -69,7 +69,7 @@ std::string GetQualifiedName(ast::NamedNode* member) {
   }
   std::reverse(names.begin(), names.end());
   std::stringstream ostream;
-  const char* separator = "";
+  auto separator = "";
   for (auto const name : names) {
     ostream << separator << name;
     separator = ".";
@@ -206,7 +206,7 @@ std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
 std::string AnalyzerTest::MakeClassListString(
     const std::vector<ir::Class*>& ir_classes) {
   std::stringstream ostream;
-  const char* separator = "";
+  auto separator = "";
   for (auto const ir_base_class : ir_classes) {
     ostream << separator;
     ostream << GetQualifiedName(ir_base_class->ast_class());

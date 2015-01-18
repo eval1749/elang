@@ -35,7 +35,7 @@ std::string GetQualifiedName(ast::Node* node) {
   }
   std::reverse(ancestors.begin(), ancestors.end());
   std::stringstream buffer;
-  const char* separator = "";
+  auto separator = "";
   for (auto runner : ancestors) {
     buffer << separator << runner->name();
     separator = ".";

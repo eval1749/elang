@@ -208,7 +208,7 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
   if (!instruction->type()->is<VoidType>())
     ostream_ << *instruction->output_type() << "%r = " << instruction->id();
   ostream_ << instruction->opcode();
-  const char* separator = " ";
+  auto separator = " ";
   auto const num_values = instruction->CountOperands();
   for (auto nth = 0; nth < num_values; ++nth) {
     auto const value = instruction->OperandAt(nth);

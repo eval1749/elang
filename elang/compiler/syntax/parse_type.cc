@@ -215,7 +215,7 @@ ast::Expression* Parser::ProduceMemberAccess(
   // TODO(eval1749) We should use |base::string16| for creating name for
   // |MemberAccess|
   std::stringstream buffer;
-  const char* separator = "";
+  auto separator = "";
   for (auto const name : names) {
     buffer << separator << name->token();
     separator = ".";

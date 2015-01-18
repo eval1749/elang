@@ -60,7 +60,7 @@ class ListOwner {
 
   std::string ToString() const {
     std::string result;
-    const char* separator = "";
+    auto separator = "";
     for (auto const node : nodes_) {
       result += separator + node->value();
       separator = ", ";

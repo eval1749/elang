@@ -249,7 +249,7 @@ void TextFormatter::FormatFunction(const Function* function) {
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
   // outputs
   if (!instruction->outputs().empty()) {
-    const char* separator = "";
+    auto separator = "";
     for (auto const value : instruction->outputs()) {
       ostream_ << separator;
       FormatValue(value);
@@ -260,7 +260,7 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
   ostream_ << factory_->GetMnemonic(instruction);
   // inputs
   if (!instruction->inputs().empty()) {
-    const char* separator = " ";
+    auto separator = " ";
     for (auto const value : instruction->inputs()) {
       ostream_ << separator;
       FormatValue(value);

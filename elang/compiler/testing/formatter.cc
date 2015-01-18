@@ -108,7 +108,7 @@ void Formatter::VisitAlias(ast::Alias* alias) {
 
 void Formatter::VisitArrayAccess(ast::ArrayAccess* access) {
   Visit(access->array());
-  const char* separator = "[";
+  auto separator = "[";
   for (auto const index : access->indexes()) {
     stream_ << separator;
     Visit(index);
@@ -156,7 +156,7 @@ void Formatter::VisitBreakStatement(ast::BreakStatement* break_statement) {
 void Formatter::VisitCall(ast::Call* call) {
   Visit(call->callee());
   stream_ << "(";
-  const char* separator = "";
+  auto separator = "";
   for (auto const argument : call->arguments()) {
     stream_ << separator;
     Visit(argument);
@@ -190,7 +190,7 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
   if (clazz->modifiers().value())
     stream_ << " ";
   stream_ << clazz->token() << " " << clazz->name();
-  const char* separator = " : ";
+  auto separator = " : ";
   for (auto const base_class_name : class_body->base_class_names()) {
     stream_ << separator;
     Visit(base_class_name);
@@ -205,7 +205,7 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
 void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
   Visit(cons_type->base_type());
   stream_ << "<";
-  const char* separator = "";
+  auto separator = "";
   for (auto const type_arg : cons_type->arguments()) {
     stream_ << separator;
     Visit(type_arg);
@@ -253,7 +253,7 @@ void Formatter::VisitEnumMember(ast::EnumMember* node) {
 }
 
 void Formatter::VisitExpressionList(ast::ExpressionList* statement) {
-  const char* separator = "";
+  auto separator = "";
   for (auto const expression : statement->expressions()) {
     stream_ << separator;
     Visit(expression);
@@ -383,7 +383,7 @@ void Formatter::VisitLiteral(ast::Literal* operation) {
 }
 
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
-  const char* separator = "";
+  auto separator = "";
   for (auto const component : member_access->components()) {
     stream_ << separator;
     Visit(component);
@@ -399,7 +399,7 @@ void Formatter::VisitMethod(ast::Method* method) {
   Visit(method->return_type());
   stream_ << " " << method->name();
   if (!method->type_parameters().empty()) {
-    const char* separator = "<";
+    auto separator = "<";
     for (auto const name : method->type_parameters()) {
       stream_ << separator << name;
       separator = ", ";
@@ -407,7 +407,7 @@ void Formatter::VisitMethod(ast::Method* method) {
     stream_ << ">";
   }
   stream_ << "(";
-  const char* separator = "";
+  auto separator = "";
   for (auto const param : method->parameters()) {
     stream_ << separator;
     Visit(param->type());

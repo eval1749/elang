@@ -80,7 +80,7 @@ void Formatter::VisitParameter(Parameter* parameter) {
 
 void Formatter::VisitSignature(Signature* sig) {
   ostream_ << "(signature " << *sig->return_type() << " (";
-  const char* separator = "";
+  auto separator = "";
   for (auto const parameter : sig->parameters()) {
     ostream_ << separator << *parameter;
     separator = " ";
