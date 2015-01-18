@@ -59,6 +59,7 @@ class Formatter final : public ast::Visitor {
   void VisitCall(ast::Call* node);
   void VisitClass(ast::Class* node);
   void VisitLiteral(ast::Literal* node);
+  void VisitImport(ast::Import* node);
   void VisitMemberAccess(ast::MemberAccess* node);
   void VisitMethod(ast::Method* node);
   void VisitMethodGroup(ast::MethodGroup* node);
@@ -94,6 +95,10 @@ void Formatter::VisitClass(ast::Class* node) {
   ostream_ << "class " << GetQualifiedName(node);
 }
 
+void Formatter::VisitImport(ast::Import* node) {
+  ostream_ << "using " << *node->reference();
+}
+
 void Formatter::VisitLiteral(ast::Literal* node) {
   ostream_ << *node->token();
 }
@@ -107,7 +112,14 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* node) {
 }
 
 void Formatter::VisitMethod(ast::Method* node) {
-  ostream_ << "method " << GetQualifiedName(node);
+  ostream_ << "method " << node->modifiers() << " " << *node->return_type()
+           << " " << GetQualifiedName(node);
+  auto separator = "(";
+  for (auto const parameter : node->parameters()) {
+    ostream_ << separator << *parameter->type();
+    separator = ", ";
+  }
+  ostream_ << ")";
 }
 
 void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
