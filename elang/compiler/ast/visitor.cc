@@ -20,12 +20,8 @@ Visitor::Visitor() {
 Visitor::~Visitor() {
 }
 
-// Default implementations do nothing. Each derived visitor class implements
-// override for interested classes.
-#define V(type) \
-  void Visitor::Visit##type(type* node) { DCHECK(node); }
-FOR_EACH_CONCRETE_AST_NODE(V)
-#undef V
+// We implement |DoDefaultVisit()| and "VisitorXXX()" in "factory.cc" to avoid
+// include AST node include files in this file for improve compilation speed.
 
 }  // namespace ast
 }  // namespace compiler

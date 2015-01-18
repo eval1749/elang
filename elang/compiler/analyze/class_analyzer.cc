@@ -38,10 +38,6 @@ bool ClassAnalyzer::Run() {
 }
 
 // ast::Visitor
-void ClassAnalyzer::VisitClassBody(ast::ClassBody* node) {
-  node->AcceptForMembers(this);
-}
-
 void ClassAnalyzer::VisitEnum(ast::Enum* node) {
   DCHECK(node);
 }
@@ -93,10 +89,6 @@ void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
 
   auto const method = factory()->NewMethod(ast_method, signature);
   resolver()->DidResolve(ast_method, method);
-}
-
-void ClassAnalyzer::VisitNamespaceBody(ast::NamespaceBody* node) {
-  node->AcceptForMembers(this);
 }
 
 }  // namespace compiler

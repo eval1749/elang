@@ -571,10 +571,5 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
   DidResolve(import);
 }
 
-// Builds namespace tree and schedule members to resolve.
-void NamespaceAnalyzer::VisitNamespaceBody(ast::NamespaceBody* body) {
-  body->AcceptForMembers(this);
-}
-
 }  // namespace compiler
 }  // namespace elang

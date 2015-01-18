@@ -24,6 +24,9 @@ class Visitor {
   FOR_EACH_CONCRETE_AST_NODE(DEF_VISIT)
 #undef DEF_VISIT
 
+ protected:
+  virtual void DoDefaultVisit(Node* node);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Visitor);
 };

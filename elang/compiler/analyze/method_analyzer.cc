@@ -109,17 +109,9 @@ bool MethodAnalyzer::Run() {
 }
 
 // ast::Visitor
-void MethodAnalyzer::VisitClassBody(ast::ClassBody* node) {
-  node->AcceptForMembers(this);
-}
-
 void MethodAnalyzer::VisitMethod(ast::Method* method) {
   MethodBodyAnalyzer method_resolver(resolver(), method);
   method_resolver.Run();
-}
-
-void MethodAnalyzer::VisitNamespaceBody(ast::NamespaceBody* node) {
-  node->AcceptForMembers(this);
 }
 
 }  // namespace compiler

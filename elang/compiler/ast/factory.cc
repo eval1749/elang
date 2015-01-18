@@ -20,10 +20,25 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
+// Visitor related functions.
 #define V(Name) \
   void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
 FOR_EACH_CONCRETE_AST_NODE(V)
 #undef V
+
+// Default implementations do nothing. Each derived visitor class implements
+// override for interested classes.
+#define V(type) \
+  void Visitor::Visit##type(type* node) { DoDefaultVisit(node); }
+FOR_EACH_CONCRETE_AST_NODE(V)
+#undef V
+
+void Visitor::DoDefaultVisit(Node* node) {
+  auto const container = node->as<ContainerNode>();
+  if (!container)
+    return;
+  container->AcceptForMembers(this);
+}
 
 //////////////////////////////////////////////////////////////////////
 //
