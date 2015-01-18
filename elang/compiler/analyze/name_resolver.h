@@ -51,6 +51,7 @@ class NameResolver final {
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.
+  ir::Type* GetPredefinedType(PredefinedName name);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
   ir::Method* ResolveCall(ast::Call* ast_call) const;
   // Resolve to |ir::Type| named |name| for |token|.

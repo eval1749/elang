@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 #include "base/logging.h"
+#include "elang/base/atomic_string.h"
 #include "elang/compiler/analyze/analyzer.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -233,6 +234,16 @@ void NameResolver::DidResolveUsing(ast::NamedNode* node,
   DCHECK(container->is<ast::Class>() || container->is<ast::Namespace>());
   DCHECK(!using_map_.count(node));
   using_map_[node] = container;
+}
+
+ir::Type* NameResolver::GetPredefinedType(PredefinedName name) {
+  auto const type_name = session()->name_for(name);
+  auto const ast_type = session()->system_namespace()->FindMember(type_name);
+  DCHECK(ast_type) << *type_name;
+  auto const type = Resolve(ast_type)->as<ir::Type>();
+  DCHECK(type) << *type_name;
+  return type;
+  return nullptr;
 }
 
 ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
