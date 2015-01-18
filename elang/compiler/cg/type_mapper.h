@@ -29,6 +29,7 @@ class Type;
 
 class CompilationSession;
 class NameResolver;
+enum class PredefinedName;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -39,7 +40,9 @@ class TypeMapper final {
   TypeMapper(hir::Factory* factory, NameResolver* name_resolver);
   ~TypeMapper();
 
+  // Map IR type to HIR type.
   hir::Type* Map(ir::Type* type);
+  hir::Type* Map(PredefinedName name);
 
  private:
   hir::Factory* factory() { return factory_; }
