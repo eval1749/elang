@@ -135,13 +135,13 @@ class ELANG_HIR_EXPORT ReferenceType : public Type {
   // For |FunctionType|, |name()| return |nullptr|.
   AtomicString* name() const { return name_; }
 
+  // Type
+  Value* GetDefaultValue() const override;
+
  protected:
   explicit ReferenceType(Zone* zone, AtomicString* name);
 
  private:
-  // Type
-  Value* GetDefaultValue() const override;
-
   AtomicString* const name_;
   NullLiteral* const null_literal_;
 
