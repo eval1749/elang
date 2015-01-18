@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "base/strings/string16.h"
 #include "elang/compiler/ast/nodes_forward.h"
 
 namespace elang {
@@ -78,6 +79,8 @@ class NamedNode : public Node {
 #if _DEBUG
   virtual bool CanBeNamedMemberOf(ContainerNode* container) const;
 #endif
+
+  base::string16 NewQualifiedName() const;
 
  protected:
   NamedNode(ContainerNode* parent, Token* keyword, Token* name);

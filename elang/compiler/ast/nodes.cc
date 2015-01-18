@@ -2,10 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <string>
+#include <vector>
+
 #include "elang/compiler/ast/nodes.h"
 
 #include "base/logging.h"
-#include "elang/compiler/ast/container_node.h"
+#include "elang/base/atomic_string.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -64,6 +68,35 @@ bool NamedNode::CanBeNamedMemberOf(ContainerNode* container) const {
   return false;
 }
 #endif
+
+base::string16 NamedNode::NewQualifiedName() const {
+  std::vector<AtomicString*> ancestors;
+  size_t length = 0u;
+  for (auto runner = this; runner; runner = runner->parent()) {
+    if (auto const ns_body = runner->as<ast::NamespaceBody>())
+      runner = ns_body->owner();
+    if (!runner->parent())
+      break;
+    auto const name_token = runner->name();
+    DCHECK(name_token->has_atomic_string());
+    if (!ancestors.empty())
+      ++length;
+    ancestors.push_back(name_token->atomic_string());
+    length += ancestors.back()->string().length();
+  }
+  std::reverse(ancestors.begin(), ancestors.end());
+  base::string16 buffer(length, '?');
+  buffer.resize(0);
+  auto first = true;
+  for (auto const runner : ancestors) {
+    if (first)
+      first = false;
+    else
+      buffer.push_back('.');
+    runner->string().AppendToString(&buffer);
+  }
+  return buffer;
+}
 
 }  // namespace ast
 }  // namespace compiler

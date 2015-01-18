@@ -57,26 +57,6 @@ std::vector<ir::Class*> ComputeBaseClassList(
   return base_classes;
 }
 
-std::string GetQualifiedName(ast::NamedNode* member) {
-  std::vector<Token*> names;
-  names.push_back(member->name());
-  for (auto runner = member->parent(); runner; runner = runner->parent()) {
-    if (auto const ns_body = runner->as<ast::NamespaceBody>())
-      runner = ns_body->owner();
-    if (!runner->parent())
-      break;
-    names.push_back(runner->name());
-  }
-  std::reverse(names.begin(), names.end());
-  std::stringstream ostream;
-  auto separator = "";
-  for (auto const name : names) {
-    ostream << separator << name;
-    separator = ".";
-  }
-  return ostream.str();
-}
-
 class SystemNamespaceBuilder final : public NamespaceBuilder {
  public:
   explicit SystemNamespaceBuilder(NameResolver* name_resolver);
@@ -209,7 +189,7 @@ std::string AnalyzerTest::MakeClassListString(
   auto separator = "";
   for (auto const ir_base_class : ir_classes) {
     ostream << separator;
-    ostream << GetQualifiedName(ir_base_class->ast_class());
+    ostream << ir_base_class->ast_class()->NewQualifiedName();
     separator = " ";
   }
   return ostream.str();

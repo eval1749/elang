@@ -24,23 +24,8 @@ namespace ast {
 
 namespace {
 
-std::string GetQualifiedName(ast::Node* node) {
-  std::vector<Node*> ancestors;
-  for (auto runner = node; runner; runner = runner->parent()) {
-    if (auto const ns_body = runner->as<ast::NamespaceBody>())
-      runner = ns_body->owner();
-    if (!runner->parent())
-      break;
-    ancestors.push_back(runner);
-  }
-  std::reverse(ancestors.begin(), ancestors.end());
-  std::stringstream buffer;
-  auto separator = "";
-  for (auto runner : ancestors) {
-    buffer << separator << runner->name();
-    separator = ".";
-  }
-  return buffer.str();
+std::string GetQualifiedName(ast::NamedNode* node) {
+  return base::UTF16ToUTF8(node->NewQualifiedName());
 }
 
 //////////////////////////////////////////////////////////////////////
