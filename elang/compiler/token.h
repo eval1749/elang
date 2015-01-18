@@ -34,6 +34,7 @@ class Token final : public ZoneAllocated {
   TokenData data() const { return data_; }
   float32_t f32_data() const { return data_.f32_data(); }
   float64_t f64_data() const { return data_.f64_data(); }
+  bool has_atomic_string() const { return data_.has_atomic_string(); }
   int64_t int64_data() const { return data_.int64_data(); }
   bool is_contextual_keyword() const { return data_.is_contextual_keyword(); }
   bool is_keyword() const { return data_.is_keyword(); }

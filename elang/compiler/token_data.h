@@ -42,6 +42,7 @@ class TokenData {
   base::char16 char_data() const;
   float32_t f32_data() const;
   float64_t f64_data() const;
+  bool has_atomic_string() const;
   int64_t int64_data() const;
   bool is_contextual_keyword() const;
   bool is_keyword() const;
@@ -72,7 +73,6 @@ class TokenData {
   static_assert(sizeof(Data) == sizeof(uint64_t),
                 "sizeof(TokenData) must equal to sizeof(uint64_t).");
 
-  bool has_atomic_string() const;
   bool has_int_data() const;
   bool has_string_data() const;
 
