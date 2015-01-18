@@ -4,12 +4,11 @@
 
 #include <memory>
 
-#include "elang/base/zone.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
+#include "elang/hir/testing/hir_test.h"
 #include "elang/hir/types.h"
-#include "gtest/gtest.h"
 
 namespace elang {
 namespace hir {
@@ -18,20 +17,14 @@ namespace hir {
 //
 // HirInstructionTest offers HIR factories.
 //
-class HirInstructionTest : public ::testing::Test {
+class HirInstructionTest : public testing::HirTest {
  protected:
-  HirInstructionTest();
-
-  Factory* factory() { return factory_.get(); }
-  TypeFactory* types() { return factory_->types(); }
-  Zone* zone() { return factory_->zone(); }
+  HirInstructionTest() = default;
+  ~HirInstructionTest() override = default;
 
  private:
-  std::unique_ptr<Factory> factory_;
+  DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);
 };
-
-HirInstructionTest::HirInstructionTest() : factory_(new Factory()) {
-}
 
 //////////////////////////////////////////////////////////////////////
 //

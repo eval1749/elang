@@ -13,8 +13,9 @@
 namespace elang {
 namespace hir {
 
-InstructionFactory::InstructionFactory(Factory* factory)
-    : factory_(factory), type_factory_(new TypeFactory()) {
+InstructionFactory::InstructionFactory(Factory* factory,
+                                       const FactoryConfig& config)
+    : factory_(factory), type_factory_(new TypeFactory(config)) {
 }
 
 VoidLiteral* InstructionFactory::GetVoidValue() const {

@@ -31,7 +31,7 @@ Type::RegisterClass Type::register_class() const {
 }
 
 FunctionType::FunctionType(Zone* zone, Type* return_type, Type* parameters_type)
-    : ReferenceType(zone),
+    : ReferenceType(zone, nullptr),
       parameters_type_(parameters_type),
       return_type_(return_type) {
 }
@@ -69,8 +69,8 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 //
 // ReferenceType
 //
-ReferenceType::ReferenceType(Zone* zone)
-    : null_literal_(new (zone) NullLiteral(this)) {
+ReferenceType::ReferenceType(Zone* zone, AtomicString* name)
+    : name_(name), null_literal_(new (zone) NullLiteral(this)) {
 }
 
 Value* ReferenceType::GetDefaultValue() const {
@@ -78,7 +78,12 @@ Value* ReferenceType::GetDefaultValue() const {
   return null_literal_;
 }
 
-StringType::StringType(Zone* zone) : ReferenceType(zone) {
+ExternalType::ExternalType(Zone* zone, AtomicString* name)
+    : ReferenceType(zone, name) {
+}
+
+StringType::StringType(Zone* zone, AtomicString* name)
+    : ReferenceType(zone, name) {
 }
 
 }  // namespace hir

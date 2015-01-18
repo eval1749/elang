@@ -13,9 +13,11 @@
 #include "elang/hir/types_forward.h"
 
 namespace elang {
+class AtomicString;
 namespace hir {
 
 class Factory;
+struct FactoryConfig;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -23,10 +25,11 @@ class Factory;
 //
 class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
  public:
-  TypeFactory();
+  explicit TypeFactory(const FactoryConfig& config);
   ~TypeFactory();
 
   StringType* GetStringType() const { return string_type_; }
+  ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
 
 #define V(Name, ...) Name##Type* Get##Name##Type() const;

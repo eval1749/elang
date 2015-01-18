@@ -19,6 +19,7 @@ namespace elang {
 namespace hir {
 
 class Factory;
+struct FactoryConfig;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -26,7 +27,7 @@ class Factory;
 //
 class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
  public:
-  explicit InstructionFactory(Factory* factory);
+  InstructionFactory(Factory* factory, const FactoryConfig& config);
   ~InstructionFactory() = default;
 
   TypeFactory* types() const { return type_factory_.get(); }

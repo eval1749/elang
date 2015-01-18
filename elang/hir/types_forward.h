@@ -47,6 +47,7 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(V)
   V(Char)                    \
   V(Float32)                 \
   V(Float64)                 \
+  V(External)                \
   V(Function)                \
   V(Int16)                   \
   V(Int32)                   \

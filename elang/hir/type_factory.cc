@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "elang/base/zone.h"
+#include "elang/hir/factory_config.h"
 #include "elang/hir/types.h"
 
 namespace elang {
@@ -66,13 +67,13 @@ FunctionType* TypeFactory::FunctionTypeFactory::NewFunctionType(
 //
 // TypeFactory
 //
-TypeFactory::TypeFactory()
+TypeFactory::TypeFactory(const FactoryConfig& config)
     :
 #define V(Name, name, ...) name##_type_(new (zone()) Name##Type(zone())),
       FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
           function_type_factory_(new FunctionTypeFactory(zone())),
-      string_type_(new (zone()) StringType(zone())) {
+      string_type_(new (zone()) StringType(zone(), config.string_type_name)) {
 }
 
 TypeFactory::~TypeFactory() {
@@ -82,6 +83,10 @@ TypeFactory::~TypeFactory() {
   Name##Type* TypeFactory::Get##Name##Type() const { return name##_type_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
+
+ExternalType* TypeFactory::NewExternalType(AtomicString* name) {
+  return new (zone()) ExternalType(zone(), name);
+}
 
 FunctionType* TypeFactory::NewFunctionType(Type* return_type,
                                            Type* parameters_type) {

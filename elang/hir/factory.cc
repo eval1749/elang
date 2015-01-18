@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
@@ -20,8 +21,10 @@ namespace hir {
 //
 // Factory
 //
-Factory::Factory()
-    : InstructionFactory(this),
+Factory::Factory(const FactoryConfig& config)
+    : InstructionFactory(this, config),
+      atomic_string_factory_(config.atomic_string_factory),
+      config_(config),
       last_basic_block_id_(0),
       last_instruction_id_(0) {
 }
@@ -33,6 +36,10 @@ BasicBlock* Factory::NewBasicBlock() {
   return new (zone()) BasicBlock(this);
 }
 
+AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
+  return atomic_string_factory_->NewAtomicString(string);
+}
+
 Function* Factory::NewFunction(FunctionType* type) {
   return new (zone()) Function(this, type);
 }
@@ -41,11 +48,8 @@ Reference* Factory::NewReference(Type* type, base::StringPiece16 name) {
   return new (zone()) Reference(type, NewString(name));
 }
 
-base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
-  auto const size = string_piece.size() * sizeof(base::char16);
-  auto const data = static_cast<base::char16*>(zone()->Allocate(size));
-  ::memcpy(data, string_piece.data(), size);
-  return base::StringPiece16(data, string_piece.size());
+base::StringPiece16 Factory::NewString(base::StringPiece16 string) {
+  return atomic_string_factory_->NewString(string);
 }
 
 StringLiteral* Factory::NewStringLiteral(base::StringPiece16 data) {

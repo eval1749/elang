@@ -10,6 +10,7 @@
 
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
+#include "elang/hir/factory_config.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_factory.h"
 #include "elang/hir/type_factory.h"
@@ -23,10 +24,11 @@ namespace hir {
 //
 class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  public:
-  Factory();
+  explicit Factory(const FactoryConfig& config);
   ~Factory();
 
   BasicBlock* NewBasicBlock();
+  AtomicString* NewAtomicString(base::StringPiece16 string);
   Function* NewFunction(FunctionType* function_type);
   Reference* NewReference(Type* type, base::StringPiece16 name);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
@@ -36,6 +38,8 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   int NextInstructionId();
 
  private:
+  AtomicStringFactory* const atomic_string_factory_;
+  const FactoryConfig config_;
   int last_basic_block_id_;
   int last_instruction_id_;
 

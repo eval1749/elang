@@ -7,8 +7,8 @@
 #include "elang/base/zone.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
+#include "elang/hir/testing/hir_test.h"
 #include "elang/hir/types.h"
-#include "gtest/gtest.h"
 
 namespace elang {
 namespace hir {
@@ -17,20 +17,14 @@ namespace hir {
 //
 // HirTypesTest offers HIR factories.
 //
-class HirTypesTest : public ::testing::Test {
+class HirTypesTest : public testing::HirTest {
  protected:
-  HirTypesTest();
-
-  Factory* factory() { return factory_.get(); }
-  TypeFactory* types() { return factory_->types(); }
-  Zone* zone() { return factory_->zone(); }
+  HirTypesTest() = default;
+  ~HirTypesTest() override = default;
 
  private:
-  std::unique_ptr<Factory> factory_;
+  DISALLOW_COPY_AND_ASSIGN(HirTypesTest);
 };
-
-HirTypesTest::HirTypesTest() : factory_(new Factory()) {
-}
 
 TEST_F(HirTypesTest, BoolType) {
   auto const bool_type = types()->GetBoolType();

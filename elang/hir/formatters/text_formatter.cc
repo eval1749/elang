@@ -51,6 +51,10 @@ void TypeFormatter::Format(const Type* type) {
   const_cast<Type*>(type)->Accept(this);
 }
 
+void TypeFormatter::VisitExternalType(ExternalType* type) {
+  ostream_ << type->name();
+}
+
 void TypeFormatter::VisitFunctionType(FunctionType* type) {
   ostream_ << *type->return_type() << "(" << *type->parameters_type() << ")";
 }

@@ -12,7 +12,7 @@
 #include "elang/hir/instructions.h"
 #include "elang/hir/values.h"
 #include "elang/hir/types.h"
-#include "gtest/gtest.h"
+#include "elang/hir/testing/hir_test.h"
 
 namespace elang {
 namespace hir {
@@ -21,20 +21,14 @@ namespace hir {
 //
 // HirValuesTest offers HIR factories.
 //
-class HirValuesTest : public ::testing::Test {
+class HirValuesTest : public testing::HirTest {
  protected:
-  HirValuesTest();
-
-  Factory* factory() { return factory_.get(); }
-  TypeFactory* types() { return factory_->types(); }
-  Zone* zone() { return factory_->zone(); }
+  HirValuesTest() = default;
+  ~HirValuesTest() = default;
 
  private:
-  std::unique_ptr<Factory> factory_;
+  DISALLOW_COPY_AND_ASSIGN(HirValuesTest);
 };
-
-HirValuesTest::HirValuesTest() : factory_(new Factory()) {
-}
 
 //////////////////////////////////////////////////////////////////////
 //

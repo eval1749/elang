@@ -9,6 +9,7 @@ component("hir") {
     "editor.h",
     "factory.cc",
     "factory.h",
+    "factory_config.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
     "hir_export.h",
@@ -37,6 +38,18 @@ component("hir") {
   ]
 }
 
+source_set("hir_test") {
+  testonly = true
+  sources = [
+    "testing/hir_test.cc",
+    "testing/hir_test.h",
+  ]
+  public_deps = [
+    ":hir",
+    "//testing/gtest",
+  ]
+}
+
 source_set("hir_unittests") {
   testonly = true
   sources = [
@@ -46,7 +59,7 @@ source_set("hir_unittests") {
   ]
   public_deps = [
     "//testing/gtest",
-    ":hir",
+    ":hir_test",
   ]
 }
 

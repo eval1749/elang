@@ -16,6 +16,7 @@
 #include "elang/hir/values_forward.h"
 
 namespace elang {
+class AtomicString;
 namespace hir {
 
 // See "types_forward.h" for list of all types.
@@ -131,16 +132,30 @@ class ELANG_HIR_EXPORT ReferenceType : public Type {
   DECLARE_HIR_TYPE_CLASS(ReferenceType, Type);
 
  public:
+  // For |FunctionType|, |name()| return |nullptr|.
+  AtomicString* name() const { return name_; }
+
  protected:
-  explicit ReferenceType(Zone* zone);
+  explicit ReferenceType(Zone* zone, AtomicString* name);
 
  private:
   // Type
   Value* GetDefaultValue() const override;
 
+  AtomicString* const name_;
   NullLiteral* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceType);
+};
+
+// A concrete class represents class, interface, and struct.
+class ELANG_HIR_EXPORT ExternalType final : public ReferenceType {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(ExternalType, ReferenceType);
+
+ private:
+  explicit ExternalType(Zone* zone, AtomicString* name);
+
+  DISALLOW_COPY_AND_ASSIGN(ExternalType);
 };
 
 // A concrete class represents function type which has return type and parameter
@@ -172,7 +187,7 @@ class ELANG_HIR_EXPORT StringType final : public ReferenceType {
   StringLiteral* NewLiteral(base::StringPiece16 data);
 
  private:
-  explicit StringType(Zone* zone);
+  explicit StringType(Zone* zone, AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(StringType);
 };
