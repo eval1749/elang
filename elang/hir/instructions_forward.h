@@ -16,6 +16,7 @@ namespace hir {
 
 // Forward declarations
 class Instruction;
+enum class Opcode;
 
 // Visitor |V| takes three parameters:
 //  Name         capitalized name for C++ class
@@ -33,6 +34,8 @@ FOR_EACH_HIR_INSTRUCTION(V)
 
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction& instruction);
+
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream, Opcode opcode);
 
 }  // namespace hir
 }  // namespace elang

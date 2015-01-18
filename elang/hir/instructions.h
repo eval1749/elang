@@ -18,6 +18,13 @@ namespace hir {
 
 // See "instructions_forward.h" for list of all instructions.
 
+// Opcode for formatting
+enum class Opcode {
+#define V(Name, ...) Name,
+  FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Instruction
@@ -28,13 +35,6 @@ class ELANG_HIR_EXPORT Instruction
   DECLARE_HIR_VALUE_CLASS(Instruction, Value);
 
  public:
-  // Opcode for formatting
-  enum Opcode {
-#define V(Name, ...) Name,
-    FOR_EACH_HIR_INSTRUCTION(V)
-#undef V
-  };
-
   // A basic block which this instruction belons to
   BasicBlock* basic_block() const { return basic_block_; }
 
@@ -81,9 +81,6 @@ class ELANG_HIR_EXPORT Instruction
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
-
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          Instruction::Opcode opcode);
 
 template <class Derived, typename... Params>
 class InstructionTemplate : public Instruction {

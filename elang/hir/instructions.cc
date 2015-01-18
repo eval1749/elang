@@ -28,7 +28,7 @@ bool Instruction::IsTerminator() const {
 }
 
 #define V(Name, ...) \
-  Instruction::Opcode Name##Instruction::opcode() const { return Opcode::Name; }
+  Opcode Name##Instruction::opcode() const { return Opcode::Name; }
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
 

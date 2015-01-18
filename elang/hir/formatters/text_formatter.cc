@@ -139,15 +139,15 @@ std::ostream& operator<<(std::ostream& ostream,
   return ostream;
 }
 
-std::ostream& operator<<(std::ostream& ostream, Instruction::Opcode opcode) {
+std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
   static const char* const mnemonics[] = {
-#define V(Name, ...) #Name,
+#define V(Name, mnemonic, ...) mnemonic,
       FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
-          "Invalid",
+          "INVALID",
   };
   return ostream << mnemonics[std::min(static_cast<size_t>(opcode),
-                                       arraysize(mnemonics))];
+                                       arraysize(mnemonics) - 1)];
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {
@@ -205,15 +205,9 @@ void TextFormatter::FormatFunction(const Function* function) {
 }
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
-  static const char* const mnemonics[] = {
-#define V(Name, mnemonic, ...) mnemonic,
-      FOR_EACH_HIR_INSTRUCTION(V)
-#undef V
-  };
-
   if (!instruction->type()->is<VoidType>())
     ostream_ << *instruction->output_type() << "%r = " << instruction->id();
-  ostream_ << mnemonics[instruction->opcode()];
+  ostream_ << instruction->opcode();
   const char* separator = " ";
   auto const num_values = instruction->CountOperands();
   for (auto nth = 0; nth < num_values; ++nth) {
