@@ -28,60 +28,6 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ValueFormatter
-//
-class ValueFormatter : public ValueVisitor {
- public:
-  explicit ValueFormatter(std::ostream& ostream) : ostream_(ostream) {}
-  ~ValueFormatter() = default;
-
-  void Format(const Value* type);
-
- private:
-#define V(Name, ...) void Visit##Name(Name* type) override;
-  FOR_EACH_HIR_VALUE(V)
-#undef V
-
-  std::ostream& ostream_;
-
-  DISALLOW_COPY_AND_ASSIGN(ValueFormatter);
-};
-
-void ValueFormatter::Format(const Value* type) {
-  const_cast<Value*>(type)->Accept(this);
-}
-
-void ValueFormatter::VisitBasicBlock(BasicBlock* block) {
-  ostream_ << *block;
-}
-
-void ValueFormatter::VisitFunction(Function* function) {
-  ostream_ << *function;
-}
-
-void ValueFormatter::VisitReference(Reference* reference) {
-  ostream_ << *reference;
-}
-
-void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
-  ostream_ << "static_cast<" << *literal->type() << ">(null)";
-}
-
-void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
-  DCHECK(literal);
-  ostream_ << "void";
-}
-
-#define V(Name, name, ...)                                            \
-  void ValueFormatter::Visit##Name##Literal(Name##Literal* literal) { \
-    ostream_ << *literal->type() << " "                               \
-             << static_cast<Literal*>(literal)->name##_value();       \
-  }
-FOR_EACH_HIR_LITERAL_VALUE(V)
-#undef V
-
-//////////////////////////////////////////////////////////////////////
-//
 // TypeFormatter
 //
 class TypeFormatter : public TypeVisitor {
@@ -122,15 +68,61 @@ void TypeFormatter::VisitStringType(StringType* type) {
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
+//////////////////////////////////////////////////////////////////////
+//
+// ValueFormatter
+//
+class ValueFormatter : public ValueVisitor {
+ public:
+  explicit ValueFormatter(std::ostream& ostream) : ostream_(ostream) {}
+  ~ValueFormatter() = default;
+
+  void Format(const Value* type);
+
+ private:
+#define V(Name, ...) void Visit##Name(Name* type) override;
+  FOR_EACH_HIR_VALUE(V)
+#undef V
+
+  std::ostream& ostream_;
+
+  DISALLOW_COPY_AND_ASSIGN(ValueFormatter);
+};
+
+void ValueFormatter::Format(const Value* type) {
+  const_cast<Value*>(type)->Accept(this);
+}
+
+void ValueFormatter::VisitBasicBlock(BasicBlock* block) {
+  ostream_ << "block" << block->id();
+}
+
+void ValueFormatter::VisitFunction(Function* function) {
+  ostream_ << "function@" << function;
+}
+
+void ValueFormatter::VisitReference(Reference* reference) {
+  ostream_ << "`" << reference->name() << "`";
+}
+
+void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
+  ostream_ << "static_cast<" << *literal->type() << ">(null)";
+}
+
+void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
+  DCHECK(literal);
+  ostream_ << "void";
+}
+
+#define V(Name, name, ...)                                            \
+  void ValueFormatter::Visit##Name##Literal(Name##Literal* literal) { \
+    ostream_ << *literal->type() << " "                               \
+             << static_cast<Literal*>(literal)->name##_value();       \
+  }
+FOR_EACH_HIR_LITERAL_VALUE(V)
+#undef V
+
 }  // namespace
-
-std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
-  return ostream << "block" << block.id();
-}
-
-std::ostream& operator<<(std::ostream& ostream, const Function& function) {
-  return ostream << "function_" << &function;
-}
 
 std::ostream& operator<<(std::ostream& ostream,
                          const Instruction& instruction) {
@@ -156,10 +148,6 @@ std::ostream& operator<<(std::ostream& ostream, Instruction::Opcode opcode) {
   };
   return ostream << mnemonics[std::min(static_cast<size_t>(opcode),
                                        arraysize(mnemonics))];
-}
-
-std::ostream& operator<<(std::ostream& ostream, const Reference& reference) {
-  return ostream << "`" << reference.name() << "`";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {

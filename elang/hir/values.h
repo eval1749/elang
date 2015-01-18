@@ -6,7 +6,6 @@
 #define ELANG_HIR_VALUES_H_
 
 #include <string>
-#include <ostream>
 
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
@@ -16,7 +15,6 @@
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/hir/hir_export.h"
 #include "elang/hir/values_forward.h"
 #include "elang/hir/types_forward.h"
 
@@ -98,10 +96,6 @@ class ELANG_HIR_EXPORT Value : public Castable,
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
-// Print for formatting and debugging.
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Value& value);
-
 #define DECLARE_HIR_CONCRETE_VALUE_CLASS(self, super) \
   DECLARE_HIR_VALUE_CLASS(self, super);               \
                                                       \
@@ -153,9 +147,6 @@ class ELANG_HIR_EXPORT Reference : public Literal {
 
   DISALLOW_COPY_AND_ASSIGN(Reference);
 };
-
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Reference& function);
 
 // value for 'void' type. |TypeFactory| singleton.
 class ELANG_HIR_EXPORT VoidLiteral : public Literal {
@@ -235,9 +226,6 @@ class ELANG_HIR_EXPORT BasicBlock
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const BasicBlock& basic_block);
-
 //////////////////////////////////////////////////////////////////////
 //
 // Function
@@ -262,9 +250,6 @@ class ELANG_HIR_EXPORT Function : public Value {
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };
-
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Function& function);
 
 }  // namespace hir
 }  // namespace elang

@@ -5,9 +5,11 @@
 #ifndef ELANG_HIR_INSTRUCTIONS_FORWARD_H_
 #define ELANG_HIR_INSTRUCTIONS_FORWARD_H_
 
+#include <ostream>
 #include <string>
 
 #include "elang/base/float_types.h"
+#include "elang/hir/hir_export.h"
 
 namespace elang {
 namespace hir {
@@ -28,6 +30,9 @@ class Instruction;
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
+
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Instruction& instruction);
 
 }  // namespace hir
 }  // namespace elang

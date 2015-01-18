@@ -5,8 +5,6 @@
 #ifndef ELANG_HIR_TYPES_H_
 #define ELANG_HIR_TYPES_H_
 
-#include <ostream>
-
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
@@ -14,7 +12,6 @@
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/hir/hir_export.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"
 
@@ -75,10 +72,6 @@ class ELANG_HIR_EXPORT Type : public Castable,
  private:
   DISALLOW_COPY_AND_ASSIGN(Type);
 };
-
-// Print for formatting and debugging.
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Type& type);
 
 #define DECLARE_HIR_TYPE_CONCRETE_CLASS(self, super) \
   DECLARE_HIR_TYPE_CLASS(self, super)                \

@@ -5,7 +5,10 @@
 #ifndef ELANG_HIR_TYPES_FORWARD_H_
 #define ELANG_HIR_TYPES_FORWARD_H_
 
+#include <ostream>
+
 #include "elang/base/float_types.h"
+#include "elang/hir/hir_export.h"
 
 namespace elang {
 namespace hir {
@@ -66,6 +69,10 @@ class ReferenceType;
 class Type;
 class TypeFactory;
 class TypeVisitor;
+
+// Print for formatting and debugging.
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Type& type);
 
 }  // namespace hir
 }  // namespace elang

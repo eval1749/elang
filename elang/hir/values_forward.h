@@ -5,9 +5,11 @@
 #ifndef ELANG_HIR_VALUES_FORWARD_H_
 #define ELANG_HIR_VALUES_FORWARD_H_
 
+#include <ostream>
 #include <string>
 
 #include "elang/base/float_types.h"
+#include "elang/hir/hir_export.h"
 
 namespace elang {
 namespace hir {
@@ -70,6 +72,10 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 #define V(Name, ...) class Name;
 FOR_EACH_HIR_VALUE(V)
 #undef V
+
+// Print for formatting and debugging.
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Value& value);
 
 }  // namespace hir
 }  // namespace elang

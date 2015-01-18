@@ -5,8 +5,6 @@
 #ifndef ELANG_HIR_INSTRUCTIONS_H_
 #define ELANG_HIR_INSTRUCTIONS_H_
 
-#include <ostream>
-
 #include "base/basictypes.h"
 #include "elang/hir/hir_export.h"
 // TODO(eval1749) We should not include "hir/factory.h". It is required for
@@ -83,9 +81,6 @@ class ELANG_HIR_EXPORT Instruction
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
-
-ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Instruction& instruction);
 
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           Instruction::Opcode opcode);
