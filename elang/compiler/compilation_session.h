@@ -47,6 +47,9 @@ class CompilationSession final : public ZoneOwner {
   ~CompilationSession();
 
   ast::Factory* ast_factory() const { return ast_factory_.get(); }
+  AtomicStringFactory* atomic_string_factory() const {
+    return atomic_string_factory_.get();
+  }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   ast::Namespace* global_namespace() const { return global_namespace_; }
   AtomicString* name_for(PredefinedName name) const;
