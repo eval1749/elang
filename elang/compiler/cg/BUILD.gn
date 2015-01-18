@@ -4,8 +4,8 @@
 
 static_library("cg") {
   sources = [
-    "hir_generator.cc",
-    "hir_generator.h",
+    "code_generator.cc",
+    "code_generator.h",
     "type_mapper.cc",
     "type_mapper.h",
   ]

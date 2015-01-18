@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_CG_HIR_GENERATOR_H_
-#define ELANG_COMPILER_CG_HIR_GENERATOR_H_
+#ifndef ELANG_COMPILER_CG_CODE_GENERATOR_H_
+#define ELANG_COMPILER_CG_CODE_GENERATOR_H_
 
 #include <unordered_map>
 
@@ -22,14 +22,14 @@ enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
-// HirGenerator
+// CodeGenerator
 //
-class HirGenerator final : ast::Visitor {
+class CodeGenerator final : ast::Visitor {
  public:
-  HirGenerator(CompilationSession* session,
+  CodeGenerator(CompilationSession* session,
                hir::Factory* factory,
                NameResolver* name_resolver);
-  ~HirGenerator();
+  ~CodeGenerator();
 
   void Generate();
   hir::Function* GetMethodFunction(ast::Method* method) const;
@@ -45,10 +45,10 @@ class HirGenerator final : ast::Visitor {
   NameResolver* name_resolver_;
   CompilationSession* const session_;
 
-  DISALLOW_COPY_AND_ASSIGN(HirGenerator);
+  DISALLOW_COPY_AND_ASSIGN(CodeGenerator);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_CG_HIR_GENERATOR_H_
+#endif  // ELANG_COMPILER_CG_CODE_GENERATOR_H_
