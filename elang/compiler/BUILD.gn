@@ -4,8 +4,6 @@
 
 static_library("compiler") {
   sources = [
-    "cg/hir_generator.cc",
-    "cg/hir_generator.h",
     "character_stream.h",
     "character_stream.cc",
     "compilation_session.cc",
@@ -57,6 +55,7 @@ static_library("compiler") {
     "//elang/base",
     "//elang/compiler/analyze",
     "//elang/compiler/ast",
+    "//elang/compiler/cg",
   ]
 }
 
@@ -88,6 +87,7 @@ test("compiler_unittests") {
   deps = [
     "//base/test:run_all_unittests",
     "//elang/compiler/analyze:compiler_analyze_test",
+    "//elang/compiler/cg:compiler_cg_test",
     ":compiler_test",
   ]
 }

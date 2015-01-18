@@ -1,0 +1,42 @@
+# Copyright 2014-2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+static_library("cg") {
+  sources = [
+    "hir_generator.cc",
+    "hir_generator.h",
+    "type_mapper.cc",
+    "type_mapper.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/compiler/ast",
+    "//elang/compiler/ir",
+    "//elang/hir",
+  ]
+}
+
+source_set("cg_testing") {
+  testonly = true
+  sources = [
+    "cg_test.cc",
+    "cg_test.h",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":cg",
+  ]
+}
+
+source_set("compiler_cg_test") {
+  testonly = true
+  sources = [
+    "type_mapper_unittest.cc",
+  ]
+  public_deps = [
+    ":cg_testing",
+  ]
+}
