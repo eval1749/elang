@@ -161,8 +161,10 @@ void NameResolver::ReferenceResolver::VisitNameReference(
         // namespaces.
         for (auto const pair : ns_body->imports()) {
           auto const imported = resolver()->GetUsingReference(pair.second);
-          if (!imported)
+          if (!imported) {
+            DVLOG(0) << "Not found: " << *pair.second;
             continue;
+          }
           if (auto const present = imported->FindMember(name)) {
             if (present && !present->is<ast::Namespace>())
               founds.insert(present);
