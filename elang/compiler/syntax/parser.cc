@@ -261,7 +261,7 @@ bool Parser::ParseClass() {
     clazz = present->as<ast::Class>();
     if (!clazz) {
       Error(ErrorCode::SyntaxClassConflict, class_name, present->name());
-    } else if (clazz->HasPartial()) {
+    } else if (clazz->IsPartial()) {
       if (!class_modifiers.HasPartial()) {
         // Existing declaration has 'partial' but this doesn't.
         Error(ErrorCode::SyntaxClassPartial, class_name);

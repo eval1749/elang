@@ -78,13 +78,13 @@ void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
     return;
   }
 
-  if (present_class->HasPartial() && ast_class->HasPartial()) {
+  if (present_class->IsPartial() && ast_class->IsPartial()) {
     if (present_class->modifiers() != ast_class->modifiers())
       Error(ErrorCode::NameResolutionClassModifiers, class_body);
     return;
   }
 
-  if (!present_class->HasPartial() && !ast_class->HasPartial()) {
+  if (!present_class->IsPartial() && !ast_class->IsPartial()) {
     Error(ErrorCode::NameResolutionClassDuplicate, class_body, present_class);
     return;
   }

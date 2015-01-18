@@ -20,7 +20,7 @@ class WithModifiers {
   Modifiers modifiers() const { return modifiers_; }
 
 #define V(name, string, details) \
-  bool Has##name() const { return modifiers_.Has##name(); }
+  bool Is##name() const { return modifiers_.Has##name(); }
   FOR_EACH_MODIFIER(V)
 #undef V
 
