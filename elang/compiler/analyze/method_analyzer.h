@@ -31,7 +31,7 @@ class MethodAnalyzer final : public Analyzer, private ast::Visitor {
 
  private:
   // ast::Visitor
-  void VisitClass(ast::Class* node) final;
+  void VisitClassBody(ast::ClassBody* node) final;
   void VisitMethod(ast::Method* node) final;
   void VisitNamespaceBody(ast::NamespaceBody* node) final;
 

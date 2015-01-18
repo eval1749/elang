@@ -8,7 +8,9 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 #include "elang/compiler/testing/namespace_builder.h"
+#include "elang/compiler/analyze/class_analyzer.h"
 #include "elang/compiler/analyze/method_analyzer.h"
+#include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -176,7 +178,11 @@ TEST_F(MethodAnalyzerTest, Method) {
       "class Sample {"
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
-  EXPECT_EQ("", AnalyzeClass());
+  ASSERT_EQ("", AnalyzeNamespace());
+
+  ClassAnalyzer class_resolver(name_resolver());
+  ASSERT_TRUE(class_resolver.Run()) << GetErrors();
+
   MethodAnalyzer method_analyzer(name_resolver());
   EXPECT_TRUE(method_analyzer.Run());
   EXPECT_EQ("", GetErrors());
@@ -184,7 +190,10 @@ TEST_F(MethodAnalyzerTest, Method) {
   ASSERT_TRUE(main_group);
   auto const method_main = main_group->methods()[0];
   Collector collector(name_resolver(), method_main);
-  EXPECT_EQ("foo", collector.GetCalls());
+  EXPECT_EQ(
+      "(method WriteLine (signature (class Void) ((parameter (class "
+      "String)))))\n",
+      collector.GetCalls());
 }
 
 }  // namespace

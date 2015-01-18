@@ -64,11 +64,18 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
   auto const ir_method = resolver()->Resolve(method_);
-  if (!ir_method)
+  if (!ir_method) {
+    DVLOG(0) << *method_ << " isn't resolved.";
     return;
+  }
   auto const body = method_->body();
-  if (!body)
+  if (!body) {
+    DCHECK(method_->IsExtern() || method_->IsAbstract())
+        << *method_ << " should have a body.";
     return;
+  }
+  DCHECK(!method_->IsExtern() && !method_->IsAbstract())
+      << *method_ << " should not have a body.";
   body->Accept(this);
 }
 
@@ -102,7 +109,7 @@ bool MethodAnalyzer::Run() {
 }
 
 // ast::Visitor
-void MethodAnalyzer::VisitClass(ast::Class* node) {
+void MethodAnalyzer::VisitClassBody(ast::ClassBody* node) {
   node->AcceptForMembers(this);
 }
 

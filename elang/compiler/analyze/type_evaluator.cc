@@ -114,7 +114,6 @@ void TypeEvaluator::ProduceResult(ts::Value* result) {
   DCHECK(result);
   DCHECK(context_);
   DCHECK(!context_->result);
-  DCHECK(!value_cache_map_.count(context_->node));
   value_cache_map_[context_->node] = result;
   context_->result = result;
 }
