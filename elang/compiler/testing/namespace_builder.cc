@@ -103,12 +103,11 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
 Token* NamespaceBuilder::NewKeyword(TokenType type) {
   static const char* const keywords[] = {
 #define V(Name, string, details) string,
-      FOR_EACH_TOKEN(V, IGNORE_TOKEN)
+      FOR_EACH_TOKEN(V, V)
 #undef V
   };
   auto const name = session()->NewAtomicString(
-      base::UTF8ToUTF16(keywords[static_cast<int>(type) -
-                                 static_cast<int>(TokenType::Abstract)]));
+      base::UTF8ToUTF16(keywords[static_cast<int>(type)]));
   return session()->NewToken(SourceCodeRange(), TokenData(type, name));
 }
 
