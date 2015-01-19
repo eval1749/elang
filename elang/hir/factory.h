@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 
+#include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
 #include "elang/hir/factory_config.h"
@@ -29,6 +30,18 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
 
   BasicBlock* NewBasicBlock();
   AtomicString* NewAtomicString(base::StringPiece16 string);
+  BoolLiteral* NewBoolLiteral(bool data);
+  CharLiteral* NewCharLiteral(base::char16 data);
+  Float32Literal* NewFloat32Literal(float32_t data);
+  Float64Literal* NewFloat64Literal(float64_t data);
+  Int16Literal* NewInt16Literal(int16_t data);
+  Int32Literal* NewInt32Literal(int32_t data);
+  Int64Literal* NewInt64Literal(int64_t data);
+  Int8Literal* NewInt8Literal(int8_t data);
+  UInt16Literal* NewUInt16Literal(uint16_t data);
+  UInt32Literal* NewUInt32Literal(uint32_t data);
+  UInt64Literal* NewUInt64Literal(uint64_t data);
+  UInt8Literal* NewUInt8Literal(uint8_t data);
   Function* NewFunction(FunctionType* function_type);
   Reference* NewReference(Type* type, base::StringPiece16 name);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
@@ -40,8 +53,10 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  private:
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
+  BoolLiteral* false_literal_;
   int last_basic_block_id_;
   int last_instruction_id_;
+  BoolLiteral* true_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

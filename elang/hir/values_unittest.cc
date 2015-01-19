@@ -64,5 +64,51 @@ TEST_F(HirValuesTest, Function) {
       stream.str());
 }
 
+// Literals
+TEST_F(HirValuesTest, Literal) {
+  std::stringstream ostream;
+  ostream << *factory()->NewBoolLiteral(false) << std::endl;
+  ostream << *factory()->NewBoolLiteral(true) << std::endl;
+
+  ostream << *factory()->NewCharLiteral('a') << std::endl;
+  ostream << *factory()->NewCharLiteral('\n') << std::endl;
+  ostream << *factory()->NewCharLiteral('\'') << std::endl;
+  ostream << *factory()->NewCharLiteral('\\') << std::endl;
+  ostream << *factory()->NewCharLiteral(0x1234) << std::endl;
+
+  ostream << *factory()->NewFloat32Literal(12.34f) << std::endl;
+  ostream << *factory()->NewFloat64Literal(12.34) << std::endl;
+
+  ostream << *factory()->NewInt16Literal(-1234) << std::endl;
+  ostream << *factory()->NewInt32Literal(-1234) << std::endl;
+  ostream << *factory()->NewInt64Literal(-1234) << std::endl;
+  ostream << *factory()->NewInt8Literal(-123) << std::endl;
+
+  ostream << *factory()->NewUInt16Literal(1234) << std::endl;
+  ostream << *factory()->NewUInt32Literal(1234) << std::endl;
+  ostream << *factory()->NewUInt64Literal(1234) << std::endl;
+  ostream << *factory()->NewUInt8Literal(123) << std::endl;
+
+  EXPECT_EQ(
+      "false\n"
+      "true\n"
+      "'a'\n"
+      "'\\n'\n"
+      "'\\\''\n"
+      "'\\\\'\n"
+      "'\\u1234'\n"
+      "12.34f\n"
+      "12.34\n"
+      "int16(-1234)\n"
+      "-1234\n"
+      "-1234l\n"
+      "int8(-123)\n"
+      "uint16(1234)\n"
+      "1234u\n"
+      "1234ul\n"
+      "uint8(123)\n",
+      ostream.str());
+}
+
 }  // namespace hir
 }  // namespace elang
