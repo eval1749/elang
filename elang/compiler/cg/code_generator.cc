@@ -38,6 +38,7 @@ struct CodeGenerator::Output {
 
   Output(hir::Type* type, hir::Instruction* instruction, int position)
       : instruction(instruction), position(position), type(type) {
+    DCHECK(instruction);
     if (type) {
       DCHECK_LE(position, 0);
     } else {
@@ -257,10 +258,15 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
     if (statement == node->statements().back()) {
       statement->Accept(this);
-    } else {
-      // Interleaved statement has no output.
-      ScopedOutput scoped_output(this, output_->instruction);
-      statement->Accept(this);
+      break;
+    }
+    // Interleaved statement has no output.
+    ScopedOutput scoped_output(this, output_->instruction);
+    statement->Accept(this);
+    if (statement->IsTerminator()) {
+      // TODO(eval1749) Since, we may have labeled statement, we should continue
+      // checking |statement|.
+      break;
     }
   }
 }
