@@ -250,13 +250,20 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
 #undef V
   };
 
+  // TODO(eval1749) We should share this code among compiler, HIR, LIR, and
+  // ASM.
   static char const xdigits[] = "0123456789ABCDEF";
+  static char const escapes[] = "0------abtnvfr";
 
   switch (token.type()) {
     case TokenType::CharacterLiteral: {
       auto const ch = token.char_data();
       char buffer[7];
-      if (ch == '\'' || ch == '\\') {
+      if (ch <= 0x0D && escapes[ch] != '-') {
+        buffer[0] = '\\';
+        buffer[1] = escapes[ch];
+        buffer[2] = 0;
+      } else if (ch == '\'' || ch == '\\') {
         buffer[0] = '\\';
         buffer[1] = ch;
         buffer[2] = 0;
@@ -290,7 +297,11 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
       ostream << "\"";
       for (auto const ch : token.string_data()) {
         char buffer[7];
-        if (ch == '"' || ch == '\\') {
+        if (ch <= 0x0D && escapes[ch] != '-') {
+          buffer[0] = '\\';
+          buffer[1] = escapes[ch];
+          buffer[2] = 0;
+        } else if (ch == '"' || ch == '\\') {
           buffer[0] = '\\';
           buffer[1] = ch;
           buffer[2] = 0;
