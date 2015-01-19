@@ -31,6 +31,7 @@ enum class ErrorCode;
 class ErrorData;
 enum class PredefinedName;
 class PredefinedNames;
+class Semantics;
 class SourceCode;
 class SourceCodeRange;
 class Token;
@@ -56,6 +57,7 @@ class CompilationSession final : public ZoneOwner {
   ast::NamespaceBody* global_namespace_body() const {
     return global_namespace_body_;
   }
+  Semantics* semantics() const { return semantics_.get(); }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   ast::NamespaceBody* system_namespace_body() const {
     return system_namespace_body_;
@@ -87,6 +89,7 @@ class CompilationSession final : public ZoneOwner {
   std::vector<ErrorData*> errors_;
   const std::unique_ptr<TokenFactory> token_factory_;
   const std::unique_ptr<PredefinedNames> predefined_names_;
+  const std::unique_ptr<Semantics> semantics_;
   std::vector<ErrorData*> warnings_;
 
   const std::unique_ptr<SourceCode> source_code_;

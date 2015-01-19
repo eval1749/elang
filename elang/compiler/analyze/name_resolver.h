@@ -29,6 +29,7 @@ class Type;
 
 class CompilationSession;
 enum class PredefinedName;
+class Semantics;
 class Token;
 
 //////////////////////////////////////////////////////////////////////
@@ -43,6 +44,7 @@ class NameResolver final {
   ~NameResolver();
 
   ir::Factory* factory() const { return factory_.get(); }
+  Semantics* semantics() const;
   CompilationSession* session() const { return session_; }
 
   // Registering functions.
@@ -65,11 +67,7 @@ class NameResolver final {
   // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
   ast::ContainerNode* GetUsingReference(ast::NamedNode* node);
 
-  // Mapping from AST call site to AST method.
-  std::unordered_map<ast::Call*, ir::Method*> call_map_;
   const std::unique_ptr<ir::Factory> factory_;
-  // Mapping from AST class, enum, and method to IR object
-  std::unordered_map<ast::NamedNode*, ir::Node*> node_map_;
   CompilationSession* const session_;
   // Mapping from |Alias| or |Import| to |ContainerNode|.
   std::unordered_map<ast::NamedNode*, ast::ContainerNode*> using_map_;

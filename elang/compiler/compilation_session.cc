@@ -14,6 +14,7 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
+#include "elang/compiler/semantics.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"
@@ -68,6 +69,7 @@ CompilationSession::CompilationSession()
       atomic_string_factory_(new AtomicStringFactory()),
       predefined_names_(new PredefinedNames(this)),
       source_code_(new StringSourceCode(L"-", L"")),
+      semantics_(new Semantics()),
       token_factory_(new TokenFactory(zone())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())),
       global_namespace_body_(

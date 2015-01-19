@@ -19,6 +19,7 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -216,16 +217,20 @@ NameResolver::NameResolver(CompilationSession* session)
 NameResolver::~NameResolver() {
 }
 
+Semantics* NameResolver::semantics() const {
+  return session()->semantics();
+}
+
 void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
   DCHECK(ast_node);
-  DCHECK(!node_map_.count(ast_node));
-  node_map_[ast_node] = node;
+  DCHECK(!semantics()->ValueOf(ast_node));
+  semantics()->SetValue(ast_node, node);
 }
 
 void NameResolver::DidResolveCall(ast::Call* ast_call, ir::Method* method) {
   DCHECK(ast_call);
-  DCHECK(!call_map_.count(ast_call));
-  call_map_[ast_call] = method;
+  DCHECK(!semantics()->MethodOf(ast_call));
+  semantics()->SetMethod(ast_call, method);
 }
 
 void NameResolver::DidResolveUsing(ast::NamedNode* node,
@@ -253,13 +258,11 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
 }
 
 ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
-  auto const it = node_map_.find(member);
-  return it == node_map_.end() ? nullptr : it->second;
+  return semantics()->ValueOf(member);
 }
 
 ir::Method* NameResolver::ResolveCall(ast::Call* ast_call) const {
-  auto const it = call_map_.find(ast_call);
-  return it == call_map_.end() ? nullptr : it->second;
+  return semantics()->MethodOf(ast_call);
 }
 
 ir::Type* NameResolver::ResolvePredefinedType(Token* token,
