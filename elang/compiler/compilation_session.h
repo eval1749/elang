@@ -21,6 +21,7 @@ class AtomicStringFactory;
 
 namespace compiler {
 namespace ast {
+class Class;
 class Namespace;
 class NamespaceBody;
 class Factory;
@@ -68,6 +69,7 @@ class CompilationSession final : public ZoneOwner {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
+  ast::Class* GetPredefinedType(PredefinedName name);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   // Allocate |base::StringPiece16| object in zone used for string backing

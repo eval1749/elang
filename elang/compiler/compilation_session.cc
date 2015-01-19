@@ -7,7 +7,10 @@
 
 #include "elang/compiler/compilation_session.h"
 
+#include "base/logging.h"
+#include "elang/base/atomic_string.h"
 #include "elang/base/atomic_string_factory.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_unit.h"
@@ -113,6 +116,13 @@ void CompilationSession::AddError(const SourceCodeRange& location,
             [](const ErrorData* a, const ErrorData* b) {
     return a->location().start_offset() < b->location().start_offset();
   });
+}
+
+ast::Class* CompilationSession::GetPredefinedType(PredefinedName name) {
+  auto const name_token = name_for(name);
+  auto const ast_node = system_namespace()->FindMember(name_token);
+  DCHECK(ast_node) << "Not found predefined type " << *name_token;
+  return ast_node->as<ast::Class>();
 }
 
 AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
