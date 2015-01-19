@@ -34,6 +34,7 @@ source_set("cg_testing") {
 source_set("compiler_cg_test") {
   testonly = true
   sources = [
+    "code_generator_unittest.cc",
     "type_mapper_unittest.cc",
   ]
   public_deps = [

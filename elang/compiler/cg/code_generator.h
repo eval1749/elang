@@ -9,65 +9,61 @@
 
 #include "base/macros.h"
 #include "elang/compiler/ast/visitor.h"
+#include "elang/compiler/compilation_session_user.h"
+#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/hir/values_forward.h"
 
 namespace elang {
 namespace hir {
 class Editor;
-class Factory;
-class Function;
-class Type;
 }
 namespace compiler {
 
-namespace ir {
-class Type;
-}
-
-class CompilationSession;
-class NameResolver;
-enum class TokenType;
-class Semantics;
 class TypeMapper;
 
 //////////////////////////////////////////////////////////////////////
 //
 // CodeGenerator
 //
-class CodeGenerator final : ast::Visitor {
+class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
  public:
-  CodeGenerator(CompilationSession* session,
-                hir::Factory* factory,
-                NameResolver* name_resolver);
+  CodeGenerator(CompilationSession* session, hir::Factory* factory);
   ~CodeGenerator();
 
-  void Generate();
-  hir::Function* GetMethodFunction(ast::Method* method) const;
+  hir::Function* FunctionOf(ast::Method* method) const;
+  bool Run();
 
  private:
   struct Output;
   class ScopedOutput;
 
   hir::Factory* factory() const { return factory_; }
-  NameResolver* name_resolver() const { return name_resolver_; }
-  Semantics* semantics() const;
   TypeMapper* type_mapper() const { return type_mapper_.get(); }
+  hir::Type* void_type() const { return void_type_; }
 
-  hir::Type* MapType(PredefinedName name);
-  hir::Type* MapType(ir::Type* type);
+  hir::Type* MapType(PredefinedName name) const;
+  hir::Type* MapType(ir::Type* type) const;
+  void SetOutput(hir::Value* value);
+  ir::Node* ValueOf(ast::Node* node) const;
 
-// ast::Visitor
-#define V(Name) void Visit##Name(ast::Name* node) final;
-  FOR_EACH_CONCRETE_AST_NODE(V)
-#undef V
+  // ast::Visitor declaration nodes
+  void CodeGenerator::VisitMethod(ast::Method* ast_method);
+
+  // ast::Visitor expression nodes
+  void CodeGenerator::VisitCall(ast::Call* node);
+  void VisitNameReference(ast::NameReference* node);
+
+  // ast::Visitor statement nodes
+  void VisitBlockStatement(ast::BlockStatement* node);
+  void VisitExpressionStatement(ast::ExpressionStatement* node);
 
   hir::Editor* editor_;
   hir::Factory* const factory_;
   hir::Function* function_;
-  std::unordered_map<ast::Method*, hir::Function*> methods_;
-  NameResolver* const name_resolver_;
+  std::unordered_map<ast::Method*, hir::Function*> functions_;
   Output* output_;
-  CompilationSession* const session_;
   const std::unique_ptr<TypeMapper> type_mapper_;
+  hir::Type* const void_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGenerator);
 };

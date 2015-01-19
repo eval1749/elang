@@ -5,7 +5,6 @@
 #include "elang/compiler/cg/code_generator.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -40,7 +39,7 @@ struct CodeGenerator::Output {
       : instruction(instruction), position(position), type(type) {
     DCHECK(instruction);
     if (type) {
-      DCHECK_LE(position, 0);
+      DCHECK_GE(position, 0);
     } else {
       DCHECK_EQ(position, -1);
     }
@@ -91,71 +90,60 @@ CodeGenerator::ScopedOutput::~ScopedOutput() {
 //
 // CodeGenerator
 //
-CodeGenerator::CodeGenerator(CompilationSession* session,
-                             hir::Factory* factory,
-                             NameResolver* name_resolver)
-    : editor_(nullptr),
+CodeGenerator::CodeGenerator(CompilationSession* session, hir::Factory* factory)
+    : CompilationSessionUser(session),
+      editor_(nullptr),
       factory_(factory),
       function_(nullptr),
-      name_resolver_(name_resolver),
       output_(nullptr),
-      session_(session),
-      type_mapper_(new TypeMapper(session, factory)) {
+      type_mapper_(new TypeMapper(session, factory)),
+      void_type_(MapType(PredefinedName::Void)) {
 }
 
 CodeGenerator::~CodeGenerator() {
 }
 
-void CodeGenerator::Generate() {
-  session_->global_namespace()->AcceptForMembers(this);
+hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
+  auto const it = functions_.find(ast_method);
+  return it == functions_.end() ? nullptr : it->second;
 }
 
-Semantics* CodeGenerator::semantics() const {
-  return session_->semantics();
-}
-
-hir::Type* CodeGenerator::MapType(PredefinedName name) {
+hir::Type* CodeGenerator::MapType(PredefinedName name) const {
   return type_mapper_->Map(name);
 }
 
-hir::Type* CodeGenerator::MapType(ir::Type* type) {
+hir::Type* CodeGenerator::MapType(ir::Type* type) const {
   return type_mapper_->Map(type);
 }
 
-// ast::Visitor
-
-// Declaration nodes
-void CodeGenerator::VisitAlias(ast::Alias* node) {
-  DCHECK(node);
+// The entry point of |CodeGenerator|.
+bool CodeGenerator::Run() {
+  VisitNamespaceBody(session()->global_namespace_body());
+  return session()->errors().empty();
 }
 
-void CodeGenerator::VisitClass(ast::Class* clazz) {
-  DCHECK(clazz);
-  NOTREACHED();
+void CodeGenerator::SetOutput(hir::Value* value) {
+  DCHECK(output_);
+  DCHECK_GE(output_->position, 0);
+  if (output_->type == void_type())
+    return;
+  editor_->SetInput(output_->instruction, output_->position, value);
 }
 
-void CodeGenerator::VisitClassBody(ast::ClassBody* node) {
-  node->AcceptForMembers(this);
+ir::Node* CodeGenerator::ValueOf(ast::Node* node) const {
+  return semantics()->ValueOf(node);
 }
 
-void CodeGenerator::VisitEnum(ast::Enum* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitField(ast::Field* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitImport(ast::Import* node) {
-  DCHECK(node);
-}
+//
+// ast::Visitor declaration nodes
+//
 
 void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   DCHECK(!editor_);
   DCHECK(!function_);
   //  1 Convert ast::FunctionType to hir::FunctionType
   //  2 hir::NewFunction(function_type)
-  auto const method = name_resolver()->Resolve(ast_method)->as<ir::Method>();
+  auto const method = semantics()->ValueOf(ast_method)->as<ir::Method>();
   if (!method) {
     DVLOG(0) << "Not resolved " << *ast_method;
     return;
@@ -163,36 +151,21 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   function_ = factory()->NewFunction(
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
   hir::Editor editor(factory(), function_);
+  editor_ = &editor;
   auto const return_instr = function_->entry_block()->last_instruction();
+  editor.Edit(return_instr->basic_block());
   ScopedOutput scoped_output(this, return_instr->OperandAt(0)->type(),
                              return_instr, 0);
   ast_method->body()->Accept(this);
-  methods_[ast_method] = function_;
+  functions_[ast_method] = function_;
+  editor.Commit();
   editor_ = nullptr;
   function_ = nullptr;
 }
 
-void CodeGenerator::VisitNamespace(ast::Namespace* node) {
-  DCHECK(node);
-  NOTREACHED();
-}
-
-void CodeGenerator::VisitNamespaceBody(ast::NamespaceBody* node) {
-  node->AcceptForMembers(this);
-}
-
-// Expression nodes
-void CodeGenerator::VisitArrayType(ast::ArrayType* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitAssignment(ast::Assignment* assignment) {
-  DCHECK(assignment);
-}
-
-void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
-  DCHECK(node);
-}
+//
+// ast::Visitor expression nodes
+//
 
 void CodeGenerator::VisitCall(ast::Call* node) {
   DCHECK(node);
@@ -215,45 +188,32 @@ void CodeGenerator::VisitCall(ast::Call* node) {
     --position;
     ++arguments;
   }
-  ScopedOutput output_callee(this, callee_type, call_instr, 0);
-  node->callee()->Accept(this);
-}
-
-void CodeGenerator::VisitConditional(ast::Conditional* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitConstructedType(ast::ConstructedType* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitInvalidExpression(ast::InvalidExpression* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitLiteral(ast::Literal* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitMemberAccess(ast::MemberAccess* node) {
-  DCHECK(node);
+  {
+    ScopedOutput output_callee(this, callee_type, call_instr, 0);
+    node->callee()->Accept(this);
+  }
+  SetOutput(call_instr);
 }
 
 void CodeGenerator::VisitNameReference(ast::NameReference* node) {
-  DCHECK(node);
-  // TODO(eval1749) We need to have
-  // |NameResolver::GetReference(ast::Expression*)|.
+  auto const value = ValueOf(node);
+  // TODO(eval1749) |value| can be
+  //    |ir::Class| load class object literal
+  //    |ir::Field| load instance or static field
+  //    |ir::Literal| constant variable reference, or enum member.
+  //    |ir::Variable| load value of variable.
+  if (auto const method = value->as<ir::Method>()) {
+    SetOutput(
+        factory()->NewReference(MapType(method->signature()),
+                                method->ast_method()->NewQualifiedName()));
+    return;
+  }
+  NOTREACHED() << "Unsupported value " << *value;
 }
 
-void CodeGenerator::VisitUnaryOperation(ast::UnaryOperation* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitVariableReference(ast::VariableReference* node) {
-  DCHECK(node);
-}
-
-// Statement nodes
+//
+// ast::Visitor statement nodes
+//
 void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
     if (statement == node->statements().back()) {
@@ -271,73 +231,8 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
   }
 }
 
-void CodeGenerator::VisitBreakStatement(ast::BreakStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitDoStatement(ast::DoStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitContinueStatement(ast::ContinueStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitEmptyStatement(ast::EmptyStatement* node) {
-  DCHECK(node);
-}
-
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   node->expression()->Accept(this);
 }
-
-void CodeGenerator::VisitExpressionList(ast::ExpressionList* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitForEachStatement(ast::ForEachStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitInvalidStatement(ast::InvalidStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitThrowStatement(ast::ThrowStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitTryStatement(ast::TryStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitUsingStatement(ast::UsingStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitWhileStatement(ast::WhileStatement* node) {
-  DCHECK(node);
-}
-
-void CodeGenerator::VisitYieldStatement(ast::YieldStatement* node) {
-  DCHECK(node);
-}
-
 }  // namespace compiler
 }  // namespace elang
