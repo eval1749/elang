@@ -24,17 +24,12 @@ class Semantics final {
   ~Semantics();
 
   // Retrieving
-  ir::Method* MethodOf(ast::Call* node) const;
   ir::Node* ValueOf(ast::Node* node) const;
 
   // Storing
-  void SetMethod(ast::Call* call, ir::Method* method);
   void SetValue(ast::Node* node, ir::Node* value);
 
  private:
-  // Mapping from AST call site to AST method.
-  std::unordered_map<ast::Call*, ir::Method*> call_map_;
-
   // Mapping from AST class, enum, and method to IR object
   std::unordered_map<ast::Node*, ir::Node*> value_map_;
 

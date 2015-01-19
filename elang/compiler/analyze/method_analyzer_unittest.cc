@@ -24,6 +24,7 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -107,10 +108,10 @@ void MethodAnalyzerTest::SetUp() {
 //
 class Collector final : private ast::Visitor {
  public:
-  Collector(NameResolver* name_resolver, ast::Method* method);
+  Collector(const Semantics* semantics, ast::Method* method);
   Collector() = default;
 
-  NameResolver* name_resolver() const { return name_resolver_; }
+  const Semantics* semantics() const { return semantics_; }
 
   std::string GetCalls() const;
 
@@ -122,14 +123,14 @@ class Collector final : private ast::Visitor {
   void VisitVariableReference(ast::VariableReference* node);
 
   std::vector<ast::Call*> calls_;
-  NameResolver* const name_resolver_;
+  const Semantics* const semantics_;
   std::vector<ast::Variable*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 
-Collector::Collector(NameResolver* name_resolver, ast::Method* method)
-    : name_resolver_(name_resolver) {
+Collector::Collector(const Semantics* semantics, ast::Method* method)
+    : semantics_(semantics) {
   auto const body = method->body();
   if (!body)
     return;
@@ -139,7 +140,7 @@ Collector::Collector(NameResolver* name_resolver, ast::Method* method)
 std::string Collector::GetCalls() const {
   std::stringstream ostream;
   for (auto const call : calls_) {
-    if (auto const method = name_resolver()->ResolveCall(call))
+    if (auto const method = semantics()->ValueOf(call->callee()))
       ostream << *method;
     else
       ostream << "Not resolved: " << *call;
@@ -189,7 +190,7 @@ TEST_F(MethodAnalyzerTest, Method) {
   auto const main_group = FindMember("Sample.Main")->as<ast::MethodGroup>();
   ASSERT_TRUE(main_group);
   auto const method_main = main_group->methods()[0];
-  Collector collector(name_resolver(), method_main);
+  Collector collector(semantics(), method_main);
   EXPECT_EQ(
       "(method WriteLine (signature (class Void) ((parameter (class "
       "String)))))\n",

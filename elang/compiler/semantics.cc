@@ -19,17 +19,8 @@ Semantics::Semantics() {
 Semantics::~Semantics() {
 }
 
-void Semantics::SetMethod(ast::Call* node, ir::Method* value) {
-  call_map_[node] = value;
-}
-
 void Semantics::SetValue(ast::Node* node, ir::Node* value) {
   value_map_[node] = value;
-}
-
-ir::Method* Semantics::MethodOf(ast::Call* node) const {
-  auto const it = call_map_.find(node);
-  return it == call_map_.end() ? nullptr : it->second;
 }
 
 ir::Node* Semantics::ValueOf(ast::Node* node) const {

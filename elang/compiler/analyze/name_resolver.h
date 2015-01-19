@@ -49,13 +49,11 @@ class NameResolver final {
 
   // Registering functions.
   void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
-  void DidResolveCall(ast::Call* ast_call, ir::Method* method);
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.
   ir::Type* GetPredefinedType(PredefinedName name);
   ir::Node* Resolve(ast::NamedNode* ast_node) const;
-  ir::Method* ResolveCall(ast::Call* ast_call) const;
   // Resolve to |ir::Type| named |name| for |token|.
   ir::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,

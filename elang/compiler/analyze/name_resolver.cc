@@ -227,12 +227,6 @@ void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
   semantics()->SetValue(ast_node, node);
 }
 
-void NameResolver::DidResolveCall(ast::Call* ast_call, ir::Method* method) {
-  DCHECK(ast_call);
-  DCHECK(!semantics()->MethodOf(ast_call));
-  semantics()->SetMethod(ast_call, method);
-}
-
 void NameResolver::DidResolveUsing(ast::NamedNode* node,
                                    ast::ContainerNode* container) {
   DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
@@ -259,10 +253,6 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
 
 ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
   return semantics()->ValueOf(member);
-}
-
-ir::Method* NameResolver::ResolveCall(ast::Call* ast_call) const {
-  return semantics()->MethodOf(ast_call);
 }
 
 ir::Type* NameResolver::ResolvePredefinedType(Token* token,

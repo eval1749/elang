@@ -16,6 +16,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
@@ -108,6 +109,10 @@ void CodeGenerator::Generate() {
   session_->global_namespace()->AcceptForMembers(this);
 }
 
+Semantics* CodeGenerator::semantics() const {
+  return session_->semantics();
+}
+
 hir::Type* CodeGenerator::MapType(PredefinedName name) {
   return type_mapper_->Map(name);
 }
@@ -190,8 +195,7 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
 
 void CodeGenerator::VisitCall(ast::Call* node) {
   DCHECK(node);
-  // TODO(eval1749) How do we support callee expression?
-  auto const callee = name_resolver()->ResolveCall(node);
+  auto const callee = semantics()->ValueOf(node->callee())->as<ir::Method>();
   DCHECK(callee) << "Unresolved call" << *node;
   auto const callee_type =
       MapType(callee->signature())->as<hir::FunctionType>();

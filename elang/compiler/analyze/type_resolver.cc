@@ -18,6 +18,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -173,7 +174,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
       return;
     }
     // TODO(eval1749) Update users of this call site.
-    resolver()->DidResolveCall(call, method);
+    semantics()->SetValue(call->callee(), method);
     auto const return_value = NewLiteral(method->return_type());
     ProduceResult(Intersect(return_value, context_->value), call);
     return;

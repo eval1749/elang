@@ -26,6 +26,7 @@ class Type;
 class CompilationSession;
 class NameResolver;
 enum class TokenType;
+class Semantics;
 class TypeMapper;
 
 //////////////////////////////////////////////////////////////////////
@@ -46,9 +47,10 @@ class CodeGenerator final : ast::Visitor {
   struct Output;
   class ScopedOutput;
 
-  hir::Factory* factory() { return factory_; }
-  NameResolver* name_resolver() { return name_resolver_; }
-  TypeMapper* type_mapper() { return type_mapper_.get(); }
+  hir::Factory* factory() const { return factory_; }
+  NameResolver* name_resolver() const { return name_resolver_; }
+  Semantics* semantics() const;
+  TypeMapper* type_mapper() const { return type_mapper_.get(); }
 
   hir::Type* MapType(PredefinedName name);
   hir::Type* MapType(ir::Type* type);
