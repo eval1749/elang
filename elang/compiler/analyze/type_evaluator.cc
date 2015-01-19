@@ -8,8 +8,13 @@
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/analyze/type_factory.h"
 #include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/compilation_session.h"
+#include "elang/compiler/ir/factory.h"
+#include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -26,7 +31,10 @@ struct TypeEvaluator::Context {
   ast::Node* user;
 
   Context(ast::Node* node, ast::Node* user)
-      : result(nullptr), node(node), user(user) {}
+      : result(nullptr), node(node), user(user) {
+    DCHECK(node);
+    DCHECK(user);
+  }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -137,12 +145,16 @@ void TypeEvaluator::VisitLiteral(ast::Literal* literal) {
   }
 
   // Other than |null| literal, the type of literal is predefined.
-  auto const type =
-      resolver()->ResolvePredefinedType(token, token->literal_type());
+  auto const ast_type = session()->GetPredefinedType(token->literal_type());
+  auto const type = semantics()->ValueOf(ast_type)->as<ir::Type>();
   if (!type) {
     // Predefined type isn't defined.
     ProduceResult(type_factory_->NewInvalidValue(literal));
     return;
+  }
+  if (!semantics()->ValueOf(literal)) {
+    semantics()->SetValue(literal,
+                          factory()->NewLiteral(type, literal->token()));
   }
   ProduceResult(NewLiteral(type));
 }

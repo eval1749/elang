@@ -90,6 +90,10 @@ bool Enum::IsSubtypeOf(const Type* other) const {
   return this == other;
 }
 
+// Literal
+Literal::Literal(Type* type, Token* token) : data_(token), type_(type) {
+}
+
 // Method
 Method::Method(ast::Method* ast_method, Signature* signature)
     : ast_method_(ast_method), signature_(signature) {

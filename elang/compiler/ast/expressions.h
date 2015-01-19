@@ -144,6 +144,7 @@ class InvalidExpression final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(InvalidExpression);
 };
 
+// Represent literal value. |token()| returns literal data as |Token|.
 class Literal final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(Literal, Expression);
 

@@ -22,6 +22,7 @@ namespace ir {
 
 #define FOR_EACH_CONCRETE_IR_NODE(V) \
   FOR_EACH_CONCRETE_IR_TYPE_NODE(V)  \
+  V(Literal)                         \
   V(Method)                          \
   V(Parameter)                       \
   V(Signature)

@@ -134,6 +134,26 @@ class Enum final : public Type {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Literal
+//
+class Literal final : public Node {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Literal, Node);
+
+ public:
+  Token* data() const { return data_; }
+  Type* type() const { return type_; }
+
+ private:
+  Literal(Type* type, Token* token);
+
+  Token* const data_;
+  Type* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(Literal);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Method
 //
 class Method final : public Node {

@@ -16,6 +16,9 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics.h"
+#include "elang/compiler/token.h"
+#include "elang/compiler/token_data.h"
+#include "elang/compiler/token_type.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
@@ -116,6 +119,61 @@ hir::Type* CodeGenerator::MapType(ir::Type* type) const {
   return type_mapper_->Map(type);
 }
 
+hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
+  if (type == MapType(PredefinedName::Bool))
+    return factory()->NewBoolLiteral(token->bool_data());
+
+  if (type == MapType(PredefinedName::Char))
+    return factory()->NewCharLiteral(token->char_data());
+
+  if (type == MapType(PredefinedName::Float32))
+    return factory()->NewFloat32Literal(token->f32_data());
+
+  if (type == MapType(PredefinedName::Float64))
+    return factory()->NewFloat64Literal(token->f64_data());
+
+  if (type == MapType(PredefinedName::Int16)) {
+    return factory()->NewInt16Literal(
+        static_cast<int16_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::Int32)) {
+    return factory()->NewInt32Literal(
+        static_cast<int32_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::Int64))
+    return factory()->NewInt64Literal(token->int64_data());
+
+  if (type == MapType(PredefinedName::Int8)) {
+    return factory()->NewInt8Literal(
+        static_cast<int8_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::UInt16)) {
+    return factory()->NewUInt16Literal(
+        static_cast<uint16_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::UInt32)) {
+    return factory()->NewUInt32Literal(
+        static_cast<uint32_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::UInt64)) {
+    return factory()->NewUInt64Literal(
+        static_cast<uint64_t>(token->int64_data()));
+  }
+
+  if (type == MapType(PredefinedName::UInt8)) {
+    return factory()->NewUInt8Literal(
+        static_cast<uint8_t>(token->int64_data()));
+  }
+
+  NOTREACHED() << "Bad literal token " << *token;
+  return nullptr;
+}
+
 // The entry point of |CodeGenerator|.
 bool CodeGenerator::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
@@ -193,6 +251,11 @@ void CodeGenerator::VisitCall(ast::Call* node) {
     node->callee()->Accept(this);
   }
   SetOutput(call_instr);
+}
+
+void CodeGenerator::VisitLiteral(ast::Literal* node) {
+  auto const value = ValueOf(node)->as<ir::Literal>();
+  SetOutput(NewLiteral(MapType(value->type()), node->token()));
 }
 
 void CodeGenerator::VisitNameReference(ast::NameReference* node) {

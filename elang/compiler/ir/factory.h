@@ -28,6 +28,7 @@ class Factory final : public ZoneOwner {
                   const std::vector<Class*>& base_classes);
   Enum* NewEnum(ast::Type* ast_type, const std::vector<int64_t>& values);
 
+  Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(ast::Method* ast_method, Signature* signature);
 
   // Allocate |Parameter| for analyzer

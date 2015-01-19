@@ -68,6 +68,10 @@ void Formatter::VisitEnum(Enum* enuz) {
   ostream_ << "(enum " << enuz->ast_enum()->name() << ")";
 }
 
+void Formatter::VisitLiteral(Literal* literal) {
+  ostream_ << "(literal " << *literal->data() << ")";
+}
+
 void Formatter::VisitMethod(Method* method) {
   // TODO(eval1749) We should output FQN for method.
   ostream_ << "(method " << method->ast_method()->name() << " "

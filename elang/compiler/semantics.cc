@@ -20,9 +20,12 @@ Semantics::~Semantics() {
 }
 
 void Semantics::SetValue(ast::Node* node, ir::Node* value) {
+  DCHECK(node);
   value_map_[node] = value;
 }
 
+// It is valid to pass |nullptr| to |node| for avoiding null check in call
+// site, see |TypeEvaluator::VisitLiteral()| as example.
 ir::Node* Semantics::ValueOf(ast::Node* node) const {
   auto const it = value_map_.find(node);
   return it == value_map_.end() ? nullptr : it->second;

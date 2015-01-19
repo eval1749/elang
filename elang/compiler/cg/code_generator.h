@@ -43,6 +43,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   hir::Type* MapType(PredefinedName name) const;
   hir::Type* MapType(ir::Type* type) const;
+  hir::Value* NewLiteral(hir::Type* type, const Token* token);
   void SetOutput(hir::Value* value);
   ir::Node* ValueOf(ast::Node* node) const;
 
@@ -51,6 +52,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // ast::Visitor expression nodes
   void CodeGenerator::VisitCall(ast::Call* node);
+  void VisitLiteral(ast::Literal* node);
   void VisitNameReference(ast::NameReference* node);
 
   // ast::Visitor statement nodes

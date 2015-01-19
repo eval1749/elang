@@ -51,8 +51,8 @@ TEST_F(CodeGeneratorTest, Call) {
   Prepare(
       "using System;\n"
       "class A {\n"
-      "  void M1() { M2(123); }\n"
-      "  void M2(int x) {}\n"
+      "  static void M1() { M2(123); }\n"
+      "  static void M2(int x) {}\n"
       "}\n");
   ASSERT_EQ("", Analyze());
   ASSERT_TRUE(code_generator()->Run()) << GetErrors();
@@ -74,7 +74,7 @@ TEST_F(CodeGeneratorTest, Call) {
       "  // In:\n"
       "  // Out: block2\n"
       "  entry\n"
-      "  call `A.M2`, void\n"  // TODO(eval1749) s/void/123/
+      "  call `A.M2`, 123\n"
       "  ret void, block2\n"
       "\n"
       "block2:\n"

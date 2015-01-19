@@ -32,14 +32,18 @@ Class* Factory::NewClass(ast::Class* ast_class,
   return new (zone()) Class(zone(), ast_class, base_classes);
 }
 
-Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
-                                 Type* type,
-                                 Value* default_value) {
-  return new (zone()) Parameter(ast_parameter, type, default_value);
+Literal* Factory::NewLiteral(Type* type, Token* token) {
+  return new (zone()) Literal(type, token);
 }
 
 Method* Factory::NewMethod(ast::Method* ast_method, Signature* signature) {
   return new (zone()) Method(ast_method, signature);
+}
+
+Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
+                                 Type* type,
+                                 Value* default_value) {
+  return new (zone()) Parameter(ast_parameter, type, default_value);
 }
 
 Signature* Factory::NewSignature(Type* return_type,
