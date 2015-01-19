@@ -102,6 +102,64 @@ void ValueFormatter::VisitBasicBlock(BasicBlock* block) {
   ostream_ << "block" << block->id();
 }
 
+void ValueFormatter::VisitBoolLiteral(BoolLiteral* literal) {
+  ostream_ << (literal->data() ? "true" : "false");
+}
+
+void ValueFormatter::VisitCharLiteral(CharLiteral* literal) {
+  // TODO(eval1749) We should share this code among compiler, HIR, LIR, and
+  // ASM.
+  static char const xdigits[] = "0123456789ABCDEF";
+  static char const escapes[] = "0------abtnvfr";
+  auto const ch = literal->data();
+  char buffer[7];
+  if (ch <= 0x0D && escapes[ch] != '-') {
+    buffer[0] = '\\';
+    buffer[1] = escapes[ch];
+    buffer[2] = 0;
+  } else if (ch == '\'' || ch == '\\') {
+    buffer[0] = '\\';
+    buffer[1] = ch;
+    buffer[2] = 0;
+  } else if (ch < ' ' || ch >= 0x7F) {
+    buffer[0] = '\\';
+    buffer[1] = 'u';
+    buffer[2] = xdigits[(ch >> 12) & 15];
+    buffer[3] = xdigits[(ch >> 8) & 15];
+    buffer[4] = xdigits[(ch >> 4) & 15];
+    buffer[5] = xdigits[ch & 15];
+    buffer[6] = 0;
+  } else {
+    buffer[0] = ch;
+    buffer[1] = 0;
+  }
+  ostream_ << "'" << buffer << "'";
+}
+
+void ValueFormatter::VisitFloat32Literal(Float32Literal* literal) {
+  ostream_ << literal->data() << "f";
+}
+
+void ValueFormatter::VisitFloat64Literal(Float64Literal* literal) {
+  ostream_ << literal->data();
+}
+
+void ValueFormatter::VisitInt16Literal(Int16Literal* literal) {
+  ostream_ << "int16(" << literal->data() << ")";
+}
+
+void ValueFormatter::VisitInt32Literal(Int32Literal* literal) {
+  ostream_ << literal->data();
+}
+
+void ValueFormatter::VisitInt64Literal(Int64Literal* literal) {
+  ostream_ << literal->data() << "l";
+}
+
+void ValueFormatter::VisitInt8Literal(Int8Literal* literal) {
+  ostream_ << "int8(" << static_cast<int>(literal->data()) << ")";
+}
+
 void ValueFormatter::VisitFunction(Function* function) {
   ostream_ << "function@" << function;
 }
@@ -118,18 +176,59 @@ void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
   ostream_ << "static_cast<" << *literal->type() << ">(null)";
 }
 
+void ValueFormatter::VisitStringLiteral(StringLiteral* literal) {
+  // TODO(eval1749) We should share this code among compiler, HIR, LIR, and
+  // ASM.
+  static char const xdigits[] = "0123456789ABCDEF";
+  static char const escapes[] = "0------abtnvfr";
+  ostream_ << "\"";
+  for (auto const ch : literal->data()) {
+    char buffer[7];
+    if (ch <= 0x0D && escapes[ch] != '-') {
+      buffer[0] = '\\';
+      buffer[1] = escapes[ch];
+      buffer[2] = 0;
+    } else if (ch == '"' || ch == '\\') {
+      buffer[0] = '\\';
+      buffer[1] = ch;
+      buffer[2] = 0;
+    } else if (ch < ' ' || ch >= 0x7F) {
+      buffer[0] = '\\';
+      buffer[1] = 'u';
+      buffer[2] = xdigits[(ch >> 12) & 15];
+      buffer[3] = xdigits[(ch >> 8) & 15];
+      buffer[4] = xdigits[(ch >> 4) & 15];
+      buffer[5] = xdigits[ch & 15];
+      buffer[6] = 0;
+    } else {
+      buffer[0] = ch;
+      buffer[1] = 0;
+    }
+    ostream_ << buffer;
+  }
+  ostream_ << "\"";
+}
+
+void ValueFormatter::VisitUInt16Literal(UInt16Literal* literal) {
+  ostream_ << "uint16(" << literal->data() << ")";
+}
+
+void ValueFormatter::VisitUInt32Literal(UInt32Literal* literal) {
+  ostream_ << literal->data() << "u";
+}
+
+void ValueFormatter::VisitUInt64Literal(UInt64Literal* literal) {
+  ostream_ << literal->data() << "ul";
+}
+
+void ValueFormatter::VisitUInt8Literal(UInt8Literal* literal) {
+  ostream_ << "uint8(" << static_cast<int>(literal->data()) << ")";
+}
+
 void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
   DCHECK(literal);
   ostream_ << "void";
 }
-
-#define V(Name, name, ...)                                            \
-  void ValueFormatter::Visit##Name##Literal(Name##Literal* literal) { \
-    ostream_ << *literal->type() << " "                               \
-             << static_cast<Literal*>(literal)->name##_value();       \
-  }
-FOR_EACH_HIR_LITERAL_VALUE(V)
-#undef V
 
 }  // namespace
 

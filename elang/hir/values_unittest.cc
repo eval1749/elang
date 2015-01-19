@@ -30,10 +30,7 @@ class HirValuesTest : public testing::HirTest {
   DISALLOW_COPY_AND_ASSIGN(HirValuesTest);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// Function
-//
+// Functions
 TEST_F(HirValuesTest, Function) {
   auto const void_type = types()->GetVoidType();
   auto const function_type = types()->NewFunctionType(void_type, void_type);
@@ -58,7 +55,7 @@ TEST_F(HirValuesTest, Function) {
       "  // In:\n"
       "  // Out: block2\n"
       "  entry\n"
-      "  ret string foo, block2\n"
+      "  ret \"foo\", block2\n"
       "\n"
       "block2:\n"
       "  // In: block1\n"

@@ -62,11 +62,6 @@ void Value::Unuse(UseDefNode* value_holder) {
 // Literal
 //
 #define V(Name, name, c_type, ...)                             \
-  c_type Literal::name##_value() const {                       \
-    NOTREACHED();                                              \
-    return c_type();                                           \
-  }                                                            \
-  c_type Name##Literal::name##_value() const { return data_; } \
   Name##Literal::Name##Literal(Type* type, c_type data)        \
       : Literal(type), data_(data) {}
 FOR_EACH_HIR_LITERAL_VALUE(V)

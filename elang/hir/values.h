@@ -102,15 +102,12 @@ class ELANG_HIR_EXPORT Value : public Castable,
  private:                                             \
   void Accept(ValueVisitor* visitor) final;
 
+//////////////////////////////////////////////////////////////////////
+//
 // |Literal| is a base class of literal value.
+//
 class ELANG_HIR_EXPORT Literal : public Value {
   DECLARE_HIR_VALUE_CLASS(Literal, Value);
-
- public:
-// Literal value getters, e.g. bool_value(), int32_value(), etc.
-#define V(Name, name, c_type) virtual c_type name##_value() const;
-  FOR_EACH_HIR_LITERAL_VALUE(V)
-#undef V
 
  protected:
   explicit Literal(Type* type);
@@ -119,8 +116,11 @@ class ELANG_HIR_EXPORT Literal : public Value {
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
 // Typed null value. |TypeFactory| singleton.
-class ELANG_HIR_EXPORT NullLiteral : public Literal {
+//
+class ELANG_HIR_EXPORT NullLiteral final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(NullLiteral, Literal);
 
  private:
@@ -133,8 +133,11 @@ class ELANG_HIR_EXPORT NullLiteral : public Literal {
   DISALLOW_COPY_AND_ASSIGN(NullLiteral);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
 // Represents reference to object.
-class ELANG_HIR_EXPORT Reference : public Literal {
+//
+class ELANG_HIR_EXPORT Reference final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(Reference, Literal);
 
  public:
@@ -148,8 +151,11 @@ class ELANG_HIR_EXPORT Reference : public Literal {
   DISALLOW_COPY_AND_ASSIGN(Reference);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
 // value for 'void' type. |TypeFactory| singleton.
-class ELANG_HIR_EXPORT VoidLiteral : public Literal {
+//
+class ELANG_HIR_EXPORT VoidLiteral final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(VoidLiteral, Literal);
 
  private:
@@ -162,14 +168,18 @@ class ELANG_HIR_EXPORT VoidLiteral : public Literal {
   DISALLOW_COPY_AND_ASSIGN(VoidLiteral);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// Primitive values
+//
 #define V(Name, name, cpp_type)                              \
-  class ELANG_HIR_EXPORT Name##Literal : public Literal {    \
+  class ELANG_HIR_EXPORT Name##Literal final : public Literal {    \
     DECLARE_HIR_CONCRETE_VALUE_CLASS(Name##Literal, Literal) \
    public:                                                   \
     Name##Literal(Type* type, cpp_type data);                \
+    cpp_type data() const { return data_; }                 \
                                                              \
    private:                                                  \
-    cpp_type name##_value() const override;                  \
     const cpp_type data_;                                    \
     DISALLOW_COPY_AND_ASSIGN(Name##Literal);                 \
   };
@@ -191,7 +201,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 // TODO(eval1749) Should we add |BasicBlock| to |Function| automatically when
 // we insert 'jump' instruction?
 //
-class ELANG_HIR_EXPORT BasicBlock
+class ELANG_HIR_EXPORT BasicBlock final
     : public Value,
       public DoubleLinked<BasicBlock, Function>::Node {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(BasicBlock, Value);
@@ -230,7 +240,7 @@ class ELANG_HIR_EXPORT BasicBlock
 //
 // Function
 //
-class ELANG_HIR_EXPORT Function : public Value {
+class ELANG_HIR_EXPORT Function final : public Value {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(Function, Value);
 
  public:
