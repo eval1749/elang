@@ -98,7 +98,7 @@ CodeGenerator::CodeGenerator(CompilationSession* session,
       name_resolver_(name_resolver),
       output_(nullptr),
       session_(session),
-      type_mapper_(new TypeMapper(factory, name_resolver)) {
+      type_mapper_(new TypeMapper(session, factory)) {
 }
 
 CodeGenerator::~CodeGenerator() {

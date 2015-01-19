@@ -5,12 +5,12 @@
 #include "elang/compiler/cg/type_mapper.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
@@ -18,14 +18,26 @@
 namespace elang {
 namespace compiler {
 
+namespace {
+ir::Type* ValueOfPredefinedType(CompilationSession* session,
+                                PredefinedName name) {
+  auto const ast_class = session->GetPredefinedType(name);
+  DCHECK(ast_class) << "Not in System namespace " << name;
+  auto const ir_class = session->semantics()->ValueOf(ast_class);
+  DCHECK(ir_class) << "Not resolved " << name;
+  DCHECK(ir_class->is<ir::Class>());
+  return ir_class->as<ir::Class>();
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // TypeMapper
 //
-TypeMapper::TypeMapper(hir::Factory* factory, NameResolver* name_resolver)
-    : factory_(factory), name_resolver_(name_resolver) {
-#define V(Name, ...)                                                  \
-  InstallType(name_resolver->GetPredefinedType(PredefinedName::Name), \
+TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
+    : factory_(factory), session_(session) {
+#define V(Name, ...)                                                \
+  InstallType(ValueOfPredefinedType(session, PredefinedName::Name), \
               factory->types()->Get##Name##Type());
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
@@ -34,8 +46,8 @@ TypeMapper::TypeMapper(hir::Factory* factory, NameResolver* name_resolver)
 TypeMapper::~TypeMapper() {
 }
 
-CompilationSession* TypeMapper::session() {
-  return name_resolver()->session();
+Semantics* TypeMapper::semantics() const {
+  return session()->semantics();
 }
 
 void TypeMapper::InstallType(ir::Type* type, hir::Type* hir_type) {
@@ -79,7 +91,7 @@ hir::Type* TypeMapper::Map(ir::Type* type) {
 }
 
 hir::Type* TypeMapper::Map(PredefinedName name) {
-  return Map(name_resolver()->GetPredefinedType(name));
+  return Map(ValueOfPredefinedType(session(), name));
 }
 
 }  // namespace compiler

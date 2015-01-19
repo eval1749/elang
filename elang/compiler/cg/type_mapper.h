@@ -28,8 +28,8 @@ class Type;
 }
 
 class CompilationSession;
-class NameResolver;
 enum class PredefinedName;
+class Semantics;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -37,7 +37,7 @@ enum class PredefinedName;
 //
 class TypeMapper final {
  public:
-  TypeMapper(hir::Factory* factory, NameResolver* name_resolver);
+  TypeMapper(CompilationSession* session, hir::Factory* factory);
   ~TypeMapper();
 
   // Map IR type to HIR type.
@@ -45,14 +45,14 @@ class TypeMapper final {
   hir::Type* Map(PredefinedName name);
 
  private:
-  hir::Factory* factory() { return factory_; }
-  NameResolver* name_resolver() { return name_resolver_; }
-  CompilationSession* session();
+  hir::Factory* factory() const { return factory_; }
+  Semantics* semantics() const;
+  CompilationSession* session() const { return session_; }
 
   void InstallType(ir::Type* type, hir::Type* hir_type);
 
   hir::Factory* const factory_;
-  NameResolver* const name_resolver_;
+  CompilationSession* const session_;
 
   std::unordered_map<ir::Type*, hir::Type*> type_map_;
 

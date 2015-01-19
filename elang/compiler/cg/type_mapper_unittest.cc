@@ -6,7 +6,7 @@
 
 #include "elang/compiler/cg/cg_test.h"
 
-#include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/cg/type_mapper.h"
@@ -15,6 +15,7 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/compiler/testing/namespace_builder.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/type_factory.h"
@@ -67,11 +68,13 @@ class TypeMapperTest : public testing::CgTest {
 };
 
 TypeMapperTest::TypeMapperTest()
-    : builder_(name_resolver()), type_mapper_(factory(), name_resolver()) {
+    : builder_(name_resolver()), type_mapper_(session(), factory()) {
 }
 
 ir::Type* TypeMapperTest::GetIr(PredefinedName name) {
-  return name_resolver()->GetPredefinedType(name);
+  return semantics()
+      ->ValueOf(session()->GetPredefinedType(name))
+      ->as<ir::Type>();
 }
 
 hir::Type* TypeMapperTest::Map(PredefinedName name) {
