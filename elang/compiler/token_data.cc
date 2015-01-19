@@ -116,6 +116,15 @@ AtomicString* TokenData::atomic_string() const {
   return data_.name;
 }
 
+bool TokenData::bool_data() const {
+  if (type_ == TokenType::FalseLiteral)
+    return false;
+  if (type_ == TokenType::TrueLiteral)
+    return true;
+  NOTREACHED();
+  return false;
+}
+
 base::char16 TokenData::char_data() const {
   DCHECK_EQ(type_, TokenType::CharacterLiteral);
   return data_.ch;

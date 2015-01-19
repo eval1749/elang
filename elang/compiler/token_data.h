@@ -39,6 +39,7 @@ class TokenData {
   bool operator!=(const TokenData& other) const;
 
   AtomicString* atomic_string() const;
+  bool bool_data() const;
   base::char16 char_data() const;
   float32_t f32_data() const;
   float64_t f64_data() const;

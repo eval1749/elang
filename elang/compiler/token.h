@@ -30,6 +30,7 @@ class Token final : public ZoneAllocated {
   bool operator!=(const Token& other) const;
 
   AtomicString* atomic_string() const { return data_.atomic_string(); }
+  bool bool_data() const { return data_.bool_data(); }
   base::char16 char_data() const { return data_.char_data(); }
   TokenData data() const { return data_; }
   float32_t f32_data() const { return data_.f32_data(); }
