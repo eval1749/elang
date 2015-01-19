@@ -665,6 +665,25 @@ TEST_F(ParserTest, IfErrorUnreachable) {
   EXPECT_EQ("Syntax.Statement.Unreachable(93) return\n", Format(source_code));
 }
 
+TEST_F(ParserTest, IfErrorUnreachable2) {
+  auto const source_code =
+      "class A {\n"
+      "  int Run(int x) {\n"
+      "    if (x)\n"
+      "      return x;\n"
+      "    else {\n"
+      "      return x;\n"
+      "      foo();\n"  // unreachable
+      "    }\n"
+      "    return 123;\n"  // unreachable
+      "  }\n"
+      "}\n";
+  EXPECT_EQ(
+      "Syntax.Statement.Unreachable(89) foo\n"
+      "Syntax.Statement.Unreachable(106) return\n",
+      Format(source_code));
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Import

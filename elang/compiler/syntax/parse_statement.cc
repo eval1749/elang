@@ -161,7 +161,11 @@ bool Parser::ParseBlockStatement(Token* bracket) {
   LocalDeclarationSpace block_space(this, bracket);
   std::vector<ast::Statement*> statements;
   auto reachable = true;
-  while (!AdvanceIf(TokenType::RightCurryBracket)) {
+  auto right_bracket = static_cast<Token*>(nullptr);
+  for (;;) {
+    right_bracket = ConsumeTokenIf(TokenType::RightCurryBracket);
+    if (right_bracket)
+      break;
     // TODO(eval1749) We should |reachable| when we get labeled statement.
     if (!ParseStatement())
       break;
@@ -172,7 +176,8 @@ bool Parser::ParseBlockStatement(Token* bracket) {
     if (reachable && statement->IsTerminator())
       reachable = false;
   }
-  ProduceStatement(factory()->NewBlockStatement(bracket, statements));
+  ProduceStatement(factory()->NewBlockStatement(
+      reachable ? bracket : right_bracket, statements));
   return true;
 }
 

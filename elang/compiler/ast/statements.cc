@@ -17,12 +17,13 @@ BlockStatement::BlockStatement(Zone* zone,
                                Token* keyword,
                                const std::vector<Statement*>& statements)
     : Statement(keyword), statements_(zone, statements) {
-  DCHECK_EQ(keyword, TokenType::LeftCurryBracket);
+  DCHECK(keyword == TokenType::LeftCurryBracket ||
+         keyword == TokenType::RightCurryBracket);
 }
 
 // Statement
 bool BlockStatement::IsTerminator() const {
-  return !statements_.empty() && statements_.back()->IsTerminator();
+  return token() == TokenType::RightCurryBracket;
 }
 
 // BreakStatement

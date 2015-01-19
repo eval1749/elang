@@ -60,6 +60,8 @@ class BlockStatement final : public Statement {
   const ZoneVector<Statement*>& statements() const { return statements_; }
 
  private:
+  // When last statement of this block statement is reachable, |keyword|
+  // is left curry bracket, otherwise it is right curry bracket.
   BlockStatement(Zone* zone,
                  Token* keyword,
                  const std::vector<Statement*>& statements);
