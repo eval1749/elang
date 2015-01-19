@@ -35,6 +35,7 @@ class AnalyzerTest : public CompilerTest {
   NameResolver* name_resolver() const { return name_resolver_.get(); }
   Semantics* semantics() const;
 
+  std::string Analyze();
   std::string AnalyzeClass();
   std::string AnalyzeNamespace();
   std::string GetBaseClasses(base::StringPiece name);

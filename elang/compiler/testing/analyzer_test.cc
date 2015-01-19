@@ -14,6 +14,7 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analyze/class_analyzer.h"
+#include "elang/compiler/analyze/method_analyzer.h"
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/ast/class.h"
@@ -121,18 +122,52 @@ Semantics* AnalyzerTest::semantics() const {
   return session()->semantics();
 }
 
+std::string AnalyzerTest::Analyze() {
+  if (!Parse())
+    return GetErrors();
+  {
+    NamespaceAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  {
+    ClassAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  {
+    MethodAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  return "";
+}
+
 std::string AnalyzerTest::AnalyzeClass() {
   if (!Parse())
     return GetErrors();
-  ClassAnalyzer resolver(name_resolver());
-  return resolver.Run() ? "" : GetErrors();
+  {
+    NamespaceAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  {
+    ClassAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  return "";
 }
 
 std::string AnalyzerTest::AnalyzeNamespace() {
   if (!Parse())
     return GetErrors();
-  NamespaceAnalyzer resolver(name_resolver());
-  return resolver.Run() ? "" : GetErrors();
+  {
+    NamespaceAnalyzer analyzer(name_resolver());
+    if (!analyzer.Run())
+      return GetErrors();
+  }
+  return "";
 }
 
 std::string AnalyzerTest::GetBaseClasses(base::StringPiece name) {
