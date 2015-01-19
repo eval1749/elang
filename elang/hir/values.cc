@@ -39,6 +39,7 @@ void UseDefNode::SetValue(Value* new_value) {
   if (value_)
     value_->Unuse(this);
   new_value->Use(this);
+  value_ = new_value;
 }
 
 //////////////////////////////////////////////////////////////////////

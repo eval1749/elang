@@ -38,10 +38,16 @@ TEST_F(HirValuesTest, Function) {
   auto const void_type = types()->GetVoidType();
   auto const function_type = types()->NewFunctionType(void_type, void_type);
   auto const function = factory()->NewFunction(function_type);
-  EXPECT_TRUE(
-      function->entry_block()->first_instruction()->is<EntryInstruction>());
+  auto const entry_block = function->entry_block();
+  EXPECT_TRUE(entry_block->first_instruction()->is<EntryInstruction>());
   EXPECT_TRUE(
       function->exit_block()->first_instruction()->is<ExitInstruction>());
+
+  Editor editor(factory(), function);
+  editor.Edit(entry_block);
+  editor.SetInput(entry_block->last_instruction(), 0,
+                  factory()->NewStringLiteral(L"foo"));
+  editor.Commit();
 
   std::stringstream stream;
   TextFormatter formatter(&stream);
@@ -52,7 +58,7 @@ TEST_F(HirValuesTest, Function) {
       "  // In:\n"
       "  // Out: block2\n"
       "  entry\n"
-      "  ret void, block2\n"
+      "  ret string foo, block2\n"
       "\n"
       "block2:\n"
       "  // In: block1\n"
