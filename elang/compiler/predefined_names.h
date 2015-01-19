@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_PREDEFINED_NAMES_H_
 
 #include <array>
+#include <ostream>
 
 #include "base/macros.h"
 #include "elang/compiler/ast/nodes_forward.h"
@@ -63,6 +64,8 @@ class PredefinedNames final {
 
   DISALLOW_COPY_AND_ASSIGN(PredefinedNames);
 };
+
+std::ostream& operator<<(std::ostream& ostream, PredefinedName name);
 
 }  // namespace compiler
 }  // namespace elang
