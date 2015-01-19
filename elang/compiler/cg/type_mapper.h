@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "base/macros.h"
+#include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
 class AtomicString;
@@ -27,7 +28,6 @@ namespace ir {
 class Type;
 }
 
-class CompilationSession;
 enum class PredefinedName;
 class Semantics;
 
@@ -35,7 +35,7 @@ class Semantics;
 //
 // TypeMapper
 //
-class TypeMapper final {
+class TypeMapper final : public CompilationSessionUser {
  public:
   TypeMapper(CompilationSession* session, hir::Factory* factory);
   ~TypeMapper();
@@ -46,13 +46,10 @@ class TypeMapper final {
 
  private:
   hir::Factory* factory() const { return factory_; }
-  Semantics* semantics() const;
-  CompilationSession* session() const { return session_; }
 
   void InstallType(ir::Type* type, hir::Type* hir_type);
 
   hir::Factory* const factory_;
-  CompilationSession* const session_;
 
   std::unordered_map<ir::Type*, hir::Type*> type_map_;
 

@@ -8,6 +8,8 @@ static_library("compiler") {
     "character_stream.cc",
     "compilation_session.cc",
     "compilation_session.h",
+    "compilation_session_user.cc",
+    "compilation_session_user.h",
     "compilation_unit.cc",
     "compilation_unit.h",
     "modifiers.cc",

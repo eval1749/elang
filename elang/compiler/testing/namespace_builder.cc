@@ -21,6 +21,7 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -29,34 +30,16 @@ namespace compiler {
 namespace testing {
 
 NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
-    : name_resolver_(name_resolver) {
+    : CompilationSessionUser(name_resolver->session()),
+      name_resolver_(name_resolver) {
 }
 
 NamespaceBuilder::~NamespaceBuilder() {
 }
 
-CompilationSession* NamespaceBuilder::session() {
-  return name_resolver_->session();
-}
-
-ast::Namespace* NamespaceBuilder::system_namespace() {
-  return session()->system_namespace();
-}
-
-ast::NamespaceBody* NamespaceBuilder::system_namespace_body() {
-  return session()->system_namespace_body();
-}
-
 ir::Class* NamespaceBuilder::system_object() {
   auto const ast_class = GetPredefinedType(PredefinedName::Object);
-  return name_resolver()->Resolve(ast_class)->as<ir::Class>();
-}
-
-ast::Class* NamespaceBuilder::GetPredefinedType(PredefinedName name) {
-  return session()
-      ->system_namespace()
-      ->FindMember(session()->name_for(name))
-      ->as<ast::Class>();
+  return semantics()->ValueOf(ast_class)->as<ir::Class>();
 }
 
 ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,

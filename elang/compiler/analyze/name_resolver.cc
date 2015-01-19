@@ -211,14 +211,10 @@ void NameResolver::ReferenceResolver::VisitTypeNameReference(
 // NameResolver
 //
 NameResolver::NameResolver(CompilationSession* session)
-    : factory_(new ir::Factory()), session_(session) {
+    : CompilationSessionUser(session), factory_(new ir::Factory()) {
 }
 
 NameResolver::~NameResolver() {
-}
-
-Semantics* NameResolver::semantics() const {
-  return session()->semantics();
 }
 
 void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {

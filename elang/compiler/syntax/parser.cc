@@ -160,7 +160,8 @@ void Parser::QualifiedNameBuilder::Reset() {
 // Parser
 //
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
-    : compilation_unit_(compilation_unit),
+    : CompilationSessionUser(session),
+      compilation_unit_(compilation_unit),
       container_(session->ast_factory()->NewNamespaceBody(
           session->global_namespace_body(),
           session->global_namespace())),
@@ -170,7 +171,6 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
       name_builder_(new QualifiedNameBuilder()),
-      session_(session),
       statement_(nullptr),
       statement_scope_(nullptr),
       token_(nullptr) {
@@ -181,7 +181,7 @@ Parser::~Parser() {
 }
 
 ast::Factory* Parser::factory() const {
-  return session_->ast_factory();
+  return session()->ast_factory();
 }
 
 void Parser::Advance() {
@@ -212,13 +212,13 @@ Token* Parser::ConsumeTokenIf(TokenType type) {
 
 bool Parser::Error(ErrorCode error_code, Token* token, Token* token2) {
   DCHECK(token);
-  session_->AddError(error_code, token, token2);
+  session()->AddError(error_code, token, token2);
   return false;
 }
 
 bool Parser::Error(ErrorCode error_code, Token* token) {
   DCHECK(token);
-  session_->AddError(error_code, token);
+  session()->AddError(error_code, token);
   return false;
 }
 
@@ -227,7 +227,7 @@ bool Parser::Error(ErrorCode error_code) {
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
-  return session_->NewUniqueNameToken(
+  return session()->NewUniqueNameToken(
       SourceCodeRange(compilation_unit_->source_code(), last_source_offset_,
                       last_source_offset_),
       format);
@@ -678,7 +678,7 @@ Token* Parser::PeekToken() {
 
 bool Parser::Run() {
   ParseCompilationUnit();
-  return session_->errors().empty();
+  return session()->errors().empty();
 }
 
 void Parser::ValidateClassModifiers() {

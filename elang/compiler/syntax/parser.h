@@ -10,13 +10,13 @@
 
 #include "base/basictypes.h"
 #include "elang/compiler/ast/nodes_forward.h"
+#include "elang/compiler/compilation_session_user.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
 
 class CompilationUnit;
-class CompilationSession;
 enum class ErrorCode;
 class Lexer;
 class Modifiers;
@@ -27,7 +27,7 @@ class SourceCodePosition;
 //
 // Parser
 //
-class Parser final {
+class Parser final : public CompilationSessionUser {
   // |ExpressionCategory| representing precedence of operator.
   // Note: To implement operation of |ExpressionCategory| in "parser.cc"
   // it is marked |public|, but other modules can't use it.
@@ -36,8 +36,6 @@ class Parser final {
 
   Parser(CompilationSession* session, CompilationUnit* compilation_unit);
   ~Parser();
-
-  CompilationSession* session() const { return session_; }
 
   // Parser entry point. Returns true if parsing succeeded, otherwise false.
   bool Run();
@@ -175,7 +173,6 @@ class Parser final {
   int last_source_offset_;
   std::unique_ptr<ModifierParser> modifiers_;
   std::unique_ptr<QualifiedNameBuilder> name_builder_;
-  CompilationSession* session_;
   ast::Statement* statement_;
   StatementScope* statement_scope_;
   Token* token_;

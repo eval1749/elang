@@ -11,11 +11,11 @@
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/compiler/ast/nodes_forward.h"
+#include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
 namespace compiler {
 
-class CompilationSession;
 class NameResolver;
 enum class PredefinedName;
 class Token;
@@ -32,18 +32,14 @@ namespace testing {
 // NamespaceBuilder
 // Builds namespace, class, method and so on.
 //
-class NamespaceBuilder {
+class NamespaceBuilder : public CompilationSessionUser {
  public:
   explicit NamespaceBuilder(NameResolver* name_resolver);
   ~NamespaceBuilder();
 
   NameResolver* name_resolver() { return name_resolver_; }
-  CompilationSession* session();
-  ast::Namespace* system_namespace();
-  ast::NamespaceBody* system_namespace_body();
   ir::Class* system_object();
 
-  ast::Class* GetPredefinedType(PredefinedName name);
   ast::ClassBody* NewClass(base::StringPiece name,
                            base::StringPiece base_names);
   Token* NewKeyword(TokenType type);

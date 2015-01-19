@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "elang/compiler/ast/visitor.h"
+#include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
 namespace compiler {
@@ -18,7 +19,6 @@ class Node;
 class Type;
 }
 
-class CompilationSession;
 enum class ErrorCode;
 class NameResolver;
 class Semantics;
@@ -27,7 +27,7 @@ class Semantics;
 //
 // Analyzer
 //
-class Analyzer {
+class Analyzer : public CompilationSessionUser {
  public:
   NameResolver* name_resolver() const { return name_resolver_; }
 
@@ -37,8 +37,6 @@ class Analyzer {
 
   ir::Factory* factory() const;
   NameResolver* resolver() const { return name_resolver_; }
-  Semantics* semantics() const;
-  CompilationSession* session() const;
 
   // Report error caused by |node|.
   void Error(ErrorCode error_code, ast::Node* node);

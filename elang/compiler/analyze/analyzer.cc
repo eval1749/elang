@@ -20,7 +20,8 @@ namespace compiler {
 // Analyzer
 //
 Analyzer::Analyzer(NameResolver* name_resolver)
-    : name_resolver_(name_resolver) {
+    : CompilationSessionUser(name_resolver->session()),
+      name_resolver_(name_resolver) {
 }
 
 Analyzer::~Analyzer() {
@@ -28,14 +29,6 @@ Analyzer::~Analyzer() {
 
 ir::Factory* Analyzer::factory() const {
   return name_resolver_->factory();
-}
-
-Semantics* Analyzer::semantics() const {
-  return session()->semantics();
-}
-
-CompilationSession* Analyzer::session() const {
-  return name_resolver_->session();
 }
 
 void Analyzer::Error(ErrorCode error_code, ast::Node* node) {

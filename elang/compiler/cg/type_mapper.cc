@@ -35,7 +35,7 @@ ir::Type* ValueOfPredefinedType(CompilationSession* session,
 // TypeMapper
 //
 TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
-    : factory_(factory), session_(session) {
+    : CompilationSessionUser(session), factory_(factory) {
 #define V(Name, ...)                                                \
   InstallType(ValueOfPredefinedType(session, PredefinedName::Name), \
               factory->types()->Get##Name##Type());
@@ -44,10 +44,6 @@ TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
 }
 
 TypeMapper::~TypeMapper() {
-}
-
-Semantics* TypeMapper::semantics() const {
-  return session()->semantics();
 }
 
 void TypeMapper::InstallType(ir::Type* type, hir::Type* hir_type) {
