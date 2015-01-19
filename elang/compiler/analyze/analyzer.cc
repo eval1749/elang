@@ -30,6 +30,10 @@ ir::Factory* Analyzer::factory() const {
   return name_resolver_->factory();
 }
 
+Semantics* Analyzer::semantics() const {
+  return session()->semantics();
+}
+
 CompilationSession* Analyzer::session() const {
   return name_resolver_->session();
 }

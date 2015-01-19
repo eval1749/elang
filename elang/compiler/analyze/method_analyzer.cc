@@ -9,7 +9,6 @@
 #include "base/logging.h"
 #include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
-#include "elang/compiler/analyze/name_resolver.h"
 #include "elang/compiler/analyze/type_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -20,6 +19,7 @@
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -63,7 +63,7 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
 
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
-  auto const ir_method = resolver()->Resolve(method_);
+  auto const ir_method = semantics()->ValueOf(method_);
   if (!ir_method) {
     DVLOG(0) << *method_ << " isn't resolved.";
     return;

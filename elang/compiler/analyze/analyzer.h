@@ -21,6 +21,7 @@ class Type;
 class CompilationSession;
 enum class ErrorCode;
 class NameResolver;
+class Semantics;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -36,6 +37,7 @@ class Analyzer {
 
   ir::Factory* factory() const;
   NameResolver* resolver() const { return name_resolver_; }
+  Semantics* semantics() const;
   CompilationSession* session() const;
 
   // Report error caused by |node|.
