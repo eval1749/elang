@@ -99,6 +99,21 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Block statement
+//
+TEST_F(ParserTest, BlockErrorUnreachable) {
+  auto const source_code =
+      "class A {\n"
+      "  void Run(int x) {\n"
+      "    return;\n"
+      "    foo();"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Statement.Unreachable(46) foo\n", Format(source_code));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // 'break' statement
 //
 TEST_F(ParserTest, BreakBasic) {
@@ -255,7 +270,12 @@ TEST_F(ParserTest, ConditionalErrorColon) {
       "    return x ? w;\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Expression.ConditionalColon(44) ;\n", Format(source_code))
+  // TODO(eval1749) We should not report 'Unreachable'. When we skip to ';',
+  // we can avoid 'Unreachable'.
+  EXPECT_EQ(
+      "Syntax.Expression.ConditionalColon(44) ;\n"
+      "Syntax.Statement.Unreachable(44) ;\n",
+      Format(source_code))
       << "Expect ':' after '?'";
 }
 
@@ -380,15 +400,15 @@ TEST_F(ParserTest, EnumComma) {
 
 TEST_F(ParserTest, EnumErrorConflict) {
   auto const source_code =
-    "class A {}"
-    "enum A { M }";
+      "class A {}"
+      "enum A { M }";
   EXPECT_EQ("Syntax.Enum.Conflict(15) A A\n", Format(source_code));
 }
 
 TEST_F(ParserTest, EnumErrorDuplicate) {
   auto const source_code =
-    "enum A { B }"
-    "enum A { M }";
+      "enum A { B }"
+      "enum A { M }";
   EXPECT_EQ("Syntax.Enum.Duplicate(17) A A\n", Format(source_code));
 }
 
@@ -628,6 +648,21 @@ TEST_F(ParserTest, IfBasicElse) {
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, IfErrorUnreachable) {
+  auto const source_code =
+      "class A {\n"
+      "  int Run(int x) {\n"
+      "    if (x)\n"
+      "      return x;\n"
+      "    else {\n"
+      "      return x;\n"
+      "    }\n"
+      "    return 123;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Statement.Unreachable(93) return\n", Format(source_code));
 }
 
 //////////////////////////////////////////////////////////////////////

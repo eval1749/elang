@@ -83,7 +83,7 @@ ast::Expression* Parser::ConsumeExpressionOrType() {
 
 Token* Parser::ConsumeTokenAs(TokenType type) {
   auto const original = ConsumeToken();
-  return session_->NewToken(original->location(), TokenData(type));
+  return session()->NewToken(original->location(), TokenData(type));
 }
 
 ast::Expression* Parser::NewInvalidExpression(Token* token) {

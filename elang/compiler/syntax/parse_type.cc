@@ -220,12 +220,12 @@ ast::Expression* Parser::ProduceMemberAccess(
     buffer << separator << name->token();
     separator = ".";
   }
-  auto const name_token = session_->NewToken(
+  auto const name_token = session()->NewToken(
       SourceCodeRange(compilation_unit_->source_code(),
                       names.front()->token()->location().start_offset(),
                       names.back()->token()->location().end_offset()),
       TokenData(TokenType::SimpleName,
-                session_->NewAtomicString(base::UTF8ToUTF16(buffer.str()))));
+                session()->NewAtomicString(base::UTF8ToUTF16(buffer.str()))));
   return ProduceExpression(factory()->NewMemberAccess(name_token, names));
 }
 

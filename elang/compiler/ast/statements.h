@@ -24,11 +24,31 @@ class Statement : public Node {
  public:
   Token* keyword() const { return token(); }
 
+  // Returns true if this statement is terminator, e.g. 'break', 'continue',
+  // 'return', etc. 'if'-statement can be terminator if both then and
+  // else clauses are terminator. Note: parser doesn't do constant expression
+  // evaluation, so "while (true) {...}" isn't terminator.
+  virtual bool IsTerminator() const;
+
  protected:
   explicit Statement(Token* keyword);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Statement);
+};
+
+// TerminatorStatement represents a statement which moves control other than
+// following statement.
+class TerminatorStatement : public Statement {
+ protected:
+  explicit TerminatorStatement(Token* keyword);
+  ~TerminatorStatement() override;
+
+ private:
+  // Statement
+  bool IsTerminator() const override;
+
+  DISALLOW_COPY_AND_ASSIGN(TerminatorStatement);
 };
 
 // Represents block statement:
@@ -44,6 +64,9 @@ class BlockStatement final : public Statement {
                  Token* keyword,
                  const std::vector<Statement*>& statements);
 
+  // Statement
+  bool IsTerminator() const override;
+
   const ZoneVector<Statement*> statements_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockStatement);
@@ -51,8 +74,8 @@ class BlockStatement final : public Statement {
 
 // Represents 'break' statement
 //  'break' ';'
-class BreakStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(BreakStatement, Statement);
+class BreakStatement final : public TerminatorStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(BreakStatement, TerminatorStatement);
 
  private:
   explicit BreakStatement(Token* keyword);
@@ -85,8 +108,8 @@ class CatchClause final : public Node {
 
 // Represents 'continue' statement
 //  'continue' ';'
-class ContinueStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ContinueStatement, Statement);
+class ContinueStatement final : public TerminatorStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ContinueStatement, TerminatorStatement);
 
  private:
   explicit ContinueStatement(Token* keyword);
@@ -218,6 +241,9 @@ class IfStatement final : public Statement {
               Statement* then_statement,
               Statement* else_statement);
 
+  // Statement
+  bool IsTerminator() const override;
+
   Expression* const condition_;
   Statement* const else_statement_;
   Statement* const then_statement_;
@@ -238,8 +264,8 @@ class InvalidStatement final : public Statement {
 
 // Represents 'return' statement:
 //  'return' Expression? ';'
-class ReturnStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ReturnStatement, Statement);
+class ReturnStatement final : public TerminatorStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ReturnStatement, TerminatorStatement);
 
  public:
   Expression* value() const { return value_; }
@@ -254,8 +280,8 @@ class ReturnStatement final : public Statement {
 
 // Represents 'throw' statement:
 //  'throw' Expression
-class ThrowStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ThrowStatement, Statement);
+class ThrowStatement final : public TerminatorStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ThrowStatement, TerminatorStatement);
 
  public:
   Expression* value() const { return value_; }

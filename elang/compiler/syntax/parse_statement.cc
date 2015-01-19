@@ -160,11 +160,17 @@ bool Parser::ParseBlockStatement(Token* bracket) {
   DCHECK_EQ(bracket, TokenType::LeftCurryBracket);
   LocalDeclarationSpace block_space(this, bracket);
   std::vector<ast::Statement*> statements;
+  auto reachable = true;
   while (!AdvanceIf(TokenType::RightCurryBracket)) {
-    // TODO(eval1749) Should we do unreachable code check?
+    // TODO(eval1749) We should |reachable| when we get labeled statement.
     if (!ParseStatement())
       break;
-    statements.push_back(ConsumeStatement());
+    auto const statement = ConsumeStatement();
+    if (!reachable)
+      Error(ErrorCode::SyntaxStatementUnreachable, statement->token());
+    statements.push_back(statement);
+    if (reachable && statement->IsTerminator())
+      reachable = false;
   }
   ProduceStatement(factory()->NewBlockStatement(bracket, statements));
   return true;

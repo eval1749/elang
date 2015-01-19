@@ -140,6 +140,7 @@ namespace compiler {
   E(Syntax, Return, SemiColon)                        \
   /* Statement */                                     \
   E(Syntax, Statement, SemiColon)                     \
+  E(Syntax, Statement, Unreachable)                   \
   /* Throw */                                         \
   E(Syntax, Throw, Invalid)                           \
   E(Syntax, Throw, SemiColon)                         \

@@ -12,13 +12,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-//////////////////////////////////////////////////////////////////////
-//
-// Statement
-//
-Statement::Statement(Token* op) : Node(nullptr, op) {
-}
-
+// BlockStatement
 BlockStatement::BlockStatement(Zone* zone,
                                Token* keyword,
                                const std::vector<Statement*>& statements)
@@ -26,7 +20,13 @@ BlockStatement::BlockStatement(Zone* zone,
   DCHECK_EQ(keyword, TokenType::LeftCurryBracket);
 }
 
-BreakStatement::BreakStatement(Token* keyword) : Statement(keyword) {
+// Statement
+bool BlockStatement::IsTerminator() const {
+  return !statements_.empty() && statements_.back()->IsTerminator();
+}
+
+// BreakStatement
+BreakStatement::BreakStatement(Token* keyword) : TerminatorStatement(keyword) {
   DCHECK_EQ(keyword, TokenType::Break);
 }
 
@@ -39,7 +39,9 @@ CatchClause::CatchClause(Token* keyword,
   DCHECK(block_);
 }
 
-ContinueStatement::ContinueStatement(Token* keyword) : Statement(keyword) {
+// ContinueStatement
+ContinueStatement::ContinueStatement(Token* keyword)
+    : TerminatorStatement(keyword) {
   DCHECK_EQ(keyword, TokenType::Continue);
 }
 
@@ -85,6 +87,7 @@ ForStatement::ForStatement(Token* keyword,
       step_(step) {
 }
 
+// IfStatement
 IfStatement::IfStatement(Token* keyword,
                          Expression* condition,
                          Statement* then_statement,
@@ -96,18 +99,46 @@ IfStatement::IfStatement(Token* keyword,
   DCHECK_EQ(keyword, TokenType::If);
 }
 
+bool IfStatement::IsTerminator() const {
+  return else_statement_ && then_statement_->IsTerminator() &&
+         else_statement_->IsTerminator();
+}
+
+// InvalidStatement
 InvalidStatement::InvalidStatement(Token* token) : Statement(token) {
   // We should have non-null |token| for source code location.
   DCHECK(token);
 }
 
+// ReturnStatement
 ReturnStatement::ReturnStatement(Token* keyword, Expression* value)
-    : Statement(keyword), value_(value) {
+    : TerminatorStatement(keyword), value_(value) {
   DCHECK_EQ(keyword, TokenType::Return);
 }
 
+// Statement
+Statement::Statement(Token* op) : Node(nullptr, op) {
+}
+
+bool Statement::IsTerminator() const {
+  return false;
+}
+
+// TerminatorStatement
+TerminatorStatement::TerminatorStatement(Token* keyword) : Statement(keyword) {
+}
+
+TerminatorStatement::~TerminatorStatement() {
+}
+
+// Statement
+bool TerminatorStatement::IsTerminator() const {
+  return true;
+}
+
+// ThrowStatement
 ThrowStatement::ThrowStatement(Token* keyword, Expression* value)
-    : Statement(keyword), value_(value) {
+    : TerminatorStatement(keyword), value_(value) {
   DCHECK_EQ(keyword, TokenType::Throw);
 }
 
