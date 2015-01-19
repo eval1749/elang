@@ -17,13 +17,16 @@ namespace hir {
 //
 class ValueVisitor {
  public:
-#define V(Name, ...) virtual void Visit##Name(Name* type) = 0;
+#define V(Name, ...) virtual void Visit##Name(Name* value);
   FOR_EACH_HIR_VALUE(V)
 #undef V
+  virtual void VisitInstruction(Instruction* value);
 
  protected:
   ValueVisitor();
   virtual ~ValueVisitor();
+
+  virtual void DoDefaultVisit(Value* value);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ValueVisitor);

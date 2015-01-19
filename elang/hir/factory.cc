@@ -13,9 +13,23 @@
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
+#include "elang/hir/value_visitor.h"
 
 namespace elang {
 namespace hir {
+
+#define V(Name, ...) \
+  void ValueVisitor::Visit##Name(Name* value) { DoDefaultVisit(value); }
+FOR_EACH_HIR_VALUE(V)
+#undef V
+
+void ValueVisitor::VisitInstruction(Instruction* value) {
+  DCHECK(value);
+}
+
+void ValueVisitor::DoDefaultVisit(Value* value) {
+  DCHECK(value);
+}
 
 //////////////////////////////////////////////////////////////////////
 //

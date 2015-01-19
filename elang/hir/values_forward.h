@@ -18,6 +18,7 @@ namespace hir {
 class BasicBlockEditor;
 class Factory;
 class FunctionEditor;
+class Instruction;
 class Literal;
 class Value;
 class ValueVisitor;

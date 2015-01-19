@@ -76,7 +76,7 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 //
 // ValueFormatter
 //
-class ValueFormatter : public ValueVisitor {
+class ValueFormatter final : public ValueVisitor {
  public:
   explicit ValueFormatter(std::ostream& ostream) : ostream_(ostream) {}
   ~ValueFormatter() = default;
@@ -84,9 +84,10 @@ class ValueFormatter : public ValueVisitor {
   void Format(const Value* type);
 
  private:
-#define V(Name, ...) void Visit##Name(Name* type) override;
+#define V(Name, ...) void Visit##Name(Name* type) final;
   FOR_EACH_HIR_VALUE(V)
 #undef V
+  void VisitInstruction(Instruction* value) final;
 
   std::ostream& ostream_;
 
@@ -103,6 +104,10 @@ void ValueFormatter::VisitBasicBlock(BasicBlock* block) {
 
 void ValueFormatter::VisitFunction(Function* function) {
   ostream_ << "function@" << function;
+}
+
+void ValueFormatter::VisitInstruction(Instruction* instruction) {
+  ostream_ << "%" << instruction->id();
 }
 
 void ValueFormatter::VisitReference(Reference* reference) {

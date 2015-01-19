@@ -7,6 +7,7 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
+#include "elang/hir/value_visitor.h"
 
 namespace elang {
 namespace hir {
@@ -33,8 +34,7 @@ FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
 
 void Instruction::Accept(ValueVisitor* visitor) {
-  DCHECK(visitor);
-  NOTREACHED();
+  visitor->VisitInstruction(this);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ bool CallInstruction::CanBeRemoved() const {
 //
 EntryInstruction::EntryInstruction(Type* output_type)
     : InstructionTemplate(output_type) {
-  DCHECK(output_type->is<VoidType>());
+  // DCHECK(output_type->is<VoidType>());
 }
 
 //////////////////////////////////////////////////////////////////////
