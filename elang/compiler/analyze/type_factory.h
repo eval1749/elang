@@ -6,12 +6,14 @@
 #define ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
 
 #include "base/macros.h"
+#include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/analyze/type_values_forward.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
+class Call;
 class Node;
 }
 namespace ir {
@@ -30,6 +32,9 @@ class Factory final : public ZoneOwner {
 
   AnyValue* GetAnyValue() { return any_value_; }
   EmptyValue* GetEmptyValue() { return empty_value_; }
+  AndValue* NewAndValue();
+  Argument* NewArgument(CallValue* call_value, int position);
+  CallValue* NewCallValue(ast::Call* call);
   InvalidValue* NewInvalidValue(ast::Node* node);
   Literal* NewLiteral(ir::Type* type);
   NullValue* NewNullValue(Value* value);
@@ -38,6 +43,9 @@ class Factory final : public ZoneOwner {
  private:
   AnyValue* const any_value_;
   EmptyValue* const empty_value_;
+
+  ZoneUnorderedMap<ir::Type*, ts::Literal*> literal_cache_map_;
+  ZoneUnorderedMap<ts::Value*, ts::NullValue*> null_value_cache_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

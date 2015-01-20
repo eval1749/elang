@@ -9,16 +9,20 @@
 #include "base/logging.h"
 #include "elang/compiler/analyze/method_resolver.h"
 #include "elang/compiler/analyze/name_resolver.h"
-#include "elang/compiler/analyze/type_evaluator.h"
+#include "elang/compiler/analyze/type_factory.h"
+#include "elang/compiler/analyze/type_unifyer.h"
+#include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -74,35 +78,32 @@ TypeResolver::TypeResolver(NameResolver* name_resolver, ast::Method* method)
     : Analyzer(name_resolver),
       context_(nullptr),
       method_(method),
-      type_evaluator_(new TypeEvaluator(name_resolver)),
-      method_resolver_(new MethodResolver(type_evaluator_.get())) {
+      method_resolver_(new MethodResolver(name_resolver)),
+      type_factory_(new ts::Factory()) {
 }
 
 TypeResolver::~TypeResolver() {
 }
 
-ts::Value* TypeResolver::Evaluate(ast::Node* node, ast::Node* user) {
-  return type_evaluator_->Evaluate(node, user);
+bool TypeResolver::Add(ast::Expression* expression) {
+  return Unify(expression, GetAnyValue());
 }
 
 ts::Value* TypeResolver::GetAnyValue() {
-  return type_evaluator_->GetAnyValue();
+  return type_factory()->GetAnyValue();
 }
 
 ts::Value* TypeResolver::GetEmptyValue() {
-  return type_evaluator_->GetEmptyValue();
+  return type_factory()->GetEmptyValue();
 }
 
 ts::Value* TypeResolver::Intersect(ts::Value* value1, ts::Value* value2) {
-  return type_evaluator_->Intersect(value1, value2);
+  ts::TypeUnifyer unifyer(type_factory());
+  return unifyer.Unify(value1, value2);
 }
 
 ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
-  return type_evaluator_->NewInvalidValue(node);
-}
-
-ts::Value* TypeResolver::NewLiteral(ir::Type* literal) {
-  return type_evaluator_->NewLiteral(literal);
+  return type_factory()->NewInvalidValue(node);
 }
 
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
@@ -118,6 +119,7 @@ ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
   return resolver()->ResolveReference(expression, method_);
 }
 
+// The entry point of |TypeResolver|.
 bool TypeResolver::Unify(ast::Expression* expression, ts::Value* value) {
   ScopedContext context(this, value, expression);
   expression->Accept(this);
@@ -125,15 +127,8 @@ bool TypeResolver::Unify(ast::Expression* expression, ts::Value* value) {
   return true;
 }
 
-ts::Value* TypeResolver::Union(ts::Value* value1, ts::Value* value2) {
-  return type_evaluator_->Union(value1, value2);
-}
-
 // ats::Visitor
 void TypeResolver::VisitCall(ast::Call* call) {
-  std::vector<ts::Value*> arguments;
-  for (auto const argument : call->arguments())
-    arguments.push_back(Evaluate(argument, call));
   auto const callee = ResolveReference(call->callee());
   if (!callee)
     return;
@@ -144,51 +139,55 @@ void TypeResolver::VisitCall(ast::Call* call) {
     ProduceResult(NewInvalidValue(call->callee()), call);
     return;
   }
-  // Compute matching methods.
-  auto const methods =
-      method_resolver_->Resolve(method_group, context_->value, arguments);
+
+  auto const methods = method_resolver_->ComputeApplicableMethods(
+      method_group, context_->value, call->arity());
   if (methods.empty()) {
     Error(ErrorCode::TypeResolverMethodNoMatch, call);
     ProduceResult(NewInvalidValue(call->callee()), call);
     return;
   }
-  if (methods.size() == 1) {
-    // The value of this call site is determined. We compute argument values
-    // and return value and propagate them to users.
-    auto const method = *methods.begin();
-    auto parameters = method->parameters().begin();
-    auto succeeded = true;
-    for (auto const argument : call->arguments()) {
-      // Propagate argument value to users.
-      auto const parameter = *parameters;
-      auto const parameter_value = NewLiteral(parameter->type());
-      if (!Unify(argument, parameter_value)) {
-        Error(ErrorCode::TypeResolverArgumentUnify, argument);
-        succeeded = false;
-      }
-      if (!parameter->is_rest())
-        ++parameters;
-    }
-    if (!succeeded) {
-      ProduceResult(NewInvalidValue(call->callee()), call);
-      return;
-    }
-    // TODO(eval1749) Update users of this call site.
-    semantics()->SetValue(call->callee(), method);
-    auto const return_value = NewLiteral(method->return_type());
-    ProduceResult(Intersect(return_value, context_->value), call);
-    return;
+
+  auto const call_value = type_factory()->NewCallValue(call);
+  call_value->SetMethods(methods);
+  call_values_.push_back(call_value);
+
+  {
+    auto position = 0;
+    for (auto const argument : call->arguments())
+      Unify(argument, type_factory()->NewArgument(call_value, position));
+    ++position;
   }
-  // The result value is union of return value of candidate methods.
-  auto result = GetEmptyValue();
-  for (auto const method : methods)
-    result = Union(NewLiteral(method->return_type()), result);
-  ProduceResult(Intersect(result, context_->value), call);
+
+  ProduceResult(call_value, call);
 }
 
-void TypeResolver::VisitLiteral(ast::Literal* literal) {
-  auto const literal_value = Evaluate(literal, literal);
-  ProduceResult(Intersect(literal_value, context_->value), literal);
+void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
+  auto const token = ast_literal->token();
+  if (token == TokenType::NullLiteral) {
+    // TODO(eval1749) We should check |context_->value| is nullable.
+    ProduceResult(type_factory()->NewNullValue(context_->value), ast_literal);
+    return;
+  }
+
+  // Other than |null| literal, the type of literal is predefined.
+  auto const ast_type = session()->GetPredefinedType(token->literal_type());
+  auto const literal_type = semantics()->ValueOf(ast_type)->as<ir::Type>();
+  if (!literal_type) {
+    // Predefined type isn't defined.
+    ProduceResult(NewInvalidValue(ast_literal), ast_literal);
+    return;
+  }
+  auto const result =
+      Intersect(type_factory()->NewLiteral(literal_type), context_->value);
+  auto const result_literal = result->as<ts::Literal>();
+  if (!result_literal)
+    return ProduceResult(NewInvalidValue(ast_literal), ast_literal);
+  DCHECK(!semantics()->ValueOf(ast_literal));
+  semantics()->SetValue(
+      ast_literal,
+      factory()->NewLiteral(result_literal->value(), ast_literal->token()));
+  ProduceResult(result_literal, ast_literal);
 }
 
 }  // namespace compiler

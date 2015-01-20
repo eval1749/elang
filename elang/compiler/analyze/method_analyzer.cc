@@ -10,6 +10,7 @@
 #include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/analyze/type_resolver.h"
+#include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -77,6 +78,20 @@ void MethodBodyAnalyzer::Run() {
   DCHECK(!method_->IsExtern() && !method_->IsAbstract())
       << *method_ << " should not have a body.";
   body->Accept(this);
+  for (auto const call_value : type_resolver_->call_values()) {
+    auto const call = call_value->ast_call();
+    switch (call_value->methods().size()) {
+      case 0:
+        Error(ErrorCode::TypeResolverMethodNoMatch, call);
+        break;
+      case 1:
+        semantics()->SetValue(call, call_value->methods().front());
+        break;
+      default:
+        Error(ErrorCode::TypeResolverMethodAmbiguous, call);
+        break;
+    }
+  }
 }
 
 // ast::Visitor
@@ -93,7 +108,7 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver_->Unify(node->expression(), type_resolver_->GetAnyValue());
+  type_resolver_->Add(node->expression());
 }
 
 }  // namespace

@@ -191,6 +191,7 @@ namespace compiler {
   /* Type Resolver */                                 \
   E(TypeResolver, Argument, Unify)                    \
   E(TypeResolver, Callee, NotSupported)               \
+  E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \
   E(TypeResolver, Method, Return)                     \
   /* Warnings */                                      \

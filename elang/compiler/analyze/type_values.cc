@@ -16,56 +16,69 @@ namespace ts {
 AnyValue::AnyValue() {
 }
 
-bool AnyValue::Contains(const Value* other) const {
-  DCHECK(other);
-  return true;
+// AndValue
+AndValue::AndValue(Zone* zone) : union_values_(zone) {
+}
+
+void AndValue::SetUnionValues(const std::vector<UnionValue*>& union_values) {
+  DCHECK_GE(union_values.size(), 2u);
+  union_values_.reserve(union_values.size());
+  union_values_.resize(0);
+  for (auto const union_value : union_values)
+    union_values_.push_back(union_value);
+}
+
+// Argument
+Argument::Argument(CallValue* call_value, int position)
+    : call_value_(call_value), position_(position) {
+}
+
+const ZoneVector<ir::Method*>& Argument::methods() const {
+  return call_value_->methods();
+}
+
+ir::Type* Argument::value(const ir::Method* method) const {
+  return method->parameters()[position_]->type();
+}
+
+void Argument::SetMethods(const std::vector<ir::Method*>& methods) {
+  call_value_->SetMethods(methods);
+}
+
+// CallValue
+CallValue::CallValue(Zone* zone, ast::Call* ast_call)
+    : ast_call_(ast_call), methods_(zone) {
+}
+
+ir::Type* CallValue::value(const ir::Method* method) const {
+  return method->return_type();
+}
+
+void CallValue::SetMethods(const std::vector<ir::Method*>& methods) {
+  methods_.reserve(methods.size());
+  methods_.resize(0);
+  for (auto const method : methods)
+    methods_.push_back(method);
 }
 
 // EmptyValue
 EmptyValue::EmptyValue() {
 }
 
-bool EmptyValue::Contains(const Value* other) const {
-  DCHECK(other);
-  return false;
-}
-
 // InvalidValue
 InvalidValue::InvalidValue(ast::Node* node) : node_(node) {
-}
-
-bool InvalidValue::Contains(const Value* other) const {
-  DCHECK(other);
-  return false;
 }
 
 // Literal
 Literal::Literal(ir::Type* value) : value_(value) {
 }
 
-// Value
-bool Literal::Contains(const Value* other) const {
-  if (this == other)
-    return true;
-  if (other->is<AnyValue>())
-    return false;
-  if (other->is<EmptyValue>())
-    return true;
-  if (auto const other_null = other->as<NullValue>())
-    return Contains(other_null->value());
-  if (auto const other_literal = other->as<Literal>())
-    return other_literal->value()->IsSubtypeOf(value());
-  NOTREACHED();
-  return false;
-}
-
 // NullValue
 NullValue::NullValue(Value* value) : value_(value) {
 }
 
-// Value
-bool NullValue::Contains(const Value* other) const {
-  return value_->Contains(other);
+// UnionValue
+UnionValue::UnionValue() {
 }
 
 // Value
@@ -87,12 +100,8 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
 }
 
 // Variable
-Variable::Variable(ast::Node* node, Value* value) : node_(node), value_(value) {
-}
-
-// Variable
-bool Variable::Contains(const Value* other) const {
-  return value_->Contains(other);
+Variable::Variable(ast::Node* node, Value* value)
+    : node_(node), parent_(this), rank_(0), value_(value) {
 }
 
 }  // namespace ts

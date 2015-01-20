@@ -6,7 +6,6 @@
 #define ELANG_COMPILER_ANALYZE_METHOD_RESOLVER_H_
 
 #include <vector>
-#include <unordered_set>
 
 #include "base/macros.h"
 
@@ -34,22 +33,21 @@ class TypeEvaluator;
 //
 class MethodResolver final {
  public:
-  explicit MethodResolver(TypeEvaluator* type_evaluator);
+  explicit MethodResolver(NameResolver* name_resolver);
   ~MethodResolver();
 
-  std::unordered_set<ir::Method*> Resolve(
+  std::vector<ir::Method*> ComputeApplicableMethods(
       ast::MethodGroup* method_group,
       ts::Value* output,
-      const std::vector<ts::Value*>& argument);
+      int arity);
 
  private:
-  NameResolver* name_resolver();
+  NameResolver* name_resolver() const { return name_resolver_; }
 
-  // Returns true if |method| is applicable with |arguments|.
-  bool IsApplicable(const ir::Method* method,
-                    const std::vector<ts::Value*>& arguments);
+  // Returns true if |method| is applicable with |arity|.
+  bool IsApplicable(const ir::Method* method, int arity);
 
-  TypeEvaluator* const type_evaluator_;
+  NameResolver* const name_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodResolver);
 };

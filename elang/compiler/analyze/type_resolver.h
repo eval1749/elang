@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 
 #include <memory>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/compiler/analyze/analyzer.h"
@@ -13,12 +14,15 @@
 
 namespace elang {
 namespace compiler {
+
 namespace ts {
+class CallValue;
+class Factory;
 class Value;
 }
 
 class MethodResolver;
-class TypeEvaluator;
+class TypeUnifier;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,9 +33,12 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   TypeResolver(NameResolver* name_resolver, ast::Method* method);
   ~TypeResolver();
 
-  // Evaluate type value of |node| for |user|.
-  ts::Value* Evaluate(ast::Node* node, ast::Node* user);
-  ts::Value* GetAnyValue();
+  const std::vector<ts::CallValue*>& call_values() const {
+    return call_values_;
+  }
+
+  bool Add(ast::Expression* expression);
+
   // Unify type value of |expression| with |value|.
   bool Unify(ast::Expression* expression, ts::Value* value);
 
@@ -39,13 +46,14 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   struct Context;
   class ScopedContext;
 
+  ts::Factory* type_factory() const { return type_factory_.get(); }
+
+  ts::Value* GetAnyValue();
   ts::Value* GetEmptyValue();
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
-  ts::Value* NewLiteral(ir::Type* literal);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
-  ts::Value* Union(ts::Value* value1, ts::Value* value2);
 
   // ast::Visitor
   void VisitCall(ast::Call* call);
@@ -53,10 +61,9 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
 
   Context* context_;
   ast::Method* const method_;
-  std::unique_ptr<TypeEvaluator> type_evaluator_;
-
-  // |MethodResolver| requires |TypeEvaluator|.
-  MethodResolver* const method_resolver_;
+  std::vector<ts::CallValue*> call_values_;
+  const std::unique_ptr<MethodResolver> method_resolver_;
+  const std::unique_ptr<ts::Factory> type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };

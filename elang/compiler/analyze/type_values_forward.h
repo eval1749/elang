@@ -5,14 +5,21 @@
 #ifndef ELANG_COMPILER_ANALYZE_TYPE_VALUES_FORWARD_H_
 #define ELANG_COMPILER_ANALYZE_TYPE_VALUES_FORWARD_H_
 
+#include <ostream>
+
 namespace elang {
 namespace compiler {
 namespace ts {
 
-#define FOR_EACH_ABSTRACT_TYPE_VALUE(V) V(Value)
+#define FOR_EACH_ABSTRACT_TYPE_VALUE(V) \
+  V(UnionValue)                         \
+  V(Value)
 
 #define FOR_EACH_CONCRETE_TYPE_VALUE(V) \
+  V(AndValue)                           \
   V(AnyValue)                           \
+  V(Argument)                           \
+  V(CallValue)                          \
   V(EmptyValue)                         \
   V(InvalidValue)                       \
   V(Literal)                            \
@@ -25,6 +32,8 @@ FOR_EACH_CONCRETE_TYPE_VALUE(V)
 #undef V
 
 class Factory;
+
+std::ostream& operator<<(std::ostream& ostream, const Value& value);
 
 }  // namespace ts
 }  // namespace compiler

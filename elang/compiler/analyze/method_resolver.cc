@@ -6,7 +6,6 @@
 
 #include "base/logging.h"
 #include "elang/compiler/analyze/name_resolver.h"
-#include "elang/compiler/analyze/type_evaluator.h"
 #include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ir/nodes.h"
@@ -18,48 +17,30 @@ namespace compiler {
 //
 // MehtodResolver
 //
-MethodResolver::MethodResolver(TypeEvaluator* type_evaluator)
-    : type_evaluator_(type_evaluator) {
+MethodResolver::MethodResolver(NameResolver* name_resolver)
+    : name_resolver_(name_resolver) {
 }
 
 MethodResolver::~MethodResolver() {
 }
 
-NameResolver* MethodResolver::name_resolver() {
-  return type_evaluator_->name_resolver();
-}
-
-bool MethodResolver::IsApplicable(const ir::Method* method,
-                                  const std::vector<ts::Value*>& arguments) {
-  auto const arity = static_cast<int>(arguments.size());
+bool MethodResolver::IsApplicable(const ir::Method* method, int arity) {
   auto const signature = method->signature();
-  if (arity < signature->minimum_arity() || arity > signature->maximum_arity())
-    return false;
-  auto parameters = signature->parameters().begin();
-  for (auto const argument : arguments) {
-    auto const parameter = *parameters;
-    auto const parameter_value = type_evaluator_->NewLiteral(parameter->type());
-    if (!parameter_value->Contains(argument))
-      return false;
-    if (!parameter->is_rest())
-      ++parameters;
-  }
-  return true;
+  return arity >= signature->minimum_arity() &&
+         arity <= signature->maximum_arity();
 }
 
-std::unordered_set<ir::Method*> MethodResolver::Resolve(
+std::vector<ir::Method*> MethodResolver::ComputeApplicableMethods(
     ast::MethodGroup* method_group,
     ts::Value* output,
-    const std::vector<ts::Value*>& arguments) {
-  std::unordered_set<ir::Method*> methods;
+    int arity) {
+  std::vector<ir::Method*> methods;
   for (auto const ast_method : method_group->methods()) {
     auto const method = name_resolver()->Resolve(ast_method)->as<ir::Method>();
     DCHECK(method) << " Not resolved: " << *ast_method;
-    if (methods.count(method))
+    if (!IsApplicable(method, arity))
       continue;
-    if (!IsApplicable(method, arguments))
-      continue;
-    methods.insert(method);
+    methods.push_back(method);
   }
   return methods;
 }
