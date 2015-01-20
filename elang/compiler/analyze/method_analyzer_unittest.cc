@@ -210,6 +210,22 @@ TEST_F(MethodAnalyzerTest, Method) {
       GetCalls("Sample.Main"));
 }
 
+TEST_F(MethodAnalyzerTest, Method2) {
+  Prepare(
+      "class Sample {"
+      "    static void Foo(char x) {}"
+      "    static void Foo(int x) {}"
+      "    static void Foo(float32 x) {}"
+      "    static void Foo(float64 x) {}"
+      "    void Main() { Foo('a'); Foo(123); Foo(12.3); }"
+      "  }");
+  EXPECT_EQ(
+    "(method Foo (signature (class Void) ((parameter (class Char)))))\n"
+    "(method Foo (signature (class Void) ((parameter (class Int32)))))\n"
+    "(method Foo (signature (class Void) ((parameter (class Float64)))))\n",
+    GetCalls("Sample.Main"));
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang
