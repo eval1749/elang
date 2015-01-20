@@ -403,11 +403,13 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
       Remember(reference, result.value);
     return result;
   }
-#if 0
-  // TODO(eval1749) Support |ConstructedType| in |NamespaceAnalyzer|.
-  if (auto const cons_type = reference->as<ast::ConstructedType>())
-    return ResolveConstructedType(context, cons_type);
-#endif
+  if (auto const cons_name = reference->as<ast::ConstructedName>()) {
+    // Note: we don't care whether type arguments are resolved or not in
+    // |NamespaceAnalyzer|.
+    return ResolveReference(context, cons_name->reference());
+  }
+  if (auto const cons_name = reference->as<ast::ConstructedType>())
+    return ResolveReference(context, cons_name->reference());
   NOTREACHED();
   return Maybe<ast::NamedNode*>(nullptr);
 }

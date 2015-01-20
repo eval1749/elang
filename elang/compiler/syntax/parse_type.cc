@@ -89,7 +89,8 @@ bool Parser::ParseNamespaceOrTypeName() {
     Error(ErrorCode::SyntaxTypeName);
     return false;
   }
-  std::vector<ast::Expression*> names;
+  // List of |ast::ConstructedName| or |ast::NameReference|.
+  std::vector<ast::Expression*> components;
   auto state = State::Start;
   for (;;) {
     switch (state) {
@@ -106,7 +107,7 @@ bool Parser::ParseNamespaceOrTypeName() {
           Error(ErrorCode::SyntaxTypeName);
           return false;
         }
-        names.push_back(factory()->NewNameReference(ConsumeToken()));
+        components.push_back(factory()->NewNameReference(ConsumeToken()));
         state = State::Name;
         continue;
       case State::Name:
@@ -124,13 +125,11 @@ bool Parser::ParseNamespaceOrTypeName() {
           } while (AdvanceIf(TokenType::Comma));
           if (!AdvanceIf(TokenType::RightAngleBracket))
             Error(ErrorCode::SyntaxTypeRightAngleBracket);
-          if (names.empty()) {
+          if (components.empty()) {
             Error(ErrorCode::SyntaxTypeTypeArgument);
           } else {
-            ProduceTypeMemberAccess(names);
-            names.clear();
-            names.push_back(
-                factory()->NewConstructedType(ConsumeType(), type_args));
+            components.back() = factory()->NewConstructedName(
+                components.back()->as<ast::NameReference>(), type_args);
           }
           state = State::ConstructedType;
           continue;
@@ -138,8 +137,8 @@ bool Parser::ParseNamespaceOrTypeName() {
         state = State::Finish;
         break;
       case State::Finish:
-        DCHECK(!names.empty());
-        ProduceTypeMemberAccess(names);
+        DCHECK(!components.empty());
+        ProduceTypeMemberAccess(components);
         return true;
     }
   }
@@ -240,6 +239,8 @@ ast::Type* Parser::ProduceTypeMemberAccess(
   auto const expression = ConsumeExpressionOrType();
   if (auto const type = expression->as<ast::Type>())
     return ProduceType(type);
+  if (auto const node = expression->as<ast::ConstructedName>())
+    return ProduceType(factory()->NewConstructedType(node));
   if (auto const node = expression->as<ast::MemberAccess>())
     return ProduceType(factory()->NewTypeMemberAccess(node));
   if (auto const node = expression->as<ast::NameReference>())

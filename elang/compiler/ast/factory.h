@@ -78,6 +78,8 @@ class Factory final {
                               Expression* cond_expr,
                               Expression* then_expr,
                               Expression* else_expr);
+  ConstructedName* NewConstructedName(NameReference* name,
+                                      const std::vector<Type*>& arguments);
   InvalidExpression* NewInvalidExpression(Token* token);
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,
@@ -143,9 +145,7 @@ class Factory final {
   ArrayType* NewArrayType(Token* op,
                           Type* element_type,
                           const std::vector<int>& ranks);
-  ConstructedType* NewConstructedType(Type* blueprint_type,
-                                      const std::vector<Type*>& arguments);
-
+  ConstructedType* NewConstructedType(ConstructedName* node);
   InvalidType* NewInvalidType(Expression* expression);
   OptionalType* NewOptionalType(Token* op, Type* base_type);
   TypeMemberAccess* NewTypeMemberAccess(MemberAccess* node);

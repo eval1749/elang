@@ -33,8 +33,9 @@ Token* MakeQualifiedNameToken(ast::Node* thing) {
     return type_name_reference->name();
   if (auto const type_member_access = thing->as<ast::TypeMemberAccess>())
     return MakeQualifiedNameToken(type_member_access->reference());
-  if (auto const member_access = thing->as<ast::MemberAccess>())
+  if (auto const member_access = thing->as<ast::MemberAccess>()) {
     return member_access->token();
+  }
   return nullptr;
 }
 }  // namespace

@@ -703,8 +703,9 @@ TEST_F(ParserTest, ImportErrorDuplicate) {
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
-  Prepare("using A.B<T>;\n");
-  EXPECT_EQ("Syntax.UsingDirective.Import(12) ;\n", Format());
+  auto const source_code = "using A.B<T>;\n";
+  Prepare(source_code);
+  EXPECT_EQ(source_code, Format()) << "Using static members in class.";
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -739,7 +740,6 @@ TEST_F(ParserTest, MemberAccessErrorTypeArgument) {
       "  }\n"
       "}\n");
   EXPECT_EQ(
-      "Syntax.Expression.Type(27) System.Console\n"
       "Syntax.Bracket.NotClosed(41) < }\n"
       "Syntax.MemberAccess.RightAngleBracket(43) ;\n",
       Format());
@@ -752,8 +752,8 @@ TEST_F(ParserTest, MemberAccessTypeArg) {
       "    System.Console<A, int>(123);\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Expression.Type(27) System.Console\n", Format(source_code))
-      << "Constructed method call isn't allowed.";
+  EXPECT_EQ(source_code, Format(source_code))
+      << "Constructed method call should be allowed.";
 }
 
 //////////////////////////////////////////////////////////////////////

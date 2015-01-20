@@ -202,11 +202,17 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
   class_body->AcceptForMembers(this);
 }
 
-void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
-  Visit(cons_type->base_type());
+void Formatter::VisitContinueStatement(
+    ast::ContinueStatement* continue_statement) {
+  __assume(continue_statement);
+  stream_ << "continue;";
+}
+
+void Formatter::VisitConstructedName(ast::ConstructedName* cons_name) {
+  VisitNameReference(cons_name->reference());
   stream_ << "<";
   auto separator = "";
-  for (auto const type_arg : cons_type->arguments()) {
+  for (auto const type_arg : cons_name->arguments()) {
     stream_ << separator;
     Visit(type_arg);
     separator = ", ";
@@ -214,10 +220,8 @@ void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
   stream_ << ">";
 }
 
-void Formatter::VisitContinueStatement(
-    ast::ContinueStatement* continue_statement) {
-  __assume(continue_statement);
-  stream_ << "continue;";
+void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
+  VisitConstructedName(cons_type->reference());
 }
 
 void Formatter::VisitDoStatement(ast::DoStatement* do_statement) {

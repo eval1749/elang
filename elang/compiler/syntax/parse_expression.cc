@@ -209,11 +209,13 @@ bool Parser::ParsePrimaryExpression() {
     }
 
     // Non-local name reference
-    if (PeekToken()->is_name())
+    if (PeekToken()->is_name()) {
+      // When we get 'Name1 Name2', this is variable declaration. So, 'Name1'
+      // should be type name.
       ProduceTypeNameReference(name);
-    else
-      ProduceNameReference(name);
-    ParsePrimaryExpressionName();
+    } else {
+      ParsePrimaryExpressionName(name);
+    }
     ParsePrimaryExpressionPost();
     return true;
   }
@@ -244,10 +246,13 @@ bool Parser::ParsePrimaryExpression() {
   return false;
 }
 
-void Parser::ParsePrimaryExpressionName() {
-  if (!AdvanceIf(TokenType::LeftAngleBracket))
+void Parser::ParsePrimaryExpressionName(Token* name) {
+  DCHECK(name->is_name());
+  auto const reference = factory()->NewNameReference(name);
+  if (!AdvanceIf(TokenType::LeftAngleBracket)) {
+    ProduceExpression(reference);
     return;
-  auto const generic_type = ConsumeExpressionAsType();
+  }
   std::vector<ast::Type*> type_args;
   do {
     if (!ParseType()) {
@@ -258,11 +263,12 @@ void Parser::ParsePrimaryExpressionName() {
   } while (AdvanceIf(TokenType::Comma));
   if (type_args.empty()) {
     Error(ErrorCode::SyntaxMemberAccessTypeArgument);
+    ProduceExpression(reference);
     return;
   }
   if (!AdvanceIf(TokenType::RightAngleBracket))
     Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
-  ProduceType(factory()->NewConstructedType(generic_type, type_args));
+  ProduceExpression(factory()->NewConstructedName(reference, type_args));
 }
 
 void Parser::ParsePrimaryExpressionPost() {
@@ -285,9 +291,9 @@ void Parser::ParsePrimaryExpressionPost() {
       } else {
         components.push_back(container);
       }
-      components.push_back(factory()->NewNameReference(ConsumeToken()));
+      ParsePrimaryExpressionName(ConsumeToken());
+      components.push_back(ConsumeExpression());
       ProduceMemberAccess(components);
-      ParsePrimaryExpressionName();
       continue;
     }
 

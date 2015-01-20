@@ -91,7 +91,7 @@ class Parser final : public CompilationSessionUser {
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
-  void ParsePrimaryExpressionName();
+  void ParsePrimaryExpressionName(Token* name);
   void ParsePrimaryExpressionPost();
   bool ParseUnaryExpression();
   ExpressionCategory PeekTokenCategory();

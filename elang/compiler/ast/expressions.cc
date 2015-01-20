@@ -52,6 +52,16 @@ Conditional::Conditional(Token* op,
     : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
 }
 
+// ConstructedName
+ConstructedName::ConstructedName(Zone* zone,
+                                 NameReference* reference,
+                                 const std::vector<Type*>& args)
+    : Expression(reference->name()),
+      arguments_(zone, args),
+      reference_(reference) {
+  DCHECK(!arguments_.empty());
+}
+
 // InvalidExpression
 InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
   // We should have non-null |token| for source code location.
@@ -116,11 +126,8 @@ ArrayType::ArrayType(Zone* zone,
 }
 
 // ConstructedType
-ConstructedType::ConstructedType(Zone* zone,
-                                 Type* type,
-                                 const std::vector<Type*>& args)
-    : Type(type->token()), arguments_(zone, args), base_type_(type) {
-  DCHECK(!arguments_.empty());
+ConstructedType::ConstructedType(ConstructedName* reference)
+    : Type(reference->token()), reference_(reference) {
 }
 
 // InvalidType

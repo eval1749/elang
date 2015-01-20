@@ -133,6 +133,26 @@ class Conditional final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
 
+// Represents constructed name
+//  Name '<' Type (',' Type)* '>'
+class ConstructedName final : public Expression {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedName, Expression);
+
+ public:
+  const ZoneVector<Type*>& arguments() const { return arguments_; }
+  NameReference* reference() const { return reference_; }
+
+ private:
+  ConstructedName(Zone* zone,
+                  NameReference* reference,
+                  const std::vector<Type*>& arguments);
+
+  const ZoneVector<Type*> arguments_;
+  NameReference* const reference_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstructedName);
+};
+
 // Represents invalid expression. This expression is used for continuing parsing
 // after syntax error.
 class InvalidExpression final : public Expression {
@@ -294,22 +314,17 @@ class ArrayType final : public Type {
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
 
-// Represents constructed type:
-//  Type '<' Type (',' Type)* '>'
+// ConstructedType
 class ConstructedType final : public Type {
   DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedType, Type);
 
  public:
-  const ZoneVector<Type*>& arguments() const { return arguments_; }
-  Expression* base_type() const { return base_type_; }
+  ConstructedName* reference() const { return reference_; }
 
  private:
-  ConstructedType(Zone* zone,
-                  Type* base_type,
-                  const std::vector<Type*>& arguments);
+  explicit ConstructedType(ConstructedName* reference);
 
-  const ZoneVector<Type*> arguments_;
-  Expression* const base_type_;
+  ConstructedName* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructedType);
 };

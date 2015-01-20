@@ -34,6 +34,7 @@ namespace ast {
   V(BinaryOperation)                \
   V(Call)                           \
   V(Conditional)                    \
+  V(ConstructedName)                \
   V(InvalidExpression)              \
   V(Literal)                        \
   V(MemberAccess)                   \

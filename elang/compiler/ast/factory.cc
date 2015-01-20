@@ -156,6 +156,12 @@ Conditional* Factory::NewConditional(Token* op,
   return new (zone_) Conditional(op, cond_expr, then_expr, else_expr);
 }
 
+ConstructedName* Factory::NewConstructedName(
+    NameReference* reference,
+    const std::vector<Type*>& arguments) {
+  return new (zone_) ConstructedName(zone_, reference, arguments);
+}
+
 InvalidExpression* Factory::NewInvalidExpression(Token* token) {
   return new (zone_) InvalidExpression(token);
 }
@@ -317,10 +323,8 @@ ArrayType* Factory::NewArrayType(Token* op,
   return new (zone_) ArrayType(zone_, op, element_type, ranks);
 }
 
-ConstructedType* Factory::NewConstructedType(
-    Type* base_type,
-    const std::vector<Type*>& arguments) {
-  return new (zone_) ConstructedType(zone_, base_type, arguments);
+ConstructedType* Factory::NewConstructedType(ConstructedName* reference) {
+  return new (zone_) ConstructedType(reference);
 }
 
 InvalidType* Factory::NewInvalidType(Expression* expression) {
