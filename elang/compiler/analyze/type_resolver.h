@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "base/macros.h"
@@ -37,7 +38,10 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
     return call_values_;
   }
 
+  ts::Factory* type_factory() const { return type_factory_.get(); }
+
   bool Add(ast::Expression* expression);
+  void RegisterVariable(ast::Variable* variable, ts::Value* value);
 
   // Unify type value of |expression| with |value|.
   bool Unify(ast::Expression* expression, ts::Value* value);
@@ -46,25 +50,26 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   struct Context;
   class ScopedContext;
 
-  ts::Factory* type_factory() const { return type_factory_.get(); }
-
   ts::Value* GetAnyValue();
   ts::Value* GetEmptyValue();
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
   ts::Value* NewLiteral(ir::Type* type);
+  void ProduceIntersection(ts::Value* value, ast::Node* producer);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
 
   // ast::Visitor
-  void VisitCall(ast::Call* call);
-  void VisitLiteral(ast::Literal* literal);
+  void VisitCall(ast::Call* node);
+  void VisitLiteral(ast::Literal* node);
+  void VisitVariableReference(ast::VariableReference* node);
 
   Context* context_;
   ast::Method* const method_;
   std::vector<ts::CallValue*> call_values_;
   const std::unique_ptr<MethodResolver> method_resolver_;
   const std::unique_ptr<ts::Factory> type_factory_;
+  std::unordered_map<ast::Variable*, ts::Value*> variable_map_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };

@@ -30,6 +30,7 @@ bool MethodResolver::IsApplicable(const ir::Method* method, int arity) {
          arity <= signature->maximum_arity();
 }
 
+// TODO(eval1749) We should pass to exclude `void` methods.
 std::vector<ir::Method*> MethodResolver::ComputeApplicableMethods(
     ast::MethodGroup* method_group,
     ts::Value* output,

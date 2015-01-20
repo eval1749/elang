@@ -99,7 +99,11 @@ ts::Value* TypeResolver::GetEmptyValue() {
 
 ts::Value* TypeResolver::Intersect(ts::Value* value1, ts::Value* value2) {
   ts::TypeUnifyer unifyer(type_factory());
-  return unifyer.Unify(value1, value2);
+  auto const result = unifyer.Unify(value1, value2);
+  if (result == GetEmptyValue()) {
+    DVLOG(0) << "Intersect(" << *value1 << ", " << *value2 << ") yields empty.";
+  }
+  return result;
 }
 
 ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
@@ -110,6 +114,10 @@ ts::Value* TypeResolver::NewLiteral(ir::Type* type) {
   return type_factory()->NewLiteral(type);
 }
 
+void TypeResolver::ProduceIntersection(ts::Value* result, ast::Node* producer) {
+  return ProduceResult(Intersect(result, context_->value), producer);
+}
+
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(result);
   DCHECK(context_);
@@ -117,6 +125,11 @@ void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(producer);
   context_->result = result;
   // TODO(eval1749) If |result| is |EmptyValue|, report error with |producer|.
+}
+
+void TypeResolver::RegisterVariable(ast::Variable* variable, ts::Value* value) {
+  DCHECK(!variable_map_.count(variable));
+  variable_map_[variable] = value;
 }
 
 ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
@@ -146,29 +159,23 @@ void TypeResolver::VisitCall(ast::Call* call) {
     return;
   }
 
-  auto const methods = method_resolver_->ComputeApplicableMethods(
+  auto const candidates = method_resolver_->ComputeApplicableMethods(
       method_group, context_->value, call->arity());
 
   auto const call_value = type_factory()->NewCallValue(call);
-  call_value->SetMethods(methods);
+  call_value->SetMethods(candidates);
   call_values_.push_back(call_value);
 
-  if (methods.empty()) {
-    DVLOG(0) << "No matching methods for " << *call;
-    Error(ErrorCode::TypeResolverMethodNoMatch, call);
-    ProduceResult(NewInvalidValue(call->callee()), call);
-    return;
-  }
-
-  if (methods.size() == 1u) {
-    // We have only one applicable method. Let's check we can really call it.
-    auto const method = methods.front();
+  if (candidates.size() == 1u) {
+    // We have only one candidate method. Let's check we can really call it.
+    auto const method = call_value->methods().front();
     auto parameters = method->parameters().begin();
     for (auto const argument : call->arguments()) {
       auto const parameter = *parameters;
       if (!Unify(argument, NewLiteral(parameter->type()))) {
         DVLOG(0) << "Argument[" << parameter->position() << "] " << *argument
                  << " doesn't match with " << *method;
+        call_value->SetMethods({});
         ProduceResult(GetEmptyValue(), call);
         return;
       }
@@ -179,16 +186,34 @@ void TypeResolver::VisitCall(ast::Call* call) {
     return;
   }
 
-  // We have multiple applicable methods.
-  auto position = 0;
-  for (auto const argument : call->arguments()) {
-    if (!Unify(argument, type_factory()->NewArgument(call_value, position))) {
-      DVLOG(0) << "argument[" << position
-               << "] should be subtype: " << *argument;
+  // TODO(eval1749) Can we return literal value if all return types are same?
+  if (candidates.size() >= 2u) {
+    // We have multiple candidates.
+    auto position = 0;
+    for (auto const argument : call->arguments()) {
+      if (!Unify(argument, type_factory()->NewArgument(call_value, position))) {
+        DVLOG(0) << "argument[" << position
+                 << "] should be subtype: " << *argument;
+      }
+      ++position;
     }
-    ++position;
   }
-  ProduceResult(call_value, call);
+
+  if (call_value->methods().empty()) {
+    DVLOG(0) << "No matching methods for " << *call;
+    Error(ErrorCode::TypeResolverMethodNoMatch, call);
+    call_value->SetMethods({});
+    ProduceResult(NewInvalidValue(call->callee()), call);
+    return;
+  }
+
+  if (call_value->methods().size() == 1u) {
+    ProduceIntersection(
+        NewLiteral(call_value->methods().front()->return_type()), call);
+    return;
+  }
+
+  ProduceIntersection(call_value, call);
 }
 
 // `null` => |NullValue(context_->value)|
@@ -218,6 +243,12 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
       ast_literal,
       factory()->NewLiteral(result_literal->value(), ast_literal->token()));
   ProduceResult(result_literal, ast_literal);
+}
+
+void TypeResolver::VisitVariableReference(ast::VariableReference* reference) {
+  auto const it = variable_map_.find(reference->variable());
+  DCHECK(it != variable_map_.end());
+  ProduceIntersection(it->second, reference);
 }
 
 }  // namespace compiler

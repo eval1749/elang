@@ -49,6 +49,7 @@ class Collector final : private ast::Visitor {
   void VisitBlockStatement(ast::BlockStatement* node);
   void VisitCall(ast::Call* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitVarStatement(ast::VarStatement* node);
   void VisitVariableReference(ast::VariableReference* node);
 
   std::vector<ast::Call*> calls_;
@@ -78,27 +79,41 @@ std::string Collector::GetCalls() const {
   return ostream.str();
 }
 
-// ast::Visitor
+// ast::Visitor statements
 void Collector::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const child : node->statements())
     child->Accept(this);
-}
-
-void Collector::VisitCall(ast::Call* node) {
-  for (auto const child : node->arguments())
-    child->Accept(this);
-  calls_.push_back(node);
 }
 
 void Collector::VisitExpressionStatement(ast::ExpressionStatement* node) {
   node->expression()->Accept(this);
 }
 
+void Collector::VisitVarStatement(ast::VarStatement* node) {
+  for (auto const variable : node->variables()) {
+    auto const value = variable->value();
+    if (!value)
+      continue;
+    value->Accept(this);
+  }
+}
+
+// ast::Visitor expressions
+void Collector::VisitCall(ast::Call* node) {
+  for (auto const child : node->arguments())
+    child->Accept(this);
+  calls_.push_back(node);
+}
+
 void Collector::VisitVariableReference(ast::VariableReference* node) {
   variables_.push_back(node->variable());
 }
 
-// Install classes and methods for testing.
+//////////////////////////////////////////////////////////////////////
+//
+// MyNamespaceBuilder
+// Installs classes and methods for testing.
+//
 class MyNamespaceBuilder final : public testing::NamespaceBuilder {
  public:
   explicit MyNamespaceBuilder(NameResolver* name_resolver);
@@ -220,10 +235,24 @@ TEST_F(MethodAnalyzerTest, Method2) {
       "    void Main() { Foo('a'); Foo(123); Foo(12.3); }"
       "  }");
   EXPECT_EQ(
-    "(method Foo (signature (class Void) ((parameter (class Char)))))\n"
-    "(method Foo (signature (class Void) ((parameter (class Int32)))))\n"
-    "(method Foo (signature (class Void) ((parameter (class Float64)))))\n",
-    GetCalls("Sample.Main"));
+      "(method Foo (signature (class Void) ((parameter (class Char)))))\n"
+      "(method Foo (signature (class Void) ((parameter (class Int32)))))\n"
+      "(method Foo (signature (class Void) ((parameter (class Float64)))))\n",
+      GetCalls("Sample.Main"));
+}
+
+TEST_F(MethodAnalyzerTest, TypeVariable) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "    static char Foo(char x) { return x; }"
+      "    static int Foo(int x) {}"
+      "    void Main() { var x = Foo('a'); Foo(x); }"
+      "  }");
+  EXPECT_EQ(
+      "(method Foo (signature (class Char) ((parameter (class Char)))))\n"
+      "(method Foo (signature (class Char) ((parameter (class Char)))))\n",
+      GetCalls("Sample.Main"));
 }
 
 }  // namespace

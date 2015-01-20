@@ -10,6 +10,7 @@
 #include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/analyze/type_resolver.h"
+#include "elang/compiler/analyze/type_factory.h"
 #include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -21,6 +22,7 @@
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -43,7 +45,9 @@ class MethodBodyAnalyzer final : public Analyzer, private ast::Visitor {
   // ast::Visitor
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitVarStatement(ast::VarStatement* node) final;
 
+  // Owner of method body.
   ast::Method* const method_;
   TypeResolver* const type_resolver_;
 
@@ -93,7 +97,7 @@ void MethodBodyAnalyzer::Run() {
   }
 }
 
-// ast::Visitor
+// ast::Visitor statements
 void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
     statement->Accept(this);
@@ -108,6 +112,28 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
   type_resolver_->Add(node->expression());
+}
+
+void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
+  for (auto const variable : node->variables()) {
+    if (!variable->value())
+      continue;
+    if (auto const reference = variable->type()) {
+      if (reference->name() == TokenType::Var) {
+        auto const type_variable = type_resolver_->type_factory()->NewVariable(
+            variable, type_resolver_->type_factory()->GetAnyValue());
+        type_resolver_->RegisterVariable(variable, type_variable);
+        type_resolver_->Unify(variable->value(), type_variable);
+        continue;
+      }
+    }
+    auto const type = ResolveTypeReference(variable->type(), method_);
+    if (!type)
+      continue;
+    auto const value = type_resolver_->type_factory()->NewLiteral(type);
+    type_resolver_->RegisterVariable(variable, value);
+    type_resolver_->Unify(variable->value(), value);
+  }
 }
 
 }  // namespace
