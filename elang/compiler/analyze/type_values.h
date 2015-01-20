@@ -66,7 +66,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value);
 //
 // AnyValue
 //
-class AnyValue : public Value {
+class AnyValue final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(AnyValue, Value);
 
  private:
@@ -82,7 +82,7 @@ class AnyValue : public Value {
 //
 // EmptyValue
 //
-class EmptyValue : public Value {
+class EmptyValue final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(EmptyValue, Value);
 
  private:
@@ -98,7 +98,7 @@ class EmptyValue : public Value {
 //
 // InvalidValue
 //
-class InvalidValue : public Value {
+class InvalidValue final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(InvalidValue, Value);
 
  public:
@@ -116,7 +116,7 @@ class InvalidValue : public Value {
 };
 
 // Represents literal type
-class Literal : public Value {
+class Literal final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(Literal, Value);
 
  public:
@@ -134,7 +134,7 @@ class Literal : public Value {
 };
 
 // Represents 'null' literal of type |value|.
-class NullValue : public Value {
+class NullValue final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(NullValue, Value);
 
  public:
@@ -152,7 +152,7 @@ class NullValue : public Value {
 };
 
 // Type variable for |node|.
-class Variable : public Value {
+class Variable final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(Variable, Value);
 
  public:
