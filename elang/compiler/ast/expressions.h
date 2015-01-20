@@ -96,6 +96,7 @@ class Call final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(Call, Expression);
 
  public:
+  int arity() const { return static_cast<int>(arguments_.size()); }
   const ZoneVector<Expression*>& arguments() const { return arguments_; }
   Expression* callee() const { return callee_; }
 
