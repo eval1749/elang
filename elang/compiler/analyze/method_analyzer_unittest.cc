@@ -31,77 +31,6 @@ namespace elang {
 namespace compiler {
 namespace {
 
-// Install classes and methods for testing.
-class MyNamespaceBuilder final : public testing::NamespaceBuilder {
- public:
-  explicit MyNamespaceBuilder(NameResolver* name_resolver);
-  ~MyNamespaceBuilder() = default;
-
-  void Build();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MyNamespaceBuilder);
-};
-
-MyNamespaceBuilder::MyNamespaceBuilder(NameResolver* name_resolver)
-    : NamespaceBuilder(name_resolver) {
-}
-
-void MyNamespaceBuilder::Build() {
-  // public class Console {
-  //   public static void WriteLine(String string);
-  // }
-  auto const console_class_body = NewClass("Console", "Object");
-  auto const console_class = console_class_body->owner();
-
-  auto const write_line = session()->ast_factory()->NewMethodGroup(
-      console_class, NewName("WriteLine"));
-
-  auto const write_line_string = session()->ast_factory()->NewMethod(
-      console_class_body, write_line,
-      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string->SetParameters({
-      NewParameter(write_line_string, 0, "System.String", "string"),
-  });
-
-  auto const write_line_string_object = session()->ast_factory()->NewMethod(
-      console_class_body, write_line,
-      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string_object->SetParameters({
-      NewParameter(write_line_string_object, 0, "System.String", "string"),
-      NewParameter(write_line_string_object, 1, "System.Object", "object"),
-  });
-
-  write_line->AddMethod(write_line_string);
-  console_class_body->AddMember(write_line_string);
-  write_line->AddMethod(write_line_string_object);
-  console_class_body->AddMember(write_line_string_object);
-  console_class->AddNamedMember(write_line);
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// MethodAnalyzerTest
-//
-class MethodAnalyzerTest : public testing::AnalyzerTest {
- protected:
-  MethodAnalyzerTest() = default;
-  ~MethodAnalyzerTest() override = default;
-
-  // ::testing::Test
-  void SetUp() final;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MethodAnalyzerTest);
-};
-
-// Install methods for testing
-void MethodAnalyzerTest::SetUp() {
-  MyNamespaceBuilder(name_resolver()).Build();
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // Collector
@@ -169,6 +98,102 @@ void Collector::VisitVariableReference(ast::VariableReference* node) {
   variables_.push_back(node->variable());
 }
 
+// Install classes and methods for testing.
+class MyNamespaceBuilder final : public testing::NamespaceBuilder {
+ public:
+  explicit MyNamespaceBuilder(NameResolver* name_resolver);
+  ~MyNamespaceBuilder() = default;
+
+  void Build();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MyNamespaceBuilder);
+};
+
+MyNamespaceBuilder::MyNamespaceBuilder(NameResolver* name_resolver)
+    : NamespaceBuilder(name_resolver) {
+}
+
+void MyNamespaceBuilder::Build() {
+  // public class Console {
+  //   public static void WriteLine(String string);
+  // }
+  auto const console_class_body = NewClass("Console", "Object");
+  auto const console_class = console_class_body->owner();
+
+  auto const write_line = session()->ast_factory()->NewMethodGroup(
+      console_class, NewName("WriteLine"));
+
+  auto const write_line_string = session()->ast_factory()->NewMethod(
+      console_class_body, write_line,
+      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
+      NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string->SetParameters({
+      NewParameter(write_line_string, 0, "System.String", "string"),
+  });
+
+  auto const write_line_string_object = session()->ast_factory()->NewMethod(
+      console_class_body, write_line,
+      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
+      NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string_object->SetParameters({
+      NewParameter(write_line_string_object, 0, "System.String", "string"),
+      NewParameter(write_line_string_object, 1, "System.Object", "object"),
+  });
+
+  write_line->AddMethod(write_line_string);
+  console_class_body->AddMember(write_line_string);
+  write_line->AddMethod(write_line_string_object);
+  console_class_body->AddMember(write_line_string_object);
+  console_class->AddNamedMember(write_line);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// MethodAnalyzerTest
+//
+class MethodAnalyzerTest : public testing::AnalyzerTest {
+ protected:
+  MethodAnalyzerTest() = default;
+  ~MethodAnalyzerTest() override = default;
+
+  // Collect calls in method |method_name|.
+  std::string GetCalls(base::StringPiece method_name);
+
+  // ::testing::Test
+  void SetUp() final;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MethodAnalyzerTest);
+};
+
+// Install methods for testing
+void MethodAnalyzerTest::SetUp() {
+  MyNamespaceBuilder(name_resolver()).Build();
+}
+
+std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
+  auto const analyze_result = AnalyzeNamespace();
+  if (!analyze_result.empty())
+    return analyze_result;
+
+  ClassAnalyzer class_resolver(name_resolver());
+  if (!class_resolver.Run())
+    return GetErrors();
+
+  MethodAnalyzer method_analyzer(name_resolver());
+  if (!method_analyzer.Run())
+    return GetErrors();
+
+  auto const method_group = FindMember(method_name)->as<ast::MethodGroup>();
+  if (!method_group)
+    return std::string("Not found: ") + method_name.as_string();
+
+  auto const method_main = method_group->methods()[0];
+  Collector collector(semantics(), method_main);
+  return collector.GetCalls();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Method resolution
@@ -179,22 +204,10 @@ TEST_F(MethodAnalyzerTest, Method) {
       "class Sample {"
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
-  ASSERT_EQ("", AnalyzeNamespace());
-
-  ClassAnalyzer class_resolver(name_resolver());
-  ASSERT_TRUE(class_resolver.Run()) << GetErrors();
-
-  MethodAnalyzer method_analyzer(name_resolver());
-  EXPECT_TRUE(method_analyzer.Run());
-  EXPECT_EQ("", GetErrors());
-  auto const main_group = FindMember("Sample.Main")->as<ast::MethodGroup>();
-  ASSERT_TRUE(main_group);
-  auto const method_main = main_group->methods()[0];
-  Collector collector(semantics(), method_main);
   EXPECT_EQ(
       "(method WriteLine (signature (class Void) ((parameter (class "
       "String)))))\n",
-      collector.GetCalls());
+      GetCalls("Sample.Main"));
 }
 
 }  // namespace
