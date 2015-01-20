@@ -143,6 +143,10 @@ Token* Parameter::name() const {
   return ast_parameter_->name();
 }
 
+int Parameter::position() const {
+  return ast_parameter_->position();
+}
+
 bool Parameter::IsIdentical(const Parameter& other) const {
   return type_ == other.type_;
 }

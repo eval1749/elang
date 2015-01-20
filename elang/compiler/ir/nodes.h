@@ -189,6 +189,7 @@ class Parameter final : public Node {
   bool is_rest() const;
   ParameterKind kind() const;
   Token* name() const;
+  int position() const;
   Type* type() const { return type_; }
 
   bool IsIdentical(const Parameter& other) const;
