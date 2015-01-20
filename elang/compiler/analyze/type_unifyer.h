@@ -32,8 +32,9 @@ class TypeUnifyer final {
  private:
   Factory* factory() const { return factory_; }
 
-  bool Contains(const AndValue* and_value, const ir::Type* type);
-  bool Contains(const UnionValue* union_value, const ir::Type* type);
+  bool Contains(const AndValue* and_value, ir::Type* type);
+  bool Contains(const AndValue* and_value, const UnionValue* union_value);
+  bool Contains(const UnionValue* union_value, ir::Type* type);
 
   Value* GetAnyValue();
   Value* GetEmptyValue();

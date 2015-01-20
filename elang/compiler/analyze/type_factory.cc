@@ -10,6 +10,10 @@ namespace elang {
 namespace compiler {
 namespace ts {
 
+//////////////////////////////////////////////////////////////////////
+//
+// The Type Factory
+//
 Factory::Factory()
     : any_value_(new (zone()) AnyValue),
       empty_value_(new (zone()) EmptyValue()),
@@ -20,8 +24,8 @@ Factory::Factory()
 Factory::~Factory() {
 }
 
-AndValue* Factory::NewAndValue() {
-  return new (zone()) AndValue(zone());
+AndValue* Factory::NewAndValue(const std::vector<UnionValue*>& union_values) {
+  return new (zone()) AndValue(zone(), union_values);
 }
 
 Argument* Factory::NewArgument(CallValue* call_value, int position) {

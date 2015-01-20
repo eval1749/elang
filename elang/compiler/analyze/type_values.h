@@ -73,6 +73,8 @@ class UnionValue : public Value {
  public:
   virtual const ZoneVector<ir::Method*>& methods() const = 0;
   virtual ir::Type* value(const ir::Method* method) const = 0;
+
+  virtual bool CanUse(ir::Method* method, ir::Type* type) const = 0;
   virtual void SetMethods(const std::vector<ir::Method*>& methods) = 0;
 
  protected:
@@ -106,7 +108,7 @@ class AndValue final : public Value {
   const ZoneVector<UnionValue*>& union_values() const { return union_values_; }
 
  private:
-  explicit AndValue(Zone* zone);
+  explicit AndValue(Zone* zone, const std::vector<UnionValue*>& union_values);
 
   void SetUnionValues(const std::vector<UnionValue*>& union_values);
 
@@ -130,6 +132,9 @@ class Argument final : public UnionValue {
 
   void SetMethods(const std::vector<ir::Method*>& methods);
 
+  // UnionValue
+  bool CanUse(ir::Method* method, ir::Type* type) const final;
+
  private:
   Argument(CallValue* call_value, int position);
 
@@ -152,6 +157,9 @@ class CallValue final : public UnionValue {
   ir::Type* value(const ir::Method* method) const final;
 
   void SetMethods(const std::vector<ir::Method*>& methods) final;
+
+  // UnionValue
+  bool CanUse(ir::Method* method, ir::Type* type) const final;
 
  private:
   CallValue(Zone* zone, ast::Call* ast_call);
@@ -231,11 +239,13 @@ class Variable final : public Value {
   ast::Node* node() const { return node_; }
   Value* value() const { return value_; }
 
+  Variable* Find() const;
+
  private:
   explicit Variable(ast::Node* node, Value* value);
 
   ast::Node* const node_;
-  Variable* parent_;
+  mutable Variable* parent_;
   int rank_;
   Value* value_;
 

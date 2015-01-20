@@ -80,17 +80,16 @@ void MethodBodyAnalyzer::Run() {
   body->Accept(this);
   for (auto const call_value : type_resolver_->call_values()) {
     auto const call = call_value->ast_call();
-    switch (call_value->methods().size()) {
-      case 0:
-        Error(ErrorCode::TypeResolverMethodNoMatch, call);
-        break;
-      case 1:
-        semantics()->SetValue(call, call_value->methods().front());
-        break;
-      default:
-        Error(ErrorCode::TypeResolverMethodAmbiguous, call);
-        break;
+    auto const methods = call_value->methods();
+    if (methods.empty()) {
+      Error(ErrorCode::TypeResolverMethodNoMatch, call);
+      continue;
     }
+    if (methods.size() == 1u) {
+      semantics()->SetValue(call->callee(), methods.front());
+      continue;
+    }
+    Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
 }
 

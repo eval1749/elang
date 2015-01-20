@@ -106,6 +106,10 @@ ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
   return type_factory()->NewInvalidValue(node);
 }
 
+ts::Value* TypeResolver::NewLiteral(ir::Type* type) {
+  return type_factory()->NewLiteral(type);
+}
+
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(result);
   DCHECK(context_);
@@ -128,6 +132,8 @@ bool TypeResolver::Unify(ast::Expression* expression, ts::Value* value) {
 }
 
 // ats::Visitor
+
+// Bind applicable methods to |call->callee|.
 void TypeResolver::VisitCall(ast::Call* call) {
   auto const callee = ResolveReference(call->callee());
   if (!callee)
@@ -142,26 +148,51 @@ void TypeResolver::VisitCall(ast::Call* call) {
 
   auto const methods = method_resolver_->ComputeApplicableMethods(
       method_group, context_->value, call->arity());
-  if (methods.empty()) {
-    Error(ErrorCode::TypeResolverMethodNoMatch, call);
-    ProduceResult(NewInvalidValue(call->callee()), call);
-    return;
-  }
 
   auto const call_value = type_factory()->NewCallValue(call);
   call_value->SetMethods(methods);
   call_values_.push_back(call_value);
 
-  {
-    auto position = 0;
-    for (auto const argument : call->arguments())
-      Unify(argument, type_factory()->NewArgument(call_value, position));
-    ++position;
+  if (methods.empty()) {
+    DVLOG(0) << "No matching methods for " << *call;
+    Error(ErrorCode::TypeResolverMethodNoMatch, call);
+    ProduceResult(NewInvalidValue(call->callee()), call);
+    return;
   }
 
+  if (methods.size() == 1u) {
+    // We have only one applicable method. Let's check we can really call it.
+    auto const method = methods.front();
+    auto parameters = method->parameters().begin();
+    for (auto const argument : call->arguments()) {
+      auto const parameter = *parameters;
+      if (!Unify(argument, NewLiteral(parameter->type()))) {
+        DVLOG(0) << "Argument[" << parameter->position() << "] " << *argument
+                 << " doesn't match with " << *method;
+        ProduceResult(GetEmptyValue(), call);
+        return;
+      }
+      if (!parameter->is_rest())
+        ++parameters;
+    }
+    ProduceResult(NewLiteral(method->return_type()), call);
+    return;
+  }
+
+  // We have multiple applicable methods.
+  auto position = 0;
+  for (auto const argument : call->arguments()) {
+    if (!Unify(argument, type_factory()->NewArgument(call_value, position))) {
+      DVLOG(0) << "argument[" << position
+               << "] should be subtype: " << *argument;
+    }
+    ++position;
+  }
   ProduceResult(call_value, call);
 }
 
+// `null` => |NullValue(context_->value)|
+// others => |LiteralValue(type of literal data)|
 void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   auto const token = ast_literal->token();
   if (token == TokenType::NullLiteral) {
@@ -178,8 +209,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
     ProduceResult(NewInvalidValue(ast_literal), ast_literal);
     return;
   }
-  auto const result =
-      Intersect(type_factory()->NewLiteral(literal_type), context_->value);
+  auto const result = Intersect(NewLiteral(literal_type), context_->value);
   auto const result_literal = result->as<ts::Literal>();
   if (!result_literal)
     return ProduceResult(NewInvalidValue(ast_literal), ast_literal);

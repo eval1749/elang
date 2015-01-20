@@ -52,6 +52,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   ts::Value* GetEmptyValue();
   ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
+  ts::Value* NewLiteral(ir::Type* type);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
 

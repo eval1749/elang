@@ -17,7 +17,8 @@ AnyValue::AnyValue() {
 }
 
 // AndValue
-AndValue::AndValue(Zone* zone) : union_values_(zone) {
+AndValue::AndValue(Zone* zone, const std::vector<UnionValue*>& union_values)
+    : union_values_(zone, union_values) {
 }
 
 void AndValue::SetUnionValues(const std::vector<UnionValue*>& union_values) {
@@ -45,6 +46,11 @@ void Argument::SetMethods(const std::vector<ir::Method*>& methods) {
   call_value_->SetMethods(methods);
 }
 
+// UnionValue
+bool Argument::CanUse(ir::Method* method, ir::Type* type) const {
+  return type->IsSubtypeOf(value(method));
+}
+
 // CallValue
 CallValue::CallValue(Zone* zone, ast::Call* ast_call)
     : ast_call_(ast_call), methods_(zone) {
@@ -59,6 +65,11 @@ void CallValue::SetMethods(const std::vector<ir::Method*>& methods) {
   methods_.resize(0);
   for (auto const method : methods)
     methods_.push_back(method);
+}
+
+// UnionValue
+bool CallValue::CanUse(ir::Method* method, ir::Type* type) const {
+  return value(method)->IsSubtypeOf(type);
 }
 
 // EmptyValue
@@ -102,6 +113,12 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
 // Variable
 Variable::Variable(ast::Node* node, Value* value)
     : node_(node), parent_(this), rank_(0), value_(value) {
+}
+
+Variable* Variable::Find() const {
+  if (parent_ != this)
+    parent_ = parent_->Find();
+  return parent_;
 }
 
 }  // namespace ts

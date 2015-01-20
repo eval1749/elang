@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
 #define ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
 
+#include <vector>
+
 #include "base/macros.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_owner.h"
@@ -23,7 +25,7 @@ namespace ts {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Factory
+// The Type Factory
 //
 class Factory final : public ZoneOwner {
  public:
@@ -32,7 +34,7 @@ class Factory final : public ZoneOwner {
 
   AnyValue* GetAnyValue() { return any_value_; }
   EmptyValue* GetEmptyValue() { return empty_value_; }
-  AndValue* NewAndValue();
+  AndValue* NewAndValue(const std::vector<UnionValue*>& union_values);
   Argument* NewArgument(CallValue* call_value, int position);
   CallValue* NewCallValue(ast::Call* call);
   InvalidValue* NewInvalidValue(ast::Node* node);

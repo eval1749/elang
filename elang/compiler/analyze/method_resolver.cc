@@ -35,6 +35,7 @@ std::vector<ir::Method*> MethodResolver::ComputeApplicableMethods(
     ts::Value* output,
     int arity) {
   std::vector<ir::Method*> methods;
+  // TODO(eval1749) We should check base classes.
   for (auto const ast_method : method_group->methods()) {
     auto const method = name_resolver()->Resolve(ast_method)->as<ir::Method>();
     DCHECK(method) << " Not resolved: " << *ast_method;

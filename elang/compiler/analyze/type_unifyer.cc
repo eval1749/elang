@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_set>
 #include <vector>
 
 #include "elang/compiler/analyze/type_unifyer.h"
@@ -25,7 +26,7 @@ TypeUnifyer::TypeUnifyer(Factory* factory) : factory_(factory) {
 TypeUnifyer::~TypeUnifyer() {
 }
 
-bool TypeUnifyer::Contains(const AndValue* and_value1, const ir::Type* type2) {
+bool TypeUnifyer::Contains(const AndValue* and_value1, ir::Type* type2) {
   for (auto const union_value1 : and_value1->union_values()) {
     if (Contains(union_value1, type2))
       return true;
@@ -33,10 +34,19 @@ bool TypeUnifyer::Contains(const AndValue* and_value1, const ir::Type* type2) {
   return false;
 }
 
-bool TypeUnifyer::Contains(const UnionValue* union_value1,
-                           const ir::Type* type2) {
+bool TypeUnifyer::Contains(const AndValue* and_value1,
+                           const UnionValue* union_value2) {
+  for (auto const method2 : union_value2->methods()) {
+    if (Contains(and_value1, union_value2->value(method2)))
+      return true;
+  }
+  return false;
+}
+
+// Returns true if we can use |type2| with |union_value1|.
+bool TypeUnifyer::Contains(const UnionValue* union_value1, ir::Type* type2) {
   for (auto const method1 : union_value1->methods()) {
-    if (union_value1->value(method1)->IsSubtypeOf(type2))
+    if (union_value1->CanUse(method1, type2))
       return true;
   }
   return false;
@@ -56,6 +66,9 @@ Value* TypeUnifyer::NewLiteral(ir::Type* type) {
 
 // The entry point of |TypeUnifyer|.
 Value* TypeUnifyer::Unify(Value* value1, Value* value2) {
+  if (value1 == value2)
+    return value1;
+
   if (value1->is<InvalidValue>() || value1->is<EmptyValue>())
     return value1;
   if (value2->is<InvalidValue>() || value2->is<EmptyValue>())
@@ -99,8 +112,38 @@ Value* TypeUnifyer::Unify(Value* value1, Value* value2) {
 
 // Unify AndValue
 Value* TypeUnifyer::Unify(AndValue* and_value1, AndValue* and_value2) {
-  NOTREACHED() << "Unify(" << *and_value1 << ", " << and_value2 << ")";
-  return GetEmptyValue();
+  std::unordered_set<UnionValue*> union_values;
+  std::vector<UnionValue*> union_values1;
+  for (auto const union_value1 : and_value1->union_values()) {
+    if (!Contains(and_value2, union_value1))
+      continue;
+    union_values1.push_back(union_value1);
+    union_values.insert(union_value1);
+  }
+  and_value1->SetUnionValues(union_values1);
+  if (union_values1.empty()) {
+    and_value2->SetUnionValues({});
+    return GetEmptyValue();
+  }
+  if (union_values1.size() == 1u)
+    return Unify(union_values1.front(), and_value2);
+
+  std::vector<UnionValue*> union_values2;
+  for (auto const union_value2 : and_value2->union_values()) {
+    if (!Contains(and_value1, union_value2))
+      continue;
+    union_values2.push_back(union_value2);
+    union_values.insert(union_value2);
+  }
+  and_value2->SetUnionValues(union_values2);
+  DCHECK(!union_values2.empty());
+  DCHECK(!union_values.empty());
+  if (union_values2.size() == 1u)
+    return Unify(union_values2.front(), and_value1);
+
+  // We still need to have as |AndValue(and_value1 + and_value2)|.
+  std::vector<UnionValue*> result(union_values.begin(), union_values.end());
+  return factory()->NewAndValue(result);
 }
 
 Value* TypeUnifyer::Unify(AndValue* and_value1, Value* value2) {
@@ -135,16 +178,16 @@ Value* TypeUnifyer::Unify(Literal* literal1, AndValue* and_value2) {
 
 Value* TypeUnifyer::Unify(Literal* literal1, UnionValue* union_value2) {
   auto const type1 = literal1->value();
-  std::vector<ir::Method*> methods;
-  for (auto const method : union_value2->methods()) {
-    if (method->return_type()->IsSubtypeOf(type1))
-      methods.push_back(method);
+  std::vector<ir::Method*> methods2;
+  for (auto const method2 : union_value2->methods()) {
+    if (union_value2->CanUse(method2, type1))
+      methods2.push_back(method2);
   }
-  union_value2->SetMethods(methods);
-  if (methods.empty())
+  union_value2->SetMethods(methods2);
+  if (methods2.empty())
     return GetEmptyValue();
-  if (methods.size() == 1)
-    return NewLiteral(methods.front()->return_type());
+  if (methods2.size() == 1)
+    return NewLiteral(union_value2->value(methods2.front()));
   return union_value2;
 }
 
@@ -181,13 +224,11 @@ Value* TypeUnifyer::Unify(UnionValue* union_value1, AndValue* and_value2) {
   if (methods1.empty())
     return GetEmptyValue();
   if (methods1.size() == 1u)
-    return NewLiteral(methods1.front()->return_type());
-  auto const and_value = factory()->NewAndValue();
+    return NewLiteral(union_value1->value(methods1.front()));
   std::vector<UnionValue*> union_values(and_value2->union_values().begin(),
                                         and_value2->union_values().end());
   union_values.push_back(union_value1);
-  and_value->SetUnionValues(union_values);
-  return and_value;
+  return factory()->NewAndValue(union_values);
 }
 
 Value* TypeUnifyer::Unify(UnionValue* union_value1, UnionValue* union_value2) {
@@ -201,20 +242,23 @@ Value* TypeUnifyer::Unify(UnionValue* union_value1, UnionValue* union_value2) {
     union_value2->SetMethods({});
     return GetEmptyValue();
   }
-  if (methods1.size() == 1u)
-    return Unify(NewLiteral(methods1.front()->return_type()), union_value2);
+  if (methods1.size() == 1u) {
+    // Update |union_value2|
+    return Unify(NewLiteral(union_value1->value(methods1.front())),
+                 union_value2);
+  }
 
   std::vector<ir::Method*> methods2;
   for (auto const method2 : union_value2->methods()) {
-    if (Contains(union_value1, method2->return_type()))
+    if (Contains(union_value1, union_value2->value(method2)))
       methods2.push_back(method2);
   }
   union_value2->SetMethods(methods2);
   if (methods2.empty())
     return GetEmptyValue();
   if (methods2.size() == 1u)
-    return NewLiteral(methods2.front()->return_type());
-  return union_value2;
+    return NewLiteral(union_value2->value(methods2.front()));
+  return factory()->NewAndValue({union_value1, union_value2});
 }
 
 Value* TypeUnifyer::Unify(UnionValue* union_value1, Value* value2) {
@@ -232,28 +276,25 @@ Value* TypeUnifyer::Unify(UnionValue* union_value1, Value* value2) {
 Value* TypeUnifyer::Unify(Variable* variable1, Value* value2) {
   if (auto const variable2 = value2->as<Variable>())
     return Unify(variable1, variable2);
-  auto const result = Unify(variable1->value(), value2);
-  variable1->value_ = result;
+  auto const root1 = variable1->Find();
+  auto const result = Unify(root1->value(), value2);
+  root1->value_ = result;
   return result;
 }
 
 Value* TypeUnifyer::Unify(Variable* variable1, Variable* variable2) {
-  auto const result = Unify(variable1->value(), variable2->value());
-  variable1->value_ = result;
-  variable2->value_ = result;
-  Union(variable1, variable2);
+  auto const root1 = variable1->Find();
+  auto const root2 = variable2->Find();
+  auto const result = Unify(root1->value(), root2->value());
+  root1->value_ = result;
+  root2->value_ = result;
+  Union(root1, root2);
   return result;
 }
 
 void TypeUnifyer::Union(Variable* variable1, Variable* variable2) {
-  auto root1 = variable1;
-  while (root1 != variable1)
-    root1 = root1->parent_;
-  auto root2 = variable1;
-  while (root2 != variable2)
-    root2 = root2->parent_;
-  if (root1 == root2)
-    return;
+  auto const root1 = variable1->Find();
+  auto root2 = variable1->Find();
   if (root1->rank_ < root2->rank_) {
     root1->parent_ = root2;
     return;
