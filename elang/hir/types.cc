@@ -15,11 +15,9 @@
 namespace elang {
 namespace hir {
 
-#define V(Name, ...)                              \
-  void Name##Type::Accept(TypeVisitor* visitor) { \
-    visitor->Visit##Name##Type(this);             \
-  }
-FOR_EACH_HIR_TYPE(V)
+#define V(Name) \
+  void Name::Accept(TypeVisitor* visitor) { visitor->Visit##Name(this); }
+FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////

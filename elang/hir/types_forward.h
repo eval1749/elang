@@ -13,6 +13,32 @@
 namespace elang {
 namespace hir {
 
+// List of abstract C++ classes representing HIR type.
+#define FOR_EACH_HIR_ABSTRACT_TYPE(V) \
+  V(PrimitiveType)                    \
+  V(ReferenceType)                    \
+  V(Type)
+
+// List of concrete C++ classes representing HIR type.
+#define FOR_EACH_HIR_CONCRETE_TYPE(V) \
+  V(BoolType)                         \
+  V(CharType)                         \
+  V(Float32Type)                      \
+  V(Float64Type)                      \
+  V(ExternalType)                     \
+  V(FunctionType)                     \
+  V(Int16Type)                        \
+  V(Int32Type)                        \
+  V(Int64Type)                        \
+  V(Int8Type)                         \
+  V(PointerType)                      \
+  V(UInt16Type)                       \
+  V(UInt32Type)                       \
+  V(UInt64Type)                       \
+  V(UInt8Type)                        \
+  V(StringType)                       \
+  V(VoidType)
+
 // Note: When you add primitive type, you should also update
 // |FOR_EACH_HIR_LITERAL_VALUE|.
 //
@@ -37,41 +63,12 @@ namespace hir {
   V(UInt8, uint8, uint8_t, 8, General)      \
   V(Void, void, int, 0, Void)
 
-#define V(Name, ...) class Name##Type;
-FOR_EACH_HIR_PRIMITIVE_TYPE(V)
-#undef V
-
-// List of concrete C++ classes representing HIR type.
-#define FOR_EACH_HIR_TYPE(V) \
-  V(Bool)                    \
-  V(Char)                    \
-  V(Float32)                 \
-  V(Float64)                 \
-  V(External)                \
-  V(Function)                \
-  V(Int16)                   \
-  V(Int32)                   \
-  V(Int64)                   \
-  V(Int8)                    \
-  V(Pointer)                 \
-  V(UInt16)                  \
-  V(UInt32)                  \
-  V(UInt64)                  \
-  V(UInt8)                   \
-  V(String)                  \
-  V(Void)
-
-#define FOR_EACH_HIR_ABSTRACT_TYPE(V) \
-  V(Primitive)                        \
-  V(Reference)
-
-#define V(Name, ...) class Name##Type;
+#define V(Name) class Name;
 FOR_EACH_HIR_ABSTRACT_TYPE(V)
-FOR_EACH_HIR_TYPE(V)
+FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
 // Forward declarations
-class Type;
 class TypeFactory;
 class TypeVisitor;
 

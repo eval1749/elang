@@ -38,8 +38,8 @@ class TypeFormatter : public TypeVisitor {
   void Format(const Type* type);
 
  private:
-#define V(Name, ...) void Visit##Name##Type(Name##Type* type) override;
-  FOR_EACH_HIR_TYPE(V)
+#define V(Name) void Visit##Name(Name* type) override;
+  FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
   std::ostream& ostream_;

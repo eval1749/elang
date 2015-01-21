@@ -18,8 +18,8 @@ namespace hir {
 //
 class ELANG_HIR_EXPORT TypeVisitor {
  public:
-#define V(Name, ...) virtual void Visit##Name##Type(Name##Type* type) = 0;
-  FOR_EACH_HIR_TYPE(V)
+#define V(Name) virtual void Visit##Name(Name* type) = 0;
+  FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
  protected:
