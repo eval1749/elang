@@ -92,6 +92,10 @@ class ELANG_HIR_EXPORT Instruction
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// Help template for fixed operands instructions.
+//
 template <class Derived, typename... Params>
 class InstructionTemplate : public Instruction {
  public:
@@ -125,6 +129,35 @@ class InstructionTemplate : public Instruction {
   }
   EmbeddedContainer<UseDefNode, sizeof...(Params)> operands_;
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// BranchInstruction
+//
+class ELANG_HIR_EXPORT BranchInstruction final
+    : public InstructionTemplate<BranchInstruction,
+                                 Value*,
+                                 BasicBlock*,
+                                 BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Branch);
+
+ public:
+  // Instruction
+  bool CanBeRemoved() const override;
+
+ private:
+  friend class BaseClass;
+
+  BranchInstruction(Type* output_type,
+                    Value* condition,
+                    BasicBlock* then_block,
+                    BasicBlock* else_block);
+
+  // Instruction
+  bool IsTerminator() const override;
+
+  DISALLOW_COPY_AND_ASSIGN(BranchInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////

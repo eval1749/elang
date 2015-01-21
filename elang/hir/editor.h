@@ -49,6 +49,9 @@ class ELANG_HIR_EXPORT Editor final {
   // Instruction editing
   void Append(Instruction* new_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
+  void SetBranch(Value* condition,
+                 BasicBlock* then_block,
+                 BasicBlock* else_block);
   void SetInput(Instruction* instruction, int index, Value* new_value);
   void SetReturn(Value* new_value);
 

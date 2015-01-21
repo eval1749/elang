@@ -107,9 +107,20 @@ void Editor::InsertBefore(Instruction* new_instruction,
 }
 
 BasicBlock* Editor::NewBasicBlock() {
-  auto const basic_block = factory_->NewBasicBlock();
-  basic_blocks_.push_back(basic_block);
-  return basic_block;
+  auto const new_basic_block = factory_->NewBasicBlock();
+  basic_blocks_.push_back(new_basic_block);
+  new_basic_block->id_ = factory_->NextBasicBlockId();
+  function_->basic_blocks_.InsertBefore(new_basic_block,
+                                        function_->exit_block());
+  return new_basic_block;
+}
+
+void Editor::SetBranch(Value* condition,
+                       BasicBlock* then_block,
+                       BasicBlock* else_block) {
+  DCHECK(!basic_blocks_.empty());
+  Append(BranchInstruction::New(factory_, factory_->GetVoidType(), condition,
+                                then_block, else_block));
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {

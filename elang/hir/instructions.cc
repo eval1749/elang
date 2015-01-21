@@ -39,6 +39,27 @@ void Instruction::Accept(ValueVisitor* visitor) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// BranchInstruction
+//
+BranchInstruction::BranchInstruction(Type* output_type,
+                                     Value* condition,
+                                     BasicBlock* then_block,
+                                     BasicBlock* else_block)
+    : InstructionTemplate(output_type, condition, then_block, else_block) {
+  DCHECK(output_type->is<VoidType>());
+  DCHECK(condition->type()->is<BoolType>());
+}
+
+bool BranchInstruction::CanBeRemoved() const {
+  return false;
+}
+
+bool BranchInstruction::IsTerminator() const {
+  return true;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // CallInstruction
 //
 CallInstruction::CallInstruction(Type* output_type,
@@ -58,7 +79,6 @@ bool CallInstruction::CanBeRemoved() const {
 //
 EntryInstruction::EntryInstruction(Type* output_type)
     : InstructionTemplate(output_type) {
-  // DCHECK(output_type->is<VoidType>());
 }
 
 //////////////////////////////////////////////////////////////////////
