@@ -93,5 +93,14 @@ FunctionType* TypeFactory::NewFunctionType(Type* return_type,
   return function_type_factory_->NewFunctionType(return_type, parameters_type);
 }
 
+PointerType* TypeFactory::NewPointerType(Type* pointee) {
+  auto it = pointer_type_map_.find(pointee);
+  if (it != pointer_type_map_.end())
+    return it->second;
+  auto const new_pointer_type = new (zone()) PointerType(zone(), pointee);
+  pointer_type_map_[pointee] = new_pointer_type;
+  return new_pointer_type;
+}
+
 }  // namespace hir
 }  // namespace elang

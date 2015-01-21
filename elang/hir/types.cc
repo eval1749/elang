@@ -38,6 +38,19 @@ FunctionType::FunctionType(Zone* zone, Type* return_type, Type* parameters_type)
 
 //////////////////////////////////////////////////////////////////////
 //
+// PointerType
+//
+PointerType::PointerType(Zone* zone, Type* pointee)
+    : null_literal_(new (zone) NullLiteral(this)), pointee_(pointee) {
+}
+
+Value* PointerType::GetDefaultValue() const {
+  DCHECK(null_literal_);
+  return null_literal_;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // PrimitiveTypes
 //
 // TODO(eval1749) NYI literal object cache.

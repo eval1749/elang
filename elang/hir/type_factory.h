@@ -5,6 +5,7 @@
 #ifndef ELANG_HIR_TYPE_FACTORY_H_
 #define ELANG_HIR_TYPE_FACTORY_H_
 
+#include <unordered_map>
 #include <memory>
 
 #include "base/macros.h"
@@ -31,6 +32,7 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   StringType* GetStringType() const { return string_type_; }
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
+  PointerType* NewPointerType(Type* pointee);
 
 #define V(Name, ...) Name##Type* Get##Name##Type() const;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
@@ -43,6 +45,7 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
+  std::unordered_map<Type*, PointerType*> pointer_type_map_;
   std::unique_ptr<FunctionTypeFactory> function_type_factory_;
   StringType* const string_type_;
 

@@ -42,6 +42,14 @@ namespace hir {
  protected:                                 \
   ~self() override = default;
 
+#define DECLARE_HIR_TYPE_ABSTRACT_CLASS(self, super) \
+  DECLARE_HIR_TYPE_CLASS(self, super)
+
+#define DECLARE_HIR_TYPE_CONCRETE_CLASS(self, super) \
+  DECLARE_HIR_TYPE_CLASS(self, super)                \
+ private:                                            \
+  void Accept(TypeVisitor* visitor) override;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Represent HIR type.
@@ -49,7 +57,7 @@ namespace hir {
 class ELANG_HIR_EXPORT Type : public Castable,
                               public Visitable<TypeVisitor>,
                               public ZoneAllocated {
-  DECLARE_HIR_TYPE_CLASS(Type, Castable);
+  DECLARE_HIR_TYPE_ABSTRACT_CLASS(Type, Castable);
 
  public:
   enum RegisterClass {
@@ -74,14 +82,35 @@ class ELANG_HIR_EXPORT Type : public Castable,
   DISALLOW_COPY_AND_ASSIGN(Type);
 };
 
-#define DECLARE_HIR_TYPE_CONCRETE_CLASS(self, super) \
-  DECLARE_HIR_TYPE_CLASS(self, super)                \
- private:                                            \
-  void Accept(TypeVisitor* visitor) override;
+//////////////////////////////////////////////////////////////////////
+//
+// PointerType
+//
+class ELANG_HIR_EXPORT PointerType final : public Type {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(PointerType, Type);
 
+ public:
+  Type* pointee() const { return pointee_; }
+
+  // Returns default value of this type.
+  Value* GetDefaultValue() const final;
+
+ private:
+  explicit PointerType(Zone* zone, Type* pointee);
+
+  NullLiteral* const null_literal_;
+  Type* pointee_;
+
+  DISALLOW_COPY_AND_ASSIGN(PointerType);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Primitive Types
+//
 // A base class of primitive types.
 class ELANG_HIR_EXPORT PrimitiveType : public Type {
-  DECLARE_HIR_TYPE_CLASS(PrimitiveType, Type);
+  DECLARE_HIR_TYPE_ABSTRACT_CLASS(PrimitiveType, Type);
 
  public:
   virtual int bit_size() const = 0;
@@ -129,7 +158,7 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(DECLARE_HIR_PRIMITIVE_TYPE)
 // ReferenceType
 //
 class ELANG_HIR_EXPORT ReferenceType : public Type {
-  DECLARE_HIR_TYPE_CLASS(ReferenceType, Type);
+  DECLARE_HIR_TYPE_ABSTRACT_CLASS(ReferenceType, Type);
 
  public:
   // For |FunctionType|, |name()| return |nullptr|.

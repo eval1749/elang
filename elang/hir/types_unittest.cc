@@ -44,5 +44,11 @@ TEST_F(HirTypesTest, FunctionType) {
   EXPECT_EQ(function_type, other);
 }
 
+TEST_F(HirTypesTest, PointerType) {
+  auto const pointer1 = types()->NewPointerType(types()->GetInt32Type());
+  auto const pointer2 = types()->NewPointerType(types()->GetInt32Type());
+  EXPECT_EQ(pointer1, pointer2);
+}
+
 }  // namespace hir
 }  // namespace elang

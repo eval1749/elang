@@ -53,6 +53,7 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(V)
   V(Int32)                   \
   V(Int64)                   \
   V(Int8)                    \
+  V(Pointer)                 \
   V(UInt16)                  \
   V(UInt32)                  \
   V(UInt64)                  \
@@ -60,13 +61,16 @@ FOR_EACH_HIR_PRIMITIVE_TYPE(V)
   V(String)                  \
   V(Void)
 
+#define FOR_EACH_HIR_ABSTRACT_TYPE(V) \
+  V(Primitive)                        \
+  V(Reference)
+
 #define V(Name, ...) class Name##Type;
+FOR_EACH_HIR_ABSTRACT_TYPE(V)
 FOR_EACH_HIR_TYPE(V)
 #undef V
 
 // Forward declarations
-class PoinerType;
-class ReferenceType;
 class Type;
 class TypeFactory;
 class TypeVisitor;

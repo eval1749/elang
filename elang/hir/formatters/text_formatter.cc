@@ -59,6 +59,10 @@ void TypeFormatter::VisitFunctionType(FunctionType* type) {
   ostream_ << *type->return_type() << "(" << *type->parameters_type() << ")";
 }
 
+void TypeFormatter::VisitPointerType(PointerType* type) {
+  ostream_ << *type->pointee() << "*";
+}
+
 void TypeFormatter::VisitStringType(StringType* type) {
   DCHECK(type);
   ostream_ << "string";
