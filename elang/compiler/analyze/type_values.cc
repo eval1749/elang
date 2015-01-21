@@ -38,7 +38,7 @@ const ZoneVector<ir::Method*>& Argument::methods() const {
   return call_value_->methods();
 }
 
-ir::Type* Argument::value(const ir::Method* method) const {
+ir::Type* Argument::valueFor(const ir::Method* method) const {
   return method->parameters()[position_]->type();
 }
 
@@ -48,7 +48,7 @@ void Argument::SetMethods(const std::vector<ir::Method*>& methods) {
 
 // UnionValue
 bool Argument::CanUse(ir::Method* method, ir::Type* type) const {
-  return type->IsSubtypeOf(value(method));
+  return type->IsSubtypeOf(valueFor(method));
 }
 
 // CallValue
@@ -56,7 +56,7 @@ CallValue::CallValue(Zone* zone, ast::Call* ast_call)
     : ast_call_(ast_call), methods_(zone) {
 }
 
-ir::Type* CallValue::value(const ir::Method* method) const {
+ir::Type* CallValue::valueFor(const ir::Method* method) const {
   return method->return_type();
 }
 
@@ -69,7 +69,7 @@ void CallValue::SetMethods(const std::vector<ir::Method*>& methods) {
 
 // UnionValue
 bool CallValue::CanUse(ir::Method* method, ir::Type* type) const {
-  return value(method)->IsSubtypeOf(type);
+  return valueFor(method)->IsSubtypeOf(type);
 }
 
 // EmptyValue

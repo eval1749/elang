@@ -37,7 +37,7 @@ bool Evaluator::Contains(const AndValue* and_value1, ir::Type* type2) {
 bool Evaluator::Contains(const AndValue* and_value1,
                            const UnionValue* union_value2) {
   for (auto const method2 : union_value2->methods()) {
-    if (Contains(and_value1, union_value2->value(method2)))
+    if (Contains(and_value1, union_value2->valueFor(method2)))
       return true;
   }
   return false;
@@ -69,10 +69,10 @@ Value* Evaluator::Evaluate(ts::Value* value) {
     ir::Type* result = nullptr;
     for (auto const method : union_value->methods()) {
       if (!result) {
-        result = union_value->value(method);
+        result = union_value->valueFor(method);
         continue;
       }
-      if (result != union_value->value(method))
+      if (result != union_value->valueFor(method))
         return value;
     }
     return result ? NewLiteral(result) : GetEmptyValue();
@@ -221,7 +221,7 @@ Value* Evaluator::Unify(Literal* literal1, UnionValue* union_value2) {
   if (methods2.empty())
     return GetEmptyValue();
   if (methods2.size() == 1)
-    return NewLiteral(union_value2->value(methods2.front()));
+    return NewLiteral(union_value2->valueFor(methods2.front()));
   return union_value2;
 }
 
@@ -251,14 +251,14 @@ Value* Evaluator::Unify(Literal* literal1, Value* value2) {
 Value* Evaluator::Unify(UnionValue* union_value1, AndValue* and_value2) {
   std::vector<ir::Method*> methods1;
   for (auto const method1 : union_value1->methods()) {
-    if (Contains(and_value2, union_value1->value(method1)))
+    if (Contains(and_value2, union_value1->valueFor(method1)))
       methods1.push_back(method1);
   }
   union_value1->SetMethods(methods1);
   if (methods1.empty())
     return GetEmptyValue();
   if (methods1.size() == 1u)
-    return NewLiteral(union_value1->value(methods1.front()));
+    return NewLiteral(union_value1->valueFor(methods1.front()));
   std::vector<UnionValue*> union_values(and_value2->union_values().begin(),
                                         and_value2->union_values().end());
   union_values.push_back(union_value1);
@@ -268,7 +268,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, AndValue* and_value2) {
 Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
   std::vector<ir::Method*> methods1;
   for (auto const method1 : union_value1->methods()) {
-    if (Contains(union_value2, union_value1->value(method1)))
+    if (Contains(union_value2, union_value1->valueFor(method1)))
       methods1.push_back(method1);
   }
   union_value1->SetMethods(methods1);
@@ -278,20 +278,20 @@ Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
   }
   if (methods1.size() == 1u) {
     // Update |union_value2|
-    return Unify(NewLiteral(union_value1->value(methods1.front())),
+    return Unify(NewLiteral(union_value1->valueFor(methods1.front())),
                  union_value2);
   }
 
   std::vector<ir::Method*> methods2;
   for (auto const method2 : union_value2->methods()) {
-    if (Contains(union_value1, union_value2->value(method2)))
+    if (Contains(union_value1, union_value2->valueFor(method2)))
       methods2.push_back(method2);
   }
   union_value2->SetMethods(methods2);
   if (methods2.empty())
     return GetEmptyValue();
   if (methods2.size() == 1u)
-    return NewLiteral(union_value2->value(methods2.front()));
+    return NewLiteral(union_value2->valueFor(methods2.front()));
   return factory()->NewAndValue({union_value1, union_value2});
 }
 

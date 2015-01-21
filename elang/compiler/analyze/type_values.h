@@ -72,7 +72,7 @@ class UnionValue : public Value {
 
  public:
   virtual const ZoneVector<ir::Method*>& methods() const = 0;
-  virtual ir::Type* value(const ir::Method* method) const = 0;
+  virtual ir::Type* valueFor(const ir::Method* method) const = 0;
 
   virtual bool CanUse(ir::Method* method, ir::Type* type) const = 0;
   virtual void SetMethods(const std::vector<ir::Method*>& methods) = 0;
@@ -128,7 +128,7 @@ class Argument final : public UnionValue {
   CallValue* call_value() const { return call_value_; }
   const ZoneVector<ir::Method*>& methods() const final;
   int position() const { return position_; }
-  ir::Type* value(const ir::Method* method) const final;
+  ir::Type* valueFor(const ir::Method* method) const final;
 
   void SetMethods(const std::vector<ir::Method*>& methods);
 
@@ -154,7 +154,7 @@ class CallValue final : public UnionValue {
  public:
   ast::Call* ast_call() const { return ast_call_; }
   const ZoneVector<ir::Method*>& methods() const final { return methods_; }
-  ir::Type* value(const ir::Method* method) const final;
+  ir::Type* valueFor(const ir::Method* method) const final;
 
   void SetMethods(const std::vector<ir::Method*>& methods) final;
 
