@@ -24,6 +24,8 @@ component("base") {
     "zone_owner.cc",
     "zone_unordered_map.h",
     "zone_unordered_set.h",
+    "zone_user.cc",
+    "zone_user.h",
     "zone_vector.h",
   ]
 
