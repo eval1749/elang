@@ -45,6 +45,7 @@ class MethodBodyAnalyzer final : public Analyzer,
   void Run();
 
  private:
+  ts::Factory* type_factory() const { return type_factory_.get(); }
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
 
   // ast::Visitor
@@ -54,6 +55,7 @@ class MethodBodyAnalyzer final : public Analyzer,
 
   // Owner of method body.
   ast::Method* const method_;
+  const std::unique_ptr<ts::Factory> type_factory_;
   const std::unique_ptr<VariableTracker> variable_tracker_;
 
   // |TypeResolver| should be constructed after |VariableTracker|.
@@ -71,9 +73,12 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
                                        ast::Method* method)
     : Analyzer(name_resolver),
       method_(method),
+      type_factory_(new ts::Factory(zone())),
       variable_tracker_(new VariableTracker(session(), zone(), method)),
-      type_resolver_(
-          new TypeResolver(name_resolver, variable_tracker_.get(), method)) {
+      type_resolver_(new TypeResolver(name_resolver,
+                                      type_factory_.get(),
+                                      variable_tracker_.get(),
+                                      method)) {
 }
 
 // The entry point of |MethodBodyAnalyzer|.
@@ -105,7 +110,7 @@ void MethodBodyAnalyzer::Run() {
     }
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
-  variable_tracker_->Finish(factory(), type_resolver_->type_factory());
+  variable_tracker_->Finish(factory(), type_factory());
 }
 
 // ast::Visitor statements

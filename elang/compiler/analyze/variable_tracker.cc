@@ -60,8 +60,8 @@ VariableTracker::VariableTracker(CompilationSession* session,
                                  Zone* zone,
                                  ast::Method* context_method)
     : CompilationSessionUser(session),
-      context_method_(context_method),
-      zone_(zone) {
+      ZoneUser(zone),
+      context_method_(context_method) {
 }
 
 VariableTracker::~VariableTracker() {

@@ -9,7 +9,7 @@
 
 #include "base/macros.h"
 #include "elang/base/zone_unordered_map.h"
-#include "elang/base/zone_owner.h"
+#include "elang/base/zone_user.h"
 #include "elang/compiler/analyze/type_values_forward.h"
 
 namespace elang {
@@ -27,9 +27,9 @@ namespace ts {
 //
 // The Type Factory
 //
-class Factory final : public ZoneOwner {
+class Factory final : public ZoneUser {
  public:
-  Factory();
+  explicit Factory(Zone* zone);
   ~Factory();
 
   AnyValue* GetAnyValue() { return any_value_; }

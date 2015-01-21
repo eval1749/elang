@@ -14,11 +14,12 @@ namespace ts {
 //
 // The Type Factory
 //
-Factory::Factory()
-    : any_value_(new (zone()) AnyValue),
-      empty_value_(new (zone()) EmptyValue()),
-      literal_cache_map_(zone()),
-      null_value_cache_map_(zone()) {
+Factory::Factory(Zone* zone)
+    : ZoneUser(zone),
+      any_value_(new (zone) AnyValue),
+      empty_value_(new (zone) EmptyValue()),
+      literal_cache_map_(zone),
+      null_value_cache_map_(zone) {
 }
 
 Factory::~Factory() {

@@ -76,13 +76,14 @@ TypeResolver::ScopedContext::~ScopedContext() {
 // TypeResolver
 //
 TypeResolver::TypeResolver(NameResolver* name_resolver,
+                           ts::Factory* type_factory,
                            VariableTracker* variable_tracker,
                            ast::Method* method)
     : Analyzer(name_resolver),
       context_(nullptr),
       method_(method),
       method_resolver_(new MethodResolver(name_resolver)),
-      type_factory_(new ts::Factory()),
+      type_factory_(type_factory),
       variable_tracker_(variable_tracker) {
 }
 

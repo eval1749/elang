@@ -33,6 +33,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
  public:
   // |method| is starting point of reference resolving.
   TypeResolver(NameResolver* name_resolver,
+               ts::Factory* type_factory,
                VariableTracker* variable_tracker,
                ast::Method* method);
   ~TypeResolver();
@@ -41,7 +42,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
     return call_values_;
   }
 
-  ts::Factory* type_factory() const { return type_factory_.get(); }
+  ts::Factory* type_factory() const { return type_factory_; }
 
   bool Add(ast::Expression* expression);
 
@@ -70,7 +71,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   ast::Method* const method_;
   std::vector<ts::CallValue*> call_values_;
   const std::unique_ptr<MethodResolver> method_resolver_;
-  const std::unique_ptr<ts::Factory> type_factory_;
+  ts::Factory* type_factory_;
   VariableTracker* const variable_tracker_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);

@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "base/macros.h"
+#include "elang/base/zone_user.h"
 #include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
@@ -32,7 +33,7 @@ class Value;
 //
 // VariableTracker
 //
-class VariableTracker final : public CompilationSessionUser {
+class VariableTracker final : public CompilationSessionUser, public ZoneUser {
  public:
   // |context_method| specified context where variables are used.
   VariableTracker(CompilationSession* session,
@@ -48,11 +49,8 @@ class VariableTracker final : public CompilationSessionUser {
  private:
   struct TrackingData;
 
-  Zone* zone() const { return zone_; }
-
   ast::Method* const context_method_;
   std::unordered_map<ast::NamedNode*, TrackingData*> variable_map_;
-  Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableTracker);
 };
