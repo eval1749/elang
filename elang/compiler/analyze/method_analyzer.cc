@@ -127,7 +127,7 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver()->Add(node->expression());
+  type_resolver()->Resolve(node->expression(), type_factory()->GetAnyValue());
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
@@ -139,7 +139,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
         auto const type_variable = type_resolver()->type_factory()->NewVariable(
             variable, type_resolver()->type_factory()->GetAnyValue());
         variable_tracker_->RegisterVariable(variable, type_variable);
-        type_resolver()->Unify(variable->value(), type_variable);
+        type_resolver()->Resolve(variable->value(), type_variable);
         continue;
       }
     }
@@ -148,7 +148,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
       continue;
     auto const value = type_resolver()->type_factory()->NewLiteral(type);
     variable_tracker_->RegisterVariable(variable, value);
-    type_resolver()->Unify(variable->value(), value);
+    type_resolver()->Resolve(variable->value(), value);
   }
 }
 

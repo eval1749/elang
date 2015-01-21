@@ -31,11 +31,11 @@ class VariableTracker;
 //
 class TypeResolver final : public Analyzer, public ast::Visitor {
  public:
-  // |method| is starting point of reference resolving.
+  // |context_method| is starting point of reference resolving.
   TypeResolver(NameResolver* name_resolver,
                ts::Factory* type_factory,
                VariableTracker* variable_tracker,
-               ast::Method* method);
+               ast::Method* context_method);
   ~TypeResolver();
 
   const std::vector<ts::CallValue*>& call_values() const {
@@ -44,10 +44,8 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
 
   ts::Factory* type_factory() const { return type_factory_; }
 
-  bool Add(ast::Expression* expression);
-
   // Unify type value of |expression| with |value|.
-  bool Unify(ast::Expression* expression, ts::Value* value);
+  bool Resolve(ast::Expression* expression, ts::Value* value);
 
  private:
   struct Context;
@@ -55,12 +53,12 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
 
   ts::Value* GetAnyValue();
   ts::Value* GetEmptyValue();
-  ts::Value* Intersect(ts::Value* value1, ts::Value* value2);
   ts::Value* NewInvalidValue(ast::Node* node);
   ts::Value* NewLiteral(ir::Type* type);
-  void ProduceIntersection(ts::Value* value, ast::Node* producer);
   void ProduceResult(ts::Value* value, ast::Node* producer);
+  void ProduceUnifiedResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
+  ts::Value* Unify(ts::Value* value1, ts::Value* value2);
 
   // ast::Visitor
   void VisitCall(ast::Call* node);
@@ -68,7 +66,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   void VisitVariableReference(ast::VariableReference* node);
 
   Context* context_;
-  ast::Method* const method_;
+  ast::Method* const context_method_;
   std::vector<ts::CallValue*> call_values_;
   const std::unique_ptr<MethodResolver> method_resolver_;
   ts::Factory* type_factory_;
