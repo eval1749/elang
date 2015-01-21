@@ -6,7 +6,6 @@
 #define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "base/macros.h"
@@ -24,6 +23,7 @@ class Value;
 
 class MethodResolver;
 class TypeUnifier;
+class VariableTracker;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -31,7 +31,10 @@ class TypeUnifier;
 //
 class TypeResolver final : public Analyzer, public ast::Visitor {
  public:
-  TypeResolver(NameResolver* name_resolver, ast::Method* method);
+  // |method| is starting point of reference resolving.
+  TypeResolver(NameResolver* name_resolver,
+               VariableTracker* variable_tracker,
+               ast::Method* method);
   ~TypeResolver();
 
   const std::vector<ts::CallValue*>& call_values() const {
@@ -41,7 +44,6 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   ts::Factory* type_factory() const { return type_factory_.get(); }
 
   bool Add(ast::Expression* expression);
-  void RegisterVariable(ast::Variable* variable, ts::Value* value);
 
   // Unify type value of |expression| with |value|.
   bool Unify(ast::Expression* expression, ts::Value* value);
@@ -69,7 +71,7 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   std::vector<ts::CallValue*> call_values_;
   const std::unique_ptr<MethodResolver> method_resolver_;
   const std::unique_ptr<ts::Factory> type_factory_;
-  std::unordered_map<ast::Variable*, ts::Value*> variable_map_;
+  VariableTracker* const variable_tracker_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);
 };

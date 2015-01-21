@@ -12,6 +12,7 @@
 #include "elang/compiler/analyze/type_factory.h"
 #include "elang/compiler/analyze/type_unifyer.h"
 #include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analyze/variable_tracker.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -74,12 +75,15 @@ TypeResolver::ScopedContext::~ScopedContext() {
 //
 // TypeResolver
 //
-TypeResolver::TypeResolver(NameResolver* name_resolver, ast::Method* method)
+TypeResolver::TypeResolver(NameResolver* name_resolver,
+                           VariableTracker* variable_tracker,
+                           ast::Method* method)
     : Analyzer(name_resolver),
       context_(nullptr),
       method_(method),
       method_resolver_(new MethodResolver(name_resolver)),
-      type_factory_(new ts::Factory()) {
+      type_factory_(new ts::Factory()),
+      variable_tracker_(variable_tracker) {
 }
 
 TypeResolver::~TypeResolver() {
@@ -125,11 +129,6 @@ void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(producer);
   context_->result = result;
   // TODO(eval1749) If |result| is |EmptyValue|, report error with |producer|.
-}
-
-void TypeResolver::RegisterVariable(ast::Variable* variable, ts::Value* value) {
-  DCHECK(!variable_map_.count(variable));
-  variable_map_[variable] = value;
 }
 
 ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
@@ -246,9 +245,8 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
 }
 
 void TypeResolver::VisitVariableReference(ast::VariableReference* reference) {
-  auto const it = variable_map_.find(reference->variable());
-  DCHECK(it != variable_map_.end());
-  ProduceIntersection(it->second, reference);
+  auto const value = variable_tracker_->RecordGet(reference->variable());
+  ProduceIntersection(value, reference);
 }
 
 }  // namespace compiler

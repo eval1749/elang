@@ -12,6 +12,7 @@
 #include "elang/compiler/analyze/type_resolver.h"
 #include "elang/compiler/analyze/type_factory.h"
 #include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analyze/variable_tracker.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -33,7 +34,9 @@ namespace {
 //
 // MethodBodyAnalyzer
 //
-class MethodBodyAnalyzer final : public Analyzer, private ast::Visitor {
+class MethodBodyAnalyzer final : public Analyzer,
+                                 public ZoneOwner,
+                                 private ast::Visitor {
  public:
   MethodBodyAnalyzer(NameResolver* name_resolver, ast::Method* method);
   ~MethodBodyAnalyzer() final = default;
@@ -42,6 +45,8 @@ class MethodBodyAnalyzer final : public Analyzer, private ast::Visitor {
   void Run();
 
  private:
+  TypeResolver* type_resolver() const { return type_resolver_.get(); }
+
   // ast::Visitor
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
@@ -49,7 +54,10 @@ class MethodBodyAnalyzer final : public Analyzer, private ast::Visitor {
 
   // Owner of method body.
   ast::Method* const method_;
-  TypeResolver* const type_resolver_;
+  const std::unique_ptr<VariableTracker> variable_tracker_;
+
+  // |TypeResolver| should be constructed after |VariableTracker|.
+  const std::unique_ptr<TypeResolver> type_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodBodyAnalyzer);
 };
@@ -63,7 +71,9 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
                                        ast::Method* method)
     : Analyzer(name_resolver),
       method_(method),
-      type_resolver_(new TypeResolver(name_resolver, method)) {
+      variable_tracker_(new VariableTracker(session(), zone(), method)),
+      type_resolver_(
+          new TypeResolver(name_resolver, variable_tracker_.get(), method)) {
 }
 
 // The entry point of |MethodBodyAnalyzer|.
@@ -95,6 +105,7 @@ void MethodBodyAnalyzer::Run() {
     }
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
+  variable_tracker_->Finish(factory(), type_resolver_->type_factory());
 }
 
 // ast::Visitor statements
@@ -111,7 +122,7 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver_->Add(node->expression());
+  type_resolver()->Add(node->expression());
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
@@ -120,19 +131,19 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
       continue;
     if (auto const reference = variable->type()) {
       if (reference->name() == TokenType::Var) {
-        auto const type_variable = type_resolver_->type_factory()->NewVariable(
-            variable, type_resolver_->type_factory()->GetAnyValue());
-        type_resolver_->RegisterVariable(variable, type_variable);
-        type_resolver_->Unify(variable->value(), type_variable);
+        auto const type_variable = type_resolver()->type_factory()->NewVariable(
+            variable, type_resolver()->type_factory()->GetAnyValue());
+        variable_tracker_->RegisterVariable(variable, type_variable);
+        type_resolver()->Unify(variable->value(), type_variable);
         continue;
       }
     }
     auto const type = ResolveTypeReference(variable->type(), method_);
     if (!type)
       continue;
-    auto const value = type_resolver_->type_factory()->NewLiteral(type);
-    type_resolver_->RegisterVariable(variable, value);
-    type_resolver_->Unify(variable->value(), value);
+    auto const value = type_resolver()->type_factory()->NewLiteral(type);
+    variable_tracker_->RegisterVariable(variable, value);
+    type_resolver()->Unify(variable->value(), value);
   }
 }
 

@@ -26,6 +26,9 @@ class TypeUnifyer final {
   explicit TypeUnifyer(Factory* factory);
   ~TypeUnifyer();
 
+  // Returns atomic type if possible, otherwise specify value.
+  Value* Evaluate(Value* value);
+
   // The entry point of |TypeUnifyer|.
   Value* Unify(Value* value1, Value* value2);
 

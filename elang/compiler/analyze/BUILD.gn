@@ -25,6 +25,8 @@ static_library("analyze") {
     "type_values.cc",
     "type_values.h",
     "type_values_forward.h",
+    "variable_tracker.cc",
+    "variable_tracker.h",
   ]
 
   public_deps = [

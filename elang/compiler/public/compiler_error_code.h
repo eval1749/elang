@@ -194,6 +194,7 @@ namespace compiler {
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \
   E(TypeResolver, Method, Return)                     \
+  E(TypeResolver, Variable, NotResolved)              \
   /* Warnings */                                      \
   W(Warning, Code, Zero)                              \
   W(Syntax, Var, NotUsed)

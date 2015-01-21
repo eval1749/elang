@@ -52,6 +52,40 @@ bool TypeUnifyer::Contains(const UnionValue* union_value1, ir::Type* type2) {
   return false;
 }
 
+Value* TypeUnifyer::Evaluate(ts::Value* value) {
+  if (auto const and_value = value->as<AndValue>()) {
+    ts::Value* result = nullptr;
+    for (auto const union_value : and_value->union_values()) {
+      if (!result) {
+        result = Evaluate(union_value);
+        continue;
+      }
+      if (result != Evaluate(union_value))
+        return value;
+    }
+    return result ? result : GetEmptyValue();
+  }
+  if (auto const union_value = value->as<UnionValue>()) {
+    ir::Type* result = nullptr;
+    for (auto const method : union_value->methods()) {
+      if (!result) {
+        result = union_value->value(method);
+        continue;
+      }
+      if (result != union_value->value(method))
+        return value;
+    }
+    return result ? NewLiteral(result) : GetEmptyValue();
+  }
+
+  if (auto const variable = value->as<Variable>()) {
+    auto const variable_value = variable->Find()->value();
+    DCHECK(!variable_value->is<Variable>());
+    return Evaluate(variable_value);
+  }
+  return value;
+}
+
 Value* TypeUnifyer::GetAnyValue() {
   return factory()->GetAnyValue();
 }
