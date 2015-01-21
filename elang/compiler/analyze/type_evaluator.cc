@@ -20,7 +20,7 @@ namespace ts {
 //
 // Evaluator
 //
-Evaluator::Evaluator(Factory* factory) : factory_(factory) {
+Evaluator::Evaluator(Factory* factory) : FactoryUser(factory) {
 }
 
 Evaluator::~Evaluator() {
@@ -63,7 +63,7 @@ Value* Evaluator::Evaluate(ts::Value* value) {
       if (result != Evaluate(union_value))
         return value;
     }
-    return result ? result : GetEmptyValue();
+    return result ? result : empty_value();
   }
   if (auto const union_value = value->as<UnionValue>()) {
     ir::Type* result = nullptr;
@@ -75,7 +75,7 @@ Value* Evaluator::Evaluate(ts::Value* value) {
       if (result != union_value->valueFor(method))
         return value;
     }
-    return result ? NewLiteral(result) : GetEmptyValue();
+    return result ? NewLiteral(result) : empty_value();
   }
 
   if (auto const variable = value->as<Variable>()) {
@@ -84,18 +84,6 @@ Value* Evaluator::Evaluate(ts::Value* value) {
     return Evaluate(variable_value);
   }
   return value;
-}
-
-Value* Evaluator::GetAnyValue() {
-  return factory()->GetAnyValue();
-}
-
-Value* Evaluator::GetEmptyValue() {
-  return factory()->GetEmptyValue();
-}
-
-Value* Evaluator::NewLiteral(ir::Type* type) {
-  return factory()->NewLiteral(type);
 }
 
 // The entry point of |Evaluator|.
@@ -141,7 +129,7 @@ Value* Evaluator::Unify(Value* value1, Value* value2) {
     return Unify(and_value1, value2);
 
   NOTREACHED() << "Unify(" << *value1 << ", " << value2 << ")";
-  return GetEmptyValue();
+  return empty_value();
 }
 
 // Unify AndValue
@@ -157,7 +145,7 @@ Value* Evaluator::Unify(AndValue* and_value1, AndValue* and_value2) {
   and_value1->SetUnionValues(union_values1);
   if (union_values1.empty()) {
     and_value2->SetUnionValues({});
-    return GetEmptyValue();
+    return empty_value();
   }
   if (union_values1.size() == 1u)
     return Unify(union_values1.front(), and_value2);
@@ -185,7 +173,7 @@ Value* Evaluator::Unify(AndValue* and_value1, Value* value2) {
     return Unify(and_value1, and_value2);
 
   NOTREACHED() << "Unify(" << *and_value1 << ", " << value2 << ")";
-  return GetEmptyValue();
+  return empty_value();
 }
 
 // Unify Literal
@@ -219,7 +207,7 @@ Value* Evaluator::Unify(Literal* literal1, UnionValue* union_value2) {
   }
   union_value2->SetMethods(methods2);
   if (methods2.empty())
-    return GetEmptyValue();
+    return empty_value();
   if (methods2.size() == 1)
     return NewLiteral(union_value2->valueFor(methods2.front()));
   return union_value2;
@@ -230,7 +218,7 @@ Value* Evaluator::Unify(Literal* literal1, Literal* literal2) {
     return literal1;
   if (literal2->value()->IsSubtypeOf(literal1->value()))
     return literal2;
-  return GetEmptyValue();
+  return empty_value();
 }
 
 Value* Evaluator::Unify(Literal* literal1, Value* value2) {
@@ -244,7 +232,7 @@ Value* Evaluator::Unify(Literal* literal1, Value* value2) {
     return Unify(literal1, union2);
 
   NOTREACHED() << "unify(" << *literal1 << ", " << value2 << ")";
-  return GetEmptyValue();
+  return empty_value();
 }
 
 // Unify UnionValue
@@ -256,7 +244,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, AndValue* and_value2) {
   }
   union_value1->SetMethods(methods1);
   if (methods1.empty())
-    return GetEmptyValue();
+    return empty_value();
   if (methods1.size() == 1u)
     return NewLiteral(union_value1->valueFor(methods1.front()));
   std::vector<UnionValue*> union_values(and_value2->union_values().begin(),
@@ -274,7 +262,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
   union_value1->SetMethods(methods1);
   if (methods1.empty()) {
     union_value2->SetMethods({});
-    return GetEmptyValue();
+    return empty_value();
   }
   if (methods1.size() == 1u) {
     // Update |union_value2|
@@ -289,7 +277,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
   }
   union_value2->SetMethods(methods2);
   if (methods2.empty())
-    return GetEmptyValue();
+    return empty_value();
   if (methods2.size() == 1u)
     return NewLiteral(union_value2->valueFor(methods2.front()));
   return factory()->NewAndValue({union_value1, union_value2});
@@ -303,7 +291,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, Value* value2) {
     return Unify(union_value1, union_value2);
 
   NOTREACHED() << "Unify(" << *union_value1 << ", " << value2 << ")";
-  return GetEmptyValue();
+  return empty_value();
 }
 
 // Unify Variable

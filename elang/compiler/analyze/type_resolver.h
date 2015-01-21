@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "elang/compiler/analyze/analyzer.h"
+#include "elang/compiler/analyze/type_factory_user.h"
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {
@@ -29,7 +30,9 @@ class VariableTracker;
 //
 // TypeResolver
 //
-class TypeResolver final : public Analyzer, public ast::Visitor {
+class TypeResolver final : public Analyzer,
+                           public ast::Visitor,
+                           public ts::FactoryUser {
  public:
   // |context_method| is starting point of reference resolving.
   TypeResolver(NameResolver* name_resolver,
@@ -42,8 +45,6 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
     return call_values_;
   }
 
-  ts::Factory* type_factory() const { return type_factory_; }
-
   // Unify type value of |expression| with |value|.
   bool Resolve(ast::Expression* expression, ts::Value* value);
 
@@ -51,10 +52,6 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   struct Context;
   class ScopedContext;
 
-  ts::Value* GetAnyValue();
-  ts::Value* GetEmptyValue();
-  ts::Value* NewInvalidValue(ast::Node* node);
-  ts::Value* NewLiteral(ir::Type* type);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   void ProduceUnifiedResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
@@ -69,7 +66,6 @@ class TypeResolver final : public Analyzer, public ast::Visitor {
   ast::Method* const context_method_;
   std::vector<ts::CallValue*> call_values_;
   const std::unique_ptr<MethodResolver> method_resolver_;
-  ts::Factory* type_factory_;
   VariableTracker* const variable_tracker_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeResolver);

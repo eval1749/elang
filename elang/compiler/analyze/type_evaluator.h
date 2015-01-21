@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/compiler/analyze/type_factory_user.h"
 #include "elang/compiler/analyze/type_values_forward.h"
 
 namespace elang {
@@ -21,7 +22,7 @@ namespace ts {
 //
 // Evaluator
 //
-class Evaluator final {
+class Evaluator final : public FactoryUser {
  public:
   explicit Evaluator(Factory* factory);
   ~Evaluator();
@@ -33,15 +34,9 @@ class Evaluator final {
   Value* Unify(Value* value1, Value* value2);
 
  private:
-  Factory* factory() const { return factory_; }
-
   bool Contains(const AndValue* and_value, ir::Type* type);
   bool Contains(const AndValue* and_value, const UnionValue* union_value);
   bool Contains(const UnionValue* union_value, ir::Type* type);
-
-  Value* GetAnyValue();
-  Value* GetEmptyValue();
-  Value* NewLiteral(ir::Type* type);
 
   Value* Unify(AndValue* value1, AndValue* value2);
   Value* Unify(AndValue* value1, Value* value2);
@@ -59,8 +54,6 @@ class Evaluator final {
   Value* Unify(Variable* value1, Variable* value2);
 
   void Union(Variable* variable1, Variable* variable2);
-
-  Factory* factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Evaluator);
 };

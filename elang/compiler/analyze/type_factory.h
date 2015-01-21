@@ -32,8 +32,8 @@ class Factory final : public ZoneUser {
   explicit Factory(Zone* zone);
   ~Factory();
 
-  AnyValue* GetAnyValue() { return any_value_; }
-  EmptyValue* GetEmptyValue() { return empty_value_; }
+  AnyValue* any_value() { return any_value_; }
+  EmptyValue* empty_value() { return empty_value_; }
   AndValue* NewAndValue(const std::vector<UnionValue*>& union_values);
   Argument* NewArgument(CallValue* call_value, int position);
   CallValue* NewCallValue(ast::Call* call);

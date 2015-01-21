@@ -27,7 +27,7 @@ Analyzer::Analyzer(NameResolver* name_resolver)
 Analyzer::~Analyzer() {
 }
 
-ir::Factory* Analyzer::factory() const {
+ir::Factory* Analyzer::ir_factory() const {
   return name_resolver_->factory();
 }
 

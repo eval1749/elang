@@ -127,7 +127,7 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver()->Resolve(node->expression(), type_factory()->GetAnyValue());
+  type_resolver()->Resolve(node->expression(), type_factory()->any_value());
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
@@ -137,7 +137,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
     if (auto const reference = variable->type()) {
       if (reference->name() == TokenType::Var) {
         auto const type_variable = type_resolver()->type_factory()->NewVariable(
-            variable, type_resolver()->type_factory()->GetAnyValue());
+            variable, type_resolver()->type_factory()->any_value());
         variable_tracker_->RegisterVariable(variable, type_variable);
         type_resolver()->Resolve(variable->value(), type_variable);
         continue;

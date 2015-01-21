@@ -20,6 +20,8 @@ static_library("analyze") {
     "type_evaluator.h",
     "type_factory.cc",
     "type_factory.h",
+    "type_factory_user.cc",
+    "type_factory_user.h",
     "type_resolver.cc",
     "type_resolver.h",
     "type_values.cc",

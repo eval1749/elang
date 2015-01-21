@@ -80,39 +80,23 @@ TypeResolver::TypeResolver(NameResolver* name_resolver,
                            VariableTracker* variable_tracker,
                            ast::Method* context_method)
     : Analyzer(name_resolver),
+      ts::FactoryUser(type_factory),
       context_(nullptr),
       context_method_(context_method),
       method_resolver_(new MethodResolver(name_resolver)),
-      type_factory_(type_factory),
       variable_tracker_(variable_tracker) {
 }
 
 TypeResolver::~TypeResolver() {
 }
 
-ts::Value* TypeResolver::GetAnyValue() {
-  return type_factory()->GetAnyValue();
-}
-
-ts::Value* TypeResolver::GetEmptyValue() {
-  return type_factory()->GetEmptyValue();
-}
-
 ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
   ts::Evaluator evaluator(type_factory());
   auto const result = evaluator.Unify(value1, value2);
-  if (result == GetEmptyValue()) {
+  if (result == empty_value()) {
     DVLOG(0) << "Unify(" << *value1 << ", " << *value2 << ") yields empty.";
   }
   return result;
-}
-
-ts::Value* TypeResolver::NewInvalidValue(ast::Node* node) {
-  return type_factory()->NewInvalidValue(node);
-}
-
-ts::Value* TypeResolver::NewLiteral(ir::Type* type) {
-  return type_factory()->NewLiteral(type);
 }
 
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
@@ -174,7 +158,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
         DVLOG(0) << "Argument[" << parameter->position() << "] " << *argument
                  << " doesn't match with " << *method;
         call_value->SetMethods({});
-        ProduceResult(GetEmptyValue(), call);
+        ProduceResult(empty_value(), call);
         return;
       }
       if (!parameter->is_rest())
@@ -240,7 +224,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   DCHECK(!semantics()->ValueOf(ast_literal));
   semantics()->SetValue(
       ast_literal,
-      factory()->NewLiteral(result_literal->value(), ast_literal->token()));
+      ir_factory()->NewLiteral(result_literal->value(), ast_literal->token()));
   ProduceResult(result_literal, ast_literal);
 }
 

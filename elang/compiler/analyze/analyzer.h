@@ -35,7 +35,8 @@ class Analyzer : public CompilationSessionUser {
   explicit Analyzer(NameResolver* resolver);
   virtual ~Analyzer();
 
-  ir::Factory* factory() const;
+  ir::Factory* factory() const { return ir_factory(); }
+  ir::Factory* ir_factory() const;
   NameResolver* resolver() const { return name_resolver_; }
 
   // Report error caused by |node|.
