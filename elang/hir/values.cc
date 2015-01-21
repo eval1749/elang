@@ -38,7 +38,11 @@ void UseDefNode::Init(Instruction* instruction, Value* value) {
 void UseDefNode::SetValue(Value* new_value) {
   if (value_)
     value_->Unuse(this);
-  new_value->Use(this);
+  // |Editor::RemoveInstruction()| passes |new_value| as |nullptr| for
+  // removing instruction to remove removing instruction from use-def list.
+  // TODO(eval1749) Should we not to allow |new_value| as |nullptr|?
+  if (new_value)
+    new_value->Use(this);
   value_ = new_value;
 }
 

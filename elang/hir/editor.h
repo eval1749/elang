@@ -61,6 +61,7 @@ class ELANG_HIR_EXPORT Editor final {
 
  private:
   void InitializeFunctionIfNeeded();
+  void RemoveInstruction(Instruction* old_instruction);
 
   std::vector<BasicBlock*> basic_blocks_;
   Factory* const factory_;

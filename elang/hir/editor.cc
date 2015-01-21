@@ -109,16 +109,30 @@ void Editor::InsertBefore(Instruction* new_instruction,
 BasicBlock* Editor::NewBasicBlock() {
   auto const new_basic_block = factory_->NewBasicBlock();
   basic_blocks_.push_back(new_basic_block);
+  new_basic_block->function_ = function_;
   new_basic_block->id_ = factory_->NextBasicBlockId();
   function_->basic_blocks_.InsertBefore(new_basic_block,
                                         function_->exit_block());
   return new_basic_block;
 }
 
+void Editor::RemoveInstruction(Instruction* old_instruction) {
+  DCHECK(!basic_blocks_.empty());
+  auto const basic_block = basic_blocks_.back();
+  auto const operand_count = old_instruction->CountOperands();
+  for (auto index = 0; index < operand_count; ++index)
+    old_instruction->SetOperandAt(index, nullptr);
+  basic_block->instructions_.RemoveNode(old_instruction);
+}
+
 void Editor::SetBranch(Value* condition,
                        BasicBlock* then_block,
                        BasicBlock* else_block) {
   DCHECK(!basic_blocks_.empty());
+  auto const basic_block = basic_blocks_.back();
+  auto const last = basic_block->last_instruction();
+  if (last && last->IsTerminator())
+    RemoveInstruction(last);
   Append(BranchInstruction::New(factory_, factory_->GetVoidType(), condition,
                                 then_block, else_block));
 }
