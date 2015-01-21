@@ -145,6 +145,7 @@ namespace compiler {
   K(Namespace, "namespace", "K-")                                           \
   K(New, "new", "K-")                                                       \
   /* O */                                                                   \
+  K(Operator, "operator", "K-")                                             \
   K(Override, "override", "KM")                                             \
   /* P */                                                                   \
   K(Partial, "partial", "KM")                                               \
