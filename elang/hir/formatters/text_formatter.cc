@@ -247,7 +247,7 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << " " << instruction.type() << " %" << instruction.id() << " =";
   auto const operand_count = instruction.CountOperands();
   for (auto index = 0; index < operand_count; ++index)
-    ostream << " " << instruction.OperandAt(index);
+    ostream << " " << *instruction.OperandAt(index);
   return ostream;
 }
 
