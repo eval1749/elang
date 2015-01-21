@@ -25,6 +25,16 @@ enum class Opcode {
 #undef V
 };
 
+#define DECLARE_HIR_INSTRUCTION_CLASS(Name) \
+  DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction);
+
+#define DECLARE_ABSTRACT_HIR_INSTRUCTION_CLASS(Name) \
+  DECLARE_HIR_INSTRUCTION_CLASS(Name);
+
+#define DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name) \
+  DECLARE_HIR_INSTRUCTION_CLASS(Name);               \
+  Opcode opcode() const final;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Instruction
@@ -35,7 +45,7 @@ class ELANG_HIR_EXPORT Instruction
   DECLARE_HIR_VALUE_CLASS(Instruction, Value);
 
  public:
-  // A basic block which this instruction belons to
+  // A basic block which this instruction belongs to
   BasicBlock* basic_block() const { return basic_block_; }
 
   // An integer identifier for debugging.
@@ -117,17 +127,13 @@ class InstructionTemplate : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
-#define DECLARE_HIR_INSTRUCTION_CLASS(Name)                \
-  DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction); \
-  Opcode opcode() const final;
-
 //////////////////////////////////////////////////////////////////////
 //
 // CallInstruction
 //
 class ELANG_HIR_EXPORT CallInstruction final
     : public InstructionTemplate<CallInstruction, Value*, Value*> {
-  DECLARE_HIR_INSTRUCTION_CLASS(Call);
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Call);
 
  public:
   // Instruction
@@ -147,7 +153,7 @@ class ELANG_HIR_EXPORT CallInstruction final
 //
 class ELANG_HIR_EXPORT EntryInstruction final
     : public InstructionTemplate<EntryInstruction> {
-  DECLARE_HIR_INSTRUCTION_CLASS(Entry);
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Entry);
 
  private:
   friend class BaseClass;
@@ -163,7 +169,7 @@ class ELANG_HIR_EXPORT EntryInstruction final
 //
 class ELANG_HIR_EXPORT ExitInstruction final
     : public InstructionTemplate<ExitInstruction> {
-  DECLARE_HIR_INSTRUCTION_CLASS(Exit);
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Exit);
 
  private:
   friend class BaseClass;
@@ -182,7 +188,7 @@ class ELANG_HIR_EXPORT ExitInstruction final
 //
 class ELANG_HIR_EXPORT ReturnInstruction final
     : public InstructionTemplate<ReturnInstruction, Value*, BasicBlock*> {
-  DECLARE_HIR_INSTRUCTION_CLASS(Return);
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Return);
 
  private:
   friend class BaseClass;
