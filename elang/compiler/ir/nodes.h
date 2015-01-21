@@ -245,24 +245,6 @@ class Signature final : public Type {
   DISALLOW_COPY_AND_ASSIGN(Signature);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// Value
-//
-class Value final : public Node {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Value, Node);
-
- public:
-  Token* value() const { return value_; }
-
- private:
-  explicit Value(Token* value);
-
-  Token* const value_;
-
-  DISALLOW_COPY_AND_ASSIGN(Value);
-};
-
 }  // namespace ir
 }  // namespace compiler
 }  // namespace elang

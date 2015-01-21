@@ -18,14 +18,14 @@ namespace ir {
 
 #define FOR_EACH_CONCRETE_IR_TYPE_NODE(V) \
   V(Class)                                \
-  V(Enum)
+  V(Enum)                                 \
+  V(Signature)
 
 #define FOR_EACH_CONCRETE_IR_NODE(V) \
   FOR_EACH_CONCRETE_IR_TYPE_NODE(V)  \
   V(Literal)                         \
   V(Method)                          \
-  V(Parameter)                       \
-  V(Signature)
+  V(Parameter)
 
 #define V(Name) class Name;
 FOR_EACH_ABSTRACT_IR_NODE(V)
