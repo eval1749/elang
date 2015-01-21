@@ -250,13 +250,15 @@ class ELANG_HIR_EXPORT Function final : public Value {
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   FunctionType* function_type() const;
+  int id() const { return id_; }
 
  private:
   friend class Editor;
 
-  Function(Factory* factory, FunctionType* type);
+  Function(Factory* factory, FunctionType* type, int id);
 
   BasicBlockList basic_blocks_;
+  int const id_;
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };

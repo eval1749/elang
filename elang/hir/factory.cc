@@ -41,6 +41,7 @@ Factory::Factory(const FactoryConfig& config)
       config_(config),
       false_literal_(new (zone()) BoolLiteral(types()->GetBoolType(), false)),
       last_basic_block_id_(0),
+      last_function_id_(0),
       last_instruction_id_(0),
       true_literal_(new (zone()) BoolLiteral(types()->GetBoolType(), true)) {
 }
@@ -73,7 +74,7 @@ Float64Literal* Factory::NewFloat64Literal(float64_t data) {
 }
 
 Function* Factory::NewFunction(FunctionType* type) {
-  return new (zone()) Function(this, type);
+  return new (zone()) Function(this, type, ++last_function_id_);
 }
 
 Int16Literal* Factory::NewInt16Literal(int16_t data) {

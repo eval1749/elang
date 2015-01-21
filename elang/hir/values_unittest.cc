@@ -50,7 +50,7 @@ TEST_F(HirValuesTest, Function) {
   TextFormatter formatter(&stream);
   formatter.FormatFunction(function);
   EXPECT_EQ(
-      "Function void(void)\n"
+      "function1 void(void)\n"
       "block1:\n"
       "  // In:\n"
       "  // Out: block2\n"

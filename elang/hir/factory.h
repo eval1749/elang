@@ -55,6 +55,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   const FactoryConfig config_;
   BoolLiteral* false_literal_;
   int last_basic_block_id_;
+  int last_function_id_;
   int last_instruction_id_;
   BoolLiteral* true_literal_;
 

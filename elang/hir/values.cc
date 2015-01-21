@@ -101,7 +101,8 @@ Instruction* BasicBlock::last_instruction() const {
 //
 // Function
 //
-Function::Function(Factory* factory, FunctionType* type) : Value(type) {
+Function::Function(Factory* factory, FunctionType* type, int id)
+    : Value(type), id_(id) {
   Editor function(factory, this);
 }
 
