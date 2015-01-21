@@ -9,8 +9,8 @@
 #include "base/logging.h"
 #include "elang/compiler/analyze/method_resolver.h"
 #include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/analyze/type_evaluator.h"
 #include "elang/compiler/analyze/type_factory.h"
-#include "elang/compiler/analyze/type_unifyer.h"
 #include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/analyze/variable_tracker.h"
 #include "elang/compiler/ast/class.h"
@@ -102,8 +102,8 @@ ts::Value* TypeResolver::GetEmptyValue() {
 }
 
 ts::Value* TypeResolver::Intersect(ts::Value* value1, ts::Value* value2) {
-  ts::TypeUnifyer unifyer(type_factory());
-  auto const result = unifyer.Unify(value1, value2);
+  ts::Evaluator evaluator(type_factory());
+  auto const result = evaluator.Unify(value1, value2);
   if (result == GetEmptyValue()) {
     DVLOG(0) << "Intersect(" << *value1 << ", " << *value2 << ") yields empty.";
   }

@@ -45,9 +45,9 @@ namespace ts {
  private:                                              \
   /* |Factory| class if friend of concrete |Node| */   \
   /* class, for accessing constructor. */              \
+  friend class Evaluator;                              \
   friend class Factory;                                \
-  friend class TypeResolver;                           \
-  friend class TypeUnifyer;
+  friend class TypeResolver;
 
 //////////////////////////////////////////////////////////////////////
 //

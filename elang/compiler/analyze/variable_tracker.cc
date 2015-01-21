@@ -6,7 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
-#include "elang/compiler/analyze/type_unifyer.h"
+#include "elang/compiler/analyze/type_evaluator.h"
 #include "elang/compiler/analyze/type_values.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/compilation_session.h"
@@ -68,7 +68,7 @@ VariableTracker::~VariableTracker() {
 }
 
 void VariableTracker::Finish(ir::Factory* factory, ts::Factory* type_factory) {
-  ts::TypeUnifyer evaluator(type_factory);
+  ts::Evaluator evaluator(type_factory);
   for (auto variable_data : variable_map_) {
     auto const variable = variable_data.first;
     auto const data = variable_data.second;

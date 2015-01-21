@@ -31,6 +31,7 @@ FOR_EACH_ABSTRACT_TYPE_VALUE(V)
 FOR_EACH_CONCRETE_TYPE_VALUE(V)
 #undef V
 
+class Evaluator;
 class Factory;
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value);

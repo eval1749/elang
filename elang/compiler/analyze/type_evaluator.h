@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_UNIFYER_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_UNIFYER_H_
+#ifndef ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
+#define ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
 
 #include <vector>
 
@@ -19,17 +19,17 @@ namespace ts {
 
 //////////////////////////////////////////////////////////////////////
 //
-// TypeUnifyer
+// Evaluator
 //
-class TypeUnifyer final {
+class Evaluator final {
  public:
-  explicit TypeUnifyer(Factory* factory);
-  ~TypeUnifyer();
+  explicit Evaluator(Factory* factory);
+  ~Evaluator();
 
   // Returns atomic type if possible, otherwise specify value.
   Value* Evaluate(Value* value);
 
-  // The entry point of |TypeUnifyer|.
+  // The entry point of |Evaluator|.
   Value* Unify(Value* value1, Value* value2);
 
  private:
@@ -62,11 +62,11 @@ class TypeUnifyer final {
 
   Factory* factory_;
 
-  DISALLOW_COPY_AND_ASSIGN(TypeUnifyer);
+  DISALLOW_COPY_AND_ASSIGN(Evaluator);
 };
 
 }  // namespace ts
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_UNIFYER_H_
+#endif  // ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
