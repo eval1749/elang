@@ -92,12 +92,27 @@ void Formatter::VisitSignature(Signature* sig) {
   ostream_ << "))";
 }
 
+void Formatter::VisitVariable(Variable* variable) {
+  ostream_ << variable->ast_node()->name() << "@" << variable->storage();
+}
+
 }  // namespace
 
 std::ostream& operator<<(std::ostream& ostream, const Node& node) {
   Formatter formatter(&ostream);
   formatter.Format(&node);
   return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class) {
+  static const char* const texts[] = {
+#define V(Name) #Name,
+      FOR_EACH_IR_STORAGE_CLASS(V)
+#undef V
+          "Invalid",
+  };
+  return ostream << texts[std::min(static_cast<size_t>(storage_class),
+                                   arraysize(texts) - 1)];
 }
 
 //////////////////////////////////////////////////////////////////////

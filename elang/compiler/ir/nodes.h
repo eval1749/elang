@@ -37,6 +37,18 @@ namespace ir {
   /* Visitor pattern */                              \
   void Accept(Visitor* visitor) final;
 
+#define FOR_EACH_IR_STORAGE_CLASS(V) \
+  V(Heap)                            \
+  V(Register)                        \
+  V(Stack)                           \
+  V(Void)
+
+enum class StorageClass {
+#define V(Name) Name,
+  FOR_EACH_IR_STORAGE_CLASS(V)
+#undef V
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Node
@@ -243,6 +255,28 @@ class Signature final : public Type {
   Type* const return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(Signature);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Variable
+//
+class Variable final : public Node {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Variable, Node);
+
+ public:
+  ast::NamedNode* ast_node() const { return ast_node_; }
+  StorageClass storage() const { return storage_; }
+  Type* type() const { return type_; }
+
+ private:
+  Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node);
+
+  ast::NamedNode* const ast_node_;
+  StorageClass const storage_;
+  Type* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(Variable);
 };
 
 }  // namespace ir

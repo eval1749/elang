@@ -51,6 +51,12 @@ Signature* Factory::NewSignature(Type* return_type,
   return new (zone()) Signature(zone(), return_type, parameters);
 }
 
+Variable* Factory::NewVariable(Type* type,
+                               StorageClass storage,
+                               ast::NamedNode* ast_node) {
+  return new (zone()) Variable(type, storage, ast_node);
+}
+
 }  // namespace ir
 }  // namespace compiler
 }  // namespace elang

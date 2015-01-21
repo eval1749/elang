@@ -40,6 +40,10 @@ class Factory final : public ZoneOwner {
   Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
 
+  Variable* NewVariable(Type* type,
+                        StorageClass storage,
+                        ast::NamedNode* variable);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

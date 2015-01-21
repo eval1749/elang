@@ -195,6 +195,11 @@ bool Signature::IsSubtypeOf(const Type* other) const {
 Type::Type() {
 }
 
+// Variable
+Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
+    : ast_node_(ast_node), storage_(storage), type_(type) {
+}
+
 }  // namespace ir
 }  // namespace compiler
 }  // namespace elang

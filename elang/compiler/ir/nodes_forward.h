@@ -25,7 +25,8 @@ namespace ir {
   FOR_EACH_CONCRETE_IR_TYPE_NODE(V)  \
   V(Literal)                         \
   V(Method)                          \
-  V(Parameter)
+  V(Parameter)                       \
+  V(Variable)
 
 #define V(Name) class Name;
 FOR_EACH_ABSTRACT_IR_NODE(V)
@@ -33,10 +34,12 @@ FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
 class Factory;
+enum class StorageClass;
 class Visitor;
 
 // Print for formatting and debugging.
 std::ostream& operator<<(std::ostream& ostream, const Node& node);
+std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class);
 
 }  // namespace ir
 }  // namespace compiler
