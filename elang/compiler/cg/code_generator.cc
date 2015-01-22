@@ -243,9 +243,9 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   editor_ = &editor;
   auto const return_instr = function_->entry_block()->last_instruction();
   editor.Edit(return_instr->basic_block());
-  auto const return_type = return_instr->OperandAt(0)->type();
-  ScopedOutput scoped_output(this, return_type, return_instr, 0);
+  ScopedOutput scoped_output(this, void_type(), return_instr, 0);
   ast_method->body()->Accept(this);
+  // TODO(eval1749) We should check |return_instr| has value if it is reachable.
   functions_[ast_method] = function_;
   editor.Commit();
   editor_ = nullptr;
@@ -344,7 +344,7 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
     // Interleaved statement has no output.
     ScopedOutput scoped_output(this, void_type(), output_->instruction, -1);
     statement->Accept(this);
-    if (statement->IsTerminator()) {
+    if (!output_) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
       // checking |statement|.
       break;
@@ -354,6 +354,26 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
 
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   node->expression()->Accept(this);
+}
+
+void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
+  auto const return_type = function_->return_type();
+  auto const ast_value = node->value();
+  if (output_->instruction->is<hir::ReturnInstruction>()) {
+    if (!ast_value)
+      return;
+    output_->type = return_type;
+    ast_value->Accept(this);
+    output_ = nullptr;
+    return;
+  }
+  auto const return_instr = factory()->NewReturnInstruction(
+      return_type->GetDefaultValue(), function_->exit_block());
+  {
+    ScopedOutput return_scope(this, return_type, return_instr, 0);
+    ast_value->Accept(this);
+  }
+  output_ = nullptr;
 }
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {

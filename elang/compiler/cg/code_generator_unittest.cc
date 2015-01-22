@@ -96,27 +96,46 @@ TEST_F(CodeGeneratorTest, Call) {
       GetFunction("A.M1"));
 }
 
+TEST_F(CodeGeneratorTest, Return) {
+  Prepare(
+      "class A {\n"
+      "  static int Bar() { return 42; }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 int32(void)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  entry\n"
+      "  ret 42, block2\n"
+      "\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      GetFunction("A.Bar"));
+}
+
 TEST_F(CodeGeneratorTest, Variable) {
   Prepare(
       "class A {\n"
-      "  static void Foo() { var x = Bar(); Baz(x); }\n"
+      "  static int Foo() { var x = Bar(); return x; }\n"
       "  static int Bar() { return 42; }\n"
-      "  static void Baz(int x) {}\n"
       "}\n");
   EXPECT_EQ(
-      "function1 void(void)\n"
+      "function1 int32(void)\n"
       "block1:\n"
       "  // In:\n"
       "  // Out: block2\n"
       "  entry\n"
       "  int32 %r4 = call `A.Bar`, void\n"
-      "  call `A.Baz`, %r4\n"
-      "  ret void, block2\n"
+      "  ret %r4, block2\n"
       "\n"
       "block2:\n"
       "  // In: block1\n"
       "  // Out:\n"
-      "  exit\n", GetFunction("A.Foo"));
+      "  exit\n",
+      GetFunction("A.Foo"));
 }
 
 }  // namespace

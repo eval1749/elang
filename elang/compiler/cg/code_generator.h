@@ -70,6 +70,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // ast::Visitor statement nodes
   void VisitBlockStatement(ast::BlockStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitReturnStatement(ast::ReturnStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
 
   hir::Editor* editor_;
