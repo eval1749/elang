@@ -19,6 +19,8 @@
 namespace elang {
 namespace hir {
 
+enum class IntrinsicName;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Factory
@@ -27,6 +29,8 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  public:
   explicit Factory(const FactoryConfig& config);
   ~Factory();
+
+  AtomicString* intrinsic_name(IntrinsicName name);
 
   BasicBlock* NewBasicBlock();
   AtomicString* NewAtomicString(base::StringPiece16 string);

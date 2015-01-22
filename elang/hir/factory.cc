@@ -10,6 +10,7 @@
 #include "base/strings/stringprintf.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
+#include "elang/hir/intrinsic_names.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
@@ -47,6 +48,15 @@ Factory::Factory(const FactoryConfig& config)
 }
 
 Factory::~Factory() {
+}
+
+AtomicString* Factory::intrinsic_name(IntrinsicName name) {
+  static const base::char16* names[] = {
+#define V(name) L## #name
+      FOR_EACH_INTRINSIC_NAME(V)
+#undef V
+  };
+  return NewAtomicString(names[static_cast<size_t>(name)]);
 }
 
 BasicBlock* Factory::NewBasicBlock() {

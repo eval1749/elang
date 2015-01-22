@@ -17,6 +17,8 @@ component("hir") {
     "instructions.h",
     "instruction_factory.cc",
     "instruction_factory.h",
+    "intrinsic_names.cc",
+    "intrinsic_names.h",
     "types.cc",
     "types.h",
     "type_factory.cc",
