@@ -27,6 +27,7 @@ enum class Opcode;
   V(Call, "call", 2)                \
   V(Entry, "entry", 0)              \
   V(Exit, "exit", 0)                \
+  V(Jump, "jump", 1)                \
   V(Return, "ret", 2)
 
 #define V(Name, ...) class Name##Instruction;

@@ -54,6 +54,13 @@ ExitInstruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
 }
 
+JumpInstruction* InstructionFactory::NewJumpInstruction(
+    BasicBlock* target_block) {
+  auto const instr = new (zone()) JumpInstruction(void_type());
+  instr->InitOperandAt(0, target_block);
+  return instr;
+}
+
 ReturnInstruction* InstructionFactory::NewReturnInstruction(
     Value* value,
     BasicBlock* exit_block) {

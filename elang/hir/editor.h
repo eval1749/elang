@@ -40,6 +40,10 @@ class ELANG_HIR_EXPORT Editor final {
   Editor(Factory* factory, Function* function);
   ~Editor();
 
+  BasicBlock* exit_block() const;
+  BasicBlock* entry_block() const;
+  Factory* factory() const { return factory_; }
+
   void Commit();
 
   // Basic block editing
@@ -53,7 +57,9 @@ class ELANG_HIR_EXPORT Editor final {
                  BasicBlock* then_block,
                  BasicBlock* else_block);
   void SetInput(Instruction* instruction, int index, Value* new_value);
+  void SetJump(BasicBlock* target_block);
   void SetReturn(Value* new_value);
+  void SetTerminator(Instruction* terminator);
 
   // Validation
   static bool Validate(BasicBlock* basic_block);

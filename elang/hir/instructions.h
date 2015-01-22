@@ -81,6 +81,9 @@ class ELANG_HIR_EXPORT Operands final {
 //
 // Instruction
 //
+// Type of operands are guaranteed by |InstructionFactory| at consturciton,
+// and |Editor::Validate()| at modification.
+//
 class ELANG_HIR_EXPORT Instruction
     : public Value,
       public DoubleLinked<Instruction, BasicBlock>::Node {
@@ -291,6 +294,23 @@ class ELANG_HIR_EXPORT ExitInstruction final
   bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// JumpInstruction
+//
+class ELANG_HIR_EXPORT JumpInstruction final
+    : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Jump);
+
+ private:
+  explicit JumpInstruction(Type* output_type);
+
+  // Instruction
+  bool IsTerminator() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(JumpInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////

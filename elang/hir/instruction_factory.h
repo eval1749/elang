@@ -46,6 +46,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
                                       Value* arguments);
   EntryInstruction* NewEntryInstruction(Type* output_type);
   ExitInstruction* NewExitInstruction();
+  JumpInstruction* NewJumpInstruction(BasicBlock* target_block);
   ReturnInstruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
 
  private:

@@ -28,13 +28,21 @@ Editor::~Editor() {
   DCHECK(basic_blocks_.empty());
 }
 
+BasicBlock* Editor::entry_block() const {
+  return function_->entry_block();
+}
+
+BasicBlock* Editor::exit_block() const {
+  return function_->exit_block();
+}
+
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
   DCHECK(!basic_blocks_.empty());
   auto const basic_block = basic_blocks_.back();
   basic_block->instructions_.AppendNode(new_instruction);
-  new_instruction->id_ = factory_->NextInstructionId();
+  new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block;
 }
 
@@ -62,26 +70,26 @@ void Editor::InitializeFunctionIfNeeded() {
   }
 
   // Make entry and exit block
-  auto const entry = factory_->NewBasicBlock();
+  auto const entry = factory()->NewBasicBlock();
   function_->basic_blocks_.AppendNode(entry);
   entry->function_ = function_;
-  entry->id_ = factory_->NextBasicBlockId();
+  entry->id_ = factory()->NextBasicBlockId();
 
-  auto const exit = factory_->NewBasicBlock();
+  auto const exit = factory()->NewBasicBlock();
   function_->basic_blocks_.AppendNode(exit);
   exit->function_ = function_;
-  exit->id_ = factory_->NextBasicBlockId();
+  exit->id_ = factory()->NextBasicBlockId();
 
   {
     ScopedEdit edit_scope(this);
 
-    // Since 'ret' instruction refers exit block, we create exit block befoe
+    // Since 'ret' instruction refers exit block, we create exit block before
     // entry block.
     Edit(exit);
-    Append(factory_->NewExitInstruction());
+    Append(factory()->NewExitInstruction());
 
     Edit(entry);
-    Append(factory_->NewEntryInstruction(
+    Append(factory()->NewEntryInstruction(
         function_->function_type()->parameters_type()));
     SetReturn(function_->function_type()->return_type()->GetDefaultValue());
   }
@@ -101,47 +109,61 @@ void Editor::InsertBefore(Instruction* new_instruction,
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
   basic_block->instructions_.InsertBefore(new_instruction, ref_instruction);
-  new_instruction->id_ = factory_->NextInstructionId();
+  new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block;
 }
 
 BasicBlock* Editor::NewBasicBlock() {
-  auto const new_basic_block = factory_->NewBasicBlock();
+  auto const new_basic_block = factory()->NewBasicBlock();
   basic_blocks_.push_back(new_basic_block);
   new_basic_block->function_ = function_;
-  new_basic_block->id_ = factory_->NextBasicBlockId();
-  function_->basic_blocks_.InsertBefore(new_basic_block,
-                                        function_->exit_block());
+  new_basic_block->id_ = factory()->NextBasicBlockId();
+  // We keep exit block at end of basic block list.
+  function_->basic_blocks_.InsertBefore(new_basic_block, exit_block());
   return new_basic_block;
 }
 
 void Editor::RemoveInstruction(Instruction* old_instruction) {
   DCHECK(!basic_blocks_.empty());
-  auto const basic_block = basic_blocks_.back();
+  // We should update use-def list for values used by |old_instruction|.
   auto const operand_count = old_instruction->CountOperands();
   for (auto index = 0; index < operand_count; ++index)
     old_instruction->ResetOperandAt(index);
+  auto const basic_block = basic_blocks_.back();
   basic_block->instructions_.RemoveNode(old_instruction);
+  // Mark |old_instruction| is removed from tree.
+  old_instruction->id_ = 0;
+  old_instruction->basic_block_ = nullptr;
 }
 
 void Editor::SetBranch(Value* condition,
                        BasicBlock* true_block,
                        BasicBlock* false_block) {
   DCHECK(!basic_blocks_.empty());
-  auto const basic_block = basic_blocks_.back();
-  auto const last = basic_block->last_instruction();
-  if (last && last->IsTerminator())
-    RemoveInstruction(last);
-  Append(factory_->NewBranchInstruction(condition, true_block, false_block));
+  SetTerminator(
+      factory()->NewBranchInstruction(condition, true_block, false_block));
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
   instruction->SetOperandAt(index, new_value);
 }
 
+void Editor::SetJump(BasicBlock* target_block) {
+  SetTerminator(factory()->NewJumpInstruction(target_block));
+}
+
 void Editor::SetReturn(Value* new_value) {
   DCHECK(!basic_blocks_.empty());
-  Append(factory_->NewReturnInstruction(new_value, function_->exit_block()));
+  SetTerminator(factory()->NewReturnInstruction(new_value, exit_block()));
+}
+
+void Editor::SetTerminator(Instruction* terminator) {
+  DCHECK(terminator->IsTerminator());
+  auto const basic_block = basic_blocks_.back();
+  auto const last = basic_block->last_instruction();
+  if (last && last->IsTerminator())
+    RemoveInstruction(last);
+  Append(terminator);
 }
 
 bool Editor::Validate(BasicBlock* block) {

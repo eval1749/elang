@@ -13,54 +13,69 @@
 namespace elang {
 namespace hir {
 
+namespace {
+Function* NewSampleFunction(Factory* factory) {
+  auto const types = factory->types();
+  auto const function_type =
+      types->NewFunctionType(types->void_type(), types->void_type());
+  return factory->NewFunction(function_type);
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // HirInstructionTest offers HIR factories.
 //
 class HirInstructionTest : public testing::HirTest {
  protected:
-  HirInstructionTest() = default;
+  HirInstructionTest();
   ~HirInstructionTest() override = default;
 
   BoolType* bool_type() { return factory()->types()->GetBoolType(); }
+  BasicBlock* entry_block() { return function_->entry_block(); }
+  BasicBlock* exit_block() { return function_->exit_block(); }
+  Function* function() const { return function_; }
   VoidType* void_type() { return factory()->types()->void_type(); }
   VoidValue* void_value() { return factory()->void_value(); }
 
  private:
+  Function* function_;
+
   DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);
 };
+
+HirInstructionTest::HirInstructionTest()
+    : function_(NewSampleFunction(factory())) {
+}
 
 //////////////////////////////////////////////////////////////////////
 //
 // BranchInstruction
 //
 TEST_F(HirInstructionTest, BranchInstruction) {
-  auto const function_type = types()->NewFunctionType(void_type(), void_type());
-  auto const function = factory()->NewFunction(function_type);
-
-  Editor editor(factory(), function);
-  auto const then_block = editor.NewBasicBlock();
+  Editor editor(factory(), function());
+  auto const true_block = editor.NewBasicBlock();
   editor.SetReturn(void_value());
 
-  auto const else_block = editor.NewBasicBlock();
+  auto const false_block = editor.NewBasicBlock();
   editor.SetReturn(void_value());
 
-  editor.Edit(function->entry_block());
+  editor.Edit(entry_block());
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(bool_type(), void_type()), L"Foo");
   auto const call_instr = static_cast<Instruction*>(
       factory()->NewCallInstruction(bool_type(), callee, void_value()));
-  editor.SetBranch(call_instr, then_block, else_block);
+  editor.SetBranch(call_instr, true_block, false_block);
   editor.Commit();
 
-  auto const instr = function->entry_block()->last_instruction();
+  auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountOperands());
   EXPECT_EQ(call_instr, instr->OperandAt(0));
-  EXPECT_EQ(then_block, instr->OperandAt(1));
-  EXPECT_EQ(else_block, instr->OperandAt(2));
+  EXPECT_EQ(true_block, instr->OperandAt(1));
+  EXPECT_EQ(false_block, instr->OperandAt(2));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -93,19 +108,37 @@ TEST_F(HirInstructionTest, CallInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// JumpInstruction
+//
+TEST_F(HirInstructionTest, JumpInstruction) {
+  Editor editor(factory(), function());
+  auto const target_block = editor.NewBasicBlock();
+  editor.SetReturn(void_value());
+
+  editor.Edit(entry_block());
+  editor.SetJump(target_block);
+  editor.Commit();
+
+  auto const instr = entry_block()->last_instruction();
+  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(1, instr->CountOperands());
+  EXPECT_EQ(target_block, instr->OperandAt(0));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // ReturnInstruction
 //
 TEST_F(HirInstructionTest, ReturnInstruction) {
-  auto const function_type = types()->NewFunctionType(void_type(), void_type());
-  auto const function = factory()->NewFunction(function_type);
-
-  auto const instr = function->entry_block()->last_instruction();
+  auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
   EXPECT_EQ(void_value(), instr->OperandAt(0));
-  EXPECT_EQ(function->exit_block(), instr->OperandAt(1));
+  EXPECT_EQ(exit_block(), instr->OperandAt(1));
 }
 
 }  // namespace hir
