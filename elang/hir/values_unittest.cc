@@ -32,7 +32,7 @@ class HirValuesTest : public testing::HirTest {
 
 // Functions
 TEST_F(HirValuesTest, Function) {
-  auto const void_type = types()->GetVoidType();
+  auto const void_type = types()->void_type();
   auto const function_type = types()->NewFunctionType(void_type, void_type);
   auto const function = factory()->NewFunction(function_type);
   auto const entry_block = function->entry_block();

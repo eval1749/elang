@@ -30,12 +30,12 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   InstructionFactory(Factory* factory, const FactoryConfig& config);
   ~InstructionFactory() = default;
 
+  // |TypeFactory| entry point.
   TypeFactory* types() const { return type_factory_.get(); }
-  VoidType* void_type() const;
-  VoidValue* void_value() const;
-
   // Convenience function to have 'void' type.
-  VoidType* GetVoidType() const { return void_type(); }
+  VoidType* void_type() const;
+  // Convenience function to have 'void' value.
+  VoidValue* void_value() const;
 
   // Instruction constructors
   BranchInstruction* NewBranchInstruction(Value* condition,

@@ -19,11 +19,11 @@ InstructionFactory::InstructionFactory(Factory* factory,
 }
 
 VoidValue* InstructionFactory::void_value() const {
-  return GetVoidType()->zero();
+  return void_type()->zero();
 }
 
 VoidType* InstructionFactory::void_type() const {
-  return types()->GetVoidType();
+  return types()->void_type();
 }
 
 BranchInstruction* InstructionFactory::NewBranchInstruction(

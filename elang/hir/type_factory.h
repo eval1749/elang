@@ -29,6 +29,9 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   explicit TypeFactory(const FactoryConfig& config);
   ~TypeFactory();
 
+  // Convenience function to have 'void' type.
+  VoidType* void_type() const { return GetVoidType(); }
+
   StringType* GetStringType() const { return string_type_; }
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);

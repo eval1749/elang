@@ -36,7 +36,7 @@ TEST_F(HirTypesTest, BoolType) {
 
 TEST_F(HirTypesTest, FunctionType) {
   auto const return_type = types()->GetInt32Type();
-  auto const void_type = types()->GetVoidType();
+  auto const void_type = types()->void_type();
   auto const function_type = types()->NewFunctionType(return_type, void_type);
   EXPECT_EQ(return_type, function_type->return_type());
   EXPECT_EQ(void_type, function_type->parameters_type());

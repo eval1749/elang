@@ -95,7 +95,7 @@ VoidValue::VoidValue(VoidType* type, int data) : Literal(type) {
 // BasicBlock
 //
 BasicBlock::BasicBlock(Factory* factory)
-    : Value(factory->GetVoidType()), function_(nullptr), id_(0) {
+    : Value(factory->void_type()), function_(nullptr), id_(0) {
 }
 
 Instruction* BasicBlock::first_instruction() const {

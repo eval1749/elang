@@ -102,7 +102,7 @@ ir::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
 
 TEST_F(TypeMapperTest, FunctionType) {
   EXPECT_EQ(
-      types()->NewFunctionType(types()->GetVoidType(), types()->GetVoidType()),
+      types()->NewFunctionType(types()->void_type(), types()->void_type()),
       Map(NewSignature(PredefinedName::Void, PredefinedName::Void)));
   EXPECT_EQ(types()->NewFunctionType(types()->GetInt32Type(),
                                      types()->GetFloat32Type()),

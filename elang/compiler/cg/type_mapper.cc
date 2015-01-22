@@ -68,7 +68,7 @@ hir::Type* TypeMapper::Map(ir::Type* type) {
     // ir::Signature => hir::FunctionType(return_type, parameter_types)
     if (!signature->maximum_arity()) {
       auto const hir_type = factory()->types()->NewFunctionType(
-          Map(signature->return_type()), factory()->types()->GetVoidType());
+          Map(signature->return_type()), factory()->types()->void_type());
       InstallType(type, hir_type);
       return hir_type;
     }

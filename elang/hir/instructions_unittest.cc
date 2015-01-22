@@ -23,7 +23,7 @@ class HirInstructionTest : public testing::HirTest {
   ~HirInstructionTest() override = default;
 
   BoolType* bool_type() { return factory()->types()->GetBoolType(); }
-  VoidType* void_type() { return factory()->types()->GetVoidType(); }
+  VoidType* void_type() { return factory()->types()->void_type(); }
   VoidValue* void_value() { return factory()->void_value(); }
 
  private:
@@ -56,7 +56,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   auto const instr = function->entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->GetVoidType(), instr->output_type());
+  EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountOperands());
   EXPECT_EQ(call_instr, instr->OperandAt(0));
   EXPECT_EQ(then_block, instr->OperandAt(1));
@@ -102,7 +102,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   auto const instr = function->entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->GetVoidType(), instr->output_type());
+  EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
   EXPECT_EQ(void_value(), instr->OperandAt(0));
   EXPECT_EQ(function->exit_block(), instr->OperandAt(1));
