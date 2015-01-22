@@ -132,16 +132,16 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
     /* Primitive types are factory of |Literal| objects. */          \
     Name##Literal* NewLiteral(value_type data);                      \
                                                                      \
+    /* Protocol defined by |PrimitiveType| class */                  \
+    int bit_size() const override;                                   \
+    RegisterClass register_class() const override;                   \
+    Value* GetDefaultValue() const override;                         \
+                                                                     \
    private:                                                          \
     friend class TypeFactory;                                        \
     /* Since primitive types exist only one instance per factory. */ \
     /* Only |TypeFactory| can construct them. */                     \
     Name##Type(Zone* zone);                                          \
-                                                                     \
-    /* Protocol defined by |PrimitiveType| class */                  \
-    int bit_size() const override;                                   \
-    RegisterClass register_class() const override;                   \
-    Value* GetDefaultValue() const override;                         \
                                                                      \
     /* |zone_| should be initialized before other members. */        \
     Zone* const zone_;                                               \

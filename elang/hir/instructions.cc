@@ -139,5 +139,10 @@ bool ReturnInstruction::IsTerminator() const {
   return true;
 }
 
+// StoreInstruction
+bool StoreInstruction::CanBeRemoved() const {
+  return false;
+}
+
 }  // namespace hir
 }  // namespace elang

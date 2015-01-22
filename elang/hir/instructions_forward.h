@@ -28,7 +28,9 @@ enum class Opcode;
   V(Entry, "entry", 0)              \
   V(Exit, "exit", 0)                \
   V(Jump, "jump", 1)                \
-  V(Return, "ret", 2)
+  V(Load, "load", 1)                \
+  V(Return, "ret", 2)               \
+  V(Store, "store", 1)
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_HIR_INSTRUCTION(V)

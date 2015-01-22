@@ -315,6 +315,20 @@ class ELANG_HIR_EXPORT JumpInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// LoadInstruction
+//
+class ELANG_HIR_EXPORT LoadInstruction final
+    : public FixedOperandsInstruction<LoadInstruction, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Load);
+
+ private:
+  explicit LoadInstruction(Type* output_type);
+
+  DISALLOW_COPY_AND_ASSIGN(LoadInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ReturnInstruction
 //
 class ELANG_HIR_EXPORT ReturnInstruction final
@@ -328,6 +342,23 @@ class ELANG_HIR_EXPORT ReturnInstruction final
   bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// StoreInstruction
+//
+class ELANG_HIR_EXPORT StoreInstruction final
+    : public FixedOperandsInstruction<StoreInstruction, Value*, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Store);
+
+ private:
+  explicit StoreInstruction(Type* output_type);
+
+  // Instruction
+  bool CanBeRemoved() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreInstruction);
 };
 
 }  // namespace hir

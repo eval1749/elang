@@ -26,10 +26,9 @@ VoidType* InstructionFactory::void_type() const {
   return types()->void_type();
 }
 
-BranchInstruction* InstructionFactory::NewBranchInstruction(
-    Value* condition,
-    BasicBlock* true_block,
-    BasicBlock* false_block) {
+Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
+                                                      BasicBlock* true_block,
+                                                      BasicBlock* false_block) {
   auto const instr = new (zone()) BranchInstruction(void_type());
   instr->InitOperandAt(0, condition);
   instr->InitOperandAt(1, true_block);
@@ -37,36 +36,54 @@ BranchInstruction* InstructionFactory::NewBranchInstruction(
   return instr;
 }
 
-CallInstruction* InstructionFactory::NewCallInstruction(Type* output_type,
-                                                        Value* callee,
-                                                        Value* arguments) {
+Instruction* InstructionFactory::NewCallInstruction(Type* output_type,
+                                                    Value* callee,
+                                                    Value* arguments) {
   auto const instr = new (zone()) CallInstruction(output_type);
   instr->InitOperandAt(0, callee);
   instr->InitOperandAt(1, arguments);
   return instr;
 }
 
-EntryInstruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
+Instruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
   return new (zone()) EntryInstruction(output_type);
 }
 
-ExitInstruction* InstructionFactory::NewExitInstruction() {
+Instruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
 }
 
-JumpInstruction* InstructionFactory::NewJumpInstruction(
-    BasicBlock* target_block) {
+Instruction* InstructionFactory::NewJumpInstruction(BasicBlock* target_block) {
   auto const instr = new (zone()) JumpInstruction(void_type());
   instr->InitOperandAt(0, target_block);
   return instr;
 }
 
-ReturnInstruction* InstructionFactory::NewReturnInstruction(
-    Value* value,
-    BasicBlock* exit_block) {
+Instruction* InstructionFactory::NewLoadInstruction(Type* output_type,
+                                                    Value* pointer) {
+  DCHECK(!output_type->is<VoidType>());
+  DCHECK(pointer->type()->is<PointerType>());
+  DCHECK_EQ(output_type, pointer->type()->as<PointerType>()->pointee());
+  auto const instr = new (zone()) LoadInstruction(output_type);
+  instr->InitOperandAt(0, pointer);
+  return instr;
+}
+
+Instruction* InstructionFactory::NewReturnInstruction(Value* value,
+                                                      BasicBlock* exit_block) {
   auto const instr = new (zone()) ReturnInstruction(void_type());
   instr->InitOperandAt(0, value);
   instr->InitOperandAt(1, exit_block);
+  return instr;
+}
+
+Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
+                                                     Value* value) {
+  DCHECK(pointer->type()->is<PointerType>());
+  DCHECK(!value->type()->is<VoidType>());
+  auto const instr = new (zone()) StoreInstruction(void_type());
+  instr->InitOperandAt(0, pointer);
+  instr->InitOperandAt(1, value);
   return instr;
 }
 

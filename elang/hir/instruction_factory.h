@@ -38,16 +38,18 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   VoidValue* void_value() const;
 
   // Instruction constructors
-  BranchInstruction* NewBranchInstruction(Value* condition,
-                                          BasicBlock* true_block,
-                                          BasicBlock* false_block);
-  CallInstruction* NewCallInstruction(Type* output_type,
-                                      Value* callee,
-                                      Value* arguments);
-  EntryInstruction* NewEntryInstruction(Type* output_type);
-  ExitInstruction* NewExitInstruction();
-  JumpInstruction* NewJumpInstruction(BasicBlock* target_block);
-  ReturnInstruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
+  Instruction* NewBranchInstruction(Value* condition,
+                                    BasicBlock* true_block,
+                                    BasicBlock* false_block);
+  Instruction* NewCallInstruction(Type* output_type,
+                                  Value* callee,
+                                  Value* arguments);
+  Instruction* NewEntryInstruction(Type* output_type);
+  Instruction* NewExitInstruction();
+  Instruction* NewJumpInstruction(BasicBlock* target_block);
+  Instruction* NewLoadInstruction(Type* output_type, Value* pointer);
+  Instruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
+  Instruction* NewStoreInstruction(Value* pointer, Value* value);
 
  private:
   Factory* const factory_;

@@ -41,7 +41,11 @@ void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->id_);
   DCHECK(!basic_blocks_.empty());
   auto const basic_block = basic_blocks_.back();
-  basic_block->instructions_.AppendNode(new_instruction);
+  auto const last = basic_block->last_instruction();
+  if (last && last->IsTerminator())
+    basic_block->instructions_.InsertBefore(new_instruction, last);
+  else
+    basic_block->instructions_.AppendNode(new_instruction);
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block;
 }

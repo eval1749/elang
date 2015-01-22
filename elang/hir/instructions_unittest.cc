@@ -31,12 +31,14 @@ class HirInstructionTest : public testing::HirTest {
   HirInstructionTest();
   ~HirInstructionTest() override = default;
 
-  BoolType* bool_type() { return factory()->types()->GetBoolType(); }
+  Type* bool_type() { return factory()->types()->GetBoolType(); }
   BasicBlock* entry_block() { return function_->entry_block(); }
   BasicBlock* exit_block() { return function_->exit_block(); }
   Function* function() const { return function_; }
   VoidType* void_type() { return factory()->types()->void_type(); }
   VoidValue* void_value() { return factory()->void_value(); }
+
+  Instruction* MakeSource(Type* output_type);
 
  private:
   Function* function_;
@@ -46,6 +48,12 @@ class HirInstructionTest : public testing::HirTest {
 
 HirInstructionTest::HirInstructionTest()
     : function_(NewSampleFunction(factory())) {
+}
+
+Instruction* HirInstructionTest::MakeSource(Type* output_type) {
+  auto const callee = factory()->NewReference(
+      types()->NewFunctionType(output_type, void_type()), L"Foo");
+  return factory()->NewCallInstruction(output_type, callee, void_value());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -61,10 +69,8 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   editor.SetReturn(void_value());
 
   editor.Edit(entry_block());
-  auto const callee = factory()->NewReference(
-      types()->NewFunctionType(bool_type(), void_type()), L"Foo");
-  auto const call_instr = static_cast<Instruction*>(
-      factory()->NewCallInstruction(bool_type(), callee, void_value()));
+  auto const call_instr = MakeSource(bool_type());
+  editor.Append(call_instr);
   editor.SetBranch(call_instr, true_block, false_block);
   editor.Commit();
 
@@ -87,8 +93,7 @@ TEST_F(HirInstructionTest, CallInstruction) {
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(void_type(), string_type), L"Console.WriteLine");
   auto const args = factory()->NewStringLiteral(L"Hello world!");
-  auto const instr = static_cast<Instruction*>(
-      factory()->NewCallInstruction(void_type(), callee, args));
+  auto const instr = factory()->NewCallInstruction(void_type(), callee, args);
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
@@ -129,6 +134,21 @@ TEST_F(HirInstructionTest, JumpInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// LoadInstruction
+//
+TEST_F(HirInstructionTest, LoadInstruction) {
+  auto const bool_pointer_type = types()->NewPointerType(bool_type());
+  auto const source = MakeSource(bool_pointer_type);
+  auto const instr = factory()->NewLoadInstruction(bool_type(), source);
+  EXPECT_TRUE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(bool_type(), instr->output_type());
+  EXPECT_EQ(1, instr->CountOperands());
+  EXPECT_EQ(source, instr->OperandAt(0));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // ReturnInstruction
 //
 TEST_F(HirInstructionTest, ReturnInstruction) {
@@ -139,6 +159,23 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   EXPECT_EQ(2, instr->CountOperands());
   EXPECT_EQ(void_value(), instr->OperandAt(0));
   EXPECT_EQ(exit_block(), instr->OperandAt(1));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// StoreInstruction
+//
+TEST_F(HirInstructionTest, StoreInstruction) {
+  auto const bool_pointer_type = types()->NewPointerType(bool_type());
+  auto const source = MakeSource(bool_pointer_type);
+  auto const value = types()->GetBoolType()->GetDefaultValue();
+  auto const instr = factory()->NewStoreInstruction(source, value);
+  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(void_type(), instr->output_type());
+  EXPECT_EQ(2, instr->CountOperands());
+  EXPECT_EQ(source, instr->OperandAt(0));
+  EXPECT_EQ(value, instr->OperandAt(1));
 }
 
 }  // namespace hir
