@@ -26,6 +26,10 @@ namespace hir {
 
 namespace {
 
+void PrintAsRegister(std::ostream* ostream, const Instruction& instruction) {
+  *ostream << "%r" << instruction.id();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // TypeFormatter
@@ -169,7 +173,7 @@ void ValueFormatter::VisitFunction(Function* function) {
 }
 
 void ValueFormatter::VisitInstruction(Instruction* instruction) {
-  ostream_ << "%" << instruction->id();
+  PrintAsRegister(&ostream_ , *instruction);
 }
 
 void ValueFormatter::VisitReference(Reference* reference) {
@@ -243,8 +247,11 @@ std::ostream& operator<<(std::ostream& ostream,
   else
     ostream << "--";
   ostream << ":" << instruction.id() << ":" << instruction.opcode();
-  if (!instruction.type()->is<VoidType>())
-    ostream << " " << instruction.type() << " %" << instruction.id() << " =";
+  if (!instruction.type()->is<VoidType>()) {
+    ostream << " " << instruction.type() << " ";
+    PrintAsRegister(&ostream, instruction);
+    ostream << " =";
+  }
   for (auto const operand : instruction.operands())
     ostream << " " << *operand;
   return ostream;
@@ -315,8 +322,11 @@ void TextFormatter::FormatFunction(const Function* function) {
 }
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
-  if (!instruction->type()->is<VoidType>())
-    ostream_ << *instruction->output_type() << "%r = " << instruction->id();
+  if (!instruction->type()->is<VoidType>()) {
+    ostream_ << *instruction->output_type() << " ";
+    PrintAsRegister(&ostream_, *instruction);
+    ostream_ << " = ";
+  }
   ostream_ << instruction->opcode();
   auto separator = " ";
   for (auto const operand : instruction->operands()) {
