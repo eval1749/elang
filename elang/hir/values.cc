@@ -27,6 +27,8 @@ UseDefNode::UseDefNode() : instruction_(nullptr), value_(nullptr) {
 }
 
 void UseDefNode::Init(Instruction* instruction, Value* value) {
+  DCHECK(instruction);
+  DCHECK(value);
   DCHECK(!instruction_);
   DCHECK(!value_);
   DCHECK(value);
@@ -35,14 +37,17 @@ void UseDefNode::Init(Instruction* instruction, Value* value) {
   value_->Use(this);
 }
 
+void UseDefNode::Reset() {
+  DCHECK(value_) << "Already reset.";
+  value_->Unuse(this);
+  value_ = nullptr;
+}
+
 void UseDefNode::SetValue(Value* new_value) {
-  if (value_)
-    value_->Unuse(this);
-  // |Editor::RemoveInstruction()| passes |new_value| as |nullptr| for
-  // removing instruction to remove removing instruction from use-def list.
-  // TODO(eval1749) Should we not to allow |new_value| as |nullptr|?
-  if (new_value)
-    new_value->Use(this);
+  DCHECK(new_value);
+  DCHECK(value_);
+  value_->Unuse(this);
+  new_value->Use(this);
   value_ = new_value;
 }
 
@@ -65,8 +70,8 @@ void Value::Unuse(UseDefNode* value_holder) {
 //
 // Literal
 //
-#define V(Name, name, c_type, ...)                             \
-  Name##Literal::Name##Literal(Type* type, c_type data)        \
+#define V(Name, name, c_type, ...)                      \
+  Name##Literal::Name##Literal(Type* type, c_type data) \
       : Literal(type), data_(data) {}
 FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V

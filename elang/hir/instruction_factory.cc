@@ -18,12 +18,49 @@ InstructionFactory::InstructionFactory(Factory* factory,
     : factory_(factory), type_factory_(new TypeFactory(config)) {
 }
 
-VoidLiteral* InstructionFactory::GetVoidValue() const {
+VoidLiteral* InstructionFactory::void_value() const {
   return GetVoidType()->zero();
 }
 
-VoidType* InstructionFactory::GetVoidType() const {
+VoidType* InstructionFactory::void_type() const {
   return types()->GetVoidType();
+}
+
+BranchInstruction* InstructionFactory::NewBranchInstruction(
+    Value* condition,
+    BasicBlock* true_block,
+    BasicBlock* false_block) {
+  auto const instr = new (zone()) BranchInstruction(void_type());
+  instr->InitOperandAt(0, condition);
+  instr->InitOperandAt(1, true_block);
+  instr->InitOperandAt(2, false_block);
+  return instr;
+}
+
+CallInstruction* InstructionFactory::NewCallInstruction(Type* output_type,
+                                                        Value* callee,
+                                                        Value* arguments) {
+  auto const instr = new (zone()) CallInstruction(output_type);
+  instr->InitOperandAt(0, callee);
+  instr->InitOperandAt(1, arguments);
+  return instr;
+}
+
+EntryInstruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
+  return new (zone()) EntryInstruction(output_type);
+}
+
+ExitInstruction* InstructionFactory::NewExitInstruction() {
+  return new (zone()) ExitInstruction(void_type());
+}
+
+ReturnInstruction* InstructionFactory::NewReturnInstruction(
+    Value* value,
+    BasicBlock* exit_block) {
+  auto const instr = new (zone()) ReturnInstruction(void_type());
+  instr->InitOperandAt(0, value);
+  instr->InitOperandAt(1, exit_block);
+  return instr;
 }
 
 }  // namespace hir

@@ -73,17 +73,16 @@ void Editor::InitializeFunctionIfNeeded() {
   exit->id_ = factory_->NextBasicBlockId();
 
   {
-    auto const void_type = factory_->GetVoidType();
     ScopedEdit edit_scope(this);
 
     // Since 'ret' instruction refers exit block, we create exit block befoe
     // entry block.
     Edit(exit);
-    Append(ExitInstruction::New(factory_, void_type));
+    Append(factory_->NewExitInstruction());
 
     Edit(entry);
-    Append(EntryInstruction::New(
-        factory_, function_->function_type()->parameters_type()));
+    Append(factory_->NewEntryInstruction(
+        function_->function_type()->parameters_type()));
     SetReturn(function_->function_type()->return_type()->GetDefaultValue());
   }
 
@@ -121,20 +120,19 @@ void Editor::RemoveInstruction(Instruction* old_instruction) {
   auto const basic_block = basic_blocks_.back();
   auto const operand_count = old_instruction->CountOperands();
   for (auto index = 0; index < operand_count; ++index)
-    old_instruction->SetOperandAt(index, nullptr);
+    old_instruction->ResetOperandAt(index);
   basic_block->instructions_.RemoveNode(old_instruction);
 }
 
 void Editor::SetBranch(Value* condition,
-                       BasicBlock* then_block,
-                       BasicBlock* else_block) {
+                       BasicBlock* true_block,
+                       BasicBlock* false_block) {
   DCHECK(!basic_blocks_.empty());
   auto const basic_block = basic_blocks_.back();
   auto const last = basic_block->last_instruction();
   if (last && last->IsTerminator())
     RemoveInstruction(last);
-  Append(BranchInstruction::New(factory_, factory_->GetVoidType(), condition,
-                                then_block, else_block));
+  Append(factory_->NewBranchInstruction(condition, true_block, false_block));
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
@@ -143,8 +141,7 @@ void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
 
 void Editor::SetReturn(Value* new_value) {
   DCHECK(!basic_blocks_.empty());
-  Append(ReturnInstruction::New(factory_, factory_->GetVoidType(), new_value,
-                                function_->exit_block()));
+  Append(factory_->NewReturnInstruction(new_value, function_->exit_block()));
 }
 
 bool Editor::Validate(BasicBlock* block) {

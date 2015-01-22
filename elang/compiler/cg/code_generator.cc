@@ -146,8 +146,7 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
     return factory()->NewInt64Literal(token->int64_data());
 
   if (type == MapType(PredefinedName::Int8)) {
-    return factory()->NewInt8Literal(
-        static_cast<int8_t>(token->int64_data()));
+    return factory()->NewInt8Literal(static_cast<int8_t>(token->int64_data()));
   }
 
   if (type == MapType(PredefinedName::UInt16)) {
@@ -233,8 +232,8 @@ void CodeGenerator::VisitCall(ast::Call* node) {
       MapType(callee->signature())->as<hir::FunctionType>();
   // TODO(eval1749) We should make 'call' instruction takes multiple
   // operands.
-  auto const call_instr = hir::CallInstruction::New(
-      factory(), output_->type, callee_type->GetDefaultValue(),
+  auto const call_instr = factory()->NewCallInstruction(
+      output_->type, callee_type->GetDefaultValue(),
       MapType(PredefinedName::Void)->GetDefaultValue());
   editor_->InsertBefore(call_instr, output_->instruction);
   auto position = static_cast<int>(node->arguments().size());

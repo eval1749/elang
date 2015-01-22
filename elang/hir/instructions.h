@@ -8,10 +8,8 @@
 #include <array>
 
 #include "base/basictypes.h"
+#include "base/logging.h"
 #include "elang/hir/hir_export.h"
-// TODO(eval1749) We should not include "hir/factory.h". It is required for
-// |InstructionTemplate|.
-#include "elang/hir/factory.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/values.h"
 
@@ -27,8 +25,10 @@ enum class Opcode {
 #undef V
 };
 
-#define DECLARE_HIR_INSTRUCTION_CLASS(Name) \
-  DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction);
+#define DECLARE_HIR_INSTRUCTION_CLASS(Name)                \
+  DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction); \
+  friend class Editor;                                     \
+  friend class InstructionFactory;
 
 #define DECLARE_ABSTRACT_HIR_INSTRUCTION_CLASS(Name) \
   DECLARE_HIR_INSTRUCTION_CLASS(Name);
@@ -122,6 +122,7 @@ class ELANG_HIR_EXPORT Instruction
  private:
   friend class Editor;
 
+  virtual void ResetOperandAt(int index) = 0;
   virtual void SetOperandAt(int index, Value* new_value) = 0;
 
   // Value
@@ -139,41 +140,28 @@ class ELANG_HIR_EXPORT Instruction
 // Help template for fixed operands instructions.
 //
 template <class Derived, typename... Params>
-class InstructionTemplate : public Instruction {
+class FixedOperandsInstruction : public Instruction {
  public:
-  typedef InstructionTemplate BaseClass;
-
-  static Derived* New(Factory* factory, Type* output_type, Params... params) {
-    return new (factory->zone()) Derived(output_type, params...);
+  void InitOperandAt(int index, Value* value) {
+    operands_[index].Init(this, value);
   }
-
   // Instruction
   int CountOperands() const override { return sizeof...(Params); }
-  Value* OperandAt(int index) const override {
-    return operands_[index].value();
-  }
-  void SetOperandAt(int index, Value* new_value) override {
+  Value* OperandAt(int index) const final { return operands_[index].value(); }
+  void ResetOperandAt(int index) final { operands_[index].Reset(); }
+  void SetOperandAt(int index, Value* new_value) final {
+    DCHECK(new_value);
     operands_[index].SetValue(new_value);
   }
 
  protected:
-  InstructionTemplate(Type* output_type, Params... params)
-      : Instruction(output_type) {
-    InitOperands(0, params...);
-  }
+  explicit FixedOperandsInstruction(Type* output_type)
+      : Instruction(output_type) {}
 
  private:
-  void InitOperands(int index) { __assume(index); }
-
-  template <typename... Params>
-  void InitOperands(int index, Value* value, Params... params) {
-    operands_[index].Init(this, value);
-    InitOperands(index + 1, params...);
-  }
-
   std::array<UseDefNode, sizeof...(Params)> operands_;
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
+  DISALLOW_COPY_AND_ASSIGN(FixedOperandsInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -181,26 +169,21 @@ class InstructionTemplate : public Instruction {
 // BranchInstruction
 //
 class ELANG_HIR_EXPORT BranchInstruction final
-    : public InstructionTemplate<BranchInstruction,
-                                 Value*,
-                                 BasicBlock*,
-                                 BasicBlock*> {
+    : public FixedOperandsInstruction<BranchInstruction,
+                                      Value*,
+                                      BasicBlock*,
+                                      BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Branch);
 
  public:
   // Instruction
-  bool CanBeRemoved() const override;
+  bool CanBeRemoved() const final;
 
  private:
-  friend class BaseClass;
-
-  BranchInstruction(Type* output_type,
-                    Value* condition,
-                    BasicBlock* then_block,
-                    BasicBlock* else_block);
+  explicit BranchInstruction(Type* output_type);
 
   // Instruction
-  bool IsTerminator() const override;
+  bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstruction);
 };
@@ -210,17 +193,15 @@ class ELANG_HIR_EXPORT BranchInstruction final
 // CallInstruction
 //
 class ELANG_HIR_EXPORT CallInstruction final
-    : public InstructionTemplate<CallInstruction, Value*, Value*> {
+    : public FixedOperandsInstruction<CallInstruction, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Call);
 
  public:
   // Instruction
-  bool CanBeRemoved() const override;
+  bool CanBeRemoved() const final;
 
  private:
-  friend class BaseClass;
-
-  CallInstruction(Type* output_type, Value* callee, Value* arguments);
+  explicit CallInstruction(Type* output_type);
 
   DISALLOW_COPY_AND_ASSIGN(CallInstruction);
 };
@@ -230,12 +211,10 @@ class ELANG_HIR_EXPORT CallInstruction final
 // EntryInstruction
 //
 class ELANG_HIR_EXPORT EntryInstruction final
-    : public InstructionTemplate<EntryInstruction> {
+    : public FixedOperandsInstruction<EntryInstruction> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Entry);
 
  private:
-  friend class BaseClass;
-
   explicit EntryInstruction(Type* output_type);
 
   DISALLOW_COPY_AND_ASSIGN(EntryInstruction);
@@ -246,16 +225,14 @@ class ELANG_HIR_EXPORT EntryInstruction final
 // ExitInstruction
 //
 class ELANG_HIR_EXPORT ExitInstruction final
-    : public InstructionTemplate<ExitInstruction> {
+    : public FixedOperandsInstruction<ExitInstruction> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Exit);
 
  private:
-  friend class BaseClass;
-
   explicit ExitInstruction(Type* output_type);
 
   // Instruction
-  bool IsTerminator() const override;
+  bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
 };
@@ -265,16 +242,14 @@ class ELANG_HIR_EXPORT ExitInstruction final
 // ReturnInstruction
 //
 class ELANG_HIR_EXPORT ReturnInstruction final
-    : public InstructionTemplate<ReturnInstruction, Value*, BasicBlock*> {
+    : public FixedOperandsInstruction<ReturnInstruction, Value*, BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Return);
 
  private:
-  friend class BaseClass;
-
-  ReturnInstruction(Type* output_type, Value* value, BasicBlock* exit_block);
+  explicit ReturnInstruction(Type* output_type);
 
   // Instruction
-  bool IsTerminator() const override;
+  bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstruction);
 };

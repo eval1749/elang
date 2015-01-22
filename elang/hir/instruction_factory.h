@@ -31,12 +31,25 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   ~InstructionFactory() = default;
 
   TypeFactory* types() const { return type_factory_.get(); }
+  VoidType* void_type() const;
+  VoidLiteral* void_value() const;
 
   // Convenience function to have 'void' value.
-  VoidLiteral* GetVoidValue() const;
+  VoidLiteral* GetVoidValue() const { return void_value(); }
 
   // Convenience function to have 'void' type.
-  VoidType* GetVoidType() const;
+  VoidType* GetVoidType() const { return void_type(); }
+
+  // Instruction constructors
+  BranchInstruction* NewBranchInstruction(Value* condition,
+                                          BasicBlock* true_block,
+                                          BasicBlock* false_block);
+  CallInstruction* NewCallInstruction(Type* output_type,
+                                      Value* callee,
+                                      Value* arguments);
+  EntryInstruction* NewEntryInstruction(Type* output_type);
+  ExitInstruction* NewExitInstruction();
+  ReturnInstruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
 
  private:
   Factory* const factory_;

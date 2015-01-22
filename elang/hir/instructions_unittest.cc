@@ -49,7 +49,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(bool_type(), void_type()), L"Foo");
   auto const call_instr = static_cast<Instruction*>(
-      CallInstruction::New(factory(), bool_type(), callee, void_value()));
+      factory()->NewCallInstruction(bool_type(), callee, void_value()));
   editor.SetBranch(call_instr, then_block, else_block);
   editor.Commit();
 
@@ -73,7 +73,7 @@ TEST_F(HirInstructionTest, CallInstruction) {
       types()->NewFunctionType(void_type(), string_type), L"Console.WriteLine");
   auto const args = factory()->NewStringLiteral(L"Hello world!");
   auto const instr = static_cast<Instruction*>(
-      CallInstruction::New(factory(), void_type(), callee, args));
+      factory()->NewCallInstruction(void_type(), callee, args));
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());

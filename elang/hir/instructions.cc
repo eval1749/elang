@@ -98,7 +98,9 @@ bool Instruction::IsTerminator() const {
   return false;
 }
 
-#define V(Name, ...) \
+#define V(Name, ...)                                      \
+  Name##Instruction::Name##Instruction(Type* output_type) \
+      : FixedOperandsInstruction(output_type) {}          \
   Opcode Name##Instruction::opcode() const { return Opcode::Name; }
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
@@ -107,19 +109,7 @@ void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // BranchInstruction
-//
-BranchInstruction::BranchInstruction(Type* output_type,
-                                     Value* condition,
-                                     BasicBlock* then_block,
-                                     BasicBlock* else_block)
-    : InstructionTemplate(output_type, condition, then_block, else_block) {
-  DCHECK(output_type->is<VoidType>());
-  DCHECK(condition->type()->is<BoolType>());
-}
-
 bool BranchInstruction::CanBeRemoved() const {
   return false;
 }
@@ -128,55 +118,18 @@ bool BranchInstruction::IsTerminator() const {
   return true;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // CallInstruction
-//
-CallInstruction::CallInstruction(Type* output_type,
-                                 Value* callee,
-                                 Value* arguments)
-    : InstructionTemplate(output_type, callee, arguments) {
-}
-
 bool CallInstruction::CanBeRemoved() const {
   // TODO(eval1749) We should return true for known side effect free functions.
   return false;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// EntryInstruction
-//
-EntryInstruction::EntryInstruction(Type* output_type)
-    : InstructionTemplate(output_type) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // ExitInstruction
-//
-ExitInstruction::ExitInstruction(Type* output_type)
-    : InstructionTemplate(output_type) {
-  DCHECK(output_type->is<VoidType>());
-}
-
 bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // ReturnInstruction
-//
-ReturnInstruction::ReturnInstruction(Type* output_type,
-                                     Value* value,
-                                     BasicBlock* exit_block)
-    : InstructionTemplate(output_type, value, exit_block) {
-  DCHECK(output_type->is<VoidType>());
-  DCHECK(!value->is<BasicBlock>());
-  DCHECK(exit_block->last_instruction()->is<ExitInstruction>());
-}
-
 bool ReturnInstruction::IsTerminator() const {
   return true;
 }

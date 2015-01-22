@@ -52,6 +52,7 @@ class ELANG_HIR_EXPORT UseDefNode
   UseDefNode* previous_user() const { return previous(); }
 
   void Init(Instruction* instruction, Value* value);
+  void Reset();
   void SetValue(Value* new_value);
 
  private:
@@ -171,16 +172,16 @@ class ELANG_HIR_EXPORT VoidLiteral final : public Literal {
 //
 // Primitive values
 //
-#define V(Name, name, cpp_type)                              \
-  class ELANG_HIR_EXPORT Name##Literal final : public Literal {    \
-    DECLARE_HIR_CONCRETE_VALUE_CLASS(Name##Literal, Literal) \
-   public:                                                   \
-    Name##Literal(Type* type, cpp_type data);                \
-    cpp_type data() const { return data_; }                 \
-                                                             \
-   private:                                                  \
-    const cpp_type data_;                                    \
-    DISALLOW_COPY_AND_ASSIGN(Name##Literal);                 \
+#define V(Name, name, cpp_type)                                 \
+  class ELANG_HIR_EXPORT Name##Literal final : public Literal { \
+    DECLARE_HIR_CONCRETE_VALUE_CLASS(Name##Literal, Literal)    \
+   public:                                                      \
+    Name##Literal(Type* type, cpp_type data);                   \
+    cpp_type data() const { return data_; }                     \
+                                                                \
+   private:                                                     \
+    const cpp_type data_;                                       \
+    DISALLOW_COPY_AND_ASSIGN(Name##Literal);                    \
   };
 FOR_EACH_HIR_LITERAL_VALUE(V)
 #undef V
