@@ -53,7 +53,7 @@ HirInstructionTest::HirInstructionTest()
 Instruction* HirInstructionTest::MakeSource(Type* output_type) {
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(output_type, void_type()), L"Foo");
-  return factory()->NewCallInstruction(output_type, callee, void_value());
+  return factory()->NewCallInstruction(callee, void_value());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ TEST_F(HirInstructionTest, CallInstruction) {
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(void_type(), string_type), L"Console.WriteLine");
   auto const args = factory()->NewStringLiteral(L"Hello world!");
-  auto const instr = factory()->NewCallInstruction(void_type(), callee, args);
+  auto const instr = factory()->NewCallInstruction(callee, args);
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
@@ -139,7 +139,7 @@ TEST_F(HirInstructionTest, JumpInstruction) {
 TEST_F(HirInstructionTest, LoadInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = MakeSource(bool_pointer_type);
-  auto const instr = factory()->NewLoadInstruction(bool_type(), source);
+  auto const instr = factory()->NewLoadInstruction(source);
   EXPECT_TRUE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());

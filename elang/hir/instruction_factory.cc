@@ -36,10 +36,11 @@ Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
   return instr;
 }
 
-Instruction* InstructionFactory::NewCallInstruction(Type* output_type,
-                                                    Value* callee,
+Instruction* InstructionFactory::NewCallInstruction(Value* callee,
                                                     Value* arguments) {
-  auto const instr = new (zone()) CallInstruction(output_type);
+  auto const callee_type = callee->type()->as<FunctionType>();
+  DCHECK(callee_type);
+  auto const instr = new (zone()) CallInstruction(callee_type->return_type());
   instr->InitOperandAt(0, callee);
   instr->InitOperandAt(1, arguments);
   return instr;
@@ -59,12 +60,10 @@ Instruction* InstructionFactory::NewJumpInstruction(BasicBlock* target_block) {
   return instr;
 }
 
-Instruction* InstructionFactory::NewLoadInstruction(Type* output_type,
-                                                    Value* pointer) {
-  DCHECK(!output_type->is<VoidType>());
-  DCHECK(pointer->type()->is<PointerType>());
-  DCHECK_EQ(output_type, pointer->type()->as<PointerType>()->pointee());
-  auto const instr = new (zone()) LoadInstruction(output_type);
+Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {
+  auto const pointer_type = pointer->type()->as<PointerType>();
+  DCHECK(pointer_type);
+  auto const instr = new (zone()) LoadInstruction(pointer_type->pointee());
   instr->InitOperandAt(0, pointer);
   return instr;
 }
