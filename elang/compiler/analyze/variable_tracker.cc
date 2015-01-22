@@ -23,10 +23,12 @@ namespace compiler {
 // VariableTracker::TrackingData
 //
 struct VariableTracker::TrackingData : ZoneAllocated {
+  int heap_get_count;
+  int heap_set_count;
   int local_get_count;
   int local_set_count;
-  int nonlocal_get_count;
-  int nonlocal_set_count;
+  int non_local_get_count;
+  int non_local_set_count;
   ts::Value* value;
 
   TrackingData();
@@ -34,20 +36,24 @@ struct VariableTracker::TrackingData : ZoneAllocated {
 };
 
 VariableTracker::TrackingData::TrackingData()
-    : local_get_count(0),
+    : heap_get_count(0),
+      heap_set_count(0),
+      local_get_count(0),
       local_set_count(0),
-      nonlocal_get_count(0),
-      nonlocal_set_count(0),
+      non_local_get_count(0),
+      non_local_set_count(0),
       value(nullptr) {
 }
 
 ir::StorageClass VariableTracker::TrackingData::ComputeStorageClass() const {
-  if (nonlocal_set_count)
+  if (non_local_set_count)
     return ir::StorageClass::Heap;
-  if (nonlocal_get_count || local_set_count)
-    return ir::StorageClass::Stack;
-  if (local_get_count)
-    return ir::StorageClass::Register;
+  if (non_local_set_count)
+    return ir::StorageClass::NonLocal;
+  if (local_set_count)
+    return ir::StorageClass::Local;
+  if (heap_get_count || local_get_count || non_local_get_count)
+    return ir::StorageClass::ReadOnly;
   // Maybe variable used as |static_cast<void>(x)|.
   return ir::StorageClass::Void;
 }
@@ -85,7 +91,7 @@ void VariableTracker::Finish(ir::Factory* factory, ts::Factory* type_factory) {
 }
 
 ts::Value* VariableTracker::RecordGet(ast::NamedNode* variable) {
-  // TODO(eval1749) NYI nonlocal reference of variable.
+  // TODO(eval1749) NYI non_local reference of variable.
   auto const it = variable_map_.find(variable);
   DCHECK(it != variable_map_.end());
   auto const data = it->second;
@@ -94,7 +100,7 @@ ts::Value* VariableTracker::RecordGet(ast::NamedNode* variable) {
 }
 
 void VariableTracker::RecordSet(ast::NamedNode* variable) {
-  // TODO(eval1749) NYI nonlocal reference of variable.
+  // TODO(eval1749) NYI non_local reference of variable.
   auto const it = variable_map_.find(variable);
   DCHECK(it != variable_map_.end());
   ++it->second->local_set_count;

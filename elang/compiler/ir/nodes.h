@@ -39,8 +39,9 @@ namespace ir {
 
 #define FOR_EACH_IR_STORAGE_CLASS(V) \
   V(Heap)                            \
-  V(Register)                        \
-  V(Stack)                           \
+  V(Local)                           \
+  V(NonLocal)                        \
+  V(ReadOnly)                        \
   V(Void)
 
 enum class StorageClass {
