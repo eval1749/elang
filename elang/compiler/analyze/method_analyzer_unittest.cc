@@ -241,6 +241,18 @@ TEST_F(MethodAnalyzerTest, Method2) {
       GetCalls("Sample.Main"));
 }
 
+TEST_F(MethodAnalyzerTest, ReturnError) {
+  Prepare(
+      "class Sample {"
+      "    int Foo() { return; }"
+      "    void Bar() { return 42; }"
+      "  }");
+  EXPECT_EQ(
+      "Method.Return.Void(30) return\n"
+      "Method.Return.NotVoid(56) return\n",
+      GetCalls("Sample.Foo"));
+}
+
 TEST_F(MethodAnalyzerTest, TypeVariable) {
   Prepare(
       "using System;"

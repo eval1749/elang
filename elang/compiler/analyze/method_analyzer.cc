@@ -21,6 +21,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
 #include "elang/compiler/token_type.h"
@@ -47,10 +48,12 @@ class MethodBodyAnalyzer final : public Analyzer,
  private:
   ts::Factory* type_factory() const { return type_factory_.get(); }
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
+  ir::Type* void_type() const;
 
   // ast::Visitor
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
 
   // Owner of method body.
@@ -79,6 +82,12 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
                                       type_factory_.get(),
                                       variable_tracker_.get(),
                                       method)) {
+}
+
+ir::Type* MethodBodyAnalyzer::void_type() const {
+  return semantics()
+      ->ValueOf(session()->GetPredefinedType(PredefinedName::Void))
+      ->as<ir::Type>();
 }
 
 // The entry point of |MethodBodyAnalyzer|.
@@ -128,6 +137,22 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
   type_resolver()->Resolve(node->expression(), type_factory()->any_value());
+}
+
+void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
+  auto const ir_method = semantics()->ValueOf(method_)->as<ir::Method>();
+  auto const return_type = ir_method->return_type();
+  if (ir_method->return_type() == void_type()) {
+    if (node->value())
+      Error(ErrorCode::MethodReturnNotVoid, node);
+    return;
+  }
+  if (auto const return_value = node->value()) {
+    auto const value = type_factory()->NewLiteral(return_type);
+    type_resolver()->Resolve(return_value, value);
+    return;
+  }
+  Error(ErrorCode::MethodReturnVoid, node);
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {

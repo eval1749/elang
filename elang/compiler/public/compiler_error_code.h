@@ -19,6 +19,8 @@ namespace compiler {
   E(ClassResolution, Method, Duplicate)               \
   /* Method Analyzer */                               \
   E(Method, Callee, NotSupported)                     \
+  E(Method, Return, NotVoid)                          \
+  E(Method, Return, Void)                             \
   /* Namespace Analyzer */                            \
   E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
