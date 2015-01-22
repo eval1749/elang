@@ -53,6 +53,9 @@ class ELANG_HIR_EXPORT Editor final {
   // Instruction editing
   void Append(Instruction* new_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
+  void RemoveInstruction(Instruction* old_instruction);
+
+  // Set terminator instruction
   void SetBranch(Value* condition,
                  BasicBlock* then_block,
                  BasicBlock* else_block);
@@ -67,7 +70,6 @@ class ELANG_HIR_EXPORT Editor final {
 
  private:
   void InitializeFunctionIfNeeded();
-  void RemoveInstruction(Instruction* old_instruction);
 
   std::vector<BasicBlock*> basic_blocks_;
   Factory* const factory_;
