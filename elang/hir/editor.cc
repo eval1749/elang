@@ -95,7 +95,7 @@ void Editor::InitializeFunctionIfNeeded() {
     Edit(entry);
     Append(factory()->NewEntryInstruction(
         function_->function_type()->parameters_type()));
-    SetReturn(function_->function_type()->return_type()->GetDefaultValue());
+    SetReturn(function_->return_type()->GetDefaultValue());
   }
 
   DCHECK(Validate(function_));

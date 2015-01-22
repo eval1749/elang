@@ -131,5 +131,9 @@ FunctionType* Function::function_type() const {
   return type()->as<FunctionType>();
 }
 
+Type* Function::return_type() const {
+  return function_type()->return_type();
+}
+
 }  // namespace hir
 }  // namespace elang
