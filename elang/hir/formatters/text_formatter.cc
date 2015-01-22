@@ -245,9 +245,8 @@ std::ostream& operator<<(std::ostream& ostream,
   ostream << ":" << instruction.id() << ":" << instruction.opcode();
   if (!instruction.type()->is<VoidType>())
     ostream << " " << instruction.type() << " %" << instruction.id() << " =";
-  auto const operand_count = instruction.CountOperands();
-  for (auto index = 0; index < operand_count; ++index)
-    ostream << " " << *instruction.OperandAt(index);
+  for (auto const operand : instruction.operands())
+    ostream << " " << *operand;
   return ostream;
 }
 
@@ -301,9 +300,8 @@ void TextFormatter::FormatFunction(const Function* function) {
     ostream_ << "  // Out:";
     {
       auto const last = block->last_instruction();
-      auto const num_values = last->CountOperands();
-      for (auto nth = 0; nth < num_values; ++nth) {
-        if (auto const target = last->OperandAt(nth)->as<BasicBlock>())
+      for (auto const operand : last->operands()) {
+        if (auto const target = operand->as<BasicBlock>())
           ostream_ << " " << *target;
       }
     }
@@ -321,10 +319,8 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
     ostream_ << *instruction->output_type() << "%r = " << instruction->id();
   ostream_ << instruction->opcode();
   auto separator = " ";
-  auto const num_values = instruction->CountOperands();
-  for (auto nth = 0; nth < num_values; ++nth) {
-    auto const value = instruction->OperandAt(nth);
-    ostream_ << separator << *value;
+  for (auto const operand : instruction->operands()) {
+    ostream_ << separator << *operand;
     separator = ", ";
   }
 

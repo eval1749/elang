@@ -37,6 +37,43 @@ enum class Opcode {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Operands
+//
+class ELANG_HIR_EXPORT Operands final {
+ public:
+  class Iterator final {
+   public:
+    Iterator(const Instruction* instruction, int current);
+    Iterator(const Iterator& other);
+    ~Iterator();
+
+    Iterator& operator=(const Iterator& other);
+    Iterator& operator++();
+    Value* operator*() const;
+    Value* operator->() const;
+    bool operator==(const Iterator& other) const;
+    bool operator!=(const Iterator& other) const;
+
+   private:
+    const Instruction* instruction_;
+    int current_;
+  };
+
+  explicit Operands(const Instruction* instruction);
+  Operands(const Operands& other);
+  ~Operands();
+
+  Operands& operator=(const Operands& other);
+
+  Iterator begin();
+  Iterator end();
+
+ private:
+  const Instruction* instruction_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Instruction
 //
 class ELANG_HIR_EXPORT Instruction
@@ -53,6 +90,9 @@ class ELANG_HIR_EXPORT Instruction
 
   // Opcode for formatting and debugging
   virtual Opcode opcode() const = 0;
+
+  // Accessing operands in this instruction.
+  Operands operands() const;
 
   // Type of value produced by this instruction.
   Type* output_type() const { return type(); }
