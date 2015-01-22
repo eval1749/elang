@@ -16,6 +16,7 @@
 namespace elang {
 namespace hir {
 class Editor;
+class TypeFactory;
 }
 namespace compiler {
 
@@ -38,13 +39,23 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   class ScopedOutput;
 
   hir::Factory* factory() const { return factory_; }
+  hir::TypeFactory* types() const;
   TypeMapper* type_mapper() const { return type_mapper_.get(); }
   hir::Type* void_type() const { return void_type_; }
 
   hir::Type* MapType(PredefinedName name) const;
   hir::Type* MapType(ir::Type* type) const;
+
+  // Generate value
+  hir::Value* GenerateValue(hir::Type* type, ast::Expression* expression);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
+
+  // Output
+  bool NeedOutput() const;
+  void SetOutput(hir::Instruction* instruction);
   void SetOutput(hir::Value* value);
+
+  // Shortcut for |semantics()->ValueOf()|
   ir::Node* ValueOf(ast::Node* node) const;
 
   // ast::Visitor declaration nodes
@@ -54,10 +65,12 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void CodeGenerator::VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
   void VisitNameReference(ast::NameReference* node);
+  void VisitVariableReference(ast::VariableReference* node);
 
   // ast::Visitor statement nodes
   void VisitBlockStatement(ast::BlockStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitVarStatement(ast::VarStatement* node);
 
   hir::Editor* editor_;
   hir::Factory* const factory_;
@@ -66,6 +79,9 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   Output* output_;
   const std::unique_ptr<TypeMapper> type_mapper_;
   hir::Type* const void_type_;
+
+  // Map |ir::Variable| to value or pointer producing instruction.
+  std::unordered_map<ir::Variable*, hir::Value*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGenerator);
 };

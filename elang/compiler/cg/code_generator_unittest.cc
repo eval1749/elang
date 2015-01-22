@@ -30,6 +30,8 @@ class CodeGeneratorTest : public testing::CgTest {
 
   hir::Function* FunctionOf(ast::Method* method) const;
 
+  std::string GetFunction(base::StringPiece name);
+
  private:
   CodeGenerator code_generator_;
 
@@ -43,6 +45,30 @@ hir::Function* CodeGeneratorTest::FunctionOf(ast::Method* ast_method) const {
   return code_generator()->FunctionOf(ast_method);
 }
 
+std::string CodeGeneratorTest::GetFunction(base::StringPiece name) {
+  auto const analyze_result = Analyze();
+  if (!analyze_result.empty())
+    return analyze_result;
+  if (!code_generator()->Run())
+    return GetErrors();
+
+  auto const ast_method_group = FindMember(name)->as<ast::MethodGroup>();
+  if (!ast_method_group)
+    return std::string("No such method group ") + name.as_string();
+  auto const ast_method = ast_method_group->methods()[0];
+  auto const ir_function = semantics()->ValueOf(ast_method);
+  if (!ir_function)
+    return std::string("Unbound ") + name.as_string();
+  auto const hir_function = FunctionOf(ast_method);
+  if (!hir_function)
+    return std::string("Not function") + name.as_string();
+
+  std::stringstream ostream;
+  hir::TextFormatter formatter(&ostream);
+  formatter.FormatFunction(hir_function);
+  return ostream.str();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Tests...
@@ -54,20 +80,6 @@ TEST_F(CodeGeneratorTest, Call) {
       "  static void M1() { M2(123); }\n"
       "  static void M2(int x) {}\n"
       "}\n");
-  ASSERT_EQ("", Analyze());
-  ASSERT_TRUE(code_generator()->Run()) << GetErrors();
-
-  auto const ast_method_group = FindMember("A.M1")->as<ast::MethodGroup>();
-  ASSERT_TRUE(ast_method_group) << "No such method group A.M1";
-  auto const ast_method = ast_method_group->methods()[0];
-  auto const ir_function = semantics()->ValueOf(ast_method);
-  ASSERT_TRUE(ir_function);
-  auto const hir_function = FunctionOf(ast_method);
-  ASSERT_TRUE(hir_function);
-
-  std::stringstream ostream;
-  hir::TextFormatter formatter(&ostream);
-  formatter.FormatFunction(hir_function);
   EXPECT_EQ(
       "function1 void(void)\n"
       "block1:\n"
@@ -81,7 +93,30 @@ TEST_F(CodeGeneratorTest, Call) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      ostream.str());
+      GetFunction("A.M1"));
+}
+
+TEST_F(CodeGeneratorTest, Variable) {
+  Prepare(
+      "class A {\n"
+      "  static void Foo() { var x = Bar(); Baz(x); }\n"
+      "  static int Bar() { return 42; }\n"
+      "  static void Baz(int x) {}\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 void(void)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  entry\n"
+      "  int32 %r4 = call `A.Bar`, void\n"
+      "  call `A.Baz`, %r4\n"
+      "  ret void, block2\n"
+      "\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n", GetFunction("A.Foo"));
 }
 
 }  // namespace
