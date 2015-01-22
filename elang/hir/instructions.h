@@ -5,6 +5,8 @@
 #ifndef ELANG_HIR_INSTRUCTIONS_H_
 #define ELANG_HIR_INSTRUCTIONS_H_
 
+#include <array>
+
 #include "base/basictypes.h"
 #include "elang/hir/hir_export.h"
 // TODO(eval1749) We should not include "hir/factory.h". It is required for
@@ -162,12 +164,15 @@ class InstructionTemplate : public Instruction {
 
  private:
   void InitOperands(int index) { __assume(index); }
+
   template <typename... Params>
   void InitOperands(int index, Value* value, Params... params) {
     operands_[index].Init(this, value);
     InitOperands(index + 1, params...);
   }
-  EmbeddedContainer<UseDefNode, sizeof...(Params)> operands_;
+
+  std::array<UseDefNode, sizeof...(Params)> operands_;
+
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
