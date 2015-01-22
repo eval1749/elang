@@ -18,7 +18,7 @@ InstructionFactory::InstructionFactory(Factory* factory,
     : factory_(factory), type_factory_(new TypeFactory(config)) {
 }
 
-VoidLiteral* InstructionFactory::void_value() const {
+VoidValue* InstructionFactory::void_value() const {
   return GetVoidType()->zero();
 }
 

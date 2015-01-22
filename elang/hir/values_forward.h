@@ -68,7 +68,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
   V(UInt32Literal)            \
   V(UInt64Literal)            \
   V(UInt8Literal)             \
-  V(VoidLiteral)
+  V(VoidValue)
 
 #define V(Name, ...) class Name;
 FOR_EACH_HIR_VALUE(V)

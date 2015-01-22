@@ -229,7 +229,7 @@ void ValueFormatter::VisitUInt8Literal(UInt8Literal* literal) {
   ostream_ << "uint8(" << static_cast<int>(literal->data()) << ")";
 }
 
-void ValueFormatter::VisitVoidLiteral(VoidLiteral* literal) {
+void ValueFormatter::VisitVoidValue(VoidValue* literal) {
   DCHECK(literal);
   ostream_ << "void";
 }

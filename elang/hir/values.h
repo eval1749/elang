@@ -155,17 +155,17 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
 //
 // value for 'void' type. |TypeFactory| singleton.
 //
-class ELANG_HIR_EXPORT VoidLiteral final : public Literal {
-  DECLARE_HIR_CONCRETE_VALUE_CLASS(VoidLiteral, Literal);
+class ELANG_HIR_EXPORT VoidValue final : public Literal {
+  DECLARE_HIR_CONCRETE_VALUE_CLASS(VoidValue, Literal);
 
  private:
   // For creating singleton void literal.
   friend class InstructionFactory;
   friend class VoidType;
 
-  VoidLiteral(VoidType* type, int dummy);
+  VoidValue(VoidType* type, int dummy);
 
-  DISALLOW_COPY_AND_ASSIGN(VoidLiteral);
+  DISALLOW_COPY_AND_ASSIGN(VoidValue);
 };
 
 //////////////////////////////////////////////////////////////////////

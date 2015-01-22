@@ -72,6 +72,9 @@ FOR_EACH_HIR_CONCRETE_TYPE(V)
 class TypeFactory;
 class TypeVisitor;
 
+// For ease of using |FOR_EACH_HIR_PREMITIVE_TYPE(V)|
+#define VoidLiteral VoidValue
+
 // Print for formatting and debugging.
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Type& type);

@@ -24,7 +24,7 @@ class HirInstructionTest : public testing::HirTest {
 
   BoolType* bool_type() { return factory()->types()->GetBoolType(); }
   VoidType* void_type() { return factory()->types()->GetVoidType(); }
-  VoidLiteral* void_value() { return factory()->GetVoidValue(); }
+  VoidValue* void_value() { return factory()->void_value(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);

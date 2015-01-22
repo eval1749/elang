@@ -32,10 +32,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
 
   TypeFactory* types() const { return type_factory_.get(); }
   VoidType* void_type() const;
-  VoidLiteral* void_value() const;
-
-  // Convenience function to have 'void' value.
-  VoidLiteral* GetVoidValue() const { return void_value(); }
+  VoidValue* void_value() const;
 
   // Convenience function to have 'void' type.
   VoidType* GetVoidType() const { return void_type(); }
