@@ -12,6 +12,7 @@ component("base") {
     "castable.h",
     "double_linked.h",
     "float_types.h",
+    "index_sequence.h",
     "maybe.h",
     "simple_directed_graph.h",
     "visitable.h",
