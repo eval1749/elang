@@ -47,6 +47,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   UInt64Literal* NewUInt64Literal(uint64_t data);
   UInt8Literal* NewUInt8Literal(uint8_t data);
   Function* NewFunction(FunctionType* function_type);
+  Reference* NewReference(Type* type, AtomicString* name);
   Reference* NewReference(Type* type, base::StringPiece16 name);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
   StringLiteral* NewStringLiteral(base::StringPiece16 data);

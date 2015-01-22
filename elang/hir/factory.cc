@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "elang/base/atomic_string.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/hir/intrinsic_names.h"
@@ -101,6 +102,12 @@ Int64Literal* Factory::NewInt64Literal(int64_t data) {
 
 Int8Literal* Factory::NewInt8Literal(int8_t data) {
   return new (zone()) Int8Literal(types()->GetInt8Type(), data);
+}
+
+Reference* Factory::NewReference(Type* type, AtomicString* name) {
+  // Check |name| is created from |atomic_string_factory_|.
+  DCHECK_EQ(name, NewAtomicString(name->string()));
+  return new (zone()) Reference(type, name->string());
 }
 
 Reference* Factory::NewReference(Type* type, base::StringPiece16 name) {
