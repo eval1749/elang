@@ -213,7 +213,6 @@ class ELANG_HIR_EXPORT BasicBlock final
 
   // An integer identifier for debugging.
   int id() const { return id_; }
-  void set_id(int id);
 
   // Getters for instructions in this basic block.
   const InstructionList& instructions() const { return instructions_; }
