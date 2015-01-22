@@ -171,6 +171,10 @@ bool Editor::Validate(BasicBlock* block) {
       }
       found_terminator = true;
     }
+    if (auto const index = instruction->ValidateOperands()) {
+      DVLOG(0) << "Operand[" << index + 1
+               << "]=" << instruction->OperandAt(index) << " is invalid.";
+    }
   }
   if (!found_terminator) {
     DVLOG(0) << *block << " should have terminator instruction"

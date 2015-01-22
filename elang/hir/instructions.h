@@ -6,9 +6,12 @@
 #define ELANG_HIR_INSTRUCTIONS_H_
 
 #include <array>
+#include <type_traits>
+#include <vector>
 
 #include "base/basictypes.h"
 #include "base/logging.h"
+#include "elang/base/index_sequence.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/values.h"
@@ -116,6 +119,9 @@ class ELANG_HIR_EXPORT Instruction
   // Value accessor
   virtual Value* OperandAt(int index) const = 0;
 
+  // Returns next index of invalid operand.
+  virtual int ValidateOperands() const = 0;
+
  protected:
   explicit Instruction(Type* output_type);
 
@@ -137,16 +143,54 @@ class ELANG_HIR_EXPORT Instruction
 
 //////////////////////////////////////////////////////////////////////
 //
+// OperandValidator
+//
+template <typename... Types>
+class OperandsValidator {
+ public:
+  explicit OperandsValidator(const Instruction* instruction)
+      : impl_(instruction) {}
+
+  std::vector<Value*> Get() const { return impl_.Get(); }
+
+ private:
+  template <size_t K, typename T>
+  struct Holder {
+    Value* value;
+    explicit Holder(const Instruction* instr)
+        : value(instr->OperandAt(K)->as<std::remove_pointer<T>::type>()) {}
+  };
+
+  template <typename Sequence, typename... Types>
+  class Impl {};
+
+  // We hold each operand in base classes Holder<0, Type0>, Holder<1, Type1>,
+  // ...
+  template <size_t... Ns, typename... Ts>
+  class Impl<IndexSequence<Ns...>, Ts...> : public Holder<Ns, Ts>... {
+   public:
+    Impl(const Instruction* instruction) : Holder<Ns, Ts>(instruction)... {}
+    std::vector<Value*> Get() const { return {Holder<Ns, Ts>::value...}; }
+  };
+
+  Impl<MakeIndexSequence<sizeof...(Types)>, Types...> impl_;
+
+  DISALLOW_COPY_AND_ASSIGN(OperandsValidator);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Help template for fixed operands instructions.
 //
-template <class Derived, typename... Params>
+template <class Derived, typename... OperandTypes>
 class FixedOperandsInstruction : public Instruction {
  public:
   void InitOperandAt(int index, Value* value) {
     operands_[index].Init(this, value);
   }
+
   // Instruction
-  int CountOperands() const override { return sizeof...(Params); }
+  int CountOperands() const override { return sizeof...(OperandTypes); }
   Value* OperandAt(int index) const final { return operands_[index].value(); }
   void ResetOperandAt(int index) final { operands_[index].Reset(); }
   void SetOperandAt(int index, Value* new_value) final {
@@ -154,12 +198,24 @@ class FixedOperandsInstruction : public Instruction {
     operands_[index].SetValue(new_value);
   }
 
+  // Returns next index of invalid operand.
+  int ValidateOperands() const override {
+    OperandsValidator<OperandTypes...> validator(this);
+    auto index = 0;
+    for (auto const value : validator.Get()) {
+      ++index;
+      if (!value)
+        return index;
+    }
+    return 0;
+  }
+
  protected:
   explicit FixedOperandsInstruction(Type* output_type)
       : Instruction(output_type) {}
 
  private:
-  std::array<UseDefNode, sizeof...(Params)> operands_;
+  std::array<UseDefNode, sizeof...(OperandTypes)> operands_;
 
   DISALLOW_COPY_AND_ASSIGN(FixedOperandsInstruction);
 };
