@@ -27,8 +27,17 @@ namespace hir {
 
 namespace {
 
-void PrintAsRegister(std::ostream* ostream, const Instruction& instruction) {
-  *ostream << "%r" << instruction.id();
+struct AsRegister {
+  const Instruction* instruction;
+
+  explicit AsRegister(const Instruction& instruction)
+      : instruction(&instruction) {}
+};
+
+std::ostream& operator<<(std::ostream& ostream, const AsRegister& value) {
+  // TODO(eval1749) We should choose prefix character base on |instruction|
+  // type.
+  return ostream << "%r" << value.instruction->id();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -174,7 +183,7 @@ void ValueFormatter::VisitFunction(Function* function) {
 }
 
 void ValueFormatter::VisitInstruction(Instruction* instruction) {
-  PrintAsRegister(&ostream_ , *instruction);
+  ostream_ << AsRegister(*instruction);
 }
 
 void ValueFormatter::VisitReference(Reference* reference) {
@@ -249,9 +258,8 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << "--";
   ostream << ":" << instruction.id() << ":" << instruction.opcode();
   if (!instruction.type()->is<VoidType>()) {
-    ostream << " " << instruction.type() << " ";
-    PrintAsRegister(&ostream, instruction);
-    ostream << " =";
+    ostream << " " << instruction.type() << " " << AsRegister(instruction)
+            << " =";
   }
   for (auto const operand : instruction.operands())
     ostream << " " << *operand;
@@ -324,9 +332,8 @@ void TextFormatter::FormatFunction(const Function* function) {
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
   if (!instruction->type()->is<VoidType>()) {
-    ostream_ << *instruction->output_type() << " ";
-    PrintAsRegister(&ostream_, *instruction);
-    ostream_ << " = ";
+    ostream_ << *instruction->output_type() << " " << AsRegister(*instruction)
+             << " = ";
   }
   ostream_ << instruction->opcode();
   auto separator = " ";
