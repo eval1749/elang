@@ -2,15 +2,26 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <ostream>
 #include <string>
 
 #include "elang/hir/editor.h"
 
 #include "base/logging.h"
+#include "elang/hir/error_code.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
 #include "elang/hir/values.h"
+
+namespace std {
+ostream& operator<<(ostream& ostream, vector<elang::hir::ErrorData*> errors) {
+  for (auto const error : errors)
+    ostream << *error << std::endl;
+  return ostream;
+}
+}  // namespace std
 
 namespace elang {
 namespace hir {
@@ -20,7 +31,7 @@ namespace hir {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : factory_(factory), function_(function) {
+    : ZoneUser(factory->zone()), factory_(factory), function_(function) {
   InitializeFunctionIfNeeded();
 }
 
@@ -50,12 +61,30 @@ void Editor::Append(Instruction* new_instruction) {
   new_instruction->basic_block_ = basic_block;
 }
 
-void Editor::Commit() {
+void Editor::Error(ErrorCode error_code, Value* error_value) {
+  Error(error_code, error_value, std::vector<Value*>{});
+}
+
+void Editor::Error(ErrorCode error_code, Value* error_value, Value* detail) {
+  Error(error_code, error_value, std::vector<Value*>{detail});
+}
+
+void Editor::Error(ErrorCode error_code,
+                   Value* error_value,
+                   const std::vector<Value*> details) {
+  errors_.push_back(new (zone())
+                        ErrorData(zone(), error_code, error_value, details));
+}
+
+bool Editor::Commit() {
   DCHECK(!basic_blocks_.empty());
+  auto succeeded = true;
   for (auto const basic_block : basic_blocks_) {
-    DCHECK(Validate(basic_block));
+    if (!Validate(basic_block))
+      succeeded = false;
   }
   basic_blocks_.clear();
+  return succeeded;
 }
 
 void Editor::Edit(BasicBlock* basic_block) {
@@ -64,12 +93,12 @@ void Editor::Edit(BasicBlock* basic_block) {
   basic_blocks_.push_back(basic_block);
   if (basic_block->instructions_.empty())
     return;
-  DCHECK(Validate(basic_block));
+  DCHECK(Validate(basic_block)) << errors();
 }
 
 void Editor::InitializeFunctionIfNeeded() {
   if (!function_->basic_blocks_.empty()) {
-    DCHECK(Validate(function_));
+    DCHECK(Validate(function_)) << errors();
     return;
   }
 
@@ -98,7 +127,7 @@ void Editor::InitializeFunctionIfNeeded() {
     SetReturn(function_->return_type()->default_value());
   }
 
-  DCHECK(Validate(function_));
+  DCHECK(Validate(function_)) << errors();
 }
 
 void Editor::InsertBefore(Instruction* new_instruction,
@@ -172,39 +201,37 @@ void Editor::SetTerminator(Instruction* terminator) {
 
 bool Editor::Validate(BasicBlock* block) {
   if (!block->id()) {
-    DVLOG(0) << *block << " should have id.";
+    Error(ErrorCode::ValidateBasicBlockNoId, block);
     return false;
   }
   if (!block->function()) {
-    DVLOG(0) << *block << " is orphan.";
+    Error(ErrorCode::ValidateBasicBlockNoFunction, block);
     return false;
   }
   if (block->instructions().empty()) {
-    DVLOG(0) << *block << " is empty.";
+    Error(ErrorCode::ValidateBasicBlockEmpty, block);
     return false;
   }
   auto found_terminator = false;
   for (auto instruction : block->instructions()) {
-    // TODO(eval1749) We should call |Validation()| function in ISA.
     if (!instruction->id()) {
-      DVLOG(0) << *instruction << " should have an id.";
+      Error(ErrorCode::ValidateInstructionNoId, instruction);
       return false;
     }
     if (instruction->IsTerminator()) {
       if (found_terminator) {
-        DVLOG(0) << *block << " has " << *instruction << " at middle.";
+        Error(ErrorCode::ValidateInstructionTerminator, instruction);
         return false;
       }
       found_terminator = true;
     }
     if (auto const index = instruction->ValidateOperands()) {
-      DVLOG(0) << "Operand[" << index + 1
-               << "]=" << instruction->OperandAt(index) << " is invalid.";
+      Error(ErrorCode::ValidateInstructionOperand, instruction,
+            factory()->NewInt32Literal(index + 1));
     }
   }
   if (!found_terminator) {
-    DVLOG(0) << *block << " should have terminator instruction"
-             << " instead of " << *block->last_instruction();
+    Error(ErrorCode::ValidateBasicBlockNoTerminator, block);
     return false;
   }
   return true;
@@ -212,31 +239,31 @@ bool Editor::Validate(BasicBlock* block) {
 
 bool Editor::Validate(Function* function) {
   if (function->basic_blocks().empty()) {
-    DVLOG(0) << *function << " should have blocks.";
+    Error(ErrorCode::ValidateFunctionEmpty, function);
     return false;
   }
   if (!function->entry_block()->first_instruction()->is<EntryInstruction>()) {
-    DVLOG(0) << *function << " should have an entry block.";
+    Error(ErrorCode::ValidateFunctionNoEntry, function);
     return false;
   }
   auto found_exit = false;
   for (auto block : function->basic_blocks()) {
     if (!block->id()) {
-      DVLOG(0) << *block << " should have an id.";
+      Error(ErrorCode::ValidateBasicBlockNoId, block);
       return false;
     }
     if (!Validate(block))
       return false;
     if (block->last_instruction()->is<ExitInstruction>()) {
       if (found_exit) {
-        DVLOG(0) << *function << " should have only one exit block.";
+        Error(ErrorCode::ValidateFunctionExit, function);
         return false;
       }
       found_exit = true;
     }
   }
   if (!found_exit) {
-    DVLOG(0) << *function << " should have an exit block.";
+    Error(ErrorCode::ValidateFunctionNoExit, function);
     return false;
   }
   return true;

@@ -2,16 +2,46 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+#include <sstream>
+
 #include "elang/base/atomic_string_factory.h"
+#include "elang/hir/editor.h"
+#include "elang/hir/error_code.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
+#include "elang/hir/formatters/text_formatter.h"
 #include "elang/hir/testing/hir_test.h"
+#include "elang/hir/types.h"
+#include "elang/hir/values.h"
 
 namespace elang {
 namespace hir {
 namespace testing {
 
 namespace {
+
+std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
+  static const char* const mnemonics[] = {
+#define V(category, subcategory, name) #category "." #subcategory "." #name,
+      FOR_EACH_HIR_ERROR_CODE(V, V)
+#undef V
+          "Invalid",
+  };
+
+  std::stringstream stream;
+  for (auto const error : errors) {
+    auto const index = std::min(static_cast<size_t>(error->error_code()),
+                                arraysize(mnemonics) - 1);
+    stream << mnemonics[index] << " " << *error->error_value();
+    for (auto detail : error->details())
+      stream << " " << *detail;
+    stream << std::endl;
+  }
+  return stream.str();
+}
+
 std::unique_ptr<FactoryConfig> NewFactoryConfig(
     AtomicStringFactory* atomic_string_factory) {
   auto config = std::make_unique<FactoryConfig>();
@@ -21,21 +51,63 @@ std::unique_ptr<FactoryConfig> NewFactoryConfig(
 }
 }  // namespace
 
+//////////////////////////////////////////////////////////////////////
+//
+// HirTest
+//
 HirTest::HirTest()
     : atomic_string_factory_(new AtomicStringFactory()),
       factory_config_(NewFactoryConfig(atomic_string_factory_.get())),
-      factory_(new Factory(*factory_config_)) {
+      factory_(new Factory(*factory_config_)),
+      function_(NewFunction(void_type(), void_type())),
+      editor_(new Editor(factory(), function_)) {
 }
 
 HirTest::~HirTest() {
 }
 
-TypeFactory* HirTest::types() {
+BasicBlock* HirTest::entry_block() const {
+  return function_->entry_block();
+}
+
+BasicBlock* HirTest::exit_block() const {
+  return function_->exit_block();
+}
+
+TypeFactory* HirTest::types() const {
   return factory_->types();
 }
 
-Zone* HirTest::zone() {
+Zone* HirTest::zone() const {
   return factory_->zone();
+}
+
+Type* HirTest::void_type() const {
+  return factory()->void_type();
+}
+
+Value* HirTest::void_value() const {
+  return factory()->void_value();
+}
+
+std::string HirTest::Format(Function* function) {
+  std::stringstream stream;
+  TextFormatter formatter(&stream);
+  formatter.FormatFunction(function);
+  return stream.str();
+}
+
+std::string HirTest::Format() {
+  return Format(function());
+}
+
+std::string HirTest::GetErrors() {
+  return ConvertErrorListToString(editor_->errors());
+}
+
+Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {
+  return factory()->NewFunction(
+      factory()->types()->NewFunctionType(return_type, parameters_type));
 }
 
 }  // namespace testing

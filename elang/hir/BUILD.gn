@@ -7,6 +7,9 @@ component("hir") {
   sources = [
     "editor.cc",
     "editor.h",
+    "error_code.h",
+    "error_data.cc",
+    "error_data.h",
     "factory.cc",
     "factory.h",
     "factory_config.h",
@@ -55,6 +58,7 @@ source_set("hir_test") {
 source_set("hir_unittests") {
   testonly = true
   sources = [
+    "editor_unittest.cc",
     "instructions_unittest.cc",
     "types_unittest.cc",
     "values_unittest.cc",

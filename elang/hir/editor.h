@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/base/zone_user.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/hir_export.h"
 
@@ -15,6 +16,8 @@ namespace elang {
 namespace hir {
 
 class BasicBlock;
+enum class ErrorCode;
+class ErrorData;
 class Factory;
 class Function;
 class Instruction;
@@ -24,7 +27,7 @@ class Value;
 //
 // Editor
 //
-class ELANG_HIR_EXPORT Editor final {
+class ELANG_HIR_EXPORT Editor final : public ZoneUser {
  public:
   class ELANG_HIR_EXPORT ScopedEdit final {
    public:
@@ -40,11 +43,18 @@ class ELANG_HIR_EXPORT Editor final {
   Editor(Factory* factory, Function* function);
   ~Editor();
 
-  BasicBlock* exit_block() const;
+  const std::vector<ErrorData*> errors() const { return errors_; }
   BasicBlock* entry_block() const;
+  BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
 
-  void Commit();
+  // Validation errors
+  void Error(ErrorCode, Value* value);
+  void Error(ErrorCode, Value* value, Value* message);
+  void Error(ErrorCode, Value* value, const std::vector<Value*> params);
+
+  // Commit changes
+  bool Commit();
 
   // Basic block editing
   void Edit(BasicBlock* basic_block);
@@ -65,13 +75,14 @@ class ELANG_HIR_EXPORT Editor final {
   void SetTerminator(Instruction* terminator);
 
   // Validation
-  static bool Validate(BasicBlock* basic_block);
-  static bool Validate(Function* function);
+  bool Validate(BasicBlock* basic_block);
+  bool Validate(Function* function);
 
  private:
   void InitializeFunctionIfNeeded();
 
   std::vector<BasicBlock*> basic_blocks_;
+  std::vector<ErrorData*> errors_;
   Factory* const factory_;
   Function* const function_;
 

@@ -6,6 +6,7 @@
 #define ELANG_HIR_TESTING_HIR_TEST_H_
 
 #include <memory>
+#include <string>
 
 #include "base/macros.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -16,8 +17,11 @@ class AtomicStringFactory;
 class Zone;
 
 namespace hir {
+class Editor;
 class Factory;
 struct FactoryConfig;
+class Function;
+class Type;
 class TypeFactory;
 
 namespace testing {
@@ -31,14 +35,29 @@ class HirTest : public ::testing::Test {
   HirTest();
   ~HirTest() override;
 
+  Editor* editor() { return editor_.get(); }
+  BasicBlock* entry_block() const;
+  BasicBlock* exit_block() const;
   Factory* factory() const { return factory_.get(); }
-  TypeFactory* types();
-  Zone* zone();
+  Function* function() const { return function_; }
+  TypeFactory* types() const;
+  Type* void_type() const;
+  Value* void_value() const;
+  Zone* zone() const;
+
+  std::string Format(Function* function);
+  std::string Format();
+  std::string GetErrors();
+  Function* NewFunction(Type* return_type, Type* parameters_type);
 
  private:
   std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::unique_ptr<FactoryConfig> factory_config_;
   std::unique_ptr<Factory> factory_;
+
+  // Following objects require |Factory|.
+  Function* function_;
+  const std::unique_ptr<Editor> editor_;
 
   DISALLOW_COPY_AND_ASSIGN(HirTest);
 };
