@@ -116,6 +116,28 @@ void CodeGenerator::Emit(hir::Instruction* instruction) {
   editor_->Append(instruction);
 }
 
+void CodeGenerator::EmitOutput(hir::Instruction* instruction) {
+  if (!instruction->id())
+    Emit(instruction);
+  if (!NeedOutput()) {
+    DCHECK(!instruction->CanBeRemoved());
+    return;
+  }
+  EmitOutput(static_cast<hir::Value*>(instruction));
+}
+
+void CodeGenerator::EmitOutput(hir::Value* value) {
+  DCHECK(output_);
+  DCHECK(NeedOutput());
+  if (output_->type == void_type())
+    return;
+  if (output_->position < 0) {
+    output_->value = value;
+    return;
+  }
+  editor_->SetInput(output_->instruction, output_->position, value);
+}
+
 void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
   if (ast_method->parameters().empty())
     return;
@@ -183,10 +205,10 @@ void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
   auto const it = variables_.find(variable);
   DCHECK(it != variables_.end());
   if (variable->storage() == ir::StorageClass::ReadOnly) {
-    SetOutput(it->second);
+    EmitOutput(it->second);
     return;
   }
-  SetOutput(factory()->NewLoadInstruction(it->second));
+  EmitOutput(factory()->NewLoadInstruction(it->second));
 }
 
 hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
@@ -275,28 +297,6 @@ bool CodeGenerator::Run() {
   return session()->errors().empty();
 }
 
-void CodeGenerator::SetOutput(hir::Instruction* instruction) {
-  if (!instruction->id())
-    Emit(instruction);
-  if (!NeedOutput()) {
-    DCHECK(!instruction->CanBeRemoved());
-    return;
-  }
-  SetOutput(static_cast<hir::Value*>(instruction));
-}
-
-void CodeGenerator::SetOutput(hir::Value* value) {
-  DCHECK(output_);
-  DCHECK(NeedOutput());
-  if (output_->type == void_type())
-    return;
-  if (output_->position < 0) {
-    output_->value = value;
-    return;
-  }
-  editor_->SetInput(output_->instruction, output_->position, value);
-}
-
 ir::Node* CodeGenerator::ValueOf(ast::Node* node) const {
   return semantics()->ValueOf(node);
 }
@@ -369,14 +369,14 @@ void CodeGenerator::VisitCall(ast::Call* node) {
       editor_->RemoveInstruction(call_instr);
     return;
   }
-  SetOutput(call_instr);
+  EmitOutput(call_instr);
 }
 
 void CodeGenerator::VisitLiteral(ast::Literal* node) {
   if (!NeedOutput())
     return;
   auto const value = ValueOf(node)->as<ir::Literal>();
-  SetOutput(NewLiteral(MapType(value->type()), node->token()));
+  EmitOutput(NewLiteral(MapType(value->type()), node->token()));
 }
 
 void CodeGenerator::VisitNameReference(ast::NameReference* node) {
@@ -390,7 +390,7 @@ void CodeGenerator::VisitNameReference(ast::NameReference* node) {
   if (auto const method = value->as<ir::Method>()) {
     auto const method_name =
         factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
-    SetOutput(
+    EmitOutput(
         factory()->NewReference(MapType(method->signature()), method_name));
     return;
   }

@@ -52,14 +52,14 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // Output
   void Emit(hir::Instruction* instruction);
+  void EmitOutput(hir::Instruction* instruction);
+  void EmitOutput(hir::Value* value);
   void EmitParameterBindings(ast::Method* method);
   void EmitVariableBinding(ast::NamedNode* ast_node,
                            ast::Expression* ast_value,
                            hir::Value* value);
   void EmitVariableReference(ast::NamedNode* node);
   bool NeedOutput() const;
-  void SetOutput(hir::Instruction* instruction);
-  void SetOutput(hir::Value* value);
 
   // Shortcut for |semantics()->ValueOf()|
   ir::Node* ValueOf(ast::Node* node) const;
