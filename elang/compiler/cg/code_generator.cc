@@ -309,9 +309,10 @@ void CodeGenerator::VisitNameReference(ast::NameReference* node) {
   //    |ir::Field| load instance or static field
   //    |ir::Literal| constant variable reference, or enum member.
   if (auto const method = value->as<ir::Method>()) {
+    auto const method_name =
+        factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
     SetOutput(
-        factory()->NewReference(MapType(method->signature()),
-                                method->ast_method()->NewQualifiedName()));
+        factory()->NewReference(MapType(method->signature()), method_name));
     return;
   }
   NOTREACHED() << "Unsupported value " << *value;

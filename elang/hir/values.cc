@@ -82,7 +82,7 @@ Literal::Literal(Type* type) : Value(type) {
 NullLiteral::NullLiteral(Type* type) : Literal(type) {
 }
 
-Reference::Reference(Type* type, base::StringPiece16 name)
+Reference::Reference(Type* type, AtomicString* name)
     : Literal(type), name_(name) {
 }
 

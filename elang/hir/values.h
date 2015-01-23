@@ -141,12 +141,12 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(Reference, Literal);
 
  public:
-  const base::StringPiece16 name() const { return name_; }
+  AtomicString* name() const { return name_; }
 
  private:
-  Reference(Type* type, base::StringPiece16 name);
+  Reference(Type* type, AtomicString* name);
 
-  const base::StringPiece16 name_;
+  AtomicString* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(Reference);
 };

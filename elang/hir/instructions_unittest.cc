@@ -51,8 +51,9 @@ HirInstructionTest::HirInstructionTest()
 }
 
 Instruction* HirInstructionTest::MakeSource(Type* output_type) {
+  auto const name = factory()->NewAtomicString(L"Foo");
   auto const callee = factory()->NewReference(
-      types()->NewFunctionType(output_type, void_type()), L"Foo");
+      types()->NewFunctionType(output_type, void_type()), name);
   return factory()->NewCallInstruction(callee, void_value());
 }
 
@@ -90,8 +91,9 @@ TEST_F(HirInstructionTest, BranchInstruction) {
 //
 TEST_F(HirInstructionTest, CallInstruction) {
   auto const string_type = types()->GetStringType();
+  auto const callee_name = factory()->NewAtomicString(L"Console.WriteLine");
   auto const callee = factory()->NewReference(
-      types()->NewFunctionType(void_type(), string_type), L"Console.WriteLine");
+      types()->NewFunctionType(void_type(), string_type), callee_name);
   auto const args = factory()->NewStringLiteral(L"Hello world!");
   auto const instr = factory()->NewCallInstruction(callee, args);
   EXPECT_FALSE(instr->CanBeRemoved());

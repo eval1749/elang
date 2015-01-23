@@ -107,11 +107,12 @@ Int8Literal* Factory::NewInt8Literal(int8_t data) {
 Reference* Factory::NewReference(Type* type, AtomicString* name) {
   // Check |name| is created from |atomic_string_factory_|.
   DCHECK_EQ(name, NewAtomicString(name->string()));
-  return new (zone()) Reference(type, name->string());
-}
-
-Reference* Factory::NewReference(Type* type, base::StringPiece16 name) {
-  return new (zone()) Reference(type, NewString(name));
+  auto const it = reference_cache_.find(name);
+  if (it != reference_cache_.end())
+    return it->second;
+  auto const new_reference = new (zone()) Reference(type, name);
+  reference_cache_[name] = new_reference;
+  return new_reference;
 }
 
 base::StringPiece16 Factory::NewString(base::StringPiece16 string) {

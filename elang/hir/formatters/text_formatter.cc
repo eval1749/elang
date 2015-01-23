@@ -8,6 +8,7 @@
 #include "elang/hir/formatters/text_formatter.h"
 
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/atomic_string.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/values.h"
 #include "elang/hir/value_visitor.h"
@@ -177,7 +178,7 @@ void ValueFormatter::VisitInstruction(Instruction* instruction) {
 }
 
 void ValueFormatter::VisitReference(Reference* reference) {
-  ostream_ << "`" << reference->name() << "`";
+  ostream_ << "`" << *reference->name() << "`";
 }
 
 void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {

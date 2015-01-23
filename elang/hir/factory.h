@@ -5,8 +5,9 @@
 #ifndef ELANG_HIR_FACTORY_H_
 #define ELANG_HIR_FACTORY_H_
 
-#include <string>
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
@@ -48,7 +49,6 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   UInt8Literal* NewUInt8Literal(uint8_t data);
   Function* NewFunction(FunctionType* function_type);
   Reference* NewReference(Type* type, AtomicString* name);
-  Reference* NewReference(Type* type, base::StringPiece16 name);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
   StringLiteral* NewStringLiteral(base::StringPiece16 data);
 
@@ -62,6 +62,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   int last_basic_block_id_;
   int last_function_id_;
   int last_instruction_id_;
+  std::unordered_map<AtomicString*, Reference*> reference_cache_;
   BoolLiteral* true_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

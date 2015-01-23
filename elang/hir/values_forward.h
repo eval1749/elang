@@ -12,6 +12,8 @@
 #include "elang/hir/hir_export.h"
 
 namespace elang {
+// We use |AtomicString| for name of |Reference|.
+class AtomicString;
 namespace hir {
 
 // Forward declarations
