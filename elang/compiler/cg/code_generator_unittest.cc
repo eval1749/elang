@@ -96,6 +96,26 @@ TEST_F(CodeGeneratorTest, Call) {
       GetFunction("A.M1"));
 }
 
+TEST_F(CodeGeneratorTest, Parameter) {
+  Prepare(
+      "class A {\n"
+      "  static int Foo(int x) { return x; }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  int32 %r2 = entry\n"
+      "  ret %r2, block2\n"
+      "\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      GetFunction("A.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, Return) {
   Prepare(
       "class A {\n"

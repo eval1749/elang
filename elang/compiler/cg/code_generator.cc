@@ -111,6 +111,84 @@ hir::TypeFactory* CodeGenerator::types() const {
   return factory()->types();
 }
 
+void CodeGenerator::Emit(hir::Instruction* instruction) {
+  DCHECK(output_);
+  editor_->Append(instruction);
+}
+
+void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
+  if (ast_method->parameters().empty())
+    return;
+  if (ast_method->parameters().size() == 1u) {
+    EmitVariableBinding(ast_method->parameters()[0], nullptr,
+                        function_->entry_block()->first_instruction());
+    return;
+  }
+  NOTREACHED() << "NYI multiple parameters" << *ast_method;
+}
+
+void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
+                                        ast::Expression* ast_value,
+                                        hir::Value* value) {
+  auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
+  auto const variable_type = MapType(variable->type());
+
+  if (variable->storage() == ir::StorageClass::Void) {
+    if (!ast_value)
+      return;
+    GenerateValue(void_type(), ast_value);
+    return;
+  }
+
+  if (variable->storage() == ir::StorageClass::ReadOnly) {
+    DCHECK(!variables_.count(variable));
+    if (value) {
+      variables_[variable] = value;
+      return;
+    }
+    if (ast_value) {
+      variables_[variable] = GenerateValue(variable_type, ast_value);
+      return;
+    }
+    variables_[variable] = variable_type->default_value();
+    return;
+  }
+
+  DCHECK_EQ(variable->storage(), ir::StorageClass::Local);
+  auto const pointer_type = types()->NewPointerType(variable_type);
+  auto const allocator_type =
+      types()->NewFunctionType(pointer_type, void_type());
+  auto const allocator = factory()->NewReference(
+      allocator_type,
+      factory()->intrinsic_name(hir::IntrinsicName::StackAlloc));
+  auto const alloc_instr =
+      factory()->NewCallInstruction(allocator, factory()->void_value());
+  DCHECK(!variables_.count(variable));
+  variables_[variable] = alloc_instr;
+  Emit(alloc_instr);
+  auto const store_instr = factory()->NewStoreInstruction(
+      alloc_instr, value ? value : variable_type->default_value());
+  Emit(store_instr);
+  if (!ast_value)
+    return;
+  ScopedOutput bind_scope(this, variable_type, store_instr, 1);
+  ast_value->Accept(this);
+}
+
+void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
+  if (!NeedOutput())
+    return;
+  auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
+  DCHECK(variable);
+  auto const it = variables_.find(variable);
+  DCHECK(it != variables_.end());
+  if (variable->storage() == ir::StorageClass::ReadOnly) {
+    SetOutput(it->second);
+    return;
+  }
+  SetOutput(factory()->NewLoadInstruction(it->second));
+}
+
 hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
   auto const it = functions_.find(ast_method);
   return it == functions_.end() ? nullptr : it->second;
@@ -199,7 +277,7 @@ bool CodeGenerator::Run() {
 
 void CodeGenerator::SetOutput(hir::Instruction* instruction) {
   if (!instruction->id())
-    editor_->Append(instruction);
+    Emit(instruction);
   if (!NeedOutput()) {
     DCHECK(!instruction->CanBeRemoved());
     return;
@@ -241,6 +319,7 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
   hir::Editor editor(factory(), function_);
   editor_ = &editor;
+  EmitParameterBindings(ast_method);
   auto const return_instr = function_->entry_block()->last_instruction();
   editor.Edit(return_instr->basic_block());
   ScopedOutput scoped_output(this, void_type(), return_instr, 0);
@@ -318,19 +397,12 @@ void CodeGenerator::VisitNameReference(ast::NameReference* node) {
   NOTREACHED() << "Unsupported value " << *value;
 }
 
+void CodeGenerator::VisitParameterReference(ast::ParameterReference* node) {
+  EmitVariableReference(node->parameter());
+}
+
 void CodeGenerator::VisitVariableReference(ast::VariableReference* node) {
-  if (!NeedOutput())
-    return;
-  auto const ast_variable = node->variable();
-  auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
-  DCHECK(variable);
-  auto const it = variables_.find(variable);
-  DCHECK(it != variables_.end());
-  if (variable->storage() == ir::StorageClass::ReadOnly) {
-    SetOutput(it->second);
-    return;
-  }
-  SetOutput(factory()->NewLoadInstruction(it->second));
+  EmitVariableReference(node->variable());
 }
 
 //
@@ -378,39 +450,8 @@ void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
 }
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
-  for (auto const ast_variable : node->variables()) {
-    auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
-    DCHECK(variable);
-    auto const variable_type = MapType(variable->type());
-
-    if (variable->storage() == ir::StorageClass::ReadOnly) {
-      DCHECK(!variables_.count(variable));
-      if (auto const ast_expression = ast_variable->value())
-        variables_[variable] = GenerateValue(variable_type, ast_expression);
-      else
-        variables_[variable] = variable_type->default_value();
-      continue;
-    }
-
-    DCHECK_EQ(variable->storage(), ir::StorageClass::Local);
-    auto const pointer_type = types()->NewPointerType(variable_type);
-    auto const allocator_type =
-        types()->NewFunctionType(pointer_type, void_type());
-    auto const allocator = factory()->NewReference(
-        allocator_type,
-        factory()->intrinsic_name(hir::IntrinsicName::StackAlloc));
-    auto const pointer =
-        factory()->NewCallInstruction(allocator, factory()->void_value());
-    DCHECK(!variables_.count(variable));
-    variables_[variable] = pointer;
-    editor_->Append(pointer);
-    if (!ast_variable->value())
-      return;
-    auto const store_instr =
-        factory()->NewStoreInstruction(pointer, variable_type->default_value());
-    ScopedOutput bind_scope(this, variable_type, store_instr, 1);
-    ast_variable->value()->Accept(this);
-  }
+  for (auto const ast_variable : node->variables())
+    EmitVariableBinding(ast_variable, ast_variable->value(), nullptr);
 }
 
 }  // namespace compiler

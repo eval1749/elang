@@ -51,6 +51,12 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
 
   // Output
+  void Emit(hir::Instruction* instruction);
+  void EmitParameterBindings(ast::Method* method);
+  void EmitVariableBinding(ast::NamedNode* ast_node,
+                           ast::Expression* ast_value,
+                           hir::Value* value);
+  void EmitVariableReference(ast::NamedNode* node);
   bool NeedOutput() const;
   void SetOutput(hir::Instruction* instruction);
   void SetOutput(hir::Value* value);
@@ -65,6 +71,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void CodeGenerator::VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
   void VisitNameReference(ast::NameReference* node);
+  void VisitParameterReference(ast::ParameterReference* node);
   void VisitVariableReference(ast::VariableReference* node);
 
   // ast::Visitor statement nodes
