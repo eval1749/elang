@@ -43,7 +43,7 @@ class VariableTracker final : public CompilationSessionUser, public ZoneUser {
 
   void Finish(ir::Factory* factory, ts::Factory* type_factory);
   ts::Value* RecordGet(ast::NamedNode* variable);
-  void RecordSet(ast::NamedNode* variable);
+  ts::Value* RecordSet(ast::NamedNode* variable);
   void RegisterVariable(ast::NamedNode* variable, ts::Value* value);
 
  private:

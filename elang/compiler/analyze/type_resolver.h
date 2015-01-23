@@ -52,12 +52,19 @@ class TypeResolver final : public Analyzer,
   struct Context;
   class ScopedContext;
 
+  void ProduceResolved(ast::Expression* expression,
+                       ts::Value* value,
+                       ast::Node* produce);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   void ProduceUnifiedResult(ts::Value* value, ast::Node* producer);
   ast::NamedNode* ResolveReference(ast::Expression* expression);
   ts::Value* Unify(ts::Value* value1, ts::Value* value2);
 
+  // Shortcut function.
+  ir::Node* ValueOf(ast::Node* node);
+
   // ast::Visitor
+  void VisitAssignment(ast::Assignment* node);
   void VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
   void VisitParameterReference(ast::ParameterReference* node);

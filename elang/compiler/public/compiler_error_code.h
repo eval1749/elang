@@ -192,6 +192,7 @@ namespace compiler {
   E(Token, String, Unclosed)                          \
   /* Type Resolver */                                 \
   E(TypeResolver, Argument, Unify)                    \
+  E(TypeResolver, Assignment, LeftValue)              \
   E(TypeResolver, Callee, NotSupported)               \
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \

@@ -99,11 +99,13 @@ ts::Value* VariableTracker::RecordGet(ast::NamedNode* variable) {
   return data->value;
 }
 
-void VariableTracker::RecordSet(ast::NamedNode* variable) {
+ts::Value* VariableTracker::RecordSet(ast::NamedNode* variable) {
   // TODO(eval1749) NYI non_local reference of variable.
   auto const it = variable_map_.find(variable);
   DCHECK(it != variable_map_.end());
-  ++it->second->local_set_count;
+  auto const data = it->second;
+  ++data->local_set_count;
+  return data->value;
 }
 
 void VariableTracker::RegisterVariable(ast::NamedNode* variable,

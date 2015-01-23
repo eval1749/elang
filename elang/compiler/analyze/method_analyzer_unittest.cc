@@ -236,9 +236,9 @@ TEST_F(MethodAnalyzerTest, Method2) {
 TEST_F(MethodAnalyzerTest, Parameter) {
   Prepare(
       "class Sample {"
-      "    int Foo(int ival) { return ival; }"
-      "    char Foo(char ch) { ch = 'a'; return ch; }"
-      "    void Foo(float32 f32) {}"
+      "    int Foo(int ival) { return ival; }"          // ReadOnly
+      "    char Foo(char ch) { ch = 'a'; return ch; }"  // Local
+      "    void Foo(float32 f32) {}"                    // Void == no references
       "  }");
   EXPECT_EQ("", Analyze());
   auto const foo_group = FindMember("Sample.Foo")->as<ast::MethodGroup>();
@@ -252,8 +252,7 @@ TEST_F(MethodAnalyzerTest, Parameter) {
       ostream << *parameter->name() << " " << variable->storage() << std::endl;
     }
   }
-  // TODO(eval1749) |ch| should be |Local|.
-  EXPECT_EQ("ival ReadOnly\nch ReadOnly\nf32 Void\n", ostream.str());
+  EXPECT_EQ("ival ReadOnly\nch Local\nf32 Void\n", ostream.str());
 }
 
 TEST_F(MethodAnalyzerTest, ReturnError) {

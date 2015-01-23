@@ -99,6 +99,13 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
   return result;
 }
 
+void TypeResolver::ProduceResolved(ast::Expression* expression,
+                                   ts::Value* value,
+                                   ast::Node* producer) {
+  Resolve(expression, value);
+  ProduceUnifiedResult(value, producer);
+}
+
 void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(result);
   DCHECK(context_);
@@ -126,7 +133,45 @@ ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
   return name_resolver()->ResolveReference(expression, context_method_);
 }
 
-// ats::Visitor
+ir::Node* TypeResolver::ValueOf(ast::Node* node) {
+  return semantics()->ValueOf(node);
+}
+
+// ast::Visitor
+
+void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
+  auto const lhs = assignment->left();
+  auto const rhs = assignment->right();
+  if (auto const reference = lhs->as<ast::ParameterReference>()) {
+    auto const value = variable_tracker_->RecordSet(reference->parameter());
+    ProduceResolved(rhs, value, assignment);
+    return;
+  }
+  if (auto const reference = lhs->as<ast::VariableReference>()) {
+    auto const value = variable_tracker_->RecordSet(reference->variable());
+    ProduceResolved(rhs, value, assignment);
+    return;
+  }
+  if (auto const reference = lhs->as<ast::NameReference>()) {
+    auto const value = ValueOf(ResolveReference(reference));
+    DCHECK(value);
+    DVLOG(0) << "NYI Assign to field " << *lhs;
+    return;
+  }
+  if (auto const reference = lhs->as<ast::MemberAccess>()) {
+    auto const value = ValueOf(ResolveReference(reference));
+    DCHECK(value);
+    DVLOG(0) << "NYI Assign to field " << *lhs;
+    return;
+  }
+  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
+    // TODO(eval1749) We need to have |ir::ArrayType| for resolving
+    // |reference->array()|.
+    DVLOG(0) << "NYI Assign to array " << *lhs;
+    return;
+  }
+  Error(ErrorCode::TypeResolverAssignmentLeftValue, lhs);
+}
 
 // Bind applicable methods to |call->callee|.
 void TypeResolver::VisitCall(ast::Call* call) {
@@ -211,7 +256,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
 
   // Other than |null| literal, the type of literal is predefined.
   auto const ast_type = session()->GetPredefinedType(token->literal_type());
-  auto const literal_type = semantics()->ValueOf(ast_type)->as<ir::Type>();
+  auto const literal_type = ValueOf(ast_type)->as<ir::Type>();
   if (!literal_type) {
     // Predefined type isn't defined.
     ProduceResult(NewInvalidValue(ast_literal), ast_literal);
@@ -221,7 +266,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   auto const result_literal = result->as<ts::Literal>();
   if (!result_literal)
     return ProduceResult(NewInvalidValue(ast_literal), ast_literal);
-  DCHECK(!semantics()->ValueOf(ast_literal));
+  DCHECK(!ValueOf(ast_literal));
   semantics()->SetValue(
       ast_literal,
       ir_factory()->NewLiteral(result_literal->value(), ast_literal->token()));
