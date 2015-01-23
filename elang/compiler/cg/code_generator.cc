@@ -149,6 +149,19 @@ void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
   NOTREACHED() << "NYI multiple parameters" << *ast_method;
 }
 
+void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
+                                           ast::Expression* ast_value) {
+  auto const variable = ValueOf(ast_node)->as<ir::Variable>();
+  auto const variable_type = MapType(variable->type());
+  auto const store_instr = factory()->NewStoreInstruction(
+      variables_[variable], variable_type->default_value());
+  Emit(store_instr);
+  if (!ast_value)
+    return;
+  ScopedOutput bind_scope(this, variable_type, store_instr, 1);
+  ast_value->Accept(this);
+}
+
 void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
                                         ast::Expression* ast_value,
                                         hir::Value* value) {
@@ -315,14 +328,16 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
     DVLOG(0) << "Not resolved " << *ast_method;
     return;
   }
+  if (!ast_method->body())
+    return;
   function_ = factory()->NewFunction(
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
   hir::Editor editor(factory(), function_);
   editor_ = &editor;
-  EmitParameterBindings(ast_method);
   auto const return_instr = function_->entry_block()->last_instruction();
   editor.Edit(return_instr->basic_block());
   ScopedOutput scoped_output(this, void_type(), return_instr, 0);
+  EmitParameterBindings(ast_method);
   ast_method->body()->Accept(this);
   // TODO(eval1749) We should check |return_instr| has value if it is reachable.
   functions_[ast_method] = function_;
@@ -334,6 +349,32 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
 //
 // ast::Visitor expression nodes
 //
+
+void CodeGenerator::VisitAssignment(ast::Assignment* node) {
+  auto const lhs = node->left();
+  auto const rhs = node->right();
+  if (auto const reference = lhs->as<ast::ParameterReference>()) {
+    EmitVariableAssignment(reference->parameter(), rhs);
+    return;
+  }
+  if (auto const reference = lhs->as<ast::VariableReference>()) {
+    EmitVariableAssignment(reference->variable(), rhs);
+    return;
+  }
+  if (auto const reference = lhs->as<ast::NameReference>()) {
+    DVLOG(0) << "NYI Assign to field " << *lhs;
+    return;
+  }
+  if (auto const reference = lhs->as<ast::MemberAccess>()) {
+    DVLOG(0) << "NYI Assign to field " << *lhs;
+    return;
+  }
+  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
+    DVLOG(0) << "NYI Assign to array " << *lhs;
+    return;
+  }
+  NOTREACHED() << "Invalid left value " << *lhs;
+}
 
 void CodeGenerator::VisitCall(ast::Call* node) {
   DCHECK(node);

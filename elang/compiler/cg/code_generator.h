@@ -55,6 +55,8 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void EmitOutput(hir::Instruction* instruction);
   void EmitOutput(hir::Value* value);
   void EmitParameterBindings(ast::Method* method);
+  void EmitVariableAssignment(ast::NamedNode* ast_node,
+                              ast::Expression* ast_value);
   void EmitVariableBinding(ast::NamedNode* ast_node,
                            ast::Expression* ast_value,
                            hir::Value* value);
@@ -68,7 +70,8 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void CodeGenerator::VisitMethod(ast::Method* ast_method);
 
   // ast::Visitor expression nodes
-  void CodeGenerator::VisitCall(ast::Call* node);
+  void VisitAssignment(ast::Assignment* node);
+  void VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
   void VisitNameReference(ast::NameReference* node);
   void VisitParameterReference(ast::ParameterReference* node);
