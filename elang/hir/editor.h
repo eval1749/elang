@@ -46,12 +46,16 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   const std::vector<ErrorData*> errors() const { return errors_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
+  Function* function() const { return function_; }
   Factory* factory() const { return factory_; }
 
   // Validation errors
-  void Error(ErrorCode, Value* value);
-  void Error(ErrorCode, Value* value, Value* message);
-  void Error(ErrorCode, Value* value, const std::vector<Value*> params);
+  void Error(ErrorCode error_code, const Value* value);
+  void Error(ErrorCode error_code, const Value* value, Value* message);
+  void Error(ErrorCode error_code,
+             const Value* value,
+             const std::vector<Value*> params);
+  void Error(ErrorCode error_code, const Instruction* instruction, int index);
 
   // Commit changes
   bool Commit();

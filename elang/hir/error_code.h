@@ -24,6 +24,7 @@ namespace hir {
   /* Instructions */                    \
   E(Validate, Instruction, NoId)        \
   E(Validate, Instruction, Operand)     \
+  E(Validate, Instruction, Output)      \
   E(Validate, Instruction, Terminator)
 
 //////////////////////////////////////////////////////////////////////

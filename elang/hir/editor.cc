@@ -61,19 +61,27 @@ void Editor::Append(Instruction* new_instruction) {
   new_instruction->basic_block_ = basic_block;
 }
 
-void Editor::Error(ErrorCode error_code, Value* error_value) {
+void Editor::Error(ErrorCode error_code, const Value* error_value) {
   Error(error_code, error_value, std::vector<Value*>{});
 }
 
-void Editor::Error(ErrorCode error_code, Value* error_value, Value* detail) {
+void Editor::Error(ErrorCode error_code,
+                   const Value* error_value,
+                   Value* detail) {
   Error(error_code, error_value, std::vector<Value*>{detail});
 }
 
 void Editor::Error(ErrorCode error_code,
-                   Value* error_value,
+                   const Value* error_value,
                    const std::vector<Value*> details) {
-  errors_.push_back(new (zone())
-                        ErrorData(zone(), error_code, error_value, details));
+  errors_.push_back(new (zone()) ErrorData(
+      zone(), error_code, const_cast<Value*>(error_value), details));
+}
+
+void Editor::Error(ErrorCode error_code,
+                   const Instruction* instruction,
+                   int index) {
+  Error(error_code, instruction, factory()->NewInt32Literal(index));
 }
 
 bool Editor::Commit() {
@@ -199,6 +207,11 @@ void Editor::SetTerminator(Instruction* terminator) {
   Append(terminator);
 }
 
+// Validates |BasicBlock|
+//  - id() in list
+//  - function() in list
+//  - terminator at the last
+//  - instructions
 bool Editor::Validate(BasicBlock* block) {
   if (!block->id()) {
     Error(ErrorCode::ValidateBasicBlockNoId, block);
@@ -213,6 +226,7 @@ bool Editor::Validate(BasicBlock* block) {
     return false;
   }
   auto found_terminator = false;
+  auto is_valid = true;
   for (auto instruction : block->instructions()) {
     if (!instruction->id()) {
       Error(ErrorCode::ValidateInstructionNoId, instruction);
@@ -225,10 +239,8 @@ bool Editor::Validate(BasicBlock* block) {
       }
       found_terminator = true;
     }
-    if (auto const index = instruction->ValidateOperands()) {
-      Error(ErrorCode::ValidateInstructionOperand, instruction,
-            factory()->NewInt32Literal(index + 1));
-    }
+    if (!instruction->Validate(this))
+      is_valid = false;
   }
   if (!found_terminator) {
     Error(ErrorCode::ValidateBasicBlockNoTerminator, block);

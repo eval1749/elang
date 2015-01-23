@@ -6,12 +6,10 @@
 #define ELANG_HIR_INSTRUCTIONS_H_
 
 #include <array>
-#include <type_traits>
 #include <vector>
 
 #include "base/basictypes.h"
 #include "base/logging.h"
-#include "elang/base/index_sequence.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/values.h"
@@ -69,7 +67,6 @@ class ELANG_HIR_EXPORT Operands final {
   ~Operands();
 
   Operands& operator=(const Operands& other);
-  Value* operator[](int index) const;
 
   Iterator begin();
   Iterator end();
@@ -82,7 +79,7 @@ class ELANG_HIR_EXPORT Operands final {
 //
 // Instruction
 //
-// Type of operands are guaranteed by |InstructionFactory| at consturciton,
+// Type of operands are guaranteed by |InstructionFactory| at construction,
 // and |Editor::Validate()| at modification.
 //
 class ELANG_HIR_EXPORT Instruction
@@ -99,6 +96,9 @@ class ELANG_HIR_EXPORT Instruction
 
   // Opcode for formatting and debugging
   virtual Opcode opcode() const = 0;
+
+  // Shortcut of |OperandAt(index)|.
+  Value* operand(int index) const;
 
   // Accessing operands in this instruction.
   Operands operands() const;
@@ -120,11 +120,8 @@ class ELANG_HIR_EXPORT Instruction
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
 
-  // Value accessor
-  virtual Value* OperandAt(int index) const = 0;
-
-  // Returns next index of invalid operand.
-  virtual int ValidateOperands() const = 0;
+  // Validates this instruction and logs error into |Editor|.
+  virtual bool Validate(Editor* editor) const = 0;
 
  protected:
   explicit Instruction(Type* output_type);
@@ -132,6 +129,8 @@ class ELANG_HIR_EXPORT Instruction
  private:
   friend class Editor;
 
+  // Protocol for accessing operands in each instruction implementation.
+  virtual Value* OperandAt(int index) const = 0;
   virtual void ResetOperandAt(int index) = 0;
   virtual void SetOperandAt(int index, Value* new_value) = 0;
 
@@ -143,43 +142,6 @@ class ELANG_HIR_EXPORT Instruction
   DoubleLinked<UseDefNode, Instruction> users_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// OperandValidator
-//
-template <typename... Types>
-class OperandsValidator {
- public:
-  explicit OperandsValidator(const Instruction* instruction)
-      : impl_(instruction) {}
-
-  std::vector<Value*> Get() const { return impl_.Get(); }
-
- private:
-  template <size_t K, typename T>
-  struct Holder {
-    Value* value;
-    explicit Holder(const Instruction* instr)
-        : value(instr->OperandAt(K)->as<std::remove_pointer<T>::type>()) {}
-  };
-
-  template <typename Sequence, typename... Types>
-  class Impl {};
-
-  // We hold each operand in base classes Holder<0, Type0>, Holder<1, Type1>,
-  // ...
-  template <size_t... Ns, typename... Ts>
-  class Impl<IndexSequence<Ns...>, Ts...> : public Holder<Ns, Ts>... {
-   public:
-    Impl(const Instruction* instruction) : Holder<Ns, Ts>(instruction)... {}
-    std::vector<Value*> Get() const { return {Holder<Ns, Ts>::value...}; }
-  };
-
-  Impl<MakeIndexSequence<sizeof...(Types)>, Types...> impl_;
-
-  DISALLOW_COPY_AND_ASSIGN(OperandsValidator);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -200,18 +162,6 @@ class FixedOperandsInstruction : public Instruction {
   void SetOperandAt(int index, Value* new_value) final {
     DCHECK(new_value);
     operands_[index].SetValue(new_value);
-  }
-
-  // Returns next index of invalid operand.
-  int ValidateOperands() const override {
-    OperandsValidator<OperandTypes...> validator(this);
-    auto index = 0;
-    for (auto const value : validator.Get()) {
-      ++index;
-      if (!value)
-        return index;
-    }
-    return 0;
   }
 
  protected:
@@ -242,39 +192,41 @@ class ELANG_HIR_EXPORT BranchInstruction final
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Branch);
 
  public:
-  // Instruction
-  bool CanBeRemoved() const final;
+  bool IsConditional() const;
+  bool IsUnconditional() const;
 
  private:
   explicit BranchInstruction(Type* output_type);
 
   // Instruction
+  bool CanBeRemoved() const final;
   bool IsTerminator() const final;
+  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// CallInstruction
+// ty %result = call funty %callee %arguments
 //
 class ELANG_HIR_EXPORT CallInstruction final
     : public FixedOperandsInstruction<CallInstruction, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Call);
 
- public:
-  // Instruction
-  bool CanBeRemoved() const final;
-
  private:
   explicit CallInstruction(Type* output_type);
+
+  // Instruction
+  bool CanBeRemoved() const final;
+  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(CallInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// EntryInstruction
+// ty %parameters = entry
 //
 class ELANG_HIR_EXPORT EntryInstruction final
     : public FixedOperandsInstruction<EntryInstruction> {
@@ -283,12 +235,15 @@ class ELANG_HIR_EXPORT EntryInstruction final
  private:
   explicit EntryInstruction(Type* output_type);
 
+  // Instruction
+  bool Validate(Editor* editor) const final;
+
   DISALLOW_COPY_AND_ASSIGN(EntryInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// ExitInstruction
+// void exit
 //
 class ELANG_HIR_EXPORT ExitInstruction final
     : public FixedOperandsInstruction<ExitInstruction> {
@@ -299,13 +254,14 @@ class ELANG_HIR_EXPORT ExitInstruction final
 
   // Instruction
   bool IsTerminator() const final;
+  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// LoadInstruction
+// ty %result = load %pointer
 //
 class ELANG_HIR_EXPORT LoadInstruction final
     : public FixedOperandsInstruction<LoadInstruction, Value*> {
@@ -314,12 +270,15 @@ class ELANG_HIR_EXPORT LoadInstruction final
  private:
   explicit LoadInstruction(Type* output_type);
 
+  // Instruction
+  bool Validate(Editor* editor) const final;
+
   DISALLOW_COPY_AND_ASSIGN(LoadInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// ReturnInstruction
+// void return %value, %exit_block
 //
 class ELANG_HIR_EXPORT ReturnInstruction final
     : public FixedOperandsInstruction<ReturnInstruction, Value*, BasicBlock*> {
@@ -330,13 +289,14 @@ class ELANG_HIR_EXPORT ReturnInstruction final
 
   // Instruction
   bool IsTerminator() const final;
+  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// StoreInstruction
+// void store %pointer, %value
 //
 class ELANG_HIR_EXPORT StoreInstruction final
     : public FixedOperandsInstruction<StoreInstruction, Value*, Value*> {
@@ -347,6 +307,7 @@ class ELANG_HIR_EXPORT StoreInstruction final
 
   // Instruction
   bool CanBeRemoved() const final;
+  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstruction);
 };
