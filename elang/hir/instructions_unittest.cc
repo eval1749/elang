@@ -87,6 +87,29 @@ TEST_F(HirInstructionTest, BranchInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Branch
+//
+TEST_F(HirInstructionTest, BranchUncoditional) {
+  Editor editor(factory(), function());
+  auto const target_block = editor.NewBasicBlock();
+  editor.SetReturn(void_value());
+
+  editor.Edit(entry_block());
+  editor.SetBranch(target_block);
+  editor.Commit();
+
+  auto const instr = entry_block()->last_instruction();
+  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(3, instr->CountOperands());
+  EXPECT_EQ(void_value(), instr->OperandAt(0));
+  EXPECT_EQ(target_block, instr->OperandAt(1));
+  EXPECT_EQ(void_value(), instr->OperandAt(2));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // CallInstruction
 //
 TEST_F(HirInstructionTest, CallInstruction) {
@@ -111,27 +134,6 @@ TEST_F(HirInstructionTest, CallInstruction) {
     }
   }
   EXPECT_TRUE(callee_found) << "call instruction must be a user of callee.";
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// JumpInstruction
-//
-TEST_F(HirInstructionTest, JumpInstruction) {
-  Editor editor(factory(), function());
-  auto const target_block = editor.NewBasicBlock();
-  editor.SetReturn(void_value());
-
-  editor.Edit(entry_block());
-  editor.SetJump(target_block);
-  editor.Commit();
-
-  auto const instr = entry_block()->last_instruction();
-  EXPECT_FALSE(instr->CanBeRemoved());
-  EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->void_type(), instr->output_type());
-  EXPECT_EQ(1, instr->CountOperands());
-  EXPECT_EQ(target_block, instr->OperandAt(0));
 }
 
 //////////////////////////////////////////////////////////////////////

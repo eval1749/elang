@@ -129,11 +129,6 @@ bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
-// JumpInstruction
-bool JumpInstruction::IsTerminator() const {
-  return true;
-}
-
 // ReturnInstruction
 bool ReturnInstruction::IsTerminator() const {
   return true;

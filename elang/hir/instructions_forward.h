@@ -23,11 +23,10 @@ enum class Opcode;
 //  mnemonic     mnemonic; used for formatting
 //  num_values Number of values
 #define FOR_EACH_HIR_INSTRUCTION(V) \
-  V(Branch, "branch", 3)            \
+  V(Branch, "br", 3)                \
   V(Call, "call", 2)                \
   V(Entry, "entry", 0)              \
   V(Exit, "exit", 0)                \
-  V(Jump, "jump", 1)                \
   V(Load, "load", 1)                \
   V(Return, "ret", 2)               \
   V(Store, "store", 1)

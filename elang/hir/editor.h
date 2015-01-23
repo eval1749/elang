@@ -65,12 +65,15 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
   void RemoveInstruction(Instruction* old_instruction);
 
+  // Operand manupulation
+  void SetInput(Instruction* instruction, int index, Value* new_value);
+
   // Set terminator instruction
   void SetBranch(Value* condition,
                  BasicBlock* then_block,
                  BasicBlock* else_block);
-  void SetInput(Instruction* instruction, int index, Value* new_value);
-  void SetJump(BasicBlock* target_block);
+  // Set unconditional branch
+  void SetBranch(BasicBlock* target_block);
   void SetReturn(Value* new_value);
   void SetTerminator(Instruction* terminator);
 

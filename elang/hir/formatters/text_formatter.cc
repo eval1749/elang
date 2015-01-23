@@ -261,6 +261,14 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << " " << instruction.type() << " " << AsRegister(instruction)
             << " =";
   }
+
+  if (instruction.is<BranchInstruction>() &&
+      instruction.OperandAt(0)->is<VoidValue>()) {
+    // Print unconditional branch in short.
+    ostream << " " << instruction.OperandAt(1);
+    return ostream;
+  }
+
   for (auto const operand : instruction.operands())
     ostream << " " << *operand;
   return ostream;

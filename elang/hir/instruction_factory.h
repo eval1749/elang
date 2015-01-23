@@ -41,10 +41,10 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   Instruction* NewBranchInstruction(Value* condition,
                                     BasicBlock* true_block,
                                     BasicBlock* false_block);
+  Instruction* NewBranchInstruction(BasicBlock* taget_block);
   Instruction* NewCallInstruction(Value* callee, Value* arguments);
   Instruction* NewEntryInstruction(Type* output_type);
   Instruction* NewExitInstruction();
-  Instruction* NewJumpInstruction(BasicBlock* target_block);
   Instruction* NewLoadInstruction(Value* pointer);
   Instruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);

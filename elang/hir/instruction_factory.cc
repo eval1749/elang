@@ -36,6 +36,15 @@ Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
   return instr;
 }
 
+Instruction* InstructionFactory::NewBranchInstruction(
+    BasicBlock* target_block) {
+  auto const instr = new (zone()) BranchInstruction(void_type());
+  instr->InitOperandAt(0, void_value());
+  instr->InitOperandAt(1, target_block);
+  instr->InitOperandAt(2, void_value());
+  return instr;
+}
+
 Instruction* InstructionFactory::NewCallInstruction(Value* callee,
                                                     Value* arguments) {
   auto const callee_type = callee->type()->as<FunctionType>();
@@ -52,12 +61,6 @@ Instruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
 
 Instruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
-}
-
-Instruction* InstructionFactory::NewJumpInstruction(BasicBlock* target_block) {
-  auto const instr = new (zone()) JumpInstruction(void_type());
-  instr->InitOperandAt(0, target_block);
-  return instr;
 }
 
 Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {

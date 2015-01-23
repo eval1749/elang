@@ -225,7 +225,13 @@ class FixedOperandsInstruction : public Instruction {
 
 //////////////////////////////////////////////////////////////////////
 //
-// BranchInstruction
+// br %bool %true_block %false_block
+// br %void %target_block
+//
+// |BranchInstruction| represents conditional branch and unconditional branch.
+// This representation makes branch folding easier than having jump instruction.
+// On branch folding, we put void value to condition operand and false target
+// operand.
 //
 class ELANG_HIR_EXPORT BranchInstruction final
     : public FixedOperandsInstruction<BranchInstruction,
@@ -294,23 +300,6 @@ class ELANG_HIR_EXPORT ExitInstruction final
   bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// JumpInstruction
-//
-class ELANG_HIR_EXPORT JumpInstruction final
-    : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {
-  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Jump);
-
- private:
-  explicit JumpInstruction(Type* output_type);
-
-  // Instruction
-  bool IsTerminator() const final;
-
-  DISALLOW_COPY_AND_ASSIGN(JumpInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////

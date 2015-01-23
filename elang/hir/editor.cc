@@ -177,12 +177,12 @@ void Editor::SetBranch(Value* condition,
       factory()->NewBranchInstruction(condition, true_block, false_block));
 }
 
-void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
-  instruction->SetOperandAt(index, new_value);
+void Editor::SetBranch(BasicBlock* target_block) {
+  SetTerminator(factory()->NewBranchInstruction(target_block));
 }
 
-void Editor::SetJump(BasicBlock* target_block) {
-  SetTerminator(factory()->NewJumpInstruction(target_block));
+void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
+  instruction->SetOperandAt(index, new_value);
 }
 
 void Editor::SetReturn(Value* new_value) {
