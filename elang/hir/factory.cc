@@ -53,7 +53,7 @@ Factory::~Factory() {
 
 AtomicString* Factory::intrinsic_name(IntrinsicName name) {
   static const base::char16* names[] = {
-#define V(name) L## #name
+#define V(name) L## #name,
       FOR_EACH_INTRINSIC_NAME(V)
 #undef V
   };
