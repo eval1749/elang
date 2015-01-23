@@ -80,9 +80,9 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountOperands());
-  EXPECT_EQ(call_instr, instr->OperandAt(0));
-  EXPECT_EQ(true_block, instr->OperandAt(1));
-  EXPECT_EQ(false_block, instr->OperandAt(2));
+  EXPECT_EQ(call_instr, instr->operands()[0]);
+  EXPECT_EQ(true_block, instr->operands()[1]);
+  EXPECT_EQ(false_block, instr->operands()[2]);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -103,9 +103,9 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountOperands());
-  EXPECT_EQ(void_value(), instr->OperandAt(0));
-  EXPECT_EQ(target_block, instr->OperandAt(1));
-  EXPECT_EQ(void_value(), instr->OperandAt(2));
+  EXPECT_EQ(void_value(), instr->operands()[0]);
+  EXPECT_EQ(target_block, instr->operands()[1]);
+  EXPECT_EQ(void_value(), instr->operands()[2]);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -123,8 +123,8 @@ TEST_F(HirInstructionTest, CallInstruction) {
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(callee, instr->OperandAt(0));
-  EXPECT_EQ(args, instr->OperandAt(1));
+  EXPECT_EQ(callee, instr->operands()[0]);
+  EXPECT_EQ(args, instr->operands()[1]);
 
   auto callee_found = false;
   for (auto const user : callee->users()) {
@@ -148,7 +148,7 @@ TEST_F(HirInstructionTest, LoadInstruction) {
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountOperands());
-  EXPECT_EQ(source, instr->OperandAt(0));
+  EXPECT_EQ(source, instr->operands()[0]);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -161,8 +161,8 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(void_value(), instr->OperandAt(0));
-  EXPECT_EQ(exit_block(), instr->OperandAt(1));
+  EXPECT_EQ(void_value(), instr->operands()[0]);
+  EXPECT_EQ(exit_block(), instr->operands()[1]);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -178,8 +178,8 @@ TEST_F(HirInstructionTest, StoreInstruction) {
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(source, instr->OperandAt(0));
-  EXPECT_EQ(value, instr->OperandAt(1));
+  EXPECT_EQ(source, instr->operands()[0]);
+  EXPECT_EQ(value, instr->operands()[1]);
 }
 
 }  // namespace hir

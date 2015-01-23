@@ -28,6 +28,10 @@ Operands& Operands::operator=(const Operands& other) {
   return *this;
 }
 
+Value* Operands::operator[](int index) const {
+  return instruction_->OperandAt(index);
+}
+
 Operands::Iterator Operands::begin() {
   return Iterator(instruction_, 0);
 }

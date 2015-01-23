@@ -69,6 +69,7 @@ class ELANG_HIR_EXPORT Operands final {
   ~Operands();
 
   Operands& operator=(const Operands& other);
+  Value* operator[](int index) const;
 
   Iterator begin();
   Iterator end();
