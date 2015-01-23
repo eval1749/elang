@@ -87,7 +87,7 @@ Reference::Reference(Type* type, AtomicString* name)
 }
 
 VoidValue::VoidValue(VoidType* type, int data) : Literal(type) {
-  __assume(!data);
+  DCHECK(!data);
 }
 
 //////////////////////////////////////////////////////////////////////
