@@ -131,6 +131,10 @@ FunctionType* Function::function_type() const {
   return type()->as<FunctionType>();
 }
 
+Type* Function::parameters_type() const {
+  return function_type()->parameters_type();
+}
+
 Type* Function::return_type() const {
   return function_type()->return_type();
 }

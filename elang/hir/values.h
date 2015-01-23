@@ -250,6 +250,7 @@ class ELANG_HIR_EXPORT Function final : public Value {
   BasicBlock* exit_block() const;
   FunctionType* function_type() const;
   int id() const { return id_; }
+  Type* parameters_type() const;
   Type* return_type() const;
 
  private:
