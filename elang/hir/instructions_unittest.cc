@@ -170,7 +170,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
 TEST_F(HirInstructionTest, StoreInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = MakeSource(bool_pointer_type);
-  auto const value = types()->GetBoolType()->GetDefaultValue();
+  auto const value = types()->GetBoolType()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());

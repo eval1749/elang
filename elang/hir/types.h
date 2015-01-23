@@ -66,14 +66,15 @@ class ELANG_HIR_EXPORT Type : public Castable,
     Void,
   };
 
+  // Returns default value of this type.
+  virtual Value* default_value() const = 0;
+
   bool is_float() const { return register_class() == RegisterClass::Float; }
   bool is_general() const { return register_class() == RegisterClass::General; }
   bool is_void() const { return register_class() == RegisterClass::Void; }
+
   // Which type of register holds a value of this type.
   virtual RegisterClass register_class() const;
-
-  // Returns default value of this type.
-  virtual Value* GetDefaultValue() const = 0;
 
  protected:
   Type() = default;
@@ -93,7 +94,7 @@ class ELANG_HIR_EXPORT PointerType final : public Type {
   Type* pointee() const { return pointee_; }
 
   // Returns default value of this type.
-  Value* GetDefaultValue() const final;
+  Value* default_value() const final;
 
  private:
   explicit PointerType(Zone* zone, Type* pointee);
@@ -134,8 +135,8 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
                                                                      \
     /* Protocol defined by |PrimitiveType| class */                  \
     int bit_size() const override;                                   \
+    Value* default_value() const override;                           \
     RegisterClass register_class() const override;                   \
-    Value* GetDefaultValue() const override;                         \
                                                                      \
    private:                                                          \
     friend class TypeFactory;                                        \
@@ -165,7 +166,7 @@ class ELANG_HIR_EXPORT ReferenceType : public Type {
   AtomicString* name() const { return name_; }
 
   // Type
-  Value* GetDefaultValue() const override;
+  Value* default_value() const override;
 
  protected:
   explicit ReferenceType(Zone* zone, AtomicString* name);

@@ -42,7 +42,7 @@ PointerType::PointerType(Zone* zone, Type* pointee)
     : null_literal_(new (zone) NullLiteral(this)), pointee_(pointee) {
 }
 
-Value* PointerType::GetDefaultValue() const {
+Value* PointerType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
 }
@@ -72,7 +72,7 @@ Value* PointerType::GetDefaultValue() const {
     return new_literal;                                             \
   }                                                                 \
   /* Type */                                                        \
-  Value* Name##Type::GetDefaultValue() const { return zero_; }
+  Value* Name##Type::default_value() const { return zero_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
@@ -84,7 +84,7 @@ ReferenceType::ReferenceType(Zone* zone, AtomicString* name)
     : name_(name), null_literal_(new (zone) NullLiteral(this)) {
 }
 
-Value* ReferenceType::GetDefaultValue() const {
+Value* ReferenceType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
 }

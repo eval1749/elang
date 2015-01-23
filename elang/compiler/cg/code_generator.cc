@@ -265,8 +265,8 @@ void CodeGenerator::VisitCall(ast::Call* node) {
   // TODO(eval1749) We should make 'call' instruction takes multiple
   // operands.
   auto const call_instr = factory()->NewCallInstruction(
-      callee_type->GetDefaultValue(),
-      MapType(PredefinedName::Void)->GetDefaultValue());
+      callee_type->default_value(),
+      MapType(PredefinedName::Void)->default_value());
   editor_->InsertBefore(call_instr, output_->instruction);
 
   // Generate argument list.
@@ -369,7 +369,7 @@ void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
     return;
   }
   auto const return_instr = factory()->NewReturnInstruction(
-      return_type->GetDefaultValue(), function_->exit_block());
+      return_type->default_value(), function_->exit_block());
   {
     ScopedOutput return_scope(this, return_type, return_instr, 0);
     ast_value->Accept(this);
@@ -388,7 +388,7 @@ void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
       if (auto const ast_expression = ast_variable->value())
         variables_[variable] = GenerateValue(variable_type, ast_expression);
       else
-        variables_[variable] = variable_type->GetDefaultValue();
+        variables_[variable] = variable_type->default_value();
       continue;
     }
 
@@ -406,8 +406,8 @@ void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
     editor_->Append(pointer);
     if (!ast_variable->value())
       return;
-    auto const store_instr = factory()->NewStoreInstruction(
-        pointer, variable_type->GetDefaultValue());
+    auto const store_instr =
+        factory()->NewStoreInstruction(pointer, variable_type->default_value());
     ScopedOutput bind_scope(this, variable_type, store_instr, 1);
     ast_variable->value()->Accept(this);
   }
