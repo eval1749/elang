@@ -60,6 +60,7 @@ class TypeResolver final : public Analyzer,
   // ast::Visitor
   void VisitCall(ast::Call* node);
   void VisitLiteral(ast::Literal* node);
+  void VisitParameterReference(ast::ParameterReference* node);
   void VisitVariableReference(ast::VariableReference* node);
 
   Context* context_;

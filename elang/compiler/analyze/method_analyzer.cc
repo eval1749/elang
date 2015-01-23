@@ -50,6 +50,8 @@ class MethodBodyAnalyzer final : public Analyzer,
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
   ir::Type* void_type() const;
 
+  void RegisterParameters();
+
   // ast::Visitor
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
@@ -90,6 +92,14 @@ ir::Type* MethodBodyAnalyzer::void_type() const {
       ->as<ir::Type>();
 }
 
+void MethodBodyAnalyzer::RegisterParameters() {
+  for (auto const parameter : method_->parameters()) {
+    auto const type = ResolveTypeReference(parameter->type(), method_);
+    auto const value = type_resolver()->type_factory()->NewLiteral(type);
+    variable_tracker_->RegisterVariable(parameter, value);
+  }
+}
+
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
   auto const ir_method = semantics()->ValueOf(method_);
@@ -105,6 +115,7 @@ void MethodBodyAnalyzer::Run() {
   }
   DCHECK(!method_->IsExtern() && !method_->IsAbstract())
       << *method_ << " should not have a body.";
+  RegisterParameters();
   body->Accept(this);
   for (auto const call_value : type_resolver_->call_values()) {
     auto const call = call_value->ast_call();
@@ -161,6 +172,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
       continue;
     if (auto const reference = variable->type()) {
       if (reference->name() == TokenType::Var) {
+        // Assign type variable for variable declared with `var`.
         auto const type_variable = type_resolver()->type_factory()->NewVariable(
             variable, type_resolver()->type_factory()->any_value());
         variable_tracker_->RegisterVariable(variable, type_variable);
@@ -173,6 +185,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
       continue;
     auto const value = type_resolver()->type_factory()->NewLiteral(type);
     variable_tracker_->RegisterVariable(variable, value);
+    // Check initial value expression matches variable type.
     type_resolver()->Resolve(variable->value(), value);
   }
 }

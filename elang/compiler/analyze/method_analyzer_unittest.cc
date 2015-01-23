@@ -188,17 +188,9 @@ void MethodAnalyzerTest::SetUp() {
 }
 
 std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
-  auto const analyze_result = AnalyzeNamespace();
+  auto const analyze_result = Analyze();
   if (!analyze_result.empty())
     return analyze_result;
-
-  ClassAnalyzer class_resolver(name_resolver());
-  if (!class_resolver.Run())
-    return GetErrors();
-
-  MethodAnalyzer method_analyzer(name_resolver());
-  if (!method_analyzer.Run())
-    return GetErrors();
 
   auto const method_group = FindMember(method_name)->as<ast::MethodGroup>();
   if (!method_group)
@@ -239,6 +231,29 @@ TEST_F(MethodAnalyzerTest, Method2) {
       "(method Foo (signature (class Void) ((parameter (class Int32)))))\n"
       "(method Foo (signature (class Void) ((parameter (class Float64)))))\n",
       GetCalls("Sample.Main"));
+}
+
+TEST_F(MethodAnalyzerTest, Parameter) {
+  Prepare(
+      "class Sample {"
+      "    int Foo(int ival) { return ival; }"
+      "    char Foo(char ch) { ch = 'a'; return ch; }"
+      "    void Foo(float32 f32) {}"
+      "  }");
+  EXPECT_EQ("", Analyze());
+  auto const foo_group = FindMember("Sample.Foo")->as<ast::MethodGroup>();
+  ASSERT_TRUE(foo_group);
+  std::stringstream ostream;
+  for (auto method : foo_group->methods()) {
+    for (auto const parameter : method->parameters()) {
+      auto const variable = semantics()->ValueOf(parameter)->as<ir::Variable>();
+      if (!variable)
+        continue;
+      ostream << *parameter->name() << " " << variable->storage() << std::endl;
+    }
+  }
+  // TODO(eval1749) |ch| should be |Local|.
+  EXPECT_EQ("ival ReadOnly\nch ReadOnly\nf32 Void\n", ostream.str());
 }
 
 TEST_F(MethodAnalyzerTest, ReturnError) {

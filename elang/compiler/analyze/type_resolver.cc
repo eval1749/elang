@@ -228,6 +228,11 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   ProduceResult(result_literal, ast_literal);
 }
 
+void TypeResolver::VisitParameterReference(ast::ParameterReference* reference) {
+  auto const value = variable_tracker_->RecordGet(reference->parameter());
+  ProduceUnifiedResult(value, reference);
+}
+
 void TypeResolver::VisitVariableReference(ast::VariableReference* reference) {
   auto const value = variable_tracker_->RecordGet(reference->variable());
   ProduceUnifiedResult(value, reference);
