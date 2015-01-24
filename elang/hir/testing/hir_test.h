@@ -35,6 +35,7 @@ class HirTest : public ::testing::Test {
   HirTest();
   ~HirTest() override;
 
+  Type* bool_type() const;
   Editor* editor() { return editor_.get(); }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
@@ -48,6 +49,7 @@ class HirTest : public ::testing::Test {
   std::string Format(Function* function);
   std::string Format();
   std::string GetErrors();
+  Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
 
  private:

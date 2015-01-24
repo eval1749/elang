@@ -66,6 +66,10 @@ HirTest::HirTest()
 HirTest::~HirTest() {
 }
 
+Type* HirTest::bool_type() const {
+  return factory()->types()->GetBoolType();
+}
+
 BasicBlock* HirTest::entry_block() const {
   return function_->entry_block();
 }
@@ -103,6 +107,10 @@ std::string HirTest::Format() {
 
 std::string HirTest::GetErrors() {
   return ConvertErrorListToString(editor_->errors());
+}
+
+Value* HirTest::NewBool(bool value) {
+  return factory()->NewBoolLiteral(value);
 }
 
 Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {

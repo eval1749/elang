@@ -28,30 +28,17 @@ Function* NewSampleFunction(Factory* factory) {
 //
 class HirInstructionTest : public testing::HirTest {
  protected:
-  HirInstructionTest();
+  HirInstructionTest() = default;
   ~HirInstructionTest() override = default;
 
-  Type* bool_type() { return factory()->types()->GetBoolType(); }
-  BasicBlock* entry_block() { return function_->entry_block(); }
-  BasicBlock* exit_block() { return function_->exit_block(); }
-  Function* function() const { return function_; }
-  VoidType* void_type() { return factory()->types()->void_type(); }
-  VoidValue* void_value() { return factory()->void_value(); }
-
-  Instruction* MakeSource(Type* output_type);
+  Instruction* NewSource(Type* output_type);
 
  private:
-  Function* function_;
-
   DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);
 };
 
-HirInstructionTest::HirInstructionTest()
-    : function_(NewSampleFunction(factory())) {
-}
-
-Instruction* HirInstructionTest::MakeSource(Type* output_type) {
-  auto const name = factory()->NewAtomicString(L"Foo");
+Instruction* HirInstructionTest::NewSource(Type* output_type) {
+  auto const name = factory()->NewAtomicString(L"Source");
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(output_type, void_type()), name);
   return factory()->NewCallInstruction(callee, void_value());
@@ -70,7 +57,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   editor.SetReturn(void_value());
 
   editor.Edit(entry_block());
-  auto const call_instr = MakeSource(bool_type());
+  auto const call_instr = NewSource(bool_type());
   editor.Append(call_instr);
   editor.SetBranch(call_instr, true_block, false_block);
   editor.Commit();
@@ -142,7 +129,7 @@ TEST_F(HirInstructionTest, CallInstruction) {
 //
 TEST_F(HirInstructionTest, LoadInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
-  auto const source = MakeSource(bool_pointer_type);
+  auto const source = NewSource(bool_pointer_type);
   auto const instr = factory()->NewLoadInstruction(source);
   EXPECT_TRUE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
@@ -171,7 +158,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
 //
 TEST_F(HirInstructionTest, StoreInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
-  auto const source = MakeSource(bool_pointer_type);
+  auto const source = NewSource(bool_pointer_type);
   auto const value = types()->GetBoolType()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
   EXPECT_FALSE(instr->CanBeRemoved());
