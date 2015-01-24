@@ -44,32 +44,14 @@ enum class Opcode {
 //
 class ELANG_HIR_EXPORT Operands final {
  public:
-  class Iterator final {
-   public:
-    Iterator(const Instruction* instruction, int current);
-    Iterator(const Iterator& other);
-    ~Iterator();
-
-    Iterator& operator=(const Iterator& other);
-    Iterator& operator++();
-    Value* operator*() const;
-    Value* operator->() const;
-    bool operator==(const Iterator& other) const;
-    bool operator!=(const Iterator& other) const;
-
-   private:
-    const Instruction* instruction_;
-    int current_;
-  };
-
   explicit Operands(const Instruction* instruction);
   Operands(const Operands& other);
   ~Operands();
 
   Operands& operator=(const Operands& other);
 
-  Iterator begin();
-  Iterator end();
+  OperandIterator begin();
+  OperandIterator end();
 
  private:
   const Instruction* instruction_;

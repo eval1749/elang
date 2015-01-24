@@ -326,20 +326,17 @@ void TextFormatter::FormatFunction(const Function* function) {
     else
       ostream_ << std::endl;
     ostream_ << *block << ":" << std::endl;
+
     ostream_ << "  // In:";
-    for (auto const user : block->users()) {
-      ostream_ << " " << *user->instruction()->basic_block();
-    }
+    for (auto const predecessor : block->predecessors())
+      ostream_ << " " << *predecessor;
     ostream_ << std::endl;
+
     ostream_ << "  // Out:";
-    {
-      auto const last = block->last_instruction();
-      for (auto const operand : last->operands()) {
-        if (auto const target = operand->as<BasicBlock>())
-          ostream_ << " " << *target;
-      }
-    }
+    for (auto const successor : block->successors())
+      ostream_ << " " << *successor;
     ostream_ << std::endl;
+
     for (auto const instruction : block->instructions()) {
       ostream_ << "  ";
       FormatInstruction(instruction);

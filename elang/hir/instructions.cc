@@ -14,6 +14,60 @@
 namespace elang {
 namespace hir {
 
+// boilerplate member functions.
+#define V(Name, ...)                                      \
+  Name##Instruction::Name##Instruction(Type* output_type) \
+      : FixedOperandsInstruction(output_type) {}          \
+  Opcode Name##Instruction::opcode() const { return Opcode::Name; }
+FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// OperandIterator
+//
+OperandIterator::OperandIterator(const Instruction* instruction, int current)
+    : current_(current), instruction_(instruction) {
+}
+
+OperandIterator::OperandIterator(const OperandIterator& other)
+    : current_(other.current_), instruction_(other.instruction_) {
+}
+
+OperandIterator::~OperandIterator() {
+}
+
+OperandIterator& OperandIterator::operator=(const OperandIterator& other) {
+  DCHECK_EQ(instruction_, other.instruction_);
+  instruction_ = other.instruction_;
+  return *this;
+}
+
+OperandIterator& OperandIterator::operator++() {
+  DCHECK_LT(current_, instruction_->CountOperands());
+  ++current_;
+  return *this;
+}
+
+Value* OperandIterator::operator*() const {
+  DCHECK_LT(current_, instruction_->CountOperands());
+  return instruction_->operand(current_);
+}
+
+Value* OperandIterator::operator->() const {
+  DCHECK_LT(current_, instruction_->CountOperands());
+  return instruction_->operand(current_);
+}
+
+bool OperandIterator::operator==(const OperandIterator& other) const {
+  DCHECK_EQ(instruction_, other.instruction_);
+  return current_ == other.current_;
+}
+
+bool OperandIterator::operator!=(const OperandIterator& other) const {
+  return !operator==(other);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Operands
@@ -30,54 +84,12 @@ Operands& Operands::operator=(const Operands& other) {
   return *this;
 }
 
-Operands::Iterator Operands::begin() {
-  return Iterator(instruction_, 0);
+OperandIterator Operands::begin() {
+  return OperandIterator(instruction_, 0);
 }
 
-Operands::Iterator Operands::end() {
-  return Iterator(instruction_, instruction_->CountOperands());
-}
-
-Operands::Iterator::Iterator(const Instruction* instruction, int current)
-    : current_(current), instruction_(instruction) {
-}
-
-Operands::Iterator::Iterator(const Iterator& other)
-    : current_(other.current_), instruction_(other.instruction_) {
-}
-
-Operands::Iterator::~Iterator() {
-}
-
-Operands::Iterator& Operands::Iterator::operator=(const Iterator& other) {
-  DCHECK_EQ(instruction_, other.instruction_);
-  instruction_ = other.instruction_;
-  return *this;
-}
-
-Operands::Iterator& Operands::Iterator::operator++() {
-  DCHECK_LT(current_, instruction_->CountOperands());
-  ++current_;
-  return *this;
-}
-
-Value* Operands::Iterator::operator*() const {
-  DCHECK_LT(current_, instruction_->CountOperands());
-  return instruction_->operand(current_);
-}
-
-Value* Operands::Iterator::operator->() const {
-  DCHECK_LT(current_, instruction_->CountOperands());
-  return instruction_->operand(current_);
-}
-
-bool Operands::Iterator::operator==(const Iterator& other) const {
-  DCHECK_EQ(instruction_, other.instruction_);
-  return current_ == other.current_;
-}
-
-bool Operands::Iterator::operator!=(const Iterator& other) const {
-  return !operator==(other);
+OperandIterator Operands::end() {
+  return OperandIterator(instruction_, instruction_->CountOperands());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -103,13 +115,6 @@ bool Instruction::CanBeRemoved() const {
 bool Instruction::IsTerminator() const {
   return false;
 }
-
-#define V(Name, ...)                                      \
-  Name##Instruction::Name##Instruction(Type* output_type) \
-      : FixedOperandsInstruction(output_type) {}          \
-  Opcode Name##Instruction::opcode() const { return Opcode::Name; }
-FOR_EACH_HIR_INSTRUCTION(V)
-#undef V
 
 void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);

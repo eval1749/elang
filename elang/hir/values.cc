@@ -14,10 +14,134 @@
 namespace elang {
 namespace hir {
 
+// boilerplate member functions.
 #define V(Name, ...) \
   void Name::Accept(ValueVisitor* visitor) { visitor->Visit##Name(this); }
 FOR_EACH_HIR_VALUE(V)
 #undef V
+
+#define V(Name, name, c_type, ...)                      \
+  Name##Literal::Name##Literal(Type* type, c_type data) \
+      : Literal(type), data_(data) {}
+FOR_EACH_HIR_LITERAL_VALUE(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// BasicBlock
+//
+BasicBlock::BasicBlock(Factory* factory)
+    : Value(factory->void_type()), function_(nullptr), id_(0) {
+}
+
+Instruction* BasicBlock::first_instruction() const {
+  return instructions_.first_node();
+}
+
+Instruction* BasicBlock::last_instruction() const {
+  return instructions_.last_node();
+}
+
+BasicBlockPredecessors BasicBlock::predecessors() const {
+  return BasicBlockPredecessors(this);
+}
+
+BasicBlockSuccessors BasicBlock::successors() const {
+  return BasicBlockSuccessors(this);
+}
+
+// BasicBlockPredecessors
+BasicBlockPredecessors::BasicBlockPredecessors(const BasicBlock* basic_block)
+    : basic_block_(basic_block) {
+}
+
+BasicBlockPredecessors::Iterator BasicBlockPredecessors::begin() const {
+  return Iterator(basic_block_->users().begin());
+}
+
+BasicBlockPredecessors::Iterator BasicBlockPredecessors::end() const {
+  return Iterator(basic_block_->users().end());
+}
+
+// BasicBlockPredecessors::Iterator
+BasicBlockPredecessors::Iterator::Iterator(const UseDefList::Iterator& iterator)
+    : IteratorOnIterator(iterator) {
+}
+
+BasicBlock* BasicBlockPredecessors::Iterator::operator*() const {
+  return (*iterator())->instruction()->basic_block();
+}
+
+// BasicBlockSuccessors
+BasicBlockSuccessors::BasicBlockSuccessors(const BasicBlock* basic_block)
+    : basic_block_(basic_block) {
+}
+
+BasicBlockSuccessors::Iterator BasicBlockSuccessors::begin() const {
+  auto operands = basic_block_->last_instruction()->operands();
+  auto it = operands.begin();
+  while (it != operands.end() && !(*it)->is<BasicBlock>())
+    ++it;
+  return Iterator(it);
+}
+
+BasicBlockSuccessors::Iterator BasicBlockSuccessors::end() const {
+  return Iterator(basic_block_->last_instruction()->operands().end());
+}
+
+BasicBlockSuccessors::Iterator::Iterator(const OperandIterator& iterator)
+    : IteratorOnIterator(iterator) {
+}
+
+BasicBlock* BasicBlockSuccessors::Iterator::operator*() const {
+  return (*iterator())->as<BasicBlock>();
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Function
+//
+Function::Function(Factory* factory, FunctionType* type, int id)
+    : Value(type), id_(id) {
+  Editor function(factory, this);
+}
+
+BasicBlock* Function::entry_block() const {
+  auto const block = basic_blocks_.first_node();
+  DCHECK(block->first_instruction()->is<EntryInstruction>());
+  return block;
+}
+
+BasicBlock* Function::exit_block() const {
+  auto const block = basic_blocks_.last_node();
+  DCHECK(block->first_instruction()->is<ExitInstruction>());
+  return block;
+}
+
+FunctionType* Function::function_type() const {
+  return type()->as<FunctionType>();
+}
+
+Type* Function::parameters_type() const {
+  return function_type()->parameters_type();
+}
+
+Type* Function::return_type() const {
+  return function_type()->return_type();
+}
+
+// Literal
+Literal::Literal(Type* type) : Value(type) {
+}
+
+// NullLiteral
+NullLiteral::NullLiteral(Type* type) : Literal(type) {
+}
+
+// Reference
+Reference::Reference(Type* type, AtomicString* name)
+    : Literal(type), name_(name) {
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -66,77 +190,9 @@ void Value::Unuse(UseDefNode* value_holder) {
   use_def_list_.RemoveNode(value_holder);
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// Literal
-//
-#define V(Name, name, c_type, ...)                      \
-  Name##Literal::Name##Literal(Type* type, c_type data) \
-      : Literal(type), data_(data) {}
-FOR_EACH_HIR_LITERAL_VALUE(V)
-#undef V
-
-Literal::Literal(Type* type) : Value(type) {
-}
-
-NullLiteral::NullLiteral(Type* type) : Literal(type) {
-}
-
-Reference::Reference(Type* type, AtomicString* name)
-    : Literal(type), name_(name) {
-}
-
+// VoidValue
 VoidValue::VoidValue(VoidType* type, int data) : Literal(type) {
   DCHECK(!data);
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// BasicBlock
-//
-BasicBlock::BasicBlock(Factory* factory)
-    : Value(factory->void_type()), function_(nullptr), id_(0) {
-}
-
-Instruction* BasicBlock::first_instruction() const {
-  return instructions_.first_node();
-}
-
-Instruction* BasicBlock::last_instruction() const {
-  return instructions_.last_node();
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// Function
-//
-Function::Function(Factory* factory, FunctionType* type, int id)
-    : Value(type), id_(id) {
-  Editor function(factory, this);
-}
-
-BasicBlock* Function::entry_block() const {
-  auto const block = basic_blocks_.first_node();
-  DCHECK(block->first_instruction()->is<EntryInstruction>());
-  return block;
-}
-
-BasicBlock* Function::exit_block() const {
-  auto const block = basic_blocks_.last_node();
-  DCHECK(block->first_instruction()->is<ExitInstruction>());
-  return block;
-}
-
-FunctionType* Function::function_type() const {
-  return type()->as<FunctionType>();
-}
-
-Type* Function::parameters_type() const {
-  return function_type()->parameters_type();
-}
-
-Type* Function::return_type() const {
-  return function_type()->return_type();
 }
 
 }  // namespace hir
