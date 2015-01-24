@@ -171,11 +171,11 @@ void Formatter::VisitCatchClause(ast::CatchClause* node) {
 }
 
 void Formatter::VisitConditional(ast::Conditional* cond) {
-  Visit(cond->conditional());
+  Visit(cond->condition());
   stream_ << " ? ";
-  Visit(cond->then_expression());
+  Visit(cond->true_expression());
   stream_ << " : ";
-  Visit(cond->else_expression());
+  Visit(cond->false_expression());
 }
 
 void Formatter::VisitClass(ast::Class* clazz) {

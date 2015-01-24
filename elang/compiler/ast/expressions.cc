@@ -46,10 +46,13 @@ Call::Call(Zone* zone,
 }
 
 Conditional::Conditional(Token* op,
-                         Expression* cond_expr,
-                         Expression* then_expr,
-                         Expression* else_expr)
-    : Expression(op), cond_(cond_expr), else_(else_expr), then_(then_expr) {
+                         Expression* condition,
+                         Expression* true_expression,
+                         Expression* false_expression)
+    : Expression(op),
+      condition_(condition),
+      false_expression_(false_expression),
+      true_expression_(true_expression) {
 }
 
 // ConstructedName

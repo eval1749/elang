@@ -117,19 +117,19 @@ class Conditional final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(Conditional, Expression);
 
  public:
-  Expression* conditional() const { return cond_; }
-  Expression* else_expression() const { return else_; }
-  Expression* then_expression() const { return then_; }
+  Expression* condition() const { return condition_; }
+  Expression* false_expression() const { return false_expression_; }
+  Expression* true_expression() const { return true_expression_; }
 
  private:
   Conditional(Token* op,
               Expression* condition,
-              Expression* then_expression,
-              Expression* else_expression);
+              Expression* true_expression,
+              Expression* false_expression);
 
-  Expression* const cond_;
-  Expression* const else_;
-  Expression* const then_;
+  Expression* const condition_;
+  Expression* const false_expression_;
+  Expression* const true_expression_;
 
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
