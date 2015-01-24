@@ -5,6 +5,7 @@
 #ifndef ELANG_HIR_EDITOR_H_
 #define ELANG_HIR_EDITOR_H_
 
+#include <memory>
 #include <vector>
 
 #include "base/basictypes.h"
@@ -24,6 +25,7 @@ class Instruction;
 class PhiInstruction;
 class Thing;
 class Type;
+class Validator;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -104,18 +106,17 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   // Values
   Value* NewInt32(int32_t data);
 
-  // Validation
-  bool Validate(BasicBlock* basic_block);
-  bool Validate(Function* function);
-
  private:
   void InitializeFunctionIfNeeded();
   void ResetInputs(Instruction* instruction);
+  bool Validate(BasicBlock* basic_block);
+  bool Validate(Function* function);
 
   BasicBlock* basic_block_;
   std::vector<ErrorData*> errors_;
   Factory* const factory_;
   Function* const function_;
+  std::unique_ptr<Validator> validator_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

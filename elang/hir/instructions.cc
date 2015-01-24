@@ -114,66 +114,10 @@ bool BranchInstruction::IsUnconditionalBranch() const {
   return operand(0)->is<BasicBlock>();
 }
 
-bool BranchInstruction::Validate(Editor* editor) const {
-  if (!output_type()->is<VoidType>()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
-    return false;
-  }
-
-  if (IsUnconditionalBranch()) {
-    if (!operand(0)->is<BasicBlock>()) {
-      editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
-      return false;
-    }
-    return true;
-  }
-
-  DCHECK(IsConditionalBranch());
-  if (!operand(0)->type()->is<BoolType>()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
-    return false;
-  }
-  if (!operand(1)->is<BasicBlock>()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
-    return false;
-  }
-  if (!operand(2)->is<BasicBlock>()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 2);
-    return false;
-  }
-  return true;
-}
-
 // CallInstruction
 bool CallInstruction::CanBeRemoved() const {
   // TODO(eval1749) We should return true for known side effect free functions.
   return false;
-}
-
-bool CallInstruction::Validate(Editor* editor) const {
-  auto const function_type = operand(0)->type()->as<FunctionType>();
-  if (!function_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
-    return false;
-  }
-  if (output_type() != function_type->return_type()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
-    return false;
-  }
-  if (operand(1)->type() != function_type->parameters_type()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
-    return false;
-  }
-  return true;
-}
-
-// EntryInstruction
-bool EntryInstruction::Validate(Editor* editor) const {
-  if (output_type() != editor->function()->parameters_type()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
-    return false;
-  }
-  return true;
 }
 
 // ExitInstruction
@@ -181,17 +125,13 @@ bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
-bool ExitInstruction::Validate(Editor* editor) const {
-  if (!output_type()->is<VoidType>()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
-    return false;
-  }
-  return true;
-}
-
 // Instruction
 Instruction::Instruction(Type* output_type)
     : Value(output_type), basic_block_(nullptr), id_(0) {
+}
+
+Function* Instruction::function() const {
+  return basic_block() ? basic_block()->function() : nullptr;
 }
 
 Value* Instruction::operand(int index) const {
@@ -220,21 +160,6 @@ bool Instruction::IsUnconditionalBranch() const {
 
 void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);
-}
-
-// LoadInstruction
-bool LoadInstruction::Validate(Editor* editor) const {
-  auto const pointer_type = operand(0)->type()->as<PointerType>();
-  if (!pointer_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0,
-                  operand(0)->type());
-    return false;
-  }
-  if (output_type() != pointer_type->pointee()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this, pointer_type);
-    return false;
-  }
-  return true;
 }
 
 // PhiInput
@@ -266,77 +191,14 @@ PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
   return nullptr;
 }
 
-bool PhiInstruction::Validate(Editor* editor) const {
-  for (auto const predecessor : basic_block()->predecessors()) {
-    if (!FindPhiInputFor(predecessor)) {
-      editor->Error(ErrorCode::ValidatePhiNotFound, this, predecessor);
-      return false;
-    }
-  }
-  // TODO(eval1749) We should check type of `phi` operands are subtype of
-  // output type.
-  auto position = 0;
-  for (auto const operand : inputs_) {
-    if (operand->value()->type() != output_type()) {
-      editor->Error(ErrorCode::ValidateInstructionOperand, this, position,
-                    operand->value());
-      return false;
-    }
-    ++position;
-  }
-  if (!position) {
-    editor->Error(ErrorCode::ValidatePhiCount, this);
-    return false;
-  }
-  if (position == 1)
-    editor->Error(ErrorCode::ValidatePhiOne, this);
-  return true;
-}
-
 // ReturnInstruction
 bool ReturnInstruction::IsTerminator() const {
-  return true;
-}
-
-bool ReturnInstruction::Validate(Editor* editor) const {
-  auto const return_type = editor->function()->return_type();
-  if (operand(0)->type() != return_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this,
-                  {editor->NewInt32(0), return_type});
-    return false;
-  }
-  auto const exit_block = editor->function()->exit_block();
-  if (operand(1) != exit_block) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this,
-                  {editor->NewInt32(1), exit_block});
-    return false;
-  }
   return true;
 }
 
 // StoreInstruction
 bool StoreInstruction::CanBeRemoved() const {
   return false;
-}
-
-bool StoreInstruction::Validate(Editor* editor) const {
-  if (!output_type()->is<VoidType>()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
-    return false;
-  }
-  auto const pointer_type = operand(0)->type()->as<PointerType>();
-  if (!pointer_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0, pointer_type);
-    return false;
-  }
-  // TODO(eval1749) We should check type of operand(2) is subtype of
-  // |pointer_type->pointee()|.
-  auto const pointee = pointer_type->pointee();
-  if (operand(1)->type() != pointee) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1, pointee);
-    return false;
-  }
-  return true;
 }
 
 }  // namespace hir

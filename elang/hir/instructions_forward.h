@@ -34,6 +34,7 @@ FOR_EACH_HIR_INSTRUCTION(V)
 
 // Forward declarations
 class Instruction;
+class InstructionVisitor;
 enum class Opcode;
 class OperandIterator;
 class Operands;

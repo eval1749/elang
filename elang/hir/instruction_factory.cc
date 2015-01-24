@@ -7,11 +7,26 @@
 #include "elang/base/zone.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
+#include "elang/hir/instruction_visitor.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
 
 namespace elang {
 namespace hir {
+
+#define V(Name, ...)                                                     \
+  void InstructionVisitor::Visit##Name(Name##Instruction* instruction) { \
+    DoDefaultVisit(instruction);                                         \
+  }                                                                      \
+  void Name##Instruction::Accept(InstructionVisitor* visitor) {          \
+    visitor->Visit##Name(this);                                          \
+  }
+FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
+
+void InstructionVisitor::DoDefaultVisit(Instruction* instruction) {
+  DCHECK(instruction);
+}
 
 InstructionFactory::InstructionFactory(Factory* factory,
                                        const FactoryConfig& config)

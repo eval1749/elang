@@ -29,14 +29,16 @@ enum class Opcode {
 #define DECLARE_HIR_INSTRUCTION_CLASS(Name)                \
   DECLARE_HIR_VALUE_CLASS(Name##Instruction, Instruction); \
   friend class Editor;                                     \
-  friend class InstructionFactory;
+  friend class InstructionFactory;                         \
+  friend class Validator;
 
 #define DECLARE_ABSTRACT_HIR_INSTRUCTION_CLASS(Name) \
   DECLARE_HIR_INSTRUCTION_CLASS(Name);
 
 #define DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name) \
   DECLARE_HIR_INSTRUCTION_CLASS(Name);               \
-  Opcode opcode() const final;
+  Opcode opcode() const final;                       \
+  void Accept(InstructionVisitor* visitor) final;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -62,7 +64,7 @@ class ELANG_HIR_EXPORT Operands final {
 // Instruction
 //
 // Type of operands are guaranteed by |InstructionFactory| at construction,
-// and |Editor::Validate()| at modification.
+// and |Validator| at modification.
 //
 class ELANG_HIR_EXPORT Instruction
     : public Value,
@@ -72,6 +74,9 @@ class ELANG_HIR_EXPORT Instruction
  public:
   // A basic block which this instruction belongs to
   BasicBlock* basic_block() const { return basic_block_; }
+
+  // A function which this instruction belongs to
+  Function* function() const;
 
   // An integer identifier for debugging.
   int id() const { return id_; }
@@ -108,8 +113,7 @@ class ELANG_HIR_EXPORT Instruction
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
 
-  // Validates this instruction and logs error into |Editor|.
-  virtual bool Validate(Editor* editor) const = 0;
+  virtual void Accept(InstructionVisitor* visitor) = 0;
 
  protected:
   explicit Instruction(Type* output_type);
@@ -190,7 +194,6 @@ class ELANG_HIR_EXPORT BranchInstruction final
   bool IsConditionalBranch() const final;
   bool IsUnconditionalBranch() const final;
   bool IsTerminator() const final;
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstruction);
 };
@@ -208,7 +211,6 @@ class ELANG_HIR_EXPORT CallInstruction final
 
   // Instruction
   bool CanBeRemoved() const final;
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(CallInstruction);
 };
@@ -223,9 +225,6 @@ class ELANG_HIR_EXPORT EntryInstruction final
 
  private:
   explicit EntryInstruction(Type* output_type);
-
-  // Instruction
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(EntryInstruction);
 };
@@ -243,7 +242,6 @@ class ELANG_HIR_EXPORT ExitInstruction final
 
   // Instruction
   bool IsTerminator() const final;
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
 };
@@ -258,9 +256,6 @@ class ELANG_HIR_EXPORT LoadInstruction final
 
  private:
   explicit LoadInstruction(Type* output_type);
-
-  // Instruction
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstruction);
 };
@@ -314,7 +309,6 @@ class ELANG_HIR_EXPORT PhiInstruction final
 
   // Instruction
   int CountOperands() const final;
-  bool Validate(Editor* editor) const final;
 
   PhiInputs inputs_;
 
@@ -334,7 +328,6 @@ class ELANG_HIR_EXPORT ReturnInstruction final
 
   // Instruction
   bool IsTerminator() const final;
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstruction);
 };
@@ -352,7 +345,6 @@ class ELANG_HIR_EXPORT StoreInstruction final
 
   // Instruction
   bool CanBeRemoved() const final;
-  bool Validate(Editor* editor) const final;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstruction);
 };

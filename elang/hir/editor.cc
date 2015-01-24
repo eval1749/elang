@@ -14,6 +14,7 @@
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
 #include "elang/hir/values.h"
+#include "elang/hir/validator.h"
 
 namespace std {
 ostream& operator<<(ostream& ostream, vector<elang::hir::ErrorData*> errors) {
@@ -47,7 +48,8 @@ Editor::Editor(Factory* factory, Function* function)
     : ZoneUser(factory->zone()),
       basic_block_(nullptr),
       factory_(factory),
-      function_(function) {
+      function_(function),
+      validator_(new Validator(this)) {
   InitializeFunctionIfNeeded();
 }
 
@@ -142,29 +144,27 @@ void Editor::InitializeFunctionIfNeeded() {
   }
 
   // Make entry and exit block
-  auto const entry = factory()->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(entry);
-  entry->function_ = function_;
-  entry->id_ = factory()->NextBasicBlockId();
+  // Since |Validator| uses entry and exit blocks, we can't use editing
+  // functions for populating entry and exit block.
+  auto const entry_block = factory()->NewBasicBlock();
+  function_->basic_blocks_.AppendNode(entry_block);
+  entry_block->function_ = function_;
+  entry_block->id_ = factory()->NextBasicBlockId();
 
-  auto const exit = factory()->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(exit);
-  exit->function_ = function_;
-  exit->id_ = factory()->NextBasicBlockId();
+  auto const exit_block = factory()->NewBasicBlock();
+  function_->basic_blocks_.AppendNode(exit_block);
+  exit_block->function_ = function_;
+  exit_block->id_ = factory()->NextBasicBlockId();
 
-  {
-    ScopedEdit edit_scope(this, exit);
-    // Since 'ret' instruction refers exit block, we create exit block before
-    // entry block.
-    Append(factory()->NewExitInstruction());
-  }
-  {
-    ScopedEdit edit_scope(this, entry);
-    Append(factory()->NewEntryInstruction(
-        function_->function_type()->parameters_type()));
-    SetReturn(function_->return_type()->default_value());
-  }
+  basic_block_ = exit_block;
+  Append(factory()->NewExitInstruction());
 
+  basic_block_ = entry_block;
+  Append(factory()->NewEntryInstruction(
+      function_->function_type()->parameters_type()));
+  SetReturn(function_->return_type()->default_value());
+
+  basic_block_ = nullptr;
   DCHECK(Validate(function_)) << errors();
 }
 
@@ -291,92 +291,12 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
   return new_basic_block;
 }
 
-// Validates |BasicBlock|
-//  - id() in list
-//  - function() in list
-//  - terminator at the last
-//  - instructions
 bool Editor::Validate(BasicBlock* block) {
-  if (!block->id()) {
-    Error(ErrorCode::ValidateBasicBlockNoId, block);
-    return false;
-  }
-  if (!block->function()) {
-    Error(ErrorCode::ValidateBasicBlockNoFunction, block);
-    return false;
-  }
-  if (block->instructions().empty()) {
-    Error(ErrorCode::ValidateBasicBlockEmpty, block);
-    return false;
-  }
-
-  if (block->first_instruction()->is<EntryInstruction>() &&
-      entry_block() != block) {
-    Error(ErrorCode::ValidateBasicBlockEntry, block, entry_block());
-    return false;
-  }
-
-  if (block->first_instruction()->is<ExitInstruction>() &&
-      exit_block() != block) {
-    Error(ErrorCode::ValidateBasicBlockExit, block, exit_block());
-    return false;
-  }
-
-  // Check instructions
-  auto found_terminator = false;
-  auto is_valid = true;
-  for (auto instruction : block->instructions()) {
-    if (!instruction->id()) {
-      Error(ErrorCode::ValidateInstructionNoId, instruction);
-      return false;
-    }
-    if (instruction->IsTerminator()) {
-      if (found_terminator) {
-        Error(ErrorCode::ValidateInstructionTerminator, instruction);
-        return false;
-      }
-      found_terminator = true;
-    }
-    if (!instruction->Validate(this))
-      is_valid = false;
-  }
-  if (!found_terminator) {
-    Error(ErrorCode::ValidateBasicBlockNoTerminator, block);
-    return false;
-  }
-  return is_valid;
+  return validator_->Validate(block);
 }
 
 bool Editor::Validate(Function* function) {
-  if (function->basic_blocks().empty()) {
-    Error(ErrorCode::ValidateFunctionEmpty, function);
-    return false;
-  }
-  if (!function->entry_block()->first_instruction()->is<EntryInstruction>()) {
-    Error(ErrorCode::ValidateFunctionNoEntry, function);
-    return false;
-  }
-  auto found_exit = false;
-  for (auto block : function->basic_blocks()) {
-    if (!block->id()) {
-      Error(ErrorCode::ValidateBasicBlockNoId, block);
-      return false;
-    }
-    if (!Validate(block))
-      return false;
-    if (block->last_instruction()->is<ExitInstruction>()) {
-      if (found_exit) {
-        Error(ErrorCode::ValidateFunctionExit, function);
-        return false;
-      }
-      found_exit = true;
-    }
-  }
-  if (!found_exit) {
-    Error(ErrorCode::ValidateFunctionNoExit, function);
-    return false;
-  }
-  return true;
+  return validator_->Validate(function);
 }
 
 }  // namespace hir
