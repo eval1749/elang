@@ -262,7 +262,7 @@ void Editor::SetPhiInput(PhiInstruction* phi, BasicBlock* block, Value* value) {
     return;
   }
   auto const new_input = new (zone()) PhiInput(phi, block, value);
-  phi->inputs_.AppendNode(new_input);
+  phi->phi_inputs_.AppendNode(new_input);
 }
 
 void Editor::SetReturn(Value* new_value) {

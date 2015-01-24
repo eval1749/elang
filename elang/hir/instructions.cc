@@ -160,9 +160,9 @@ Value* PhiInstruction::input_of(BasicBlock* block) const {
 }
 
 PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
-  for (auto operand : inputs_) {
-    if (operand->basic_block() == block)
-      return operand;
+  for (auto phi_input : phi_inputs_) {
+    if (phi_input->basic_block() == block)
+      return phi_input;
   }
   return nullptr;
 }

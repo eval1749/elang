@@ -239,10 +239,10 @@ void Validator::VisitPhi(PhiInstruction* instr) {
   // TODO(eval1749) We should check type of `phi` operands are subtype of
   // output type.
   auto position = 0;
-  for (auto const input : instr->inputs()) {
-    if (input->value()->type() != instr->output_type()) {
-      Error(ErrorCode::ValidateInstructionOperand, instr, position,
-            input->value());
+  for (auto const phi_input : instr->phi_inputs()) {
+    if (phi_input->value()->type() != instr->output_type()) {
+      Error(ErrorCode::ValidateInstructionOperand, instr,
+            phi_input->basic_block());
       return;
     }
     ++position;

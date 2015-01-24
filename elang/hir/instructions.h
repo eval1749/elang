@@ -302,14 +302,14 @@ class ELANG_HIR_EXPORT PhiInstruction final
   typedef DoubleLinked<PhiInput, PhiInstruction> PhiInputs;
 
   Value* input_of(BasicBlock* block) const;
-  const PhiInputs& inputs() const { return inputs_; }
+  const PhiInputs& phi_inputs() const { return phi_inputs_; }
 
  private:
   explicit PhiInstruction(Type* output_type);
 
   PhiInput* FindPhiInputFor(BasicBlock* block) const;
 
-  PhiInputs inputs_;
+  PhiInputs phi_inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstruction);
 };

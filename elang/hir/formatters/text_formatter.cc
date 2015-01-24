@@ -63,9 +63,9 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
 
   if (auto const phi = instruction->as<PhiInstruction>()) {
     auto separator = " ";
-    for (auto const input : phi->inputs()) {
-      ostream << separator << *input->basic_block() << " "
-              << AsValue(*input->value());
+    for (auto const phi_input : phi->phi_inputs()) {
+      ostream << separator << *phi_input->basic_block() << " "
+              << AsValue(*phi_input->value());
       separator = ", ";
     }
     return ostream;
