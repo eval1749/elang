@@ -79,15 +79,15 @@ BasicBlockSuccessors::BasicBlockSuccessors(const BasicBlock* basic_block)
 }
 
 BasicBlockSuccessors::Iterator BasicBlockSuccessors::begin() const {
-  auto operands = basic_block_->last_instruction()->operands();
-  auto it = operands.begin();
-  while (it != operands.end() && !(*it)->is<BasicBlock>())
+  auto inputs = basic_block_->last_instruction()->inputs();
+  auto it = inputs.begin();
+  while (it != inputs.end() && !(*it)->is<BasicBlock>())
     ++it;
   return Iterator(it);
 }
 
 BasicBlockSuccessors::Iterator BasicBlockSuccessors::end() const {
-  return Iterator(basic_block_->last_instruction()->operands().end());
+  return Iterator(basic_block_->last_instruction()->inputs().end());
 }
 
 BasicBlockSuccessors::Iterator::Iterator(const OperandIterator& iterator)

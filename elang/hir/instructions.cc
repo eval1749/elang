@@ -45,19 +45,19 @@ OperandIterator& OperandIterator::operator=(const OperandIterator& other) {
 }
 
 OperandIterator& OperandIterator::operator++() {
-  DCHECK_LT(current_, instruction_->CountOperands());
+  DCHECK_LT(current_, instruction_->CountInputs());
   ++current_;
   return *this;
 }
 
 Value* OperandIterator::operator*() const {
-  DCHECK_LT(current_, instruction_->CountOperands());
-  return instruction_->operand(current_);
+  DCHECK_LT(current_, instruction_->CountInputs());
+  return instruction_->input(current_);
 }
 
 Value* OperandIterator::operator->() const {
-  DCHECK_LT(current_, instruction_->CountOperands());
-  return instruction_->operand(current_);
+  DCHECK_LT(current_, instruction_->CountInputs());
+  return instruction_->input(current_);
 }
 
 bool OperandIterator::operator==(const OperandIterator& other) const {
@@ -90,7 +90,7 @@ OperandIterator Operands::begin() {
 }
 
 OperandIterator Operands::end() {
-  return OperandIterator(instruction_, instruction_->CountOperands());
+  return OperandIterator(instruction_, instruction_->CountInputs());
 }
 
 // BranchInstruction
@@ -118,11 +118,11 @@ Function* Instruction::function() const {
   return basic_block() ? basic_block()->function() : nullptr;
 }
 
-Value* Instruction::operand(int index) const {
-  return OperandAt(index);
+Value* Instruction::input(int index) const {
+  return InputAt(index);
 }
 
-Operands Instruction::operands() const {
+Operands Instruction::inputs() const {
   return Operands(this);
 }
 

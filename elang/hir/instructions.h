@@ -84,11 +84,11 @@ class ELANG_HIR_EXPORT Instruction
   // Opcode for formatting and debugging
   virtual Opcode opcode() const = 0;
 
-  // Shortcut of |OperandAt(index)|.
-  Value* operand(int index) const;
+  // Shortcut of |InputAt(index)|.
+  Value* input(int index) const;
 
   // Accessing operands in this instruction.
-  Operands operands() const;
+  Operands inputs() const;
 
   // Type of value produced by this instruction.
   Type* output_type() const { return type(); }
@@ -101,7 +101,7 @@ class ELANG_HIR_EXPORT Instruction
 
   // Returns number of operands which this instruction has. Other than 'phi',
   // 'tuple', and 'switch', number of values is constant.
-  virtual int CountOperands() const = 0;
+  virtual int CountInputs() const = 0;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
@@ -116,9 +116,9 @@ class ELANG_HIR_EXPORT Instruction
   friend class Editor;
 
   // Protocol for accessing operands in each instruction implementation.
-  virtual Value* OperandAt(int index) const = 0;
-  virtual void ResetOperandAt(int index) = 0;
-  virtual void SetOperandAt(int index, Value* new_value) = 0;
+  virtual Value* InputAt(int index) const = 0;
+  virtual void ResetInputAt(int index) = 0;
+  virtual void SetInputAt(int index, Value* new_value) = 0;
 
   // Value
   void Accept(ValueVisitor* visitor) override;
@@ -137,17 +137,17 @@ class ELANG_HIR_EXPORT Instruction
 template <class Derived, typename... OperandTypes>
 class FixedOperandsInstruction : public Instruction {
  public:
-  void InitOperandAt(int index, Value* value) {
-    operands_[index].Init(this, value);
+  void InitInputAt(int index, Value* value) {
+    inputs_[index].Init(this, value);
   }
 
   // Instruction
-  int CountOperands() const final { return sizeof...(OperandTypes); }
-  Value* OperandAt(int index) const final { return operands_[index].value(); }
-  void ResetOperandAt(int index) final { operands_[index].Reset(); }
-  void SetOperandAt(int index, Value* new_value) final {
+  int CountInputs() const final { return sizeof...(OperandTypes); }
+  Value* InputAt(int index) const final { return inputs_[index].value(); }
+  void ResetInputAt(int index) final { inputs_[index].Reset(); }
+  void SetInputAt(int index, Value* new_value) final {
     DCHECK(new_value);
-    operands_[index].SetValue(new_value);
+    inputs_[index].SetValue(new_value);
   }
 
  protected:
@@ -155,7 +155,7 @@ class FixedOperandsInstruction : public Instruction {
       : Instruction(output_type) {}
 
  private:
-  std::array<UseDefNode, sizeof...(OperandTypes)> operands_;
+  std::array<UseDefNode, sizeof...(OperandTypes)> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FixedOperandsInstruction);
 };

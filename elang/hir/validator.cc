@@ -166,22 +166,22 @@ void Validator::VisitBranch(BranchInstruction* instr) {
     return;
   }
 
-  if (!instr->operand(0)->type()->is<BoolType>()) {
+  if (!instr->input(0)->type()->is<BoolType>()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0);
     return;
   }
-  if (!instr->operand(1)->is<BasicBlock>()) {
+  if (!instr->input(1)->is<BasicBlock>()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 1);
     return;
   }
-  if (!instr->operand(2)->is<BasicBlock>()) {
+  if (!instr->input(2)->is<BasicBlock>()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 2);
     return;
   }
 }
 
 void Validator::VisitCall(CallInstruction* instr) {
-  auto const function_type = instr->operand(0)->type()->as<FunctionType>();
+  auto const function_type = instr->input(0)->type()->as<FunctionType>();
   if (!function_type) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0);
     return;
@@ -190,7 +190,7 @@ void Validator::VisitCall(CallInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
   }
-  if (instr->operand(1)->type() != function_type->parameters_type()) {
+  if (instr->input(1)->type() != function_type->parameters_type()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 1);
     return;
   }
@@ -211,16 +211,16 @@ void Validator::VisitExit(ExitInstruction* instr) {
 }
 
 void Validator::VisitJump(JumpInstruction* instr) {
-  if (instr->operand(0)->is<BasicBlock>())
+  if (instr->input(0)->is<BasicBlock>())
     return;
   Error(ErrorCode::ValidateInstructionOperand, instr, 0);
 }
 
 void Validator::VisitLoad(LoadInstruction* instr) {
-  auto const pointer_type = instr->operand(0)->type()->as<PointerType>();
+  auto const pointer_type = instr->input(0)->type()->as<PointerType>();
   if (!pointer_type) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0,
-          instr->operand(0)->type());
+          instr->input(0)->type());
     return;
   }
   if (instr->output_type() != pointer_type->pointee()) {
@@ -255,13 +255,13 @@ void Validator::VisitPhi(PhiInstruction* instr) {
 
 void Validator::VisitReturn(ReturnInstruction* instr) {
   auto const return_type = instr->function()->return_type();
-  if (instr->operand(0)->type() != return_type) {
+  if (instr->input(0)->type() != return_type) {
     Error(ErrorCode::ValidateInstructionOperand, instr,
           {NewInt32(0), return_type});
     return;
   }
   auto const exit_block = instr->function()->exit_block();
-  if (instr->operand(1) != exit_block) {
+  if (instr->input(1) != exit_block) {
     Error(ErrorCode::ValidateInstructionOperand, instr,
           {NewInt32(1), exit_block});
     return;
@@ -273,15 +273,15 @@ void Validator::VisitStore(StoreInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
   }
-  auto const pointer_type = instr->operand(0)->type()->as<PointerType>();
+  auto const pointer_type = instr->input(0)->type()->as<PointerType>();
   if (!pointer_type) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0, pointer_type);
     return;
   }
-  // TODO(eval1749) We should check type of instr->operand(2) is subtype of
+  // TODO(eval1749) We should check type of instr->input(2) is subtype of
   // |pointer_type->pointee()|.
   auto const pointee = pointer_type->pointee();
-  if (instr->operand(1)->type() != pointee) {
+  if (instr->input(1)->type() != pointee) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 1, pointee);
     return;
   }

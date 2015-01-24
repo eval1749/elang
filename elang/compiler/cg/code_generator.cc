@@ -51,7 +51,7 @@ struct CodeGenerator::Output {
     if (type->is<hir::VoidType>())
       return;
     DCHECK_GE(position, -1);
-    DCHECK_LT(position, instruction->CountOperands());
+    DCHECK_LT(position, instruction->CountInputs());
   }
 };
 

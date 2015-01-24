@@ -67,10 +67,10 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
-  EXPECT_EQ(3, instr->CountOperands());
-  EXPECT_EQ(call_instr, instr->operand(0));
-  EXPECT_EQ(true_block, instr->operand(1));
-  EXPECT_EQ(false_block, instr->operand(2));
+  EXPECT_EQ(3, instr->CountInputs());
+  EXPECT_EQ(call_instr, instr->input(0));
+  EXPECT_EQ(true_block, instr->input(1));
+  EXPECT_EQ(false_block, instr->input(2));
 }
 
 TEST_F(HirInstructionTest, BranchUncoditional) {
@@ -86,8 +86,8 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
-  EXPECT_EQ(1, instr->CountOperands());
-  EXPECT_EQ(target_block, instr->operand(0));
+  EXPECT_EQ(1, instr->CountInputs());
+  EXPECT_EQ(target_block, instr->input(0));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -104,9 +104,9 @@ TEST_F(HirInstructionTest, CallInstruction) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
-  EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(callee, instr->operand(0));
-  EXPECT_EQ(args, instr->operand(1));
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ(callee, instr->input(0));
+  EXPECT_EQ(args, instr->input(1));
 
   auto callee_found = false;
   for (auto const user : callee->users()) {
@@ -129,8 +129,8 @@ TEST_F(HirInstructionTest, LoadInstruction) {
   EXPECT_TRUE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());
-  EXPECT_EQ(1, instr->CountOperands());
-  EXPECT_EQ(source, instr->operand(0));
+  EXPECT_EQ(1, instr->CountInputs());
+  EXPECT_EQ(source, instr->input(0));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -203,9 +203,9 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
-  EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(void_value(), instr->operand(0));
-  EXPECT_EQ(exit_block(), instr->operand(1));
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ(void_value(), instr->input(0));
+  EXPECT_EQ(exit_block(), instr->input(1));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -220,9 +220,9 @@ TEST_F(HirInstructionTest, StoreInstruction) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
-  EXPECT_EQ(2, instr->CountOperands());
-  EXPECT_EQ(source, instr->operand(0));
-  EXPECT_EQ(value, instr->operand(1));
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ(source, instr->input(0));
+  EXPECT_EQ(value, instr->input(1));
 }
 
 }  // namespace hir

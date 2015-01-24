@@ -72,8 +72,8 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
   }
 
   auto separator = " ";
-  for (auto const operand : instruction->operands()) {
-    ostream << separator << AsValue(*operand);
+  for (auto const input : instruction->inputs()) {
+    ostream << separator << AsValue(*input);
     separator = ", ";
   }
 

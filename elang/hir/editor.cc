@@ -218,9 +218,9 @@ void Editor::RemoveInstruction(Instruction* old_instruction) {
 
 void Editor::ResetInputs(Instruction* instruction) {
   // We should update use-def list for values used by |instruction|.
-  auto const operand_count = instruction->CountOperands();
+  auto const operand_count = instruction->CountInputs();
   for (auto index = 0; index < operand_count; ++index)
-    instruction->ResetOperandAt(index);
+    instruction->ResetInputAt(index);
 }
 
 void Editor::SetBranch(Value* condition,
@@ -230,9 +230,9 @@ void Editor::SetBranch(Value* condition,
   DCHECK(!condition->is<BasicBlock>());
   if (auto const branch =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
-    branch->SetOperandAt(0, condition);
-    branch->SetOperandAt(1, true_block);
-    branch->SetOperandAt(2, true_block);
+    branch->SetInputAt(0, condition);
+    branch->SetInputAt(1, true_block);
+    branch->SetInputAt(2, true_block);
     return;
   }
   SetTerminator(
@@ -244,7 +244,7 @@ void Editor::SetBranch(BasicBlock* target_block) {
   if (auto const branch =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     ResetInputs(branch);
-    branch->SetOperandAt(0, target_block);
+    branch->SetInputAt(0, target_block);
     return;
   }
   SetTerminator(factory()->NewBranchInstruction(target_block));
@@ -253,7 +253,7 @@ void Editor::SetBranch(BasicBlock* target_block) {
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
   DCHECK(basic_block_);
   DCHECK_EQ(instruction->basic_block(), basic_block_);
-  instruction->SetOperandAt(index, new_value);
+  instruction->SetInputAt(index, new_value);
 }
 
 void Editor::SetPhiInput(PhiInstruction* phi, BasicBlock* block, Value* value) {
