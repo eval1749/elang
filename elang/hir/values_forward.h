@@ -72,6 +72,7 @@ class FunctionEditor;
 class Instruction;
 class Literal;
 class PhiInstruction;
+class PhiInstructionList;
 class Value;
 class ValueVisitor;
 class Thing;

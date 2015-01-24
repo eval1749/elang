@@ -139,6 +139,10 @@ void Instruction::Accept(ValueVisitor* visitor) {
 }
 
 // JumpInstruction
+BasicBlock* JumpInstruction::target_block() const {
+  return input(0)->as<BasicBlock>();
+}
+
 bool JumpInstruction::IsTerminator() const {
   return true;
 }
@@ -165,6 +169,28 @@ PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
       return phi_input;
   }
   return nullptr;
+}
+
+// PhiInstructionList
+PhiInstructionList::PhiInstructionList(const InstructionList& list)
+    : list_(&list) {
+}
+
+PhiInstructionList::Iterator PhiInstructionList::begin() const {
+  return PhiInstructionList::Iterator(list_->begin());
+}
+
+PhiInstructionList::Iterator PhiInstructionList::end() const {
+  return PhiInstructionList::Iterator(list_->end());
+}
+
+PhiInstructionList::Iterator::Iterator(
+    const InstructionList::Iterator& iterator)
+    : IteratorOnIterator(iterator) {
+}
+
+PhiInstruction* PhiInstructionList::Iterator::operator*() const {
+  return (*iterator())->as<PhiInstruction>();
 }
 
 // ReturnInstruction

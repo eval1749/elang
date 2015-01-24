@@ -43,6 +43,10 @@ Instruction* BasicBlock::last_instruction() const {
   return instructions_.last_node();
 }
 
+PhiInstructionList BasicBlock::phi_instructions() const {
+  return PhiInstructionList(phi_instructions_);
+}
+
 BasicBlockPredecessors BasicBlock::predecessors() const {
   return BasicBlockPredecessors(this);
 }
@@ -96,28 +100,6 @@ BasicBlockSuccessors::Iterator::Iterator(const OperandIterator& iterator)
 
 BasicBlock* BasicBlockSuccessors::Iterator::operator*() const {
   return (*iterator())->as<BasicBlock>();
-}
-
-// PhiInstructionList
-PhiInstructionList::PhiInstructionList(const InstructionList& list)
-    : list_(&list) {
-}
-
-PhiInstructionList::Iterator PhiInstructionList::begin() const {
-  return PhiInstructionList::Iterator(list_->begin());
-}
-
-PhiInstructionList::Iterator PhiInstructionList::end() const {
-  return PhiInstructionList::Iterator(list_->end());
-}
-
-PhiInstructionList::Iterator::Iterator(
-    const InstructionList::Iterator& iterator)
-    : IteratorOnIterator(iterator) {
-}
-
-PhiInstruction* PhiInstructionList::Iterator::operator*() const {
-  return (*iterator())->as<PhiInstruction>();
 }
 
 //////////////////////////////////////////////////////////////////////

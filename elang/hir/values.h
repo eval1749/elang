@@ -19,9 +19,6 @@
 namespace elang {
 namespace hir {
 
-class Instruction;
-class PhiInstruction;
-
 // See "operands_forward.h" for list of all concrete operands.
 
 // Value class hierarchy:
@@ -191,7 +188,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 //
 // OperandIterator
 //
-class OperandIterator final {
+class ELANG_HIR_EXPORT OperandIterator final {
  public:
   OperandIterator(const Instruction* instruction, int current);
   OperandIterator(const OperandIterator& other);
@@ -248,9 +245,9 @@ class IteratorOnIterator {
 };
 
 // BasicBlockPredecessors
-class BasicBlockPredecessors final {
+class ELANG_HIR_EXPORT BasicBlockPredecessors final {
  public:
-  class Iterator final
+  class ELANG_HIR_EXPORT Iterator final
       : public IteratorOnIterator<Iterator, UseDefList::Iterator> {
    public:
     explicit Iterator(const UseDefList::Iterator& iterator);
@@ -280,7 +277,8 @@ class BasicBlockPredecessors final {
 // BasicBlockSuccessors
 class ELANG_HIR_EXPORT BasicBlockSuccessors final {
  public:
-  class Iterator final : public IteratorOnIterator<Iterator, OperandIterator> {
+  class ELANG_HIR_EXPORT Iterator final
+      : public IteratorOnIterator<Iterator, OperandIterator> {
    public:
     explicit Iterator(const OperandIterator& iterator);
     Iterator(const Iterator& iterator) = default;
@@ -301,35 +299,6 @@ class ELANG_HIR_EXPORT BasicBlockSuccessors final {
 
  private:
   const BasicBlock* basic_block_;
-};
-
-// PhiInstructionList
-class ELANG_HIR_EXPORT PhiInstructionList final {
- public:
-  class Iterator
-      : public IteratorOnIterator<Iterator, InstructionList::Iterator> {
-   public:
-    explicit Iterator(const InstructionList::Iterator& iterator);
-    Iterator(const Iterator& other) = default;
-    ~Iterator() = default;
-
-    Iterator& operator=(const Iterator& other) = default;
-
-    PhiInstruction* operator->() const { return operator*(); }
-    PhiInstruction* operator*() const;
-  };
-
-  explicit PhiInstructionList(const InstructionList& list);
-  PhiInstructionList(const PhiInstructionList& other) = default;
-  ~PhiInstructionList() = default;
-
-  PhiInstructionList& operator=(const PhiInstructionList& other) = default;
-
-  Iterator begin() const;
-  Iterator end() const;
-
- private:
-  const InstructionList* list_;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -363,9 +332,7 @@ class ELANG_HIR_EXPORT BasicBlock final
   const InstructionList& instructions() const { return instructions_; }
   Instruction* first_instruction() const;
   Instruction* last_instruction() const;
-  PhiInstructionList phi_instructions() const {
-    return PhiInstructionList(phi_instructions_);
-  }
+  PhiInstructionList phi_instructions() const;
 
   // Control flow graph
   BasicBlockPredecessors predecessors() const;

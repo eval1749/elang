@@ -239,6 +239,9 @@ class ELANG_HIR_EXPORT JumpInstruction final
     : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Jump);
 
+ public:
+  BasicBlock* target_block() const;
+
  private:
   explicit JumpInstruction(Type* output_type);
 
@@ -312,6 +315,35 @@ class ELANG_HIR_EXPORT PhiInstruction final
   PhiInputs phi_inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstruction);
+};
+
+// PhiInstructionList
+class ELANG_HIR_EXPORT PhiInstructionList final {
+ public:
+  class ELANG_HIR_EXPORT Iterator
+      : public IteratorOnIterator<Iterator, InstructionList::Iterator> {
+   public:
+    explicit Iterator(const InstructionList::Iterator& iterator);
+    Iterator(const Iterator& other) = default;
+    ~Iterator() = default;
+
+    Iterator& operator=(const Iterator& other) = default;
+
+    PhiInstruction* operator->() const { return operator*(); }
+    PhiInstruction* operator*() const;
+  };
+
+  explicit PhiInstructionList(const InstructionList& list);
+  PhiInstructionList(const PhiInstructionList& other) = default;
+  ~PhiInstructionList() = default;
+
+  PhiInstructionList& operator=(const PhiInstructionList& other) = default;
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const InstructionList* list_;
 };
 
 //////////////////////////////////////////////////////////////////////
