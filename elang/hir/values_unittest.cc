@@ -41,7 +41,6 @@ TEST_F(HirValuesTest, Function) {
       "  // Out: block2\n"
       "  entry\n"
       "  ret \"foo\", block2\n"
-      "\n"
       "block2:\n"
       "  // In: block1\n"
       "  // Out:\n"
