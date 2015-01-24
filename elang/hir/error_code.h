@@ -29,10 +29,7 @@ namespace hir {
   E(Validate, Instruction, Output)      \
   E(Validate, Instruction, Terminator)  \
   E(Validate, Phi, Count)               \
-  E(Validate, Phi, NotFound)            \
-  /* Warnings */                        \
-  W(Warning, Code, Zero)                \
-  W(Validate, Phi, One)
+  E(Validate, Phi, NotFound)
 
 //////////////////////////////////////////////////////////////////////
 //

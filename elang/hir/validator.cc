@@ -251,8 +251,6 @@ void Validator::VisitPhi(PhiInstruction* instr) {
     Error(ErrorCode::ValidatePhiCount, instr);
     return;
   }
-  if (position == 1)
-    Error(ErrorCode::ValidatePhiOne, instr);
 }
 
 void Validator::VisitReturn(ReturnInstruction* instr) {
