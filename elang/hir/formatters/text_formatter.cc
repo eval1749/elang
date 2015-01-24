@@ -27,17 +27,47 @@ namespace hir {
 
 namespace {
 
-struct AsRegister {
-  const Instruction* instruction;
+// AsValue
+struct AsValue {
+  const Value* value;
+  explicit AsValue(const Value& value) : value(&value) {}
+};
 
-  explicit AsRegister(const Instruction& instruction)
+std::ostream& operator<<(std::ostream& ostream, const AsValue& thing) {
+  auto const value = thing.value;
+  if (auto const instruction = value->as<Instruction>()) {
+    auto const type = instruction->output_type();
+    if (type->is<BoolType>())
+      return ostream << "%b" << instruction->id();
+    if (type->register_class() == Type::RegisterClass::Float)
+      return ostream << "%f" << instruction->id();
+    return ostream << "%r" << instruction->id();
+  }
+  return ostream << *value;
+}
+
+// WithoutAddress
+struct WithoutAddress {
+  const Instruction* instruction;
+  explicit WithoutAddress(const Instruction& instruction)
       : instruction(&instruction) {}
 };
 
-std::ostream& operator<<(std::ostream& ostream, const AsRegister& value) {
-  // TODO(eval1749) We should choose prefix character base on |instruction|
-  // type.
-  return ostream << "%r" << value.instruction->id();
+std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
+  auto const instruction = thing.instruction;
+  if (!instruction->type()->is<VoidType>()) {
+    ostream << *instruction->output_type() << " " << AsValue(*instruction)
+            << " = ";
+  }
+  ostream << instruction->opcode();
+
+  auto separator = " ";
+  for (auto const operand : instruction->operands()) {
+    ostream << separator << AsValue(*operand);
+    separator = ", ";
+  }
+
+  return ostream;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -183,7 +213,7 @@ void ValueFormatter::VisitFunction(Function* function) {
 }
 
 void ValueFormatter::VisitInstruction(Instruction* instruction) {
-  ostream_ << AsRegister(*instruction);
+  ostream_ << *instruction;
 }
 
 void ValueFormatter::VisitReference(Reference* reference) {
@@ -256,15 +286,8 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << "bb" << basic_block->id();
   else
     ostream << "--";
-  ostream << ":" << instruction.id() << ":" << instruction.opcode();
-  if (!instruction.type()->is<VoidType>()) {
-    ostream << " " << instruction.type() << " " << AsRegister(instruction)
-            << " =";
-  }
-
-  for (auto const operand : instruction.operands())
-    ostream << " " << *operand;
-  return ostream;
+  ostream << ":" << instruction.id() << ":";
+  return ostream << WithoutAddress(instruction);
 }
 
 std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
@@ -324,27 +347,9 @@ void TextFormatter::FormatFunction(const Function* function) {
       ostream_ << " " << *successor;
     ostream_ << std::endl;
 
-    for (auto const instruction : block->instructions()) {
-      ostream_ << "  ";
-      FormatInstruction(instruction);
-      ostream_ << std::endl;
-    }
+    for (auto const instruction : block->instructions())
+      ostream_ << "  " << WithoutAddress(*instruction) << std::endl;
   }
-}
-
-std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
-  if (!instruction->type()->is<VoidType>()) {
-    ostream_ << *instruction->output_type() << " " << AsRegister(*instruction)
-             << " = ";
-  }
-  ostream_ << instruction->opcode();
-  auto separator = " ";
-  for (auto const operand : instruction->operands()) {
-    ostream_ << separator << *operand;
-    separator = ", ";
-  }
-
-  return ostream_;
 }
 
 }  // namespace hir

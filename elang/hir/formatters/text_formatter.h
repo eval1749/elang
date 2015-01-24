@@ -28,7 +28,6 @@ class ELANG_HIR_EXPORT TextFormatter final {
   ~TextFormatter();
 
   void FormatFunction(const Function* function);
-  std::ostream& FormatInstruction(const Instruction* instruction);
 
  private:
   std::ostream& ostream_;
