@@ -53,8 +53,8 @@ class DoubleLinked final {
  public:
   class Node {
    public:
-    Derived* next() const { return static_cast<Derived*>(next_); }
-    Derived* previous() const { return static_cast<Derived*>(previous_); }
+    Derived* next() const { return next_; }
+    Derived* previous() const { return previous_; }
 
    protected:
 #if _DEBUG
@@ -67,8 +67,8 @@ class DoubleLinked final {
    private:
     friend class DoubleLinked;
 
-    Node* next_;
-    Node* previous_;
+    Derived* next_;
+    Derived* previous_;
 #if _DEBUG
     DoubleLinked* owner_;
 #endif
@@ -78,7 +78,7 @@ class DoubleLinked final {
 
   class Iterator final : public IteratorBase {
    public:
-    explicit Iterator(Node* node) : IteratorBase(node) {}
+    explicit Iterator(Derived* node) : IteratorBase(node) {}
     Iterator(const Iterator& other) = default;
     ~Iterator() = default;
 
@@ -86,14 +86,14 @@ class DoubleLinked final {
 
     Iterator& operator++() {
       DCHECK(!!current_);
-      current_ = current_->next_;
+      current_ = static_cast<Node*>(current_)->next_;
       return *this;
     }
   };
 
   class ReverseIterator final : public IteratorBase {
    public:
-    explicit ReverseIterator(Node* node) : IteratorBase(node) {}
+    explicit ReverseIterator(Derived* node) : IteratorBase(node) {}
     ReverseIterator(const ReverseIterator& other) = default;
     ~ReverseIterator() = default;
 
@@ -101,7 +101,7 @@ class DoubleLinked final {
 
     ReverseIterator& operator++() {
       DCHECK(!!current_);
-      current_ = current_->previous_;
+      current_ = static_cast<Node*>(current_)->previous_;
       return *this;
     }
   };
@@ -129,27 +129,27 @@ class DoubleLinked final {
   Iterator begin() const { return Iterator(first_); }
   bool empty() const { return !first_; }
   Iterator end() const { return Iterator(nullptr); }
-  Derived* first_node() const { return static_cast<Derived*>(first_); }
-  Derived* last_node() const { return static_cast<Derived*>(last_); }
+  Derived* first_node() const { return first_; }
+  Derived* last_node() const { return last_; }
   ReverseIterator rbegin() { return ReverseIterator(last_); }
   ReverseIterator rend() { return ReverseIterator(nullptr); }
   Reversed reversed() { return Reversed(this); }
 
-  void AppendNode(Derived* derived) {
-    auto const node = static_cast<Node*>(derived);
-    DCHECK(!node->next_);
-    DCHECK(!node->previous_);
-    DCHECK(!node->owner_);
+  void AppendNode(Derived* new_derived) {
+    auto const new_node = static_cast<Node*>(new_derived);
+    DCHECK(!new_node->next_);
+    DCHECK(!new_node->previous_);
+    DCHECK(!new_node->owner_);
 #if _DEBUG
-    node->owner_ = this;
+    new_node->owner_ = this;
 #endif
-    node->next_ = nullptr;
-    node->previous_ = last_;
+    new_node->next_ = nullptr;
+    new_node->previous_ = last_;
     if (!first_)
-      first_ = node;
+      first_ = new_derived;
     if (last_)
-      last_->next_ = node;
-    last_ = node;
+      static_cast<Node*>(last_)->next_ = new_derived;
+    last_ = new_derived;
   }
 
   int Count() const {
@@ -175,12 +175,12 @@ class DoubleLinked final {
 #endif
     auto const next = ref_node->next_;
     if (next)
-      next->previous_ = new_node;
+      static_cast<Node*>(next)->previous_ = new_derived;
     else
-      last_ = new_node;
+      last_ = new_derived;
     new_node->next_ = next;
-    new_node->previous_ = ref_node;
-    ref_node->next_ = new_node;
+    new_node->previous_ = ref_derived;
+    ref_node->next_ = new_derived;
   }
 
   void InsertBefore(Derived* new_derived, Derived* ref_derived) {
@@ -199,61 +199,61 @@ class DoubleLinked final {
 #endif
     auto const previous = ref_node->previous_;
     if (previous)
-      previous->next_ = new_node;
+      static_cast<Node*>(previous)->next_ = new_derived;
     else
-      first_ = new_node;
-    new_node->next_ = ref_node;
+      first_ = new_derived;
+    new_node->next_ = ref_derived;
     new_node->previous_ = previous;
-    ref_node->previous_ = new_node;
+    ref_node->previous_ = new_derived;
   }
 
   void RemoveAll() {
     while (first_)
-      RemoveNode(static_cast<Derived*>(first_));
+      RemoveNode(first_);
   }
 
   void RemoveNode(Derived* old_derived) {
-    auto const node = static_cast<Node*>(old_derived);
+    auto const old_node = static_cast<Node*>(old_derived);
 #if _DEBUG
-    DCHECK_EQ(this, node->owner_);
-    node->owner_ = nullptr;
+    DCHECK_EQ(this, old_node->owner_);
+    old_node->owner_ = nullptr;
 #endif
-    auto const next = node->next_;
-    auto const previous = node->previous_;
+    auto const next = old_node->next_;
+    auto const previous = old_node->previous_;
     if (next)
-      next->previous_ = previous;
+      static_cast<Node*>(next)->previous_ = previous;
     else
       last_ = previous;
     if (previous)
-      previous->next_ = next;
+      static_cast<Node*>(previous)->next_ = next;
     else
       first_ = next;
-    node->next_ = nullptr;
-    node->previous_ = nullptr;
+    old_node->next_ = nullptr;
+    old_node->previous_ = nullptr;
   }
 
   void PrependNode(Derived* new_derived) {
-    auto const node = static_cast<Node*>(new_derived);
-    DCHECK(!node->next_);
-    DCHECK(!node->previous_);
+    auto const new_node = static_cast<Node*>(new_derived);
+    DCHECK(!new_node->next_);
+    DCHECK(!new_node->previous_);
 #if _DEBUG
-    DCHECK(!node->owner_);
-    node->owner_ = this;
+    DCHECK(!new_node->owner_);
+    new_node->owner_ = this;
 #endif
-    node->next_ = first_;
-    node->previous_ = nullptr;
+    new_node->next_ = first_;
+    new_node->previous_ = nullptr;
     if (!last_)
-      last_ = node;
+      last_ = new_derived;
     if (first_)
-      first_->previous_ = node;
-    first_ = node;
+      static_cast<Node*>(first_)->previous_ = new_derived;
+    first_ = new_derived;
   }
 
  private:
   class IteratorBase {
    public:
-    Derived* operator*() const { return static_cast<Derived*>(current_); }
-    Derived* operator->() const { return static_cast<Derived*>(current_); }
+    Derived* operator*() const { return current_; }
+    Derived* operator->() const { return current_; }
     bool operator==(const IteratorBase& other) const {
       return current_ == other.current_;
     }
@@ -262,14 +262,14 @@ class DoubleLinked final {
     }
 
    protected:
-    explicit IteratorBase(Node* node) : current_(node) {}
+    explicit IteratorBase(Derived* node) : current_(node) {}
     ~IteratorBase() = default;
 
-    Node* current_;
+    Derived* current_;
   };
 
-  Node* first_;
-  Node* last_;
+  Derived* first_;
+  Derived* last_;
   DISALLOW_COPY_AND_ASSIGN(DoubleLinked);
 };
 
