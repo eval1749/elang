@@ -7,6 +7,7 @@
 #include "elang/hir/error_data.h"
 
 #include "elang/hir/error_code.h"
+#include "elang/hir/thing.h"
 #include "elang/hir/values_forward.h"
 
 namespace elang {
@@ -15,7 +16,7 @@ namespace hir {
 ErrorData::ErrorData(Zone* zone,
                      ErrorCode error_code,
                      Value* error_value,
-                     const std::vector<Value*>& details)
+                     const std::vector<Thing*>& details)
     : details_(zone, details),
       error_code_(error_code),
       error_value_(error_value) {

@@ -62,18 +62,16 @@ void Editor::Append(Instruction* new_instruction) {
 }
 
 void Editor::Error(ErrorCode error_code, const Value* error_value) {
-  Error(error_code, error_value, std::vector<Value*>{});
+  Error(error_code, error_value, std::vector<Thing*>{});
+}
+
+void Editor::Error(ErrorCode error_code, const Value* value, Thing* detail) {
+  Error(error_code, value, std::vector<Thing*>{detail});
 }
 
 void Editor::Error(ErrorCode error_code,
                    const Value* error_value,
-                   Value* detail) {
-  Error(error_code, error_value, std::vector<Value*>{detail});
-}
-
-void Editor::Error(ErrorCode error_code,
-                   const Value* error_value,
-                   const std::vector<Value*> details) {
+                   const std::vector<Thing*>& details) {
   errors_.push_back(new (zone()) ErrorData(
       zone(), error_code, const_cast<Value*>(error_value), details));
 }
@@ -81,7 +79,14 @@ void Editor::Error(ErrorCode error_code,
 void Editor::Error(ErrorCode error_code,
                    const Instruction* instruction,
                    int index) {
-  Error(error_code, instruction, factory()->NewInt32Literal(index));
+  Error(error_code, instruction, {NewInt32(index)});
+}
+
+void Editor::Error(ErrorCode error_code,
+                   const Instruction* instruction,
+                   int index,
+                   Thing* detail) {
+  Error(error_code, instruction, {NewInt32(index), detail});
 }
 
 bool Editor::Commit() {
@@ -162,6 +167,10 @@ BasicBlock* Editor::NewBasicBlock() {
   // We keep exit block at end of basic block list.
   function_->basic_blocks_.InsertBefore(new_basic_block, exit_block());
   return new_basic_block;
+}
+
+Value* Editor::NewInt32(int32_t data) {
+  return factory()->NewInt32Literal(data);
 }
 
 void Editor::RemoveInstruction(Instruction* old_instruction) {

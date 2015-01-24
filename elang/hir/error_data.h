@@ -18,6 +18,7 @@ namespace hir {
 
 class Editor;
 enum class ErrorCode;
+class Thing;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -26,7 +27,7 @@ class Value;
 //
 class ELANG_HIR_EXPORT ErrorData final : public ZoneAllocated {
  public:
-  const ZoneVector<Value*>& details() const { return details_; }
+  const ZoneVector<Thing*>& details() const { return details_; }
   ErrorCode error_code() const { return error_code_; }
   Value* error_value() const { return error_value_; }
 
@@ -38,10 +39,10 @@ class ELANG_HIR_EXPORT ErrorData final : public ZoneAllocated {
   ErrorData(Zone* zone,
             ErrorCode error_code,
             Value* error_value,
-            const std::vector<Value*>& details);
+            const std::vector<Thing*>& details);
   ~ErrorData() = delete;
 
-  const ZoneVector<Value*> details_;
+  const ZoneVector<Thing*> details_;
   ErrorCode const error_code_;
   Value* const error_value_;
 

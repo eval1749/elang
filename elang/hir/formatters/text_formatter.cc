@@ -286,15 +286,24 @@ std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
                                        arraysize(mnemonics) - 1)];
 }
 
-std::ostream& operator<<(std::ostream& ostream, const Value& value) {
-  ValueFormatter value_formatter(ostream);
-  value_formatter.Format(&value);
-  return ostream;
+std::ostream& operator<<(std::ostream& ostream, const Thing& thing) {
+  if (auto const value = thing.as<Value>())
+    return ostream << *value;
+  if (auto const type = thing.as<Type>())
+    return ostream << *type;
+  NOTREACHED();
+  return ostream << "INVALID";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Type& type) {
   TypeFormatter type_formatter(ostream);
   type_formatter.Format(&type);
+  return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Value& value) {
+  ValueFormatter value_formatter(ostream);
+  value_formatter.Format(&value);
   return ostream;
 }
 

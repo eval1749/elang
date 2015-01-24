@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "base/macros.h"
+#include "base/basictypes.h"
 #include "elang/base/zone_user.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/hir_export.h"
@@ -21,6 +21,7 @@ class ErrorData;
 class Factory;
 class Function;
 class Instruction;
+class Thing;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -51,11 +52,15 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
 
   // Validation errors
   void Error(ErrorCode error_code, const Value* value);
-  void Error(ErrorCode error_code, const Value* value, Value* message);
+  void Error(ErrorCode error_code, const Value* value, Thing* detail);
   void Error(ErrorCode error_code,
              const Value* value,
-             const std::vector<Value*> params);
+             const std::vector<Thing*>& details);
   void Error(ErrorCode error_code, const Instruction* instruction, int index);
+  void Error(ErrorCode error_code,
+             const Instruction* instruction,
+             int index,
+             Thing* detail);
 
   // Commit changes
   bool Commit();
@@ -80,6 +85,9 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   void SetBranch(BasicBlock* target_block);
   void SetReturn(Value* new_value);
   void SetTerminator(Instruction* terminator);
+
+  // Values
+  Value* NewInt32(int32_t data);
 
   // Validation
   bool Validate(BasicBlock* basic_block);
