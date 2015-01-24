@@ -71,9 +71,6 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_EQ(call_instr, instr->operand(0));
   EXPECT_EQ(true_block, instr->operand(1));
   EXPECT_EQ(false_block, instr->operand(2));
-
-  EXPECT_TRUE(instr->IsConditionalBranch());
-  EXPECT_FALSE(instr->IsUnconditionalBranch());
 }
 
 TEST_F(HirInstructionTest, BranchUncoditional) {
@@ -91,9 +88,6 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountOperands());
   EXPECT_EQ(target_block, instr->operand(0));
-
-  EXPECT_FALSE(instr->IsConditionalBranch());
-  EXPECT_TRUE(instr->IsUnconditionalBranch());
 }
 
 //////////////////////////////////////////////////////////////////////

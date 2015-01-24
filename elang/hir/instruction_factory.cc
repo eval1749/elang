@@ -53,7 +53,7 @@ Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
 
 Instruction* InstructionFactory::NewBranchInstruction(
     BasicBlock* target_block) {
-  auto const instr = new (zone()) BranchInstruction(void_type());
+  auto const instr = new (zone()) JumpInstruction(void_type());
   instr->InitOperandAt(0, target_block);
   return instr;
 }

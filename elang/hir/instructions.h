@@ -103,12 +103,6 @@ class ELANG_HIR_EXPORT Instruction
   // 'tuple', and 'switch', number of values is constant.
   virtual int CountOperands() const = 0;
 
-  // Since |BranchInstruction| use different operands formats for
-  // conditional and unconditional branches. We need to know format of
-  // |BranchInstruction| before accessing operands.
-  virtual bool IsConditionalBranch() const;
-  virtual bool IsUnconditionalBranch() const;
-
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
@@ -148,9 +142,7 @@ class FixedOperandsInstruction : public Instruction {
   }
 
   // Instruction
-  // Note: |BranchInstruction| overrides |CountOperands()| for unconditional
-  // branch.
-  int CountOperands() const override { return sizeof...(OperandTypes); }
+  int CountOperands() const final { return sizeof...(OperandTypes); }
   Value* OperandAt(int index) const final { return operands_[index].value(); }
   void ResetOperandAt(int index) final { operands_[index].Reset(); }
   void SetOperandAt(int index, Value* new_value) final {
@@ -173,10 +165,7 @@ class FixedOperandsInstruction : public Instruction {
 // br %bool %true_block %false_block
 // br %void %target_block
 //
-// |BranchInstruction| represents conditional branch and unconditional branch.
-// This representation makes branch folding easier than having jump instruction.
-// On branch folding, we put void value to condition operand and false target
-// operand.
+// |BranchInstruction| represents conditional branch.
 //
 class ELANG_HIR_EXPORT BranchInstruction final
     : public FixedOperandsInstruction<BranchInstruction,
@@ -189,10 +178,6 @@ class ELANG_HIR_EXPORT BranchInstruction final
   explicit BranchInstruction(Type* output_type);
 
   // Instruction
-  int CountOperands() const final;
-  bool CanBeRemoved() const final;
-  bool IsConditionalBranch() const final;
-  bool IsUnconditionalBranch() const final;
   bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstruction);
@@ -231,7 +216,7 @@ class ELANG_HIR_EXPORT EntryInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
-// void exit
+// exit
 //
 class ELANG_HIR_EXPORT ExitInstruction final
     : public FixedOperandsInstruction<ExitInstruction> {
@@ -244,6 +229,23 @@ class ELANG_HIR_EXPORT ExitInstruction final
   bool IsTerminator() const final;
 
   DISALLOW_COPY_AND_ASSIGN(ExitInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// jump block
+//
+class ELANG_HIR_EXPORT JumpInstruction final
+    : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Jump);
+
+ private:
+  explicit JumpInstruction(Type* output_type);
+
+  // Instruction
+  bool IsTerminator() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(JumpInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -306,9 +308,6 @@ class ELANG_HIR_EXPORT PhiInstruction final
   explicit PhiInstruction(Type* output_type);
 
   PhiInput* FindPhiInputFor(BasicBlock* block) const;
-
-  // Instruction
-  int CountOperands() const final;
 
   PhiInputs inputs_;
 

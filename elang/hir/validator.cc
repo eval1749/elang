@@ -166,14 +166,6 @@ void Validator::VisitBranch(BranchInstruction* instr) {
     return;
   }
 
-  if (instr->IsUnconditionalBranch()) {
-    if (!instr->operand(0)->is<BasicBlock>()) {
-      Error(ErrorCode::ValidateInstructionOperand, instr, 0);
-    }
-    return;
-  }
-
-  DCHECK(instr->IsConditionalBranch());
   if (!instr->operand(0)->type()->is<BoolType>()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0);
     return;
@@ -209,7 +201,6 @@ void Validator::VisitEntry(EntryInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
   }
-  return;
 }
 
 void Validator::VisitExit(ExitInstruction* instr) {
@@ -217,6 +208,12 @@ void Validator::VisitExit(ExitInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
   }
+}
+
+void Validator::VisitJump(JumpInstruction* instr) {
+  if (instr->operand(0)->is<BasicBlock>())
+    return;
+  Error(ErrorCode::ValidateInstructionOperand, instr, 0);
 }
 
 void Validator::VisitLoad(LoadInstruction* instr) {

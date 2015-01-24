@@ -23,6 +23,7 @@ namespace hir {
   V(Call, "call", Fixed)            \
   V(Entry, "entry", Fixed)          \
   V(Exit, "exit", Fixed)            \
+  V(Jump, "br", Fixed)              \
   V(Load, "load", Fixed)            \
   V(Phi, "phi", Fixed)              \
   V(Return, "ret", Fixed)           \

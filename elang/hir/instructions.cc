@@ -94,24 +94,8 @@ OperandIterator Operands::end() {
 }
 
 // BranchInstruction
-bool BranchInstruction::CanBeRemoved() const {
-  return false;
-}
-
-int BranchInstruction::CountOperands() const {
-  return IsConditionalBranch() ? 3 : 1;
-}
-
-bool BranchInstruction::IsConditionalBranch() const {
-  return !IsUnconditionalBranch();
-}
-
 bool BranchInstruction::IsTerminator() const {
   return true;
-}
-
-bool BranchInstruction::IsUnconditionalBranch() const {
-  return operand(0)->is<BasicBlock>();
 }
 
 // CallInstruction
@@ -146,20 +130,17 @@ bool Instruction::CanBeRemoved() const {
   return !IsTerminator() && users().empty();
 }
 
-bool Instruction::IsConditionalBranch() const {
-  return false;
-}
-
 bool Instruction::IsTerminator() const {
-  return false;
-}
-
-bool Instruction::IsUnconditionalBranch() const {
   return false;
 }
 
 void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);
+}
+
+// JumpInstruction
+bool JumpInstruction::IsTerminator() const {
+  return true;
 }
 
 // PhiInput
@@ -176,11 +157,6 @@ Value* PhiInstruction::input_of(BasicBlock* block) const {
   auto const phi_input = FindPhiInputFor(block);
   DCHECK(phi_input);
   return phi_input->value();
-}
-
-int PhiInstruction::CountOperands() const {
-  NOTREACHED();
-  return 0;
 }
 
 PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
