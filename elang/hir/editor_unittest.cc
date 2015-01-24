@@ -32,12 +32,16 @@ class HirEditorTest : public testing::HirTest {
 
 // Functions
 TEST_F(HirEditorTest, ValidateError) {
-  editor()->NewBasicBlock();
-  // TODO(eval1749) Validator should detect operand[0] of `ret` instruction is
-  // invalid.
-  editor()->SetInput(entry_block()->last_instruction(), 0, exit_block());
+  editor()->EditNewBasicBlock();
   EXPECT_FALSE(editor()->Commit());
-  EXPECT_EQ("Validate.BasicBlock.Empty block3\n", GetErrors());
+
+  editor()->Edit(entry_block());
+  editor()->SetInput(entry_block()->last_instruction(), 0, NewBool(false));
+  EXPECT_FALSE(editor()->Commit());
+  EXPECT_EQ(
+      "Validate.BasicBlock.Empty block3\n"
+      "Validate.Instruction.Operand bb1:3:ret false, block2 0 void\n",
+      GetErrors());
 }
 
 }  // namespace hir

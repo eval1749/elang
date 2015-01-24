@@ -27,20 +27,13 @@ class HirValuesTest : public testing::HirTest {
 
 // Functions
 TEST_F(HirValuesTest, Function) {
-  EXPECT_TRUE(entry_block()->first_instruction()->is<EntryInstruction>());
-  EXPECT_TRUE(exit_block()->first_instruction()->is<ExitInstruction>());
-
-  editor()->Edit(entry_block());
-  editor()->SetInput(entry_block()->last_instruction(), 0,
-                     factory()->NewStringLiteral(L"foo"));
-  EXPECT_TRUE(editor()->Commit());
   EXPECT_EQ(
       "function1 void(void)\n"
       "block1:\n"
       "  // In:\n"
       "  // Out: block2\n"
       "  entry\n"
-      "  ret \"foo\", block2\n"
+      "  ret void, block2\n"
       "block2:\n"
       "  // In: block1\n"
       "  // Out:\n"

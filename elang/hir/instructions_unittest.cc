@@ -13,6 +13,15 @@
 namespace elang {
 namespace hir {
 
+namespace {
+Function* NewSampleFunction(Factory* factory) {
+  auto const types = factory->types();
+  auto const function_type =
+      types->NewFunctionType(types->void_type(), types->void_type());
+  return factory->NewFunction(function_type);
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // HirInstructionTest offers HIR factories.
@@ -39,19 +48,21 @@ Instruction* HirInstructionTest::NewSource(Type* output_type) {
 //
 // BranchInstruction
 //
+// Conditional
 TEST_F(HirInstructionTest, BranchInstruction) {
-  Editor editor(factory(), function());
-  auto const true_block = editor.NewBasicBlock();
-  editor.SetReturn(void_value());
+  auto const true_block = editor()->EditNewBasicBlock();
+  editor()->SetReturn(void_value());
+  editor()->Commit();
 
-  auto const false_block = editor.NewBasicBlock();
-  editor.SetReturn(void_value());
+  auto const false_block = editor()->EditNewBasicBlock();
+  editor()->SetReturn(void_value());
+  editor()->Commit();
 
-  editor.Edit(entry_block());
+  editor()->Edit(entry_block());
   auto const call_instr = NewSource(bool_type());
-  editor.Append(call_instr);
-  editor.SetBranch(call_instr, true_block, false_block);
-  editor.Commit();
+  editor()->Append(call_instr);
+  editor()->SetBranch(call_instr, true_block, false_block);
+  editor()->Commit();
 
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());
@@ -66,18 +77,14 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_FALSE(instr->IsUnconditionalBranch());
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// Branch
-//
 TEST_F(HirInstructionTest, BranchUncoditional) {
-  Editor editor(factory(), function());
-  auto const target_block = editor.NewBasicBlock();
-  editor.SetReturn(void_value());
+  auto const target_block = editor()->EditNewBasicBlock();
+  editor()->SetReturn(void_value());
+  editor()->Commit();
 
-  editor.Edit(entry_block());
-  editor.SetBranch(target_block);
-  editor.Commit();
+  editor()->Edit(entry_block());
+  editor()->SetBranch(target_block);
+  editor()->Commit();
 
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->CanBeRemoved());

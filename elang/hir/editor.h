@@ -21,7 +21,9 @@ class ErrorData;
 class Factory;
 class Function;
 class Instruction;
+class PhiInstruction;
 class Thing;
+class Type;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -32,8 +34,8 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
  public:
   class ELANG_HIR_EXPORT ScopedEdit final {
    public:
-    explicit ScopedEdit(Editor* editor) : editor_(editor) {}
-    ~ScopedEdit() { editor_->Commit(); }
+    explicit ScopedEdit(Editor* editor, BasicBlock* basic_block);
+    ~ScopedEdit();
 
    private:
     Editor* const editor_;
@@ -65,16 +67,19 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   // Commit changes
   bool Commit();
 
-  // Basic block editing
+  // Operations on |BasicBlock|
+  void Continue(BasicBlock* basic_block);
   void Edit(BasicBlock* basic_block);
-  BasicBlock* NewBasicBlock();
+  BasicBlock* EditNewBasicBlock(BasicBlock* reference);
+  BasicBlock* EditNewBasicBlock();
+  BasicBlock* NewBasicBlock(BasicBlock* reference);
 
   // Instruction editing
   void Append(Instruction* new_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
   void RemoveInstruction(Instruction* old_instruction);
 
-  // Operand manupulation
+  // Operand manipulation
   void SetInput(Instruction* instruction, int index, Value* new_value);
 
   // Set terminator instruction
@@ -95,8 +100,9 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
 
  private:
   void InitializeFunctionIfNeeded();
+  void ResetInputs(Instruction* instruction);
 
-  std::vector<BasicBlock*> basic_blocks_;
+  BasicBlock* basic_block_;
   std::vector<ErrorData*> errors_;
   Factory* const factory_;
   Function* const function_;

@@ -13,6 +13,8 @@ namespace hir {
 #define FOR_EACH_HIR_ERROR_CODE(E, W)   \
   /* Basic Block */                     \
   E(Validate, BasicBlock, Empty)        \
+  E(Validate, BasicBlock, Entry)        \
+  E(Validate, BasicBlock, Exit)         \
   E(Validate, BasicBlock, NoFunction)   \
   E(Validate, BasicBlock, NoId)         \
   E(Validate, BasicBlock, NoTerminator) \
