@@ -13,15 +13,6 @@
 namespace elang {
 namespace hir {
 
-namespace {
-Function* NewSampleFunction(Factory* factory) {
-  auto const types = factory->types();
-  auto const function_type =
-      types->NewFunctionType(types->void_type(), types->void_type());
-  return factory->NewFunction(function_type);
-}
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // HirInstructionTest offers HIR factories.
@@ -31,11 +22,19 @@ class HirInstructionTest : public testing::HirTest {
   HirInstructionTest() = default;
   ~HirInstructionTest() override = default;
 
+  Instruction* NewConsumer(Type* input_type);
   Instruction* NewSource(Type* output_type);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);
 };
+
+Instruction* HirInstructionTest::NewConsumer(Type* input_type) {
+  auto const name = factory()->NewAtomicString(L"Consumer");
+  auto const callee = factory()->NewReference(
+      types()->NewFunctionType(void_type(), input_type), name);
+  return factory()->NewCallInstruction(callee, input_type->default_value());
+}
 
 Instruction* HirInstructionTest::NewSource(Type* output_type) {
   auto const name = factory()->NewAtomicString(L"Source");
@@ -138,6 +137,67 @@ TEST_F(HirInstructionTest, LoadInstruction) {
   EXPECT_EQ(bool_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountOperands());
   EXPECT_EQ(source, instr->operand(0));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// PhiInstruction
+//
+TEST_F(HirInstructionTest, PhiInstruction) {
+  // Create diamond graph
+  auto const merge_block =
+      editor()->SplitBefore(entry_block()->last_instruction());
+
+  auto const true_block = editor()->EditNewBasicBlock(merge_block);
+  editor()->SetBranch(merge_block);
+  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+
+  auto const false_block = editor()->EditNewBasicBlock(merge_block);
+  editor()->SetBranch(merge_block);
+  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+
+  editor()->Continue(entry_block());
+  auto const call_instr = NewSource(bool_type());
+  editor()->Append(call_instr);
+  editor()->SetBranch(call_instr, true_block, false_block);
+  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+
+  editor()->Edit(merge_block);
+  auto const phi = editor()->NewPhi(bool_type());
+  editor()->SetPhiInput(phi, true_block, NewBool(true));
+  editor()->SetPhiInput(phi, false_block, NewBool(false));
+  auto const consumer = NewConsumer(bool_type());
+  editor()->Append(consumer);
+  editor()->SetInput(consumer, 1, phi);
+  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+
+  EXPECT_EQ(
+      "function1 void(void)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block4 block5\n"
+      "  entry\n"
+      "  bool %b6 = call `Source`, void\n"
+      "  br %b6, block4, block5\n"
+      "block4:\n"
+      "  // In: block1\n"
+      "  // Out: block3\n"
+      "  br block3\n"
+      "block5:\n"
+      "  // In: block1\n"
+      "  // Out: block3\n"
+      "  br block3\n"
+      "block3:\n"
+      "  // In: block4 block5\n"
+      "  // Out: block2\n"
+      "  bool %b8 = phi block4 true, block5 false\n"
+      "  call `Consumer`, %b8\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Format());
 }
 
 //////////////////////////////////////////////////////////////////////

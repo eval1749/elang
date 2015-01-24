@@ -16,9 +16,9 @@ namespace elang {
 namespace hir {
 
 // boilerplate member functions.
-#define V(Name, ...)                                      \
+#define V(Name, mnemonic, Super, ...)                     \
   Name##Instruction::Name##Instruction(Type* output_type) \
-      : FixedOperandsInstruction(output_type) {}          \
+      : Super##OperandsInstruction(output_type) {}        \
   Opcode Name##Instruction::opcode() const { return Opcode::Name; }
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
@@ -234,6 +234,62 @@ bool LoadInstruction::Validate(Editor* editor) const {
     editor->Error(ErrorCode::ValidateInstructionOutput, this, pointer_type);
     return false;
   }
+  return true;
+}
+
+// PhiInput
+PhiInput::PhiInput(PhiInstruction* phi, BasicBlock* block, Value* value)
+    : basic_block_(block) {
+  Init(phi, value);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// PhiInstruction
+//
+Value* PhiInstruction::input_of(BasicBlock* block) const {
+  auto const phi_input = FindPhiInputFor(block);
+  DCHECK(phi_input);
+  return phi_input->value();
+}
+
+int PhiInstruction::CountOperands() const {
+  NOTREACHED();
+  return 0;
+}
+
+PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
+  for (auto operand : inputs_) {
+    if (operand->basic_block() == block)
+      return operand;
+  }
+  return nullptr;
+}
+
+bool PhiInstruction::Validate(Editor* editor) const {
+  for (auto const predecessor : basic_block()->predecessors()) {
+    if (!FindPhiInputFor(predecessor)) {
+      editor->Error(ErrorCode::ValidatePhiNotFound, this, predecessor);
+      return false;
+    }
+  }
+  // TODO(eval1749) We should check type of `phi` operands are subtype of
+  // output type.
+  auto position = 0;
+  for (auto const operand : inputs_) {
+    if (operand->value()->type() != output_type()) {
+      editor->Error(ErrorCode::ValidateInstructionOperand, this, position,
+                    operand->value());
+      return false;
+    }
+    ++position;
+  }
+  if (!position) {
+    editor->Error(ErrorCode::ValidatePhiCount, this);
+    return false;
+  }
+  if (position == 1)
+    editor->Error(ErrorCode::ValidatePhiOne, this);
   return true;
 }
 

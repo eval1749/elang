@@ -64,6 +64,7 @@ BasicBlock* Editor::exit_block() const {
 }
 
 void Editor::Append(Instruction* new_instruction) {
+  DCHECK(!new_instruction->is<PhiInstruction>());
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
   DCHECK(basic_block_);
@@ -169,6 +170,8 @@ void Editor::InitializeFunctionIfNeeded() {
 
 void Editor::InsertBefore(Instruction* new_instruction,
                           Instruction* ref_instruction) {
+  DCHECK(!new_instruction->is<PhiInstruction>());
+  DCHECK(!ref_instruction->is<PhiInstruction>());
   if (!ref_instruction) {
     Append(new_instruction);
     return;
@@ -193,6 +196,15 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
 
 Value* Editor::NewInt32(int32_t data) {
   return factory()->NewInt32Literal(data);
+}
+
+PhiInstruction* Editor::NewPhi(Type* output_type) {
+  DCHECK(basic_block_);
+  auto const phi = factory()->NewPhiInstruction(output_type);
+  basic_block_->phi_instructions_.AppendNode(phi);
+  phi->id_ = factory()->NextInstructionId();
+  phi->basic_block_ = basic_block_;
+  return phi;
 }
 
 void Editor::RemoveInstruction(Instruction* old_instruction) {
@@ -244,6 +256,15 @@ void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
   instruction->SetOperandAt(index, new_value);
 }
 
+void Editor::SetPhiInput(PhiInstruction* phi, BasicBlock* block, Value* value) {
+  if (auto const present = phi->FindPhiInputFor(block)) {
+    present->SetValue(value);
+    return;
+  }
+  auto const new_input = new (zone()) PhiInput(phi, block, value);
+  phi->inputs_.AppendNode(new_input);
+}
+
 void Editor::SetReturn(Value* new_value) {
   DCHECK(basic_block_);
   SetTerminator(factory()->NewReturnInstruction(new_value, exit_block()));
@@ -255,6 +276,19 @@ void Editor::SetTerminator(Instruction* terminator) {
   if (last && last->IsTerminator())
     RemoveInstruction(last);
   Append(terminator);
+}
+
+BasicBlock* Editor::SplitBefore(Instruction* reference) {
+  DCHECK(!basic_block_);
+  auto const ref_basic_block = reference->basic_block();
+  DCHECK(!reference->is<PhiInstruction>());
+  auto const new_basic_block = NewBasicBlock(ref_basic_block->next());
+  for (auto runner = reference; runner; runner = runner->next()) {
+    ref_basic_block->instructions_.RemoveNode(runner);
+    new_basic_block->instructions_.AppendNode(runner);
+  }
+  DCHECK(Validate(new_basic_block)) << errors_;
+  return new_basic_block;
 }
 
 // Validates |BasicBlock|

@@ -71,6 +71,7 @@ class Factory;
 class FunctionEditor;
 class Instruction;
 class Literal;
+class PhiInstruction;
 class Value;
 class ValueVisitor;
 class Thing;

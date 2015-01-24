@@ -61,6 +61,16 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
   }
   ostream << instruction->opcode();
 
+  if (auto const phi = instruction->as<PhiInstruction>()) {
+    auto separator = " ";
+    for (auto const input : phi->inputs()) {
+      ostream << separator << *input->basic_block() << " "
+              << AsValue(*input->value());
+      separator = ", ";
+    }
+    return ostream;
+  }
+
   auto separator = " ";
   for (auto const operand : instruction->operands()) {
     ostream << separator << AsValue(*operand);
@@ -346,6 +356,9 @@ void TextFormatter::FormatFunction(const Function* function) {
     for (auto const successor : block->successors())
       ostream_ << " " << *successor;
     ostream_ << std::endl;
+
+    for (auto const phi : block->phi_instructions())
+      ostream_ << "  " << WithoutAddress(*phi) << std::endl;
 
     for (auto const instruction : block->instructions())
       ostream_ << "  " << WithoutAddress(*instruction) << std::endl;

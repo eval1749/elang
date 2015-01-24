@@ -69,6 +69,10 @@ Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {
   return instr;
 }
 
+PhiInstruction* InstructionFactory::NewPhiInstruction(Type* output_type) {
+  return new (zone()) PhiInstruction(output_type);
+}
+
 Instruction* InstructionFactory::NewReturnInstruction(Value* value,
                                                       BasicBlock* exit_block) {
   auto const instr = new (zone()) ReturnInstruction(void_type());

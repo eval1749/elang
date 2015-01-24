@@ -20,6 +20,7 @@ namespace elang {
 namespace hir {
 
 class Instruction;
+class PhiInstruction;
 
 // See "operands_forward.h" for list of all concrete operands.
 
@@ -302,6 +303,35 @@ class ELANG_HIR_EXPORT BasicBlockSuccessors final {
   const BasicBlock* basic_block_;
 };
 
+// PhiInstructionList
+class ELANG_HIR_EXPORT PhiInstructionList final {
+ public:
+  class Iterator
+      : public IteratorOnIterator<Iterator, InstructionList::Iterator> {
+   public:
+    explicit Iterator(const InstructionList::Iterator& iterator);
+    Iterator(const Iterator& other) = default;
+    ~Iterator() = default;
+
+    Iterator& operator=(const Iterator& other) = default;
+
+    PhiInstruction* operator->() const { return operator*(); }
+    PhiInstruction* operator*() const;
+  };
+
+  explicit PhiInstructionList(const InstructionList& list);
+  PhiInstructionList(const PhiInstructionList& other) = default;
+  ~PhiInstructionList() = default;
+
+  PhiInstructionList& operator=(const PhiInstructionList& other) = default;
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const InstructionList* list_;
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlock
@@ -333,6 +363,9 @@ class ELANG_HIR_EXPORT BasicBlock final
   const InstructionList& instructions() const { return instructions_; }
   Instruction* first_instruction() const;
   Instruction* last_instruction() const;
+  PhiInstructionList phi_instructions() const {
+    return PhiInstructionList(phi_instructions_);
+  }
 
   // Control flow graph
   BasicBlockPredecessors predecessors() const;
@@ -352,6 +385,9 @@ class ELANG_HIR_EXPORT BasicBlock final
 
   // List of instructions in this block.
   InstructionList instructions_;
+
+  // Phi instructions in this block.
+  InstructionList phi_instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };

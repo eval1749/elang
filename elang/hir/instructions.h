@@ -267,6 +267,62 @@ class ELANG_HIR_EXPORT LoadInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// PhiInput
+//
+class ELANG_HIR_EXPORT PhiInput final
+    : public DoubleLinked<PhiInput, PhiInstruction>::Node,
+      public UseDefNode,
+      public ZoneAllocated {
+ public:
+  PhiInput(PhiInstruction* phi, BasicBlock* block, Value* value);
+  ~PhiInput() = delete;
+
+  BasicBlock* basic_block() const { return basic_block_; }
+
+ private:
+  friend class Editor;
+
+  BasicBlock* basic_block_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInput);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// ty %result = phi %block1: %value1, ...
+//
+// `phi` instruction takes variable number of pairs of basic block and
+// value. If it has just two operands, output of `phi` instruction should be
+// replaced with its operand.
+//
+// Note: |PhiInstruction| isn't derived from |Instruction|.
+//
+class ELANG_HIR_EXPORT PhiInstruction final
+    : public FixedOperandsInstruction<PhiInstruction> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Phi);
+
+ public:
+  typedef DoubleLinked<PhiInput, PhiInstruction> PhiInputs;
+
+  Value* input_of(BasicBlock* block) const;
+  const PhiInputs& inputs() const { return inputs_; }
+
+ private:
+  explicit PhiInstruction(Type* output_type);
+
+  PhiInput* FindPhiInputFor(BasicBlock* block) const;
+
+  // Instruction
+  int CountOperands() const final;
+  bool Validate(Editor* editor) const final;
+
+  PhiInputs inputs_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // void return %value, %exit_block
 //
 class ELANG_HIR_EXPORT ReturnInstruction final

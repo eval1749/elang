@@ -73,6 +73,10 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   BasicBlock* EditNewBasicBlock(BasicBlock* reference);
   BasicBlock* EditNewBasicBlock();
   BasicBlock* NewBasicBlock(BasicBlock* reference);
+  // Returns new basic block inserted after basic block containing
+  // |reference| instruction and moves instructions starting from |reference|
+  // to the last instructions.
+  BasicBlock* SplitBefore(Instruction* reference);
 
   // Instruction editing
   void Append(Instruction* new_instruction);
@@ -81,6 +85,12 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
 
   // Operand manipulation
   void SetInput(Instruction* instruction, int index, Value* new_value);
+
+  // Phi instruction
+  PhiInstruction* NewPhi(Type* output_type);
+  void SetPhiInput(PhiInstruction* phi_instruction,
+                   BasicBlock* basic_block,
+                   Value* value);
 
   // Set terminator instruction
   void SetBranch(Value* condition,

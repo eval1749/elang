@@ -14,26 +14,30 @@
 namespace elang {
 namespace hir {
 
-// Forward declarations
-class Instruction;
-enum class Opcode;
-
 // Visitor |V| takes three parameters:
 //  Name         capitalized name for C++ class
 //  mnemonic     mnemonic; used for formatting
-//  num_values Number of values
+// Note: inputs of |PhiInstruction| are stored in |PhiInput|.
 #define FOR_EACH_HIR_INSTRUCTION(V) \
-  V(Branch, "br", 3)                \
-  V(Call, "call", 2)                \
-  V(Entry, "entry", 0)              \
-  V(Exit, "exit", 0)                \
-  V(Load, "load", 1)                \
-  V(Return, "ret", 2)               \
-  V(Store, "store", 1)
+  V(Branch, "br", Fixed)            \
+  V(Call, "call", Fixed)            \
+  V(Entry, "entry", Fixed)          \
+  V(Exit, "exit", Fixed)            \
+  V(Load, "load", Fixed)            \
+  V(Phi, "phi", Fixed)              \
+  V(Return, "ret", Fixed)           \
+  V(Store, "store", Fixed)
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
+
+// Forward declarations
+class Instruction;
+enum class Opcode;
+class OperandIterator;
+class Operands;
+class PhiInput;
 
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction& instruction);

@@ -5,6 +5,7 @@
 #include "base/logging.h"
 #include "elang/base/zone.h"
 #include "elang/hir/editor.h"
+#include "elang/hir/error_code.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
@@ -95,6 +96,28 @@ BasicBlockSuccessors::Iterator::Iterator(const OperandIterator& iterator)
 
 BasicBlock* BasicBlockSuccessors::Iterator::operator*() const {
   return (*iterator())->as<BasicBlock>();
+}
+
+// PhiInstructionList
+PhiInstructionList::PhiInstructionList(const InstructionList& list)
+    : list_(&list) {
+}
+
+PhiInstructionList::Iterator PhiInstructionList::begin() const {
+  return PhiInstructionList::Iterator(list_->begin());
+}
+
+PhiInstructionList::Iterator PhiInstructionList::end() const {
+  return PhiInstructionList::Iterator(list_->end());
+}
+
+PhiInstructionList::Iterator::Iterator(
+    const InstructionList::Iterator& iterator)
+    : IteratorOnIterator(iterator) {
+}
+
+PhiInstruction* PhiInstructionList::Iterator::operator*() const {
+  return (*iterator())->as<PhiInstruction>();
 }
 
 //////////////////////////////////////////////////////////////////////
