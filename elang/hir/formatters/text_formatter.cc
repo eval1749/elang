@@ -262,14 +262,6 @@ std::ostream& operator<<(std::ostream& ostream,
             << " =";
   }
 
-  if (auto const branch = instruction.as<BranchInstruction>()) {
-    if (!branch->IsUnconditional()) {
-      // Print unconditional branch in short.
-      ostream << " " << instruction.operand(1);
-      return ostream;
-    }
-  }
-
   for (auto const operand : instruction.operands())
     ostream << " " << *operand;
   return ostream;

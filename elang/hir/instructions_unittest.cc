@@ -13,15 +13,6 @@
 namespace elang {
 namespace hir {
 
-namespace {
-Function* NewSampleFunction(Factory* factory) {
-  auto const types = factory->types();
-  auto const function_type =
-      types->NewFunctionType(types->void_type(), types->void_type());
-  return factory->NewFunction(function_type);
-}
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // HirInstructionTest offers HIR factories.
@@ -70,6 +61,9 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_EQ(call_instr, instr->operand(0));
   EXPECT_EQ(true_block, instr->operand(1));
   EXPECT_EQ(false_block, instr->operand(2));
+
+  EXPECT_TRUE(instr->IsConditionalBranch());
+  EXPECT_FALSE(instr->IsUnconditionalBranch());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -89,10 +83,11 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_FALSE(instr->CanBeRemoved());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
-  EXPECT_EQ(3, instr->CountOperands());
-  EXPECT_EQ(void_value(), instr->operand(0));
-  EXPECT_EQ(target_block, instr->operand(1));
-  EXPECT_EQ(void_value(), instr->operand(2));
+  EXPECT_EQ(1, instr->CountOperands());
+  EXPECT_EQ(target_block, instr->operand(0));
+
+  EXPECT_FALSE(instr->IsConditionalBranch());
+  EXPECT_TRUE(instr->IsUnconditionalBranch());
 }
 
 //////////////////////////////////////////////////////////////////////

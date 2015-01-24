@@ -95,8 +95,14 @@ class ELANG_HIR_EXPORT Instruction
   virtual bool CanBeRemoved() const;
 
   // Returns number of operands which this instruction has. Other than 'phi',
-  // 'pack', and 'switch', number of values is constant.
+  // 'tuple', and 'switch', number of values is constant.
   virtual int CountOperands() const = 0;
+
+  // Since |BranchInstruction| use different operands formats for
+  // conditional and unconditional branches. We need to know format of
+  // |BranchInstruction| before accessing operands.
+  virtual bool IsConditionalBranch() const;
+  virtual bool IsUnconditionalBranch() const;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
@@ -138,6 +144,8 @@ class FixedOperandsInstruction : public Instruction {
   }
 
   // Instruction
+  // Note: |BranchInstruction| overrides |CountOperands()| for unconditional
+  // branch.
   int CountOperands() const override { return sizeof...(OperandTypes); }
   Value* OperandAt(int index) const final { return operands_[index].value(); }
   void ResetOperandAt(int index) final { operands_[index].Reset(); }
@@ -173,15 +181,14 @@ class ELANG_HIR_EXPORT BranchInstruction final
                                       BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Branch);
 
- public:
-  bool IsConditional() const;
-  bool IsUnconditional() const;
-
  private:
   explicit BranchInstruction(Type* output_type);
 
   // Instruction
+  int CountOperands() const final;
   bool CanBeRemoved() const final;
+  bool IsConditionalBranch() const final;
+  bool IsUnconditionalBranch() const final;
   bool IsTerminator() const final;
   bool Validate(Editor* editor) const final;
 

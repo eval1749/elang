@@ -9,6 +9,7 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
+#include "elang/hir/values.h"
 #include "elang/hir/value_visitor.h"
 
 namespace elang {
@@ -92,49 +93,25 @@ OperandIterator Operands::end() {
   return OperandIterator(instruction_, instruction_->CountOperands());
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// Instruction
-//
-Instruction::Instruction(Type* output_type)
-    : Value(output_type), basic_block_(nullptr), id_(0) {
-}
-
-Value* Instruction::operand(int index) const {
-  return OperandAt(index);
-}
-
-Operands Instruction::operands() const {
-  return Operands(this);
-}
-
-bool Instruction::CanBeRemoved() const {
-  return !IsTerminator() && users().empty();
-}
-
-bool Instruction::IsTerminator() const {
-  return false;
-}
-
-void Instruction::Accept(ValueVisitor* visitor) {
-  visitor->VisitInstruction(this);
-}
-
 // BranchInstruction
 bool BranchInstruction::CanBeRemoved() const {
   return false;
 }
 
-bool BranchInstruction::IsConditional() const {
-  return !IsUnconditional();
+int BranchInstruction::CountOperands() const {
+  return IsConditionalBranch() ? 3 : 1;
+}
+
+bool BranchInstruction::IsConditionalBranch() const {
+  return !IsUnconditionalBranch();
 }
 
 bool BranchInstruction::IsTerminator() const {
   return true;
 }
 
-bool BranchInstruction::IsUnconditional() const {
-  return operand(0)->is<VoidValue>();
+bool BranchInstruction::IsUnconditionalBranch() const {
+  return operand(0)->is<BasicBlock>();
 }
 
 bool BranchInstruction::Validate(Editor* editor) const {
@@ -142,25 +119,25 @@ bool BranchInstruction::Validate(Editor* editor) const {
     editor->Error(ErrorCode::ValidateInstructionOutput, this);
     return false;
   }
-  if (!operand(1)->is<BasicBlock>()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
-    return false;
-  }
 
-  if (IsUnconditional()) {
-    if (!operand(2)->is<VoidValue>()) {
-      editor->Error(ErrorCode::ValidateInstructionOperand, this, 2);
+  if (IsUnconditionalBranch()) {
+    if (!operand(0)->is<BasicBlock>()) {
+      editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
       return false;
     }
     return true;
   }
 
-  // Conditional branch
+  DCHECK(IsConditionalBranch());
   if (!operand(0)->type()->is<BoolType>()) {
     editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
     return false;
   }
-  if (operand(2)->is<BasicBlock>()) {
+  if (!operand(1)->is<BasicBlock>()) {
+    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
+    return false;
+  }
+  if (!operand(2)->is<BasicBlock>()) {
     editor->Error(ErrorCode::ValidateInstructionOperand, this, 2);
     return false;
   }
@@ -212,15 +189,49 @@ bool ExitInstruction::Validate(Editor* editor) const {
   return true;
 }
 
+// Instruction
+Instruction::Instruction(Type* output_type)
+    : Value(output_type), basic_block_(nullptr), id_(0) {
+}
+
+Value* Instruction::operand(int index) const {
+  return OperandAt(index);
+}
+
+Operands Instruction::operands() const {
+  return Operands(this);
+}
+
+bool Instruction::CanBeRemoved() const {
+  return !IsTerminator() && users().empty();
+}
+
+bool Instruction::IsConditionalBranch() const {
+  return false;
+}
+
+bool Instruction::IsTerminator() const {
+  return false;
+}
+
+bool Instruction::IsUnconditionalBranch() const {
+  return false;
+}
+
+void Instruction::Accept(ValueVisitor* visitor) {
+  visitor->VisitInstruction(this);
+}
+
 // LoadInstruction
 bool LoadInstruction::Validate(Editor* editor) const {
   auto const pointer_type = operand(0)->type()->as<PointerType>();
   if (!pointer_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
+    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0,
+                  operand(0)->type());
     return false;
   }
   if (output_type() != pointer_type->pointee()) {
-    editor->Error(ErrorCode::ValidateInstructionOutput, this);
+    editor->Error(ErrorCode::ValidateInstructionOutput, this, pointer_type);
     return false;
   }
   return true;
@@ -232,12 +243,16 @@ bool ReturnInstruction::IsTerminator() const {
 }
 
 bool ReturnInstruction::Validate(Editor* editor) const {
-  if (operand(0)->type() != editor->function()->return_type()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
+  auto const return_type = editor->function()->return_type();
+  if (operand(0)->type() != return_type) {
+    editor->Error(ErrorCode::ValidateInstructionOperand, this,
+                  {editor->NewInt32(0), return_type});
     return false;
   }
-  if (operand(1) != editor->function()->exit_block()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
+  auto const exit_block = editor->function()->exit_block();
+  if (operand(1) != exit_block) {
+    editor->Error(ErrorCode::ValidateInstructionOperand, this,
+                  {editor->NewInt32(1), exit_block});
     return false;
   }
   return true;
@@ -255,11 +270,14 @@ bool StoreInstruction::Validate(Editor* editor) const {
   }
   auto const pointer_type = operand(0)->type()->as<PointerType>();
   if (!pointer_type) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0);
+    editor->Error(ErrorCode::ValidateInstructionOperand, this, 0, pointer_type);
     return false;
   }
-  if (operand(1)->type() != pointer_type->pointee()) {
-    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1);
+  // TODO(eval1749) We should check type of operand(2) is subtype of
+  // |pointer_type->pointee()|.
+  auto const pointee = pointer_type->pointee();
+  if (operand(1)->type() != pointee) {
+    editor->Error(ErrorCode::ValidateInstructionOperand, this, 1, pointee);
     return false;
   }
   return true;

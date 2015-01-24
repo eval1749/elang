@@ -39,9 +39,7 @@ Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
 Instruction* InstructionFactory::NewBranchInstruction(
     BasicBlock* target_block) {
   auto const instr = new (zone()) BranchInstruction(void_type());
-  instr->InitOperandAt(0, void_value());
-  instr->InitOperandAt(1, target_block);
-  instr->InitOperandAt(2, void_value());
+  instr->InitOperandAt(0, target_block);
   return instr;
 }
 
