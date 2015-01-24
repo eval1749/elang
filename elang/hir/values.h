@@ -9,13 +9,12 @@
 
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
-#include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
-#include "elang/base/zone_allocated.h"
-#include "elang/hir/values_forward.h"
+#include "elang/hir/thing.h"
 #include "elang/hir/types_forward.h"
+#include "elang/hir/values_forward.h"
 
 namespace elang {
 namespace hir {
@@ -64,6 +63,8 @@ class ELANG_HIR_EXPORT UseDefNode
   DISALLOW_COPY_AND_ASSIGN(UseDefNode);
 };
 
+typedef DoubleLinked<UseDefNode, Value> UseDefList;
+
 #define DECLARE_HIR_VALUE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);       \
   friend class Factory;                      \
@@ -71,15 +72,14 @@ class ELANG_HIR_EXPORT UseDefNode
  protected:                                  \
   ~self() override = default;
 
-// Represent an value in instruction.
-class ELANG_HIR_EXPORT Value : public Castable,
-                               public Visitable<ValueVisitor>,
-                               public ZoneAllocated {
-  DECLARE_HIR_VALUE_CLASS(Value, Castable);
+//////////////////////////////////////////////////////////////////////
+//
+// Value - Represent an value in instruction.
+//
+class ELANG_HIR_EXPORT Value : public Thing, public Visitable<ValueVisitor> {
+  DECLARE_HIR_VALUE_CLASS(Value, Thing);
 
  public:
-  typedef DoubleLinked<UseDefNode, Value> UseDefList;
-
   Type* type() const { return type_; }
   const UseDefList& users() const { return use_def_list_; }
 
@@ -188,18 +188,135 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 
 //////////////////////////////////////////////////////////////////////
 //
+// OperandIterator
+//
+class OperandIterator final {
+ public:
+  OperandIterator(const Instruction* instruction, int current);
+  OperandIterator(const OperandIterator& other);
+  ~OperandIterator();
+
+  OperandIterator& operator=(const OperandIterator& other);
+  OperandIterator& operator++();
+  Value* operator*() const;
+  Value* operator->() const;
+  bool operator==(const OperandIterator& other) const;
+  bool operator!=(const OperandIterator& other) const;
+
+ private:
+  const Instruction* instruction_;
+  int current_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Help classes for |BasicBlock|.
+//
+typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
+
+// IteratorOnIterator provides functions for implementing iterator on
+// another iterator.
+template <class Derived, class BaseIterator>
+class IteratorOnIterator {
+ public:
+  IteratorOnIterator& operator=(const IteratorOnIterator& other) = default;
+
+  Derived& operator++() {
+    ++iterator_;
+    return *static_cast<Derived*>(this);
+  }
+
+  bool operator==(const IteratorOnIterator& other) const {
+    return iterator_ == other.iterator_;
+  }
+
+  bool operator!=(const IteratorOnIterator& other) const {
+    return !operator==(other);
+  }
+
+ protected:
+  explicit IteratorOnIterator(const BaseIterator& iterator)
+      : iterator_(iterator) {}
+  ~IteratorOnIterator() = default;
+
+  const BaseIterator* iterator() const { return &iterator_; }
+  BaseIterator* iterator() { return &iterator_; }
+
+ private:
+  BaseIterator iterator_;
+};
+
+// BasicBlockPredecessors
+class BasicBlockPredecessors final {
+ public:
+  class Iterator final
+      : public IteratorOnIterator<Iterator, UseDefList::Iterator> {
+   public:
+    explicit Iterator(const UseDefList::Iterator& iterator);
+    Iterator(const Iterator& other) = default;
+    ~Iterator() = default;
+
+    Iterator& operator=(const Iterator& other) = default;
+
+    BasicBlock* operator->() const { return operator*(); }
+    BasicBlock* operator*() const;
+  };
+
+  explicit BasicBlockPredecessors(const BasicBlock* block);
+  BasicBlockPredecessors(const BasicBlockPredecessors& other) = default;
+  ~BasicBlockPredecessors() = default;
+
+  BasicBlockPredecessors& operator=(const BasicBlockPredecessors& other) =
+      default;
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const BasicBlock* basic_block_;
+};
+
+// BasicBlockSuccessors
+class ELANG_HIR_EXPORT BasicBlockSuccessors final {
+ public:
+  class Iterator final : public IteratorOnIterator<Iterator, OperandIterator> {
+   public:
+    explicit Iterator(const OperandIterator& iterator);
+    Iterator(const Iterator& iterator) = default;
+    ~Iterator() = default;
+
+    BasicBlock* operator->() const { return operator*(); }
+    BasicBlock* operator*() const;
+  };
+
+  explicit BasicBlockSuccessors(const BasicBlock* block);
+  BasicBlockSuccessors(const BasicBlockSuccessors& other) = default;
+  ~BasicBlockSuccessors() = default;
+
+  BasicBlockSuccessors& operator=(const BasicBlockSuccessors& other) = default;
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const BasicBlock* basic_block_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // BasicBlock
 //
 // You can get predecessors of a basic block from user list in use-def list,
 // and successors of a basic block from operands of the last instruction.
-// Note: 'ret' and 'unreachable' instructions have 'exit' block as an operand.
+//
+// For using use-def list for predecessors, we should do:
+//  - 'ret' instructions have 'exit' block as an input operand.
+//  - `switch` instructions have list of case target |BasicBlock| other than
+//     input operands to handle multiple case labels point same |BasicBlock|.
 //
 // This class provides getters only. You need to use |Editor| for
 // changing instructions, and |Editor| to add |BasicBlock| to
 // |Function|.
-//
-// TODO(eval1749) Should we add |BasicBlock| to |Function| automatically when
-// we insert 'jump' instruction?
 //
 class ELANG_HIR_EXPORT BasicBlock final
     : public Value,
@@ -207,8 +324,6 @@ class ELANG_HIR_EXPORT BasicBlock final
   DECLARE_HIR_CONCRETE_VALUE_CLASS(BasicBlock, Value);
 
  public:
-  typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
-
   Function* function() const { return function_; }
 
   // An integer identifier for debugging.
@@ -219,17 +334,23 @@ class ELANG_HIR_EXPORT BasicBlock final
   Instruction* first_instruction() const;
   Instruction* last_instruction() const;
 
+  // Control flow graph
+  BasicBlockPredecessors predecessors() const;
+  BasicBlockSuccessors successors() const;
+
  private:
-  // |Editor| manipulates instruction list
   friend class Editor;
 
   explicit BasicBlock(Factory* factory);
 
   // |function_| holds owner of this |BasicBlock|.
   Function* function_;
+
   // |id_| is assign positive integer by |Editor|. When this basic
   // block is removed from |Function|, |id_| is reset to zero.
   int id_;
+
+  // List of instructions in this block.
   InstructionList instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);

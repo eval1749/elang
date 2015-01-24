@@ -69,6 +69,7 @@ FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
 // Forward declarations
+class Thing;
 class TypeFactory;
 class TypeVisitor;
 

@@ -7,11 +7,11 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
-#include "elang/base/castable.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/hir/thing.h"
 #include "elang/hir/types_forward.h"
 #include "elang/hir/values_forward.h"
 
@@ -54,10 +54,8 @@ namespace hir {
 //
 // Represent HIR type.
 //
-class ELANG_HIR_EXPORT Type : public Castable,
-                              public Visitable<TypeVisitor>,
-                              public ZoneAllocated {
-  DECLARE_HIR_TYPE_ABSTRACT_CLASS(Type, Castable);
+class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
+  DECLARE_HIR_TYPE_ABSTRACT_CLASS(Type, Thing);
 
  public:
   enum RegisterClass {

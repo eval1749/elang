@@ -16,17 +16,6 @@ namespace elang {
 class AtomicString;
 namespace hir {
 
-// Forward declarations
-class BasicBlockEditor;
-class Factory;
-class FunctionEditor;
-class Instruction;
-class Literal;
-class Value;
-class ValueVisitor;
-class Type;
-class TypeFactory;
-
 // Visitor |V| takes three parameters:
 //  Name     capitalized name for C++ class
 //  name     small case name
@@ -76,7 +65,18 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
 FOR_EACH_HIR_VALUE(V)
 #undef V
 
-// Print for formatting and debugging.
+// Forward declarations
+class Editor;
+class Factory;
+class FunctionEditor;
+class Instruction;
+class Literal;
+class Value;
+class ValueVisitor;
+class Thing;
+class Type;
+class TypeFactory;
+
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value& value);
 
