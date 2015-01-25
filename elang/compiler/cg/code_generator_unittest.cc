@@ -29,7 +29,7 @@ class CodeGeneratorTest : public testing::CgTest {
   CodeGenerator* code_generator() { return &code_generator_; }
 
   hir::Function* FunctionOf(ast::Method* method) const;
-
+  std::string CodeGeneratorTest::Generate();
   std::string GetFunction(base::StringPiece name);
 
  private:
@@ -45,12 +45,19 @@ hir::Function* CodeGeneratorTest::FunctionOf(ast::Method* ast_method) const {
   return code_generator()->FunctionOf(ast_method);
 }
 
-std::string CodeGeneratorTest::GetFunction(base::StringPiece name) {
+std::string CodeGeneratorTest::Generate() {
   auto const analyze_result = Analyze();
   if (!analyze_result.empty())
     return analyze_result;
   if (!code_generator()->Run())
     return GetErrors();
+  return "";
+}
+
+std::string CodeGeneratorTest::GetFunction(base::StringPiece name) {
+  auto const generate_result = Generate();
+  if (!generate_result.empty())
+    return generate_result;
 
   auto const ast_method_group = FindMember(name)->as<ast::MethodGroup>();
   if (!ast_method_group)
@@ -210,6 +217,33 @@ TEST_F(CodeGeneratorTest, Do) {
       GetFunction("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, Empty) {
+  Prepare(
+      "class Sample {\n"
+      "  static void Foo() {}\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 void(void)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  entry\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      GetFunction("Sample.Foo"));
+}
+
+TEST_F(CodeGeneratorTest, EmptyError) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo() {}\n"
+      "}\n");
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+}
+
 TEST_F(CodeGeneratorTest, For) {
   Prepare(
       "class Sample {\n"
@@ -338,6 +372,7 @@ TEST_F(CodeGeneratorTest, Parameter) {
       GetFunction("Sample.Foo"));
 }
 
+// 'return' statement
 TEST_F(CodeGeneratorTest, Return) {
   Prepare(
       "class Sample {\n"
@@ -357,6 +392,24 @@ TEST_F(CodeGeneratorTest, Return) {
       GetFunction("Sample.Bar"));
 }
 
+TEST_F(CodeGeneratorTest, ReturnErrorEntryNone) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo() { Bar(); }\n"
+      "  static void Bar() {}\n"
+      "}\n");
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+}
+
+TEST_F(CodeGeneratorTest, ReturnErrorNone) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo(bool x) { if (x) return 1; }\n"
+      "}\n");
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+}
+
+// variable reference
 TEST_F(CodeGeneratorTest, Variable) {
   Prepare(
       "class Sample {\n"

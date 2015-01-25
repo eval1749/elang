@@ -18,6 +18,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_data.h"
@@ -406,12 +407,18 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
 
   EmitParameterBindings(ast_method);
 
-  if (auto const ast_expression = ast_method_body->as<ast::Expression>())
+  if (auto const ast_expression = ast_method_body->as<ast::Expression>()) {
     editor.SetReturn(GenerateValue(ast_expression));
-  else
-    Generate(ast_method_body);
+    return;
+  }
+  Generate(ast_method_body);
   if (!editor.basic_block())
     return;
+  if (MapType(method->return_type()) != MapType(PredefinedName::Void) &&
+      (editor.basic_block() == function->entry_block() ||
+       editor.basic_block()->HasPredecessor())) {
+    Error(ErrorCode::CodeGeneratorReturnNone, ast_method);
+  }
   editor.Commit();
 }
 
