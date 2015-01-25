@@ -356,6 +356,26 @@ TEST_F(MethodAnalyzerTest, TypeVariable) {
       GetCalls("Sample.Main"));
 }
 
+// 'while' statement
+TEST_F(MethodAnalyzerTest, While) {
+  Prepare(
+      "class Sample {"
+      "    void Main() {  while (Cond()) { Foo(12); } }"
+      "    bool Cond() { return true; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ("", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, WhileErrorCondition) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { while (Foo(1)) { Foo(0); } }"
+      "    abstract Sample Foo(int x);"
+      "  }");
+  EXPECT_EQ("TypeResolver.Expression.NotBool(39) Foo\n", Analyze());
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang

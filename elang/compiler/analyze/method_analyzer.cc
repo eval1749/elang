@@ -59,6 +59,7 @@ class MethodBodyAnalyzer final : public Analyzer,
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
+  void VisitWhileStatement(ast::WhileStatement* node) final;
 
   // Owner of method body.
   ast::Method* const method_;
@@ -203,6 +204,11 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
     // Check initial value expression matches variable type.
     type_resolver()->Resolve(variable->value(), value);
   }
+}
+
+void MethodBodyAnalyzer::VisitWhileStatement(ast::WhileStatement* node) {
+  type_resolver()->ResolveAsBool(node->condition());
+  node->statement()->Accept(this);
 }
 
 }  // namespace
