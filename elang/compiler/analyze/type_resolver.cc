@@ -121,6 +121,15 @@ ts::Value* TypeResolver::Resolve(ast::Expression* expression,
   return context_->result;
 }
 
+ts::Value* TypeResolver::ResolveAsBool(ast::Expression* expression) {
+  auto const result = Resolve(expression, bool_value());
+  if (result != bool_value())
+    Error(ErrorCode::TypeResolverExpressionNotBool, expression);
+  // TODO(eval1749) Looking for |implicit operator bool()| and
+  // |static bool operator true(Ty)|
+  return result;
+}
+
 ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
   return name_resolver()->ResolveReference(expression, context_method_);
 }
@@ -246,12 +255,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
 }
 
 void TypeResolver::VisitConditional(ast::Conditional* ast_node) {
-  auto const bool_type =
-      ValueOf(session()->GetPredefinedType(PredefinedName::Bool))
-          ->as<ir::Type>();
-  auto const bool_value = NewLiteral(bool_type);
-  if (Resolve(ast_node->condition(), bool_value) != bool_value)
-    Error(ErrorCode::TypeResolverExpressionNotBool, ast_node->condition());
+  ResolveAsBool(ast_node->condition());
   auto const true_value = Resolve(ast_node->true_expression(), any_value());
   auto const false_value = Resolve(ast_node->false_expression(), any_value());
   // TODO(eval1749) Type of conditional expression is

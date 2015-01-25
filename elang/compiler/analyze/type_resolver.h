@@ -48,6 +48,10 @@ class TypeResolver final : public Analyzer,
   // Unify type value of |expression| with |value|.
   ts::Value* Resolve(ast::Expression* expression, ts::Value* value);
 
+  // Returns bool value if |expression| is boolean expression, otherwise
+  // empty value.
+  ts::Value* ResolveAsBool(ast::Expression* expression);
+
  private:
   struct Context;
   class ScopedContext;
