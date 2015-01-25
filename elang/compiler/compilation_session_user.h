@@ -14,9 +14,11 @@ namespace ast {
 class Class;
 class Namespace;
 class NamespaceBody;
+class Node;
 }
 
 class CompilationSession;
+enum class ErrorCode;
 enum class PredefinedName;
 class Semantics;
 
@@ -29,6 +31,10 @@ class CompilationSessionUser {
   ~CompilationSessionUser();
 
   CompilationSession* session() const { return session_; }
+
+  // Report error caused by |node|.
+  void Error(ErrorCode error_code, ast::Node* node);
+  void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
 
  protected:
   explicit CompilationSessionUser(CompilationSession* session);

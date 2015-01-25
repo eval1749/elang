@@ -4,6 +4,7 @@
 
 #include "elang/compiler/compilation_session_user.h"
 
+#include "elang/compiler/ast/nodes.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics.h"
 
@@ -27,6 +28,16 @@ ast::Namespace* CompilationSessionUser::system_namespace() {
 
 ast::NamespaceBody* CompilationSessionUser::system_namespace_body() {
   return session()->system_namespace_body();
+}
+
+void CompilationSessionUser::Error(ErrorCode error_code, ast::Node* node) {
+  session()->AddError(error_code, node->name());
+}
+
+void CompilationSessionUser::Error(ErrorCode error_code,
+                                   ast::Node* node,
+                                   ast::Node* node2) {
+  session()->AddError(error_code, node->name(), node2->name());
 }
 
 ast::Class* CompilationSessionUser::GetPredefinedType(PredefinedName name) {

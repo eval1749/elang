@@ -31,14 +31,6 @@ ir::Factory* Analyzer::ir_factory() const {
   return name_resolver_->factory();
 }
 
-void Analyzer::Error(ErrorCode error_code, ast::Node* node) {
-  session()->AddError(error_code, node->name());
-}
-
-void Analyzer::Error(ErrorCode error_code, ast::Node* node, ast::Node* node2) {
-  session()->AddError(error_code, node->name(), node2->name());
-}
-
 ir::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return name_resolver_->Resolve(ast_node);
 }

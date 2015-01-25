@@ -19,7 +19,6 @@ class Node;
 class Type;
 }
 
-enum class ErrorCode;
 class NameResolver;
 class Semantics;
 
@@ -38,10 +37,6 @@ class Analyzer : public CompilationSessionUser {
   ir::Factory* factory() const { return ir_factory(); }
   ir::Factory* ir_factory() const;
   NameResolver* resolver() const { return name_resolver_; }
-
-  // Report error caused by |node|.
-  void Error(ErrorCode error_code, ast::Node* node);
-  void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
 
   // Shortcut to |NameResolver|.
   ir::Node* Resolve(ast::NamedNode* ast_node);
