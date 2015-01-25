@@ -50,6 +50,10 @@ class MethodBodyAnalyzer final : public Analyzer,
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
   ir::Type* void_type() const;
 
+  void Analyze(ast::Expression* expressions, ts::Value* value);
+  void Analyze(ast::Statement* statement);
+  void AnalyzeAsBool(ast::Expression* expression);
+  ts::Value* NewLiteral(ir::Type* type);
   void RegisterParameters();
 
   // ast::Visitor
@@ -97,17 +101,36 @@ ir::Type* MethodBodyAnalyzer::void_type() const {
       ->as<ir::Type>();
 }
 
+void MethodBodyAnalyzer::Analyze(ast::Expression* expression,
+                                 ts::Value* value) {
+  type_resolver()->Resolve(expression, value);
+}
+
+void MethodBodyAnalyzer::Analyze(ast::Statement* statement) {
+  if (!statement)
+    return;
+  statement->Accept(this);
+}
+
+void MethodBodyAnalyzer::AnalyzeAsBool(ast::Expression* expression) {
+  type_resolver()->ResolveAsBool(expression);
+}
+
+ts::Value* MethodBodyAnalyzer::NewLiteral(ir::Type* type) {
+  return type_factory()->NewLiteral(type);
+}
+
 void MethodBodyAnalyzer::RegisterParameters() {
   for (auto const parameter : method_->parameters()) {
     auto const type = ResolveTypeReference(parameter->type(), method_);
-    auto const value = type_resolver()->type_factory()->NewLiteral(type);
+    auto const value = NewLiteral(type);
     variable_tracker_->RegisterVariable(parameter, value);
   }
 }
 
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
-  auto const ir_method = semantics()->ValueOf(method_);
+  auto const ir_method = semantics()->ValueOf(method_)->as<ir::Method>();
   if (!ir_method) {
     DVLOG(0) << *method_ << " isn't resolved.";
     return;
@@ -120,8 +143,17 @@ void MethodBodyAnalyzer::Run() {
   }
   DCHECK(!method_->IsExtern() && !method_->IsAbstract())
       << *method_ << " should not have a body.";
+
   RegisterParameters();
-  body->Accept(this);
+
+  if (auto const expression = body->as<ast::Expression>()) {
+    Analyze(expression, NewLiteral(ir_method->return_type()));
+  } else if (auto const statement = body->as<ast::Statement>()) {
+    Analyze(body);
+  } else if (!body) {
+    NOTREACHED() << "Unexpected body node: " << *body;
+  }
+
   for (auto const call_value : type_resolver_->call_values()) {
     auto const call = call_value->ast_call();
     auto const methods = call_value->methods();
@@ -135,13 +167,14 @@ void MethodBodyAnalyzer::Run() {
     }
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
+
   variable_tracker_->Finish(factory(), type_factory());
 }
 
 // ast::Visitor statements
 void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
-    statement->Accept(this);
+    Analyze(statement);
     if (statement->IsTerminator()) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
       // checking |statement|.
@@ -151,35 +184,31 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitDoStatement(ast::DoStatement* node) {
-  node->statement()->Accept(this);
-  type_resolver()->ResolveAsBool(node->condition());
+  Analyze(node->statement());
+  AnalyzeAsBool(node->condition());
 }
 
 void MethodBodyAnalyzer::VisitExpressionList(ast::ExpressionList* node) {
   for (auto const expression : node->expressions())
-    type_resolver()->Resolve(expression, type_factory()->any_value());
+    Analyze(expression, type_factory()->any_value());
 }
 
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
-  type_resolver()->Resolve(node->expression(), type_factory()->any_value());
+  Analyze(node->expression(), type_factory()->any_value());
 }
 
 void MethodBodyAnalyzer::VisitForStatement(ast::ForStatement* node) {
-  if (node->initializer())
-    node->initializer()->Accept(this);
-  type_resolver()->ResolveAsBool(node->condition());
-  if (node->step())
-    node->step()->Accept(this);
-  node->statement()->Accept(this);
+  Analyze(node->initializer());
+  AnalyzeAsBool(node->condition());
+  Analyze(node->step());
+  Analyze(node->statement());
 }
 
 void MethodBodyAnalyzer::VisitIfStatement(ast::IfStatement* node) {
-  type_resolver()->ResolveAsBool(node->condition());
-  node->then_statement()->Accept(this);
-  if (!node->else_statement())
-    return;
-  node->else_statement()->Accept(this);
+  AnalyzeAsBool(node->condition());
+  Analyze(node->then_statement());
+  Analyze(node->else_statement());
 }
 
 void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
@@ -191,8 +220,7 @@ void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
     return;
   }
   if (auto const return_value = node->value()) {
-    auto const value = type_factory()->NewLiteral(return_type);
-    type_resolver()->Resolve(return_value, value);
+    Analyze(return_value, NewLiteral(return_type));
     return;
   }
   Error(ErrorCode::MethodReturnVoid, node);
@@ -205,26 +233,26 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
     if (auto const reference = variable->type()) {
       if (reference->name() == TokenType::Var) {
         // Assign type variable for variable declared with `var`.
-        auto const type_variable = type_resolver()->type_factory()->NewVariable(
-            variable, type_resolver()->type_factory()->any_value());
+        auto const type_variable =
+            type_factory()->NewVariable(variable, type_factory()->any_value());
         variable_tracker_->RegisterVariable(variable, type_variable);
-        type_resolver()->Resolve(variable->value(), type_variable);
+        Analyze(variable->value(), type_variable);
         continue;
       }
     }
     auto const type = ResolveTypeReference(variable->type(), method_);
     if (!type)
       continue;
-    auto const value = type_resolver()->type_factory()->NewLiteral(type);
+    auto const value = NewLiteral(type);
     variable_tracker_->RegisterVariable(variable, value);
     // Check initial value expression matches variable type.
-    type_resolver()->Resolve(variable->value(), value);
+    Analyze(variable->value(), value);
   }
 }
 
 void MethodBodyAnalyzer::VisitWhileStatement(ast::WhileStatement* node) {
-  type_resolver()->ResolveAsBool(node->condition());
-  node->statement()->Accept(this);
+  AnalyzeAsBool(node->condition());
+  Analyze(node->statement());
 }
 
 }  // namespace
