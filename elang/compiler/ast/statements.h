@@ -216,13 +216,11 @@ class ForEachStatement final : public Statement {
 };
 
 // Represents 'for' statement.
-class ForStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ForStatement, Statement);
+class ForStatement final : public DoOrWhileStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ForStatement, DoOrWhileStatement);
 
  public:
-  Expression* condition() const { return condition_; }
   Statement* initializer() const { return initializer_; }
-  Statement* statement() const { return statement_; }
   Statement* step() const { return step_; }
 
  private:
@@ -232,9 +230,7 @@ class ForStatement final : public Statement {
                Statement* step,
                Statement* statement);
 
-  Expression* const condition_;
   Statement* const initializer_;
-  Statement* const statement_;
   Statement* const step_;
 
   DISALLOW_COPY_AND_ASSIGN(ForStatement);

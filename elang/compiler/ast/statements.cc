@@ -50,7 +50,8 @@ DoOrWhileStatement::DoOrWhileStatement(Token* keyword,
                                        Statement* statement,
                                        Expression* condition)
     : Statement(keyword), condition_(condition), statement_(statement) {
-  DCHECK(keyword == TokenType::Do || keyword == TokenType::While);
+  DCHECK(keyword == TokenType::Do || keyword == TokenType::For ||
+         keyword == TokenType::While);
 }
 
 DoStatement::DoStatement(Token* keyword,
@@ -88,11 +89,10 @@ ForStatement::ForStatement(Token* keyword,
                            Expression* condition,
                            Statement* step,
                            Statement* statement)
-    : Statement(keyword),
-      condition_(condition),
+    : DoOrWhileStatement(keyword, statement, condition),
       initializer_(initializer),
-      statement_(statement),
       step_(step) {
+  DCHECK_EQ(keyword, TokenType::For);
 }
 
 // IfStatement
