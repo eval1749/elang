@@ -236,7 +236,27 @@ TEST_F(MethodAnalyzerTest, ConditionalErrorResult) {
   EXPECT_EQ("TypeResolver.Conditional.NotMatch(41) 12 34\n", Analyze());
 }
 
-// `if` statement
+// 'do' statement
+TEST_F(MethodAnalyzerTest, Do) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { do { Foo(12); } while (Cond()); }"
+      "    bool Cond() { return true; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ("", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, DoErrorCondition) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { do { Foo(0); } while (Foo(1)); }"
+      "    abstract Sample Foo(int x);"
+      "  }");
+  EXPECT_EQ("TypeResolver.Expression.NotBool(54) Foo\n", Analyze());
+}
+
+// 'if' statement
 TEST_F(MethodAnalyzerTest, If) {
   Prepare(
       "class Sample {"
