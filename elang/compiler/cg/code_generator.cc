@@ -36,7 +36,7 @@ namespace compiler {
 //
 // CodeGenerator::Output
 //
-struct CodeGenerator::Output {
+struct CodeGenerator::Output final {
   hir::Value* value;
 
   Output() : value(nullptr) {}
@@ -47,7 +47,7 @@ struct CodeGenerator::Output {
 // CodeGenerator::ScopedOutput
 // To set output of current context for visitor.
 //
-class CodeGenerator::ScopedOutput {
+class CodeGenerator::ScopedOutput final {
  public:
   explicit ScopedOutput(CodeGenerator* generator);
   ~ScopedOutput();
@@ -66,7 +66,55 @@ CodeGenerator::ScopedOutput::ScopedOutput(CodeGenerator* generator)
 }
 
 CodeGenerator::ScopedOutput::~ScopedOutput() {
+  DCHECK_EQ(generator_->output_, &output_);
   generator_->output_ = previous_output_;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// CodeGenerator::BreakContext represents target blocks of |break| and
+// |continue| statements. |switch| statement also specify |continue_block|
+// from outer |BreakContext|.
+//
+struct CodeGenerator::BreakContext final {
+  hir::BasicBlock* break_block;
+  hir::BasicBlock* continue_block;
+  const BreakContext* outer;
+
+  BreakContext(const BreakContext* outer,
+               hir::BasicBlock* break_block,
+               hir::BasicBlock* continue_block)
+      : break_block(break_block),
+        continue_block(continue_block),
+        outer(outer) {}
+};
+
+class CodeGenerator::ScopedBreakContext final {
+ public:
+  ScopedBreakContext(CodeGenerator* generator,
+                     hir::BasicBlock* break_block,
+                     hir::BasicBlock* continue_block);
+  ~ScopedBreakContext();
+
+ private:
+  CodeGenerator* const generator_;
+  BreakContext const context_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScopedBreakContext);
+};
+
+CodeGenerator::ScopedBreakContext::ScopedBreakContext(
+    CodeGenerator* generator,
+    hir::BasicBlock* break_block,
+    hir::BasicBlock* continue_block)
+    : generator_(generator),
+      context_(generator_->break_context_, break_block, continue_block) {
+  generator_->break_context_ = &context_;
+}
+
+CodeGenerator::ScopedBreakContext::~ScopedBreakContext() {
+  DCHECK_EQ(generator_->break_context_, &context_);
+  generator_->break_context_ = context_.outer;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -75,6 +123,7 @@ CodeGenerator::ScopedOutput::~ScopedOutput() {
 //
 CodeGenerator::CodeGenerator(CompilationSession* session, hir::Factory* factory)
     : CompilationSessionUser(session),
+      break_context_(nullptr),
       editor_(nullptr),
       factory_(factory),
       function_(nullptr),
@@ -455,6 +504,50 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
     }
     Generate(statement);
   }
+}
+
+void CodeGenerator::VisitBreakStatement(ast::BreakStatement* node) {
+  DCHECK(node);
+  DCHECK(break_context_);
+  editor()->SetBranch(break_context_->break_block);
+  Commit();
+}
+
+void CodeGenerator::VisitContinueStatement(ast::ContinueStatement* node) {
+  DCHECK(node);
+  DCHECK(break_context_);
+  DCHECK(break_context_->continue_block);
+  editor()->SetBranch(break_context_->continue_block);
+  Commit();
+}
+
+void CodeGenerator::VisitDoStatement(ast::DoStatement* node) {
+  auto const head_block = editor()->basic_block();
+  Commit();
+
+  auto const break_block =
+      editor()->SplitBefore(head_block->last_instruction());
+
+  auto const while_block = editor()->NewBasicBlock(break_block);
+
+  editor()->Continue(head_block);
+  editor()->SetBranch(while_block);
+  Commit();
+
+  auto const continue_block = editor()->EditNewBasicBlock(while_block);
+  editor()->SetBranch(while_block);
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    Generate(node->statement());
+  }
+  Commit();
+
+  editor()->Edit(while_block);
+  editor()->SetBranch(GenerateBool(node->condition()), continue_block,
+                      break_block);
+  Commit();
+
+  editor()->Edit(break_block);
 }
 
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {

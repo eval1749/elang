@@ -37,6 +37,8 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
  private:
   struct Output;
   class ScopedOutput;
+  struct BreakContext;
+  class ScopedBreakContext;
 
   hir::Type* bool_type() const;
   hir::Editor* editor() const { return editor_; }
@@ -86,11 +88,15 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // ast::Visitor statement nodes
   void VisitBlockStatement(ast::BlockStatement* node);
+  void VisitBreakStatement(ast::BreakStatement* node);
+  void VisitContinueStatement(ast::ContinueStatement* node);
+  void VisitDoStatement(ast::DoStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
   void VisitIfStatement(ast::IfStatement* node);
   void VisitReturnStatement(ast::ReturnStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
 
+  const BreakContext* break_context_;
   hir::Editor* editor_;
   hir::Factory* const factory_;
   hir::Function* function_;

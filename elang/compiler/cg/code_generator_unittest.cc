@@ -154,6 +154,62 @@ TEST_F(CodeGeneratorTest, Conditional) {
       GetFunction("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, Do) {
+  Prepare(
+      "class Sample {\n"
+      "  static void Foo(bool x) {\n"
+      "    do {\n"
+      "      if (x) break;\n"
+      "      if (Bar()) continue;\n"
+      "    } while (Baz());\n"
+      "  }\n"
+      "  static bool Bar() { return true; }\n"
+      "  static bool Baz() { return true; }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 void(bool)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block4\n"
+      "  bool %b2 = entry\n"
+      "  br block4\n"
+      "block5:\n"
+      "  // In: block9 block4\n"
+      "  // Out: block7 block6\n"
+      "  br %b2, block7, block6\n"
+      "block7:\n"
+      "  // In: block5\n"
+      "  // Out: block3\n"
+      "  br block3\n"
+      "block6:\n"
+      "  // In: block5\n"
+      "  // Out: block9 block8\n"
+      "  bool %b8 = call `Sample.Bar`, void\n"
+      "  br %b8, block9, block8\n"
+      "block9:\n"
+      "  // In: block6\n"
+      "  // Out: block5\n"
+      "  br block5\n"
+      "block8:\n"
+      "  // In: block6\n"
+      "  // Out: block4\n"
+      "  br block4\n"
+      "block4:\n"
+      "  // In: block1 block8\n"
+      "  // Out: block5 block3\n"
+      "  bool %b11 = call `Sample.Baz`, void\n"
+      "  br %b11, block5, block3\n"
+      "block3:\n"
+      "  // In: block7 block4\n"
+      "  // Out: block2\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block3\n"
+      "  // Out:\n"
+      "  exit\n",
+      GetFunction("Sample.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, If) {
   Prepare(
       "class Sample {\n"
@@ -197,9 +253,10 @@ TEST_F(CodeGeneratorTest, If) {
       "  // Out: block2\n"
       "  ret 56, block2\n"
       "block2:\n"
-      "  // In: block6 block5\n"
+      "  // In: block5 block6\n"
       "  // Out:\n"
-      "  exit\n", GetFunction("Sample.Foo"));
+      "  exit\n",
+      GetFunction("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Parameter) {
