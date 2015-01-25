@@ -5,6 +5,7 @@
 #ifndef ELANG_HIR_EDITOR_H_
 #define ELANG_HIR_EDITOR_H_
 
+#include <ostream>
 #include <memory>
 #include <vector>
 
@@ -48,7 +49,7 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   Editor(Factory* factory, Function* function);
   ~Editor();
 
-  const std::vector<ErrorData*> errors() const { return errors_; }
+  const std::vector<ErrorData*>& errors() const { return errors_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }

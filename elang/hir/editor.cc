@@ -16,14 +16,6 @@
 #include "elang/hir/values.h"
 #include "elang/hir/validator.h"
 
-namespace std {
-ostream& operator<<(ostream& ostream, vector<elang::hir::ErrorData*> errors) {
-  for (auto const error : errors)
-    ostream << *error << std::endl;
-  return ostream;
-}
-}  // namespace std
-
 namespace elang {
 namespace hir {
 

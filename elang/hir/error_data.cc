@@ -40,3 +40,12 @@ std::ostream& operator<<(std::ostream& ostream, const ErrorData& error) {
 
 }  // namespace hir
 }  // namespace elang
+
+namespace std {
+ostream& operator<<(ostream& ostream,
+                    const vector<elang::hir::ErrorData*>& errors) {
+  for (auto const error : errors)
+    ostream << *error << std::endl;
+  return ostream;
+}
+}  // namespace std

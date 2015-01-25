@@ -49,9 +49,18 @@ class ELANG_HIR_EXPORT ErrorData final : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(ErrorData);
 };
 
-std::ostream& operator<<(std::ostream& ostream, const ErrorData& error_data);
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const ErrorData& error_data);
 
 }  // namespace hir
 }  // namespace elang
+
+namespace std {
+
+ELANG_HIR_EXPORT ostream& operator<<(
+    ostream& ostream,
+    const std::vector<elang::hir::ErrorData*>& errors);
+
+}  // namespace std
 
 #endif  // ELANG_HIR_ERROR_DATA_H_
