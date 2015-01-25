@@ -205,6 +205,8 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
 //
 // Test cases
 //
+
+// Conditional expression
 TEST_F(MethodAnalyzerTest, Conditional) {
   Prepare(
       "class Sample {"
@@ -212,9 +214,7 @@ TEST_F(MethodAnalyzerTest, Conditional) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ(
-      "(method Foo (signature (class Int32) ((parameter (class Int32)))))\n",
-      GetCalls("Sample.Main"));
+  EXPECT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, ConditionalErrorBool) {
@@ -224,8 +224,7 @@ TEST_F(MethodAnalyzerTest, ConditionalErrorBool) {
       "    int Cond() { return 12; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("TypeResolver.Expression.NotBool(36) Cond\n",
-            GetCalls("Sample.Main"));
+  EXPECT_EQ("TypeResolver.Expression.NotBool(36) Cond\n", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, ConditionalErrorResult) {
@@ -234,8 +233,28 @@ TEST_F(MethodAnalyzerTest, ConditionalErrorResult) {
       "    void Main() { Cond() ? 12 : 34.0; }"
       "    bool Cond() { return true; }"
       "  }");
-  EXPECT_EQ("TypeResolver.Conditional.NotMatch(41) 12 34\n",
-            GetCalls("Sample.Main"));
+  EXPECT_EQ("TypeResolver.Conditional.NotMatch(41) 12 34\n", Analyze());
+}
+
+// `if` statement
+TEST_F(MethodAnalyzerTest, If) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { if (Cond()) Foo(12); }"
+      "    void Other() { if (Cond()) Foo(12); else Foo(34); }"
+      "    bool Cond() { return true; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ("", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, IfErrorCondition) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { if (Foo(0)) Foo(12); else Foo(34); }"
+      "    abstract Sample Foo(int x);"
+      "  }");
+  EXPECT_EQ("TypeResolver.Expression.NotBool(36) Foo\n", Analyze());
 }
 
 //
