@@ -226,12 +226,12 @@ void Editor::SetBranch(Value* condition,
                        BasicBlock* true_block,
                        BasicBlock* false_block) {
   DCHECK(basic_block_);
-  DCHECK(!condition->is<BasicBlock>());
+  DCHECK(condition->type()->is<BoolType>()) << *condition;
   if (auto const branch =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     branch->SetInputAt(0, condition);
     branch->SetInputAt(1, true_block);
-    branch->SetInputAt(2, true_block);
+    branch->SetInputAt(2, false_block);
     return;
   }
   SetTerminator(
@@ -241,8 +241,7 @@ void Editor::SetBranch(Value* condition,
 void Editor::SetBranch(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const branch =
-          basic_block_->last_instruction()->as<BranchInstruction>()) {
-    ResetInputs(branch);
+          basic_block_->last_instruction()->as<JumpInstruction>()) {
     branch->SetInputAt(0, target_block);
     return;
   }
