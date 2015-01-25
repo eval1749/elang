@@ -68,21 +68,38 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
              int index,
              Thing* detail);
 
-  // Commit changes
+  ////////////////////////////////////////////////////////////
+  //
+  // Operations on |BasicBlock|
+  //
   bool Commit();
 
-  // Operations on |BasicBlock|
+  // Edit a basic block as result of |SplitBefore()|, since |SplitBefore()|
+  // returns a basic block without terminator.
   void Continue(BasicBlock* basic_block);
+
+  // Edit |basic_block|
   void Edit(BasicBlock* basic_block);
+
+  // Returns new basic block inserted before |reference| block and starts
+  // editing.
   BasicBlock* EditNewBasicBlock(BasicBlock* reference);
+
+  // Returns new basic block inserted before exit block and starts editing.
   BasicBlock* EditNewBasicBlock();
+
+  // Returns new basic block inserted before |reference| block.
   BasicBlock* NewBasicBlock(BasicBlock* reference);
+
   // Returns new basic block inserted after basic block containing
   // |reference| instruction and moves instructions starting from |reference|
   // to the last instructions.
   BasicBlock* SplitBefore(Instruction* reference);
 
-  // Instruction editing
+  ////////////////////////////////////////////////////////////
+  //
+  // Operations on |Instruction|
+  //
   void Append(Instruction* new_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
   void RemoveInstruction(Instruction* old_instruction);
