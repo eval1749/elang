@@ -201,6 +201,13 @@ void CodeGenerator::Generate(ast::Statement* statement) {
   statement->Accept(this);
 }
 
+hir::Value* CodeGenerator::GenerateBool(ast::Expression* expression) {
+  // TOOD(eval1749) Convert |condition| to |bool|
+  auto const value = GenerateValue(expression);
+  DCHECK_EQ(value->type(), bool_type());
+  return value;
+}
+
 hir::Value* CodeGenerator::GenerateValue(ast::Expression* expression) {
   ScopedOutput output(this);
   expression->Accept(this);
@@ -370,12 +377,10 @@ void CodeGenerator::VisitCall(ast::Call* node) {
 }
 
 void CodeGenerator::VisitConditional(ast::Conditional* node) {
-  auto const condition = GenerateValue(node->condition());
-  // TOOD(eval1749) Convert |condition| to |bool|
-  DCHECK_EQ(condition->type(), bool_type());
-
+  auto const cond_value = GenerateBool(node->condition());
   auto const cond_block = editor()->basic_block();
   Commit();
+
   auto const merge_block =
       editor()->SplitBefore(cond_block->last_instruction());
 
@@ -392,7 +397,7 @@ void CodeGenerator::VisitConditional(ast::Conditional* node) {
   DCHECK_EQ(true_value->type(), false_value->type());
 
   editor()->Continue(cond_block);
-  editor()->SetBranch(condition, true_block, false_block);
+  editor()->SetBranch(cond_value, true_block, false_block);
   Commit();
 
   editor()->Edit(merge_block);
@@ -455,6 +460,37 @@ void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   DCHECK(!output_);
   node->expression()->Accept(this);
+}
+
+void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
+  auto const cond_value = GenerateBool(node->condition());
+  auto const cond_block = editor()->basic_block();
+  Commit();
+
+  auto const merge_block =
+      editor()->SplitBefore(cond_block->last_instruction());
+
+  auto const then_block = editor()->EditNewBasicBlock(merge_block);
+  Generate(node->then_statement());
+  if (editor()->basic_block()) {
+    editor()->SetBranch(merge_block);
+    Commit();
+  }
+
+  auto else_block = merge_block;
+  if (node->else_statement()) {
+    else_block = editor()->EditNewBasicBlock(merge_block);
+    Generate(node->else_statement());
+    if (editor()->basic_block()) {
+      editor()->SetBranch(merge_block);
+      Commit();
+    }
+  }
+
+  editor()->Continue(cond_block);
+  editor()->SetBranch(cond_value, then_block, else_block);
+  Commit();
+  editor()->Edit(merge_block);
 }
 
 void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {

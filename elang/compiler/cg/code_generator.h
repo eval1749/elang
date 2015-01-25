@@ -51,6 +51,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // Generate value
   void Generate(ast::Statement* statement);
+  hir::Value* GenerateBool(ast::Expression* expression);
   hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
 
@@ -86,6 +87,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // ast::Visitor statement nodes
   void VisitBlockStatement(ast::BlockStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitIfStatement(ast::IfStatement* node);
   void VisitReturnStatement(ast::ReturnStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
 
