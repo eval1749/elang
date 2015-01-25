@@ -155,6 +155,15 @@ bool Validator::Validate(Function* function) {
 
 bool Validator::Validate(Instruction* instruction) {
   is_valid_ = true;
+  // Check instruction inputs are alive.
+  auto position = 0;
+  for (auto input : instruction->inputs()) {
+    if (auto const instr = input->as<Instruction>()) {
+      if (!instr->id())
+        Error(ErrorCode::ValidateInstructionOperand, instr, position);
+    }
+    ++position;
+  }
   instruction->Accept(this);
   return is_valid_;
 }
