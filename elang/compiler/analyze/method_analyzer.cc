@@ -78,7 +78,7 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
                                        ast::Method* method)
     : Analyzer(name_resolver),
       method_(method),
-      type_factory_(new ts::Factory(zone())),
+      type_factory_(new ts::Factory(session(), zone())),
       variable_tracker_(new VariableTracker(session(), zone(), method)),
       type_resolver_(new TypeResolver(name_resolver,
                                       type_factory_.get(),

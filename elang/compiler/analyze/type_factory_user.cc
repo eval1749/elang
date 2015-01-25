@@ -22,6 +22,10 @@ Value* FactoryUser::any_value() const {
   return factory()->any_value();
 }
 
+Value* FactoryUser::bool_value() const {
+  return factory()->bool_value();
+}
+
 Value* FactoryUser::empty_value() const {
   return factory()->empty_value();
 }

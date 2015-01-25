@@ -11,9 +11,11 @@
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_user.h"
 #include "elang/compiler/analyze/type_values_forward.h"
+#include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
 namespace compiler {
+enum class PredefinedName;
 namespace ast {
 class Call;
 class Node;
@@ -27,27 +29,32 @@ namespace ts {
 //
 // The Type Factory
 //
-class Factory final : public ZoneUser {
+class Factory final : public CompilationSessionUser, public ZoneUser {
  public:
-  explicit Factory(Zone* zone);
+  Factory(CompilationSession* session, Zone* zone);
   ~Factory();
 
-  AnyValue* any_value() { return any_value_; }
-  EmptyValue* empty_value() { return empty_value_; }
+  Value* any_value() const { return any_value_; }
+  Value* bool_value() const { return bool_value_; }
+  Value* empty_value() const { return empty_value_; }
   AndValue* NewAndValue(const std::vector<UnionValue*>& union_values);
   Argument* NewArgument(CallValue* call_value, int position);
   CallValue* NewCallValue(ast::Call* call);
-  InvalidValue* NewInvalidValue(ast::Node* node);
-  Literal* NewLiteral(ir::Type* type);
-  NullValue* NewNullValue(Value* value);
+  Value* NewInvalidValue(ast::Node* node);
+  Value* NewLiteral(ir::Type* type);
+  Value* NewNullValue(Value* value);
+  Value* NewPredefinedValue(PredefinedName name);
   Variable* NewVariable(ast::Node* node, Value* value);
 
  private:
-  AnyValue* const any_value_;
-  EmptyValue* const empty_value_;
+  Value* const any_value_;
+  Value* const empty_value_;
 
   ZoneUnorderedMap<ir::Type*, ts::Literal*> literal_cache_map_;
   ZoneUnorderedMap<ts::Value*, ts::NullValue*> null_value_cache_map_;
+
+  // |bool_type_| uses |literal_cache_map_|.
+  Value* const bool_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

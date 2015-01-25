@@ -38,10 +38,11 @@ class FactoryUser {
   explicit FactoryUser(Factory* factory);
 
   Value* any_value() const;
+  Value* bool_value() const;
   Value* empty_value() const;
 
-  ts::Value* NewInvalidValue(ast::Node* node);
-  ts::Value* NewLiteral(ir::Type* type);
+  Value* NewInvalidValue(ast::Node* node);
+  Value* NewLiteral(ir::Type* type);
 
  private:
   Factory* const factory_;
