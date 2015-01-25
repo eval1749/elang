@@ -256,6 +256,26 @@ TEST_F(MethodAnalyzerTest, DoErrorCondition) {
   EXPECT_EQ("TypeResolver.Expression.NotBool(54) Foo\n", Analyze());
 }
 
+// 'for' statement
+TEST_F(MethodAnalyzerTest, For) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { for (Foo(3); Cond(); Foo(4)) { Foo(12); } }"
+      "    bool Cond() { return true; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ("", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, ForErrorCondition) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { for (;Foo(1);) { Foo(0); } }"
+      "    abstract Sample Foo(int x);"
+      "  }");
+  EXPECT_EQ("TypeResolver.Expression.NotBool(38) Foo\n", Analyze());
+}
+
 // 'if' statement
 TEST_F(MethodAnalyzerTest, If) {
   Prepare(
@@ -277,9 +297,7 @@ TEST_F(MethodAnalyzerTest, IfErrorCondition) {
   EXPECT_EQ("TypeResolver.Expression.NotBool(36) Foo\n", Analyze());
 }
 
-//
 // Method resolution
-//
 TEST_F(MethodAnalyzerTest, Method) {
   Prepare(
       "using System;"

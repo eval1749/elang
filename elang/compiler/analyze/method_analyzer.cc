@@ -55,7 +55,9 @@ class MethodBodyAnalyzer final : public Analyzer,
   // ast::Visitor
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitDoStatement(ast::DoStatement* node) final;
+  void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitForStatement(ast::ForStatement* node) final;
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
@@ -153,9 +155,23 @@ void MethodBodyAnalyzer::VisitDoStatement(ast::DoStatement* node) {
   type_resolver()->ResolveAsBool(node->condition());
 }
 
+void MethodBodyAnalyzer::VisitExpressionList(ast::ExpressionList* node) {
+  for (auto const expression : node->expressions())
+    type_resolver()->Resolve(expression, type_factory()->any_value());
+}
+
 void MethodBodyAnalyzer::VisitExpressionStatement(
     ast::ExpressionStatement* node) {
   type_resolver()->Resolve(node->expression(), type_factory()->any_value());
+}
+
+void MethodBodyAnalyzer::VisitForStatement(ast::ForStatement* node) {
+  if (node->initializer())
+    node->initializer()->Accept(this);
+  type_resolver()->ResolveAsBool(node->condition());
+  if (node->step())
+    node->step()->Accept(this);
+  node->statement()->Accept(this);
 }
 
 void MethodBodyAnalyzer::VisitIfStatement(ast::IfStatement* node) {
