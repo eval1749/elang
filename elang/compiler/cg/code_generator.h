@@ -54,6 +54,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // Generate value
   void Generate(ast::Statement* statement);
   hir::Value* GenerateBool(ast::Expression* expression);
+  void GenerateDoOrWhile(ast::DoOrWhileStatement* do_or_while_statement);
   hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
 
@@ -75,26 +76,29 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   ir::Node* ValueOf(ast::Node* node) const;
 
   // ast::Visitor declaration nodes
-  void CodeGenerator::VisitMethod(ast::Method* ast_method);
+  void CodeGenerator::VisitMethod(ast::Method* ast_method) final;
 
   // ast::Visitor expression nodes
-  void VisitAssignment(ast::Assignment* node);
-  void VisitCall(ast::Call* node);
-  void VisitConditional(ast::Conditional* node);
-  void VisitLiteral(ast::Literal* node);
-  void VisitNameReference(ast::NameReference* node);
-  void VisitParameterReference(ast::ParameterReference* node);
-  void VisitVariableReference(ast::VariableReference* node);
+  void VisitAssignment(ast::Assignment* node) final;
+  void VisitCall(ast::Call* node) final;
+  void VisitConditional(ast::Conditional* node) final;
+  void VisitLiteral(ast::Literal* node) final;
+  void VisitNameReference(ast::NameReference* node) final;
+  void VisitParameterReference(ast::ParameterReference* node) final;
+  void VisitVariableReference(ast::VariableReference* node) final;
 
   // ast::Visitor statement nodes
-  void VisitBlockStatement(ast::BlockStatement* node);
-  void VisitBreakStatement(ast::BreakStatement* node);
-  void VisitContinueStatement(ast::ContinueStatement* node);
-  void VisitDoStatement(ast::DoStatement* node);
-  void VisitExpressionStatement(ast::ExpressionStatement* node);
-  void VisitIfStatement(ast::IfStatement* node);
-  void VisitReturnStatement(ast::ReturnStatement* node);
-  void VisitVarStatement(ast::VarStatement* node);
+  void VisitBlockStatement(ast::BlockStatement* node) final;
+  void VisitBreakStatement(ast::BreakStatement* node) final;
+  void VisitContinueStatement(ast::ContinueStatement* node) final;
+  void VisitDoStatement(ast::DoStatement* node) final;
+  void VisitExpressionList(ast::ExpressionList* node) final;
+  void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitForStatement(ast::ForStatement* node) final;
+  void VisitIfStatement(ast::IfStatement* node) final;
+  void VisitReturnStatement(ast::ReturnStatement* node) final;
+  void VisitVarStatement(ast::VarStatement* node) final;
+  void VisitWhileStatement(ast::WhileStatement* node) final;
 
   const BreakContext* break_context_;
   hir::Editor* editor_;
