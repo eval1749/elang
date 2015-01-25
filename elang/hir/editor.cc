@@ -290,6 +290,7 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
   for (auto runner = reference; runner; runner = runner->next()) {
     ref_basic_block->instructions_.RemoveNode(runner);
     new_basic_block->instructions_.AppendNode(runner);
+    runner->basic_block_ = new_basic_block;
   }
   DCHECK(Validate(new_basic_block)) << errors_;
   return new_basic_block;
