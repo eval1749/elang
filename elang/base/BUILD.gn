@@ -15,6 +15,7 @@ component("base") {
     "index_sequence.h",
     "maybe.h",
     "simple_directed_graph.h",
+    "temporary_change_value.h",
     "visitable.h",
     "zone.cc",
     "zone.h",
@@ -48,6 +49,7 @@ source_set("base_unittests") {
     "castable_unittest.cc",
     "double_linked_unittest.cc",
     "simple_directed_graph_unittest.cc",
+    "temporary_change_value_unittest.cc",
   ]
 
   public_deps = [
