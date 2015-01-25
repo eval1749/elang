@@ -120,6 +120,40 @@ TEST_F(CodeGeneratorTest, Call) {
       GetFunction("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, Conditional) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo(bool x) { var y = x ? Bar() : 38; return y; }\n"
+      "  static int Bar() { return 42; }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 int32(bool)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block4 block5\n"
+      "  bool %b2 = entry\n"
+      "  br %b2, block4, block5\n"
+      "block4:\n"
+      "  // In: block1\n"
+      "  // Out: block3\n"
+      "  int32 %r4 = call `Sample.Bar`, void\n"
+      "  br block3\n"
+      "block5:\n"
+      "  // In: block1\n"
+      "  // Out: block3\n"
+      "  br block3\n"
+      "block3:\n"
+      "  // In: block4 block5\n"
+      "  // Out: block2\n"
+      "  int32 %r8 = phi block4 %r4, block5 38\n"
+      "  ret %r8, block2\n"
+      "block2:\n"
+      "  // In: block3\n"
+      "  // Out:\n"
+      "  exit\n",
+      GetFunction("Sample.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, Parameter) {
   Prepare(
       "class Sample {\n"

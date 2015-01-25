@@ -77,6 +77,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // ast::Visitor expression nodes
   void VisitAssignment(ast::Assignment* node);
   void VisitCall(ast::Call* node);
+  void VisitConditional(ast::Conditional* node);
   void VisitLiteral(ast::Literal* node);
   void VisitNameReference(ast::NameReference* node);
   void VisitParameterReference(ast::ParameterReference* node);

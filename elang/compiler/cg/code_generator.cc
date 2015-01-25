@@ -369,6 +369,42 @@ void CodeGenerator::VisitCall(ast::Call* node) {
       argument_values.empty() ? void_value() : argument_values.front()));
 }
 
+void CodeGenerator::VisitConditional(ast::Conditional* node) {
+  auto const condition = GenerateValue(node->condition());
+  // TOOD(eval1749) Convert |condition| to |bool|
+  DCHECK_EQ(condition->type(), bool_type());
+
+  auto const cond_block = editor()->basic_block();
+  Commit();
+  auto const merge_block =
+      editor()->SplitBefore(cond_block->last_instruction());
+
+  auto const true_block = editor()->EditNewBasicBlock(merge_block);
+  auto const true_value = GenerateValue(node->true_expression());
+  editor()->SetBranch(merge_block);
+  Commit();
+
+  auto const false_block = editor()->EditNewBasicBlock(merge_block);
+  auto const false_value = GenerateValue(node->false_expression());
+  editor()->SetBranch(merge_block);
+  Commit();
+
+  DCHECK_EQ(true_value->type(), false_value->type());
+
+  editor()->Continue(cond_block);
+  editor()->SetBranch(condition, true_block, false_block);
+  Commit();
+
+  editor()->Edit(merge_block);
+  if (!NeedOutput())
+    return;
+
+  auto const phi = editor()->NewPhi(true_value->type());
+  editor()->SetPhiInput(phi, true_block, true_value);
+  editor()->SetPhiInput(phi, false_block, false_value);
+  EmitOutput(phi);
+}
+
 void CodeGenerator::VisitLiteral(ast::Literal* node) {
   if (!NeedOutput())
     return;
