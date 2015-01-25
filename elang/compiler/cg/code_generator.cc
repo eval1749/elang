@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/compiler/cg/code_generator.h"
 
 #include "base/logging.h"
+#include "elang/base/temporary_change_value.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -20,6 +23,7 @@
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
 #include "elang/hir/editor.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/intrinsic_names.h"
 #include "elang/hir/instructions.h"
@@ -33,26 +37,9 @@ namespace compiler {
 // CodeGenerator::Output
 //
 struct CodeGenerator::Output {
-  hir::Instruction* instruction;
-  int position;
-  hir::Type* type;
   hir::Value* value;
 
-  // |position| is -1 means current context expects value rather than setting
-  // value into instruction.
-  // |type| is |VoidType| means current context expects no output, e.g. middle
-  // of block statement or `return` statement for `void` method.
-  Output(hir::Type* type, hir::Instruction* instruction, int position)
-      : instruction(instruction),
-        position(position),
-        type(type),
-        value(nullptr) {
-    DCHECK(instruction);
-    if (type->is<hir::VoidType>())
-      return;
-    DCHECK_GE(position, -1);
-    DCHECK_LT(position, instruction->CountInputs());
-  }
+  Output() : value(nullptr) {}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -62,10 +49,7 @@ struct CodeGenerator::Output {
 //
 class CodeGenerator::ScopedOutput {
  public:
-  ScopedOutput(CodeGenerator* generator,
-               hir::Type* type,
-               hir::Instruction* instruction,
-               int position);
+  explicit ScopedOutput(CodeGenerator* generator);
   ~ScopedOutput();
 
  private:
@@ -76,13 +60,8 @@ class CodeGenerator::ScopedOutput {
   DISALLOW_COPY_AND_ASSIGN(ScopedOutput);
 };
 
-CodeGenerator::ScopedOutput::ScopedOutput(CodeGenerator* generator,
-                                          hir::Type* type,
-                                          hir::Instruction* instruction,
-                                          int position)
-    : generator_(generator),
-      output_(type, instruction, position),
-      previous_output_(generator->output_) {
+CodeGenerator::ScopedOutput::ScopedOutput(CodeGenerator* generator)
+    : generator_(generator), previous_output_(generator->output_) {
   generator_->output_ = &output_;
 }
 
@@ -107,41 +86,46 @@ CodeGenerator::CodeGenerator(CompilationSession* session, hir::Factory* factory)
 CodeGenerator::~CodeGenerator() {
 }
 
+hir::Type* CodeGenerator::bool_type() const {
+  return MapType(PredefinedName::Bool);
+}
+
 hir::TypeFactory* CodeGenerator::types() const {
   return factory()->types();
 }
 
-void CodeGenerator::Emit(hir::Instruction* instruction) {
-  DCHECK(output_);
-  editor_->Append(instruction);
+hir::Value* CodeGenerator::void_value() const {
+  return void_type()->default_value();
 }
 
-void CodeGenerator::EmitOutput(hir::Instruction* instruction) {
-  if (!instruction->id())
-    Emit(instruction);
-  if (!NeedOutput()) {
-    DCHECK(!instruction->CanBeRemoved());
-    return;
-  }
-  EmitOutput(static_cast<hir::Value*>(instruction));
+void CodeGenerator::Commit() {
+  auto const is_valid = editor()->Commit();
+  DCHECK(is_valid) << editor()->errors();
+}
+
+void CodeGenerator::Emit(hir::Instruction* instruction) {
+  editor()->Append(instruction);
 }
 
 void CodeGenerator::EmitOutput(hir::Value* value) {
-  DCHECK(output_);
-  DCHECK(NeedOutput());
-  if (output_->type == void_type())
+  DCHECK(value);
+  DCHECK_NE(value, void_value());
+  if (!output_)
     return;
-  if (output_->position < 0) {
-    output_->value = value;
-    return;
-  }
-  editor_->SetInput(output_->instruction, output_->position, value);
+  DCHECK(!output_->value);
+  output_->value = value;
+}
+
+void CodeGenerator::EmitOutputInstruction(hir::Instruction* instruction) {
+  Emit(instruction);
+  EmitOutput(static_cast<hir::Value*>(instruction));
 }
 
 void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
   if (ast_method->parameters().empty())
     return;
   if (ast_method->parameters().size() == 1u) {
+    // Take parameter from `entry` instruction.
     EmitVariableBinding(ast_method->parameters()[0], nullptr,
                         function_->entry_block()->first_instruction());
     return;
@@ -152,40 +136,28 @@ void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
 void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
                                            ast::Expression* ast_value) {
   auto const variable = ValueOf(ast_node)->as<ir::Variable>();
-  auto const variable_type = MapType(variable->type());
-  auto const store_instr = factory()->NewStoreInstruction(
-      variables_[variable], variable_type->default_value());
-  Emit(store_instr);
-  if (!ast_value)
-    return;
-  ScopedOutput bind_scope(this, variable_type, store_instr, 1);
-  ast_value->Accept(this);
+  auto const value = GenerateValue(ast_value);
+  Emit(factory()->NewStoreInstruction(variables_[variable], value));
+  EmitOutput(value);
 }
 
+// |ast_value| comes from `var` statement
+// |value| comes from parameter
 void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
                                         ast::Expression* ast_value,
                                         hir::Value* value) {
   auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
   auto const variable_type = MapType(variable->type());
+  auto const variable_value =
+      value ? value : ast_value ? GenerateValue(ast_value)
+                                : variable_type->default_value();
 
-  if (variable->storage() == ir::StorageClass::Void) {
-    if (!ast_value)
-      return;
-    GenerateValue(void_type(), ast_value);
+  if (variable->storage() == ir::StorageClass::Void)
     return;
-  }
 
   if (variable->storage() == ir::StorageClass::ReadOnly) {
     DCHECK(!variables_.count(variable));
-    if (value) {
-      variables_[variable] = value;
-      return;
-    }
-    if (ast_value) {
-      variables_[variable] = GenerateValue(variable_type, ast_value);
-      return;
-    }
-    variables_[variable] = variable_type->default_value();
+    variables_[variable] = variable_value;
     return;
   }
 
@@ -201,13 +173,7 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
   DCHECK(!variables_.count(variable));
   variables_[variable] = alloc_instr;
   Emit(alloc_instr);
-  auto const store_instr = factory()->NewStoreInstruction(
-      alloc_instr, value ? value : variable_type->default_value());
-  Emit(store_instr);
-  if (!ast_value)
-    return;
-  ScopedOutput bind_scope(this, variable_type, store_instr, 1);
-  ast_value->Accept(this);
+  Emit(factory()->NewStoreInstruction(alloc_instr, variable_value));
 }
 
 void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
@@ -216,12 +182,13 @@ void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
   auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
   DCHECK(variable);
   auto const it = variables_.find(variable);
-  DCHECK(it != variables_.end());
+  DCHECK(it != variables_.end()) << *variable << " isn't resolved";
+  DCHECK(it->second) << *variable << " has no value";
   if (variable->storage() == ir::StorageClass::ReadOnly) {
     EmitOutput(it->second);
     return;
   }
-  EmitOutput(factory()->NewLoadInstruction(it->second));
+  EmitOutputInstruction(factory()->NewLoadInstruction(it->second));
 }
 
 hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
@@ -229,9 +196,13 @@ hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
   return it == functions_.end() ? nullptr : it->second;
 }
 
-hir::Value* CodeGenerator::GenerateValue(hir::Type* type,
-                                         ast::Expression* expression) {
-  ScopedOutput output(this, type, output_->instruction, -1);
+void CodeGenerator::Generate(ast::Statement* statement) {
+  DCHECK(!output_);
+  statement->Accept(this);
+}
+
+hir::Value* CodeGenerator::GenerateValue(ast::Expression* expression) {
+  ScopedOutput output(this);
   expression->Accept(this);
   DCHECK(output_->value);
   return output_->value;
@@ -246,8 +217,7 @@ hir::Type* CodeGenerator::MapType(ir::Type* type) const {
 }
 
 bool CodeGenerator::NeedOutput() const {
-  DCHECK(output_);
-  return output_->type && output_->type != void_type();
+  return !!output_;
 }
 
 hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
@@ -328,22 +298,27 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
     DVLOG(0) << "Not resolved " << *ast_method;
     return;
   }
-  if (!ast_method->body())
+  auto const ast_method_body = ast_method->body();
+  if (!ast_method_body)
     return;
-  function_ = factory()->NewFunction(
+  auto const function = factory()->NewFunction(
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
+  TemporaryChangeValue<hir::Function*> function_scope(function_, function);
+  functions_[ast_method] = function;
+
   hir::Editor editor(factory(), function_);
-  editor_ = &editor;
-  auto const return_instr = function_->entry_block()->last_instruction();
-  editor.Edit(return_instr->basic_block());
-  ScopedOutput scoped_output(this, void_type(), return_instr, 0);
+  TemporaryChangeValue<hir::Editor*> editor_scope(editor_, &editor);
+  editor.Edit(function->entry_block());
+
   EmitParameterBindings(ast_method);
-  ast_method->body()->Accept(this);
-  // TODO(eval1749) We should check |return_instr| has value if it is reachable.
-  functions_[ast_method] = function_;
+
+  if (auto const ast_expression = ast_method_body->as<ast::Expression>())
+    editor.SetReturn(GenerateValue(ast_expression));
+  else
+    Generate(ast_method_body);
+  if (!editor.basic_block())
+    return;
   editor.Commit();
-  editor_ = nullptr;
-  function_ = nullptr;
 }
 
 //
@@ -377,40 +352,21 @@ void CodeGenerator::VisitAssignment(ast::Assignment* node) {
 }
 
 void CodeGenerator::VisitCall(ast::Call* node) {
-  DCHECK(node);
   auto const callee = ValueOf(node->callee())->as<ir::Method>();
   DCHECK(callee) << "Unresolved call" << *node;
-  auto const callee_type =
-      MapType(callee->signature())->as<hir::FunctionType>();
-  // TODO(eval1749) We should make 'call' instruction takes multiple
-  // operands.
-  auto const call_instr = factory()->NewCallInstruction(
-      callee_type->default_value(),
-      MapType(PredefinedName::Void)->default_value());
-  editor_->InsertBefore(call_instr, output_->instruction);
-
   // Generate argument list.
   auto position = static_cast<int>(node->arguments().size());
   auto arguments = node->arguments().rbegin();
+  std::vector<hir::Value*> argument_values(position);
   while (position) {
-    auto const arg_type = callee_type->parameters_type();
-    ScopedOutput output_to_argument(this, arg_type, call_instr, position);
-    (*arguments)->Accept(this);
     --position;
+    argument_values[position] = GenerateValue(*arguments);
     ++arguments;
   }
-  // Generate callee
-  {
-    ScopedOutput output_callee(this, callee_type, call_instr, 0);
-    node->callee()->Accept(this);
-  }
-  // Set call value if needed
-  if (output_->type == void_type()) {
-    if (call_instr->CanBeRemoved())
-      editor_->RemoveInstruction(call_instr);
-    return;
-  }
-  EmitOutput(call_instr);
+  DCHECK_LE(argument_values.size(), 1u);
+  EmitOutputInstruction(factory()->NewCallInstruction(
+      GenerateValue(node->callee()),
+      argument_values.empty() ? void_value() : argument_values.front()));
 }
 
 void CodeGenerator::VisitLiteral(ast::Literal* node) {
@@ -451,43 +407,25 @@ void CodeGenerator::VisitVariableReference(ast::VariableReference* node) {
 //
 void CodeGenerator::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
-    if (statement == node->statements().back()) {
-      statement->Accept(this);
-      break;
-    }
-    // Interleaved statement has no output.
-    ScopedOutput scoped_output(this, void_type(), output_->instruction, -1);
-    statement->Accept(this);
-    if (!output_) {
+    if (!editor()->basic_block()) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
       // checking |statement|.
       break;
     }
+    Generate(statement);
   }
 }
 
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
+  DCHECK(!output_);
   node->expression()->Accept(this);
 }
 
 void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
-  auto const return_type = function_->return_type();
-  auto const ast_value = node->value();
-  if (output_->instruction->is<hir::ReturnInstruction>()) {
-    if (!ast_value)
-      return;
-    output_->type = return_type;
-    ast_value->Accept(this);
-    output_ = nullptr;
-    return;
-  }
-  auto const return_instr = factory()->NewReturnInstruction(
-      return_type->default_value(), function_->exit_block());
-  {
-    ScopedOutput return_scope(this, return_type, return_instr, 0);
-    ast_value->Accept(this);
-  }
-  output_ = nullptr;
+  auto const return_value =
+      node->value() ? GenerateValue(node->value()) : void_value();
+  editor()->SetReturn(return_value);
+  Commit();
 }
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {

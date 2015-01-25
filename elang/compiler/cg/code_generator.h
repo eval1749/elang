@@ -38,22 +38,27 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   struct Output;
   class ScopedOutput;
 
+  hir::Type* bool_type() const;
+  hir::Editor* editor() const { return editor_; }
   hir::Factory* factory() const { return factory_; }
   hir::TypeFactory* types() const;
   TypeMapper* type_mapper() const { return type_mapper_.get(); }
   hir::Type* void_type() const { return void_type_; }
+  hir::Value* void_value() const;
 
   hir::Type* MapType(PredefinedName name) const;
   hir::Type* MapType(ir::Type* type) const;
 
   // Generate value
-  hir::Value* GenerateValue(hir::Type* type, ast::Expression* expression);
+  void Generate(ast::Statement* statement);
+  hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
 
   // Output
+  void Commit();
   void Emit(hir::Instruction* instruction);
-  void EmitOutput(hir::Instruction* instruction);
   void EmitOutput(hir::Value* value);
+  void EmitOutputInstruction(hir::Instruction* instruction);
   void EmitParameterBindings(ast::Method* method);
   void EmitVariableAssignment(ast::NamedNode* ast_node,
                               ast::Expression* ast_value);
