@@ -55,6 +55,10 @@ BasicBlockSuccessors BasicBlock::successors() const {
   return BasicBlockSuccessors(this);
 }
 
+bool BasicBlock::HasPredecessor() const {
+  return predecessors().begin() != predecessors().end();
+}
+
 // BasicBlockPredecessors
 BasicBlockPredecessors::BasicBlockPredecessors(const BasicBlock* basic_block)
     : basic_block_(basic_block) {

@@ -338,6 +338,8 @@ class ELANG_HIR_EXPORT BasicBlock final
   BasicBlockPredecessors predecessors() const;
   BasicBlockSuccessors successors() const;
 
+  bool HasPredecessor() const;
+
  private:
   friend class Editor;
 

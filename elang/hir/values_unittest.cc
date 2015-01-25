@@ -39,6 +39,8 @@ TEST_F(HirValuesTest, Function) {
       "  // Out:\n"
       "  exit\n",
       Format());
+  EXPECT_FALSE(entry_block()->HasPredecessor());
+  EXPECT_TRUE(exit_block()->HasPredecessor());
 }
 
 // Literals
