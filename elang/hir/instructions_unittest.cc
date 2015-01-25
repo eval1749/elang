@@ -188,7 +188,7 @@ TEST_F(HirInstructionTest, PhiInstruction) {
       "  call `Consumer`, %b8\n"
       "  ret void, block2\n"
       "block2:\n"
-      "  // In: block1\n"
+      "  // In: block3\n"
       "  // Out:\n"
       "  exit\n",
       Format());
