@@ -46,10 +46,17 @@ ContinueStatement::ContinueStatement(Token* keyword)
   DCHECK_EQ(keyword, TokenType::Continue);
 }
 
+DoOrWhileStatement::DoOrWhileStatement(Token* keyword,
+                                       Statement* statement,
+                                       Expression* condition)
+    : Statement(keyword), condition_(condition), statement_(statement) {
+  DCHECK(keyword == TokenType::Do || keyword == TokenType::While);
+}
+
 DoStatement::DoStatement(Token* keyword,
                          Statement* statement,
                          Expression* condition)
-    : Statement(keyword), condition_(condition), statement_(statement) {
+    : DoOrWhileStatement(keyword, statement, condition) {
   DCHECK_EQ(keyword, TokenType::Do);
 }
 
@@ -176,7 +183,7 @@ VarStatement::VarStatement(Zone* zone,
 WhileStatement::WhileStatement(Token* keyword,
                                Expression* condition,
                                Statement* statement)
-    : Statement(keyword), condition_(condition), statement_(statement) {
+    : DoOrWhileStatement(keyword, statement, condition) {
   DCHECK_EQ(keyword, TokenType::While);
 }
 

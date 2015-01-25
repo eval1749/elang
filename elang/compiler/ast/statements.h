@@ -119,20 +119,33 @@ class ContinueStatement final : public TerminatorStatement {
   DISALLOW_COPY_AND_ASSIGN(ContinueStatement);
 };
 
-// Represents 'do' statement:
-//   'do' EmbededStatement 'while' '(' BooleanExpression ')' ';'
-class DoStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(DoStatement, Statement);
+// Represents 'do-while' or 'while'statement:
+class DoOrWhileStatement : public Statement {
+  DECLARE_ABSTRACT_AST_NODE_CLASS(DoOrWhileStatement, Statement);
 
  public:
   Expression* condition() const { return condition_; }
   Statement* statement() const { return statement_; }
 
- private:
-  DoStatement(Token* keyword, Statement* statement, Expression* condition);
+ protected:
+  DoOrWhileStatement(Token* keyword,
+                     Statement* statement,
+                     Expression* condition);
 
+ private:
   Expression* const condition_;
   Statement* const statement_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoOrWhileStatement);
+};
+
+// Represents 'do' statement:
+//   'do' EmbededStatement 'while' '(' BooleanExpression ')' ';'
+class DoStatement final : public DoOrWhileStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(DoStatement, DoOrWhileStatement);
+
+ private:
+  DoStatement(Token* keyword, Statement* statement, Expression* condition);
 
   DISALLOW_COPY_AND_ASSIGN(DoStatement);
 };
@@ -367,18 +380,11 @@ class VarStatement final : public Statement {
 
 // Represents 'while' statement:
 //  'while' '(' BooleanExpression ')' EmbededStatement
-class WhileStatement final : public Statement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(WhileStatement, Statement);
-
- public:
-  Expression* condition() const { return condition_; }
-  Statement* statement() const { return statement_; }
+class WhileStatement final : public DoOrWhileStatement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(WhileStatement, DoOrWhileStatement);
 
  private:
   WhileStatement(Token* keyword, Expression* condition, Statement* statement);
-
-  Expression* const condition_;
-  Statement* const statement_;
 
   DISALLOW_COPY_AND_ASSIGN(WhileStatement);
 };
