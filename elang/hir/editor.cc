@@ -177,6 +177,13 @@ void Editor::InsertBefore(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
 }
 
+bool Editor::IsAlive(Value* value) {
+  auto const instruction = value->as<Instruction>();
+  if (!instruction)
+    return true;
+  return !!instruction->id();
+}
+
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   auto const new_basic_block = factory()->NewBasicBlock();
   new_basic_block->function_ = function_;
@@ -243,21 +250,26 @@ void Editor::SetBranch(BasicBlock* target_block) {
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
+  DCHECK(IsAlive(new_value)) << *new_value;
   DCHECK(basic_block_);
   DCHECK_EQ(instruction->basic_block(), basic_block_);
   instruction->SetInputAt(index, new_value);
 }
 
-void Editor::SetPhiInput(PhiInstruction* phi, BasicBlock* block, Value* value) {
+void Editor::SetPhiInput(PhiInstruction* phi,
+                         BasicBlock* block,
+                         Value* new_value) {
+  DCHECK(IsAlive(new_value)) << *new_value;
   if (auto const present = phi->FindPhiInputFor(block)) {
-    present->SetValue(value);
+    present->SetValue(new_value);
     return;
   }
-  auto const new_input = new (zone()) PhiInput(phi, block, value);
+  auto const new_input = new (zone()) PhiInput(phi, block, new_value);
   phi->phi_inputs_.AppendNode(new_input);
 }
 
 void Editor::SetReturn(Value* new_value) {
+  DCHECK(IsAlive(new_value)) << *new_value;
   DCHECK(basic_block_);
   SetTerminator(factory()->NewReturnInstruction(new_value, exit_block()));
 }

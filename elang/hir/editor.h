@@ -49,6 +49,7 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   Editor(Factory* factory, Function* function);
   ~Editor();
 
+  BasicBlock* basic_block() const { return basic_block_; }
   const std::vector<ErrorData*>& errors() const { return errors_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
@@ -87,6 +88,7 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   void RemoveInstruction(Instruction* old_instruction);
 
   // Operand manipulation
+  static bool IsAlive(Value* value);
   void SetInput(Instruction* instruction, int index, Value* new_value);
 
   // Phi instruction
