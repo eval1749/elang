@@ -21,6 +21,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
 #include "elang/compiler/token_type.h"
@@ -90,15 +91,6 @@ TypeResolver::TypeResolver(NameResolver* name_resolver,
 TypeResolver::~TypeResolver() {
 }
 
-ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
-  ts::Evaluator evaluator(type_factory());
-  auto const result = evaluator.Unify(value1, value2);
-  if (result == empty_value()) {
-    DVLOG(0) << "Unify(" << *value1 << ", " << *value2 << ") yields empty.";
-  }
-  return result;
-}
-
 void TypeResolver::ProduceResolved(ast::Expression* expression,
                                    ts::Value* value,
                                    ast::Node* producer) {
@@ -122,15 +114,24 @@ void TypeResolver::ProduceUnifiedResult(ts::Value* result,
 }
 
 // The entry point of |TypeResolver|.
-bool TypeResolver::Resolve(ast::Expression* expression, ts::Value* value) {
+ts::Value* TypeResolver::Resolve(ast::Expression* expression,
+                                 ts::Value* value) {
   ScopedContext context(this, value, expression);
   expression->Accept(this);
-  // TODO(eval1749) Returns false if |context_.result| is |EmptyType|.
-  return true;
+  return context_->result;
 }
 
 ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
   return name_resolver()->ResolveReference(expression, context_method_);
+}
+
+ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
+  ts::Evaluator evaluator(type_factory());
+  auto const result = evaluator.Unify(value1, value2);
+  if (result == empty_value()) {
+    DVLOG(0) << "Unify(" << *value1 << ", " << *value2 << ") yields empty.";
+  }
+  return result;
 }
 
 ir::Node* TypeResolver::ValueOf(ast::Node* node) {
@@ -242,6 +243,27 @@ void TypeResolver::VisitCall(ast::Call* call) {
   }
 
   ProduceUnifiedResult(call_value, call);
+}
+
+void TypeResolver::VisitConditional(ast::Conditional* ast_node) {
+  auto const bool_type =
+      ValueOf(session()->GetPredefinedType(PredefinedName::Bool))
+          ->as<ir::Type>();
+  auto const bool_value = NewLiteral(bool_type);
+  if (Resolve(ast_node->condition(), bool_value) != bool_value)
+    Error(ErrorCode::TypeResolverExpressionNotBool, ast_node->condition());
+  auto const true_value = Resolve(ast_node->true_expression(), any_value());
+  auto const false_value = Resolve(ast_node->false_expression(), any_value());
+  // TODO(eval1749) Type of conditional expression is
+  //   |true_value| if implicit_cast(true_value) -> false_value and
+  //                 no implicit_cast(false_value) -> true_value
+  //   |false_value| if implicit_cast(false_value) -> true_value and
+  //                 no implicit_cast(true_value) -> false_value
+  if (true_value != false_value) {
+    Error(ErrorCode::TypeResolverConditionalNotMatch,
+          ast_node->true_expression(), ast_node->false_expression());
+  }
+  ProduceUnifiedResult(Unify(false_value, true_value), ast_node);
 }
 
 // `null` => |NullValue(context_->value)|

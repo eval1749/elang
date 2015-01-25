@@ -46,7 +46,7 @@ class TypeResolver final : public Analyzer,
   }
 
   // Unify type value of |expression| with |value|.
-  bool Resolve(ast::Expression* expression, ts::Value* value);
+  ts::Value* Resolve(ast::Expression* expression, ts::Value* value);
 
  private:
   struct Context;
@@ -66,6 +66,7 @@ class TypeResolver final : public Analyzer,
   // ast::Visitor
   void VisitAssignment(ast::Assignment* node);
   void VisitCall(ast::Call* node);
+  void VisitConditional(ast::Conditional* node);
   void VisitLiteral(ast::Literal* node);
   void VisitParameterReference(ast::ParameterReference* node);
   void VisitVariableReference(ast::VariableReference* node);

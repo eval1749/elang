@@ -203,6 +203,42 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Test cases
+//
+TEST_F(MethodAnalyzerTest, Conditional) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { Foo(Cond() ? 12 : 34); }"
+      "    bool Cond() { return true; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ(
+      "(method Foo (signature (class Int32) ((parameter (class Int32)))))\n",
+      GetCalls("Sample.Main"));
+}
+
+TEST_F(MethodAnalyzerTest, ConditionalErrorBool) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { Foo(Cond() ? 12 : 34); }"
+      "    int Cond() { return 12; }"
+      "    int Foo(int x) { return x; }"
+      "  }");
+  EXPECT_EQ("TypeResolver.Expression.NotBool(36) Cond\n",
+            GetCalls("Sample.Main"));
+}
+
+TEST_F(MethodAnalyzerTest, ConditionalErrorResult) {
+  Prepare(
+      "class Sample {"
+      "    void Main() { Cond() ? 12 : 34.0; }"
+      "    bool Cond() { return true; }"
+      "  }");
+  EXPECT_EQ("TypeResolver.Conditional.NotMatch(41) 12 34\n",
+            GetCalls("Sample.Main"));
+}
+
+//
 // Method resolution
 //
 TEST_F(MethodAnalyzerTest, Method) {

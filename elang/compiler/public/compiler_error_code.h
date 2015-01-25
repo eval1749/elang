@@ -194,6 +194,8 @@ namespace compiler {
   E(TypeResolver, Argument, Unify)                    \
   E(TypeResolver, Assignment, LeftValue)              \
   E(TypeResolver, Callee, NotSupported)               \
+  E(TypeResolver, Conditional, NotMatch)              \
+  E(TypeResolver, Expression, NotBool)                \
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \
   E(TypeResolver, Method, Return)                     \
