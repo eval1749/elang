@@ -20,7 +20,6 @@ class CompilationUnit;
 enum class ErrorCode;
 class Lexer;
 class Modifiers;
-class QualifiedName;
 class SourceCodePosition;
 
 //////////////////////////////////////////////////////////////////////
@@ -43,7 +42,6 @@ class Parser final : public CompilationSessionUser {
  private:
   class ContainerScope;
   class ModifierParser;
-  class QualifiedNameBuilder;
 
   ast::Factory* factory() const;
 
@@ -75,7 +73,6 @@ class Parser final : public CompilationSessionUser {
                       const std::vector<Token*>& names,
                       size_t index);
   bool ParseNamedNodes();
-  bool ParseQualifiedName();
   void ParseUsingDirectives();
   Token* PeekToken();
   void ValidateClassModifiers();
@@ -172,7 +169,6 @@ class Parser final : public CompilationSessionUser {
   const std::unique_ptr<Lexer> lexer_;
   int last_source_offset_;
   std::unique_ptr<ModifierParser> modifiers_;
-  std::unique_ptr<QualifiedNameBuilder> name_builder_;
   ast::Statement* statement_;
   StatementScope* statement_scope_;
   Token* token_;

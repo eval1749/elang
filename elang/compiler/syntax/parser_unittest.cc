@@ -787,15 +787,7 @@ TEST_F(ParserTest, MethodErrorTypeArg) {
 //
 // Namespace
 //
-TEST_F(ParserTest, NamespaceAlias) {
-  auto const source_code =
-      "namespace A {\n"
-      "  using B = N1.N2;\n"
-      "}\n";
-  EXPECT_EQ(source_code, Format(source_code));
-}
-
-TEST_F(ParserTest, NamespaceBasic) {
+TEST_F(ParserTest, Namespace) {
   auto const source_code =
       "namespace A {\n"
       "  namespace B {\n"
@@ -806,6 +798,19 @@ TEST_F(ParserTest, NamespaceBasic) {
       "namespace D {\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceAlias) {
+  auto const source_code =
+      "namespace A {\n"
+      "  using B = N1.N2;\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceErrorAnonymous) {
+  auto const source_code = "namespace {}";
+  EXPECT_EQ("Syntax.Namespace.Anonymous(10) {\n", Format(source_code));
 }
 
 TEST_F(ParserTest, NamespaceErrorConflictWithAlias) {
@@ -820,6 +825,16 @@ TEST_F(ParserTest, NamespaceErrorConflictWithClass) {
       "class A {}\n"
       "namespace A {}\n";
   EXPECT_EQ("Syntax.Namespace.Conflict(21) A class\n", Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceErrorEndsWithDot) {
+  auto const source_code = "namespace N1. {}";
+  EXPECT_EQ("Syntax.Namespace.Name(14) {\n", Format(source_code));
+}
+
+TEST_F(ParserTest, NamespaceErrorEndsWithNotName) {
+  auto const source_code = "namespace N1.* {}";
+  EXPECT_EQ("Syntax.Namespace.Name(13) *\n", Format(source_code));
 }
 
 TEST_F(ParserTest, NamespaceNestedShortcut) {

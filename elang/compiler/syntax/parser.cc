@@ -18,7 +18,6 @@
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/modifiers_builder.h"
 #include "elang/compiler/public/compiler_error_code.h"
-#include "elang/compiler/qualified_name.h"
 #include "elang/compiler/syntax/lexer.h"
 #include "elang/compiler/token_type.h"
 
@@ -119,45 +118,6 @@ void Parser::ModifierParser::Reset() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// QualifiedNameBuilder
-//
-class Parser::QualifiedNameBuilder final {
- public:
-  QualifiedNameBuilder();
-  ~QualifiedNameBuilder() = default;
-
-  const std::vector<Token*> simple_names() const { return simple_names_; }
-
-  void Add(Token* simple_name);
-  QualifiedName Get() const;
-  bool IsAtomicString() const { return simple_names_.size() == 1u; }
-  void Reset();
-
- private:
-  std::vector<Token*> simple_names_;
-
-  DISALLOW_COPY_AND_ASSIGN(QualifiedNameBuilder);
-};
-
-Parser::QualifiedNameBuilder::QualifiedNameBuilder() : simple_names_(20) {
-}
-
-void Parser::QualifiedNameBuilder::Add(Token* simple_name) {
-  DCHECK(simple_name->is_name());
-  simple_names_.push_back(simple_name);
-}
-
-QualifiedName Parser::QualifiedNameBuilder::Get() const {
-  DCHECK_GE(simple_names_.size(), 1u);
-  return QualifiedName(simple_names_);
-}
-
-void Parser::QualifiedNameBuilder::Reset() {
-  simple_names_.resize(0);
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // Parser
 //
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
@@ -171,7 +131,6 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       last_source_offset_(0),
       lexer_(new Lexer(session, compilation_unit)),
       modifiers_(new ModifierParser(this)),
-      name_builder_(new QualifiedNameBuilder()),
       statement_(nullptr),
       statement_scope_(nullptr),
       token_(nullptr) {
@@ -496,10 +455,22 @@ void Parser::ParseFunction() {
 bool Parser::ParseNamespace() {
   auto const namespace_keyword = ConsumeToken();
   DCHECK_EQ(namespace_keyword->type(), TokenType::Namespace);
-  if (!ParseQualifiedName())
-    return false;
-  const auto name = name_builder_->Get();
-  return ParseNamespace(namespace_keyword, name.simple_names(), 0);
+  std::vector<Token*> names;
+  do {
+    if (!PeekToken()->is_name()) {
+      if (!names.empty())
+        Error(ErrorCode::SyntaxNamespaceName);
+      if (PeekToken() != TokenType::LeftCurryBracket)
+        Advance();
+      break;
+    }
+    names.push_back(ConsumeToken());
+  } while (AdvanceIf(TokenType::Dot));
+  if (names.empty()) {
+    Error(ErrorCode::SyntaxNamespaceAnonymous);
+    names.push_back(NewUniqueNameToken(L"ns%d"));
+  }
+  return ParseNamespace(namespace_keyword, names, 0);
 }
 
 bool Parser::ParseNamespace(Token* namespace_keyword,
@@ -569,18 +540,6 @@ bool Parser::ParseNamedNodes() {
         return true;
     }
   }
-}
-
-bool Parser::ParseQualifiedName() {
-  name_builder_->Reset();
-  for (;;) {
-    if (!PeekToken()->is_name())
-      break;
-    name_builder_->Add(ConsumeToken());
-    if (!AdvanceIf(TokenType::Dot))
-      return true;
-  }
-  return false;
 }
 
 // UsingDirective ::= AliasDef | ImportNamespace

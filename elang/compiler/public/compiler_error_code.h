@@ -137,7 +137,9 @@ namespace compiler {
   /* 'partial' modifier must be the last modifier. */ \
   E(Syntax, Modifier, Partial)                        \
   /* Namespace */                                     \
+  E(Syntax, Namespace, Anonymous)                     \
   E(Syntax, Namespace, Conflict)                      \
+  E(Syntax, Namespace, Name)                          \
   E(Syntax, Namespace, LeftCurryBracket)              \
   E(Syntax, Namespace, RightCurryBracket)             \
   /* Return */                                        \

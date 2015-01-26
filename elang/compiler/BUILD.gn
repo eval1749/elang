@@ -23,8 +23,6 @@ static_library("compiler") {
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",
     "public/compiler_error_data.h",
-    "qualified_name.cc",
-    "qualified_name.h",
     "semantics.cc",
     "semantics.h",
     "source_code.cc",
