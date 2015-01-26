@@ -13,7 +13,6 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
-#include "elang/compiler/qualified_name.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {

@@ -19,7 +19,6 @@
 #include "elang/compiler/analyze/namespace_analyzer.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/qualified_name.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token.h"
@@ -27,16 +26,6 @@
 
 namespace elang {
 namespace compiler {
-
-std::ostream& operator<<(std::ostream& ostream, const QualifiedName& name) {
-  const char* dot = "";
-  for (const auto& simple_name : name.simple_names()) {
-    ostream << dot << simple_name;
-    dot = ".";
-  }
-  return ostream;
-}
-
 namespace testing {
 
 //////////////////////////////////////////////////////////////////////
