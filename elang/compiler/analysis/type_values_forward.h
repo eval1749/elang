@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_VALUES_FORWARD_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_VALUES_FORWARD_H_
+#ifndef ELANG_COMPILER_ANALYSIS_TYPE_VALUES_FORWARD_H_
+#define ELANG_COMPILER_ANALYSIS_TYPE_VALUES_FORWARD_H_
 
 #include <ostream>
 
@@ -40,4 +40,4 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value);
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_VALUES_FORWARD_H_
+#endif  // ELANG_COMPILER_ANALYSIS_TYPE_VALUES_FORWARD_H_

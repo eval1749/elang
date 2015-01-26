@@ -5,11 +5,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include "elang/compiler/analyze/type_evaluator.h"
+#include "elang/compiler/analysis/type_evaluator.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/type_factory.h"
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/type_factory.h"
+#include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ir/nodes.h"
 
 namespace elang {

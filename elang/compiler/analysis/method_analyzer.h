@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_METHOD_ANALYZER_H_
-#define ELANG_COMPILER_ANALYZE_METHOD_ANALYZER_H_
+#ifndef ELANG_COMPILER_ANALYSIS_METHOD_ANALYZER_H_
+#define ELANG_COMPILER_ANALYSIS_METHOD_ANALYZER_H_
 
 #include <unordered_map>
 
-#include "elang/compiler/analyze/analyzer.h"
+#include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {
@@ -39,4 +39,4 @@ class MethodAnalyzer final : public Analyzer, private ast::Visitor {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_METHOD_ANALYZER_H_
+#endif  // ELANG_COMPILER_ANALYSIS_METHOD_ANALYZER_H_

@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
+#ifndef ELANG_COMPILER_ANALYSIS_TYPE_RESOLVER_H_
+#define ELANG_COMPILER_ANALYSIS_TYPE_RESOLVER_H_
 
 #include <memory>
 #include <vector>
 
 #include "base/macros.h"
-#include "elang/compiler/analyze/analyzer.h"
-#include "elang/compiler/analyze/type_factory_user.h"
+#include "elang/compiler/analysis/analyzer.h"
+#include "elang/compiler/analysis/type_factory_user.h"
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {
@@ -87,4 +87,4 @@ class TypeResolver final : public Analyzer,
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_RESOLVER_H_
+#endif  // ELANG_COMPILER_ANALYSIS_TYPE_RESOLVER_H_

@@ -4,10 +4,10 @@
 
 #include <vector>
 
-#include "elang/compiler/analyze/class_analyzer.h"
+#include "elang/compiler/analysis/class_analyzer.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"

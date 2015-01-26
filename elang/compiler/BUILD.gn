@@ -55,7 +55,7 @@ static_library("compiler") {
   deps = [
     "//base",
     "//elang/base",
-    "//elang/compiler/analyze",
+    "//elang/compiler/analysis",
     "//elang/compiler/ast",
     "//elang/compiler/cg",
   ]
@@ -88,7 +88,7 @@ test("compiler_unittests") {
 
   deps = [
     "//base/test:run_all_unittests",
-    "//elang/compiler/analyze:compiler_analyze_test",
+    "//elang/compiler/analysis:compiler_analysis_test",
     "//elang/compiler/cg:compiler_cg_test",
     ":compiler_test",
   ]

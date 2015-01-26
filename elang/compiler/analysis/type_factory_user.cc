@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/analyze/type_factory_user.h"
+#include "elang/compiler/analysis/type_factory_user.h"
 
-#include "elang/compiler/analyze/type_factory.h"
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/type_factory.h"
+#include "elang/compiler/analysis/type_values.h"
 
 namespace elang {
 namespace compiler {

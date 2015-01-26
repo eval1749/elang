@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/analyze/variable_tracker.h"
+#include "elang/compiler/analysis/variable_tracker.h"
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
-#include "elang/compiler/analyze/type_evaluator.h"
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/type_evaluator.h"
+#include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"

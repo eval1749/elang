@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_METHOD_RESOLVER_H_
-#define ELANG_COMPILER_ANALYZE_METHOD_RESOLVER_H_
+#ifndef ELANG_COMPILER_ANALYSIS_METHOD_RESOLVER_H_
+#define ELANG_COMPILER_ANALYSIS_METHOD_RESOLVER_H_
 
 #include <vector>
 
@@ -55,4 +55,4 @@ class MethodResolver final {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_METHOD_RESOLVER_H_
+#endif  // ELANG_COMPILER_ANALYSIS_METHOD_RESOLVER_H_

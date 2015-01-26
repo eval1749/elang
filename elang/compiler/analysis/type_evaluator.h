@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
+#ifndef ELANG_COMPILER_ANALYSIS_TYPE_EVALUATOR_H_
+#define ELANG_COMPILER_ANALYSIS_TYPE_EVALUATOR_H_
 
 #include <vector>
 
 #include "base/macros.h"
-#include "elang/compiler/analyze/type_factory_user.h"
-#include "elang/compiler/analyze/type_values_forward.h"
+#include "elang/compiler/analysis/type_factory_user.h"
+#include "elang/compiler/analysis/type_values_forward.h"
 
 namespace elang {
 namespace compiler {
@@ -62,4 +62,4 @@ class Evaluator final : public FactoryUser {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_EVALUATOR_H_
+#endif  // ELANG_COMPILER_ANALYSIS_TYPE_EVALUATOR_H_

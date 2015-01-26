@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
-#define ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
+#ifndef ELANG_COMPILER_ANALYSIS_NAMESPACE_ANALYZER_H_
+#define ELANG_COMPILER_ANALYSIS_NAMESPACE_ANALYZER_H_
 
 #include <unordered_set>
 #include <unordered_map>
@@ -12,7 +12,7 @@
 #include "elang/base/maybe.h"
 #include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
-#include "elang/compiler/analyze/analyzer.h"
+#include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/predefined_names.h"
 
@@ -109,4 +109,4 @@ class NamespaceAnalyzer final : public Analyzer,
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_NAMESPACE_ANALYZER_H_
+#endif  // ELANG_COMPILER_ANALYSIS_NAMESPACE_ANALYZER_H_

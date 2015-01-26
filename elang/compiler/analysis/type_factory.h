@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
+#ifndef ELANG_COMPILER_ANALYSIS_TYPE_FACTORY_H_
+#define ELANG_COMPILER_ANALYSIS_TYPE_FACTORY_H_
 
 #include <vector>
 
 #include "base/macros.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_user.h"
-#include "elang/compiler/analyze/type_values_forward.h"
+#include "elang/compiler/analysis/type_values_forward.h"
 #include "elang/compiler/compilation_session_user.h"
 
 namespace elang {
@@ -63,4 +63,4 @@ class Factory final : public CompilationSessionUser, public ZoneUser {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_FACTORY_H_
+#endif  // ELANG_COMPILER_ANALYSIS_TYPE_FACTORY_H_

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/analysis/name_resolver.h"
 
 #include <unordered_set>
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
-#include "elang/compiler/analyze/analyzer.h"
+#include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"

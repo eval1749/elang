@@ -5,7 +5,7 @@
 #include "elang/compiler/testing/analyzer_test.h"
 
 #include "base/macros.h"
-#include "elang/compiler/analyze/name_resolver.h"
+#include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"

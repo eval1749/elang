@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/type_factory.h"
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/type_factory.h"
+#include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"

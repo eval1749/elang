@@ -4,15 +4,15 @@
 
 #include <vector>
 
-#include "elang/compiler/analyze/type_resolver.h"
+#include "elang/compiler/analysis/type_resolver.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/method_resolver.h"
-#include "elang/compiler/analyze/name_resolver.h"
-#include "elang/compiler/analyze/type_evaluator.h"
-#include "elang/compiler/analyze/type_factory.h"
-#include "elang/compiler/analyze/type_values.h"
-#include "elang/compiler/analyze/variable_tracker.h"
+#include "elang/compiler/analysis/method_resolver.h"
+#include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/analysis/type_evaluator.h"
+#include "elang/compiler/analysis/type_factory.h"
+#include "elang/compiler/analysis/type_values.h"
+#include "elang/compiler/analysis/variable_tracker.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_TYPE_VALUES_H_
-#define ELANG_COMPILER_ANALYZE_TYPE_VALUES_H_
+#ifndef ELANG_COMPILER_ANALYSIS_TYPE_VALUES_H_
+#define ELANG_COMPILER_ANALYSIS_TYPE_VALUES_H_
 
 #include <vector>
 
@@ -11,7 +11,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/analyze/type_values_forward.h"
+#include "elang/compiler/analysis/type_values_forward.h"
 
 namespace elang {
 namespace compiler {
@@ -256,4 +256,4 @@ class Variable final : public Value {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_TYPE_VALUES_H_
+#endif  // ELANG_COMPILER_ANALYSIS_TYPE_VALUES_H_

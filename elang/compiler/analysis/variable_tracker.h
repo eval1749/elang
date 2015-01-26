@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYZE_VARIABLE_TRACKER_H_
-#define ELANG_COMPILER_ANALYZE_VARIABLE_TRACKER_H_
+#ifndef ELANG_COMPILER_ANALYSIS_VARIABLE_TRACKER_H_
+#define ELANG_COMPILER_ANALYSIS_VARIABLE_TRACKER_H_
 
 #include <unordered_map>
 
@@ -58,4 +58,4 @@ class VariableTracker final : public CompilationSessionUser, public ZoneUser {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYZE_VARIABLE_TRACKER_H_
+#endif  // ELANG_COMPILER_ANALYSIS_VARIABLE_TRACKER_H_

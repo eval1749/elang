@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/type_values.h"
 
 #include "base/logging.h"
 #include "elang/compiler/ast/nodes_forward.h"

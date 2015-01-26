@@ -4,7 +4,7 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 
-#include "elang/compiler/analyze/namespace_analyzer.h"
+#include "elang/compiler/analysis/namespace_analyzer.h"
 #include "elang/compiler/testing/namespace_builder.h"
 
 namespace elang {

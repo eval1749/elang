@@ -16,7 +16,7 @@
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/analyze/namespace_analyzer.h"
+#include "elang/compiler/analysis/namespace_analyzer.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/source_code_position.h"

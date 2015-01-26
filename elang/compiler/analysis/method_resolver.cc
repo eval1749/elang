@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/analyze/method_resolver.h"
+#include "elang/compiler/analysis/method_resolver.h"
 
 #include "base/logging.h"
-#include "elang/compiler/analyze/name_resolver.h"
-#include "elang/compiler/analyze/type_values.h"
+#include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ir/nodes.h"
 
