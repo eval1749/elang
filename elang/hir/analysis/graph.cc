@@ -99,6 +99,10 @@ std::vector<Value*> Graph::successors_of(Value* value) {
   return std::vector<Value*>(provider_->successors_of(value));
 }
 
+bool Graph::HasMoreThanOnePredecessors(Value* value) {
+  return provider_->HasMoreThanOnePredecessors(value);
+}
+
 OrderedList<Value*> Graph::ReversePostOrderList() {
   return ListBuilder(this, Order::ReversePostOrder).Build();
 }
@@ -128,6 +132,17 @@ std::vector<Value*> ControlFlowGraph::successors_of(Value* value) {
   for (auto successor : value->as<BasicBlock>()->successors())
     successors.push_back(successor);
   return successors;
+}
+
+bool ControlFlowGraph::HasMoreThanOnePredecessors(Value* value) {
+  auto count = 0;
+  for (auto predecessor : value->as<BasicBlock>()->predecessors()) {
+    DCHECK(predecessor);
+    ++count;
+    if (count == 2)
+      return true;
+  }
+  return false;
 }
 
 }  // namespace hir

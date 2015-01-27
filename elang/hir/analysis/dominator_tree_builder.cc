@@ -68,7 +68,7 @@ void DominatorTreeBuilder::ComputeChildren() {
 //  Loop over all basic block which has more than one predecessors.
 void DominatorTreeBuilder::ComputeFrontiers() {
   for (auto const value : dfs_list_) {
-    if (!HasMoreThanOnePredecessors(value))
+    if (!graph_->HasMoreThanOnePredecessors(value))
       continue;
     auto const node = dominator_tree_->node_of(value);
     for (auto const predecessor_value : graph_->predecessors_of(value)) {
@@ -114,17 +114,6 @@ bool DominatorTreeBuilder::ComputeParentForNode(Node* node) {
       node->depth_ = candidate->depth() + 1;
       return true;
     }
-  }
-  return false;
-}
-
-bool DominatorTreeBuilder::HasMoreThanOnePredecessors(Value* value) {
-  auto count = 0;
-  for (auto const predecessor : graph_->predecessors_of(value)) {
-    DCHECK(predecessor);
-    ++count;
-    if (count == 2)
-      return true;
   }
   return false;
 }

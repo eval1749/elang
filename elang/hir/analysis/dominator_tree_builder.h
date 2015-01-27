@@ -42,7 +42,6 @@ class ELANG_HIR_EXPORT DominatorTreeBuilder final : public ZoneOwner {
   void ComputeFrontiers();
   void ComputeParentForAll();
   bool ComputeParentForNode(Node* node);
-  bool HasMoreThanOnePredecessors(Value* value);
   Node* Intersect(Node* node1, Node* node2);
 
   OrderedList<Value*> dfs_list_;

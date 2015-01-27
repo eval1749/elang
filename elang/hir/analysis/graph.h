@@ -30,6 +30,7 @@ class ELANG_HIR_EXPORT Graph {
     virtual Value* entry() = 0;
     virtual std::vector<Value*> predecessors_of(Value* value) = 0;
     virtual std::vector<Value*> successors_of(Value* value) = 0;
+    virtual bool HasMoreThanOnePredecessors(Value* value) = 0;
 
    protected:
     Provider();
@@ -44,6 +45,7 @@ class ELANG_HIR_EXPORT Graph {
   std::vector<Value*> predecessors_of(Value* value);
   std::vector<Value*> successors_of(Value* value);
 
+  bool HasMoreThanOnePredecessors(Value* value);
   OrderedList<Value*> ReversePostOrderList();
 
  protected:
@@ -67,6 +69,7 @@ class ELANG_HIR_EXPORT ControlFlowGraph : public Graph, public Graph::Provider {
   Value* entry() final;
   std::vector<Value*> predecessors_of(Value* value) final;
   std::vector<Value*> successors_of(Value* value) final;
+  bool HasMoreThanOnePredecessors(Value* value) final;
 
  private:
   Function* const function_;
