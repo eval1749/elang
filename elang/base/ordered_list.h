@@ -5,6 +5,7 @@
 #ifndef ELANG_BASE_ORDERED_LIST_H_
 #define ELANG_BASE_ORDERED_LIST_H_
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 
@@ -25,12 +26,22 @@ class OrderedList {
     ~Builder() = default;
 
     void Add(Element element) {
-      DCHECK(!list_.map_.count(element));
-      list_.map_[element] = static_cast<int>(list_.map_.size());
       list_.vector_.push_back(element);
     }
 
-    OrderedList Get() { return std::move(list_); }
+    OrderedList Get() {
+      auto position = 0;
+      for (auto element : list_.vector_) {
+        DCHECK(!list_.map_.count(element));
+        list_.map_[element] = position;
+        ++position;
+      }
+      return std::move(list_);
+    }
+
+    void Reverse() {
+      std::reverse(list_.vector_.begin(), list_.vector_.end());
+    }
 
    private:
     OrderedList list_;
