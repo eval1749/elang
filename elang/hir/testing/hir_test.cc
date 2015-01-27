@@ -131,6 +131,14 @@ Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {
 //      B4<------+ |    B4 -> B1, B5
 //      |          |    B6 -> B3
 //      B5<--------+
+//
+//  B0: parent=ENTRY children=[B1, B5]
+//  B1: parent=B0    children=[B2, B4]
+//  B2: parent=B1    children=[B2, B3]
+//  B3: parent=B2    children=[]
+//  B4: parent=B1    children=[]
+//  B5: parent=B0    children=[EXIT]
+//  B6: parent=B2    children=[]
 Function* HirTest::NewSampleFunction() {
   auto const function = NewFunction(void_type(), bool_type());
   auto const condition = function->entry_block()->first_instruction();
