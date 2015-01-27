@@ -5,6 +5,10 @@
 component("hir") {
   output_name = "elang_hir"
   sources = [
+    "analysis/dominator_tree.cc",
+    "analysis/dominator_tree.h",
+    "analysis/dominator_tree_builder.cc",
+    "analysis/dominator_tree_builder.h",
     "analysis/graph.cc",
     "analysis/graph.h",
     "editor.cc",
@@ -65,6 +69,7 @@ source_set("hir_test") {
 source_set("hir_unittests") {
   testonly = true
   sources = [
+    "analysis/dominator_tree_unittest.cc",
     "analysis/graph_unittest.cc",
     "editor_unittest.cc",
     "instructions_unittest.cc",
