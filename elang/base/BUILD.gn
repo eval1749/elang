@@ -14,6 +14,7 @@ component("base") {
     "float_types.h",
     "index_sequence.h",
     "maybe.h",
+    "ordered_list.h",
     "simple_directed_graph.h",
     "temporary_change_value.h",
     "visitable.h",
@@ -48,6 +49,7 @@ source_set("base_unittests") {
     "atomic_string_unittest.cc",
     "castable_unittest.cc",
     "double_linked_unittest.cc",
+    "ordered_list_unittest.cc",
     "simple_directed_graph_unittest.cc",
     "temporary_change_value_unittest.cc",
   ]
