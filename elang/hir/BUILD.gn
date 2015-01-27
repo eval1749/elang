@@ -5,6 +5,8 @@
 component("hir") {
   output_name = "elang_hir"
   sources = [
+    "analysis/graph.cc",
+    "analysis/graph.h",
     "editor.cc",
     "editor.h",
     "error_code.h",
@@ -63,6 +65,7 @@ source_set("hir_test") {
 source_set("hir_unittests") {
   testonly = true
   sources = [
+    "analysis/graph_unittest.cc",
     "editor_unittest.cc",
     "instructions_unittest.cc",
     "types_unittest.cc",
