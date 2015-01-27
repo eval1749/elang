@@ -82,6 +82,9 @@ class TypeFactory;
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value& value);
 
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Value* value);
+
 }  // namespace hir
 }  // namespace elang
 

@@ -332,6 +332,12 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
   return ostream;
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Value* value) {
+  if (!value)
+    return ostream << "(null)";
+  return ostream << *value;
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // TextFormatter
