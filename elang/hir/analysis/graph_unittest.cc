@@ -24,11 +24,11 @@ TEST_F(HirGraphTest, Basic) {
 
   EXPECT_EQ(entry_block(), cfg.entry());
 
-  auto successors = cfg.successors_of(entry_block());
+  auto successors = cfg.SuccessorsOf(entry_block());
   ASSERT_EQ(1u, successors.size());
   EXPECT_EQ(exit_block(), *successors.begin());
 
-  auto predecessors = cfg.predecessors_of(exit_block());
+  auto predecessors = cfg.PredecessorsOf(exit_block());
   ASSERT_EQ(1u, predecessors.size());
   EXPECT_EQ(entry_block(), *predecessors.begin());
 }

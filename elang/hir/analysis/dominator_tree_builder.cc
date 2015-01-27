@@ -71,7 +71,7 @@ void DominatorTreeBuilder::ComputeFrontiers() {
     if (!graph_->HasMoreThanOnePredecessors(value))
       continue;
     auto const node = dominator_tree_->node_of(value);
-    for (auto const predecessor_value : graph_->predecessors_of(value)) {
+    for (auto const predecessor_value : graph_->PredecessorsOf(value)) {
       auto const predecessor = dominator_tree_->node_of(predecessor_value);
       for (auto runner = predecessor; runner != node->parent();
            runner = runner->parent()) {
@@ -97,13 +97,12 @@ void DominatorTreeBuilder::ComputeParentForAll() {
 }
 
 bool DominatorTreeBuilder::ComputeParentForNode(Node* node) {
-  for (auto const parent_value : graph_->predecessors_of(node->value())) {
+  for (auto const parent_value : graph_->PredecessorsOf(node->value())) {
     auto candidate = node_of(parent_value);
     if (!candidate->parent())
       continue;
 
-    for (auto const predecessor_value :
-         graph_->predecessors_of(node->value())) {
+    for (auto const predecessor_value : graph_->PredecessorsOf(node->value())) {
       auto const predecessor = node_of(predecessor_value);
       if (candidate != predecessor && predecessor->parent())
         candidate = Intersect(candidate, predecessor);
