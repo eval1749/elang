@@ -108,8 +108,20 @@ bool Graph::HasMoreThanOnePredecessors(Value* value) const {
   return provider_->HasMoreThanOnePredecessors(value);
 }
 
+OrderedList<Value*> Graph::PostOrderList() const {
+  return ListBuilder(this, Order::PostOrder).Build();
+}
+
+OrderedList<Value*> Graph::PreOrderList() const {
+  return ListBuilder(this, Order::PreOrder).Build();
+}
+
 OrderedList<Value*> Graph::ReversePostOrderList() const {
   return ListBuilder(this, Order::ReversePostOrder).Build();
+}
+
+OrderedList<Value*> Graph::ReversePreOrderList() const {
+  return ListBuilder(this, Order::ReversePreOrder).Build();
 }
 
 //////////////////////////////////////////////////////////////////////

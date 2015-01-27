@@ -46,7 +46,13 @@ class ELANG_HIR_EXPORT Graph {
   bool HasMoreThanOnePredecessors(Value* value) const;
   std::vector<Value*> PredecessorsOf(Value* value) const;
   std::vector<Value*> SuccessorsOf(Value* value) const;
+
+  // For clean control flow graph
+  OrderedList<Value*> PostOrderList() const;
+  OrderedList<Value*> PreOrderList() const;
+  // For dominator tree
   OrderedList<Value*> ReversePostOrderList() const;
+  OrderedList<Value*> ReversePreOrderList() const;
 
  protected:
   explicit Graph(Provider* provider);
