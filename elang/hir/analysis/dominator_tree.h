@@ -66,6 +66,9 @@ class ELANG_HIR_EXPORT DominatorTree final : public ZoneAllocated {
 ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const DominatorTree::Node& node);
 
+ELANG_HIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const DominatorTree::Node* node);
+
 }  // namespace hir
 }  // namespace elang
 

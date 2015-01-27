@@ -36,13 +36,27 @@ DominatorTree::Node* DominatorTree::node_of(Value* value) const {
 
 std::ostream& operator<<(std::ostream& ostream,
                          const DominatorTree::Node& node) {
-  ostream << "dom " << *node.value() << " parent: " << *node.parent()->value();
-  auto separator = "{";
+  ostream << "{value: " << *node.value()
+          << ", parent: " << *node.parent()->value() << " children: [";
+  auto separator = "";
   for (auto const child : node.children()) {
     ostream << separator << child->value();
-    separator = " ";
+    separator = ", ";
   }
-  return ostream << "}";
+  ostream << "], frontiers: [";
+  separator = "";
+  for (auto const frontier : node.frontiers()) {
+    ostream << separator << frontier->value();
+    separator = ", ";
+  }
+  return ostream << "]}";
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const DominatorTree::Node* node) {
+  if (!node)
+    return ostream << "(null)";
+  return ostream << *node;
 }
 
 }  // namespace hir
