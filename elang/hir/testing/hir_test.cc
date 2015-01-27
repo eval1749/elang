@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <array>
 #include <sstream>
 
 #include "elang/base/atomic_string_factory.h"
@@ -12,6 +13,7 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
 #include "elang/hir/formatters/text_formatter.h"
+#include "elang/hir/instructions.h"
 #include "elang/hir/testing/hir_test.h"
 #include "elang/hir/types.h"
 #include "elang/hir/values.h"
@@ -116,6 +118,62 @@ Value* HirTest::NewBool(bool value) {
 Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {
   return factory()->NewFunction(
       factory()->types()->NewFunctionType(return_type, parameters_type));
+}
+
+//      B0---------+    B0 -> B1, B5
+//      |          |
+//      B1<------+ |    B1 -> B2, B4
+//      |        | |
+//   +->B2-->B6  | |    B2 -> B3, B6
+//   |  |    |   | |
+//   +--B3<--+   | |    B3 -> B4, B2
+//      |        | |
+//      B4<------+ |    B4 -> B1, B5
+//      |          |    B6 -> B3
+//      B5<--------+
+Function* HirTest::NewSampleFunction() {
+  auto const function = NewFunction(void_type(), bool_type());
+  auto const condition = function->entry_block()->first_instruction();
+
+  Editor editor(factory(), function);
+
+  std::array<BasicBlock*, 7> blocks;
+  for (auto& ref : blocks)
+    ref = editor.NewBasicBlock(editor.exit_block());
+
+  editor.Edit(editor.entry_block());
+  editor.SetBranch(blocks[0]);
+  editor.Commit();
+
+  editor.Edit(blocks[0]);
+  editor.SetBranch(condition, blocks[1], blocks[5]);
+  editor.Commit();
+
+  editor.Edit(blocks[1]);
+  editor.SetBranch(condition, blocks[2], blocks[4]);
+  editor.Commit();
+
+  editor.Edit(blocks[2]);
+  editor.SetBranch(condition, blocks[3], blocks[6]);
+  editor.Commit();
+
+  editor.Edit(blocks[3]);
+  editor.SetBranch(condition, blocks[2], blocks[4]);
+  editor.Commit();
+
+  editor.Edit(blocks[4]);
+  editor.SetBranch(condition, blocks[1], blocks[5]);
+  editor.Commit();
+
+  editor.Edit(blocks[5]);
+  editor.SetReturn(void_value());
+  editor.Commit();
+
+  editor.Edit(blocks[6]);
+  editor.SetBranch(blocks[3]);
+  editor.Commit();
+
+  return function;
 }
 
 }  // namespace testing

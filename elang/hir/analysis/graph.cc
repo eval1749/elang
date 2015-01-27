@@ -53,6 +53,8 @@ ListBuilder::ListBuilder(const Graph* graph, Order order)
 OrderedList<Value*> ListBuilder::Build() {
   List::Builder list_builder;
   Visit(graph_->entry(), &list_builder);
+  if (order_ == Order::ReversePostOrder || order_ == Order::ReversePreOrder)
+    list_builder.Reverse();
   return list_builder.Get();
 }
 
@@ -60,9 +62,12 @@ void ListBuilder::Visit(Value* value, List::Builder* list_builder) {
   if (visited_.count(value))
     return;
   visited_.insert(value);
+  if (order_ == Order::PreOrder || order_ == Order::ReversePreOrder)
+    list_builder->Add(value);
   for (auto const successor : graph_->SuccessorsOf(value))
     Visit(successor, list_builder);
-  list_builder->Add(value);
+  if (order_ == Order::PostOrder || order_ == Order::ReversePostOrder)
+    list_builder->Add(value);
 }
 
 }  // namespace

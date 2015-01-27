@@ -120,9 +120,9 @@ bool DominatorTreeBuilder::ComputeParentForNode(Node* node) {
 DominatorTree::Node* DominatorTreeBuilder::Intersect(Node* finger1,
                                                      Node* finger2) {
   while (finger1 != finger2) {
-    while (dfs_position_of(finger1) < dfs_position_of(finger2))
+    while (dfs_position_of(finger1) > dfs_position_of(finger2))
       finger1 = finger1->parent();
-    while (dfs_position_of(finger2) < dfs_position_of(finger1))
+    while (dfs_position_of(finger2) > dfs_position_of(finger1))
       finger2 = finger2->parent();
   }
   return finger1;

@@ -51,6 +51,7 @@ class HirTest : public ::testing::Test {
   std::string GetErrors();
   Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
+  Function* NewSampleFunction();
 
  private:
   std::unique_ptr<AtomicStringFactory> atomic_string_factory_;

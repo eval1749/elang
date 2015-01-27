@@ -22,6 +22,11 @@ class HirGraphTest : public testing::HirTest {
 TEST_F(HirGraphTest, Basic) {
   ControlFlowGraph cfg(function());
 
+  std::vector<int> rpo_blocks;
+  for (auto value : cfg.ReversePostOrderList())
+    rpo_blocks.push_back(value->as<BasicBlock>()->id());
+  EXPECT_EQ((std::vector<int>{1, 2}), rpo_blocks);
+
   EXPECT_EQ(entry_block(), cfg.entry());
 
   auto successors = cfg.SuccessorsOf(entry_block());
@@ -31,6 +36,19 @@ TEST_F(HirGraphTest, Basic) {
   auto predecessors = cfg.PredecessorsOf(exit_block());
   ASSERT_EQ(1u, predecessors.size());
   EXPECT_EQ(entry_block(), *predecessors.begin());
+}
+
+TEST_F(HirGraphTest, Sample) {
+  // See HirValuesTest.SampleFunction2 for instructions.
+  auto const function = NewSampleFunction();
+  ControlFlowGraph cfg(function);
+
+  std::vector<int> rpo_blocks;
+  for (auto value : cfg.ReversePostOrderList())
+    rpo_blocks.push_back(value->as<BasicBlock>()->id());
+  EXPECT_EQ((std::vector<int>{3, 5, 6, 7, 11, 8, 9, 10, 4}), rpo_blocks);
+  EXPECT_EQ(function->entry_block()->id(), rpo_blocks.front());
+  EXPECT_EQ(function->exit_block()->id(), rpo_blocks.back());
 }
 
 }  // namespace

@@ -43,6 +43,49 @@ TEST_F(HirValuesTest, Function) {
   EXPECT_TRUE(exit_block()->HasPredecessor());
 }
 
+TEST_F(HirValuesTest, Function2) {
+  EXPECT_EQ(
+      "function2 void(bool)\n"
+      "block3:\n"
+      "  // In:\n"
+      "  // Out: block5\n"
+      "  bool %b5 = entry\n"
+      "  br block5\n"
+      "block5:\n"
+      "  // In: block3\n"
+      "  // Out: block6 block10\n"
+      "  br %b5, block6, block10\n"
+      "block6:\n"
+      "  // In: block5 block9\n"
+      "  // Out: block7 block9\n"
+      "  br %b5, block7, block9\n"
+      "block7:\n"
+      "  // In: block6 block8\n"
+      "  // Out: block8 block11\n"
+      "  br %b5, block8, block11\n"
+      "block8:\n"
+      "  // In: block7 block11\n"
+      "  // Out: block7 block9\n"
+      "  br %b5, block7, block9\n"
+      "block9:\n"
+      "  // In: block6 block8\n"
+      "  // Out: block6 block10\n"
+      "  br %b5, block6, block10\n"
+      "block10:\n"
+      "  // In: block5 block9\n"
+      "  // Out: block4\n"
+      "  ret void, block4\n"
+      "block11:\n"
+      "  // In: block7\n"
+      "  // Out: block8\n"
+      "  br block8\n"
+      "block4:\n"
+      "  // In: block10\n"
+      "  // Out:\n"
+      "  exit\n",
+      Format(NewSampleFunction()));
+}
+
 // Literals
 TEST_F(HirValuesTest, Literal) {
   std::stringstream ostream;
