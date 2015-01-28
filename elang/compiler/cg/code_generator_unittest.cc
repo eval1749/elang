@@ -2,17 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <sstream>
-#include <string>
-
 #include "elang/compiler/cg/cg_test.h"
-
-#include "elang/base/zone_owner.h"
-#include "elang/compiler/ast/method.h"
-#include "elang/compiler/cg/code_generator.h"
-#include "elang/compiler/cg/variable_analyzer.h"
-#include "elang/compiler/semantics.h"
-#include "elang/hir/formatters/text_formatter.h"
 
 namespace elang {
 namespace compiler {
@@ -22,66 +12,14 @@ namespace {
 //
 // CodeGeneratorTest
 //
-class CodeGeneratorTest : public testing::CgTest, public ZoneOwner {
+class CodeGeneratorTest : public testing::CgTest {
  protected:
-  CodeGeneratorTest();
+  CodeGeneratorTest() = default;
   ~CodeGeneratorTest() override = default;
 
-  const CodeGenerator* code_generator() const { return &code_generator_; }
-  CodeGenerator* code_generator() { return &code_generator_; }
-
-  hir::Function* FunctionOf(ast::Method* method) const;
-  std::string CodeGeneratorTest::Generate();
-  std::string GetFunction(base::StringPiece name);
-
  private:
-  VariableAnalyzer variable_analyzer_;
-
-  // |CodeGenerator| ctor takes |variable_analyzer_|.
-  CodeGenerator code_generator_;
-
   DISALLOW_COPY_AND_ASSIGN(CodeGeneratorTest);
 };
-
-CodeGeneratorTest::CodeGeneratorTest()
-    : variable_analyzer_(zone()),
-      code_generator_(session(), factory(), &variable_analyzer_) {
-}
-
-hir::Function* CodeGeneratorTest::FunctionOf(ast::Method* ast_method) const {
-  return code_generator()->FunctionOf(ast_method);
-}
-
-std::string CodeGeneratorTest::Generate() {
-  auto const analyze_result = Analyze();
-  if (!analyze_result.empty())
-    return analyze_result;
-  if (!code_generator()->Run())
-    return GetErrors();
-  return "";
-}
-
-std::string CodeGeneratorTest::GetFunction(base::StringPiece name) {
-  auto const generate_result = Generate();
-  if (!generate_result.empty())
-    return generate_result;
-
-  auto const ast_method_group = FindMember(name)->as<ast::MethodGroup>();
-  if (!ast_method_group)
-    return std::string("No such method group ") + name.as_string();
-  auto const ast_method = ast_method_group->methods()[0];
-  auto const ir_function = semantics()->ValueOf(ast_method);
-  if (!ir_function)
-    return std::string("Unbound ") + name.as_string();
-  auto const hir_function = FunctionOf(ast_method);
-  if (!hir_function)
-    return std::string("Not function") + name.as_string();
-
-  std::stringstream ostream;
-  hir::TextFormatter formatter(&ostream);
-  formatter.FormatFunction(hir_function);
-  return ostream.str();
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -109,7 +47,7 @@ TEST_F(CodeGeneratorTest, Assignment) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Call) {
@@ -131,7 +69,7 @@ TEST_F(CodeGeneratorTest, Call) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Conditional) {
@@ -165,7 +103,7 @@ TEST_F(CodeGeneratorTest, Conditional) {
       "  // In: block3\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Do) {
@@ -221,7 +159,7 @@ TEST_F(CodeGeneratorTest, Do) {
       "  // In: block3\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Empty) {
@@ -240,7 +178,7 @@ TEST_F(CodeGeneratorTest, Empty) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, EmptyError) {
@@ -248,7 +186,7 @@ TEST_F(CodeGeneratorTest, EmptyError) {
       "class Sample {\n"
       "  static int Foo() {}\n"
       "}\n");
-  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, For) {
@@ -308,7 +246,7 @@ TEST_F(CodeGeneratorTest, For) {
       "  // In: block3\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, If) {
@@ -357,7 +295,7 @@ TEST_F(CodeGeneratorTest, If) {
       "  // In: block5 block6\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, Parameter) {
@@ -376,7 +314,7 @@ TEST_F(CodeGeneratorTest, Parameter) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 // 'return' statement
@@ -396,7 +334,7 @@ TEST_F(CodeGeneratorTest, Return) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Bar"));
+      Generate("Sample.Bar"));
 }
 
 TEST_F(CodeGeneratorTest, ReturnErrorEntryNone) {
@@ -405,7 +343,7 @@ TEST_F(CodeGeneratorTest, ReturnErrorEntryNone) {
       "  static int Foo() { Bar(); }\n"
       "  static void Bar() {}\n"
       "}\n");
-  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, ReturnErrorNone) {
@@ -413,7 +351,7 @@ TEST_F(CodeGeneratorTest, ReturnErrorNone) {
       "class Sample {\n"
       "  static int Foo(bool x) { if (x) return 1; }\n"
       "}\n");
-  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate());
+  EXPECT_EQ("CodeGenerator.Return.None(28) Foo\n", Generate("Sample.Foo"));
 }
 
 // variable reference
@@ -435,7 +373,7 @@ TEST_F(CodeGeneratorTest, Variable) {
       "  // In: block1\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 TEST_F(CodeGeneratorTest, While) {
@@ -491,7 +429,7 @@ TEST_F(CodeGeneratorTest, While) {
       "  // In: block3\n"
       "  // Out:\n"
       "  exit\n",
-      GetFunction("Sample.Foo"));
+      Generate("Sample.Foo"));
 }
 
 }  // namespace
