@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/cg/cfg_to_ssa_transformer.h"
+#include "elang/compiler/cg/cfg_to_ssa_converter.h"
 
 #include <unordered_set>
 #include <vector>
@@ -195,9 +195,9 @@ void Renamer::VisitStore(hir::StoreInstruction* instr) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// CfgToSsaTransformer::Impl
+// CfgToSsaConverter::Impl
 //
-class CfgToSsaTransformer::Impl final : public ZoneOwner {
+class CfgToSsaConverter::Impl final : public ZoneOwner {
  public:
   Impl(hir::Factory* factory,
        hir::Function* function,
@@ -224,30 +224,30 @@ class CfgToSsaTransformer::Impl final : public ZoneOwner {
   DISALLOW_COPY_AND_ASSIGN(Impl);
 };
 
-CfgToSsaTransformer::Impl::Impl(hir::Factory* factory,
-                                hir::Function* function,
-                                const VariableUsages* variable_usages)
+CfgToSsaConverter::Impl::Impl(hir::Factory* factory,
+                              hir::Function* function,
+                              const VariableUsages* variable_usages)
     : editor_(factory, function),
       dominator_tree_(hir::ComputeDominatorTree(zone(), function)),
       rename_passlet_(zone(), &editor_, dominator_tree_),
       variable_usages_(variable_usages) {
 }
 
-hir::Instruction* CfgToSsaTransformer::Impl::GetHomeFor(
+hir::Instruction* CfgToSsaConverter::Impl::GetHomeFor(
     hir::PhiInstruction* phi) const {
   auto const it = home_map_.find(phi);
   return it == home_map_.end() ? nullptr : it->second->home();
 }
 
-void CfgToSsaTransformer::Impl::InsertPhi(hir::BasicBlock* block,
-                                          const VariableUsages::Data* data) {
+void CfgToSsaConverter::Impl::InsertPhi(hir::BasicBlock* block,
+                                        const VariableUsages::Data* data) {
   editor()->Edit(block);
   auto const phi = editor()->NewPhi(data->type());
   rename_passlet_.RegisterPhi(phi, data->home());
   editor()->Commit();
 }
 
-void CfgToSsaTransformer::Impl::InsertPhis(const VariableUsages::Data* data) {
+void CfgToSsaConverter::Impl::InsertPhis(const VariableUsages::Data* data) {
   auto const home = data->home();
   rename_passlet_.RegisterVariable(home);
   if (data->is_local())
@@ -290,7 +290,7 @@ void CfgToSsaTransformer::Impl::InsertPhis(const VariableUsages::Data* data) {
 }
 
 // The entry point of CFG to SSA transformer.
-void CfgToSsaTransformer::Impl::Run() {
+void CfgToSsaConverter::Impl::Run() {
   // TODO(eval1749) If |function_| have exception handlers, we should analyze
   // liveness of variables.
   for (auto const variable_data :
@@ -321,18 +321,18 @@ void CfgToSsaTransformer::Impl::Run() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// CfgToSsaTransformer
+// CfgToSsaConverter
 //
-CfgToSsaTransformer::CfgToSsaTransformer(hir::Factory* factory,
-                                         hir::Function* function,
-                                         const VariableUsages* usages)
+CfgToSsaConverter::CfgToSsaConverter(hir::Factory* factory,
+                                     hir::Function* function,
+                                     const VariableUsages* usages)
     : impl_(new Impl(factory, function, usages)) {
 }
 
-CfgToSsaTransformer::~CfgToSsaTransformer() {
+CfgToSsaConverter::~CfgToSsaConverter() {
 }
 
-void CfgToSsaTransformer::Run() {
+void CfgToSsaConverter::Run() {
   impl_->Run();
 }
 

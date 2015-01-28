@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_CG_CFG_TO_SSA_TRANSFORMER_H_
-#define ELANG_COMPILER_CG_CFG_TO_SSA_TRANSFORMER_H_
+#ifndef ELANG_COMPILER_CG_CFG_TO_SSA_CONVERTER_H_
+#define ELANG_COMPILER_CG_CFG_TO_SSA_CONVERTER_H_
 
 #include <memory>
 
@@ -22,14 +22,14 @@ class VariableUsages;
 
 //////////////////////////////////////////////////////////////////////
 //
-// CfgToSsaTransformer transforms CFG to SSA form.
+// CfgToSsaConverter transforms CFG to SSA form.
 //
-class CfgToSsaTransformer final {
+class CfgToSsaConverter final {
  public:
-  CfgToSsaTransformer(hir::Factory* factory,
-                      hir::Function* function,
-                      const VariableUsages* usages);
-  ~CfgToSsaTransformer();
+  CfgToSsaConverter(hir::Factory* factory,
+                    hir::Function* function,
+                    const VariableUsages* usages);
+  ~CfgToSsaConverter();
 
   void Run();
 
@@ -38,10 +38,10 @@ class CfgToSsaTransformer final {
 
   const std::unique_ptr<Impl> impl_;
 
-  DISALLOW_COPY_AND_ASSIGN(CfgToSsaTransformer);
+  DISALLOW_COPY_AND_ASSIGN(CfgToSsaConverter);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_CG_CFG_TO_SSA_TRANSFORMER_H_
+#endif  // ELANG_COMPILER_CG_CFG_TO_SSA_CONVERTER_H_

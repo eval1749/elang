@@ -10,7 +10,7 @@
 #include "base/macros.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/cg/code_generator.h"
-#include "elang/compiler/cg/cfg_to_ssa_transformer.h"
+#include "elang/compiler/cg/cfg_to_ssa_converter.h"
 #include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics.h"
@@ -55,7 +55,7 @@ std::string CgTest::ConvertToSsa(base::StringPiece name) {
   auto const ast_method =
       FindMember("Sample.Foo")->as<ast::MethodGroup>()->methods()[0];
   auto const function = FunctionOf(ast_method);
-  CfgToSsaTransformer pass(factory(), function, AnalyzeVariables());
+  CfgToSsaConverter pass(factory(), function, AnalyzeVariables());
   pass.Run();
   return GetFunction(name);
 }
