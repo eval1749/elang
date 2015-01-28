@@ -98,8 +98,8 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* node) {
 
 void Formatter::VisitMethod(ast::Method* node) {
   ostream_ << "method " << node->modifiers() << " " << *node->return_type()
-           << " " << GetQualifiedName(node);
-  auto separator = "(";
+           << " " << GetQualifiedName(node) << "(";
+  auto separator = "";
   for (auto const parameter : node->parameters()) {
     ostream_ << separator << *parameter->type();
     separator = ", ";
