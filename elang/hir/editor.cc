@@ -215,6 +215,15 @@ void Editor::RemoveInstruction(Instruction* old_instruction) {
   old_instruction->basic_block_ = nullptr;
 }
 
+void Editor::ReplaceAll(Value* new_value, Instruction* old_value) {
+  DCHECK(new_value);
+  DCHECK_EQ(basic_block_, old_value->basic_block());
+  for (auto const user : old_value->users())
+    user->SetValue(new_value);
+  RemoveInstruction(old_value);
+  DCHECK(Validate(basic_block_));
+}
+
 void Editor::ResetInputs(Instruction* instruction) {
   // We should update use-def list for values used by |instruction|.
   auto const operand_count = instruction->CountInputs();

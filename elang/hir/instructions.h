@@ -112,8 +112,13 @@ class ELANG_HIR_EXPORT Instruction
  protected:
   explicit Instruction(Type* output_type);
 
+  void InitUseDef(UseDefNode* node, Value* initial_value);
+  void ResetUseDef(UseDefNode* node);
+  void SetUseDef(UseDefNode* node, Value* new_value);
+
  private:
   friend class Editor;
+  friend class InstructionFactory;
 
   // Protocol for accessing operands in each instruction implementation.
   virtual Value* InputAt(int index) const = 0;
@@ -137,24 +142,28 @@ class ELANG_HIR_EXPORT Instruction
 template <class Derived, typename... OperandTypes>
 class FixedOperandsInstruction : public Instruction {
  public:
-  void InitInputAt(int index, Value* value) {
-    inputs_[index].Init(this, value);
-  }
-
   // Instruction
   int CountInputs() const final { return sizeof...(OperandTypes); }
   Value* InputAt(int index) const final { return inputs_[index].value(); }
-  void ResetInputAt(int index) final { inputs_[index].Reset(); }
-  void SetInputAt(int index, Value* new_value) final {
-    DCHECK(new_value);
-    inputs_[index].SetValue(new_value);
-  }
 
  protected:
   explicit FixedOperandsInstruction(Type* output_type)
       : Instruction(output_type) {}
 
  private:
+  friend class Editor;
+  friend class InstructionFactory;
+
+  void InitInputAt(int index, Value* initial_value) {
+    InitUseDef(&inputs_[index], initial_value);
+  }
+
+  void ResetInputAt(int index) final { ResetUseDef(&inputs_[index]); }
+
+  void SetInputAt(int index, Value* new_value) final {
+    SetUseDef(&inputs_[index], new_value);
+  }
+
   std::array<UseDefNode, sizeof...(OperandTypes)> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(FixedOperandsInstruction);

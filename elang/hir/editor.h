@@ -106,6 +106,13 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
 
   // Operand manipulation
   static bool IsAlive(Value* value);
+
+  // Replaces all uses of |old_value| by |new_value| and removes |old_value|.
+  // |Editor| must be editing a basic block of |old_value|.
+  void ReplaceAll(Value* new_value, Instruction* old_value);
+
+  // Set input operand at |index| of |instruction| to |new_value|.
+  // |Editor| must be editing a basic block of |instruction|.
   void SetInput(Instruction* instruction, int index, Value* new_value);
 
   // Phi instruction

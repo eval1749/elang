@@ -130,10 +130,25 @@ bool Instruction::CanBeRemoved() const {
   return !IsTerminator() && users().empty();
 }
 
+void Instruction::InitUseDef(UseDefNode* node, Value* initial_value) {
+  DCHECK(initial_value);
+  node->Init(this, initial_value);
+}
+
 bool Instruction::IsTerminator() const {
   return false;
 }
 
+void Instruction::ResetUseDef(UseDefNode* node) {
+  node->Reset();
+}
+
+void Instruction::SetUseDef(UseDefNode* node, Value* new_value) {
+  DCHECK(new_value);
+  node->SetValue(new_value);
+}
+
+// Value
 void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);
 }

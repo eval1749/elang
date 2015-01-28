@@ -48,11 +48,17 @@ class ELANG_HIR_EXPORT UseDefNode
   Value* value() const { return value_; }
   UseDefNode* previous_user() const { return previous(); }
 
-  void Init(Instruction* instruction, Value* value);
+ protected:
+  void Init(Instruction* instruction, Value* initial_value);
   void Reset();
   void SetValue(Value* new_value);
 
  private:
+  friend class Editor;
+
+  // |Instruction| calls |Init| during construction.
+  friend class Instruction;
+
   Value* value_;
 
   // Owner of this node which uses |value_|.
