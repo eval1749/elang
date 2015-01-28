@@ -43,33 +43,71 @@ class RenameStack final : public ZoneAllocated {
 
 //////////////////////////////////////////////////////////////////////
 //
-// RenameStackContainer
+// Renamer
 //
-class RenameStackContainer final : public ZoneUser {
+class Renamer final : public ZoneUser, public hir::InstructionVisitor {
  public:
-  explicit RenameStackContainer(Zone* zone);
-  ~RenameStackContainer() = default;
+  Renamer(Zone* zone,
+          hir::Editor* editor,
+          const hir::DominatorTree* dominator_tree);
+  ~Renamer() final = default;
 
-  RenameStack* stack_for(hir::Value* value) const;
-
-  void AssociatePhiToVariable(hir::PhiInstruction* phi, hir::Instruction* home);
-  void DidEnterBlock(std::vector<RenameStack*>* kill_list);
-  void DidExitBlock(std::vector<RenameStack*>* kill_list);
-  void DidPush(RenameStack* rename_stack);
+  void RegisterPhi(hir::PhiInstruction* phi, hir::Instruction* home);
   void RegisterVariable(hir::Instruction* home);
+  void Run();
 
  private:
+  class RenameScope {
+   public:
+    explicit RenameScope(Renamer* passlet);
+    ~RenameScope();
+
+   private:
+    std::vector<RenameStack*> kill_list_;
+    Renamer* const pass_;
+
+    DISALLOW_COPY_AND_ASSIGN(RenameScope);
+  };
+
+  hir::Editor* editor() const { return editor_; }
+  RenameStack* stack_for(hir::Value* value) const;
+
+  void DidPush(RenameStack* rename_stack);
+  void RenameVariables(hir::BasicBlock* block);
+
+  // hir::InstructionVisitor
+  void VisitLoad(hir::LoadInstruction* instr) final;
+  void VisitPhi(hir::PhiInstruction* instr) final;
+  void VisitStore(hir::StoreInstruction* instr) final;
+
+  const hir::DominatorTree* dominator_tree_;
+  hir::Editor* const editor_;
   std::vector<RenameStack*>* kill_list_;
   std::unordered_map<hir::Instruction*, RenameStack*> map_;
 
-  DISALLOW_COPY_AND_ASSIGN(RenameStackContainer);
+  DISALLOW_COPY_AND_ASSIGN(Renamer);
 };
 
-RenameStackContainer::RenameStackContainer(Zone* zone)
-    : ZoneUser(zone), kill_list_(nullptr) {
+Renamer::RenameScope::RenameScope(Renamer* pass) : pass_(pass) {
+  pass_->kill_list_ = &kill_list_;
 }
 
-RenameStack* RenameStackContainer::stack_for(hir::Value* value) const {
+Renamer::RenameScope::~RenameScope() {
+  pass_->kill_list_ = nullptr;
+  for (auto const rename_stack : kill_list_)
+    rename_stack->Pop();
+}
+
+Renamer::Renamer(Zone* zone,
+                 hir::Editor* editor,
+                 const hir::DominatorTree* dominator_tree)
+    : ZoneUser(zone),
+      dominator_tree_(dominator_tree),
+      editor_(editor),
+      kill_list_(nullptr) {
+}
+
+RenameStack* Renamer::stack_for(hir::Value* value) const {
   auto const home = value->as<hir::Instruction>();
   if (!home)
     return nullptr;
@@ -77,32 +115,80 @@ RenameStack* RenameStackContainer::stack_for(hir::Value* value) const {
   return it == map_.end() ? nullptr : it->second;
 }
 
-void RenameStackContainer::AssociatePhiToVariable(hir::PhiInstruction* phi,
-                                                  hir::Instruction* home) {
+void Renamer::DidPush(RenameStack* rename_stack) {
+  kill_list_->push_back(rename_stack);
+}
+
+void Renamer::RegisterPhi(hir::PhiInstruction* phi, hir::Instruction* home) {
   DCHECK(!map_.count(phi));
   DCHECK(map_.count(home));
   map_[phi] = map_[home];
 }
 
-void RenameStackContainer::DidEnterBlock(std::vector<RenameStack*>* kill_list) {
-  DCHECK(!kill_list_);
-  kill_list_ = kill_list;
-}
-
-void RenameStackContainer::DidExitBlock(std::vector<RenameStack*>* kill_list) {
-  DCHECK(kill_list_);
-  for (auto const rename_stack : *kill_list)
-    rename_stack->Pop();
-  kill_list_ = nullptr;
-}
-
-void RenameStackContainer::DidPush(RenameStack* rename_stack) {
-  kill_list_->push_back(rename_stack);
-}
-
-void RenameStackContainer::RegisterVariable(hir::Instruction* home) {
+void Renamer::RegisterVariable(hir::Instruction* home) {
   DCHECK(!map_.count(home));
   map_[home] = new (zone()) RenameStack(zone());
+}
+
+void Renamer::RenameVariables(hir::BasicBlock* block) {
+  RenameScope rename_scope(this);
+
+  {
+    hir::Editor::ScopedEdit edit_scope(editor(), block);
+    for (auto const phi : block->phi_instructions())
+      VisitPhi(phi);
+
+    // Since |instruction| can be removed during visiting, we advance iterator
+    // before calling visiting function.
+    auto& instructions = block->instructions();
+    for (auto it = instructions.begin(); it != instructions.end();) {
+      auto const instruction = *it;
+      ++it;
+      instruction->Accept(this);
+    }
+  }
+
+  // Update `phi` instructions in successors
+  for (auto const successor : block->successors()) {
+    hir::Editor::ScopedEdit edit_scope(editor(), successor);
+    for (auto const phi : successor->phi_instructions()) {
+      auto const rename_stack = stack_for(phi);
+      if (!rename_stack)
+        continue;
+      editor()->SetPhiInput(phi, block, rename_stack->top());
+    }
+  }
+
+  for (auto const child : dominator_tree_->node_of(block)->children())
+    RenameVariables(child->value()->as<hir::BasicBlock>());
+}
+
+// The entry point of |Renamer|.
+void Renamer::Run() {
+  RenameVariables(editor()->entry_block());
+}
+
+// hir::InstructionVisitor
+void Renamer::VisitLoad(hir::LoadInstruction* instr) {
+  auto const rename_stack = stack_for(instr->input(0));
+  if (!rename_stack)
+    return;
+  editor()->ReplaceAll(rename_stack->top(), instr);
+}
+
+void Renamer::VisitPhi(hir::PhiInstruction* instr) {
+  auto const rename_stack = stack_for(instr);
+  if (!rename_stack)
+    return;
+  rename_stack->Push(instr);
+}
+
+void Renamer::VisitStore(hir::StoreInstruction* instr) {
+  auto const rename_stack = stack_for(instr->input(0));
+  if (!rename_stack)
+    return;
+  rename_stack->Push(instr->input(1));
+  editor()->RemoveInstruction(instr);
 }
 
 }  // namespace
@@ -111,13 +197,12 @@ void RenameStackContainer::RegisterVariable(hir::Instruction* home) {
 //
 // CfgToSsaTransformer::Impl
 //
-class CfgToSsaTransformer::Impl final : public hir::InstructionVisitor,
-                                        public ZoneOwner {
+class CfgToSsaTransformer::Impl final : public ZoneOwner {
  public:
   Impl(hir::Factory* factory,
        hir::Function* function,
        const VariableUsages* variable_usages);
-  ~Impl() final {}
+  ~Impl() = default;
 
   void Run();
 
@@ -127,16 +212,10 @@ class CfgToSsaTransformer::Impl final : public hir::InstructionVisitor,
   hir::Instruction* GetHomeFor(hir::PhiInstruction* phi) const;
   void InsertPhi(hir::BasicBlock* block, const VariableUsages::Data* data);
   void InsertPhis(const VariableUsages::Data* data);
-  void RenameVariables(hir::BasicBlock* block);
-
-  // hir::InstructionVisitor
-  void VisitLoad(hir::LoadInstruction* instr) final;
-  void VisitPhi(hir::PhiInstruction* instr) final;
-  void VisitStore(hir::StoreInstruction* instr) final;
 
   hir::Editor editor_;
   hir::DominatorTree* const dominator_tree_;
-  RenameStackContainer rename_tracker_;
+  Renamer rename_passlet_;
   const VariableUsages* const variable_usages_;
 
   std::unordered_map<const VariableUsages*, RenameStack*> rename_map_;
@@ -150,7 +229,7 @@ CfgToSsaTransformer::Impl::Impl(hir::Factory* factory,
                                 const VariableUsages* variable_usages)
     : editor_(factory, function),
       dominator_tree_(hir::ComputeDominatorTree(zone(), function)),
-      rename_tracker_(zone()),
+      rename_passlet_(zone(), &editor_, dominator_tree_),
       variable_usages_(variable_usages) {
 }
 
@@ -164,15 +243,15 @@ void CfgToSsaTransformer::Impl::InsertPhi(hir::BasicBlock* block,
                                           const VariableUsages::Data* data) {
   editor()->Edit(block);
   auto const phi = editor()->NewPhi(data->type());
-  rename_tracker_.AssociatePhiToVariable(phi, data->home());
+  rename_passlet_.RegisterPhi(phi, data->home());
   editor()->Commit();
 }
 
 void CfgToSsaTransformer::Impl::InsertPhis(const VariableUsages::Data* data) {
+  auto const home = data->home();
+  rename_passlet_.RegisterVariable(home);
   if (data->is_local())
     return;
-  auto const home = data->home();
-  rename_tracker_.RegisterVariable(home);
 
   std::unordered_set<hir::BasicBlock*> work_set;
 
@@ -210,31 +289,6 @@ void CfgToSsaTransformer::Impl::InsertPhis(const VariableUsages::Data* data) {
   }
 }
 
-void CfgToSsaTransformer::Impl::RenameVariables(hir::BasicBlock* block) {
-  std::vector<RenameStack*> kill_list;
-  rename_tracker_.DidEnterBlock(&kill_list);
-  editor()->Edit(block);
-  for (auto const phi : block->phi_instructions())
-    VisitPhi(phi);
-  for (auto const instruction : block->instructions())
-    instruction->Accept(this);
-  editor()->Commit();
-  // Update `phi` instructions in successors
-  for (auto const successor : block->successors()) {
-    editor()->Edit(successor);
-    for (auto const phi : successor->phi_instructions()) {
-      auto const rename_stack = rename_tracker_.stack_for(phi);
-      if (!rename_stack)
-        continue;
-      editor()->SetPhiInput(phi, block, rename_stack->top());
-    }
-    editor()->Commit();
-  }
-  for (auto const child : dominator_tree_->node_of(block)->children())
-    RenameVariables(child->value()->as<hir::BasicBlock>());
-  rename_tracker_.DidExitBlock(&kill_list);
-}
-
 // The entry point of CFG to SSA transformer.
 void CfgToSsaTransformer::Impl::Run() {
   // TODO(eval1749) If |function_| have exception handlers, we should analyze
@@ -243,37 +297,25 @@ void CfgToSsaTransformer::Impl::Run() {
        variable_usages_->local_variables_of(editor()->function())) {
     InsertPhis(variable_data);
   }
-  RenameVariables(editor()->entry_block());
-}
 
-// hir::InstructionVisitor
-void CfgToSsaTransformer::Impl::VisitLoad(hir::LoadInstruction* instr) {
-  auto const rename_stack = rename_tracker_.stack_for(instr->input(0));
-  if (!rename_stack)
-    return;
-  // Replace all uses of `load` instruction |instr| by top of rename stack.
-  auto const value = rename_stack->top();
-  for (auto const user : instr->users())
-    user->SetValue(value);
-  editor()->Edit(instr->basic_block());
-  editor()->RemoveInstruction(instr);
-  editor()->Commit();
-}
+  // Rename variables
+  rename_passlet_.Run();
 
-void CfgToSsaTransformer::Impl::VisitPhi(hir::PhiInstruction* instr) {
-  auto const rename_stack = rename_tracker_.stack_for(instr);
-  if (!rename_stack)
+  // Remove variable home maker instructions.
+  for (auto const variable_data :
+       variable_usages_->local_variables_of(editor()->function())) {
+    auto const home = variable_data->home();
+    auto const home_block = home->basic_block();
+    if (!editor()->basic_block()) {
+      editor()->Edit(home_block);
+    } else if (editor()->basic_block() != home_block) {
+      editor()->Commit();
+      editor()->Edit(home_block);
+    }
+    editor()->RemoveInstruction(home);
+  }
+  if (!editor()->basic_block())
     return;
-  rename_stack->Push(instr);
-}
-
-void CfgToSsaTransformer::Impl::VisitStore(hir::StoreInstruction* instr) {
-  auto const rename_stack = rename_tracker_.stack_for(instr->input(0));
-  if (!rename_stack)
-    return;
-  rename_stack->Push(instr->input(1));
-  editor()->Edit(instr->basic_block());
-  editor()->RemoveInstruction(instr);
   editor()->Commit();
 }
 
