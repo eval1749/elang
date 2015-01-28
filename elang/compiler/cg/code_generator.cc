@@ -273,6 +273,7 @@ hir::Value* CodeGenerator::GenerateBool(ast::Expression* expression) {
 
 void CodeGenerator::GenerateDoOrWhile(ast::DoOrWhileStatement* node) {
   auto const for_statement = node->as<ast::ForStatement>();
+  DCHECK(!for_statement || !for_statement->step());
 
   auto const head_block = editor()->basic_block();
   Commit();
@@ -296,8 +297,6 @@ void CodeGenerator::GenerateDoOrWhile(ast::DoOrWhileStatement* node) {
     ScopedBreakContext scope(this, break_block, continue_block);
     Generate(node->statement());
   }
-  if (for_statement)
-    Generate(for_statement->step());
   Commit();
 
   editor()->Edit(while_block);
@@ -592,8 +591,57 @@ void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   node->expression()->Accept(this);
 }
 
+// VisitForStatement generates following blocks:
+//    ... initializer...
+//    br while
+//   loop:
+//    ...
+//    br continue
+//   continue:
+//    ... step ...
+//    br while
+//   while:
+//    ... condition ...
+//    br %condition, loop, break
+//   break:
+//    ...
 void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
-  GenerateDoOrWhile(node);
+  if (!node->step()) {
+    GenerateDoOrWhile(node);
+    return;
+  }
+  auto const head_block = editor()->basic_block();
+  Commit();
+
+  auto const break_block =
+      editor()->SplitBefore(head_block->last_instruction());
+
+  auto const while_block = editor()->NewBasicBlock(break_block);
+  auto const loop_block = editor()->NewBasicBlock(while_block);
+  auto const continue_block = editor()->NewBasicBlock(while_block);
+
+  editor()->Continue(head_block);
+  editor()->SetBranch(while_block);
+  Generate(node->initializer());
+  Commit();
+
+  editor()->Edit(loop_block);
+  editor()->SetBranch(continue_block);
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    Generate(node->statement());
+  }
+  Commit();
+
+  editor()->Edit(continue_block);
+  editor()->SetBranch(while_block);
+  Generate(node->step());
+  Commit();
+
+  editor()->Edit(while_block);
+  editor()->SetBranch(GenerateBool(node->condition()), loop_block, break_block);
+  Commit();
+  editor()->Edit(break_block);
 }
 
 void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
