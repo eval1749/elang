@@ -6,6 +6,7 @@
 #define ELANG_HIR_INSTRUCTION_VISITOR_H_
 
 #include "base/macros.h"
+#include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 
 namespace elang {
@@ -15,15 +16,16 @@ namespace hir {
 //
 // InstructionVisitor
 //
-class InstructionVisitor {
+class ELANG_HIR_EXPORT InstructionVisitor {
  public:
+  virtual ~InstructionVisitor();
+
 #define V(Name, ...) virtual void Visit##Name(Name##Instruction* instruction);
   FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
 
  protected:
   InstructionVisitor();
-  virtual ~InstructionVisitor();
 
   virtual void DoDefaultVisit(Instruction* instruction);
 
