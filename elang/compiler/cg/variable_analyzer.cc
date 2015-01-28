@@ -76,6 +76,7 @@ void VariableAnalyzer::RegisterFunction(hir::Function* function) {
 void VariableAnalyzer::RegisterVariable(hir::Instruction* home) {
   DCHECK(!result_->variable_map_.count(home));
   auto const data = new (result_zone_) VariableUsages::Data(home);
+  result_->variable_map_[home] = data;
   auto const result_function_data = result_->function_map_[home->function()];
   result_function_data->local_variables.push_back(data);
 }
