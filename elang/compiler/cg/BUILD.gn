@@ -4,6 +4,8 @@
 
 static_library("cg") {
   sources = [
+    "cfg_to_ssa_transformer.cc",
+    "cfg_to_ssa_transformer.h",
     "code_generator.cc",
     "code_generator.h",
     "type_mapper.cc",
@@ -38,6 +40,7 @@ source_set("cg_testing") {
 source_set("compiler_cg_test") {
   testonly = true
   sources = [
+    "cfg_to_ssa_transformer_unittest.cc",
     "code_generator_unittest.cc",
     "type_mapper_unittest.cc",
   ]
