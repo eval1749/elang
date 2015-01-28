@@ -128,5 +128,10 @@ DominatorTree::Node* DominatorTreeBuilder::Intersect(Node* finger1,
   return finger1;
 }
 
+DominatorTree* ComputeDominatorTree(Zone* zone, Function* function) {
+  ControlFlowGraph cfg(function);
+  return DominatorTreeBuilder(zone, &cfg).Build();
+}
+
 }  // namespace hir
 }  // namespace elang

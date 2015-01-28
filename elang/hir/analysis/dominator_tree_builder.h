@@ -53,7 +53,8 @@ class ELANG_HIR_EXPORT DominatorTreeBuilder final : public ZoneOwner {
   DISALLOW_COPY_AND_ASSIGN(DominatorTreeBuilder);
 };
 
-DominatorTree* ComputeDominatorTree(Zone* zone, Function* function);
+ELANG_HIR_EXPORT DominatorTree* ComputeDominatorTree(Zone* zone,
+                                                     Function* function);
 
 }  // namespace hir
 }  // namespace elang
