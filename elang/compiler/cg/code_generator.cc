@@ -15,6 +15,7 @@
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/cg/type_mapper.h"
+#include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/predefined_names.h"
@@ -122,7 +123,9 @@ CodeGenerator::ScopedBreakContext::~ScopedBreakContext() {
 //
 // CodeGenerator
 //
-CodeGenerator::CodeGenerator(CompilationSession* session, hir::Factory* factory)
+CodeGenerator::CodeGenerator(CompilationSession* session,
+                             hir::Factory* factory,
+                             VariableAnalyzer* variable_analyzer)
     : CompilationSessionUser(session),
       break_context_(nullptr),
       editor_(nullptr),
@@ -130,6 +133,7 @@ CodeGenerator::CodeGenerator(CompilationSession* session, hir::Factory* factory)
       function_(nullptr),
       output_(nullptr),
       type_mapper_(new TypeMapper(session, factory)),
+      variable_analyzer_(variable_analyzer),
       void_type_(MapType(PredefinedName::Void)) {
 }
 
@@ -187,7 +191,10 @@ void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
                                            ast::Expression* ast_value) {
   auto const variable = ValueOf(ast_node)->as<ir::Variable>();
   auto const value = GenerateValue(ast_value);
-  Emit(factory()->NewStoreInstruction(variables_[variable], value));
+  auto const home = variables_[variable]->as<hir::Instruction>();
+  DCHECK(home);
+  variable_analyzer_->DidSetVariable(home, editor()->basic_block());
+  Emit(factory()->NewStoreInstruction(home, value));
   EmitOutput(value);
 }
 
@@ -224,6 +231,7 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
   variables_[variable] = alloc_instr;
   Emit(alloc_instr);
   Emit(factory()->NewStoreInstruction(alloc_instr, variable_value));
+  variable_analyzer_->RegisterVariable(alloc_instr);
 }
 
 void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
@@ -238,7 +246,10 @@ void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
     EmitOutput(it->second);
     return;
   }
-  EmitOutputInstruction(factory()->NewLoadInstruction(it->second));
+  auto const home = it->second->as<hir::Instruction>();
+  DCHECK(home);
+  variable_analyzer_->DidUseVariable(home, editor()->basic_block());
+  EmitOutputInstruction(factory()->NewLoadInstruction(home));
 }
 
 hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
@@ -400,6 +411,7 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
   TemporaryChangeValue<hir::Function*> function_scope(function_, function);
   functions_[ast_method] = function;
+  variable_analyzer_->RegisterFunction(function);
 
   hir::Editor editor(factory(), function_);
   TemporaryChangeValue<hir::Editor*> editor_scope(editor_, &editor);

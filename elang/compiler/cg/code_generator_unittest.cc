@@ -7,8 +7,10 @@
 
 #include "elang/compiler/cg/cg_test.h"
 
+#include "elang/base/zone_owner.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/cg/code_generator.h"
+#include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/semantics.h"
 #include "elang/hir/formatters/text_formatter.h"
 
@@ -20,7 +22,7 @@ namespace {
 //
 // CodeGeneratorTest
 //
-class CodeGeneratorTest : public testing::CgTest {
+class CodeGeneratorTest : public testing::CgTest, public ZoneOwner {
  protected:
   CodeGeneratorTest();
   ~CodeGeneratorTest() override = default;
@@ -33,12 +35,17 @@ class CodeGeneratorTest : public testing::CgTest {
   std::string GetFunction(base::StringPiece name);
 
  private:
+  VariableAnalyzer variable_analyzer_;
+
+  // |CodeGenerator| ctor takes |variable_analyzer_|.
   CodeGenerator code_generator_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGeneratorTest);
 };
 
-CodeGeneratorTest::CodeGeneratorTest() : code_generator_(session(), factory()) {
+CodeGeneratorTest::CodeGeneratorTest()
+    : variable_analyzer_(zone()),
+      code_generator_(session(), factory(), &variable_analyzer_) {
 }
 
 hir::Function* CodeGeneratorTest::FunctionOf(ast::Method* ast_method) const {

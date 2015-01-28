@@ -21,6 +21,7 @@ class TypeFactory;
 namespace compiler {
 
 class TypeMapper;
+class VariableAnalyzer;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -28,7 +29,9 @@ class TypeMapper;
 //
 class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
  public:
-  CodeGenerator(CompilationSession* session, hir::Factory* factory);
+  CodeGenerator(CompilationSession* session,
+                hir::Factory* factory,
+                VariableAnalyzer* variable_analyzer);
   ~CodeGenerator();
 
   hir::Function* FunctionOf(ast::Method* method) const;
@@ -107,6 +110,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   std::unordered_map<ast::Method*, hir::Function*> functions_;
   Output* output_;
   const std::unique_ptr<TypeMapper> type_mapper_;
+  VariableAnalyzer* const variable_analyzer_;
   hir::Type* const void_type_;
 
   // Map |ir::Variable| to value or pointer producing instruction.
