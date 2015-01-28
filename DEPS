@@ -4,7 +4,7 @@
 
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
-  'buildtools_revision': '23a4e2f545c7b6340d7e5a2b74801941b0a86535',
+  'buildtools_revision': '451dcd05a5b34936f5be67b2472cd63aaa508401',
 }
 
 deps = {
@@ -21,13 +21,13 @@ deps = {
     Var('chromium_git') + '/external/googlemock.git' + '@' + '29763965ab52f24565299976b936d1265cb6a271', # from svn revision 501
 
   'src/testing/gtest':
-    Var('chromium_git') + '/external/googletest.git' + '@' + '8245545b6dc9c4703e6496d1efd19e975ad2b038', # from svn revision 700
+    Var('chromium_git') + '/external/googletest.git' + '@' + 'be1868139ffe0ccd0e8e3b37292b84c821d9c8ad', # from svn revision 704
 
   'src/tools/gyp':
-    Var('chromium_git') + '/external/gyp.git' + '@' + 'fe00999dfaee449d3465a9316778434884da4fa7', # from svn revision 2010
+    Var('chromium_git') + '/external/gyp.git' + '@' + 'b28bd7ddd1438c98f93a8e5383b7daceb572a3fb', # from svn revision 2028
 
   'src/third_party/icu':
-   Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '51c1a4ce5f362676aa1f1cfdb5b7e52edabfa5aa',
+   Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '4e3266f32c62d30a3f9e2232a753c60129d1e670',
 
 }
 
