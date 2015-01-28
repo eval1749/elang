@@ -372,8 +372,10 @@ bool Parser::ParseForStatement(Token* for_keyword) {
                               ? ConsumeExpression()
                               : static_cast<ast::Expression*>(nullptr);
 
-        variables.push_back(
-            factory()->NewVariable(for_keyword, type, name, init));
+        auto const variable =
+            factory()->NewVariable(for_keyword, type, name, init);
+        declaration_space_->AddMember(variable);
+        variables.push_back(variable);
 
         if (PeekToken() == TokenType::Colon) {
           if (init)
