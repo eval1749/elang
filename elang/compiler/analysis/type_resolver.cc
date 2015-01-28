@@ -164,14 +164,12 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
     auto const value = ValueOf(ResolveReference(reference));
-    DCHECK(value);
-    DVLOG(0) << "NYI Assign to field " << *lhs;
+    DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
     auto const value = ValueOf(ResolveReference(reference));
-    DCHECK(value);
-    DVLOG(0) << "NYI Assign to field " << *lhs;
+    DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
   if (auto const reference = lhs->as<ast::ArrayAccess>()) {
