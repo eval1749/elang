@@ -156,10 +156,20 @@ bool Validator::Validate(Function* function) {
 bool Validator::Validate(Instruction* instruction) {
   is_valid_ = true;
   // Check instruction inputs are alive.
+  // Note: Event if inputs are alive, they are wrong when users of inputs
+  // aren't dominated where inputs are set.
+  // Example:
+  //  block1:
+  //    use %r1
+  //    br block2
+  //  block2:
+  //    def %r1
+  //    ...
+  //  where block1 isn't dominated by block2.
   auto position = 0;
   for (auto input : instruction->inputs()) {
     if (auto const instr = input->as<Instruction>()) {
-      if (!instr->id())
+      if (!instr->id() || !instr->basic_block()->id())
         Error(ErrorCode::ValidateInstructionOperand, instr, position);
     }
     ++position;
