@@ -37,6 +37,16 @@ DominatorTree::Node* DominatorTree::node_of(Value* value) const {
   return it->second;
 }
 
+bool DominatorTree::Dominates(Value* dominator, Value* dominatee) const {
+  auto const dominator_node = node_of(dominator);
+  auto const dominatee_node = node_of(dominatee);
+  for (auto runner = dominatee_node; runner; runner = runner->parent()) {
+    if (runner == dominator_node)
+      return true;
+  }
+  return false;
+}
+
 std::ostream& operator<<(std::ostream& ostream,
                          const DominatorTree::Node& node) {
   ostream << "{value: " << *node.value()

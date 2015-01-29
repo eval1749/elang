@@ -8,6 +8,7 @@
 #include "elang/hir/validator.h"
 
 #include "base/macros.h"
+#include "elang/hir/analysis/dominator_tree.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/error_code.h"
 #include "elang/hir/instructions.h"
@@ -21,10 +22,27 @@ namespace hir {
 //
 // Validator
 //
-Validator::Validator(Editor* editor) : editor_(editor), is_valid_(false) {
+Validator::Validator(Editor* editor)
+    : dominator_tree_(editor->maybe_dominator_tree()),
+      editor_(editor),
+      is_valid_(false) {
 }
 
 Validator::~Validator() {
+}
+
+// Returns true if |dominator| dominates |dominatee|.
+bool Validator::Dominates(Value* dominator, Instruction* dominatee) {
+  DCHECK(dominator_tree_);
+  auto const dominator_instruction = dominator->as<Instruction>();
+  if (!dominator_instruction) {
+    // Literal always available.
+    return true;
+  }
+  if (!dominator_instruction->basic_block())
+    return false;
+  return dominator_tree_->Dominates(dominator_instruction->basic_block(),
+                                    dominatee->basic_block());
 }
 
 void Validator::Error(ErrorCode error_code, const Value* error_value) {
@@ -101,7 +119,7 @@ bool Validator::Validate(BasicBlock* block) {
   auto is_valid = true;
   for (auto instruction : block->instructions()) {
     if (!instruction->id()) {
-      Error(ErrorCode::ValidateInstructionNoId, instruction);
+      Error(ErrorCode::ValidateInstructionId, instruction);
       return false;
     }
     if (instruction->IsTerminator()) {
@@ -154,6 +172,14 @@ bool Validator::Validate(Function* function) {
 }
 
 bool Validator::Validate(Instruction* instruction) {
+  if (!instruction->id()) {
+    Error(ErrorCode::ValidateInstructionId, instruction);
+    return false;
+  }
+  if (!instruction->basic_block()) {
+    Error(ErrorCode::ValidateInstructionBasicBlock, instruction);
+    return false;
+  }
   is_valid_ = true;
   // Check instruction inputs are alive.
   // Note: Event if inputs are alive, they are wrong when users of inputs
@@ -170,7 +196,9 @@ bool Validator::Validate(Instruction* instruction) {
   for (auto input : instruction->inputs()) {
     if (auto const instr = input->as<Instruction>()) {
       if (!instr->id() || !instr->basic_block()->id())
-        Error(ErrorCode::ValidateInstructionOperand, instr, position);
+        Error(ErrorCode::ValidateInstructionOrphan, instr, position);
+      else if (dominator_tree_ && !Dominates(input, instruction))
+        Error(ErrorCode::ValidateInstructionDominance, instr, position);
     }
     ++position;
   }

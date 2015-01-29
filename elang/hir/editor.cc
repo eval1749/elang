@@ -42,18 +42,12 @@ Editor::Editor(Factory* factory, Function* function)
     : ZoneUser(factory->zone()),
       basic_block_(nullptr),
       factory_(factory),
-      function_(function),
-      validator_(new Validator(this)) {
+      function_(function) {
   InitializeFunctionIfNeeded();
 }
 
 Editor::~Editor() {
   DCHECK(!basic_block_);
-}
-
-DominatorTree* Editor::dominator_tree() const {
-  DCHECK(dominator_tree_);
-  return dominator_tree_.get();
 }
 
 BasicBlock* Editor::entry_block() const {
@@ -62,6 +56,10 @@ BasicBlock* Editor::entry_block() const {
 
 BasicBlock* Editor::exit_block() const {
   return function_->exit_block();
+}
+
+DominatorTree* Editor::maybe_dominator_tree() const {
+  return dominator_tree_.get();
 }
 
 void Editor::Append(Instruction* new_instruction) {
@@ -338,11 +336,11 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
 }
 
 bool Editor::Validate(BasicBlock* block) {
-  return validator_->Validate(block);
+  return Validator(this).Validate(block);
 }
 
 bool Editor::Validate(Function* function) {
-  return validator_->Validate(function);
+  return Validator(this).Validate(function);
 }
 
 }  // namespace hir

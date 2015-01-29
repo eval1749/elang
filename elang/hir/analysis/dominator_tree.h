@@ -54,6 +54,9 @@ class ELANG_HIR_EXPORT DominatorTree final : public ZoneOwner {
 
   Node* node_of(Value* value) const;
 
+  // Returns true if |dominator| dominates |dominatee|.
+  bool Dominates(Value* dominator, Value* dominatee) const;
+
  private:
   friend class DominatorTreeBuilder;
 

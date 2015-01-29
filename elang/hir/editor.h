@@ -27,7 +27,6 @@ class Instruction;
 class PhiInstruction;
 class Thing;
 class Type;
-class Validator;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -51,12 +50,14 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
-  DominatorTree* dominator_tree() const;
   const std::vector<ErrorData*>& errors() const { return errors_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }
   Factory* factory() const { return factory_; }
+
+  // Returns dominator tree for current editing funciton if avaialble.
+  DominatorTree* maybe_dominator_tree() const;
 
   // Validation errors
   void Error(ErrorCode error_code, const Value* value);
@@ -153,7 +154,6 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   std::vector<ErrorData*> errors_;
   Factory* const factory_;
   Function* const function_;
-  std::unique_ptr<Validator> validator_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

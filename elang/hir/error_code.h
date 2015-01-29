@@ -24,8 +24,11 @@ namespace hir {
   E(Validate, Function, NoExit)         \
   E(Validate, Function, Exit)           \
   /* Instructions */                    \
-  E(Validate, Instruction, NoId)        \
+  E(Validate, Instruction, BasicBlock)  \
+  E(Validate, Instruction, Dominance)   \
+  E(Validate, Instruction, Id)          \
   E(Validate, Instruction, Operand)     \
+  E(Validate, Instruction, Orphan)      \
   E(Validate, Instruction, Output)      \
   E(Validate, Instruction, Terminator)  \
   E(Validate, Phi, Count)               \

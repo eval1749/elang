@@ -15,6 +15,7 @@ namespace elang {
 namespace hir {
 
 class BasicBlock;
+class DominatorTree;
 class Editor;
 enum class ErrorCode;
 class ErrorData;
@@ -41,6 +42,9 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor {
  private:
   Editor* editor() const { return editor_; }
 
+  // Returns true if |dominator| dominates |dominatee|.
+  bool Dominates(Value* dominator, Instruction* dominatee);
+
   void Error(ErrorCode error_code, const Value* value);
   void Error(ErrorCode error_code, const Value* value, Thing* detail);
   void Error(ErrorCode error_code,
@@ -59,6 +63,7 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor {
   FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
 
+  DominatorTree* const dominator_tree_;
   Editor* const editor_;
   bool is_valid_;
 
