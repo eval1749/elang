@@ -8,10 +8,13 @@
 #include <memory>
 
 #include "base/macros.h"
+#include "elang/base/zone_owner.h"
 
 namespace elang {
 
 namespace hir {
+class DominatorTree;
+class Editor;
 class Factory;
 class Function;
 }
@@ -24,7 +27,7 @@ class VariableUsages;
 //
 // CfgToSsaConverter transforms CFG to SSA form.
 //
-class CfgToSsaConverter final {
+class CfgToSsaConverter final : public ZoneOwner {
  public:
   CfgToSsaConverter(hir::Factory* factory,
                     hir::Function* function,
@@ -34,9 +37,11 @@ class CfgToSsaConverter final {
   void Run();
 
  private:
-  class Impl;
+  hir::Editor* editor() { return editor_.get(); }
 
-  const std::unique_ptr<Impl> impl_;
+  std::unique_ptr<hir::Editor> editor_;
+  hir::DominatorTree* const dominator_tree_;
+  const VariableUsages* const variable_usages_;
 
   DISALLOW_COPY_AND_ASSIGN(CfgToSsaConverter);
 };

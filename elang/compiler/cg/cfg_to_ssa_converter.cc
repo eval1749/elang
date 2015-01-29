@@ -192,115 +192,106 @@ void Renamer::VisitStore(hir::StoreInstruction* instr) {
   editor()->RemoveInstruction(instr);
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// PhiInserter
+//
+class PhiInserter final {
+ public:
+  PhiInserter(hir::Editor* editor,
+              const hir::DominatorTree* dominator_tree,
+              Renamer* renamer);
+  ~PhiInserter() = default;
+
+  void InsertPhis(const VariableUsages::Data* data);
+
+ private:
+  hir::Editor* editor() const { return editor_; }
+
+  void InsertPhi(const VariableUsages::Data* data, hir::BasicBlock* block);
+  void InsertPhiToFrontiers(const VariableUsages::Data* data,
+                            hir::BasicBlock* block);
+
+  const hir::DominatorTree* const dominator_tree_;
+  hir::Editor* const editor_;
+  Renamer* const renamer_;
+  std::unordered_set<hir::BasicBlock*> visited_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInserter);
+};
+
+PhiInserter::PhiInserter(hir::Editor* editor,
+                         const hir::DominatorTree* dominator_tree,
+                         Renamer* renamer)
+    : dominator_tree_(dominator_tree), editor_(editor), renamer_(renamer) {
+}
+
+void PhiInserter::InsertPhi(const VariableUsages::Data* data,
+                            hir::BasicBlock* block) {
+  DCHECK(block->HasMoreThanOnePredecessors());
+  if (visited_.count(block))
+    return;
+  visited_.insert(block);
+  editor()->Edit(block);
+  auto const phi = editor()->NewPhi(data->type());
+  renamer_->RegisterPhi(phi, data->home());
+  editor()->Commit();
+  InsertPhiToFrontiers(data, block);
+}
+
+void PhiInserter::InsertPhiToFrontiers(const VariableUsages::Data* data,
+                                       hir::BasicBlock* block) {
+  for (auto const frontier : dominator_tree_->node_of(block)->frontiers())
+    InsertPhi(data, frontier->value()->as<hir::BasicBlock>());
+}
+
+void PhiInserter::InsertPhis(const VariableUsages::Data* data) {
+  auto const home = data->home();
+  renamer_->RegisterVariable(home);
+  if (data->is_local())
+    return;
+
+  visited_.clear();
+  for (auto const user : home->users()) {
+    if (!user->instruction()->is<hir::StoreInstruction>())
+      continue;
+    InsertPhiToFrontiers(data, user->instruction()->basic_block());
+  }
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
-// CfgToSsaConverter::Impl
+// CfgToSsaConverter
 //
-class CfgToSsaConverter::Impl final : public ZoneOwner {
- public:
-  Impl(hir::Factory* factory,
-       hir::Function* function,
-       const VariableUsages* variable_usages);
-  ~Impl() = default;
-
-  void Run();
-
- private:
-  hir::Editor* editor() { return &editor_; }
-
-  hir::Instruction* GetHomeFor(hir::PhiInstruction* phi) const;
-  void InsertPhi(hir::BasicBlock* block, const VariableUsages::Data* data);
-  void InsertPhis(const VariableUsages::Data* data);
-
-  hir::Editor editor_;
-  hir::DominatorTree* const dominator_tree_;
-  Renamer renamer_;
-  const VariableUsages* const variable_usages_;
-
-  std::unordered_map<const VariableUsages*, RenameStack*> rename_map_;
-  std::unordered_map<hir::Value*, const VariableUsages::Data*> home_map_;
-
-  DISALLOW_COPY_AND_ASSIGN(Impl);
-};
-
-CfgToSsaConverter::Impl::Impl(hir::Factory* factory,
-                              hir::Function* function,
-                              const VariableUsages* variable_usages)
-    : editor_(factory, function),
+CfgToSsaConverter::CfgToSsaConverter(hir::Factory* factory,
+                                     hir::Function* function,
+                                     const VariableUsages* variable_usages)
+    : editor_(new hir::Editor(factory, function)),
       dominator_tree_(hir::ComputeDominatorTree(zone(), function)),
-      renamer_(zone(), &editor_, dominator_tree_),
       variable_usages_(variable_usages) {
 }
 
-hir::Instruction* CfgToSsaConverter::Impl::GetHomeFor(
-    hir::PhiInstruction* phi) const {
-  auto const it = home_map_.find(phi);
-  return it == home_map_.end() ? nullptr : it->second->home();
-}
-
-void CfgToSsaConverter::Impl::InsertPhi(hir::BasicBlock* block,
-                                        const VariableUsages::Data* data) {
-  editor()->Edit(block);
-  auto const phi = editor()->NewPhi(data->type());
-  renamer_.RegisterPhi(phi, data->home());
-  editor()->Commit();
-}
-
-void CfgToSsaConverter::Impl::InsertPhis(const VariableUsages::Data* data) {
-  auto const home = data->home();
-  renamer_.RegisterVariable(home);
-  if (data->is_local())
-    return;
-
-  std::unordered_set<hir::BasicBlock*> work_set;
-
-  // Initialize work list
-  for (auto const frontier :
-       dominator_tree_->node_of(editor()->entry_block())->frontiers()) {
-    work_set.insert(frontier->value()->as<hir::BasicBlock>());
-  }
-
-  // Add all variable change to work list
-  for (auto const user : home->users()) {
-    if (!user->instruction()->is<hir::StoreInstruction>())
-      continue;
-    auto const using_block = user->instruction()->basic_block();
-    if (work_set.count(using_block))
-      continue;
-    for (auto const frontier :
-         dominator_tree_->node_of(using_block)->frontiers()) {
-      work_set.insert(frontier->value()->as<hir::BasicBlock>());
-    }
-  }
-
-  std::vector<hir::BasicBlock*> work_list(work_set.begin(), work_set.end());
-  while (!work_list.empty()) {
-    auto const block = work_list.back();
-    work_list.pop_back();
-    InsertPhi(block, data);
-    for (auto const frontier : dominator_tree_->node_of(block)->frontiers()) {
-      auto const frontier_block = frontier->value()->as<hir::BasicBlock>();
-      if (work_set.count(frontier_block))
-        continue;
-      work_set.insert(frontier_block);
-      work_list.push_back(frontier_block);
-    }
-  }
+CfgToSsaConverter::~CfgToSsaConverter() {
 }
 
 // The entry point of CFG to SSA transformer.
-void CfgToSsaConverter::Impl::Run() {
+void CfgToSsaConverter::Run() {
   // TODO(eval1749) If |function_| have exception handlers, we should analyze
   // liveness of variables.
-  for (auto const variable_data :
-       variable_usages_->local_variables_of(editor()->function())) {
-    InsertPhis(variable_data);
+  Renamer renamer(zone(), editor(), dominator_tree_);
+
+  {
+    PhiInserter inserter(editor(), dominator_tree_, &renamer);
+    for (auto const data :
+         variable_usages_->local_variables_of(editor()->function())) {
+      inserter.InsertPhis(data);
+    }
   }
 
   // Rename variables
-  renamer_.Run();
+  renamer.Run();
 
   // Remove variable home maker instructions.
   for (auto const variable_data :
@@ -318,23 +309,6 @@ void CfgToSsaConverter::Impl::Run() {
   if (!editor()->basic_block())
     return;
   editor()->Commit();
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// CfgToSsaConverter
-//
-CfgToSsaConverter::CfgToSsaConverter(hir::Factory* factory,
-                                     hir::Function* function,
-                                     const VariableUsages* usages)
-    : impl_(new Impl(factory, function, usages)) {
-}
-
-CfgToSsaConverter::~CfgToSsaConverter() {
-}
-
-void CfgToSsaConverter::Run() {
-  impl_->Run();
 }
 
 }  // namespace compiler
