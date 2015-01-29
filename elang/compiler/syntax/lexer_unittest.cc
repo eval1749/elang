@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
 #include <string>
 
 #include "base/logging.h"
 #include "base/macros.h"
+#include "elang/base/atomic_string.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/source_code_position.h"
@@ -25,6 +27,9 @@ namespace {
 //
 class LexerTest : public testing::CompilerTest {
  protected:
+  LexerTest();
+  ~LexerTest() override = default;
+
   Token* Get();
   Token* MakeToken(int start, int end, float32_t f32);
   Token* MakeToken(int start, int end, float64_t f64);
@@ -35,10 +40,6 @@ class LexerTest : public testing::CompilerTest {
   Token* MakeToken(TokenType type, int start, int end, uint64_t u64);
   Token* Peek();
   void PrepareLexer(base::StringPiece16 source_text);
-
- protected:
-  LexerTest();
-  ~LexerTest() override = default;
 
  private:
   std::unique_ptr<Lexer> lexer_;
@@ -98,6 +99,12 @@ void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
   Prepare(source_text);
   auto const compilation_unit = session()->NewCompilationUnit(source_code());
   lexer_.reset(new Lexer(session(), compilation_unit));
+}
+
+std::string ToString(Token* token) {
+  std::stringstream ostream;
+  ostream << *token;
+  return ostream.str();
 }
 
 }  // namespace
@@ -333,7 +340,29 @@ TEST_F(LexerTest, StringsBackslash) {
   EXPECT_TOKEN(StringLiteral, 0, 24, L"\a\b\t\n\v\f\r\u1234x\uABCD");
 }
 
-TEST_F(LexerTest, StringsVerbatim) {
+TEST_F(LexerTest, VerbatimName) {
+  PrepareLexer(L"@x @abc @class");
+
+  auto const name_x = Get();
+  ASSERT_EQ(TokenType::VerbatimName, name_x->type());
+  EXPECT_TRUE(name_x->is_name());
+  EXPECT_EQ(L"x", name_x->atomic_string()->string());
+  EXPECT_EQ("@x", ToString(name_x));
+
+  auto const name_abc = Get();
+  ASSERT_EQ(TokenType::VerbatimName, name_abc->type());
+  EXPECT_TRUE(name_abc->is_name());
+  EXPECT_EQ(L"abc", name_abc->atomic_string()->string());
+  EXPECT_EQ("@abc", ToString(name_abc));
+
+  auto const name_class = Get();
+  ASSERT_EQ(TokenType::VerbatimName, name_class->type());
+  EXPECT_TRUE(name_class->is_name());
+  EXPECT_EQ(L"class", name_class->atomic_string()->string());
+  EXPECT_EQ("@class", ToString(name_class));
+}
+
+TEST_F(LexerTest, VerbatimString) {
   PrepareLexer(L"@\"ab\"\"cd\"");
   EXPECT_TOKEN(StringLiteral, 0, 9, L"ab\"cd");
 }

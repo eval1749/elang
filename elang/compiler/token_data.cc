@@ -59,8 +59,10 @@ TokenData::TokenData(float64_t f64) : type_(TokenType::Float64Literal) {
   data_.f64 = f64;
 }
 
-TokenData::TokenData(TokenType type, AtomicString* simple_name) : type_(type) {
-  data_.u64 = reinterpret_cast<uintptr_t>(simple_name);
+TokenData::TokenData(TokenType type, AtomicString* atomic_string)
+    : type_(type) {
+  DCHECK_GE(atomic_string->string().size(), 1u);
+  data_.u64 = reinterpret_cast<uintptr_t>(atomic_string);
 }
 
 TokenData::TokenData(AtomicString* simple_name)
@@ -331,6 +333,8 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
       return ostream << "\"";
 
     default:
+      if (token.type() == TokenType::VerbatimName)
+        ostream << '@';
       if (token.is_name() || token.is_keyword())
         return ostream << *token.atomic_string();
       return ostream << kTokenTypeString[static_cast<int>(token.type())];

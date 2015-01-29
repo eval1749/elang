@@ -205,9 +205,11 @@ namespace compiler {
   T(UInt64Literal, "U64", "LU")                                             \
   T(StringLiteral, "\"string\"", "LS")                                      \
   K(TrueLiteral, "true", "KL")                                              \
-                                                                            \
+  /* names */                                                               \
   T(SimpleName, "SimpleName", "NN")                                         \
   T(TempName, "TempName", "NN")                                             \
+  T(VerbatimName, "VerbatimName", "NN")                                     \
+                                                                            \
   T(Illegal, "ILLIEGAL", "?")
 
 //////////////////////////////////////////////////////////////////////

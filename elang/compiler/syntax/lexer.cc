@@ -394,18 +394,17 @@ Token* Lexer::HandleAtMark() {
   }
 
   if (IsNameStartChar(PeekChar())) {
-    Advance();
     char_sink_->Start();
     while (!IsAtEndOfStream()) {
       auto const char_code = PeekChar();
-      if (!IsNameChar(char_code)) {
-        auto const simple_name = session_->NewAtomicString(char_sink_->End());
-        return NewToken(TokenData(simple_name));
-      }
+      if (!IsNameChar(char_code))
+        break;
       Advance();
       char_sink_->AddChar(char_code);
     }
-    return Error(ErrorCode::TokenAtMarkInvalid);
+    auto const name = session_->NewAtomicString(char_sink_->End());
+    DCHECK_GE(name->string().size(), 1u);
+    return NewToken(TokenData(TokenType::VerbatimName, name));
   }
 
   return Error(ErrorCode::TokenAtMarkInvalid);
