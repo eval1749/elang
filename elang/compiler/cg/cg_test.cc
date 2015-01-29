@@ -14,6 +14,7 @@
 #include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics.h"
+#include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
 #include "elang/hir/formatters/text_formatter.h"
@@ -55,7 +56,8 @@ std::string CgTest::ConvertToSsa(base::StringPiece name) {
   auto const ast_method =
       FindMember("Sample.Foo")->as<ast::MethodGroup>()->methods()[0];
   auto const function = FunctionOf(ast_method);
-  CfgToSsaConverter pass(factory(), function, AnalyzeVariables());
+  hir::Editor editor(factory(), function);
+  CfgToSsaConverter pass(&editor, AnalyzeVariables());
   pass.Run();
   return GetFunction(name);
 }

@@ -5,8 +5,6 @@
 #ifndef ELANG_COMPILER_CG_CFG_TO_SSA_CONVERTER_H_
 #define ELANG_COMPILER_CG_CFG_TO_SSA_CONVERTER_H_
 
-#include <memory>
-
 #include "base/macros.h"
 #include "elang/base/zone_owner.h"
 
@@ -15,8 +13,6 @@ namespace elang {
 namespace hir {
 class DominatorTree;
 class Editor;
-class Factory;
-class Function;
 }
 
 namespace compiler {
@@ -25,21 +21,20 @@ class VariableUsages;
 
 //////////////////////////////////////////////////////////////////////
 //
-// CfgToSsaConverter transforms CFG to SSA form.
+// CfgToSsaConverter converts CFG to SSA form.
 //
 class CfgToSsaConverter final : public ZoneOwner {
  public:
-  CfgToSsaConverter(hir::Factory* factory,
-                    hir::Function* function,
-                    const VariableUsages* usages);
+  CfgToSsaConverter(hir::Editor* editor, const VariableUsages* usages);
   ~CfgToSsaConverter();
 
+  // The entry point of CFG to SSA converter.
   void Run();
 
  private:
-  hir::Editor* editor() { return editor_.get(); }
+  hir::Editor* editor() { return editor_; }
 
-  std::unique_ptr<hir::Editor> editor_;
+  hir::Editor* const editor_;
   hir::DominatorTree* const dominator_tree_;
   const VariableUsages* const variable_usages_;
 
