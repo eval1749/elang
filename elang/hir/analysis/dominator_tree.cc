@@ -25,7 +25,10 @@ DominatorTree::Node::Node(Zone* zone, Value* value)
 //
 // DominatorTree::Node
 //
-DominatorTree::DominatorTree(Zone* zone) : node_map_(zone) {
+DominatorTree::DominatorTree() : node_map_(zone()) {
+}
+
+DominatorTree::~DominatorTree() {
 }
 
 DominatorTree::Node* DominatorTree::node_of(Value* value) const {

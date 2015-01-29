@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/base/zone_owner.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
 #include "elang/hir/hir_export.h"
@@ -23,7 +24,7 @@ class Value;
 //
 // DominatorTree
 //
-class ELANG_HIR_EXPORT DominatorTree final : public ZoneAllocated {
+class ELANG_HIR_EXPORT DominatorTree final : public ZoneOwner {
  public:
   class Node : public ZoneAllocated {
    public:
@@ -49,14 +50,14 @@ class ELANG_HIR_EXPORT DominatorTree final : public ZoneAllocated {
     DISALLOW_COPY_AND_ASSIGN(Node);
   };
 
-  ~DominatorTree() = delete;
+  ~DominatorTree();
 
   Node* node_of(Value* value) const;
 
  private:
   friend class DominatorTreeBuilder;
 
-  explicit DominatorTree(Zone* zone);
+  DominatorTree();
 
   ZoneUnorderedMap<Value*, Node*> node_map_;
 

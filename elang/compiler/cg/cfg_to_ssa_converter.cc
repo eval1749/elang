@@ -268,7 +268,7 @@ void PhiInserter::InsertPhis(const VariableUsages::Data* data) {
 CfgToSsaConverter::CfgToSsaConverter(hir::Editor* editor,
                                      const VariableUsages* variable_usages)
     : editor_(editor),
-      dominator_tree_(hir::ComputeDominatorTree(zone(), editor->function())),
+      dominator_tree_(editor->ComputeDominatorTree()),
       variable_usages_(variable_usages) {
 }
 

@@ -8,6 +8,8 @@
 #include "elang/hir/editor.h"
 
 #include "base/logging.h"
+#include "elang/hir/analysis/dominator_tree_builder.h"
+#include "elang/hir/analysis/graph.h"
 #include "elang/hir/error_code.h"
 #include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
@@ -49,6 +51,11 @@ Editor::~Editor() {
   DCHECK(!basic_block_);
 }
 
+DominatorTree* Editor::dominator_tree() const {
+  DCHECK(dominator_tree_);
+  return dominator_tree_.get();
+}
+
 BasicBlock* Editor::entry_block() const {
   return function_->entry_block();
 }
@@ -63,10 +70,13 @@ void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->id_);
   DCHECK(basic_block_);
   auto const last = basic_block_->last_instruction();
-  if (last && last->IsTerminator())
+  if (last && last->IsTerminator()) {
     basic_block_->instructions_.InsertBefore(new_instruction, last);
-  else
+  } else {
+    if (new_instruction->IsTerminator())
+      DidChangeControlFlow();
     basic_block_->instructions_.AppendNode(new_instruction);
+  }
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block_;
 }
@@ -78,9 +88,21 @@ bool Editor::Commit() {
   return is_valid;
 }
 
+DominatorTree* Editor::ComputeDominatorTree() {
+  if (dominator_tree_)
+    return dominator_tree_.get();
+  ControlFlowGraph cfg(function());
+  dominator_tree_ = DominatorTreeBuilder(&cfg).Build();
+  return dominator_tree_.get();
+}
+
 void Editor::Continue(BasicBlock* basic_block) {
   DCHECK(!basic_block_);
   basic_block_ = basic_block;
+}
+
+void Editor::DidChangeControlFlow() {
+  dominator_tree_.reset();
 }
 
 void Editor::Edit(BasicBlock* basic_block) {
@@ -190,6 +212,7 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   new_basic_block->id_ = factory()->NextBasicBlockId();
   // We keep exit block at end of basic block list.
   function_->basic_blocks_.InsertBefore(new_basic_block, reference);
+  DidChangeControlFlow();
   return new_basic_block;
 }
 
@@ -209,6 +232,8 @@ PhiInstruction* Editor::NewPhi(Type* output_type) {
 void Editor::RemoveInstruction(Instruction* old_instruction) {
   DCHECK(basic_block_);
   ResetInputs(old_instruction);
+  if (old_instruction->IsTerminator())
+    DidChangeControlFlow();
   basic_block_->instructions_.RemoveNode(old_instruction);
   // Mark |old_instruction| is removed from tree.
   old_instruction->id_ = 0;
@@ -241,6 +266,7 @@ void Editor::SetBranch(Value* condition,
     branch->SetInputAt(0, condition);
     branch->SetInputAt(1, true_block);
     branch->SetInputAt(2, false_block);
+    DidChangeControlFlow();
     return;
   }
   SetTerminator(
@@ -251,6 +277,7 @@ void Editor::SetBranch(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const branch =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
+    DidChangeControlFlow();
     branch->SetInputAt(0, target_block);
     return;
   }
@@ -281,6 +308,7 @@ void Editor::SetReturn(Value* new_value) {
   DCHECK(basic_block_);
   if (auto const return_instr =
           basic_block_->last_instruction()->as<ReturnInstruction>()) {
+    DidChangeControlFlow();
     SetInput(return_instr, 0, new_value);
     return;
   }

@@ -18,6 +18,7 @@ namespace elang {
 namespace hir {
 
 class BasicBlock;
+class DominatorTree;
 enum class ErrorCode;
 class ErrorData;
 class Factory;
@@ -50,6 +51,7 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
+  DominatorTree* dominator_tree() const;
   const std::vector<ErrorData*>& errors() const { return errors_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
@@ -67,6 +69,12 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
              const Instruction* instruction,
              int index,
              Thing* detail);
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Analysis
+  //
+  DominatorTree* ComputeDominatorTree();
 
   ////////////////////////////////////////////////////////////
   //
@@ -134,12 +142,14 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   Value* NewInt32(int32_t data);
 
  private:
+  void DidChangeControlFlow();
   void InitializeFunctionIfNeeded();
   void ResetInputs(Instruction* instruction);
   bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
 
   BasicBlock* basic_block_;
+  std::unique_ptr<DominatorTree> dominator_tree_;
   std::vector<ErrorData*> errors_;
   Factory* const factory_;
   Function* const function_;

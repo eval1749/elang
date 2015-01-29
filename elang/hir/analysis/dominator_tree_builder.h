@@ -5,13 +5,13 @@
 #ifndef ELANG_HIR_ANALYSIS_DOMINATOR_TREE_BUILDER_H_
 #define ELANG_HIR_ANALYSIS_DOMINATOR_TREE_BUILDER_H_
 
+#include <memory>
 #include <unordered_map>
 
 #include "base/macros.h"
 #include "elang/base/ordered_list.h"
 #include "elang/base/zone_owner.h"
 #include "elang/hir/analysis/dominator_tree.h"
-#include "elang/hir/hir_export.h"
 
 namespace elang {
 namespace hir {
@@ -24,13 +24,13 @@ class Value;
 //
 // DominatorTreeBuilder
 //
-class ELANG_HIR_EXPORT DominatorTreeBuilder final : public ZoneOwner {
+class DominatorTreeBuilder final : public ZoneOwner {
  public:
-  DominatorTreeBuilder(Zone* result_zone, Graph* graph);
+  explicit DominatorTreeBuilder(Graph* graph);
   ~DominatorTreeBuilder();
 
   // |zone| for storing |DominatorTree|.
-  DominatorTree* Build();
+  std::unique_ptr<DominatorTree> Build();
 
  private:
   typedef DominatorTree::Node Node;
@@ -45,16 +45,12 @@ class ELANG_HIR_EXPORT DominatorTreeBuilder final : public ZoneOwner {
   Node* Intersect(Node* node1, Node* node2);
 
   OrderedList<Value*> dfs_list_;
-  DominatorTree* const dominator_tree_;
+  std::unique_ptr<DominatorTree> dominator_tree_;
   Node* entry_node_;
   Graph* const graph_;
-  Zone* const result_zone_;
 
   DISALLOW_COPY_AND_ASSIGN(DominatorTreeBuilder);
 };
-
-ELANG_HIR_EXPORT DominatorTree* ComputeDominatorTree(Zone* zone,
-                                                     Function* function);
 
 }  // namespace hir
 }  // namespace elang

@@ -18,12 +18,11 @@ namespace hir {
 //
 // DominatorTreeBuilder
 //
-DominatorTreeBuilder::DominatorTreeBuilder(Zone* result_zone, Graph* graph)
+DominatorTreeBuilder::DominatorTreeBuilder(Graph* graph)
     : dfs_list_(graph->ReversePostOrderList()),
-      dominator_tree_(new (result_zone) DominatorTree(result_zone)),
+      dominator_tree_(new DominatorTree()),
       entry_node_(nullptr),
-      graph_(graph),
-      result_zone_(result_zone) {
+      graph_(graph) {
 }
 
 DominatorTreeBuilder::~DominatorTreeBuilder() {
@@ -37,10 +36,11 @@ DominatorTree::Node* DominatorTreeBuilder::node_of(Value* value) const {
   return dominator_tree_->node_of(value);
 }
 
-DominatorTree* DominatorTreeBuilder::Build() {
+std::unique_ptr<DominatorTree> DominatorTreeBuilder::Build() {
+  DCHECK(dominator_tree_);
   for (auto const value : dfs_list_) {
     dominator_tree_->node_map_[value] =
-        new (result_zone_) Node(result_zone_, value);
+        new (dominator_tree_->zone()) Node(dominator_tree_->zone(), value);
   }
   entry_node_ = dominator_tree_->node_of(graph_->entry());
   // Set sentinel
@@ -50,7 +50,7 @@ DominatorTree* DominatorTreeBuilder::Build() {
   entry_node_->parent_ = nullptr;
   ComputeChildren();
   ComputeFrontiers();
-  return dominator_tree_;
+  return std::move(dominator_tree_);
 }
 
 void DominatorTreeBuilder::ComputeChildren() {
@@ -126,11 +126,6 @@ DominatorTree::Node* DominatorTreeBuilder::Intersect(Node* finger1,
       finger2 = finger2->parent();
   }
   return finger1;
-}
-
-DominatorTree* ComputeDominatorTree(Zone* zone, Function* function) {
-  ControlFlowGraph cfg(function);
-  return DominatorTreeBuilder(zone, &cfg).Build();
 }
 
 }  // namespace hir

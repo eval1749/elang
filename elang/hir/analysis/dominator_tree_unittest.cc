@@ -7,6 +7,7 @@
 #include "elang/base/zone.h"
 #include "elang/hir/analysis/dominator_tree_builder.h"
 #include "elang/hir/analysis/graph.h"
+#include "elang/hir/editor.h"
 #include "elang/hir/values.h"
 #include "elang/hir/testing/hir_test.h"
 
@@ -34,10 +35,7 @@ std::unordered_set<Node*> NodeSet(const ZoneVector<Node*>& list) {
 }
 
 TEST_F(HirDominatorTreehTest, Basic) {
-  ControlFlowGraph cfg(function());
-  Zone zone;
-
-  auto dominator_tree = DominatorTreeBuilder(&zone, &cfg).Build();
+  auto const dominator_tree = editor()->ComputeDominatorTree();
 
   auto const entry_node = dominator_tree->node_of(entry_block());
   EXPECT_EQ(nullptr, entry_node->parent());
@@ -53,9 +51,8 @@ TEST_F(HirDominatorTreehTest, Basic) {
 
 TEST_F(HirDominatorTreehTest, SampleFunction) {
   auto const function = NewSampleFunction();
-  ControlFlowGraph cfg(function);
-  Zone zone;
-  auto const dom = DominatorTreeBuilder(&zone, &cfg).Build();
+  Editor editor(factory(), function);
+  auto const dom = editor.ComputeDominatorTree();
 
   std::vector<Node*> nodes;
   size_t counter = 0;
