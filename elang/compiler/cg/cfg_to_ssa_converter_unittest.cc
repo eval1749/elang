@@ -86,7 +86,7 @@ TEST_F(CfgToSsaTest, If) {
       "block4:\n"
       "  // In: block1\n"
       "  // Out: block3\n"
-      "  int32 %r8 = call `Sample.Bar`, %r12\n"
+      "  int32 %r8 = call `Sample.Bar`, 1\n"
       "  br block3\n"
       "block5:\n"
       "  // In: block1\n"

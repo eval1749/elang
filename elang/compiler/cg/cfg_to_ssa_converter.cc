@@ -64,7 +64,7 @@ class Renamer final : public ZoneUser, public hir::InstructionVisitor {
 
    private:
     std::vector<RenameStack*> kill_list_;
-    Renamer* const pass_;
+    Renamer* const renamer_;
 
     DISALLOW_COPY_AND_ASSIGN(RenameScope);
   };
@@ -72,7 +72,7 @@ class Renamer final : public ZoneUser, public hir::InstructionVisitor {
   hir::Editor* editor() const { return editor_; }
   RenameStack* stack_for(hir::Value* value) const;
 
-  void DidPush(RenameStack* rename_stack);
+  void Push(RenameStack* rename_stack, hir::Value* new_value);
   void RenameVariables(hir::BasicBlock* block);
 
   // hir::InstructionVisitor
@@ -88,12 +88,12 @@ class Renamer final : public ZoneUser, public hir::InstructionVisitor {
   DISALLOW_COPY_AND_ASSIGN(Renamer);
 };
 
-Renamer::RenameScope::RenameScope(Renamer* pass) : pass_(pass) {
-  pass_->kill_list_ = &kill_list_;
+Renamer::RenameScope::RenameScope(Renamer* renamer) : renamer_(renamer) {
+  renamer_->kill_list_ = &kill_list_;
 }
 
 Renamer::RenameScope::~RenameScope() {
-  pass_->kill_list_ = nullptr;
+  renamer_->kill_list_ = nullptr;
   for (auto const rename_stack : kill_list_)
     rename_stack->Pop();
 }
@@ -115,7 +115,8 @@ RenameStack* Renamer::stack_for(hir::Value* value) const {
   return it == map_.end() ? nullptr : it->second;
 }
 
-void Renamer::DidPush(RenameStack* rename_stack) {
+void Renamer::Push(RenameStack* rename_stack, hir::Value* new_value) {
+  rename_stack->Push(new_value);
   kill_list_->push_back(rename_stack);
 }
 
@@ -180,14 +181,14 @@ void Renamer::VisitPhi(hir::PhiInstruction* instr) {
   auto const rename_stack = stack_for(instr);
   if (!rename_stack)
     return;
-  rename_stack->Push(instr);
+  Push(rename_stack, instr);
 }
 
 void Renamer::VisitStore(hir::StoreInstruction* instr) {
   auto const rename_stack = stack_for(instr->input(0));
   if (!rename_stack)
     return;
-  rename_stack->Push(instr->input(1));
+  Push(rename_stack, instr->input(1));
   editor()->RemoveInstruction(instr);
 }
 
@@ -215,7 +216,7 @@ class CfgToSsaConverter::Impl final : public ZoneOwner {
 
   hir::Editor editor_;
   hir::DominatorTree* const dominator_tree_;
-  Renamer rename_passlet_;
+  Renamer renamer_;
   const VariableUsages* const variable_usages_;
 
   std::unordered_map<const VariableUsages*, RenameStack*> rename_map_;
@@ -229,7 +230,7 @@ CfgToSsaConverter::Impl::Impl(hir::Factory* factory,
                               const VariableUsages* variable_usages)
     : editor_(factory, function),
       dominator_tree_(hir::ComputeDominatorTree(zone(), function)),
-      rename_passlet_(zone(), &editor_, dominator_tree_),
+      renamer_(zone(), &editor_, dominator_tree_),
       variable_usages_(variable_usages) {
 }
 
@@ -243,13 +244,13 @@ void CfgToSsaConverter::Impl::InsertPhi(hir::BasicBlock* block,
                                         const VariableUsages::Data* data) {
   editor()->Edit(block);
   auto const phi = editor()->NewPhi(data->type());
-  rename_passlet_.RegisterPhi(phi, data->home());
+  renamer_.RegisterPhi(phi, data->home());
   editor()->Commit();
 }
 
 void CfgToSsaConverter::Impl::InsertPhis(const VariableUsages::Data* data) {
   auto const home = data->home();
-  rename_passlet_.RegisterVariable(home);
+  renamer_.RegisterVariable(home);
   if (data->is_local())
     return;
 
@@ -299,7 +300,7 @@ void CfgToSsaConverter::Impl::Run() {
   }
 
   // Rename variables
-  rename_passlet_.Run();
+  renamer_.Run();
 
   // Remove variable home maker instructions.
   for (auto const variable_data :
