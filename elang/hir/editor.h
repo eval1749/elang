@@ -142,6 +142,9 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   // Values
   Value* NewInt32(int32_t data);
 
+  // Expose |Validate()| for testing in release build.
+  bool Validate();
+
  private:
   void DidChangeControlFlow();
   void InitializeFunctionIfNeeded();

@@ -30,12 +30,14 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   InstructionFactory(Factory* factory, const FactoryConfig& config);
   ~InstructionFactory() = default;
 
+  // Convenience function to have 'bool' type.
+  Type* bool_type() const;
   // |TypeFactory| entry point.
   TypeFactory* types() const { return type_factory_.get(); }
   // Convenience function to have 'void' type.
-  VoidType* void_type() const;
+  Type* void_type() const;
   // Convenience function to have 'void' value.
-  VoidValue* void_value() const;
+  Value* void_value() const;
 
   // Instruction constructors
   Instruction* NewBranchInstruction(Value* condition,
@@ -43,12 +45,33 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
                                     BasicBlock* false_block);
   Instruction* NewBranchInstruction(BasicBlock* taget_block);
   Instruction* NewCallInstruction(Value* callee, Value* arguments);
+  Instruction* NewDynamicCast(Type* output_type, Value* input);
   Instruction* NewEntryInstruction(Type* output_type);
   Instruction* NewExitInstruction();
   Instruction* NewLoadInstruction(Value* pointer);
   PhiInstruction* NewPhiInstruction(Type* output_type);
   Instruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
+  Instruction* NewStaticCast(Type* output_type, Value* input);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
+
+#define V(Name, ...)                                                  \
+  Instruction* New##Name##Instruction(Type* output_type, Value* left, \
+                                      Value* right);
+  FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+  FOR_EACH_BITWISE_BINARY_OPERATION(V)
+  FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+
+#define V(Name, ...) \
+  Instruction* New##Name##Instruction(Value* left, Value* right);
+  FOR_EACH_EQUALITY_OPERATION(V)
+  FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+
+#define V(Name, ...) \
+  Instruction* New##Name##Instruction(Type* output_type, Value* input);
+  FOR_EACH_TYPE_CAST_OPERATION(V)
+#undef V
 
  private:
   Factory* const factory_;

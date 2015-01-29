@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <sstream>
+#include <string>
 
 #include "elang/base/atomic_string_factory.h"
 #include "elang/hir/editor.h"
@@ -78,6 +79,10 @@ BasicBlock* HirTest::entry_block() const {
 
 BasicBlock* HirTest::exit_block() const {
   return function_->exit_block();
+}
+
+Type* HirTest::int32_type() const {
+  return types()->GetInt32Type();
 }
 
 TypeFactory* HirTest::types() const {
@@ -182,6 +187,12 @@ Function* HirTest::NewSampleFunction() {
   editor.Commit();
 
   return function;
+}
+
+std::string HirTest::ToString(Value* value) {
+  std::stringstream ostream;
+  ostream << *value;
+  return ostream.str();
 }
 
 }  // namespace testing

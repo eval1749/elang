@@ -58,9 +58,11 @@ class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
   DECLARE_HIR_TYPE_ABSTRACT_CLASS(Type, Thing);
 
  public:
+  // |RegiserClass::Integer| and |Register::General| are equivalen.
   enum RegisterClass {
     Float,
     General,
+    Integer,
     Void,
   };
 
@@ -69,6 +71,8 @@ class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
 
   bool is_float() const { return register_class() == RegisterClass::Float; }
   bool is_general() const { return register_class() == RegisterClass::General; }
+  bool is_integer() const { return register_class() == RegisterClass::Integer; }
+  bool is_numeric() const { return is_integer() || is_float(); }
   bool is_void() const { return register_class() == RegisterClass::Void; }
 
   // Which type of register holds a value of this type.

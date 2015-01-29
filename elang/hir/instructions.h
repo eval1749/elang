@@ -171,6 +171,46 @@ class FixedOperandsInstruction : public Instruction {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Binary Operations
+//
+#define V(Name, ...)                                                         \
+  class ELANG_HIR_EXPORT Name##Instruction final                             \
+      : public FixedOperandsInstruction<Name##Instruction, Value*, Value*> { \
+    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);                            \
+                                                                             \
+   private:                                                                  \
+    explicit Name##Instruction(Type* output_type);                           \
+                                                                             \
+    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);                             \
+  };
+
+FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+FOR_EACH_EQUALITY_OPERATION(V)
+FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// Unary Operations
+//
+#define V(Name, ...)                                                 \
+  class ELANG_HIR_EXPORT Name##Instruction final                     \
+      : public FixedOperandsInstruction<Name##Instruction, Value*> { \
+    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);                    \
+                                                                     \
+   private:                                                          \
+    explicit Name##Instruction(Type* output_type);                   \
+                                                                     \
+    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);                     \
+  };
+
+FOR_EACH_TYPE_CAST_OPERATION(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
 // br %bool %true_block %false_block
 // br %void %target_block
 //
@@ -242,7 +282,7 @@ class ELANG_HIR_EXPORT ExitInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
-// jump block
+// br block
 //
 class ELANG_HIR_EXPORT JumpInstruction final
     : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {

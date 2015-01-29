@@ -18,6 +18,7 @@ class Zone;
 
 namespace hir {
 class Editor;
+class ErrorData;
 class Factory;
 struct FactoryConfig;
 class Function;
@@ -41,6 +42,7 @@ class HirTest : public ::testing::Test {
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_.get(); }
   Function* function() const { return function_; }
+  Type* int32_type() const;
   TypeFactory* types() const;
   Type* void_type() const;
   Value* void_value() const;
@@ -52,6 +54,7 @@ class HirTest : public ::testing::Test {
   Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
   Function* NewSampleFunction();
+  std::string ToString(Value* value);
 
  private:
   std::unique_ptr<AtomicStringFactory> atomic_string_factory_;

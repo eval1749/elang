@@ -33,13 +33,94 @@ InstructionFactory::InstructionFactory(Factory* factory,
     : factory_(factory), type_factory_(new TypeFactory(config)) {
 }
 
-VoidValue* InstructionFactory::void_value() const {
-  return void_type()->zero();
+Type* InstructionFactory::bool_type() const {
+  return types()->GetBoolType();
 }
 
-VoidType* InstructionFactory::void_type() const {
+Type* InstructionFactory::void_type() const {
   return types()->void_type();
 }
+
+Value* InstructionFactory::void_value() const {
+  return void_type()->default_value();
+}
+
+#define V(Name, ...)                                                 \
+  Instruction* InstructionFactory::New##Name##Instruction(           \
+      Type* output_type, Value* left, Value* right) {                \
+    DCHECK(output_type->is_numeric()) << *output_type;               \
+    DCHECK_EQ(output_type, left->type()) << *left << " " << *right;  \
+    DCHECK_EQ(output_type, right->type()) << *left << " " << *right; \
+    auto const instr = new (zone()) Name##Instruction(output_type);  \
+    instr->InitInputAt(0, left);                                     \
+    instr->InitInputAt(1, right);                                    \
+    return instr;                                                    \
+  }
+FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                                 \
+  Instruction* InstructionFactory::New##Name##Instruction(           \
+      Type* output_type, Value* left, Value* right) {                \
+    DCHECK(output_type->is_integer()) << *output_type;               \
+    DCHECK_EQ(output_type, left->type()) << *left << " " << *right;  \
+    DCHECK_EQ(output_type, right->type()) << *left << " " << *right; \
+    auto const instr = new (zone()) Name##Instruction(output_type);  \
+    instr->InitInputAt(0, left);                                     \
+    instr->InitInputAt(1, right);                                    \
+    return instr;                                                    \
+  }
+FOR_EACH_BITWISE_BINARY_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                                \
+  Instruction* InstructionFactory::New##Name##Instruction(          \
+      Type* output_type, Value* left, Value* right) {               \
+    DCHECK(output_type->is_integer()) << *output_type;              \
+    DCHECK(left->type()->is_integer()) << *left << " " << *right;   \
+    DCHECK_EQ(types()->GetInt32Type(), right->type()) << *right;    \
+    auto const instr = new (zone()) Name##Instruction(output_type); \
+    instr->InitInputAt(0, left);                                    \
+    instr->InitInputAt(1, right);                                   \
+    return instr;                                                   \
+  }
+FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                                      \
+  Instruction* InstructionFactory::New##Name##Instruction(Value* left,    \
+                                                          Value* right) { \
+    DCHECK_EQ(left->type(), right->type()) << *left << " " << *right;     \
+    auto const instr = new (zone()) Name##Instruction(bool_type());       \
+    instr->InitInputAt(0, left);                                          \
+    instr->InitInputAt(1, right);                                         \
+    return instr;                                                         \
+  }
+FOR_EACH_EQUALITY_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                                      \
+  Instruction* InstructionFactory::New##Name##Instruction(Value* left,    \
+                                                          Value* right) { \
+    DCHECK(left->type()->is_numeric()) << *left << " " << *right;         \
+    DCHECK_EQ(left->type(), right->type()) << *left << " " << *right;     \
+    auto const instr = new (zone()) Name##Instruction(bool_type());       \
+    instr->InitInputAt(0, left);                                          \
+    instr->InitInputAt(1, right);                                         \
+    return instr;                                                         \
+  }
+FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                                         \
+  Instruction* InstructionFactory::New##Name##Instruction(Type* output_type, \
+                                                          Value* input) {    \
+    auto const instr = new (zone()) Name##Instruction(output_type);          \
+    instr->InitInputAt(0, input);                                            \
+    return instr;                                                            \
+  }
+FOR_EACH_TYPE_CAST_OPERATION(V)
+#undef V
 
 Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
                                                       BasicBlock* true_block,

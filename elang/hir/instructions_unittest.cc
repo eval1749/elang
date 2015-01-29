@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <memory>
-
 #include "elang/hir/editor.h"
+#include "elang/hir/error_code.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/testing/hir_test.h"
@@ -42,6 +42,71 @@ Instruction* HirInstructionTest::NewSource(Type* output_type) {
       types()->NewFunctionType(output_type, void_type()), name);
   return factory()->NewCallInstruction(callee, void_value());
 }
+
+// Arithmetic binary operations
+// Bitwise binary operations
+// Bitwise shift operations
+#define V(Name, mnemonic, ...)                                              \
+  TEST_F(HirInstructionTest, Name##Instruction) {                           \
+    auto const left = NewSource(int32_type());                              \
+    auto const right = editor()->NewInt32(1234);                            \
+    auto const instr = editor()->factory()->New##Name##Instruction(         \
+        types()->GetInt32Type(), left, right);                              \
+    editor()->Edit(entry_block());                                          \
+    editor()->Append(left);                                                 \
+    editor()->Append(instr);                                                \
+    editor()->Commit();                                                     \
+    EXPECT_EQ("bb1:5:int32 %r5 = " mnemonic " %r4, 1234", ToString(instr)); \
+    editor()->Edit(entry_block());                                          \
+    editor()->SetInput(instr, 0, factory()->NewFloat32Literal(1.234f));     \
+    editor()->Commit();                                                     \
+    EXPECT_FALSE(editor()->Validate());                                     \
+    EXPECT_EQ("Validate.Instruction.Type bb1:5:int32 %r5 = " mnemonic       \
+              " 1.234f, 1234 0\n",                                          \
+              GetErrors());                                                 \
+  }
+FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+
+// Equality and Relational
+#define V(Name, mnemonic, ...)                                             \
+  TEST_F(HirInstructionTest, Name##Instruction) {                          \
+    auto const left = NewSource(int32_type());                             \
+    auto const right = editor()->NewInt32(1234);                           \
+    auto const instr =                                                     \
+        editor()->factory()->New##Name##Instruction(left, right);          \
+    editor()->Edit(entry_block());                                         \
+    editor()->Append(left);                                                \
+    editor()->Append(instr);                                               \
+    editor()->Commit();                                                    \
+    EXPECT_EQ("bb1:5:bool %b5 = " mnemonic " %r4, 1234", ToString(instr)); \
+    editor()->Edit(entry_block());                                         \
+    editor()->SetInput(instr, 0, factory()->NewFloat32Literal(1.234f));    \
+    editor()->Commit();                                                    \
+    EXPECT_FALSE(editor()->Validate());                                    \
+    EXPECT_EQ("Validate.Instruction.Type bb1:5:bool %b5 = " mnemonic       \
+              " 1.234f, 1234 1\n",                                         \
+              GetErrors());                                                \
+  }
+FOR_EACH_EQUALITY_OPERATION(V)
+FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+
+// Type cast operation
+#define V(Name, mnemonic, ...)                                           \
+  TEST_F(HirInstructionTest, Name##Instruction) {                        \
+    auto const input = editor()->NewInt32(1234);                         \
+    auto const instr = editor()->factory()->New##Name##Instruction(      \
+        types()->GetFloat64Type(), input);                               \
+    editor()->Edit(entry_block());                                       \
+    editor()->Append(instr);                                             \
+    editor()->Commit();                                                  \
+    EXPECT_EQ("bb1:4:float64 %f4 = " mnemonic " 1234", ToString(instr)); \
+  }
+FOR_EACH_TYPE_CAST_OPERATION(V)
+#undef V
 
 //////////////////////////////////////////////////////////////////////
 //

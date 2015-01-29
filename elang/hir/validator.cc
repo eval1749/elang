@@ -11,6 +11,7 @@
 #include "elang/hir/analysis/dominator_tree.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/error_code.h"
+#include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
 #include "elang/hir/values.h"
@@ -29,6 +30,10 @@ Validator::Validator(Editor* editor)
 }
 
 Validator::~Validator() {
+}
+
+TypeFactory* Validator::types() const {
+  return editor()->factory()->types();
 }
 
 // Returns true if |dominator| dominates |dominatee|.
@@ -207,6 +212,50 @@ bool Validator::Validate(Instruction* instruction) {
 }
 
 // InstructionVisitor
+#define V(Name, ...)                                       \
+  void Validator::Visit##Name(Name##Instruction* instr) {  \
+    if (instr->input(0)->type() != instr->output_type())   \
+      Error(ErrorCode::ValidateInstructionType, instr, 0); \
+    if (instr->input(1)->type() != instr->output_type())   \
+      Error(ErrorCode::ValidateInstructionType, instr, 1); \
+  }
+FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_BINARY_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                        \
+  void Validator::Visit##Name(Name##Instruction* instr) {   \
+    if (instr->input(0)->type() != instr->output_type())    \
+      Error(ErrorCode::ValidateInstructionType, instr, 0);  \
+    if (instr->input(1)->type() != types()->GetInt32Type()) \
+      Error(ErrorCode::ValidateInstructionType, instr, 1);  \
+  }
+FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                        \
+  void Validator::Visit##Name(Name##Instruction* instr) {   \
+    if (instr->input(1)->type() != instr->input(0)->type()) \
+      Error(ErrorCode::ValidateInstructionType, instr, 1);  \
+  }
+FOR_EACH_EQUALITY_OPERATION(V)
+#undef V
+
+#define V(Name, ...)                                        \
+  void Validator::Visit##Name(Name##Instruction* instr) {   \
+    if (!instr->input(0)->type()->is_numeric())             \
+      Error(ErrorCode::ValidateInstructionType, instr, 0);  \
+    if (instr->input(1)->type() != instr->input(0)->type()) \
+      Error(ErrorCode::ValidateInstructionType, instr, 1);  \
+  }
+FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+
+#define V(Name, ...) \
+  void Validator::Visit##Name(Name##Instruction* instr) { DCHECK(instr); }
+FOR_EACH_TYPE_CAST_OPERATION(V)
+#undef V
+
 void Validator::VisitBranch(BranchInstruction* instr) {
   if (!instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);

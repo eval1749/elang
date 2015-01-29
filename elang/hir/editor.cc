@@ -81,9 +81,14 @@ void Editor::Append(Instruction* new_instruction) {
 
 bool Editor::Commit() {
   DCHECK(basic_block_);
+#ifdef NDEBUG
+  basic_block_ = nullptr;
+  return true;
+#else
   auto const is_valid = Validate(basic_block_);
   basic_block_ = nullptr;
   return is_valid;
+#endif
 }
 
 DominatorTree* Editor::ComputeDominatorTree() {
@@ -333,6 +338,11 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
   }
   DCHECK(Validate(new_basic_block)) << errors_;
   return new_basic_block;
+}
+
+bool Editor::Validate() {
+  errors_.clear();
+  return Validate(function());
 }
 
 bool Editor::Validate(BasicBlock* block) {

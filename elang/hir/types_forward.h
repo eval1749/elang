@@ -53,14 +53,14 @@ namespace hir {
   V(Char, char, base::char16, 16, General)  \
   V(Float32, float32, float32_t, 32, Float) \
   V(Float64, float64, float64_t, 64, Float) \
-  V(Int16, int16, int16_t, 16, General)     \
-  V(Int32, int32, int32_t, 32, General)     \
-  V(Int64, int64, int64_t, 64, General)     \
-  V(Int8, int8, int8_t, 8, General)         \
-  V(UInt16, uint16, uint16_t, 16, General)  \
-  V(UInt32, uint32, uint32_t, 32, General)  \
-  V(UInt64, uint64, uint64_t, 64, General)  \
-  V(UInt8, uint8, uint8_t, 8, General)      \
+  V(Int16, int16, int16_t, 16, Integer)     \
+  V(Int32, int32, int32_t, 32, Integer)     \
+  V(Int64, int64, int64_t, 64, Integer)     \
+  V(Int8, int8, int8_t, 8, Integer)         \
+  V(UInt16, uint16, uint16_t, 16, Integer)  \
+  V(UInt32, uint32, uint32_t, 32, Integer)  \
+  V(UInt64, uint64, uint64_t, 64, Integer)  \
+  V(UInt8, uint8, uint8_t, 8, Integer)      \
   V(Void, void, int, 0, Void)
 
 #define V(Name) class Name;

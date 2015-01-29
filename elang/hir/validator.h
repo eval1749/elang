@@ -24,6 +24,7 @@ class Instruction;
 class Int32Literal;
 class Thing;
 class Type;
+class TypeFactory;
 class Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -41,6 +42,7 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor {
 
  private:
   Editor* editor() const { return editor_; }
+  TypeFactory* types() const;
 
   // Returns true if |dominator| dominates |dominatee|.
   bool Dominates(Value* dominator, Instruction* dominatee);
