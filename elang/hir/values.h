@@ -344,6 +344,7 @@ class ELANG_HIR_EXPORT BasicBlock final
   BasicBlockPredecessors predecessors() const;
   BasicBlockSuccessors successors() const;
 
+  bool HasMoreThanOnePredecessors() const;
   bool HasPredecessor() const;
 
  private:

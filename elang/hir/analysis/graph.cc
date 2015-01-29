@@ -138,14 +138,7 @@ Value* ControlFlowGraph::entry() const {
 }
 
 bool ControlFlowGraph::HasMoreThanOnePredecessors(Value* value) const {
-  auto count = 0;
-  for (auto predecessor : value->as<BasicBlock>()->predecessors()) {
-    DCHECK(predecessor);
-    ++count;
-    if (count == 2)
-      return true;
-  }
-  return false;
+  return value->as<BasicBlock>()->HasMoreThanOnePredecessors();
 }
 
 std::vector<Value*> ControlFlowGraph::PredecessorsOf(Value* value) const {
