@@ -57,7 +57,7 @@ namespace hir {
   V(Le, "le", Fixed)                     \
   V(Lt, "lt", Fixed)
 
-#define FOR_EACH_TYPE_CAST_OPERATION(V)     \
+#define FOR_EACH_TYPE_CAST_OPERATION(V) \
   V(DynamicCast, "dynamic_cast", Fixed) \
   V(StaticCast, "static_cast", Fixed)
 
@@ -71,6 +71,7 @@ namespace hir {
   V(Entry, "entry", Fixed)                \
   V(Exit, "exit", Fixed)                  \
   V(Jump, "br", Fixed)                    \
+  V(If, "if", Fixed)                      \
   V(Load, "load", Fixed)                  \
   V(Phi, "phi", Fixed)                    \
   V(Return, "ret", Fixed)                 \

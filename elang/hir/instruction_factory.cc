@@ -125,6 +125,7 @@ FOR_EACH_TYPE_CAST_OPERATION(V)
 Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
                                                       BasicBlock* true_block,
                                                       BasicBlock* false_block) {
+  DCHECK_EQ(bool_type(), condition->type());
   auto const instr = new (zone()) BranchInstruction(void_type());
   instr->InitInputAt(0, condition);
   instr->InitInputAt(1, true_block);
@@ -155,6 +156,20 @@ Instruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
 
 Instruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
+}
+
+Instruction* InstructionFactory::NewIfInstruction(Type* output_type,
+                                                  Value* condition,
+                                                  Value* true_value,
+                                                  Value* false_value) {
+  DCHECK_EQ(bool_type(), condition->type());
+  DCHECK_EQ(output_type, true_value->type());
+  DCHECK_EQ(output_type, false_value->type());
+  auto const instr = new (zone()) IfInstruction(output_type);
+  instr->InitInputAt(0, condition);
+  instr->InitInputAt(1, true_value);
+  instr->InitInputAt(2, false_value);
+  return instr;
 }
 
 Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {

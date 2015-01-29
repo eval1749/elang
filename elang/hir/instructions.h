@@ -282,6 +282,20 @@ class ELANG_HIR_EXPORT ExitInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// ty %result if %bool %true, %false
+//
+class ELANG_HIR_EXPORT IfInstruction final
+    : public FixedOperandsInstruction<IfInstruction, Value*, Value*, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(If);
+
+ private:
+  explicit IfInstruction(Type* output_type);
+
+  DISALLOW_COPY_AND_ASSIGN(IfInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // br block
 //
 class ELANG_HIR_EXPORT JumpInstruction final

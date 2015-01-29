@@ -306,6 +306,26 @@ void Validator::VisitExit(ExitInstruction* instr) {
   }
 }
 
+void Validator::VisitIf(IfInstruction* instr) {
+  if (instr->output_type()->is<VoidType>()) {
+    Error(ErrorCode::ValidateInstructionOutput, instr);
+    return;
+  }
+
+  if (!instr->input(0)->type()->is<BoolType>()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 0);
+    return;
+  }
+  if (instr->input(1)->type() != instr->output_type()) {
+    Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+  if (instr->input(2)->type() != instr->output_type()) {
+    Error(ErrorCode::ValidateInstructionType, instr, 2);
+    return;
+  }
+}
+
 void Validator::VisitJump(JumpInstruction* instr) {
   if (instr->input(0)->is<BasicBlock>())
     return;

@@ -51,7 +51,7 @@ Instruction* HirInstructionTest::NewSource(Type* output_type) {
     auto const left = NewSource(int32_type());                              \
     auto const right = editor()->NewInt32(1234);                            \
     auto const instr = editor()->factory()->New##Name##Instruction(         \
-        types()->GetInt32Type(), left, right);                              \
+        int32_type(), left, right);                                         \
     editor()->Edit(entry_block());                                          \
     editor()->Append(left);                                                 \
     editor()->Append(instr);                                                \
@@ -181,6 +181,29 @@ TEST_F(HirInstructionTest, CallInstruction) {
     }
   }
   EXPECT_TRUE(callee_found) << "call instruction must be a user of callee.";
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// IfInstruction
+//
+TEST_F(HirInstructionTest, IfInstruction) {
+  auto const true_value = editor()->NewInt32(12);
+  auto const false_value = editor()->NewInt32(34);
+  auto const condition = NewSource(bool_type());
+  auto const instr = factory()->NewIfInstruction(int32_type(), condition,
+                                                 true_value, false_value);
+  editor()->Edit(entry_block());
+  editor()->Append(condition);
+  editor()->Append(instr);
+  editor()->Commit();
+  EXPECT_EQ("bb1:5:int32 %r5 = if %b4, 12, 34", ToString(instr));
+  editor()->Edit(entry_block());
+  editor()->SetInput(instr, 1, factory()->NewFloat32Literal(3.4f));
+  editor()->Commit();
+  EXPECT_FALSE(editor()->Validate());
+  EXPECT_EQ("Validate.Instruction.Type bb1:5:int32 %r5 = if %b4, 3.4f, 34 1\n",
+            GetErrors());
 }
 
 //////////////////////////////////////////////////////////////////////
