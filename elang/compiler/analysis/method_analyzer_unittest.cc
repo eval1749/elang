@@ -257,16 +257,16 @@ TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat64) {
       "}");
   ASSERT_EQ("", Analyze());
   EXPECT_EQ(
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n"
-      "(class Float64)\n",
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n"
+      "System.Float64\n",
       QuerySemantics(TokenType::Add));
 }
 
@@ -292,16 +292,16 @@ TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat32) {
       "}");
   ASSERT_EQ("", Analyze());
   EXPECT_EQ(
-      "(class Float32)\n"
-      "(class Float64)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n"
-      "(class Float32)\n",
+      "System.Float32\n"
+      "System.Float64\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n"
+      "System.Float32\n",
       QuerySemantics(TokenType::Add));
 }
 
@@ -404,8 +404,7 @@ TEST_F(MethodAnalyzerTest, Method) {
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
   EXPECT_EQ(
-      "(method WriteLine (signature (class Void) ((parameter (class "
-      "String)))))\n",
+      "System.Void System.Console.WriteLine(System.String string)\n",
       GetCalls("Sample.Main"));
 }
 
@@ -419,9 +418,9 @@ TEST_F(MethodAnalyzerTest, Method2) {
       "    void Main() { Foo('a'); Foo(123); Foo(12.3); }"
       "  }");
   EXPECT_EQ(
-      "(method Foo (signature (class Void) ((parameter (class Char)))))\n"
-      "(method Foo (signature (class Void) ((parameter (class Int32)))))\n"
-      "(method Foo (signature (class Void) ((parameter (class Float64)))))\n",
+      "System.Void Sample.Foo(System.Char x)\n"
+      "System.Void Sample.Foo(System.Int32 x)\n"
+      "System.Void Sample.Foo(System.Float64 x)\n",
       GetCalls("Sample.Main"));
 }
 
@@ -468,8 +467,8 @@ TEST_F(MethodAnalyzerTest, TypeVariable) {
       "    void Main() { var x = Foo('a'); Foo(x); }"
       "  }");
   EXPECT_EQ(
-      "(method Foo (signature (class Char) ((parameter (class Char)))))\n"
-      "(method Foo (signature (class Char) ((parameter (class Char)))))\n",
+      "System.Char Sample.Foo(System.Char x)\n"
+      "System.Char Sample.Foo(System.Char x)\n",
       GetCalls("Sample.Main"));
 }
 

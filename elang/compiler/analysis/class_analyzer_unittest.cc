@@ -35,11 +35,10 @@ TEST_F(ClassAnalyzerTest, Method) {
       "  }");
   EXPECT_EQ("", AnalyzeClass());
   EXPECT_EQ(
-      "(method Foo (signature (class Bool) ((parameter (class Int32)))))\n"
-      "(method Foo (signature (class Bool) ((parameter (class Float32)))))\n"
-      "(method Foo (signature (class Bool) ((parameter (class Float64)))))\n"
-      "(method Foo (signature (class Char) ((parameter (class Char)) "
-      "(parameter (class Int32)))))\n",
+      "System.Bool Sample.Foo(System.Int32 x)\n"
+      "System.Bool Sample.Foo(System.Float32 x)\n"
+      "System.Bool Sample.Foo(System.Float64 x)\n"
+      "System.Char Sample.Foo(System.Char x, System.Int32 y)\n",
       GetMethodGroup("Sample.Foo"));
 }
 

@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/ir/visitor.h"
+#include "elang/compiler/parameter_kind.h"
 
 namespace base {
 std::ostream& operator<<(std::ostream& ostream,
@@ -58,38 +59,47 @@ void Formatter::Format(const Node* node) {
 }
 
 // Visitor
-void Formatter::VisitClass(Class* clazz) {
-  // TODO(eval1749) We should output FQN for class.
-  ostream_ << "(class " << clazz->ast_class()->name() << ")";
+void Formatter::VisitClass(Class* node) {
+  ostream_ << node->ast_class()->NewQualifiedName();
 }
 
-void Formatter::VisitEnum(Enum* enuz) {
-  // TODO(eval1749) We should output FQN for enum.
-  ostream_ << "(enum " << enuz->ast_enum()->name() << ")";
+void Formatter::VisitEnum(Enum* node) {
+  ostream_ << node->ast_enum()->NewQualifiedName();
 }
 
 void Formatter::VisitLiteral(Literal* literal) {
-  ostream_ << "(literal " << *literal->data() << ")";
+  ostream_ << *literal->data();
 }
 
 void Formatter::VisitMethod(Method* method) {
   // TODO(eval1749) We should output FQN for method.
-  ostream_ << "(method " << method->ast_method()->name() << " "
-           << *method->signature() << ")";
+  ostream_ << *method->return_type() << " "
+           << method->ast_method()->NewQualifiedName() << "(";
+  auto separator = "";
+  for (auto const parameter : method->parameters()) {
+    ostream_ << separator << *parameter;
+    separator = ", ";
+  }
+  ostream_ << ")";
 }
 
 void Formatter::VisitParameter(Parameter* parameter) {
-  ostream_ << "(parameter " << *parameter->type() << ")";
+  ostream_ << *parameter->type();
+  if (parameter->kind() == ParameterKind::Rest)
+    ostream_ << "...";
+  ostream_ << " " << *parameter->name();
+  if (parameter->kind() == ParameterKind::Optional)
+    ostream_ << " = " << *parameter->default_value();
 }
 
-void Formatter::VisitSignature(Signature* sig) {
-  ostream_ << "(signature " << *sig->return_type() << " (";
+void Formatter::VisitSignature(Signature* signature) {
+  ostream_ << *signature->return_type() << " ";
   auto separator = "";
-  for (auto const parameter : sig->parameters()) {
+  for (auto const parameter : signature->parameters()) {
     ostream_ << separator << *parameter;
-    separator = " ";
+    separator = ", ";
   }
-  ostream_ << "))";
+  ostream_ << ")";
 }
 
 void Formatter::VisitVariable(Variable* variable) {
