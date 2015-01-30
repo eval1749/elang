@@ -54,11 +54,19 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Type* MapType(PredefinedName name) const;
   hir::Type* MapType(ir::Type* type) const;
 
+  // Returns new instruction yields value of |type| with |left| and |right|
+  // inputs for |node|
+  hir::Instruction* NewInstructionFor(ast::Expression* node,
+                                      hir::Type* type,
+                                      hir::Value* left,
+                                      hir::Value* right);
+
   // Generate value
   void Generate(ast::Statement* statement);
   hir::Value* GenerateBool(ast::Expression* expression);
   void GenerateDoOrWhile(ast::DoOrWhileStatement* do_or_while_statement);
   hir::Value* GenerateValue(ast::Expression* expression);
+  hir::Value* GenerateValueAs(ast::Expression* expression, hir::Type* type);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
 
   // Output
@@ -83,6 +91,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // ast::Visitor expression nodes
   void VisitAssignment(ast::Assignment* node) final;
+  void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitConditional(ast::Conditional* node) final;
   void VisitLiteral(ast::Literal* node) final;

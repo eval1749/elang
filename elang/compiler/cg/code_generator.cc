@@ -313,6 +313,16 @@ hir::Value* CodeGenerator::GenerateValue(ast::Expression* expression) {
   return output_->value;
 }
 
+hir::Value* CodeGenerator::GenerateValueAs(ast::Expression* expression,
+                                           hir::Type* type) {
+  auto const value = GenerateValue(expression);
+  if (value->type() == type)
+    return value;
+  auto const instr = factory()->NewStaticCastInstruction(type, value);
+  Emit(instr);
+  return instr;
+}
+
 hir::Type* CodeGenerator::MapType(PredefinedName name) const {
   return type_mapper_->Map(name);
 }
@@ -323,6 +333,30 @@ hir::Type* CodeGenerator::MapType(ir::Type* type) const {
 
 bool CodeGenerator::NeedOutput() const {
   return !!output_;
+}
+
+hir::Instruction* CodeGenerator::NewInstructionFor(ast::Expression* node,
+                                                   hir::Type* type,
+                                                   hir::Value* left,
+                                                   hir::Value* right) {
+  switch (node->op()->type()) {
+#define V(Name, ...)    \
+  case TokenType::Name: \
+    return factory()->New##Name##Instruction(type, left, right);
+    FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+    FOR_EACH_BITWISE_BINARY_OPERATION(V)
+    FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+#define V(Name, ...)    \
+  case TokenType::Name: \
+    return factory()->New##Name##Instruction(left, right);
+    FOR_EACH_EQUALITY_OPERATION(V)
+    FOR_EACH_RELATIONAL_OPERATION(V)
+#undef V
+    default:
+      NOTREACHED() << "Unsupported operator: " << *node;
+      return nullptr;
+  }
 }
 
 hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
@@ -461,6 +495,16 @@ void CodeGenerator::VisitAssignment(ast::Assignment* node) {
     return;
   }
   NOTREACHED() << "Invalid left value " << *lhs;
+}
+
+void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
+  auto const ir_type = ValueOf(node)->as<ir::Class>();
+  DCHECK(ir_type) << "NYI user defined operator: " << *node;
+  auto const type = MapType(ir_type);
+  auto const left = GenerateValueAs(node->left(), type);
+  auto const right = GenerateValueAs(node->right(), type);
+  auto const instr = NewInstructionFor(node, type, left, right);
+  EmitOutputInstruction(instr);
 }
 
 void CodeGenerator::VisitCall(ast::Call* node) {

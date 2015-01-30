@@ -50,6 +50,31 @@ TEST_F(CodeGeneratorTest, Assignment) {
       Generate("Sample.Foo"));
 }
 
+// Binary Operations
+TEST_F(CodeGeneratorTest, BinaryOperation) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int x) {"
+      "    var w = x + 12;"
+      "    return w * 34;"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  int32 %r2 = entry\n"
+      "  int32 %r4 = add %r2, 12\n"
+      "  int32 %r5 = mul %r4, 34\n"
+      "  ret %r5, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, Call) {
   Prepare(
       "using System;\n"
