@@ -72,6 +72,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // Output
   void Commit();
   void Emit(hir::Instruction* instruction);
+  hir::BasicBlock* EmitMergeBlock();
   void EmitOutput(hir::Value* value);
   void EmitOutputInstruction(hir::Instruction* instruction);
   void EmitParameterBindings(ast::Method* method);

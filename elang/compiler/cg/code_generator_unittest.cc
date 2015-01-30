@@ -75,6 +75,62 @@ TEST_F(CodeGeneratorTest, BinaryOperation) {
       Generate("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, BinaryOperationConditional) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(bool x) {"
+      "    return x && True() || False() ? 12 : 34;"
+      "  }"
+      "  static bool True() { return true; }"
+      "  static bool False() { return false; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(bool)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block4 block3\n"
+      "  bool %b2 = entry\n"
+      "  br %b2, block4, block3\n"
+      "block4:\n"
+      "  // In: block1\n"
+      "  // Out: block3\n"
+      "  bool %b4 = call `Sample.True`, void\n"
+      "  br block3\n"
+      "block3:\n"
+      "  // In: block4 block1\n"
+      "  // Out: block5 block6\n"
+      "  bool %b7 = phi block1 %b2, block4 %b4\n"
+      "  br %b7, block5, block6\n"
+      "block6:\n"
+      "  // In: block3\n"
+      "  // Out: block5\n"
+      "  bool %b8 = call `Sample.False`, void\n"
+      "  br block5\n"
+      "block5:\n"
+      "  // In: block6 block3\n"
+      "  // Out: block8 block9\n"
+      "  bool %b11 = phi block3 %b7, block6 %b8\n"
+      "  br %b11, block8, block9\n"
+      "block8:\n"
+      "  // In: block5\n"
+      "  // Out: block7\n"
+      "  br block7\n"
+      "block9:\n"
+      "  // In: block5\n"
+      "  // Out: block7\n"
+      "  br block7\n"
+      "block7:\n"
+      "  // In: block8 block9\n"
+      "  // Out: block2\n"
+      "  int32 %r15 = phi block8 12, block9 34\n"
+      "  ret %r15, block2\n"
+      "block2:\n"
+      "  // In: block7\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, Call) {
   Prepare(
       "using System;\n"

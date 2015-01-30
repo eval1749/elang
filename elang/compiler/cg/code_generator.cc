@@ -161,6 +161,12 @@ void CodeGenerator::Emit(hir::Instruction* instruction) {
   editor()->Append(instruction);
 }
 
+hir::BasicBlock* CodeGenerator::EmitMergeBlock() {
+  auto const block = editor()->basic_block();
+  Commit();
+  return editor()->SplitBefore(block->last_instruction());
+}
+
 void CodeGenerator::EmitOutput(hir::Value* value) {
   DCHECK(value);
   DCHECK_NE(value, void_value());
@@ -498,6 +504,39 @@ void CodeGenerator::VisitAssignment(ast::Assignment* node) {
 }
 
 void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
+  DCHECK(NeedOutput());
+  if (node->is_conditional()) {
+    // Generate "&&" or "||"
+    //  "&&"                        "||"
+    //  left:
+    //   ... left ...
+    //   br %left, right, merge     br %left, merge, right
+    //  right:
+    //   ... right ...
+    //   br merge
+    //  merge:
+    //   bool %out = phi left: %left, right: %right
+    auto const left_value = GenerateBool(node->left());
+    auto const left_block = editor()->basic_block();
+    auto const merge_block = EmitMergeBlock();
+    auto const right_block = editor()->EditNewBasicBlock(merge_block);
+    auto const right_value = GenerateBool(node->right());
+    editor()->SetBranch(merge_block);
+    Commit();
+    editor()->Continue(left_block);
+    if (node->op() == TokenType::And)
+      editor()->SetBranch(left_value, right_block, merge_block);
+    else
+      editor()->SetBranch(left_value, merge_block, right_block);
+    Commit();
+    editor()->Edit(merge_block);
+    auto const phi = editor()->NewPhi(bool_type());
+    editor()->SetPhiInput(phi, left_block, left_value);
+    editor()->SetPhiInput(phi, right_block, right_value);
+    EmitOutput(phi);
+    return;
+  }
+
   auto const ir_type = ValueOf(node)->as<ir::Class>();
   DCHECK(ir_type) << "NYI user defined operator: " << *node;
   auto const type = MapType(ir_type);
@@ -528,10 +567,7 @@ void CodeGenerator::VisitCall(ast::Call* node) {
 void CodeGenerator::VisitConditional(ast::Conditional* node) {
   auto const cond_value = GenerateBool(node->condition());
   auto const cond_block = editor()->basic_block();
-  Commit();
-
-  auto const merge_block =
-      editor()->SplitBefore(cond_block->last_instruction());
+  auto const merge_block = EmitMergeBlock();
 
   auto const true_block = editor()->EditNewBasicBlock(merge_block);
   auto const true_value = GenerateValue(node->true_expression());
@@ -655,10 +691,7 @@ void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
     return;
   }
   auto const head_block = editor()->basic_block();
-  Commit();
-
-  auto const break_block =
-      editor()->SplitBefore(head_block->last_instruction());
+  auto const break_block = EmitMergeBlock();
 
   auto const while_block = editor()->NewBasicBlock(break_block);
   auto const loop_block = editor()->NewBasicBlock(while_block);
@@ -691,10 +724,7 @@ void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
 void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
   auto const cond_value = GenerateBool(node->condition());
   auto const cond_block = editor()->basic_block();
-  Commit();
-
-  auto const merge_block =
-      editor()->SplitBefore(cond_block->last_instruction());
+  auto const merge_block = EmitMergeBlock();
 
   auto const then_block = editor()->EditNewBasicBlock(merge_block);
   Generate(node->then_statement());
