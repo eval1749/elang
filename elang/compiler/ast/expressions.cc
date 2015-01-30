@@ -57,7 +57,7 @@ bool BinaryOperation::is_bitwise_shift() const {
 
 bool BinaryOperation::is_conditional() const {
   return op() == TokenType::And || op() == TokenType::NullOr ||
-         op() == TokenType::NullOr;
+         op() == TokenType::Or;
 }
 
 bool BinaryOperation::is_equality() const {
@@ -132,7 +132,8 @@ Variable::Variable(Token* keyword, Type* type, Token* name, Expression* value)
     : NamedNode(nullptr, keyword, name), type_(type), value_(value) {
   DCHECK(keyword == type->token() || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
-         keyword == TokenType::Using) << *keyword << " " << *type << *name;
+         keyword == TokenType::Using)
+      << *keyword << " " << *type << *name;
 }
 
 bool Variable::is_const() const {
