@@ -272,8 +272,10 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     return;
   }
 
-  auto const left = Resolve(ast_node->left(), any_value());
-  auto const right = Resolve(ast_node->right(), any_value());
+  ts::Evaluator evaluator(type_factory());
+  auto const left = evaluator.Evaluate(Resolve(ast_node->left(), any_value()));
+  auto const right =
+      evaluator.Evaluate(Resolve(ast_node->right(), any_value()));
   if (ast_node->is_equality()) {
     // bool operator==(T, T)
     // bool operator!=(T, T)
