@@ -33,10 +33,43 @@ Assignment::Assignment(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
 }
 
+// Binary operation
 BinaryOperation::BinaryOperation(Token* op, Expression* left, Expression* right)
     : Expression(op), left_(left), right_(right) {
+  CHECK(is_arithmetic() || is_bitwise() || is_bitwise_shift() ||
+        is_conditional() || is_equality() || is_relational());
 }
 
+bool BinaryOperation::is_arithmetic() const {
+  return op() == TokenType::Add || op() == TokenType::Div ||
+         op() == TokenType::Mod || op() == TokenType::Mul ||
+         op() == TokenType::Sub;
+}
+
+bool BinaryOperation::is_bitwise() const {
+  return op() == TokenType::BitAnd || op() == TokenType::BitOr ||
+         op() == TokenType::BitXor;
+}
+
+bool BinaryOperation::is_bitwise_shift() const {
+  return op() == TokenType::Shl || op() == TokenType::Shr;
+}
+
+bool BinaryOperation::is_conditional() const {
+  return op() == TokenType::And || op() == TokenType::NullOr ||
+         op() == TokenType::NullOr;
+}
+
+bool BinaryOperation::is_equality() const {
+  return op() == TokenType::Eq || op() == TokenType::Ne;
+}
+
+bool BinaryOperation::is_relational() const {
+  return op() == TokenType::Ge || op() == TokenType::Gt ||
+         op() == TokenType::Le || op() == TokenType::Lt;
+}
+
+// Call
 Call::Call(Zone* zone,
            Expression* callee,
            const std::vector<Expression*>& arguments)

@@ -77,6 +77,12 @@ class BinaryOperation final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(BinaryOperation, Expression);
 
  public:
+  bool is_arithmetic() const;
+  bool is_bitwise() const;
+  bool is_bitwise_shift() const;
+  bool is_conditional() const;
+  bool is_equality() const;
+  bool is_relational() const;
   Expression* left() const { return left_; }
   Expression* right() const { return right_; }
 
