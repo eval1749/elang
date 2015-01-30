@@ -23,6 +23,11 @@ class Semantics final {
   Semantics();
   ~Semantics();
 
+  // Returns mapping for testing.
+  const std::unordered_map<ast::Node*, ir::Node*> all() const {
+    return value_map_;
+  }
+
   // Retrieving
   ir::Node* ValueOf(ast::Node* node) const;
 
