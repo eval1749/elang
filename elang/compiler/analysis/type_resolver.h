@@ -84,13 +84,13 @@ class TypeResolver final : public Analyzer,
   ir::Node* ValueOf(ast::Node* node);
 
   // ast::Visitor
-  void VisitAssignment(ast::Assignment* node);
-  void VisitBinaryOperation(ast::BinaryOperation* node);
-  void VisitCall(ast::Call* node);
-  void VisitConditional(ast::Conditional* node);
-  void VisitLiteral(ast::Literal* node);
-  void VisitParameterReference(ast::ParameterReference* node);
-  void VisitVariableReference(ast::VariableReference* node);
+  void VisitAssignment(ast::Assignment* node) final;
+  void VisitBinaryOperation(ast::BinaryOperation* node) final;
+  void VisitCall(ast::Call* node) final;
+  void VisitConditional(ast::Conditional* node) final;
+  void VisitLiteral(ast::Literal* node) final;
+  void VisitParameterReference(ast::ParameterReference* node) final;
+  void VisitVariableReference(ast::VariableReference* node) final;
 
   Context* context_;
   ast::Method* const context_method_;
