@@ -200,6 +200,10 @@ Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
     : ast_node_(ast_node), storage_(storage), type_(type) {
 }
 
+// Value
+Value::Value() {
+}
+
 }  // namespace ir
 }  // namespace compiler
 }  // namespace elang

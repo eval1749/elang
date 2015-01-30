@@ -66,6 +66,20 @@ class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Value
+//
+class Value : public Node {
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Value, Node);
+
+ protected:
+  Value();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Value);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Type
 //
 class Type : public Node {
@@ -149,8 +163,8 @@ class Enum final : public Type {
 //
 // Literal
 //
-class Literal final : public Node {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Literal, Node);
+class Literal final : public Value {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Literal, Value);
 
  public:
   Token* data() const { return data_; }
