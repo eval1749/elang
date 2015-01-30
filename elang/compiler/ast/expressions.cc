@@ -130,9 +130,9 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
 // Variable
 Variable::Variable(Token* keyword, Type* type, Token* name, Expression* value)
     : NamedNode(nullptr, keyword, name), type_(type), value_(value) {
-  DCHECK(!keyword || keyword == TokenType::Const ||
+  DCHECK(keyword == type->token() || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
-         keyword == TokenType::Using);
+         keyword == TokenType::Using) << *keyword << " " << *type << *name;
 }
 
 bool Variable::is_const() const {

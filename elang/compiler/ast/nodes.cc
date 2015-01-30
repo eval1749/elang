@@ -22,6 +22,9 @@ namespace ast {
 //
 Node::Node(ContainerNode* parent, Token* token)
     : parent_(parent), token_(token) {
+  // Since we use |token| for sorting error message, we should have non-null
+  // token.
+  DCHECK(token);
 }
 
 Token* Node::name() const {

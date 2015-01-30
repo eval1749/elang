@@ -610,7 +610,8 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
       Error(ErrorCode::SyntaxUsingRightParenthesis);
 
     LocalDeclarationSpace using_scope(this, using_keyword);
-    auto const variable = factory()->NewVariable(using_keyword, nullptr,
+    auto const var_type = NewTypeNameReference(var_keyword);
+    auto const variable = factory()->NewVariable(using_keyword, var_type,
                                                  var_name, ConsumeExpression());
     using_scope.AddMember(variable);
     if (!ParseStatement())
@@ -646,7 +647,7 @@ void Parser::ParseVariables(Token* keyword, ast::Type* type) {
       else if (keyword == TokenType::Const)
         Error(ErrorCode::SyntaxVarConst);
     }
-    auto const variable = factory()->NewVariable(nullptr, type, name, init);
+    auto const variable = factory()->NewVariable(keyword, type, name, init);
     if (FindLocalMember(name))
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
