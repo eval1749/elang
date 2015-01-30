@@ -11,8 +11,7 @@ namespace elang {
 namespace compiler {
 namespace ts {
 
-FactoryUser::FactoryUser(Factory* factory)
-    : factory_(factory) {
+FactoryUser::FactoryUser(Factory* factory) : factory_(factory) {
 }
 
 FactoryUser::~FactoryUser() {
@@ -28,6 +27,46 @@ Value* FactoryUser::bool_value() const {
 
 Value* FactoryUser::empty_value() const {
   return factory()->empty_value();
+}
+
+Value* FactoryUser::float32_value() const {
+  return factory()->float32_value();
+}
+
+Value* FactoryUser::float64_value() const {
+  return factory()->float64_value();
+}
+
+Value* FactoryUser::int16_value() const {
+  return factory()->int16_value();
+}
+
+Value* FactoryUser::int32_value() const {
+  return factory()->int32_value();
+}
+
+Value* FactoryUser::int64_value() const {
+  return factory()->int64_value();
+}
+
+Value* FactoryUser::int8_value() const {
+  return factory()->int8_value();
+}
+
+Value* FactoryUser::uint16_value() const {
+  return factory()->uint16_value();
+}
+
+Value* FactoryUser::uint32_value() const {
+  return factory()->uint32_value();
+}
+
+Value* FactoryUser::uint64_value() const {
+  return factory()->uint64_value();
+}
+
+Value* FactoryUser::uint8_value() const {
+  return factory()->uint8_value();
 }
 
 ts::Value* FactoryUser::NewInvalidValue(ast::Node* node) {

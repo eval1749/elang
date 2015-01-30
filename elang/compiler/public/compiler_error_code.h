@@ -197,8 +197,12 @@ namespace compiler {
   /* Type Resolver */                                 \
   E(TypeResolver, Argument, Unify)                    \
   E(TypeResolver, Assignment, LeftValue)              \
+  E(TypeResolver, BinaryOperation, Equality)          \
+  E(TypeResolver, BinaryOperation, Numeric)           \
+  E(TypeResolver, BinaryOperation, Shift)             \
   E(TypeResolver, Callee, NotSupported)               \
   E(TypeResolver, Conditional, NotMatch)              \
+  E(TypeResolver, Expression, Invalid)                \
   E(TypeResolver, Expression, NotBool)                \
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \

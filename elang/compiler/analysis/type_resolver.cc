@@ -91,6 +91,30 @@ TypeResolver::TypeResolver(NameResolver* name_resolver,
 TypeResolver::~TypeResolver() {
 }
 
+TypeResolver::NumericType TypeResolver::NumericTypeOf(ts::Value* value) const {
+  if (value == float64_value())
+    return NumericType(NumericType::Kind::Float, 64);
+  if (value == float32_value())
+    return NumericType(NumericType::Kind::Float, 32);
+  if (value == int64_value())
+    return NumericType(NumericType::Kind::Int, 64);
+  if (value == int32_value())
+    return NumericType(NumericType::Kind::Int, 32);
+  if (value == int16_value())
+    return NumericType(NumericType::Kind::Int, 16);
+  if (value == int8_value())
+    return NumericType(NumericType::Kind::Int, 8);
+  if (value == uint64_value())
+    return NumericType(NumericType::Kind::UInt, 64);
+  if (value == uint32_value())
+    return NumericType(NumericType::Kind::UInt, 32);
+  if (value == uint16_value())
+    return NumericType(NumericType::Kind::UInt, 16);
+  if (value == uint8_value())
+    return NumericType(NumericType::Kind::UInt, 8);
+  return NumericType(NumericType::Kind::None, 0);
+}
+
 void TypeResolver::ProduceResolved(ast::Expression* expression,
                                    ts::Value* value,
                                    ast::Node* producer) {
@@ -110,7 +134,44 @@ void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
 // Set unified value as result.
 void TypeResolver::ProduceUnifiedResult(ts::Value* result,
                                         ast::Node* producer) {
-  return ProduceResult(Unify(result, context_->value), producer);
+  ProduceResult(Unify(result, context_->value), producer);
+}
+
+ts::Value* TypeResolver::PromoteNumericType(NumericType left_type,
+                                            NumericType right_type) const {
+  if (left_type.kind == NumericType::Kind::None ||
+      right_type.kind == NumericType::Kind::None) {
+    return empty_value();
+  }
+
+  // Promote to Float
+  if (left_type.kind == NumericType::Kind::Float &&
+      right_type.kind == NumericType::Kind::Float) {
+    return left_type.size == 64 || right_type.size == 64 ? float64_value()
+                                                         : float32_value();
+  }
+
+  if (left_type.kind == NumericType::Kind::Float)
+    return left_type.size == 64 ? float64_value() : float32_value();
+
+  if (right_type.kind == NumericType::Kind::Float)
+    return right_type.size == 64 ? float64_value() : float32_value();
+
+  // Promote to 64-bit or 32-bit integer.
+  if (left_type.kind != right_type.kind)
+    return empty_value();
+
+  if (left_type.kind == NumericType::Kind::UInt)
+    return left_type.size == 64 || right_type.size == 64 ? uint64_value()
+                                                         : uint32_value();
+  return left_type.size == 64 || right_type.size == 64 ? int64_value()
+                                                       : int32_value();
+}
+
+void TypeResolver::ProduceSemantics(ts::Value* value, ast::Node* ast_node) {
+  if (auto const literal = value->as<ts::Literal>())
+    semantics()->SetValue(ast_node, literal->value());
+  ProduceUnifiedResult(value, ast_node);
 }
 
 // The entry point of |TypeResolver|.
@@ -118,7 +179,12 @@ ts::Value* TypeResolver::Resolve(ast::Expression* expression,
                                  ts::Value* value) {
   ScopedContext context(this, value, expression);
   expression->Accept(this);
-  return context_->result;
+  auto const result = context_->result;
+  if (!result)
+    return NewInvalidValue(expression);
+  if (result == empty_value())
+    Error(ErrorCode::TypeResolverExpressionInvalid, expression);
+  return result;
 }
 
 ts::Value* TypeResolver::ResolveAsBool(ast::Expression* expression) {
@@ -181,6 +247,98 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
   Error(ErrorCode::TypeResolverAssignmentLeftValue, lhs);
 }
 
+void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
+  // TODO(eval1749) Support type variables in binary operation
+  // TODO(eval1749) Support user defined binary operator
+
+  if (ast_node->op() == TokenType::NullOr) {
+    // T operator??(T?, T)
+    // T operator??(T, T) T is reference type
+    // TODO(eval1749) left should be nullable.
+    auto const left = Resolve(ast_node->left(), any_value());
+    auto const right = Resolve(ast_node->right(), any_value());
+    if (left == empty_value() || right == empty_value())
+      return;
+    ProduceSemantics(right, ast_node);
+    return;
+  }
+
+  if (ast_node->is_conditional()) {
+    // bool operator&&(bool, bool)
+    // bool operator||(bool, bool)
+    ResolveAsBool(ast_node->left());
+    ResolveAsBool(ast_node->right());
+    ProduceUnifiedResult(bool_value(), ast_node);
+    return;
+  }
+
+  auto const left = Resolve(ast_node->left(), any_value());
+  auto const right = Resolve(ast_node->right(), any_value());
+  if (ast_node->is_equality()) {
+    // bool operator==(T, T)
+    // bool operator!=(T, T)
+    // TODO(eval1749) Make left and right to same type.
+    if (left != right)
+      Error(ErrorCode::TypeResolverBinaryOperationEquality, ast_node);
+    ProduceUnifiedResult(bool_value(), ast_node);
+    return;
+  }
+
+  auto const left_type = NumericTypeOf(left);
+  auto const right_type = NumericTypeOf(right);
+
+  if (ast_node->is_bitwise_shift()) {
+    // int32 operator<<(int32, int32)
+    // int64 operator<<(int64, int64)
+    // uint32 operator<<(uint32, uint32)
+    // uint64 operator<<(uint64, uint64)
+    if (right_type.kind != NumericType::Kind::Int && right_type.size != 32) {
+      Error(ErrorCode::TypeResolverBinaryOperationShift, ast_node->right());
+      return;
+    }
+    if (left_type.kind == NumericType::Kind::Int) {
+      auto const result = left_type.size == 64 ? int64_value() : int32_value();
+      ProduceSemantics(result, ast_node);
+      return;
+    }
+    if (left_type.kind == NumericType::Kind::UInt) {
+      auto const result =
+          left_type.size == 64 ? uint64_value() : uint32_value();
+      ProduceSemantics(result, ast_node);
+      return;
+    }
+    Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
+    return;
+  }
+
+  // On arithmetic and bitwise operation, both operands should be promoted
+  // to same numeric type.
+  auto const result = PromoteNumericType(left_type, right_type);
+
+  if (result == empty_value()) {
+    if (left_type.kind == NumericType::Kind::None)
+      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
+    if (right_type.kind == NumericType::Kind::None)
+      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->right());
+    return;
+  }
+
+  if (ast_node->is_arithmetic()) {
+    ProduceSemantics(result, ast_node);
+    return;
+  }
+
+  if (ast_node->is_bitwise()) {
+    auto const result_type = NumericTypeOf(result);
+    if (result_type.kind == NumericType::Kind::Int ||
+        result_type.kind == NumericType::Kind::UInt) {
+      ProduceSemantics(result, ast_node);
+      return;
+    }
+  }
+  NOTREACHED() << "Unknown binary operation: " << *ast_node;
+}
+
 // Bind applicable methods to |call->callee|.
 void TypeResolver::VisitCall(ast::Call* call) {
   auto const callee = ResolveReference(call->callee());
@@ -190,7 +348,6 @@ void TypeResolver::VisitCall(ast::Call* call) {
   if (!method_group) {
     // TODO(eval1749) NYI call site other than method call.
     Error(ErrorCode::TypeResolverCalleeNotSupported, call->callee());
-    ProduceResult(NewInvalidValue(call->callee()), call);
     return;
   }
 
@@ -211,7 +368,6 @@ void TypeResolver::VisitCall(ast::Call* call) {
         DVLOG(0) << "Argument[" << parameter->position() << "] " << *argument
                  << " doesn't match with " << *method;
         call_value->SetMethods({});
-        ProduceResult(empty_value(), call);
         return;
       }
       if (!parameter->is_rest())
@@ -239,7 +395,6 @@ void TypeResolver::VisitCall(ast::Call* call) {
     DVLOG(0) << "No matching methods for " << *call;
     Error(ErrorCode::TypeResolverMethodNoMatch, call);
     call_value->SetMethods({});
-    ProduceResult(NewInvalidValue(call->callee()), call);
     return;
   }
 
@@ -264,6 +419,7 @@ void TypeResolver::VisitConditional(ast::Conditional* ast_node) {
   if (true_value != false_value) {
     Error(ErrorCode::TypeResolverConditionalNotMatch,
           ast_node->true_expression(), ast_node->false_expression());
+    return;
   }
   ProduceUnifiedResult(Unify(false_value, true_value), ast_node);
 }
@@ -283,13 +439,12 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   auto const literal_type = ValueOf(ast_type)->as<ir::Type>();
   if (!literal_type) {
     // Predefined type isn't defined.
-    ProduceResult(NewInvalidValue(ast_literal), ast_literal);
     return;
   }
   auto const result = Unify(NewLiteral(literal_type), context_->value);
   auto const result_literal = result->as<ts::Literal>();
   if (!result_literal)
-    return ProduceResult(NewInvalidValue(ast_literal), ast_literal);
+    return;
   DCHECK(!ValueOf(ast_literal));
   semantics()->SetValue(
       ast_literal,

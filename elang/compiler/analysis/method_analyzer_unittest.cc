@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "elang/compiler/testing/analyzer_test.h"
@@ -45,12 +47,14 @@ class Collector final : private ast::Visitor {
   std::string GetCalls() const;
 
  private:
-  // ast::Visitor
-  void VisitBlockStatement(ast::BlockStatement* node);
+  // ast::Visitor expressions
   void VisitCall(ast::Call* node);
+  void VisitVariableReference(ast::VariableReference* node);
+
+  // ast::Visitor statemetns
+  void VisitBlockStatement(ast::BlockStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
-  void VisitVariableReference(ast::VariableReference* node);
 
   std::vector<ast::Call*> calls_;
   const Semantics* const semantics_;
@@ -172,6 +176,9 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
   MethodAnalyzerTest() = default;
   ~MethodAnalyzerTest() override = default;
 
+  // Collect all semantics
+  std::string QuerySemantics(TokenType token_type);
+
   // Collect calls in method |method_name|.
   std::string GetCalls(base::StringPiece method_name);
 
@@ -182,9 +189,25 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
   DISALLOW_COPY_AND_ASSIGN(MethodAnalyzerTest);
 };
 
-// Install methods for testing
-void MethodAnalyzerTest::SetUp() {
-  MyNamespaceBuilder(name_resolver()).Build();
+std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
+  typedef std::pair<ast::Node*, ir::Node*> KeyValue;
+  std::vector<KeyValue> key_values;
+  for (auto const key_value : semantics()->all()) {
+    if (!key_value.first->token()->location().start_offset())
+      continue;
+    if (key_value.first->token() != token_type)
+      continue;
+    key_values.push_back(key_value);
+  }
+  std::sort(key_values.begin(), key_values.end(),
+            [](const KeyValue& a, const KeyValue& b) {
+    return a.first->token()->location().start_offset() <
+           b.first->token()->location().start_offset();
+  });
+  std::stringstream ostream;
+  for (auto const key_value : key_values)
+    ostream << *key_value.second << std::endl;
+  return ostream.str();
 }
 
 std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
@@ -201,10 +224,86 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
   return collector.GetCalls();
 }
 
+// Install methods for testing
+void MethodAnalyzerTest::SetUp() {
+  MyNamespaceBuilder(name_resolver()).Build();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Test cases
 //
+
+// Binary operations
+TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat64) {
+  Prepare(
+      "class Sample {"
+      "  void Foo(float64 f64, float32 f32,"
+      "            int8 i8, int16 i16, int32 i32, int64 i64,"
+      "            uint8 u8, uint16 u16, uint32 u32, uint64 u64) {"
+      "    var f64_f32 = f64 + f32;"
+      "    var f64_f64 = f64 + f64;"
+      ""
+      "    var f64_i8 = f64 + i8;"
+      "    var f64_i16 = f64 + i16;"
+      "    var f64_i32 = f64 + i32;"
+      "    var f64_i64 = f64 + i64;"
+      ""
+      "    var f64_u8 = f64 + u8;"
+      "    var f64_u16 = f64 + u16;"
+      "    var f64_u32 = f64 + u32;"
+      "    var f64_u64 = f64 + u64;"
+      "  }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  EXPECT_EQ(
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n"
+      "(class Float64)\n",
+      QuerySemantics(TokenType::Add));
+}
+
+TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat32) {
+  Prepare(
+      "class Sample {"
+      "  void Foo(float64 f64, float32 f32,"
+      "            int8 i8, int16 i16, int32 i32, int64 i64,"
+      "            uint8 u8, uint16 u16, uint32 u32, uint64 u64) {"
+      "    var f32_f32 = f32 + f32;"
+      "    var f32_f64 = f32 + f64;"
+      ""
+      "    var f32_i8 = f32 + i8;"
+      "    var f32_i16 = f32 + i16;"
+      "    var f32_i32 = f32 + i32;"
+      "    var f32_i64 = f32 + i64;"
+      ""
+      "    var f32_u8 = f32 + u8;"
+      "    var f32_u16 = f32 + u16;"
+      "    var f32_u32 = f32 + u32;"
+      "    var f32_u64 = f32 + u64;"
+      "  }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  EXPECT_EQ(
+      "(class Float32)\n"
+      "(class Float64)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n"
+      "(class Float32)\n",
+      QuerySemantics(TokenType::Add));
+}
 
 // Conditional expression
 TEST_F(MethodAnalyzerTest, Conditional) {

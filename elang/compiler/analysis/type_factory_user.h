@@ -40,6 +40,16 @@ class FactoryUser {
   Value* any_value() const;
   Value* bool_value() const;
   Value* empty_value() const;
+  Value* float32_value() const;
+  Value* float64_value() const;
+  Value* int16_value() const;
+  Value* int32_value() const;
+  Value* int64_value() const;
+  Value* int8_value() const;
+  Value* uint16_value() const;
+  Value* uint32_value() const;
+  Value* uint64_value() const;
+  Value* uint8_value() const;
 
   Value* NewInvalidValue(ast::Node* node);
   Value* NewLiteral(ir::Type* type);

@@ -56,11 +56,27 @@ class TypeResolver final : public Analyzer,
   struct Context;
   class ScopedContext;
 
+  struct NumericType {
+    enum class Kind { Float, Int, None, UInt };
+
+    Kind kind;
+    int size;
+
+    NumericType(Kind kind, int size) : kind(kind), size(size) {}
+  };
+
+  NumericType NumericTypeOf(ts::Value* vlaue) const;
+
+  ts::Value* PromoteNumericType(NumericType left_type,
+                                NumericType right_type) const;
+
   void ProduceResolved(ast::Expression* expression,
                        ts::Value* value,
                        ast::Node* produce);
   void ProduceResult(ts::Value* value, ast::Node* producer);
   void ProduceUnifiedResult(ts::Value* value, ast::Node* producer);
+  void ProduceSemantics(ts::Value* value, ast::Node* node);
+
   ast::NamedNode* ResolveReference(ast::Expression* expression);
   ts::Value* Unify(ts::Value* value1, ts::Value* value2);
 
@@ -69,6 +85,7 @@ class TypeResolver final : public Analyzer,
 
   // ast::Visitor
   void VisitAssignment(ast::Assignment* node);
+  void VisitBinaryOperation(ast::BinaryOperation* node);
   void VisitCall(ast::Call* node);
   void VisitConditional(ast::Conditional* node);
   void VisitLiteral(ast::Literal* node);

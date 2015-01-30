@@ -26,7 +26,17 @@ Factory::Factory(CompilationSession* session, Zone* zone)
       empty_value_(new (zone) EmptyValue()),
       literal_cache_map_(zone),
       null_value_cache_map_(zone),
-      bool_value_(NewPredefinedValue(PredefinedName::Bool)) {
+      bool_value_(NewPredefinedValue(PredefinedName::Bool)),
+      float32_value_(NewPredefinedValue(PredefinedName::Float32)),
+      float64_value_(NewPredefinedValue(PredefinedName::Float64)),
+      int16_value_(NewPredefinedValue(PredefinedName::Int16)),
+      int32_value_(NewPredefinedValue(PredefinedName::Int32)),
+      int64_value_(NewPredefinedValue(PredefinedName::Int64)),
+      int8_value_(NewPredefinedValue(PredefinedName::Int8)),
+      uint16_value_(NewPredefinedValue(PredefinedName::UInt16)),
+      uint32_value_(NewPredefinedValue(PredefinedName::UInt32)),
+      uint64_value_(NewPredefinedValue(PredefinedName::UInt64)),
+      uint8_value_(NewPredefinedValue(PredefinedName::UInt8)) {
 }
 
 Factory::~Factory() {
