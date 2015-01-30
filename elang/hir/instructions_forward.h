@@ -35,9 +35,9 @@ namespace hir {
 
 // Types of output and inputs are must be same integer type.
 #define FOR_EACH_BITWISE_BINARY_OPERATION(V) \
-  V(And, "and", Fixed)                       \
-  V(Ior, "ior", Fixed)                       \
-  V(Xor, "xor", Fixed)
+  V(BitAnd, "and", Fixed)                    \
+  V(BitOr, "ior", Fixed)                     \
+  V(BitXor, "xor", Fixed)
 
 // Types of output and input(0) are must be same integer type and input(1)
 // must be int32.
