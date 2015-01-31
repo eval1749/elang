@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/token_type.h"
@@ -261,37 +262,9 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
 #undef V
   };
 
-  // TODO(eval1749) We should share this code among compiler, HIR, LIR, and
-  // ASM.
-  static char const xdigits[] = "0123456789ABCDEF";
-  static char const escapes[] = "0------abtnvfr";
-
   switch (token.type()) {
-    case TokenType::CharacterLiteral: {
-      auto const ch = token.char_data();
-      char buffer[7];
-      if (ch <= 0x0D && escapes[ch] != '-') {
-        buffer[0] = '\\';
-        buffer[1] = escapes[ch];
-        buffer[2] = 0;
-      } else if (ch == '\'' || ch == '\\') {
-        buffer[0] = '\\';
-        buffer[1] = ch;
-        buffer[2] = 0;
-      } else if (ch < ' ' || ch >= 0x7F) {
-        buffer[0] = '\\';
-        buffer[1] = 'u';
-        buffer[2] = xdigits[(ch >> 12) & 15];
-        buffer[3] = xdigits[(ch >> 8) & 15];
-        buffer[4] = xdigits[(ch >> 4) & 15];
-        buffer[5] = xdigits[ch & 15];
-        buffer[6] = 0;
-      } else {
-        buffer[0] = ch;
-        buffer[1] = 0;
-      }
-      return ostream << "'" << buffer << "'";
-    }
+    case TokenType::CharacterLiteral:
+      return ostream << "'" << AsPrintable(token.char_data(), '\'') << "'";
     case TokenType::Float32Literal:
       return ostream << token.f32_data() << "f";
     case TokenType::Float64Literal:
@@ -306,30 +279,8 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
       return ostream << token.int64_data() << "lu";
     case TokenType::StringLiteral:
       ostream << "\"";
-      for (auto const ch : token.string_data()) {
-        char buffer[7];
-        if (ch <= 0x0D && escapes[ch] != '-') {
-          buffer[0] = '\\';
-          buffer[1] = escapes[ch];
-          buffer[2] = 0;
-        } else if (ch == '"' || ch == '\\') {
-          buffer[0] = '\\';
-          buffer[1] = ch;
-          buffer[2] = 0;
-        } else if (ch < ' ' || ch >= 0x7F) {
-          buffer[0] = '\\';
-          buffer[1] = 'u';
-          buffer[2] = xdigits[(ch >> 12) & 15];
-          buffer[3] = xdigits[(ch >> 8) & 15];
-          buffer[4] = xdigits[(ch >> 4) & 15];
-          buffer[5] = xdigits[ch & 15];
-          buffer[6] = 0;
-        } else {
-          buffer[0] = ch;
-          buffer[1] = 0;
-        }
-        ostream << buffer;
-      }
+      for (auto const ch : token.string_data())
+        ostream << AsPrintable(ch, '"');
       return ostream << "\"";
 
     default:
