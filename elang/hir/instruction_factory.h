@@ -14,6 +14,7 @@
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instructions_forward.h"
 #include "elang/hir/types_forward.h"
+#include "elang/hir/type_factory_user.h"
 #include "elang/hir/values_forward.h"
 
 namespace elang {
@@ -26,25 +27,19 @@ struct FactoryConfig;
 //
 // InstructionFactory
 //
-class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
+class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
+                                            public ZoneOwner {
  public:
   InstructionFactory(Factory* factory, const FactoryConfig& config);
-  ~InstructionFactory() = default;
+  ~InstructionFactory();
 
-  // Convenience function to have 'bool' type.
-  Type* bool_type() const;
-  // |TypeFactory| entry point.
-  TypeFactory* types() const { return type_factory_.get(); }
-  // Convenience function to have 'void' type.
-  Type* void_type() const;
-  // Convenience function to have 'void' value.
   Value* void_value() const;
 
   // Instruction constructors
   Instruction* NewBranchInstruction(Value* condition,
                                     BasicBlock* true_block,
                                     BasicBlock* false_block);
-  Instruction* NewBranchInstruction(BasicBlock* taget_block);
+  Instruction* NewBranchInstruction(BasicBlock* target_block);
   Instruction* NewCallInstruction(Value* callee, Value* arguments);
   Instruction* NewDynamicCast(Type* output_type, Value* input);
   Instruction* NewEntryInstruction(Type* output_type);

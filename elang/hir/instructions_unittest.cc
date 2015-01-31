@@ -9,6 +9,7 @@
 #include "elang/hir/instructions.h"
 #include "elang/hir/testing/hir_test.h"
 #include "elang/hir/types.h"
+#include "elang/hir/type_factory.h"
 
 namespace elang {
 namespace hir {
@@ -93,16 +94,16 @@ FOR_EACH_RELATIONAL_OPERATION(V)
 #undef V
 
 // Type cast operation
-#define V(Name, mnemonic, ...)                                           \
-  TEST_F(HirInstructionTest, Name##Instruction) {                        \
-    auto const input = editor()->NewInt32(1234);                         \
-    auto const instr = editor()->factory()->New##Name##Instruction(      \
-        types()->float64_type(), input);                                 \
-    editor()->Edit(entry_block());                                       \
-    editor()->Append(instr);                                             \
-    editor()->Commit();                                                  \
-    EXPECT_EQ("", Validate());                                           \
-    EXPECT_EQ("bb1:4:float64 %f4 = " mnemonic " 1234", ToString(instr)); \
+#define V(Name, mnemonic, ...)                                              \
+  TEST_F(HirInstructionTest, Name##Instruction) {                           \
+    auto const input = editor()->NewInt32(1234);                            \
+    auto const instr =                                                      \
+        editor()->factory()->New##Name##Instruction(float64_type(), input); \
+    editor()->Edit(entry_block());                                          \
+    editor()->Append(instr);                                                \
+    editor()->Commit();                                                     \
+    EXPECT_EQ("", Validate());                                              \
+    EXPECT_EQ("bb1:4:float64 %f4 = " mnemonic " 1234", ToString(instr));    \
   }
 FOR_EACH_TYPE_CAST_OPERATION(V)
 #undef V
@@ -130,7 +131,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountInputs());
   EXPECT_EQ(call_instr, instr->input(0));
   EXPECT_EQ(true_block, instr->input(1));
@@ -150,7 +151,7 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(target_block, instr->input(0));
   EXPECT_EQ("", Validate());
@@ -161,10 +162,9 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
 // CallInstruction
 //
 TEST_F(HirInstructionTest, CallInstruction) {
-  auto const string_type = types()->string_type();
   auto const callee_name = factory()->NewAtomicString(L"Console.WriteLine");
   auto const callee = factory()->NewReference(
-      types()->NewFunctionType(void_type(), string_type), callee_name);
+      types()->NewFunctionType(void_type(), string_type()), callee_name);
   auto const args = factory()->NewStringLiteral(L"Hello world!");
   auto const instr = factory()->NewCallInstruction(callee, args);
   EXPECT_FALSE(instr->MaybeUseless());
@@ -324,7 +324,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());
   EXPECT_EQ(void_value(), instr->input(0));
   EXPECT_EQ(exit_block(), instr->input(1));
@@ -337,7 +337,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
 TEST_F(HirInstructionTest, StoreInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
-  auto const value = types()->bool_type()->default_value();
+  auto const value = bool_type()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
@@ -397,7 +397,7 @@ TEST_F(HirInstructionTest, UnreachableInstruction) {
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(exit_block(), instr->input(0));
 }

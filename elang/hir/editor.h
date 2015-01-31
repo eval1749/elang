@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "base/basictypes.h"
-#include "elang/base/zone_user.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/hir_export.h"
+#include "elang/hir/factory_user.h"
 
 namespace elang {
 namespace hir {
@@ -33,7 +33,7 @@ class Value;
 //
 // Editor
 //
-class ELANG_HIR_EXPORT Editor final : public ZoneUser {
+class ELANG_HIR_EXPORT Editor final : public FactoryUser {
  public:
   class ELANG_HIR_EXPORT ScopedEdit final {
    public:
@@ -54,7 +54,6 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }
-  Factory* factory() const { return factory_; }
 
   // Returns dominator tree for current editing funciton if avaialble.
   DominatorTree* maybe_dominator_tree() const;
@@ -156,7 +155,6 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   BasicBlock* basic_block_;
   std::unique_ptr<DominatorTree> dominator_tree_;
   std::vector<ErrorData*> errors_;
-  Factory* const factory_;
   Function* const function_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);

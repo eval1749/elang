@@ -14,6 +14,7 @@
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
+#include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
 
 namespace elang {
@@ -24,16 +25,13 @@ namespace hir {
 // Validator
 //
 Validator::Validator(Editor* editor)
-    : dominator_tree_(editor->maybe_dominator_tree()),
+    : TypeFactoryUser(editor->types()),
+      dominator_tree_(editor->maybe_dominator_tree()),
       editor_(editor),
       is_valid_(false) {
 }
 
 Validator::~Validator() {
-}
-
-TypeFactory* Validator::types() const {
-  return editor()->factory()->types();
 }
 
 // Returns true if |dominator| dominates |dominatee|.
@@ -227,7 +225,7 @@ FOR_EACH_BITWISE_BINARY_OPERATION(V)
   void Validator::Visit##Name(Name##Instruction* instr) {  \
     if (instr->input(0)->type() != instr->output_type())   \
       Error(ErrorCode::ValidateInstructionType, instr, 0); \
-    if (instr->input(1)->type() != types()->int32_type())  \
+    if (instr->input(1)->type() != int32_type())           \
       Error(ErrorCode::ValidateInstructionType, instr, 1); \
   }
 FOR_EACH_BITWISE_SHIFT_OPERATION(V)

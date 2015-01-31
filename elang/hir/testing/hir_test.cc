@@ -17,6 +17,7 @@
 #include "elang/hir/instructions.h"
 #include "elang/hir/testing/hir_test.h"
 #include "elang/hir/types.h"
+#include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
 
 namespace elang {
@@ -45,12 +46,12 @@ std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
   return stream.str();
 }
 
-std::unique_ptr<FactoryConfig> NewFactoryConfig(
-    AtomicStringFactory* atomic_string_factory) {
-  auto config = std::make_unique<FactoryConfig>();
-  config->atomic_string_factory = atomic_string_factory;
-  config->string_type_name = atomic_string_factory->NewAtomicString(L"String");
-  return config;
+Factory* NewFactory() {
+  FactoryConfig config;
+  auto const atomic_string_factory = new AtomicStringFactory();
+  config.atomic_string_factory = atomic_string_factory;
+  config.string_type_name = atomic_string_factory->NewAtomicString(L"String");
+  return new Factory(config);
 }
 }  // namespace
 
@@ -59,18 +60,14 @@ std::unique_ptr<FactoryConfig> NewFactoryConfig(
 // HirTest
 //
 HirTest::HirTest()
-    : atomic_string_factory_(new AtomicStringFactory()),
-      factory_config_(NewFactoryConfig(atomic_string_factory_.get())),
-      factory_(new Factory(*factory_config_)),
+    : FactoryUser(NewFactory()),
+      atomic_string_factory_(factory()->config().atomic_string_factory),
+      factory_(factory()),
       function_(NewFunction(void_type(), void_type())),
       editor_(new Editor(factory(), function_)) {
 }
 
 HirTest::~HirTest() {
-}
-
-Type* HirTest::bool_type() const {
-  return factory()->types()->bool_type();
 }
 
 BasicBlock* HirTest::entry_block() const {
@@ -79,34 +76,6 @@ BasicBlock* HirTest::entry_block() const {
 
 BasicBlock* HirTest::exit_block() const {
   return function_->exit_block();
-}
-
-Value* HirTest::false_value() const {
-  return factory()->false_value();
-}
-
-Type* HirTest::int32_type() const {
-  return types()->int32_type();
-}
-
-Value* HirTest::true_value() const {
-  return factory()->true_value();
-}
-
-TypeFactory* HirTest::types() const {
-  return factory_->types();
-}
-
-Type* HirTest::void_type() const {
-  return factory()->void_type();
-}
-
-Value* HirTest::void_value() const {
-  return factory()->void_value();
-}
-
-Zone* HirTest::zone() const {
-  return factory_->zone();
 }
 
 std::string HirTest::Format(Function* function) {
@@ -130,7 +99,7 @@ std::string HirTest::GetErrors() {
 
 Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {
   return factory()->NewFunction(
-      factory()->types()->NewFunctionType(return_type, parameters_type));
+      types()->NewFunctionType(return_type, parameters_type));
 }
 
 //      B0---------+    B0 -> B1, B5

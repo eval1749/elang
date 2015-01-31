@@ -9,6 +9,7 @@
 #include <string>
 
 #include "base/macros.h"
+#include "elang/hir/factory_user.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace elang {
@@ -31,24 +32,15 @@ namespace testing {
 //
 // HirTest
 //
-class HirTest : public ::testing::Test {
+class HirTest : public ::testing::Test, public FactoryUser {
  protected:
   HirTest();
   ~HirTest() override;
 
-  Type* bool_type() const;
   Editor* editor() { return editor_.get(); }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
-  Factory* factory() const { return factory_.get(); }
-  Value* false_value() const;
   Function* function() const { return function_; }
-  Type* int32_type() const;
-  TypeFactory* types() const;
-  Value* true_value() const;
-  Type* void_type() const;
-  Value* void_value() const;
-  Zone* zone() const;
 
   std::string Format(Function* function);
   std::string Format();
@@ -63,7 +55,6 @@ class HirTest : public ::testing::Test {
 
  private:
   std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
-  std::unique_ptr<FactoryConfig> factory_config_;
   std::unique_ptr<Factory> factory_;
 
   // Following objects require |Factory|.

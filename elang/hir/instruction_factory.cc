@@ -34,15 +34,12 @@ void InstructionVisitor::DoDefaultVisit(Instruction* instruction) {
 
 InstructionFactory::InstructionFactory(Factory* factory,
                                        const FactoryConfig& config)
-    : factory_(factory), type_factory_(new TypeFactory(config)) {
+    : TypeFactoryUser(new TypeFactory(config)),
+      factory_(factory),
+      type_factory_(types()) {
 }
 
-Type* InstructionFactory::bool_type() const {
-  return types()->bool_type();
-}
-
-Type* InstructionFactory::void_type() const {
-  return types()->void_type();
+InstructionFactory::~InstructionFactory() {
 }
 
 Value* InstructionFactory::void_value() const {
@@ -82,7 +79,7 @@ FOR_EACH_BITWISE_BINARY_OPERATION(V)
       Type* output_type, Value* left, Value* right) {               \
     DCHECK(output_type->is_integer()) << *output_type;              \
     DCHECK(left->type()->is_integer()) << *left << " " << *right;   \
-    DCHECK_EQ(types()->int32_type(), right->type()) << *right;      \
+    DCHECK_EQ(int32_type(), right->type()) << *right;               \
     auto const instr = new (zone()) Name##Instruction(output_type); \
     instr->InitInputAt(0, left);                                    \
     instr->InitInputAt(1, right);                                   \

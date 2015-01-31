@@ -10,6 +10,7 @@
 #include "base/basictypes.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_visitor.h"
+#include "elang/hir/type_factory_user.h"
 
 namespace elang {
 namespace hir {
@@ -31,7 +32,8 @@ class Value;
 //
 // Validator
 //
-class ELANG_HIR_EXPORT Validator final : public InstructionVisitor {
+class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
+                                         public TypeFactoryUser {
  public:
   explicit Validator(Editor* editor);
   ~Validator();
@@ -42,7 +44,6 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor {
 
  private:
   Editor* editor() const { return editor_; }
-  TypeFactory* types() const;
 
   // Returns true if |dominator| dominates |dominatee|.
   bool Dominates(Value* dominator, Instruction* dominatee);

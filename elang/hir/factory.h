@@ -15,7 +15,6 @@
 #include "elang/hir/factory_config.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_factory.h"
-#include "elang/hir/type_factory.h"
 
 namespace elang {
 namespace hir {
@@ -31,6 +30,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   explicit Factory(const FactoryConfig& config);
   ~Factory();
 
+  const FactoryConfig& config() const { return config_; }
   Value* false_value() const { return false_value_; }
   AtomicString* intrinsic_name(IntrinsicName name);
   Value* true_value() const { return true_value_; }

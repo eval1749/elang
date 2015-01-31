@@ -39,10 +39,7 @@ Editor::ScopedEdit::~ScopedEdit() {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : ZoneUser(factory->zone()),
-      basic_block_(nullptr),
-      factory_(factory),
-      function_(function) {
+    : FactoryUser(factory), basic_block_(nullptr), function_(function) {
   InitializeFunctionIfNeeded();
 }
 
