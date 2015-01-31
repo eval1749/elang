@@ -439,7 +439,7 @@ void Validator::VisitPhi(PhiInstruction* instr) {
   }
 }
 
-void Validator::VisitReturn(ReturnInstruction* instr) {
+void Validator::VisitRet(RetInstruction* instr) {
   auto const return_type = instr->function()->return_type();
   if (instr->input(0)->type() != return_type) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0, return_type);

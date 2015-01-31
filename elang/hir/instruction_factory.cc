@@ -229,9 +229,9 @@ PhiInstruction* InstructionFactory::NewPhiInstruction(Type* output_type) {
   return new (zone()) PhiInstruction(output_type);
 }
 
-Instruction* InstructionFactory::NewReturnInstruction(Value* value,
-                                                      BasicBlock* exit_block) {
-  auto const instr = new (zone()) ReturnInstruction(void_type());
+Instruction* InstructionFactory::NewRetInstruction(Value* value,
+                                                   BasicBlock* exit_block) {
+  auto const instr = new (zone()) RetInstruction(void_type());
   instr->InitInputAt(0, value);
   instr->InitInputAt(1, exit_block);
   return instr;

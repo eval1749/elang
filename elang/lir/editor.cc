@@ -75,7 +75,7 @@ void Editor::InitializeFunctionIfNeeded() {
     ScopedEdit edit_scope(this);
     Edit(entry);
     Append(factory_->NewEntryInstruction());
-    Append(factory_->NewReturnInstruction());
+    Append(factory_->NewRetInstruction());
     Edit(exit);
     Append(factory_->NewExitInstruction());
   }

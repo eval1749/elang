@@ -41,7 +41,7 @@ bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
-bool ReturnInstruction::IsTerminator() const {
+bool RetInstruction::IsTerminator() const {
   return true;
 }
 

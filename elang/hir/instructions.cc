@@ -230,8 +230,8 @@ PhiInstruction* PhiInstructionList::Iterator::operator*() const {
   return (*iterator())->as<PhiInstruction>();
 }
 
-// ReturnInstruction
-bool ReturnInstruction::IsTerminator() const {
+// RetInstruction
+bool RetInstruction::IsTerminator() const {
   return true;
 }
 

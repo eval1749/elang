@@ -24,7 +24,7 @@ ExitInstruction::ExitInstruction(Factory* factory)
   DCHECK(factory);
 }
 
-ReturnInstruction::ReturnInstruction(Factory* factory)
+RetInstruction::RetInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::ret, 0, 0) {
   DCHECK(factory);
 }

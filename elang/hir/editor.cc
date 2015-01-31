@@ -307,12 +307,12 @@ void Editor::SetReturn(Value* new_value) {
   DCHECK(IsAlive(new_value)) << *new_value;
   DCHECK(basic_block_);
   if (auto const return_instr =
-          basic_block_->last_instruction()->as<ReturnInstruction>()) {
+          basic_block_->last_instruction()->as<RetInstruction>()) {
     DidChangeControlFlow();
     SetInput(return_instr, 0, new_value);
     return;
   }
-  SetTerminator(factory()->NewReturnInstruction(new_value, exit_block()));
+  SetTerminator(factory()->NewRetInstruction(new_value, exit_block()));
 }
 
 void Editor::SetTerminator(Instruction* terminator) {

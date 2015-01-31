@@ -455,17 +455,17 @@ class ELANG_HIR_EXPORT PhiInstructionList final {
 //
 // void return %value, %exit_block
 //
-class ELANG_HIR_EXPORT ReturnInstruction final
-    : public SimpleInstruction<ReturnInstruction, Value*, BasicBlock*> {
-  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Return);
+class ELANG_HIR_EXPORT RetInstruction final
+    : public SimpleInstruction<RetInstruction, Value*, BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Ret);
 
  private:
-  explicit ReturnInstruction(Type* output_type);
+  explicit RetInstruction(Type* output_type);
 
   // Instruction
   bool IsTerminator() const final;
 
-  DISALLOW_COPY_AND_ASSIGN(ReturnInstruction);
+  DISALLOW_COPY_AND_ASSIGN(RetInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////

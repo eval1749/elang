@@ -110,11 +110,11 @@ class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
   bool IsTerminator() const final;
 };
 
-class ELANG_LIR_EXPORT ReturnInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(ReturnInstruction);
+class ELANG_LIR_EXPORT RetInstruction final : public Instruction {
+  DECLARE_LIR_INSTRUCTION_CLASS(RetInstruction);
 
  private:
-  explicit ReturnInstruction(Factory* factory);
+  explicit RetInstruction(Factory* factory);
 
   // Instruction
   bool IsTerminator() const final;

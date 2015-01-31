@@ -308,7 +308,7 @@ void InstructionEmitter::VisitExit(ExitInstruction* instruction) {
   __assume(instruction);
 }
 
-void InstructionEmitter::VisitReturn(ReturnInstruction* instruction) {
+void InstructionEmitter::VisitRet(RetInstruction* instruction) {
   EmitOpcode(instruction->opcode());
 }
 

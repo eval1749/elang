@@ -338,9 +338,9 @@ TEST_F(HirInstructionTest, PhiInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ReturnInstruction
+// RetInstruction
 //
-TEST_F(HirInstructionTest, ReturnInstruction) {
+TEST_F(HirInstructionTest, RetInstruction) {
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());

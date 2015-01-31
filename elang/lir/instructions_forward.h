@@ -19,7 +19,7 @@ class InstructionVisitor;
   V(Call, call)                     \
   V(Entry, entry)                   \
   V(Exit, exit)                     \
-  V(Return, ret)
+  V(Ret, ret)
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_LIR_INSTRUCTION(V)

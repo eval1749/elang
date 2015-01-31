@@ -83,7 +83,7 @@ namespace hir {
   V(Jump, "br")                            \
   V(If, "if")                              \
   V(Load, "load")                          \
-  V(Return, "ret")                         \
+  V(Ret, "ret")                            \
   V(Store, "store")                        \
   V(Throw, "throw")                        \
   V(Unreachable, "unreachable")
