@@ -27,6 +27,13 @@ class HirTypesTest : public testing::HirTest {
   DISALLOW_COPY_AND_ASSIGN(HirTypesTest);
 };
 
+TEST_F(HirTypesTest, ArrayType) {
+  auto const array1 = types()->NewArrayType(int32_type(), {42});
+  auto const array2 = types()->NewArrayType(int32_type(), {42});
+  EXPECT_EQ(array1, array2);
+  EXPECT_EQ("int32[42]", ToString(array1));
+}
+
 TEST_F(HirTypesTest, BoolType) {
   auto const type = bool_type()->as<BoolType>();
   auto const true_value = type->NewLiteral(true);

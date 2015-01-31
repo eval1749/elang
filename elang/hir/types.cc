@@ -20,6 +20,25 @@ namespace hir {
 FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
+// ArrayType
+ArrayType::ArrayType(Zone* zone,
+                     Type* element_type,
+                     const std::vector<int>& dimensions)
+    : dimensions_(zone, dimensions),
+      element_type_(element_type),
+      null_literal_(new (zone) NullLiteral(this)) {
+#if _DEBUG
+  for (auto const dimension : dimensions) {
+    DCHECK_GE(dimension, 0);
+  }
+#endif
+}
+
+Value* ArrayType::default_value() const {
+  DCHECK(null_literal_);
+  return null_literal_;
+}
+
 // ExternalType
 ExternalType::ExternalType(Zone* zone, AtomicString* name)
     : ReferenceType(zone, name) {

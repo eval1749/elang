@@ -130,6 +130,7 @@ class ELANG_HIR_EXPORT NullLiteral final : public Literal {
 
  private:
   // For initializing per-type singleton null literal.
+  friend class ArrayType;
   friend class PointerType;
   friend class ReferenceType;
 

@@ -21,6 +21,7 @@ namespace hir {
 
 // List of concrete C++ classes representing HIR type.
 #define FOR_EACH_HIR_CONCRETE_TYPE(V) \
+  V(ArrayType)                        \
   V(BoolType)                         \
   V(CharType)                         \
   V(Float32Type)                      \

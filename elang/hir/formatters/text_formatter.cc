@@ -35,6 +35,8 @@ struct AsValue {
 
 const char* RegisterPrefixOf(const Instruction* instruction) {
   auto const type = instruction->output_type();
+  if (type->is<ArrayType>())
+    return "%a";
   if (type->is<BoolType>())
     return "%b";
   if (type->is<PointerType>())
@@ -121,6 +123,17 @@ class TypeFormatter : public TypeVisitor {
 
 void TypeFormatter::Format(const Type* type) {
   const_cast<Type*>(type)->Accept(this);
+}
+
+void TypeFormatter::VisitArrayType(ArrayType* type) {
+  ostream_ << *type->element_type();
+  ostream_ << "[";
+  auto separator = "";
+  for (auto dimension : type->dimensions()) {
+    ostream_ << separator << dimension;
+    separator = ", ";
+  }
+  ostream_ << "]";
 }
 
 void TypeFormatter::VisitExternalType(ExternalType* type) {

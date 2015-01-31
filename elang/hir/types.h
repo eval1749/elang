@@ -89,6 +89,30 @@ class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
   DISALLOW_COPY_AND_ASSIGN(Type);
 };
 
+// ArrayType is a concrete class represent array.
+// - dimensions_[k] == -1 means dimension at rank k is unbound.
+// - dimensions_[k] must not be zero except for k == 0 and rank == 1
+class ELANG_HIR_EXPORT ArrayType final : public Type {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(ArrayType, Type);
+
+ public:
+  Value* default_value() const final;
+  Type* element_type() const { return element_type_; }
+  const ZoneVector<int> dimensions() const { return dimensions_; }
+  int rank() const { return static_cast<int>(dimensions_.size()); }
+
+ private:
+  explicit ArrayType(Zone* zone,
+                     Type* element_type,
+                     const std::vector<int>& dimensions);
+
+  const ZoneVector<int> dimensions_;
+  Type* const element_type_;
+  NullLiteral* const null_literal_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayType);
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // PointerType

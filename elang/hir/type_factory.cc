@@ -14,13 +14,29 @@
 
 namespace elang {
 namespace hir {
+typedef std::pair<Type*, std::vector<int>> ArrayProperty;
 typedef std::pair<Type*, Type*> TypePair;
 }  // namespace hir
 }  // namespace elang
 
 namespace std {
+using elang::hir::ArrayProperty;
 using elang::hir::Type;
 using elang::hir::TypePair;
+
+template <>
+struct hash<ArrayProperty> {
+  size_t operator()(const ArrayProperty& pair) const {
+    auto hash_code = std::hash<Type*>()(pair.first);
+    for (auto const dimension : pair.second) {
+      auto const upper = hash_code >> (sizeof(hash_code) - 3);
+      hash_code <<= 3;
+      hash_code ^= std::hash<int>()(dimension);
+      hash_code ^= upper;
+    }
+    return hash_code;
+  }
+};
 
 template <>
 struct hash<TypePair> {
@@ -32,6 +48,37 @@ struct hash<TypePair> {
 
 namespace elang {
 namespace hir {
+
+//////////////////////////////////////////////////////////////////////
+//
+// TypeFactory::ArrayTypeFactory
+//
+class TypeFactory::ArrayTypeFactory final {
+ public:
+  explicit ArrayTypeFactory(Zone* zone) : zone_(zone) {}
+  ~ArrayTypeFactory() = default;
+
+  ArrayType* NewArrayType(Type* element_type,
+                          const std::vector<int>& dimensions);
+
+ private:
+  std::unordered_map<ArrayProperty, ArrayType*> map_;
+  Zone* const zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayTypeFactory);
+};
+
+ArrayType* TypeFactory::ArrayTypeFactory::NewArrayType(
+    Type* element_type,
+    const std::vector<int>& dimensions) {
+  const auto key = std::make_pair(element_type, dimensions);
+  const auto it = map_.find(key);
+  if (it != map_.end())
+    return it->second;
+  auto const new_type = new (zone_) ArrayType(zone_, element_type, dimensions);
+  map_[key] = new_type;
+  return new_type;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -73,7 +120,8 @@ TypeFactory::TypeFactory(const FactoryConfig& config)
 #define V(Name, name, ...) name##_type_(new (zone()) Name##Type(zone())),
       FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
-          function_type_factory_(new FunctionTypeFactory(zone())),
+          array_type_factory_(new ArrayTypeFactory(zone())),
+      function_type_factory_(new FunctionTypeFactory(zone())),
       string_type_(new (zone()) StringType(zone(), config.string_type_name)) {
 }
 
@@ -84,6 +132,16 @@ TypeFactory::~TypeFactory() {
   Name##Type* TypeFactory::name##_type() const { return name##_type_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
+
+ArrayType* TypeFactory::NewArrayType(Type* element_type,
+                                     const std::vector<int>& dimensions) {
+#if _DEBUG
+  for (auto const dimension : dimensions) {
+    DCHECK_GE(dimension, 0);
+  }
+#endif
+  return array_type_factory_->NewArrayType(element_type, dimensions);
+}
 
 ExternalType* TypeFactory::NewExternalType(AtomicString* name) {
   return new (zone()) ExternalType(zone(), name);
