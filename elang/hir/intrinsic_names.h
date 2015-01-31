@@ -14,9 +14,7 @@ namespace hir {
 //
 // Intrinsic function names
 //
-#define FOR_EACH_INTRINSIC_NAME(V) \
-  V(HeapAlloc)                     \
-  V(StackAlloc)
+#define FOR_EACH_INTRINSIC_NAME(V) V(HeapAlloc)
 
 enum class IntrinsicName {
 #define V(Name) Name,

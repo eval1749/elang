@@ -225,14 +225,7 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
   }
 
   DCHECK_EQ(variable->storage(), ir::StorageClass::Local);
-  auto const pointer_type = types()->NewPointerType(variable_type);
-  auto const allocator_type =
-      types()->NewFunctionType(pointer_type, void_type());
-  auto const allocator = factory()->NewReference(
-      allocator_type,
-      factory()->intrinsic_name(hir::IntrinsicName::StackAlloc));
-  auto const alloc_instr =
-      factory()->NewCallInstruction(allocator, factory()->void_value());
+  auto const alloc_instr = factory()->NewStackAlloc(variable_type, 1);
   DCHECK(!variables_.count(variable));
   variables_[variable] = alloc_instr;
   Emit(alloc_instr);

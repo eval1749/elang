@@ -462,6 +462,26 @@ class ELANG_HIR_EXPORT StoreInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// ty %pointer = alloca count
+//
+class ELANG_HIR_EXPORT StackAllocInstruction final
+    : public FixedOperandsInstruction<StackAllocInstruction> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(StackAlloc);
+
+ public:
+  int count() const { return count_; }
+
+ private:
+  explicit StackAllocInstruction(Type* output_type);
+
+  // To generate default constructor, |count_| doesn't have |const| modifier.
+  int count_;
+
+  DISALLOW_COPY_AND_ASSIGN(StackAllocInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Unreachable %exit_block
 //
 class ELANG_HIR_EXPORT UnreachableInstruction final

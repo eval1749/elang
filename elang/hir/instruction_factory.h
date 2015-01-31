@@ -56,6 +56,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   Instruction* NewLoadInstruction(Value* pointer);
   PhiInstruction* NewPhiInstruction(Type* output_type);
   Instruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
+  Instruction* NewStackAlloc(Type* type, int number_of_element);
   Instruction* NewStaticCast(Type* output_type, Value* input);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
   Instruction* NewUnreachableInstruction(BasicBlock* exit_block);

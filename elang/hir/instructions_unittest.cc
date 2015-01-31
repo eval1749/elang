@@ -348,6 +348,23 @@ TEST_F(HirInstructionTest, StoreInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// StackAllocInstruction
+//
+TEST_F(HirInstructionTest, StackAllocInstruction) {
+  editor()->Edit(entry_block());
+  auto const instr = factory()->NewStackAlloc(int32_type(), 3);
+  editor()->Append(instr);
+  editor()->Append(factory()->NewLoadInstruction(instr));
+  editor()->Commit();
+  EXPECT_FALSE(instr->MaybeUseless());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(types()->NewPointerType(int32_type()), instr->output_type());
+  EXPECT_EQ(0, instr->CountInputs());
+  EXPECT_EQ("bb1:4:int32* %r4 = alloca 3", ToString(instr));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // UnreachableInstruction
 //
 TEST_F(HirInstructionTest, UnreachableInstruction) {

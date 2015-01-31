@@ -76,6 +76,7 @@ namespace hir {
   V(Load, "load", Fixed)                  \
   V(Phi, "phi", Fixed)                    \
   V(Return, "ret", Fixed)                 \
+  V(StackAlloc, "alloca", Fixed)          \
   V(Store, "store", Fixed)                \
   V(Unreachable, "unreachable", Fixed)    \
   FOR_EACH_ARITHMETIC_BINARY_OPERATION(V) \

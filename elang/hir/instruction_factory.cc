@@ -202,6 +202,14 @@ Instruction* InstructionFactory::NewReturnInstruction(Value* value,
   return instr;
 }
 
+Instruction* InstructionFactory::NewStackAlloc(Type* type, int count) {
+  DCHECK_GE(count, 1);
+  auto const instr =
+      new (zone()) StackAllocInstruction(types()->NewPointerType(type));
+  instr->count_ = count;
+  return instr;
+}
+
 Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
                                                      Value* value) {
   DCHECK(pointer->type()->is<PointerType>());

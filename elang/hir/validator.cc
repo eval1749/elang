@@ -410,6 +410,12 @@ void Validator::VisitReturn(ReturnInstruction* instr) {
   }
 }
 
+void Validator::VisitStackAlloc(StackAllocInstruction* instr) {
+  if (instr->count() >= 1)
+    return;
+  Error(ErrorCode::ValidateInstructionStackAlloc, instr);
+}
+
 void Validator::VisitStore(StoreInstruction* instr) {
   if (!instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);

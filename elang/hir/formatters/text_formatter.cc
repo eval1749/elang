@@ -67,6 +67,11 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
   }
   ostream << instruction->opcode();
 
+  if (auto const alloca = instruction->as<StackAllocInstruction>()) {
+    ostream << " " << alloca->count();
+    return ostream;
+  }
+
   if (auto const get = instruction->as<GetInstruction>()) {
     ostream << " " << AsValue(*get->input(0)) << ", " << get->index();
     return ostream;

@@ -37,7 +37,7 @@ TEST_F(CodeGeneratorTest, Assignment) {
       "  // In:\n"
       "  // Out: block2\n"
       "  int32 %r2 = entry\n"
-      "  int32* %r4 = call `StackAlloc`, void\n"
+      "  int32* %r4 = alloca 1\n"
       "  store %r4, %r2\n"
       "  int32 %r6 = call `Sample.Bar`, void\n"
       "  store %r4, %r6\n"
