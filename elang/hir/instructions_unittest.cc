@@ -129,7 +129,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   editor()->Commit();
 
   auto const instr = entry_block()->last_instruction();
-  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(3, instr->CountInputs());
@@ -148,7 +148,7 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   editor()->Commit();
 
   auto const instr = entry_block()->last_instruction();
-  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
@@ -166,7 +166,7 @@ TEST_F(HirInstructionTest, CallInstruction) {
       types()->NewFunctionType(void_type(), string_type), callee_name);
   auto const args = factory()->NewStringLiteral(L"Hello world!");
   auto const instr = factory()->NewCallInstruction(callee, args);
-  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());
@@ -247,7 +247,7 @@ TEST_F(HirInstructionTest, LoadInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
   auto const instr = factory()->NewLoadInstruction(source);
-  EXPECT_TRUE(instr->CanBeRemoved());
+  EXPECT_TRUE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
@@ -321,7 +321,7 @@ TEST_F(HirInstructionTest, PhiInstruction) {
 //
 TEST_F(HirInstructionTest, ReturnInstruction) {
   auto const instr = entry_block()->last_instruction();
-  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());
@@ -338,7 +338,7 @@ TEST_F(HirInstructionTest, StoreInstruction) {
   auto const source = NewSource(bool_pointer_type);
   auto const value = types()->GetBoolType()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
-  EXPECT_FALSE(instr->CanBeRemoved());
+  EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());

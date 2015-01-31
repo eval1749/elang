@@ -99,8 +99,7 @@ bool BranchInstruction::IsTerminator() const {
 }
 
 // CallInstruction
-bool CallInstruction::CanBeRemoved() const {
-  // TODO(eval1749) We should return true for known side effect free functions.
+bool CallInstruction::MaybeUseless() const {
   return false;
 }
 
@@ -126,7 +125,7 @@ Operands Instruction::inputs() const {
   return Operands(this);
 }
 
-bool Instruction::CanBeRemoved() const {
+bool Instruction::MaybeUseless() const {
   return !IsTerminator() && users().empty();
 }
 
@@ -214,7 +213,7 @@ bool ReturnInstruction::IsTerminator() const {
 }
 
 // StoreInstruction
-bool StoreInstruction::CanBeRemoved() const {
+bool StoreInstruction::MaybeUseless() const {
   return false;
 }
 

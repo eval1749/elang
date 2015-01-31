@@ -71,11 +71,10 @@ class ELANG_HIR_EXPORT Operands final {
 //  * Trait protocol
 //   - opcode()
 //   - IsTerminator()
+//   - MaybeUseless()
 //  * Inputs
 //   - CountInputs()
 //   - InputAt(int index)
-//  * Status query
-//   - CanBeRemoved()
 //
 class ELANG_HIR_EXPORT Instruction
     : public Value,
@@ -104,11 +103,8 @@ class ELANG_HIR_EXPORT Instruction
   // Type of value produced by this instruction.
   Type* output_type() const { return type(); }
 
-  // Returns true if this instruction can be safely removed and doesn't change
-  // execution result of containing function. No users for an output of
-  // this instruction returns true except for this instruction has no side-
-  // effect, e.g. call, store, and so on.
-  virtual bool CanBeRemoved() const;
+  // Visitor pattern
+  virtual void Accept(InstructionVisitor* visitor) = 0;
 
   // Returns number of operands which this instruction has. Other than 'phi',
   // 'tuple', and 'switch', number of values is constant.
@@ -118,7 +114,9 @@ class ELANG_HIR_EXPORT Instruction
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
 
-  virtual void Accept(InstructionVisitor* visitor) = 0;
+  // Returns true if this instruction has no users except and doesn't cause
+  // side effect. 'call' and 'strore' instructions return false.
+  virtual bool MaybeUseless() const;
 
  protected:
   explicit Instruction(Type* output_type);
@@ -243,7 +241,7 @@ class ELANG_HIR_EXPORT CallInstruction final
   explicit CallInstruction(Type* output_type);
 
   // Instruction
-  bool CanBeRemoved() const final;
+  bool MaybeUseless() const final;
 
   DISALLOW_COPY_AND_ASSIGN(CallInstruction);
 };
@@ -457,7 +455,7 @@ class ELANG_HIR_EXPORT StoreInstruction final
   explicit StoreInstruction(Type* output_type);
 
   // Instruction
-  bool CanBeRemoved() const final;
+  bool MaybeUseless() const final;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstruction);
 };
