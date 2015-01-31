@@ -104,7 +104,7 @@ PointerType* TypeFactory::NewPointerType(Type* pointee) {
 }
 
 TupleType* TypeFactory::NewTupleType(const std::vector<Type*>& members) {
-  DCHECK(!members.empty());
+  DCHECK_GE(members.size(), 2u);
 #if _DEBUG
   for (auto const member : members) {
     DCHECK(!member->is<VoidType>());
