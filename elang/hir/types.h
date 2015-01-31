@@ -70,8 +70,10 @@ class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
     Void,
   };
 
+  bool can_allocate_on_stack() const;
+
   // Returns default value of this type.
-  virtual Value* default_value() const = 0;
+  virtual Value* default_value() const;
 
   bool is_float() const { return register_class() == RegisterClass::Float; }
   bool is_general() const { return register_class() == RegisterClass::General; }
@@ -113,6 +115,24 @@ class ELANG_HIR_EXPORT ArrayType final : public Type {
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
 
+// A concrete class represents function type which has return type and parameter
+// types.
+class ELANG_HIR_EXPORT FunctionType final : public Type {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, Type);
+
+ public:
+  Type* parameters_type() const { return parameters_type_; }
+  Type* return_type() const { return return_type_; }
+
+ private:
+  FunctionType(Type* return_type, Type* parameters_type);
+
+  Type* const parameters_type_;
+  Type* const return_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(FunctionType);
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // PointerType
@@ -122,12 +142,11 @@ class ELANG_HIR_EXPORT PointerType final : public Type {
 
  public:
   Type* pointee() const { return pointee_; }
-
-  // Returns default value of this type.
   Value* default_value() const final;
+  RegisterClass register_class() const final;
 
  private:
-  explicit PointerType(Zone* zone, Type* pointee);
+  PointerType(Zone* zone, Type* pointee);
 
   NullLiteral* const null_literal_;
   Type* pointee_;
@@ -153,15 +172,15 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
   DISALLOW_COPY_AND_ASSIGN(PrimitiveType);
 };
 
-#define DECLARE_HIR_PRIMITIVE_TYPE(Name, name, value_type, ...)      \
+#define V(Name, name, value_type, ...)                               \
   class ELANG_HIR_EXPORT Name##Type final : public PrimitiveType {   \
     DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveType);      \
                                                                      \
    public:                                                           \
     /* Protocol defined by |PrimitiveType| class */                  \
-    int bit_size() const override;                                   \
-    Value* default_value() const override;                           \
-    RegisterClass register_class() const override;                   \
+    int bit_size() const final;                                      \
+    Value* default_value() const final;                              \
+    RegisterClass register_class() const final;                      \
                                                                      \
    private:                                                          \
     /* Allow |Factory| to access |NewLiteral()|. */                  \
@@ -179,8 +198,8 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
                                                                      \
     DISALLOW_COPY_AND_ASSIGN(Name##Type);                            \
   };
-FOR_EACH_HIR_PRIMITIVE_TYPE(DECLARE_HIR_PRIMITIVE_TYPE)
-#undef DECLARE_HIR_PRIMITIVE_TYPE
+FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V)
+#undef V
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -195,6 +214,7 @@ class ELANG_HIR_EXPORT ReferenceType : public Type {
 
   // Type
   Value* default_value() const override;
+  RegisterClass register_class() const final;
 
  protected:
   explicit ReferenceType(Zone* zone, AtomicString* name);
@@ -211,27 +231,9 @@ class ELANG_HIR_EXPORT ExternalType final : public ReferenceType {
   DECLARE_HIR_TYPE_CONCRETE_CLASS(ExternalType, ReferenceType);
 
  private:
-  explicit ExternalType(Zone* zone, AtomicString* name);
+  ExternalType(Zone* zone, AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(ExternalType);
-};
-
-// A concrete class represents function type which has return type and parameter
-// types.
-class ELANG_HIR_EXPORT FunctionType : public ReferenceType {
-  DECLARE_HIR_TYPE_CONCRETE_CLASS(FunctionType, ReferenceType);
-
- public:
-  Type* parameters_type() const { return parameters_type_; }
-  Type* return_type() const { return return_type_; }
-
- private:
-  FunctionType(Zone* zone, Type* return_type, Type* parameters_type);
-
-  Type* const parameters_type_;
-  Type* const return_type_;
-
-  DISALLOW_COPY_AND_ASSIGN(FunctionType);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -245,7 +247,7 @@ class ELANG_HIR_EXPORT StringType final : public ReferenceType {
   StringLiteral* NewLiteral(base::StringPiece16 data);
 
  private:
-  explicit StringType(Zone* zone, AtomicString* name);
+  StringType(Zone* zone, AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(StringType);
 };
@@ -258,19 +260,30 @@ class ELANG_HIR_EXPORT TupleType final : public Type {
   DECLARE_HIR_TYPE_CONCRETE_CLASS(TupleType, Type);
 
  public:
-  Value* default_value() const final;
   Type* get(int index) const { return members_[index]; }
   const ZoneVector<Type*>& members() const { return members_; }
 
  private:
-  explicit TupleType(Zone* zone, const std::vector<Type*>& members);
-
-  RegisterClass register_class() const final;
+  TupleType(Zone* zone, const std::vector<Type*>& members);
 
   const ZoneVector<Type*> members_;
-  Value* const default_value_;
 
   DISALLOW_COPY_AND_ASSIGN(TupleType);
+};
+
+// VoidType
+class ELANG_HIR_EXPORT VoidType final : public PrimitiveType {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(VoidType, PrimitiveType);
+
+ private:
+  explicit VoidType(Zone* zone);
+
+  int bit_size() const final;
+  Value* default_value() const final;
+
+  Value* const default_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(VoidType);
 };
 
 }  // namespace hir

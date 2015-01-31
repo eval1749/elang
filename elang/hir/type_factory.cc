@@ -119,8 +119,7 @@ FunctionType* TypeFactory::FunctionTypeFactory::NewFunctionType(
   const auto it = map_.find(key);
   if (it != map_.end())
     return it->second;
-  auto const new_type =
-      new (zone_) FunctionType(zone_, return_type, parameters_type);
+  auto const new_type = new (zone_) FunctionType(return_type, parameters_type);
   map_[key] = new_type;
   return new_type;
 }

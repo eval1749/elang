@@ -318,19 +318,6 @@ void ValueFormatter::VisitStringLiteral(StringLiteral* literal) {
   ostream_ << "\"";
 }
 
-void ValueFormatter::VisitTupleLiteral(TupleLiteral* literal) {
-  ostream_ << "{";
-  auto index = 0;
-  auto separator = "";
-  for (auto const member : literal->type()->as<TupleType>()->members()) {
-    DCHECK(member);
-    ostream_ << separator << *literal->get(index);
-    separator = ", ";
-    ++index;
-  }
-  ostream_ << "}";
-}
-
 void ValueFormatter::VisitUInt16Literal(UInt16Literal* literal) {
   ostream_ << "uint16(" << literal->data() << ")";
 }

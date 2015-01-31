@@ -45,10 +45,8 @@ ExternalType::ExternalType(Zone* zone, AtomicString* name)
 }
 
 // FunctionType
-FunctionType::FunctionType(Zone* zone, Type* return_type, Type* parameters_type)
-    : ReferenceType(zone, nullptr),
-      parameters_type_(parameters_type),
-      return_type_(return_type) {
+FunctionType::FunctionType(Type* return_type, Type* parameters_type)
+    : parameters_type_(parameters_type), return_type_(return_type) {
 }
 
 // PointerType
@@ -59,6 +57,10 @@ PointerType::PointerType(Zone* zone, Type* pointee)
 Value* PointerType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
+}
+
+Type::RegisterClass PointerType::register_class() const {
+  return RegisterClass::General;
 }
 
 // PrimitiveTypes
@@ -84,7 +86,7 @@ Value* PointerType::default_value() const {
   }                                                                   \
   /* Type */                                                          \
   Value* Name##Type::default_value() const { return default_value_; }
-FOR_EACH_HIR_PRIMITIVE_TYPE(V)
+FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
 // ReferenceType
@@ -97,6 +99,10 @@ Value* ReferenceType::default_value() const {
   return null_literal_;
 }
 
+Type::RegisterClass ReferenceType::register_class() const {
+  return RegisterClass::General;
+}
+
 // StringType
 StringType::StringType(Zone* zone, AtomicString* name)
     : ReferenceType(zone, name) {
@@ -104,21 +110,37 @@ StringType::StringType(Zone* zone, AtomicString* name)
 
 // TupleType
 TupleType::TupleType(Zone* zone, const std::vector<Type*>& members)
-    : default_value_(new (zone) TupleLiteral(this)), members_(zone, members) {
+    : members_(zone, members) {
   DCHECK_GE(members.size(), 2u);
 }
 
-Value* TupleType::default_value() const {
-  return default_value_;
-}
-
-Type::RegisterClass TupleType::register_class() const {
-  return RegisterClass::Tuple;
-}
-
 // Type
+bool Type::can_allocate_on_stack() const {
+  return register_class() == RegisterClass::General ||
+         register_class() == RegisterClass::Integer ||
+         register_class() == RegisterClass::Float ||
+         register_class() == RegisterClass::Tuple;
+}
+
+Value* Type::default_value() const {
+  NOTREACHED() << *this << " doesn't have default value.";
+  return nullptr;
+}
+
 Type::RegisterClass Type::register_class() const {
-  return RegisterClass::General;
+  return RegisterClass::Void;
+}
+
+// VoidType
+VoidType::VoidType(Zone* zone) : default_value_(new (zone) VoidValue(this)) {
+}
+
+int VoidType::bit_size() const {
+  return 0;
+}
+
+Value* VoidType::default_value() const {
+  return default_value_;
 }
 
 }  // namespace hir

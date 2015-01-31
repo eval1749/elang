@@ -199,6 +199,7 @@ Instruction* InstructionFactory::NewReturnInstruction(Value* value,
 }
 
 Instruction* InstructionFactory::NewStackAlloc(Type* type, int count) {
+  DCHECK(type->can_allocate_on_stack());
   DCHECK_GE(count, 1);
   return new (zone())
       StackAllocInstruction(types()->NewPointerType(type), count);

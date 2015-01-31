@@ -163,18 +163,7 @@ Reference::Reference(Type* type, AtomicString* name)
     : Literal(type), name_(name) {
 }
 
-// TupleLiteral
-TupleLiteral::TupleLiteral(TupleType* type) : Literal(type) {
-}
-
-Value* TupleLiteral::get(int index) const {
-  return type()->as<TupleType>()->get(index)->default_value();
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // UseDefNode
-//
 UseDefNode::UseDefNode() : instruction_(nullptr), value_(nullptr) {
 }
 
@@ -203,10 +192,7 @@ void UseDefNode::SetValue(Value* new_value) {
   value_ = new_value;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // Value
-//
 Value::Value(Type* type) : type_(type) {
 }
 
@@ -219,8 +205,7 @@ void Value::Unuse(UseDefNode* value_holder) {
 }
 
 // VoidValue
-VoidValue::VoidValue(VoidType* type, int data) : Literal(type) {
-  DCHECK(!data);
+VoidValue::VoidValue(VoidType* type) : Literal(type) {
 }
 
 }  // namespace hir

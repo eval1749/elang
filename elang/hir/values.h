@@ -33,9 +33,8 @@ namespace hir {
 //      Int16Literal Int32Literal Int64Literal Int16Literal
 //      NullLiteral -- typed null value for pointer and reference types.
 //      StringLiteral
-//      TupleLiteral
 //      UInt16Literal UInt32Literal UInt64Literal UInt16Literal
-//      VoidLiteal -- singleton
+//      VoidValue -- singleton
 
 // Use-def list node.
 class ELANG_HIR_EXPORT UseDefNode
@@ -159,25 +158,6 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Default value of tuple.
-//
-class ELANG_HIR_EXPORT TupleLiteral final : public Literal {
-  DECLARE_HIR_CONCRETE_VALUE_CLASS(TupleLiteral, Literal);
-
- public:
-  Value* get(int index) const;
-
- private:
-  // For creating singleton void literal.
-  friend class TupleType;
-
-  explicit TupleLiteral(TupleType* type);
-
-  DISALLOW_COPY_AND_ASSIGN(TupleLiteral);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // value for 'void' type. |TypeFactory| singleton.
 //
 class ELANG_HIR_EXPORT VoidValue final : public Literal {
@@ -186,7 +166,7 @@ class ELANG_HIR_EXPORT VoidValue final : public Literal {
  private:
   friend class VoidType;
 
-  VoidValue(VoidType* type, int dummy);
+  explicit VoidValue(VoidType* type);
 
   DISALLOW_COPY_AND_ASSIGN(VoidValue);
 };
@@ -195,15 +175,15 @@ class ELANG_HIR_EXPORT VoidValue final : public Literal {
 //
 // Primitive values
 //
-#define V(Name, name, cpp_type)                                 \
+#define V(Name, name, data_type)                                \
   class ELANG_HIR_EXPORT Name##Literal final : public Literal { \
     DECLARE_HIR_CONCRETE_VALUE_CLASS(Name##Literal, Literal)    \
    public:                                                      \
-    Name##Literal(Type* type, cpp_type data);                   \
-    cpp_type data() const { return data_; }                     \
+    Name##Literal(Type* type, data_type data);                  \
+    data_type data() const { return data_; }                    \
                                                                 \
    private:                                                     \
-    const cpp_type data_;                                       \
+    const data_type data_;                                      \
     DISALLOW_COPY_AND_ASSIGN(Name##Literal);                    \
   };
 FOR_EACH_HIR_LITERAL_VALUE(V)

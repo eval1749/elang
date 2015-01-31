@@ -51,7 +51,6 @@ TEST_F(HirTypesTest, FunctionType) {
   auto const params3 = types()->NewTupleType({float32_type(), float64_type()});
   auto const type3 = types()->NewFunctionType(bool_type(), params3);
   EXPECT_EQ(type1, type2);
-  EXPECT_EQ(type1->default_value(), type1->default_value());
   EXPECT_EQ("int32(void)", ToString(type1));
   EXPECT_EQ("bool(float32, float64)", ToString(type3));
 }
@@ -68,13 +67,9 @@ TEST_F(HirTypesTest, TupleType) {
   auto const type1 = types()->NewTupleType({int32_type(), bool_type()});
   auto const type2 = types()->NewTupleType({int32_type(), bool_type()});
   EXPECT_EQ(type1, type2);
-  auto const tuple_value = type1->default_value()->as<TupleLiteral>();
   EXPECT_EQ(int32_type(), type1->get(0));
   EXPECT_EQ(bool_type(), type1->get(1));
-  EXPECT_EQ(int32_type()->default_value(), tuple_value->get(0));
-  EXPECT_EQ(bool_type()->default_value(), tuple_value->get(1));
   EXPECT_EQ("{int32, bool}", ToString(type1));
-  EXPECT_EQ("{0, false}", ToString(tuple_value));
 }
 
 }  // namespace hir
