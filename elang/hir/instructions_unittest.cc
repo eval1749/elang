@@ -185,6 +185,39 @@ TEST_F(HirInstructionTest, CallInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// GetInstruction
+//
+TEST_F(HirInstructionTest, GetInstruction) {
+  auto const parameters_type =
+      types()->NewTupleType({int32_type(), bool_type()});
+  auto const function = NewFunction(void_type(), parameters_type);
+  auto const entry = function->entry_block()->first_instruction();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const get0 =
+      factory()->NewGetInstruction(entry, 0)->as<GetInstruction>();
+  EXPECT_EQ(0, get0->index());
+  auto const get1 =
+      factory()->NewGetInstruction(entry, 1)->as<GetInstruction>();
+  auto const get2 =
+      factory()->NewGetInstruction(entry, 1)->as<GetInstruction>();
+  EXPECT_EQ(1, get1->index());
+  editor.Append(get0);
+  editor.Append(get1);
+  editor.Append(
+      factory()->NewNeInstruction(get0, int32_type()->default_value()));
+  // |get2| doesn't confirm 'get' instruciton ordering restriction.
+  editor.Append(get2);
+  editor.Commit();
+  EXPECT_FALSE(editor.Validate());
+  EXPECT_EQ("bb3:7:int32 %r7 = get %t5, 0", ToString(get0));
+  EXPECT_EQ("bb3:8:bool %b8 = get %t5, 1", ToString(get1));
+  EXPECT_EQ("Validate.Instruction.Get bb3:10:bool %b10 = get %t5, 1\n",
+            GetErrors(editor));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // IfInstruction
 //
 TEST_F(HirInstructionTest, IfInstruction) {

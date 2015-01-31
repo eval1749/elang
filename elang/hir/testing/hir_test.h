@@ -50,10 +50,12 @@ class HirTest : public ::testing::Test {
 
   std::string Format(Function* function);
   std::string Format();
+  std::string GetErrors(const Editor& editor);
   std::string GetErrors();
   Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
   Function* NewSampleFunction();
+  std::string ToString(Instruction* instruction);
   std::string ToString(Type* type);
   std::string ToString(Value* value);
 

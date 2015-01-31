@@ -112,8 +112,12 @@ std::string HirTest::Format() {
   return Format(function());
 }
 
+std::string HirTest::GetErrors(const Editor& editor) {
+  return ConvertErrorListToString(editor.errors());
+}
+
 std::string HirTest::GetErrors() {
-  return ConvertErrorListToString(editor_->errors());
+  return GetErrors(*editor_);
 }
 
 Value* HirTest::NewBool(bool value) {
@@ -187,6 +191,12 @@ Function* HirTest::NewSampleFunction() {
   editor.Commit();
 
   return function;
+}
+
+std::string HirTest::ToString(Instruction* instruction) {
+  std::stringstream ostream;
+  ostream << *instruction;
+  return ostream.str();
 }
 
 std::string HirTest::ToString(Type* type) {

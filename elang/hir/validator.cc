@@ -306,6 +306,34 @@ void Validator::VisitExit(ExitInstruction* instr) {
   }
 }
 
+// 'get' instruction must be followed by another 'get' instruction which refers
+// same tuple value or an instruction which yields tuple value.
+void Validator::VisitGet(GetInstruction* instr) {
+  auto const previous = instr->previous();
+  if (!previous) {
+    Error(ErrorCode::ValidateInstructionGet, instr);
+    return;
+  }
+
+  auto const tuple_value = instr->input(0);
+  auto const tuple_type = tuple_value->type()->as<TupleType>();
+  if (!tuple_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 0);
+    return;
+  }
+
+  if (static_cast<size_t>(instr->index()) >= tuple_type->members().size()) {
+    Error(ErrorCode::ValidateInstructionGet, instr);
+    return;
+  }
+
+  if (tuple_value != previous &&
+      (!previous->is<GetInstruction>() || tuple_value != previous->input(0))) {
+    Error(ErrorCode::ValidateInstructionGet, instr);
+    return;
+  }
+}
+
 void Validator::VisitIf(IfInstruction* instr) {
   if (instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);

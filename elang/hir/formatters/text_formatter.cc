@@ -33,15 +33,21 @@ struct AsValue {
   explicit AsValue(const Value& value) : value(&value) {}
 };
 
+const char* RegisterPrefixOf(const Instruction* instruction) {
+  auto const type = instruction->output_type();
+  if (type->is<BoolType>())
+    return "%b";
+  if (type->is<TupleType>())
+    return "%t";
+  if (type->register_class() == Type::RegisterClass::Float)
+    return "%f";
+  return "%r";
+}
+
 std::ostream& operator<<(std::ostream& ostream, const AsValue& thing) {
   auto const value = thing.value;
   if (auto const instruction = value->as<Instruction>()) {
-    auto const type = instruction->output_type();
-    if (type->is<BoolType>())
-      return ostream << "%b" << instruction->id();
-    if (type->register_class() == Type::RegisterClass::Float)
-      return ostream << "%f" << instruction->id();
-    return ostream << "%r" << instruction->id();
+    return ostream << RegisterPrefixOf(instruction) << instruction->id();
   }
   return ostream << *value;
 }
@@ -60,6 +66,11 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
             << " = ";
   }
   ostream << instruction->opcode();
+
+  if (auto const get = instruction->as<GetInstruction>()) {
+    ostream << " " << AsValue(*get->input(0)) << ", " << get->index();
+    return ostream;
+  }
 
   if (auto const phi = instruction->as<PhiInstruction>()) {
     auto separator = " ";

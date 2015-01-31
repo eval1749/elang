@@ -26,6 +26,7 @@ namespace hir {
   /* Instructions */                    \
   E(Validate, Instruction, BasicBlock)  \
   E(Validate, Instruction, Dominance)   \
+  E(Validate, Instruction, Get)         \
   E(Validate, Instruction, Id)          \
   E(Validate, Instruction, Operand)     \
   E(Validate, Instruction, Orphan)      \

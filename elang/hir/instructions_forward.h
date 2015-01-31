@@ -70,6 +70,7 @@ namespace hir {
   V(Call, "call", Fixed)                  \
   V(Entry, "entry", Fixed)                \
   V(Exit, "exit", Fixed)                  \
+  V(Get, "get", Fixed)                    \
   V(Jump, "br", Fixed)                    \
   V(If, "if", Fixed)                      \
   V(Load, "load", Fixed)                  \

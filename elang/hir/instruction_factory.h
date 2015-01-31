@@ -48,6 +48,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   Instruction* NewDynamicCast(Type* output_type, Value* input);
   Instruction* NewEntryInstruction(Type* output_type);
   Instruction* NewExitInstruction();
+  Instruction* NewGetInstruction(Value* value, int index);
   Instruction* NewIfInstruction(Type* output_type,
                                 Value* condition,
                                 Value* true_value,

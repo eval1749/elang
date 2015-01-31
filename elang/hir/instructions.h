@@ -282,6 +282,26 @@ class ELANG_HIR_EXPORT ExitInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// ty %result = get %tuple, index
+//
+class ELANG_HIR_EXPORT GetInstruction final
+    : public FixedOperandsInstruction<GetInstruction, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Get);
+
+ public:
+  int index() const { return index_; }
+
+ private:
+  explicit GetInstruction(Type* output_type);
+
+  // To generate default constructor, |index_| doesn't have |const| modifier.
+  int index_;
+
+  DISALLOW_COPY_AND_ASSIGN(GetInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ty %result if %bool %true, %false
 //
 class ELANG_HIR_EXPORT IfInstruction final

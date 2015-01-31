@@ -158,6 +158,16 @@ Instruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
 }
 
+Instruction* InstructionFactory::NewGetInstruction(Value* value, int index) {
+  auto const tuple_type = value->type()->as<TupleType>();
+  DCHECK(tuple_type) << *value;
+  auto const output_type = tuple_type->get(index);
+  auto const instr = new (zone()) GetInstruction(output_type);
+  instr->InitInputAt(0, value);
+  instr->index_ = index;
+  return instr;
+}
+
 Instruction* InstructionFactory::NewIfInstruction(Type* output_type,
                                                   Value* condition,
                                                   Value* true_value,
