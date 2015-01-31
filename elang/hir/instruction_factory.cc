@@ -17,9 +17,13 @@ namespace hir {
 #define V(Name, ...)                                                     \
   void InstructionVisitor::Visit##Name(Name##Instruction* instruction) { \
     DoDefaultVisit(instruction);                                         \
-  }                                                                      \
-  void Name##Instruction::Accept(InstructionVisitor* visitor) {          \
-    visitor->Visit##Name(this);                                          \
+  }
+FOR_EACH_HIR_INSTRUCTION(V)
+#undef V
+
+#define V(Name, ...)                                            \
+  void Name##Instruction::Accept(InstructionVisitor* visitor) { \
+    visitor->Visit##Name(this);                                 \
   }
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
@@ -162,9 +166,8 @@ Instruction* InstructionFactory::NewGetInstruction(Value* value, int index) {
   auto const tuple_type = value->type()->as<TupleType>();
   DCHECK(tuple_type) << *value;
   auto const output_type = tuple_type->get(index);
-  auto const instr = new (zone()) GetInstruction(output_type);
+  auto const instr = new (zone()) GetInstruction(output_type, index);
   instr->InitInputAt(0, value);
-  instr->index_ = index;
   return instr;
 }
 
@@ -204,10 +207,8 @@ Instruction* InstructionFactory::NewReturnInstruction(Value* value,
 
 Instruction* InstructionFactory::NewStackAlloc(Type* type, int count) {
   DCHECK_GE(count, 1);
-  auto const instr =
-      new (zone()) StackAllocInstruction(types()->NewPointerType(type));
-  instr->count_ = count;
-  return instr;
+  return new (zone())
+      StackAllocInstruction(types()->NewPointerType(type), count);
 }
 
 Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
@@ -217,6 +218,20 @@ Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
   auto const instr = new (zone()) StoreInstruction(void_type());
   instr->InitInputAt(0, pointer);
   instr->InitInputAt(1, value);
+  return instr;
+}
+
+Instruction* InstructionFactory::NewTuple(Type* output_type,
+                                          const std::vector<Value*>& inputs) {
+  DCHECK(output_type->is<TupleType>());
+  DCHECK(!inputs.empty());
+  auto const instr = new (zone())
+      TupleInstruction(zone(), output_type, static_cast<int>(inputs.size()));
+  auto index = 0;
+  for (auto const input : inputs) {
+    instr->InitInputAt(index, input);
+    ++index;
+  }
   return instr;
 }
 

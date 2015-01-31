@@ -6,7 +6,6 @@
 #define ELANG_HIR_INSTRUCTIONS_H_
 
 #include <array>
-#include <vector>
 
 #include "base/basictypes.h"
 #include "base/logging.h"
@@ -147,14 +146,13 @@ class ELANG_HIR_EXPORT Instruction
 // Help template for fixed operands instructions.
 //
 template <class Derived, typename... OperandTypes>
-class FixedOperandsInstruction : public Instruction {
+class SimpleInstruction : public Instruction {
  public:
   // Instruction
   int CountInputs() const final { return sizeof...(OperandTypes); }
 
  protected:
-  explicit FixedOperandsInstruction(Type* output_type)
-      : Instruction(output_type) {}
+  explicit SimpleInstruction(Type* output_type) : Instruction(output_type) {}
 
  private:
   UseDefNode* InputAt(int index) const final {
@@ -163,22 +161,22 @@ class FixedOperandsInstruction : public Instruction {
 
   std::array<UseDefNode, sizeof...(OperandTypes)> inputs_;
 
-  DISALLOW_COPY_AND_ASSIGN(FixedOperandsInstruction);
+  DISALLOW_COPY_AND_ASSIGN(SimpleInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
 // Binary Operations
 //
-#define V(Name, ...)                                                         \
-  class ELANG_HIR_EXPORT Name##Instruction final                             \
-      : public FixedOperandsInstruction<Name##Instruction, Value*, Value*> { \
-    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);                            \
-                                                                             \
-   private:                                                                  \
-    explicit Name##Instruction(Type* output_type);                           \
-                                                                             \
-    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);                             \
+#define V(Name, ...)                                                  \
+  class ELANG_HIR_EXPORT Name##Instruction final                      \
+      : public SimpleInstruction<Name##Instruction, Value*, Value*> { \
+    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);                     \
+                                                                      \
+   private:                                                           \
+    explicit Name##Instruction(Type* output_type);                    \
+                                                                      \
+    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);                      \
   };
 
 FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
@@ -192,15 +190,15 @@ FOR_EACH_RELATIONAL_OPERATION(V)
 //
 // Unary Operations
 //
-#define V(Name, ...)                                                 \
-  class ELANG_HIR_EXPORT Name##Instruction final                     \
-      : public FixedOperandsInstruction<Name##Instruction, Value*> { \
-    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);                    \
-                                                                     \
-   private:                                                          \
-    explicit Name##Instruction(Type* output_type);                   \
-                                                                     \
-    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);                     \
+#define V(Name, ...)                                          \
+  class ELANG_HIR_EXPORT Name##Instruction final              \
+      : public SimpleInstruction<Name##Instruction, Value*> { \
+    DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Name);             \
+                                                              \
+   private:                                                   \
+    explicit Name##Instruction(Type* output_type);            \
+                                                              \
+    DISALLOW_COPY_AND_ASSIGN(Name##Instruction);              \
   };
 
 FOR_EACH_TYPE_CAST_OPERATION(V)
@@ -214,10 +212,10 @@ FOR_EACH_TYPE_CAST_OPERATION(V)
 // |BranchInstruction| represents conditional branch.
 //
 class ELANG_HIR_EXPORT BranchInstruction final
-    : public FixedOperandsInstruction<BranchInstruction,
-                                      Value*,
-                                      BasicBlock*,
-                                      BasicBlock*> {
+    : public SimpleInstruction<BranchInstruction,
+                               Value*,
+                               BasicBlock*,
+                               BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Branch);
 
  private:
@@ -234,7 +232,7 @@ class ELANG_HIR_EXPORT BranchInstruction final
 // ty %result = call funty %callee %arguments
 //
 class ELANG_HIR_EXPORT CallInstruction final
-    : public FixedOperandsInstruction<CallInstruction, Value*, Value*> {
+    : public SimpleInstruction<CallInstruction, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Call);
 
  private:
@@ -251,7 +249,7 @@ class ELANG_HIR_EXPORT CallInstruction final
 // ty %parameters = entry
 //
 class ELANG_HIR_EXPORT EntryInstruction final
-    : public FixedOperandsInstruction<EntryInstruction> {
+    : public SimpleInstruction<EntryInstruction> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Entry);
 
  private:
@@ -265,7 +263,7 @@ class ELANG_HIR_EXPORT EntryInstruction final
 // exit
 //
 class ELANG_HIR_EXPORT ExitInstruction final
-    : public FixedOperandsInstruction<ExitInstruction> {
+    : public SimpleInstruction<ExitInstruction> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Exit);
 
  private:
@@ -282,17 +280,16 @@ class ELANG_HIR_EXPORT ExitInstruction final
 // ty %result = get %tuple, index
 //
 class ELANG_HIR_EXPORT GetInstruction final
-    : public FixedOperandsInstruction<GetInstruction, Value*> {
+    : public SimpleInstruction<GetInstruction, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Get);
 
  public:
   int index() const { return index_; }
 
  private:
-  explicit GetInstruction(Type* output_type);
+  explicit GetInstruction(Type* output_type, int index);
 
-  // To generate default constructor, |index_| doesn't have |const| modifier.
-  int index_;
+  int const index_;
 
   DISALLOW_COPY_AND_ASSIGN(GetInstruction);
 };
@@ -302,7 +299,7 @@ class ELANG_HIR_EXPORT GetInstruction final
 // ty %result if %bool %true, %false
 //
 class ELANG_HIR_EXPORT IfInstruction final
-    : public FixedOperandsInstruction<IfInstruction, Value*, Value*, Value*> {
+    : public SimpleInstruction<IfInstruction, Value*, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(If);
 
  private:
@@ -316,7 +313,7 @@ class ELANG_HIR_EXPORT IfInstruction final
 // br block
 //
 class ELANG_HIR_EXPORT JumpInstruction final
-    : public FixedOperandsInstruction<JumpInstruction, BasicBlock*> {
+    : public SimpleInstruction<JumpInstruction, BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Jump);
 
  public:
@@ -336,7 +333,7 @@ class ELANG_HIR_EXPORT JumpInstruction final
 // ty %result = load %pointer
 //
 class ELANG_HIR_EXPORT LoadInstruction final
-    : public FixedOperandsInstruction<LoadInstruction, Value*> {
+    : public SimpleInstruction<LoadInstruction, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Load);
 
  private:
@@ -372,13 +369,10 @@ class ELANG_HIR_EXPORT PhiInput final
 // ty %result = phi %block1: %value1, ...
 //
 // `phi` instruction takes variable number of pairs of basic block and
-// value. If it has just two operands, output of `phi` instruction should be
+// value. If it has just one pair, output of `phi` instruction should be
 // replaced with its operand.
 //
-// Note: |PhiInstruction| isn't derived from |Instruction|.
-//
-class ELANG_HIR_EXPORT PhiInstruction final
-    : public FixedOperandsInstruction<PhiInstruction> {
+class ELANG_HIR_EXPORT PhiInstruction final : public Instruction {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Phi);
 
  public:
@@ -391,6 +385,9 @@ class ELANG_HIR_EXPORT PhiInstruction final
   explicit PhiInstruction(Type* output_type);
 
   PhiInput* FindPhiInputFor(BasicBlock* block) const;
+
+  int CountInputs() const final;
+  UseDefNode* InputAt(int index) const final;
 
   PhiInputs phi_inputs_;
 
@@ -431,7 +428,7 @@ class ELANG_HIR_EXPORT PhiInstructionList final {
 // void return %value, %exit_block
 //
 class ELANG_HIR_EXPORT ReturnInstruction final
-    : public FixedOperandsInstruction<ReturnInstruction, Value*, BasicBlock*> {
+    : public SimpleInstruction<ReturnInstruction, Value*, BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Return);
 
  private:
@@ -448,7 +445,7 @@ class ELANG_HIR_EXPORT ReturnInstruction final
 // void store %pointer, %value
 //
 class ELANG_HIR_EXPORT StoreInstruction final
-    : public FixedOperandsInstruction<StoreInstruction, Value*, Value*> {
+    : public SimpleInstruction<StoreInstruction, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Store);
 
  private:
@@ -465,27 +462,46 @@ class ELANG_HIR_EXPORT StoreInstruction final
 // ty %pointer = alloca count
 //
 class ELANG_HIR_EXPORT StackAllocInstruction final
-    : public FixedOperandsInstruction<StackAllocInstruction> {
+    : public SimpleInstruction<StackAllocInstruction> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(StackAlloc);
 
  public:
   int count() const { return count_; }
 
  private:
-  explicit StackAllocInstruction(Type* output_type);
+  explicit StackAllocInstruction(Type* output_type, int count);
 
-  // To generate default constructor, |count_| doesn't have |const| modifier.
-  int count_;
+  int const count_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAllocInstruction);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
-// Unreachable %exit_block
+// ty %tuple = tuple input+
+//
+class ELANG_HIR_EXPORT TupleInstruction final : public Instruction {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Tuple);
+
+ private:
+  explicit TupleInstruction(Zone* zone, Type* output_type, int count);
+
+  // Instruction
+  int CountInputs() const final;
+  UseDefNode* InputAt(int index) const final;
+
+  int count_;
+  UseDefNode* inputs_;
+
+  DISALLOW_COPY_AND_ASSIGN(TupleInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// unreachable %exit_block
 //
 class ELANG_HIR_EXPORT UnreachableInstruction final
-    : public FixedOperandsInstruction<UnreachableInstruction, BasicBlock*> {
+    : public SimpleInstruction<UnreachableInstruction, BasicBlock*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Unreachable);
 
  private:

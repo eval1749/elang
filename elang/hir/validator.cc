@@ -435,6 +435,25 @@ void Validator::VisitStore(StoreInstruction* instr) {
   }
 }
 
+void Validator::VisitTuple(TupleInstruction* instr) {
+  auto const tuple_type = instr->type()->as<TupleType>();
+  if (!tuple_type) {
+    Error(ErrorCode::ValidateInstructionTuple, instr);
+    return;
+  }
+  auto const count = instr->CountInputs();
+  if (!count) {
+    Error(ErrorCode::ValidateInstructionTuple, instr);
+    return;
+  }
+  auto index = 0;
+  for (auto const type : tuple_type->members()) {
+    if (instr->input(index)->type() != type)
+      Error(ErrorCode::ValidateInstructionOperand, instr, 1, type);
+    ++index;
+  }
+}
+
 void Validator::VisitUnreachable(UnreachableInstruction* instr) {
   auto const exit_block = instr->function()->exit_block();
   if (instr->input(0) != exit_block) {

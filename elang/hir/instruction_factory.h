@@ -6,6 +6,7 @@
 #define ELANG_HIR_INSTRUCTION_FACTORY_H_
 
 #include <memory>
+#include <vector>
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
@@ -59,6 +60,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   Instruction* NewStackAlloc(Type* type, int number_of_element);
   Instruction* NewStaticCast(Type* output_type, Value* input);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
+  Instruction* NewTuple(Type* output_type, const std::vector<Value*>& inputs);
   Instruction* NewUnreachableInstruction(BasicBlock* exit_block);
 
 #define V(Name, ...)                                                  \

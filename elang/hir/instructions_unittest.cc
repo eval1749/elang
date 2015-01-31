@@ -365,6 +365,26 @@ TEST_F(HirInstructionTest, StackAllocInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// TupleInstruction
+//
+TEST_F(HirInstructionTest, TupleInstruction) {
+  editor()->Edit(entry_block());
+  auto const type = types()->NewTupleType({int32_type(), bool_type()});
+  auto const instr = factory()->NewTuple(
+      type, {int32_type()->default_value(), bool_type()->default_value()});
+  editor()->Append(instr);
+  editor()->Append(factory()->NewGetInstruction(instr, 0));
+  editor()->Commit();
+  EXPECT_TRUE(editor()->Validate()) << GetErrors();
+  EXPECT_FALSE(instr->MaybeUseless());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(type, instr->output_type());
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ("bb1:4:{int32, bool} %t4 = tuple 0, false", ToString(instr));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // UnreachableInstruction
 //
 TEST_F(HirInstructionTest, UnreachableInstruction) {

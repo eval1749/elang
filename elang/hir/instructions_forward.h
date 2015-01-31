@@ -25,66 +25,72 @@ namespace hir {
 // To generate instruction constructor, validator, class, we have macros
 // categorized by output and input operands types.
 
-// Types of output and inputs are must be same numerical type.
-#define FOR_EACH_ARITHMETIC_BINARY_OPERATION(V) \
-  V(Add, "add", Fixed)                          \
-  V(Div, "div", Fixed)                          \
-  V(Mod, "mod", Fixed)                          \
-  V(Mul, "mul", Fixed)                          \
-  V(Sub, "sub", Fixed)
-
-// Types of output and inputs are must be same integer type.
-#define FOR_EACH_BITWISE_BINARY_OPERATION(V) \
-  V(BitAnd, "and", Fixed)                    \
-  V(BitOr, "ior", Fixed)                     \
-  V(BitXor, "xor", Fixed)
-
-// Types of output and input(0) are must be same integer type and input(1)
-// must be int32.
-#define FOR_EACH_BITWISE_SHIFT_OPERATION(V) \
-  V(Shl, "shl", Fixed)                      \
-  V(Shr, "shr", Fixed)
-
-// Output type is bool and input(0) and input(1) must be same type.
-#define FOR_EACH_EQUALITY_OPERATION(V) \
-  V(Eq, "eq", Fixed)                   \
-  V(Ne, "ne", Fixed)
-
-// Output type is bool and input(0) and input(1) must be same numerical type.
-#define FOR_EACH_RELATIONAL_OPERATION(V) \
-  V(Ge, "ge", Fixed)                     \
-  V(Gt, "gt", Fixed)                     \
-  V(Le, "le", Fixed)                     \
-  V(Lt, "lt", Fixed)
-
-#define FOR_EACH_TYPE_CAST_OPERATION(V) \
-  V(DynamicCast, "dynamic_cast", Fixed) \
-  V(StaticCast, "static_cast", Fixed)
-
 // Visitor |V| takes three parameters:
 //  Name         capitalized name for C++ class
 //  mnemonic     mnemonic; used for formatting
 // Note: inputs of |PhiInstruction| are stored in |PhiInput|.
-#define FOR_EACH_HIR_INSTRUCTION(V)       \
-  V(Branch, "br", Fixed)                  \
-  V(Call, "call", Fixed)                  \
-  V(Entry, "entry", Fixed)                \
-  V(Exit, "exit", Fixed)                  \
-  V(Get, "get", Fixed)                    \
-  V(Jump, "br", Fixed)                    \
-  V(If, "if", Fixed)                      \
-  V(Load, "load", Fixed)                  \
-  V(Phi, "phi", Fixed)                    \
-  V(Return, "ret", Fixed)                 \
-  V(StackAlloc, "alloca", Fixed)          \
-  V(Store, "store", Fixed)                \
-  V(Unreachable, "unreachable", Fixed)    \
-  FOR_EACH_ARITHMETIC_BINARY_OPERATION(V) \
-  FOR_EACH_BITWISE_BINARY_OPERATION(V)    \
-  FOR_EACH_BITWISE_SHIFT_OPERATION(V)     \
-  FOR_EACH_EQUALITY_OPERATION(V)          \
-  FOR_EACH_RELATIONAL_OPERATION(V)        \
-  FOR_EACH_TYPE_CAST_OPERATION(V)
+
+// Types of output and inputs are must be same numerical type.
+#define FOR_EACH_ARITHMETIC_BINARY_OPERATION(V) \
+  V(Add, "add")                                 \
+  V(Div, "div")                                 \
+  V(Mod, "mod")                                 \
+  V(Mul, "mul")                                 \
+  V(Sub, "sub")
+
+// Types of output and inputs are must be same integer type.
+#define FOR_EACH_BITWISE_BINARY_OPERATION(V) \
+  V(BitAnd, "and")                           \
+  V(BitOr, "ior")                            \
+  V(BitXor, "xor")
+
+// Types of output and input(0) are must be same integer type and input(1)
+// must be int32.
+#define FOR_EACH_BITWISE_SHIFT_OPERATION(V) \
+  V(Shl, "shl")                             \
+  V(Shr, "shr")
+
+// Output type is bool and input(0) and input(1) must be same type.
+#define FOR_EACH_EQUALITY_OPERATION(V) \
+  V(Eq, "eq")                          \
+  V(Ne, "ne")
+
+// Output type is bool and input(0) and input(1) must be same numerical type.
+#define FOR_EACH_RELATIONAL_OPERATION(V) \
+  V(Ge, "ge")                            \
+  V(Gt, "gt")                            \
+  V(Le, "le")                            \
+  V(Lt, "lt")
+
+#define FOR_EACH_TYPE_CAST_OPERATION(V) \
+  V(DynamicCast, "dynamic_cast")        \
+  V(StaticCast, "static_cast")
+
+// Instructions which have simple C++ constructor.
+#define FOR_EACH_SIMPLE_HIR_INSTRUCTION(V) \
+  FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)  \
+  FOR_EACH_BITWISE_BINARY_OPERATION(V)     \
+  FOR_EACH_BITWISE_SHIFT_OPERATION(V)      \
+  FOR_EACH_EQUALITY_OPERATION(V)           \
+  FOR_EACH_RELATIONAL_OPERATION(V)         \
+  FOR_EACH_TYPE_CAST_OPERATION(V)          \
+  V(Branch, "br")                          \
+  V(Call, "call")                          \
+  V(Entry, "entry")                        \
+  V(Exit, "exit")                          \
+  V(Jump, "br")                            \
+  V(If, "if")                              \
+  V(Load, "load")                          \
+  V(Return, "ret")                         \
+  V(Store, "store")                        \
+  V(Unreachable, "unreachable")
+
+#define FOR_EACH_HIR_INSTRUCTION(V)  \
+  FOR_EACH_SIMPLE_HIR_INSTRUCTION(V) \
+  V(Get, "get")                      \
+  V(Phi, "phi")                      \
+  V(StackAlloc, "alloca")            \
+  V(Tuple, "tuple")
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_HIR_INSTRUCTION(V)

@@ -16,9 +16,13 @@ namespace elang {
 namespace hir {
 
 // boilerplate member functions.
-#define V(Name, mnemonic, Super, ...)                     \
+#define V(Name, mnemonic)                                 \
   Name##Instruction::Name##Instruction(Type* output_type) \
-      : Super##OperandsInstruction(output_type) {}        \
+      : SimpleInstruction(output_type) {}
+FOR_EACH_SIMPLE_HIR_INSTRUCTION(V)
+#undef V
+
+#define V(Name, ...) \
   Opcode Name##Instruction::opcode() const { return Opcode::Name; }
 FOR_EACH_HIR_INSTRUCTION(V)
 #undef V
@@ -108,6 +112,11 @@ bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
+// GetInstruction
+GetInstruction::GetInstruction(Type* output_type, int index)
+    : SimpleInstruction(output_type), index_(index) {
+}
+
 // Instruction
 Instruction::Instruction(Type* output_type)
     : Value(output_type), basic_block_(nullptr), id_(0) {
@@ -147,7 +156,7 @@ void Instruction::SetInputAt(int index, Value* new_value) {
   InputAt(index)->SetValue(new_value);
 }
 
-// Value
+// Value protocol
 void Instruction::Accept(ValueVisitor* visitor) {
   visitor->VisitInstruction(this);
 }
@@ -171,6 +180,9 @@ PhiInput::PhiInput(PhiInstruction* phi, BasicBlock* block, Value* value)
 //
 // PhiInstruction
 //
+PhiInstruction::PhiInstruction(Type* output_type) : Instruction(output_type) {
+}
+
 Value* PhiInstruction::input_of(BasicBlock* block) const {
   auto const phi_input = FindPhiInputFor(block);
   DCHECK(phi_input);
@@ -182,6 +194,17 @@ PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
     if (phi_input->basic_block() == block)
       return phi_input;
   }
+  return nullptr;
+}
+
+int PhiInstruction::CountInputs() const {
+  NOTREACHED();
+  return 0;
+}
+
+UseDefNode* PhiInstruction::InputAt(int index) const {
+  DCHECK_GE(index, 0);
+  NOTREACHED();
   return nullptr;
 }
 
@@ -212,9 +235,30 @@ bool ReturnInstruction::IsTerminator() const {
   return true;
 }
 
+// StackAllocInstruction
+StackAllocInstruction::StackAllocInstruction(Type* output_type, int count)
+    : SimpleInstruction(output_type), count_(count) {
+}
+
 // StoreInstruction
 bool StoreInstruction::MaybeUseless() const {
   return false;
+}
+
+// TupleInstruction
+TupleInstruction::TupleInstruction(Zone* zone, Type* output_type, int count)
+    : Instruction(output_type),
+      count_(count),
+      inputs_(new (zone->AllocateObjects<UseDefNode>(count))
+                  UseDefNode[count]) {
+}
+
+int TupleInstruction::CountInputs() const {
+  return count_;
+}
+
+UseDefNode* TupleInstruction::InputAt(int index) const {
+  return &inputs_[index];
 }
 
 // UnreachableInstruction

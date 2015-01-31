@@ -33,6 +33,7 @@ namespace hir {
   E(Validate, Instruction, Output)      \
   E(Validate, Instruction, StackAlloc)  \
   E(Validate, Instruction, Terminator)  \
+  E(Validate, Instruction, Tuple)       \
   E(Validate, Instruction, Type)        \
   E(Validate, Phi, Count)               \
   E(Validate, Phi, NotFound)
