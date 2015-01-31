@@ -66,6 +66,17 @@ class ELANG_HIR_EXPORT Operands final {
 // Type of operands are guaranteed by |InstructionFactory| at construction,
 // and |Validator| at modification.
 //
+//
+// Protocols for derived classes:
+//  * Trait protocol
+//   - opcode()
+//   - IsTerminator()
+//  * Inputs
+//   - CountInputs()
+//   - InputAt(int index)
+//  * Status query
+//   - CanBeRemoved()
+//
 class ELANG_HIR_EXPORT Instruction
     : public Value,
       public DoubleLinked<Instruction, BasicBlock>::Node {
@@ -84,7 +95,7 @@ class ELANG_HIR_EXPORT Instruction
   // Opcode for formatting and debugging
   virtual Opcode opcode() const = 0;
 
-  // Shortcut of |InputAt(index)|.
+  // Get |index|'th input value.
   Value* input(int index) const;
 
   // Accessing operands in this instruction.
@@ -112,18 +123,16 @@ class ELANG_HIR_EXPORT Instruction
  protected:
   explicit Instruction(Type* output_type);
 
-  void InitUseDef(UseDefNode* node, Value* initial_value);
-  void ResetUseDef(UseDefNode* node);
-  void SetUseDef(UseDefNode* node, Value* new_value);
-
  private:
   friend class Editor;
   friend class InstructionFactory;
 
   // Protocol for accessing operands in each instruction implementation.
-  virtual Value* InputAt(int index) const = 0;
-  virtual void ResetInputAt(int index) = 0;
-  virtual void SetInputAt(int index, Value* new_value) = 0;
+  virtual UseDefNode* InputAt(int index) const = 0;
+
+  void InitInputAt(int index, Value* initial_value);
+  void ResetInputAt(int index);
+  void SetInputAt(int index, Value* new_value);
 
   // Value
   void Accept(ValueVisitor* visitor) override;
@@ -144,24 +153,14 @@ class FixedOperandsInstruction : public Instruction {
  public:
   // Instruction
   int CountInputs() const final { return sizeof...(OperandTypes); }
-  Value* InputAt(int index) const final { return inputs_[index].value(); }
 
  protected:
   explicit FixedOperandsInstruction(Type* output_type)
       : Instruction(output_type) {}
 
  private:
-  friend class Editor;
-  friend class InstructionFactory;
-
-  void InitInputAt(int index, Value* initial_value) {
-    InitUseDef(&inputs_[index], initial_value);
-  }
-
-  void ResetInputAt(int index) final { ResetUseDef(&inputs_[index]); }
-
-  void SetInputAt(int index, Value* new_value) final {
-    SetUseDef(&inputs_[index], new_value);
+  UseDefNode* InputAt(int index) const final {
+    return const_cast<UseDefNode*>(&inputs_[index]);
   }
 
   std::array<UseDefNode, sizeof...(OperandTypes)> inputs_;
