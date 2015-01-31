@@ -5,11 +5,14 @@
 #ifndef ELANG_HIR_TYPES_H_
 #define ELANG_HIR_TYPES_H_
 
+#include <vector>
+
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
+#include "elang/base/zone_vector.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/hir/thing.h"
 #include "elang/hir/types_forward.h"
@@ -33,7 +36,7 @@ namespace hir {
 //      VoidType
 //    ReferenceType
 //      StringType
-//    StructureType
+//    TupleType
 
 #define DECLARE_HIR_TYPE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);      \
@@ -222,6 +225,27 @@ class ELANG_HIR_EXPORT StringType final : public ReferenceType {
   explicit StringType(Zone* zone, AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(StringType);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// TupleType
+//
+class ELANG_HIR_EXPORT TupleType final : public Type {
+  DECLARE_HIR_TYPE_CONCRETE_CLASS(TupleType, Type);
+
+ public:
+  Value* default_value() const final;
+  Type* get(int index) const { return members_[index]; }
+  const ZoneVector<Type*>& members() const { return members_; }
+
+ private:
+  explicit TupleType(Zone* zone, const std::vector<Type*>& members);
+
+  const ZoneVector<Type*> members_;
+  Value* const default_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(TupleType);
 };
 
 }  // namespace hir

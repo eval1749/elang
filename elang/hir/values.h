@@ -33,6 +33,7 @@ namespace hir {
 //      Int16Literal Int32Literal Int64Literal Int16Literal
 //      NullLiteral -- typed null value for pointer and reference types.
 //      StringLiteral
+//      TupleLiteral
 //      UInt16Literal UInt32Literal UInt64Literal UInt16Literal
 //      VoidLiteal -- singleton
 
@@ -153,6 +154,25 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
   AtomicString* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(Reference);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Default value of tuple.
+//
+class ELANG_HIR_EXPORT TupleLiteral final : public Literal {
+  DECLARE_HIR_CONCRETE_VALUE_CLASS(TupleLiteral, Literal);
+
+ public:
+  Value* get(int index) const;
+
+ private:
+  // For creating singleton void literal.
+  friend class TupleType;
+
+  explicit TupleLiteral(TupleType* type);
+
+  DISALLOW_COPY_AND_ASSIGN(TupleLiteral);
 };
 
 //////////////////////////////////////////////////////////////////////

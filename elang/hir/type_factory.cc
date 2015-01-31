@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "base/logging.h"
 #include "elang/base/zone.h"
 #include "elang/hir/factory_config.h"
 #include "elang/hir/types.h"
@@ -100,6 +101,16 @@ PointerType* TypeFactory::NewPointerType(Type* pointee) {
   auto const new_pointer_type = new (zone()) PointerType(zone(), pointee);
   pointer_type_map_[pointee] = new_pointer_type;
   return new_pointer_type;
+}
+
+TupleType* TypeFactory::NewTupleType(const std::vector<Type*>& members) {
+  DCHECK(!members.empty());
+#if _DEBUG
+  for (auto const member : members) {
+    DCHECK(!member->is<VoidType>());
+  }
+#endif
+  return new (zone()) TupleType(zone(), members);
 }
 
 }  // namespace hir

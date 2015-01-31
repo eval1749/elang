@@ -50,5 +50,16 @@ TEST_F(HirTypesTest, PointerType) {
   EXPECT_EQ(pointer1, pointer2);
 }
 
+TEST_F(HirTypesTest, TupleType) {
+  auto const tuple_type = types()->NewTupleType({int32_type(), bool_type()});
+  auto const tuple_value = tuple_type->default_value()->as<TupleLiteral>();
+  EXPECT_EQ(int32_type(), tuple_type->get(0));
+  EXPECT_EQ(bool_type(), tuple_type->get(1));
+  EXPECT_EQ(int32_type()->default_value(), tuple_value->get(0));
+  EXPECT_EQ(bool_type()->default_value(), tuple_value->get(1));
+  EXPECT_EQ("{int32, bool}", ToString(tuple_type));
+  EXPECT_EQ("{0, false}", ToString(tuple_value));
+}
+
 }  // namespace hir
 }  // namespace elang

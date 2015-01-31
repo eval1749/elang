@@ -189,6 +189,12 @@ Function* HirTest::NewSampleFunction() {
   return function;
 }
 
+std::string HirTest::ToString(Type* type) {
+  std::stringstream ostream;
+  ostream << *type;
+  return ostream.str();
+}
+
 std::string HirTest::ToString(Value* value) {
   std::stringstream ostream;
   ostream << *value;

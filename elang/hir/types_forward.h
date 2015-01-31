@@ -32,6 +32,7 @@ namespace hir {
   V(Int64Type)                        \
   V(Int8Type)                         \
   V(PointerType)                      \
+  V(TupleType)                        \
   V(UInt16Type)                       \
   V(UInt32Type)                       \
   V(UInt64Type)                       \

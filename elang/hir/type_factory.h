@@ -5,8 +5,9 @@
 #ifndef ELANG_HIR_TYPE_FACTORY_H_
 #define ELANG_HIR_TYPE_FACTORY_H_
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/base/zone_owner.h"
@@ -36,6 +37,7 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
   PointerType* NewPointerType(Type* pointee);
+  TupleType* NewTupleType(const std::vector<Type*>& members);
 
 #define V(Name, ...) Name##Type* Get##Name##Type() const;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)

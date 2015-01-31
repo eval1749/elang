@@ -97,5 +97,13 @@ StringType::StringType(Zone* zone, AtomicString* name)
     : ReferenceType(zone, name) {
 }
 
+TupleType::TupleType(Zone* zone, const std::vector<Type*>& members)
+    : default_value_(new (zone) TupleLiteral(this)), members_(zone, members) {
+}
+
+Value* TupleType::default_value() const {
+  return default_value_;
+}
+
 }  // namespace hir
 }  // namespace elang

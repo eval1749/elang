@@ -54,6 +54,7 @@ class HirTest : public ::testing::Test {
   Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
   Function* NewSampleFunction();
+  std::string ToString(Type* type);
   std::string ToString(Value* value);
 
  private:

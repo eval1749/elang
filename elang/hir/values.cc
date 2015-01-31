@@ -163,6 +163,14 @@ Reference::Reference(Type* type, AtomicString* name)
     : Literal(type), name_(name) {
 }
 
+// TupleLiteral
+TupleLiteral::TupleLiteral(TupleType* type) : Literal(type) {
+}
+
+Value* TupleLiteral::get(int index) const {
+  return type()->as<TupleType>()->get(index)->default_value();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // UseDefNode
