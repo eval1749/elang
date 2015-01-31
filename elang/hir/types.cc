@@ -20,24 +20,19 @@ namespace hir {
 FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
-//////////////////////////////////////////////////////////////////////
-//
-// Type
-//
-Type::RegisterClass Type::register_class() const {
-  return RegisterClass::General;
+// ExternalType
+ExternalType::ExternalType(Zone* zone, AtomicString* name)
+    : ReferenceType(zone, name) {
 }
 
+// FunctionType
 FunctionType::FunctionType(Zone* zone, Type* return_type, Type* parameters_type)
     : ReferenceType(zone, nullptr),
       parameters_type_(parameters_type),
       return_type_(return_type) {
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // PointerType
-//
 PointerType::PointerType(Zone* zone, Type* pointee)
     : null_literal_(new (zone) NullLiteral(this)), pointee_(pointee) {
 }
@@ -47,10 +42,7 @@ Value* PointerType::default_value() const {
   return null_literal_;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // PrimitiveTypes
-//
 // TODO(eval1749) NYI literal object cache.
 #define V(Name, name, data_type, bit_size_value, kind_value)        \
   PrimitiveType::RegisterClass Name##Type::register_class() const { \
@@ -76,10 +68,7 @@ Value* PointerType::default_value() const {
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
-//////////////////////////////////////////////////////////////////////
-//
 // ReferenceType
-//
 ReferenceType::ReferenceType(Zone* zone, AtomicString* name)
     : name_(name), null_literal_(new (zone) NullLiteral(this)) {
 }
@@ -89,20 +78,28 @@ Value* ReferenceType::default_value() const {
   return null_literal_;
 }
 
-ExternalType::ExternalType(Zone* zone, AtomicString* name)
-    : ReferenceType(zone, name) {
-}
-
+// StringType
 StringType::StringType(Zone* zone, AtomicString* name)
     : ReferenceType(zone, name) {
 }
 
+// TupleType
 TupleType::TupleType(Zone* zone, const std::vector<Type*>& members)
     : default_value_(new (zone) TupleLiteral(this)), members_(zone, members) {
+  DCHECK_GE(members.size(), 2u);
 }
 
 Value* TupleType::default_value() const {
   return default_value_;
+}
+
+Type::RegisterClass TupleType::register_class() const {
+  return RegisterClass::Tuple;
+}
+
+// Type
+Type::RegisterClass Type::register_class() const {
+  return RegisterClass::General;
 }
 
 }  // namespace hir

@@ -61,11 +61,12 @@ class ELANG_HIR_EXPORT Type : public Thing, public Visitable<TypeVisitor> {
   DECLARE_HIR_TYPE_ABSTRACT_CLASS(Type, Thing);
 
  public:
-  // |RegiserClass::Integer| and |Register::General| are equivalen.
+  // |RegiserClass::Integer| and |Register::General| are equivalent.
   enum RegisterClass {
     Float,
     General,
     Integer,
+    Tuple,
     Void,
   };
 
@@ -241,6 +242,8 @@ class ELANG_HIR_EXPORT TupleType final : public Type {
 
  private:
   explicit TupleType(Zone* zone, const std::vector<Type*>& members);
+
+  RegisterClass register_class() const final;
 
   const ZoneVector<Type*> members_;
   Value* const default_value_;
