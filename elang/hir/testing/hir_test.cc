@@ -211,6 +211,12 @@ std::string HirTest::ToString(Value* value) {
   return ostream.str();
 }
 
+std::string HirTest::Validate() {
+  if (editor()->Validate())
+    return "";
+  return GetErrors();
+}
+
 }  // namespace testing
 }  // namespace hir
 }  // namespace elang

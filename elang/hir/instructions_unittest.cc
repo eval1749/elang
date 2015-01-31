@@ -60,10 +60,9 @@ Instruction* HirInstructionTest::NewSource(Type* output_type) {
     editor()->Edit(entry_block());                                          \
     editor()->SetInput(instr, 0, factory()->NewFloat32Literal(1.234f));     \
     editor()->Commit();                                                     \
-    EXPECT_FALSE(editor()->Validate());                                     \
     EXPECT_EQ("Validate.Instruction.Type bb1:5:int32 %r5 = " mnemonic       \
               " 1.234f, 1234 0\n",                                          \
-              GetErrors());                                                 \
+              Validate());                                                  \
   }
 FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_BINARY_OPERATION(V)
@@ -85,10 +84,9 @@ FOR_EACH_BITWISE_SHIFT_OPERATION(V)
     editor()->Edit(entry_block());                                         \
     editor()->SetInput(instr, 0, factory()->NewFloat32Literal(1.234f));    \
     editor()->Commit();                                                    \
-    EXPECT_FALSE(editor()->Validate());                                    \
     EXPECT_EQ("Validate.Instruction.Type bb1:5:bool %b5 = " mnemonic       \
               " 1.234f, 1234 1\n",                                         \
-              GetErrors());                                                \
+              Validate());                                                 \
   }
 FOR_EACH_EQUALITY_OPERATION(V)
 FOR_EACH_RELATIONAL_OPERATION(V)
@@ -103,6 +101,7 @@ FOR_EACH_RELATIONAL_OPERATION(V)
     editor()->Edit(entry_block());                                       \
     editor()->Append(instr);                                             \
     editor()->Commit();                                                  \
+    EXPECT_EQ("", Validate());                                           \
     EXPECT_EQ("bb1:4:float64 %f4 = " mnemonic " 1234", ToString(instr)); \
   }
 FOR_EACH_TYPE_CAST_OPERATION(V)
@@ -136,6 +135,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_EQ(call_instr, instr->input(0));
   EXPECT_EQ(true_block, instr->input(1));
   EXPECT_EQ(false_block, instr->input(2));
+  EXPECT_EQ("", Validate());
 }
 
 TEST_F(HirInstructionTest, BranchUncoditional) {
@@ -153,6 +153,7 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_EQ(types()->void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(target_block, instr->input(0));
+  EXPECT_EQ("", Validate());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -234,9 +235,8 @@ TEST_F(HirInstructionTest, IfInstruction) {
   editor()->Edit(entry_block());
   editor()->SetInput(instr, 1, factory()->NewFloat32Literal(3.4f));
   editor()->Commit();
-  EXPECT_FALSE(editor()->Validate());
   EXPECT_EQ("Validate.Instruction.Type bb1:5:int32 %r5 = if %b4, 3.4f, 34 1\n",
-            GetErrors());
+            Validate());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -265,17 +265,17 @@ TEST_F(HirInstructionTest, PhiInstruction) {
 
   auto const true_block = editor()->EditNewBasicBlock(merge_block);
   editor()->SetBranch(merge_block);
-  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+  editor()->Commit();
 
   auto const false_block = editor()->EditNewBasicBlock(merge_block);
   editor()->SetBranch(merge_block);
-  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+  editor()->Commit();
 
   editor()->Continue(entry_block());
   auto const call_instr = NewSource(bool_type());
   editor()->Append(call_instr);
   editor()->SetBranch(call_instr, true_block, false_block);
-  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+  editor()->Commit();
 
   editor()->Edit(merge_block);
   auto const phi = editor()->NewPhi(bool_type());
@@ -284,7 +284,8 @@ TEST_F(HirInstructionTest, PhiInstruction) {
   auto const consumer = NewConsumer(bool_type());
   editor()->Append(consumer);
   editor()->SetInput(consumer, 1, phi);
-  ASSERT_TRUE(editor()->Commit()) << GetErrors();
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
 
   EXPECT_EQ(
       "function1 void(void)\n"
@@ -356,6 +357,7 @@ TEST_F(HirInstructionTest, StackAllocInstruction) {
   editor()->Append(instr);
   editor()->Append(factory()->NewLoadInstruction(instr));
   editor()->Commit();
+  EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(types()->NewPointerType(int32_type()), instr->output_type());
@@ -375,7 +377,7 @@ TEST_F(HirInstructionTest, TupleInstruction) {
   editor()->Append(instr);
   editor()->Append(factory()->NewGetInstruction(instr, 0));
   editor()->Commit();
-  EXPECT_TRUE(editor()->Validate()) << GetErrors();
+  EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(type, instr->output_type());
@@ -391,7 +393,7 @@ TEST_F(HirInstructionTest, UnreachableInstruction) {
   editor()->Edit(entry_block());
   editor()->SetUnreachable();
   editor()->Commit();
-  EXPECT_TRUE(editor()->Validate()) << GetErrors();
+  EXPECT_EQ("", Validate());
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_TRUE(instr->IsTerminator());

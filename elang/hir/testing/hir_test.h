@@ -58,6 +58,7 @@ class HirTest : public ::testing::Test {
   std::string ToString(Instruction* instruction);
   std::string ToString(Type* type);
   std::string ToString(Value* value);
+  std::string Validate();
 
  private:
   std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
