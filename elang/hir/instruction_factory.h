@@ -33,8 +33,6 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
   InstructionFactory(Factory* factory, const FactoryConfig& config);
   ~InstructionFactory();
 
-  Value* void_value() const;
-
   // Instruction constructors
   Instruction* NewBranchInstruction(Value* condition,
                                     BasicBlock* true_block,

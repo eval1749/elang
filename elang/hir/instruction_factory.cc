@@ -42,10 +42,6 @@ InstructionFactory::InstructionFactory(Factory* factory,
 InstructionFactory::~InstructionFactory() {
 }
 
-Value* InstructionFactory::void_value() const {
-  return void_type()->default_value();
-}
-
 #define V(Name, ...)                                                 \
   Instruction* InstructionFactory::New##Name##Instruction(           \
       Type* output_type, Value* left, Value* right) {                \

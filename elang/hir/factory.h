@@ -34,25 +34,19 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   Value* false_value() const { return false_value_; }
   AtomicString* intrinsic_name(IntrinsicName name);
   Value* true_value() const { return true_value_; }
+  Value* void_value() const { return void_value_; }
 
-  BasicBlock* NewBasicBlock();
   AtomicString* NewAtomicString(base::StringPiece16 string);
-  Value* NewBoolLiteral(bool data);
-  CharLiteral* NewCharLiteral(base::char16 data);
-  Float32Literal* NewFloat32Literal(float32_t data);
-  Float64Literal* NewFloat64Literal(float64_t data);
-  Int16Literal* NewInt16Literal(int16_t data);
-  Int32Literal* NewInt32Literal(int32_t data);
-  Int64Literal* NewInt64Literal(int64_t data);
-  Int8Literal* NewInt8Literal(int8_t data);
-  UInt16Literal* NewUInt16Literal(uint16_t data);
-  UInt32Literal* NewUInt32Literal(uint32_t data);
-  UInt64Literal* NewUInt64Literal(uint64_t data);
-  UInt8Literal* NewUInt8Literal(uint8_t data);
+  BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
   Reference* NewReference(Type* type, AtomicString* name);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
   StringLiteral* NewStringLiteral(base::StringPiece16 data);
+
+#define V(Name, name, data_type, ...) \
+  Value* Factory::New##Name##Literal(data_type data);
+  FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V)
+#undef V
 
   int NextBasicBlockId();
   int NextInstructionId();
@@ -60,12 +54,13 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  private:
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
-  Value* false_value_;
+  Value* const false_value_;
   int last_basic_block_id_;
   int last_function_id_;
   int last_instruction_id_;
   std::unordered_map<AtomicString*, Reference*> reference_cache_;
-  Value* true_value_;
+  Value* const true_value_;
+  Value* const void_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

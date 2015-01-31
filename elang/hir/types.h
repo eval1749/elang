@@ -158,26 +158,24 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
     DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveType);      \
                                                                      \
    public:                                                           \
-    Name##Literal* zero() const { return zero_; }                    \
-                                                                     \
-    /* Primitive types are factory of |Literal| objects. */          \
-    Name##Literal* NewLiteral(value_type data);                      \
-                                                                     \
     /* Protocol defined by |PrimitiveType| class */                  \
     int bit_size() const override;                                   \
     Value* default_value() const override;                           \
     RegisterClass register_class() const override;                   \
                                                                      \
    private:                                                          \
+    /* Allow |Factory| to access |NewLiteral()|. */                  \
+    friend class Factory;                                            \
     friend class TypeFactory;                                        \
     /* Since primitive types exist only one instance per factory. */ \
     /* Only |TypeFactory| can construct them. */                     \
     Name##Type(Zone* zone);                                          \
                                                                      \
-    /* |zone_| should be initialized before other members. */        \
-    Zone* const zone_;                                               \
+    /* Primitive types are factory of |Literal| objects. */          \
+    Name##Literal* NewLiteral(Zone* zone, value_type data);          \
+                                                                     \
     ZoneUnorderedMap<value_type, Name##Literal*> literal_cache_;     \
-    Name##Literal* const zero_;                                      \
+    Name##Literal* const default_value_;                             \
                                                                      \
     DISALLOW_COPY_AND_ASSIGN(Name##Type);                            \
   };

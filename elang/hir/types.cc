@@ -63,27 +63,27 @@ Value* PointerType::default_value() const {
 
 // PrimitiveTypes
 // TODO(eval1749) NYI literal object cache.
-#define V(Name, name, data_type, bit_size_value, kind_value)        \
-  PrimitiveType::RegisterClass Name##Type::register_class() const { \
-    return kind_value;                                              \
-  }                                                                 \
-  int Name##Type::bit_size() const { return bit_size_value; }       \
-                                                                    \
-  /* Constructor of primitive type */                               \
-  Name##Type::Name##Type(Zone* zone)                                \
-      : zone_(zone), literal_cache_(zone), zero_(NewLiteral(0)) {}  \
-                                                                    \
-  /* Literal object factory function of primitive type */           \
-  Name##Literal* Name##Type::NewLiteral(data_type data) {           \
-    auto const it = literal_cache_.find(data);                      \
-    if (it != literal_cache_.end())                                 \
-      return it->second;                                            \
-    auto const new_literal = new (zone_) Name##Literal(this, data); \
-    literal_cache_[data] = new_literal;                             \
-    return new_literal;                                             \
-  }                                                                 \
-  /* Type */                                                        \
-  Value* Name##Type::default_value() const { return zero_; }
+#define V(Name, name, data_type, bit_size_value, kind_value)          \
+  PrimitiveType::RegisterClass Name##Type::register_class() const {   \
+    return kind_value;                                                \
+  }                                                                   \
+  int Name##Type::bit_size() const { return bit_size_value; }         \
+                                                                      \
+  /* Constructor of primitive type */                                 \
+  Name##Type::Name##Type(Zone* zone)                                  \
+      : literal_cache_(zone), default_value_(NewLiteral(zone, 0)) {}  \
+                                                                      \
+  /* Literal object factory function of primitive type */             \
+  Name##Literal* Name##Type::NewLiteral(Zone* zone, data_type data) { \
+    auto const it = literal_cache_.find(data);                        \
+    if (it != literal_cache_.end())                                   \
+      return it->second;                                              \
+    auto const new_literal = new (zone) Name##Literal(this, data);    \
+    literal_cache_[data] = new_literal;                               \
+    return new_literal;                                               \
+  }                                                                   \
+  /* Type */                                                          \
+  Value* Name##Type::default_value() const { return default_value_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 

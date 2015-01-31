@@ -184,8 +184,6 @@ class ELANG_HIR_EXPORT VoidValue final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(VoidValue, Literal);
 
  private:
-  // For creating singleton void literal.
-  friend class InstructionFactory;
   friend class VoidType;
 
   VoidValue(VoidType* type, int dummy);
