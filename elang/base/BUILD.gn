@@ -5,6 +5,8 @@
 component("base") {
   output_name = "elang_base"
   sources = [
+    "as_printable.cc",
+    "as_printable.h",
     "atomic_string.cc",
     "atomic_string.h",
     "atomic_string_factory.cc",
@@ -46,6 +48,7 @@ component("base") {
 source_set("base_unittests") {
   testonly = true
   sources = [
+    "as_printable_unittest.cc",
     "atomic_string_unittest.cc",
     "castable_unittest.cc",
     "double_linked_unittest.cc",
