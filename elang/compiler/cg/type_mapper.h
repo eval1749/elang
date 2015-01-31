@@ -16,6 +16,7 @@ class AtomicString;
 namespace hir {
 class Factory;
 class Type;
+class TypeFactory;
 }
 
 namespace compiler {
@@ -46,6 +47,7 @@ class TypeMapper final : public CompilationSessionUser {
 
  private:
   hir::Factory* factory() const { return factory_; }
+  hir::TypeFactory* types() const;
 
   void InstallType(ir::Type* type, hir::Type* hir_type);
 

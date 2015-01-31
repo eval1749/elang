@@ -153,6 +153,31 @@ TEST_F(CodeGeneratorTest, Call) {
       Generate("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, Call2) {
+  Prepare(
+      "using System;\n"
+      "class Sample {\n"
+      "  static void Foo(int x, bool y) { Bar(x, y); }\n"
+      "  static int Bar(int x, bool y) { return y ? x : 1; }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 void(int32, bool)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  {int32, bool} %t2 = entry\n"
+      "  int32 %r4 = get %t2, 0\n"
+      "  bool %b5 = get %t2, 1\n"
+      "  {int32, bool} %t6 = tuple %r4, %b5\n"
+      "  int32 %r7 = call `Sample.Bar`, %t6\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
 TEST_F(CodeGeneratorTest, Conditional) {
   Prepare(
       "class Sample {\n"

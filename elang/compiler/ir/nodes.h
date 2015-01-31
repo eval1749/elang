@@ -240,11 +240,9 @@ class Signature final : public Type {
 
  public:
   struct Arity {
-    // TODO(eval1749) We should move |Signature::Arity::kMaximum| to
-    // public place.
-    static const int kMaximum = 100;
     int maximum;
     int minimum;
+    bool is_rest;
   };
 
   bool operator==(const Signature& other) const;

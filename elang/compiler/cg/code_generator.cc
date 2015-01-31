@@ -184,13 +184,19 @@ void CodeGenerator::EmitOutputInstruction(hir::Instruction* instruction) {
 void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
   if (ast_method->parameters().empty())
     return;
+  auto const entry = function_->entry_block()->first_instruction();
   if (ast_method->parameters().size() == 1u) {
     // Take parameter from `entry` instruction.
-    EmitVariableBinding(ast_method->parameters()[0], nullptr,
-                        function_->entry_block()->first_instruction());
+    EmitVariableBinding(ast_method->parameters()[0], nullptr, entry);
     return;
   }
-  NOTREACHED() << "NYI multiple parameters" << *ast_method;
+  auto index = 0;
+  for (auto const parameter : ast_method->parameters()) {
+    auto const get_instr = factory()->NewGetInstruction(entry, index);
+    Emit(get_instr);
+    EmitVariableBinding(parameter, nullptr, get_instr);
+    ++index;
+  }
 }
 
 void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
@@ -539,22 +545,29 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
   EmitOutputInstruction(instr);
 }
 
+// Generate function call by generating callee, arguments from left to right.
 void CodeGenerator::VisitCall(ast::Call* node) {
-  auto const callee = ValueOf(node->callee())->as<ir::Method>();
-  DCHECK(callee) << "Unresolved call" << *node;
-  // Generate argument list.
-  auto position = static_cast<int>(node->arguments().size());
-  auto arguments = node->arguments().rbegin();
-  std::vector<hir::Value*> argument_values(position);
-  while (position) {
-    --position;
-    argument_values[position] = GenerateValue(*arguments);
-    ++arguments;
+  auto const ir_callee = ValueOf(node->callee())->as<ir::Method>();
+  DCHECK(ir_callee) << "Unresolved call" << *node;
+  auto const callee = GenerateValue(node->callee());
+  if (node->arguments().empty()) {
+    EmitOutputInstruction(factory()->NewCallInstruction(callee, void_value()));
+    return;
   }
-  DCHECK_LE(argument_values.size(), 1u);
-  EmitOutputInstruction(factory()->NewCallInstruction(
-      GenerateValue(node->callee()),
-      argument_values.empty() ? void_value() : argument_values.front()));
+  if (node->arguments().size() == 1u) {
+    auto const argument = GenerateValue(node->arguments().front());
+    EmitOutputInstruction(factory()->NewCallInstruction(callee, argument));
+    return;
+  }
+  // Generate argument list.
+  std::vector<hir::Value*> arguments(node->arguments().size());
+  arguments.resize(0);
+  for (auto const argument : node->arguments())
+    arguments.push_back(GenerateValue(argument));
+  auto const args_instr = factory()->NewTuple(
+      callee->type()->as<hir::FunctionType>()->parameters_type(), arguments);
+  Emit(args_instr);
+  EmitOutputInstruction(factory()->NewCallInstruction(callee, args_instr));
 }
 
 void CodeGenerator::VisitConditional(ast::Conditional* node) {

@@ -27,6 +27,7 @@ Signature::Arity ComputeArity(const std::vector<Parameter*>& parameters) {
   Signature::Arity arity;
   arity.maximum = 0;
   arity.minimum = 0;
+  arity.is_rest = false;
   auto state = ParameterKind::Required;
   for (auto const parameter : parameters) {
     switch (parameter->kind()) {
@@ -45,7 +46,7 @@ Signature::Arity ComputeArity(const std::vector<Parameter*>& parameters) {
         DCHECK(state == ParameterKind::Required ||
                state == ParameterKind::Optional);
         state = ParameterKind::Rest;
-        arity.maximum = Signature::Arity::kMaximum;
+        arity.is_rest = true;
         break;
     }
   }

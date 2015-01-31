@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/compiler/cg/type_mapper.h"
 
 #include "base/logging.h"
@@ -38,12 +40,16 @@ TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
     : CompilationSessionUser(session), factory_(factory) {
 #define V(Name, name, ...)                                          \
   InstallType(ValueOfPredefinedType(session, PredefinedName::Name), \
-              factory->types()->name##_type());
+              types()->name##_type());
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 }
 
 TypeMapper::~TypeMapper() {
+}
+
+hir::TypeFactory* TypeMapper::types() const {
+  return factory()->types();
 }
 
 void TypeMapper::InstallType(ir::Type* type, hir::Type* hir_type) {
@@ -58,7 +64,7 @@ hir::Type* TypeMapper::Map(ir::Type* type) {
 
   if (auto const clazz = type->as<ir::Class>()) {
     // ir::Class => hir::ExternalType(class_name)
-    auto const hir_type = factory()->types()->NewExternalType(
+    auto const hir_type = types()->NewExternalType(
         session()->NewAtomicString(clazz->ast_class()->NewQualifiedName()));
     InstallType(type, hir_type);
     return hir_type;
@@ -66,20 +72,29 @@ hir::Type* TypeMapper::Map(ir::Type* type) {
 
   if (auto const signature = type->as<ir::Signature>()) {
     // ir::Signature => hir::FunctionType(return_type, parameter_types)
-    if (!signature->maximum_arity()) {
-      auto const hir_type = factory()->types()->NewFunctionType(
-          Map(signature->return_type()), factory()->types()->void_type());
+    auto const arity = signature->maximum_arity();
+    if (!arity) {
+      auto const hir_type = types()->NewFunctionType(
+          Map(signature->return_type()), types()->void_type());
       InstallType(type, hir_type);
       return hir_type;
     }
-    if (signature->maximum_arity() == 1) {
-      auto const hir_type = factory()->types()->NewFunctionType(
-          Map(signature->return_type()),
-          Map(signature->parameters()[0]->type()));
+    if (arity == 1) {
+      auto const hir_type =
+          types()->NewFunctionType(Map(signature->return_type()),
+                                   Map(signature->parameters()[0]->type()));
       InstallType(type, hir_type);
       return hir_type;
     }
-    NOTREACHED() << "NYI Signature more than one parameters" << *signature;
+    std::vector<hir::Type*> members(arity);
+    members.resize(0);
+    for (auto const parameter : signature->parameters())
+      members.push_back(Map(parameter->type()));
+    auto const tuple = types()->NewTupleType(members);
+    auto const hir_type =
+        types()->NewFunctionType(Map(signature->return_type()), tuple);
+    InstallType(type, hir_type);
+    return hir_type;
   }
 
   NOTREACHED() << *type;
