@@ -41,11 +41,11 @@ Factory::Factory(const FactoryConfig& config)
     : InstructionFactory(this, config),
       atomic_string_factory_(config.atomic_string_factory),
       config_(config),
-      false_literal_(new (zone()) BoolLiteral(types()->GetBoolType(), false)),
+      false_literal_(new (zone()) BoolLiteral(types()->bool_type(), false)),
       last_basic_block_id_(0),
       last_function_id_(0),
       last_instruction_id_(0),
-      true_literal_(new (zone()) BoolLiteral(types()->GetBoolType(), true)) {
+      true_literal_(new (zone()) BoolLiteral(types()->bool_type(), true)) {
 }
 
 Factory::~Factory() {
@@ -73,15 +73,15 @@ BoolLiteral* Factory::NewBoolLiteral(bool data) {
 }
 
 CharLiteral* Factory::NewCharLiteral(base::char16 data) {
-  return new (zone()) CharLiteral(types()->GetCharType(), data);
+  return new (zone()) CharLiteral(types()->char_type(), data);
 }
 
 Float32Literal* Factory::NewFloat32Literal(float32_t data) {
-  return new (zone()) Float32Literal(types()->GetFloat32Type(), data);
+  return new (zone()) Float32Literal(types()->float32_type(), data);
 }
 
 Float64Literal* Factory::NewFloat64Literal(float64_t data) {
-  return new (zone()) Float64Literal(types()->GetFloat64Type(), data);
+  return new (zone()) Float64Literal(types()->float64_type(), data);
 }
 
 Function* Factory::NewFunction(FunctionType* type) {
@@ -89,19 +89,19 @@ Function* Factory::NewFunction(FunctionType* type) {
 }
 
 Int16Literal* Factory::NewInt16Literal(int16_t data) {
-  return new (zone()) Int16Literal(types()->GetInt16Type(), data);
+  return new (zone()) Int16Literal(types()->int16_type(), data);
 }
 
 Int32Literal* Factory::NewInt32Literal(int32_t data) {
-  return new (zone()) Int32Literal(types()->GetInt32Type(), data);
+  return new (zone()) Int32Literal(types()->int32_type(), data);
 }
 
 Int64Literal* Factory::NewInt64Literal(int64_t data) {
-  return new (zone()) Int64Literal(types()->GetInt64Type(), data);
+  return new (zone()) Int64Literal(types()->int64_type(), data);
 }
 
 Int8Literal* Factory::NewInt8Literal(int8_t data) {
-  return new (zone()) Int8Literal(types()->GetInt8Type(), data);
+  return new (zone()) Int8Literal(types()->int8_type(), data);
 }
 
 Reference* Factory::NewReference(Type* type, AtomicString* name) {
@@ -120,23 +120,23 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string) {
 }
 
 StringLiteral* Factory::NewStringLiteral(base::StringPiece16 data) {
-  return new (zone()) StringLiteral(types()->GetStringType(), NewString(data));
+  return new (zone()) StringLiteral(types()->string_type(), NewString(data));
 }
 
 UInt16Literal* Factory::NewUInt16Literal(uint16_t data) {
-  return new (zone()) UInt16Literal(types()->GetUInt16Type(), data);
+  return new (zone()) UInt16Literal(types()->uint16_type(), data);
 }
 
 UInt32Literal* Factory::NewUInt32Literal(uint32_t data) {
-  return new (zone()) UInt32Literal(types()->GetUInt32Type(), data);
+  return new (zone()) UInt32Literal(types()->uint32_type(), data);
 }
 
 UInt64Literal* Factory::NewUInt64Literal(uint64_t data) {
-  return new (zone()) UInt64Literal(types()->GetUInt64Type(), data);
+  return new (zone()) UInt64Literal(types()->uint64_type(), data);
 }
 
 UInt8Literal* Factory::NewUInt8Literal(uint8_t data) {
-  return new (zone()) UInt8Literal(types()->GetUInt8Type(), data);
+  return new (zone()) UInt8Literal(types()->uint8_type(), data);
 }
 
 int Factory::NextBasicBlockId() {

@@ -36,9 +36,9 @@ ir::Type* ValueOfPredefinedType(CompilationSession* session,
 //
 TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
     : CompilationSessionUser(session), factory_(factory) {
-#define V(Name, ...)                                                \
+#define V(Name, name, ...)                                          \
   InstallType(ValueOfPredefinedType(session, PredefinedName::Name), \
-              factory->types()->Get##Name##Type());
+              factory->types()->name##_type());
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 }

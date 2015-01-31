@@ -30,18 +30,16 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   explicit TypeFactory(const FactoryConfig& config);
   ~TypeFactory();
 
-  // Convenience function to have 'void' type.
-  VoidType* void_type() const { return GetVoidType(); }
+// Predefined types" bool_type(), char_type(), and so on.
+#define V(Name, name, ...) Name##Type* name##_type() const;
+  FOR_EACH_HIR_PRIMITIVE_TYPE(V)
+#undef V
+  StringType* string_type() const { return string_type_; }
 
-  StringType* GetStringType() const { return string_type_; }
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
   PointerType* NewPointerType(Type* pointee);
   TupleType* NewTupleType(const std::vector<Type*>& members);
-
-#define V(Name, ...) Name##Type* Get##Name##Type() const;
-  FOR_EACH_HIR_PRIMITIVE_TYPE(V)
-#undef V
 
  private:
   class FunctionTypeFactory;

@@ -104,14 +104,14 @@ TEST_F(TypeMapperTest, FunctionType) {
   EXPECT_EQ(
       types()->NewFunctionType(types()->void_type(), types()->void_type()),
       Map(NewSignature(PredefinedName::Void, PredefinedName::Void)));
-  EXPECT_EQ(types()->NewFunctionType(types()->GetInt32Type(),
-                                     types()->GetFloat32Type()),
-            Map(NewSignature(PredefinedName::Int32, PredefinedName::Float32)));
+  EXPECT_EQ(
+      types()->NewFunctionType(types()->int32_type(), types()->float32_type()),
+      Map(NewSignature(PredefinedName::Int32, PredefinedName::Float32)));
 }
 
 TEST_F(TypeMapperTest, PrimitiveTypes) {
-#define V(Name, ...) \
-  EXPECT_EQ(types()->Get##Name##Type(), Map(GetIr(PredefinedName::Name)));
+#define V(Name, name, ...) \
+  EXPECT_EQ(types()->name##_type(), Map(GetIr(PredefinedName::Name)));
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 }

@@ -70,7 +70,7 @@ HirTest::~HirTest() {
 }
 
 Type* HirTest::bool_type() const {
-  return factory()->types()->GetBoolType();
+  return factory()->types()->bool_type();
 }
 
 BasicBlock* HirTest::entry_block() const {
@@ -82,7 +82,7 @@ BasicBlock* HirTest::exit_block() const {
 }
 
 Type* HirTest::int32_type() const {
-  return types()->GetInt32Type();
+  return types()->int32_type();
 }
 
 TypeFactory* HirTest::types() const {

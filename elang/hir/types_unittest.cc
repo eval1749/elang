@@ -27,7 +27,7 @@ class HirTypesTest : public testing::HirTest {
 };
 
 TEST_F(HirTypesTest, BoolType) {
-  auto const bool_type = types()->GetBoolType();
+  auto const bool_type = types()->bool_type();
   auto const true_value = bool_type->NewLiteral(true);
   auto const false_value = bool_type->NewLiteral(false);
   EXPECT_NE(false_value, true_value);
@@ -35,7 +35,7 @@ TEST_F(HirTypesTest, BoolType) {
 }
 
 TEST_F(HirTypesTest, FunctionType) {
-  auto const return_type = types()->GetInt32Type();
+  auto const return_type = types()->int32_type();
   auto const void_type = types()->void_type();
   auto const function_type = types()->NewFunctionType(return_type, void_type);
   EXPECT_EQ(return_type, function_type->return_type());
@@ -45,8 +45,8 @@ TEST_F(HirTypesTest, FunctionType) {
 }
 
 TEST_F(HirTypesTest, PointerType) {
-  auto const pointer1 = types()->NewPointerType(types()->GetInt32Type());
-  auto const pointer2 = types()->NewPointerType(types()->GetInt32Type());
+  auto const pointer1 = types()->NewPointerType(types()->int32_type());
+  auto const pointer2 = types()->NewPointerType(types()->int32_type());
   EXPECT_EQ(pointer1, pointer2);
 }
 

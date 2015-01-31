@@ -223,12 +223,12 @@ FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_BINARY_OPERATION(V)
 #undef V
 
-#define V(Name, ...)                                        \
-  void Validator::Visit##Name(Name##Instruction* instr) {   \
-    if (instr->input(0)->type() != instr->output_type())    \
-      Error(ErrorCode::ValidateInstructionType, instr, 0);  \
-    if (instr->input(1)->type() != types()->GetInt32Type()) \
-      Error(ErrorCode::ValidateInstructionType, instr, 1);  \
+#define V(Name, ...)                                       \
+  void Validator::Visit##Name(Name##Instruction* instr) {  \
+    if (instr->input(0)->type() != instr->output_type())   \
+      Error(ErrorCode::ValidateInstructionType, instr, 0); \
+    if (instr->input(1)->type() != types()->int32_type())  \
+      Error(ErrorCode::ValidateInstructionType, instr, 1); \
   }
 FOR_EACH_BITWISE_SHIFT_OPERATION(V)
 #undef V

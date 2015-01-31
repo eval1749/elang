@@ -97,7 +97,7 @@ FOR_EACH_RELATIONAL_OPERATION(V)
   TEST_F(HirInstructionTest, Name##Instruction) {                        \
     auto const input = editor()->NewInt32(1234);                         \
     auto const instr = editor()->factory()->New##Name##Instruction(      \
-        types()->GetFloat64Type(), input);                               \
+        types()->float64_type(), input);                                 \
     editor()->Edit(entry_block());                                       \
     editor()->Append(instr);                                             \
     editor()->Commit();                                                  \
@@ -161,7 +161,7 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
 // CallInstruction
 //
 TEST_F(HirInstructionTest, CallInstruction) {
-  auto const string_type = types()->GetStringType();
+  auto const string_type = types()->string_type();
   auto const callee_name = factory()->NewAtomicString(L"Console.WriteLine");
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(void_type(), string_type), callee_name);
@@ -337,7 +337,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
 TEST_F(HirInstructionTest, StoreInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
-  auto const value = types()->GetBoolType()->default_value();
+  auto const value = types()->bool_type()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());

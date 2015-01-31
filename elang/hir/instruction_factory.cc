@@ -38,7 +38,7 @@ InstructionFactory::InstructionFactory(Factory* factory,
 }
 
 Type* InstructionFactory::bool_type() const {
-  return types()->GetBoolType();
+  return types()->bool_type();
 }
 
 Type* InstructionFactory::void_type() const {
@@ -82,7 +82,7 @@ FOR_EACH_BITWISE_BINARY_OPERATION(V)
       Type* output_type, Value* left, Value* right) {               \
     DCHECK(output_type->is_integer()) << *output_type;              \
     DCHECK(left->type()->is_integer()) << *left << " " << *right;   \
-    DCHECK_EQ(types()->GetInt32Type(), right->type()) << *right;    \
+    DCHECK_EQ(types()->int32_type(), right->type()) << *right;      \
     auto const instr = new (zone()) Name##Instruction(output_type); \
     instr->InitInputAt(0, left);                                    \
     instr->InitInputAt(1, right);                                   \

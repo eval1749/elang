@@ -81,7 +81,7 @@ TypeFactory::~TypeFactory() {
 }
 
 #define V(Name, name, ...) \
-  Name##Type* TypeFactory::Get##Name##Type() const { return name##_type_; }
+  Name##Type* TypeFactory::name##_type() const { return name##_type_; }
 FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
 
