@@ -144,6 +144,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   editor()->Append(call_instr);
   editor()->SetBranch(call_instr, true_block, false_block);
   editor()->Commit();
+  EXPECT_EQ("", Validate());
 
   auto const instr = entry_block()->last_instruction();
   EXPECT_FALSE(instr->MaybeUseless());
@@ -153,7 +154,7 @@ TEST_F(HirInstructionTest, BranchInstruction) {
   EXPECT_EQ(call_instr, instr->input(0));
   EXPECT_EQ(true_block, instr->input(1));
   EXPECT_EQ(false_block, instr->input(2));
-  EXPECT_EQ("", Validate());
+  EXPECT_EQ("bb1:7:br %b6, block3, block4", ToString(instr));
 }
 
 TEST_F(HirInstructionTest, BranchUncoditional) {
@@ -172,6 +173,7 @@ TEST_F(HirInstructionTest, BranchUncoditional) {
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(target_block, instr->input(0));
   EXPECT_EQ("", Validate());
+  EXPECT_EQ("bb1:5:br block3", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -182,14 +184,19 @@ TEST_F(HirInstructionTest, CallInstruction) {
   auto const callee_name = factory()->NewAtomicString(L"Console.WriteLine");
   auto const callee = factory()->NewReference(
       types()->NewFunctionType(void_type(), string_type()), callee_name);
-  auto const args = factory()->NewStringLiteral(L"Hello world!");
+  auto const args = factory()->NewStringLiteral(L"foo");
   auto const instr = factory()->NewCallInstruction(callee, args);
+  editor()->Edit(entry_block());
+  editor()->Append(instr);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());
   EXPECT_EQ(callee, instr->input(0));
   EXPECT_EQ(args, instr->input(1));
+  EXPECT_EQ("bb1:4:call `Console.WriteLine`, \"foo\"", ToString(instr));
 
   auto callee_found = false;
   for (auto const user : callee->users()) {
@@ -281,11 +288,17 @@ TEST_F(HirInstructionTest, LoadInstruction) {
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
   auto const instr = factory()->NewLoadInstruction(source);
+  editor()->Edit(entry_block());
+  editor()->Append(source);
+  editor()->Append(instr);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
   EXPECT_TRUE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(source, instr->input(0));
+  EXPECT_EQ("bb1:5:bool %b5 = load %p4", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -320,34 +333,7 @@ TEST_F(HirInstructionTest, PhiInstruction) {
   editor()->SetInput(consumer, 1, phi);
   editor()->Commit();
   EXPECT_EQ("", Validate());
-
-  EXPECT_EQ(
-      "function1 void(void)\n"
-      "block1:\n"
-      "  // In:\n"
-      "  // Out: block4 block5\n"
-      "  entry\n"
-      "  bool %b6 = call `Source`, void\n"
-      "  br %b6, block4, block5\n"
-      "block4:\n"
-      "  // In: block1\n"
-      "  // Out: block3\n"
-      "  br block3\n"
-      "block5:\n"
-      "  // In: block1\n"
-      "  // Out: block3\n"
-      "  br block3\n"
-      "block3:\n"
-      "  // In: block4 block5\n"
-      "  // Out: block2\n"
-      "  bool %b8 = phi block4 true, block5 false\n"
-      "  call `Consumer`, %b8\n"
-      "  ret void, block2\n"
-      "block2:\n"
-      "  // In: block3\n"
-      "  // Out:\n"
-      "  exit\n",
-      Format());
+  EXPECT_EQ("bb3:8:bool %b8 = phi block4 true, block5 false", ToString(phi));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -362,6 +348,7 @@ TEST_F(HirInstructionTest, ReturnInstruction) {
   EXPECT_EQ(2, instr->CountInputs());
   EXPECT_EQ(void_value(), instr->input(0));
   EXPECT_EQ(exit_block(), instr->input(1));
+  EXPECT_EQ("bb1:3:ret void, block2", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -373,12 +360,36 @@ TEST_F(HirInstructionTest, StoreInstruction) {
   auto const source = NewSource(bool_pointer_type);
   auto const value = bool_type()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
+  editor()->Edit(entry_block());
+  editor()->Append(source);
+  editor()->Append(instr);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(2, instr->CountInputs());
   EXPECT_EQ(source, instr->input(0));
   EXPECT_EQ(value, instr->input(1));
+  EXPECT_EQ("bb1:5:store %p4, false", ToString(instr));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// StackAllocInstruction
+//
+TEST_F(HirInstructionTest, StackAllocInstruction) {
+  editor()->Edit(entry_block());
+  auto const instr = factory()->NewStackAlloc(int32_type(), 3);
+  editor()->Append(instr);
+  editor()->Append(factory()->NewLoadInstruction(instr));
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
+  EXPECT_FALSE(instr->MaybeUseless());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(types()->NewPointerType(int32_type()), instr->output_type());
+  EXPECT_EQ(0, instr->CountInputs());
+  EXPECT_EQ("bb1:4:int32* %p4 = alloca 3", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -398,24 +409,6 @@ TEST_F(HirInstructionTest, ThrowInstruction) {
   EXPECT_EQ(false_value(), instr->input(0));
   EXPECT_EQ(exit_block(), instr->input(1));
   EXPECT_EQ("bb1:4:throw false, block2", ToString(instr));
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// StackAllocInstruction
-//
-TEST_F(HirInstructionTest, StackAllocInstruction) {
-  editor()->Edit(entry_block());
-  auto const instr = factory()->NewStackAlloc(int32_type(), 3);
-  editor()->Append(instr);
-  editor()->Append(factory()->NewLoadInstruction(instr));
-  editor()->Commit();
-  EXPECT_EQ("", Validate());
-  EXPECT_FALSE(instr->MaybeUseless());
-  EXPECT_FALSE(instr->IsTerminator());
-  EXPECT_EQ(types()->NewPointerType(int32_type()), instr->output_type());
-  EXPECT_EQ(0, instr->CountInputs());
-  EXPECT_EQ("bb1:4:int32* %p4 = alloca 3", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -453,6 +446,7 @@ TEST_F(HirInstructionTest, UnreachableInstruction) {
   EXPECT_EQ(void_type(), instr->output_type());
   EXPECT_EQ(1, instr->CountInputs());
   EXPECT_EQ(exit_block(), instr->input(0));
+  EXPECT_EQ("bb1:4:unreachable block2", ToString(instr));
 }
 
 }  // namespace hir
