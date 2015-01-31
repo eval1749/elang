@@ -218,6 +218,35 @@ bool Validator::Validate(Instruction* instruction) {
   return is_valid_;
 }
 
+void Validator::ValidateArrayAccess(Instruction* instr) {
+  auto const array_pointer = instr->input(0);
+  auto const array_type = PointTo(array_pointer->type())->as<ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 0);
+    return;
+  }
+  auto const indexes = instr->input(1);
+  if (array_type->rank() == 1) {
+    if (indexes->type() != int32_type())
+      Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+  auto const indexes_type = indexes->type()->as<TupleType>();
+  if (!indexes_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+  if (array_type->rank() == indexes_type->size()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1);
+    return;
+  }
+  for (auto const member : indexes_type->members()) {
+    if (member != int32_type())
+      Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+}
+
 // InstructionVisitor
 #define V(Name, ...)                                       \
   void Validator::Visit##Name(Name##Instruction* instr) {  \
@@ -263,6 +292,10 @@ FOR_EACH_RELATIONAL_OPERATION(V)
 FOR_EACH_TYPE_CAST_OPERATION(V)
 #undef V
 
+void Validator::VisitBound(BoundInstruction* instr) {
+  ValidateArrayAccess(instr);
+}
+
 void Validator::VisitBranch(BranchInstruction* instr) {
   if (!instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
@@ -300,32 +333,7 @@ void Validator::VisitCall(CallInstruction* instr) {
 }
 
 void Validator::VisitElement(ElementInstruction* instr) {
-  auto const array_pointer = instr->input(0);
-  auto const array_type = PointTo(array_pointer->type())->as<ArrayType>();
-  if (!array_type) {
-    Error(ErrorCode::ValidateInstructionType, instr, 0);
-    return;
-  }
-  auto const indexes = instr->input(1);
-  if (array_type->rank() == 1) {
-    if (indexes->type() != int32_type())
-      Error(ErrorCode::ValidateInstructionType, instr, 1);
-    return;
-  }
-  auto const indexes_type = indexes->type()->as<TupleType>();
-  if (!indexes_type) {
-    Error(ErrorCode::ValidateInstructionType, instr, 1);
-    return;
-  }
-  if (array_type->rank() == indexes_type->size()) {
-    Error(ErrorCode::ValidateInstructionOperand, instr, 1);
-    return;
-  }
-  for (auto const member : indexes_type->members()) {
-    if (member != int32_type())
-      Error(ErrorCode::ValidateInstructionType, instr, 1);
-    return;
-  }
+  ValidateArrayAccess(instr);
 }
 
 void Validator::VisitEntry(EntryInstruction* instr) {

@@ -60,6 +60,7 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
              Thing* detail);
 
   Value* NewInt32(int32_t data);
+  void ValidateArrayAccess(Instruction* instr);
 
 // InstructionVisitor
 #define V(Name, ...) void Visit##Name(Name##Instruction* instruction) final;

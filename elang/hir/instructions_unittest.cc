@@ -110,6 +110,23 @@ FOR_EACH_TYPE_CAST_OPERATION(V)
 
 //////////////////////////////////////////////////////////////////////
 //
+// BoundInstruction
+//
+TEST_F(HirInstructionTest, BoundInstruction) {
+  editor()->Edit(entry_block());
+  auto const array_type = types()->NewArrayType(float64_type(), {1});
+  auto const array_pointer = NewSource(types()->NewPointerType(array_type));
+  editor()->Append(array_pointer);
+  auto const bound =
+      factory()->NewBound(array_pointer, factory()->NewInt32Literal(42));
+  editor()->Append(bound);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
+  EXPECT_EQ("bb1:5:bool %b5 = bound %p4, 42", ToString(bound));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // BranchInstruction
 //
 // Conditional

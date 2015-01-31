@@ -206,6 +206,20 @@ FOR_EACH_TYPE_CAST_OPERATION(V)
 
 //////////////////////////////////////////////////////////////////////
 //
+// bool %out = bound %array %indexes
+//
+class ELANG_HIR_EXPORT BoundInstruction final
+    : public SimpleInstruction<BoundInstruction, Value*, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Bound);
+
+ private:
+  explicit BoundInstruction(Type* output_type);
+
+  DISALLOW_COPY_AND_ASSIGN(BoundInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // br %bool %true_block %false_block
 // br %void %target_block
 //

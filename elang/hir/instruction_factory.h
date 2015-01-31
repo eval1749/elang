@@ -41,6 +41,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
   Instruction* NewCallInstruction(Value* callee, Value* arguments);
   Instruction* NewDynamicCast(Type* output_type, Value* input);
   Instruction* NewEntryInstruction(Type* output_type);
+  Instruction* NewBound(Value* array, Value* indexes);
   Instruction* NewElement(Value* array, Value* indexes);
   Instruction* NewExitInstruction();
   Instruction* NewGetInstruction(Value* value, int index);
