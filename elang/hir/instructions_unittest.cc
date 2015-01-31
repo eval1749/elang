@@ -279,8 +279,8 @@ TEST_F(HirInstructionTest, PhiInstruction) {
 
   editor()->Edit(merge_block);
   auto const phi = editor()->NewPhi(bool_type());
-  editor()->SetPhiInput(phi, true_block, NewBool(true));
-  editor()->SetPhiInput(phi, false_block, NewBool(false));
+  editor()->SetPhiInput(phi, true_block, true_value());
+  editor()->SetPhiInput(phi, false_block, false_value());
   auto const consumer = NewConsumer(bool_type());
   editor()->Append(consumer);
   editor()->SetInput(consumer, 1, phi);

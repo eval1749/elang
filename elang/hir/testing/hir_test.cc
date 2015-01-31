@@ -81,16 +81,20 @@ BasicBlock* HirTest::exit_block() const {
   return function_->exit_block();
 }
 
+Value* HirTest::false_value() const {
+  return factory()->false_value();
+}
+
 Type* HirTest::int32_type() const {
   return types()->int32_type();
 }
 
-TypeFactory* HirTest::types() const {
-  return factory_->types();
+Value* HirTest::true_value() const {
+  return factory()->true_value();
 }
 
-Zone* HirTest::zone() const {
-  return factory_->zone();
+TypeFactory* HirTest::types() const {
+  return factory_->types();
 }
 
 Type* HirTest::void_type() const {
@@ -99,6 +103,10 @@ Type* HirTest::void_type() const {
 
 Value* HirTest::void_value() const {
   return factory()->void_value();
+}
+
+Zone* HirTest::zone() const {
+  return factory_->zone();
 }
 
 std::string HirTest::Format(Function* function) {
@@ -118,10 +126,6 @@ std::string HirTest::GetErrors(const Editor& editor) {
 
 std::string HirTest::GetErrors() {
   return GetErrors(*editor_);
-}
-
-Value* HirTest::NewBool(bool value) {
-  return factory()->NewBoolLiteral(value);
 }
 
 Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {

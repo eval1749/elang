@@ -89,6 +89,9 @@ TEST_F(HirValuesTest, Function2) {
 // Literals
 TEST_F(HirValuesTest, Literal) {
   std::stringstream ostream;
+  EXPECT_EQ(false_value(), factory()->NewBoolLiteral(false));
+  EXPECT_EQ(true_value(), factory()->NewBoolLiteral(true));
+
   ostream << *factory()->NewBoolLiteral(false) << std::endl;
   ostream << *factory()->NewBoolLiteral(true) << std::endl;
 

@@ -36,7 +36,7 @@ TEST_F(HirEditorTest, ValidateError) {
   EXPECT_FALSE(editor()->Commit());
 
   editor()->Edit(entry_block());
-  editor()->SetInput(entry_block()->last_instruction(), 0, NewBool(false));
+  editor()->SetInput(entry_block()->last_instruction(), 0, false_value());
   EXPECT_FALSE(editor()->Commit());
   EXPECT_EQ(
       "Validate.BasicBlock.Empty block3\n"

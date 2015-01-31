@@ -41,11 +41,11 @@ Factory::Factory(const FactoryConfig& config)
     : InstructionFactory(this, config),
       atomic_string_factory_(config.atomic_string_factory),
       config_(config),
-      false_literal_(new (zone()) BoolLiteral(types()->bool_type(), false)),
+      false_value_(new (zone()) BoolLiteral(types()->bool_type(), false)),
       last_basic_block_id_(0),
       last_function_id_(0),
       last_instruction_id_(0),
-      true_literal_(new (zone()) BoolLiteral(types()->bool_type(), true)) {
+      true_value_(new (zone()) BoolLiteral(types()->bool_type(), true)) {
 }
 
 Factory::~Factory() {
@@ -68,8 +68,8 @@ AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
   return atomic_string_factory_->NewAtomicString(string);
 }
 
-BoolLiteral* Factory::NewBoolLiteral(bool data) {
-  return data ? true_literal_ : false_literal_;
+Value* Factory::NewBoolLiteral(bool data) {
+  return data ? true_value_ : false_value_;
 }
 
 CharLiteral* Factory::NewCharLiteral(base::char16 data) {

@@ -41,9 +41,11 @@ class HirTest : public ::testing::Test {
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_.get(); }
+  Value* false_value() const;
   Function* function() const { return function_; }
   Type* int32_type() const;
   TypeFactory* types() const;
+  Value* true_value() const;
   Type* void_type() const;
   Value* void_value() const;
   Zone* zone() const;
@@ -52,7 +54,6 @@ class HirTest : public ::testing::Test {
   std::string Format();
   std::string GetErrors(const Editor& editor);
   std::string GetErrors();
-  Value* NewBool(bool value);
   Function* NewFunction(Type* return_type, Type* parameters_type);
   Function* NewSampleFunction();
   std::string ToString(Instruction* instruction);

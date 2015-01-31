@@ -31,11 +31,13 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   explicit Factory(const FactoryConfig& config);
   ~Factory();
 
+  Value* false_value() const { return false_value_; }
   AtomicString* intrinsic_name(IntrinsicName name);
+  Value* true_value() const { return true_value_; }
 
   BasicBlock* NewBasicBlock();
   AtomicString* NewAtomicString(base::StringPiece16 string);
-  BoolLiteral* NewBoolLiteral(bool data);
+  Value* NewBoolLiteral(bool data);
   CharLiteral* NewCharLiteral(base::char16 data);
   Float32Literal* NewFloat32Literal(float32_t data);
   Float64Literal* NewFloat64Literal(float64_t data);
@@ -58,12 +60,12 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  private:
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
-  BoolLiteral* false_literal_;
+  Value* false_value_;
   int last_basic_block_id_;
   int last_function_id_;
   int last_instruction_id_;
   std::unordered_map<AtomicString*, Reference*> reference_cache_;
-  BoolLiteral* true_literal_;
+  Value* true_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
