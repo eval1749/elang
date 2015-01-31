@@ -65,13 +65,15 @@ TEST_F(HirTypesTest, PointerType) {
 }
 
 TEST_F(HirTypesTest, TupleType) {
-  auto const tuple_type = types()->NewTupleType({int32_type(), bool_type()});
-  auto const tuple_value = tuple_type->default_value()->as<TupleLiteral>();
-  EXPECT_EQ(int32_type(), tuple_type->get(0));
-  EXPECT_EQ(bool_type(), tuple_type->get(1));
+  auto const type1 = types()->NewTupleType({int32_type(), bool_type()});
+  auto const type2 = types()->NewTupleType({int32_type(), bool_type()});
+  EXPECT_EQ(type1, type2);
+  auto const tuple_value = type1->default_value()->as<TupleLiteral>();
+  EXPECT_EQ(int32_type(), type1->get(0));
+  EXPECT_EQ(bool_type(), type1->get(1));
   EXPECT_EQ(int32_type()->default_value(), tuple_value->get(0));
   EXPECT_EQ(bool_type()->default_value(), tuple_value->get(1));
-  EXPECT_EQ("{int32, bool}", ToString(tuple_type));
+  EXPECT_EQ("{int32, bool}", ToString(type1));
   EXPECT_EQ("{0, false}", ToString(tuple_value));
 }
 

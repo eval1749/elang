@@ -46,6 +46,7 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
  private:
   class ArrayTypeFactory;
   class FunctionTypeFactory;
+  class TupleTypeFactory;
 
 #define V(Name, name, ...) Name##Type* const name##_type_;
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
@@ -55,6 +56,7 @@ class ELANG_HIR_EXPORT TypeFactory final : public ZoneOwner {
   std::unique_ptr<FunctionTypeFactory> function_type_factory_;
   std::unordered_map<Type*, PointerType*> pointer_type_map_;
   StringType* const string_type_;
+  std::unique_ptr<TupleTypeFactory> tuple_type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeFactory);
 };

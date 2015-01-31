@@ -39,6 +39,20 @@ struct hash<ArrayProperty> {
 };
 
 template <>
+struct hash<std::vector<Type*>> {
+  size_t operator()(const std::vector<Type*>& types) const {
+    auto hash_code = 0;
+    for (auto const type : types) {
+      auto const upper = hash_code >> (sizeof(hash_code) - 3);
+      hash_code <<= 3;
+      hash_code ^= std::hash<Type*>()(type);
+      hash_code ^= upper;
+    }
+    return hash_code;
+  }
+};
+
+template <>
 struct hash<TypePair> {
   size_t operator()(const TypePair& pair) const {
     return std::hash<Type*>()(pair.first) ^ std::hash<Type*>()(pair.second);
@@ -113,6 +127,34 @@ FunctionType* TypeFactory::FunctionTypeFactory::NewFunctionType(
 
 //////////////////////////////////////////////////////////////////////
 //
+// TypeFactory::TupleTypeFactory
+//
+class TypeFactory::TupleTypeFactory final {
+ public:
+  explicit TupleTypeFactory(Zone* zone) : zone_(zone) {}
+  ~TupleTypeFactory() = default;
+
+  TupleType* NewTupleType(const std::vector<Type*>& members);
+
+ private:
+  std::unordered_map<std::vector<Type*>, TupleType*> map_;
+  Zone* const zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(TupleTypeFactory);
+};
+
+TupleType* TypeFactory::TupleTypeFactory::NewTupleType(
+    const std::vector<Type*>& members) {
+  const auto it = map_.find(members);
+  if (it != map_.end())
+    return it->second;
+  auto const new_type = new (zone_) TupleType(zone_, members);
+  map_[members] = new_type;
+  return new_type;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // TypeFactory
 //
 TypeFactory::TypeFactory(const FactoryConfig& config)
@@ -122,7 +164,8 @@ TypeFactory::TypeFactory(const FactoryConfig& config)
 #undef V
           array_type_factory_(new ArrayTypeFactory(zone())),
       function_type_factory_(new FunctionTypeFactory(zone())),
-      string_type_(new (zone()) StringType(zone(), config.string_type_name)) {
+      string_type_(new (zone()) StringType(zone(), config.string_type_name)),
+      tuple_type_factory_(new TupleTypeFactory(zone())) {
 }
 
 TypeFactory::~TypeFactory() {
@@ -168,7 +211,7 @@ TupleType* TypeFactory::NewTupleType(const std::vector<Type*>& members) {
     DCHECK(!member->is<VoidType>());
   }
 #endif
-  return new (zone()) TupleType(zone(), members);
+  return tuple_type_factory_->NewTupleType(members);
 }
 
 }  // namespace hir
