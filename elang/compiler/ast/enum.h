@@ -23,7 +23,6 @@ class Factory;
 class Enum final : public NamespaceNode, WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(Enum, NamespaceNode);
 
- public:
  private:
   Enum(Zone* zone,
        BodyNode* container,
