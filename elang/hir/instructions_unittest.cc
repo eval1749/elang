@@ -360,7 +360,7 @@ TEST_F(HirInstructionTest, StackAllocInstruction) {
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(types()->NewPointerType(int32_type()), instr->output_type());
   EXPECT_EQ(0, instr->CountInputs());
-  EXPECT_EQ("bb1:4:int32* %r4 = alloca 3", ToString(instr));
+  EXPECT_EQ("bb1:4:int32* %p4 = alloca 3", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////

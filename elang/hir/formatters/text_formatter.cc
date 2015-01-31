@@ -37,6 +37,8 @@ const char* RegisterPrefixOf(const Instruction* instruction) {
   auto const type = instruction->output_type();
   if (type->is<BoolType>())
     return "%b";
+  if (type->is<PointerType>())
+    return "%p";
   if (type->is<TupleType>())
     return "%t";
   if (type->register_class() == Type::RegisterClass::Float)
