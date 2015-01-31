@@ -128,7 +128,17 @@ void TypeFormatter::VisitExternalType(ExternalType* type) {
 }
 
 void TypeFormatter::VisitFunctionType(FunctionType* type) {
-  ostream_ << *type->return_type() << "(" << *type->parameters_type() << ")";
+  ostream_ << *type->return_type() << "(";
+  if (auto const tuple = type->parameters_type()->as<TupleType>()) {
+    auto separator = "";
+    for (auto const member : tuple->members()) {
+      ostream_ << separator << *member;
+      separator = ", ";
+    }
+  } else {
+    ostream_ << *type->parameters_type();
+  }
+  ostream_ << ")";
 }
 
 void TypeFormatter::VisitPointerType(PointerType* type) {
