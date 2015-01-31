@@ -400,14 +400,12 @@ void Validator::VisitPhi(PhiInstruction* instr) {
 void Validator::VisitReturn(ReturnInstruction* instr) {
   auto const return_type = instr->function()->return_type();
   if (instr->input(0)->type() != return_type) {
-    Error(ErrorCode::ValidateInstructionOperand, instr,
-          {NewInt32(0), return_type});
+    Error(ErrorCode::ValidateInstructionOperand, instr, 0, return_type);
     return;
   }
   auto const exit_block = instr->function()->exit_block();
   if (instr->input(1) != exit_block) {
-    Error(ErrorCode::ValidateInstructionOperand, instr,
-          {NewInt32(1), exit_block});
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1, exit_block);
     return;
   }
 }
@@ -427,6 +425,14 @@ void Validator::VisitStore(StoreInstruction* instr) {
   auto const pointee = pointer_type->pointee();
   if (instr->input(1)->type() != pointee) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 1, pointee);
+    return;
+  }
+}
+
+void Validator::VisitUnreachable(UnreachableInstruction* instr) {
+  auto const exit_block = instr->function()->exit_block();
+  if (instr->input(0) != exit_block) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1, exit_block);
     return;
   }
 }

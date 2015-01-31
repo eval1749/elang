@@ -58,6 +58,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public ZoneOwner {
   Instruction* NewReturnInstruction(Value* value, BasicBlock* exit_block);
   Instruction* NewStaticCast(Type* output_type, Value* input);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
+  Instruction* NewUnreachableInstruction(BasicBlock* exit_block);
 
 #define V(Name, ...)                                                  \
   Instruction* New##Name##Instruction(Type* output_type, Value* left, \

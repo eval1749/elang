@@ -326,6 +326,15 @@ void Editor::SetTerminator(Instruction* terminator) {
   Append(terminator);
 }
 
+void Editor::SetUnreachable() {
+  DCHECK(basic_block_);
+  if (auto const present =
+          basic_block_->last_instruction()->as<UnreachableInstruction>()) {
+    return;
+  }
+  SetTerminator(factory()->NewUnreachableInstruction(exit_block()));
+}
+
 BasicBlock* Editor::SplitBefore(Instruction* reference) {
   DCHECK(!basic_block_);
   auto const ref_basic_block = reference->basic_block();

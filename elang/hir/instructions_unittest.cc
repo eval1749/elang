@@ -346,5 +346,22 @@ TEST_F(HirInstructionTest, StoreInstruction) {
   EXPECT_EQ(value, instr->input(1));
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// UnreachableInstruction
+//
+TEST_F(HirInstructionTest, UnreachableInstruction) {
+  editor()->Edit(entry_block());
+  editor()->SetUnreachable();
+  editor()->Commit();
+  EXPECT_TRUE(editor()->Validate()) << GetErrors();
+  auto const instr = entry_block()->last_instruction();
+  EXPECT_FALSE(instr->MaybeUseless());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(types()->void_type(), instr->output_type());
+  EXPECT_EQ(1, instr->CountInputs());
+  EXPECT_EQ(exit_block(), instr->input(0));
+}
+
 }  // namespace hir
 }  // namespace elang

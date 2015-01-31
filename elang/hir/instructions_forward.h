@@ -77,6 +77,7 @@ namespace hir {
   V(Phi, "phi", Fixed)                    \
   V(Return, "ret", Fixed)                 \
   V(Store, "store", Fixed)                \
+  V(Unreachable, "unreachable", Fixed)    \
   FOR_EACH_ARITHMETIC_BINARY_OPERATION(V) \
   FOR_EACH_BITWISE_BINARY_OPERATION(V)    \
   FOR_EACH_BITWISE_SHIFT_OPERATION(V)     \

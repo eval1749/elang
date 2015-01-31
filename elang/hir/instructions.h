@@ -460,6 +460,23 @@ class ELANG_HIR_EXPORT StoreInstruction final
   DISALLOW_COPY_AND_ASSIGN(StoreInstruction);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// Unreachable %exit_block
+//
+class ELANG_HIR_EXPORT UnreachableInstruction final
+    : public FixedOperandsInstruction<UnreachableInstruction, BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Unreachable);
+
+ private:
+  explicit UnreachableInstruction(Type* output_type);
+
+  // Instruction
+  bool IsTerminator() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(UnreachableInstruction);
+};
+
 }  // namespace hir
 }  // namespace elang
 

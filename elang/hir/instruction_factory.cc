@@ -212,5 +212,12 @@ Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
   return instr;
 }
 
+Instruction* InstructionFactory::NewUnreachableInstruction(
+    BasicBlock* exit_block) {
+  auto const instr = new (zone()) UnreachableInstruction(void_type());
+  instr->InitInputAt(0, exit_block);
+  return instr;
+}
+
 }  // namespace hir
 }  // namespace elang

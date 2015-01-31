@@ -217,5 +217,10 @@ bool StoreInstruction::MaybeUseless() const {
   return false;
 }
 
+// UnreachableInstruction
+bool UnreachableInstruction::IsTerminator() const {
+  return true;
+}
+
 }  // namespace hir
 }  // namespace elang

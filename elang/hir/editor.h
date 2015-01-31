@@ -138,6 +138,7 @@ class ELANG_HIR_EXPORT Editor final : public ZoneUser {
   void SetBranch(BasicBlock* target_block);
   void SetReturn(Value* new_value);
   void SetTerminator(Instruction* terminator);
+  void SetUnreachable();
 
   // Values
   Value* NewInt32(int32_t data);
