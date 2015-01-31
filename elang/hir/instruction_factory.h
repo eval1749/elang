@@ -55,6 +55,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
   Instruction* NewStackAlloc(Type* type, int number_of_element);
   Instruction* NewStaticCast(Type* output_type, Value* input);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
+  Instruction* NewThrow(Value* value, BasicBlock* exit_block);
   Instruction* NewTuple(Type* output_type, const std::vector<Value*>& inputs);
   Instruction* NewUnreachableInstruction(BasicBlock* exit_block);
 

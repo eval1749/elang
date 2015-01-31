@@ -237,6 +237,15 @@ Instruction* InstructionFactory::NewReturnInstruction(Value* value,
   return instr;
 }
 
+Instruction* InstructionFactory::NewThrow(Value* value,
+                                          BasicBlock* exit_block) {
+  DCHECK(!value->is<VoidValue>());
+  auto const instr = new (zone()) ThrowInstruction(void_type());
+  instr->InitInputAt(0, value);
+  instr->InitInputAt(1, exit_block);
+  return instr;
+}
+
 Instruction* InstructionFactory::NewStackAlloc(Type* type, int count) {
   DCHECK(type->can_allocate_on_stack());
   DCHECK_GE(count, 1);

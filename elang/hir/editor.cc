@@ -332,6 +332,19 @@ void Editor::SetUnreachable() {
   SetTerminator(factory()->NewUnreachableInstruction(exit_block()));
 }
 
+void Editor::SetThrow(Value* new_value) {
+  DCHECK_NE(void_value(), new_value);
+  DCHECK(IsAlive(new_value)) << *new_value;
+  DCHECK(basic_block_);
+  if (auto const return_instr =
+          basic_block_->last_instruction()->as<ThrowInstruction>()) {
+    DidChangeControlFlow();
+    SetInput(return_instr, 0, new_value);
+    return;
+  }
+  SetTerminator(factory()->NewThrow(new_value, exit_block()));
+}
+
 BasicBlock* Editor::SplitBefore(Instruction* reference) {
   DCHECK(!basic_block_);
   auto const ref_basic_block = reference->basic_block();

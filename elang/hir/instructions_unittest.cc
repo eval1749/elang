@@ -383,6 +383,25 @@ TEST_F(HirInstructionTest, StoreInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// ThrowInstruction
+//
+TEST_F(HirInstructionTest, ThrowInstruction) {
+  editor()->Edit(entry_block());
+  editor()->SetThrow(false_value());
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
+  auto const instr = entry_block()->last_instruction();
+  EXPECT_FALSE(instr->MaybeUseless());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(void_type(), instr->output_type());
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ(false_value(), instr->input(0));
+  EXPECT_EQ(exit_block(), instr->input(1));
+  EXPECT_EQ("bb1:4:throw false, block2", ToString(instr));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // StackAllocInstruction
 //
 TEST_F(HirInstructionTest, StackAllocInstruction) {

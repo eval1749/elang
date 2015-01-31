@@ -137,6 +137,7 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   void SetBranch(BasicBlock* target_block);
   void SetReturn(Value* new_value);
   void SetTerminator(Instruction* terminator);
+  void SetThrow(Value* new_value);
   void SetUnreachable();
 
   // Values

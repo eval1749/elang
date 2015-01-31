@@ -85,6 +85,7 @@ namespace hir {
   V(Load, "load")                          \
   V(Return, "ret")                         \
   V(Store, "store")                        \
+  V(Throw, "throw")                        \
   V(Unreachable, "unreachable")
 
 #define FOR_EACH_HIR_INSTRUCTION(V)  \

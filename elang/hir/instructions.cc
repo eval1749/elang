@@ -245,6 +245,11 @@ bool StoreInstruction::MaybeUseless() const {
   return false;
 }
 
+// ThrowInstruction
+bool ThrowInstruction::IsTerminator() const {
+  return true;
+}
+
 // TupleInstruction
 TupleInstruction::TupleInstruction(Zone* zone, Type* output_type, int count)
     : Instruction(output_type),

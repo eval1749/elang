@@ -487,6 +487,23 @@ class ELANG_HIR_EXPORT StoreInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// void throw %value, %exit_block
+//
+class ELANG_HIR_EXPORT ThrowInstruction final
+    : public SimpleInstruction<ThrowInstruction, Value*, BasicBlock*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Throw);
+
+ private:
+  explicit ThrowInstruction(Type* output_type);
+
+  // Instruction
+  bool IsTerminator() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ty %pointer = alloca count
 //
 class ELANG_HIR_EXPORT StackAllocInstruction final

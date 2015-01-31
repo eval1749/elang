@@ -477,6 +477,18 @@ void Validator::VisitStore(StoreInstruction* instr) {
   }
 }
 
+void Validator::VisitThrow(ThrowInstruction* instr) {
+  if (instr->input(0)->is<VoidValue>()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 0);
+    return;
+  }
+  auto const exit_block = instr->function()->exit_block();
+  if (instr->input(1) != exit_block) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1, exit_block);
+    return;
+  }
+}
+
 void Validator::VisitTuple(TupleInstruction* instr) {
   auto const tuple_type = instr->type()->as<TupleType>();
   if (!tuple_type) {
