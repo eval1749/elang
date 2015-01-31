@@ -151,6 +151,26 @@ Instruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
   return new (zone()) EntryInstruction(output_type);
 }
 
+Instruction* InstructionFactory::NewElement(Value* array, Value* indexes) {
+  auto const array_type =
+      array->type()->as<PointerType>()->pointee()->as<ArrayType>();
+  DCHECK(array_type);
+  auto const instr = new (zone())
+      ElementInstruction(types()->NewPointerType(array_type->element_type()));
+#ifndef NDEBUG
+  if (array_type->rank() == 1) {
+    DCHECK_EQ(int32_type(), indexes->type());
+  } else if (auto const indexes_type = indexes->as<TupleType>()) {
+    DCHECK_EQ(array_type->rank(), indexes_type->size());
+    for (auto const type : indexes_type->members())
+      DCHECK_EQ(int32_type(), type);
+  }
+#endif
+  instr->InitInputAt(0, array);
+  instr->InitInputAt(1, indexes);
+  return instr;
+}
+
 Instruction* InstructionFactory::NewExitInstruction() {
   return new (zone()) ExitInstruction(void_type());
 }

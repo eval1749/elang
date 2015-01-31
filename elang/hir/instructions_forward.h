@@ -76,6 +76,7 @@ namespace hir {
   FOR_EACH_TYPE_CAST_OPERATION(V)          \
   V(Branch, "br")                          \
   V(Call, "call")                          \
+  V(Element, "element")                    \
   V(Entry, "entry")                        \
   V(Exit, "exit")                          \
   V(Jump, "br")                            \

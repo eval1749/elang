@@ -186,6 +186,23 @@ TEST_F(HirInstructionTest, CallInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// ElementInstruction
+//
+TEST_F(HirInstructionTest, ElementInstruction) {
+  editor()->Edit(entry_block());
+  auto const array_type = types()->NewArrayType(float64_type(), {1});
+  auto const array_pointer = NewSource(types()->NewPointerType(array_type));
+  editor()->Append(array_pointer);
+  auto const element =
+      factory()->NewElement(array_pointer, factory()->NewInt32Literal(42));
+  editor()->Append(element);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
+  EXPECT_EQ("bb1:5:float64* %p5 = element %p4, 42", ToString(element));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // GetInstruction
 //
 TEST_F(HirInstructionTest, GetInstruction) {

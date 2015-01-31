@@ -262,6 +262,7 @@ class ELANG_HIR_EXPORT TupleType final : public Type {
  public:
   Type* get(int index) const { return members_[index]; }
   const ZoneVector<Type*>& members() const { return members_; }
+  int size() const { return static_cast<int>(members_.size()); }
 
  private:
   TupleType(Zone* zone, const std::vector<Type*>& members);

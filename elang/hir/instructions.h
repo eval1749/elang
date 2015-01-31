@@ -246,6 +246,20 @@ class ELANG_HIR_EXPORT CallInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// ty %pointer = element %array %indexes
+//
+class ELANG_HIR_EXPORT ElementInstruction final
+    : public SimpleInstruction<ElementInstruction, Value*, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Element);
+
+ private:
+  explicit ElementInstruction(Type* output_type);
+
+  DISALLOW_COPY_AND_ASSIGN(ElementInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ty %parameters = entry
 //
 class ELANG_HIR_EXPORT EntryInstruction final

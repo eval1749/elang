@@ -20,6 +20,15 @@
 namespace elang {
 namespace hir {
 
+namespace {
+
+Type* PointTo(Type* type) {
+  auto const pointer_type = type->as<PointerType>();
+  return pointer_type ? pointer_type->pointee() : nullptr;
+}
+
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Validator
@@ -290,11 +299,38 @@ void Validator::VisitCall(CallInstruction* instr) {
   }
 }
 
-void Validator::VisitEntry(EntryInstruction* instr) {
-  if (instr->output_type() != instr->function()->parameters_type()) {
-    Error(ErrorCode::ValidateInstructionOutput, instr);
+void Validator::VisitElement(ElementInstruction* instr) {
+  auto const array_pointer = instr->input(0);
+  auto const array_type = PointTo(array_pointer->type())->as<ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 0);
     return;
   }
+  auto const indexes = instr->input(1);
+  if (array_type->rank() == 1) {
+    if (indexes->type() != int32_type())
+      Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+  auto const indexes_type = indexes->type()->as<TupleType>();
+  if (!indexes_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+  if (array_type->rank() == indexes_type->size()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1);
+    return;
+  }
+  for (auto const member : indexes_type->members()) {
+    if (member != int32_type())
+      Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+}
+
+void Validator::VisitEntry(EntryInstruction* instr) {
+  if (instr->output_type() != instr->function()->parameters_type())
+    Error(ErrorCode::ValidateInstructionOutput, instr);
 }
 
 void Validator::VisitExit(ExitInstruction* instr) {
