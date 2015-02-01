@@ -32,7 +32,7 @@ namespace testing {
 //
 // CgTest
 //
-class CgTest : public ::testing::Test, hir::FactoryUser {
+class CgTest : public ::testing::Test, public hir::FactoryUser {
  protected:
   CgTest();
   ~CgTest() override;

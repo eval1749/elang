@@ -11,6 +11,8 @@
 namespace elang {
 namespace lir {
 
+// Constructors are implemented in "instructions_${arch}.cc".
+
 #define V(Name, ...)                                            \
   void Name##Instruction::Accept(InstructionVisitor* visitor) { \
     visitor->Visit##Name(this);                                 \
@@ -31,6 +33,10 @@ Instruction::Instruction(Factory* factory,
       opcode_(opcode),
       inputs_(factory->zone(), input_count),
       outputs_(factory->zone(), output_count) {
+}
+
+void Instruction::InitInput(int index, Value new_value) {
+  inputs_[index] = new_value;
 }
 
 bool Instruction::IsTerminator() const {

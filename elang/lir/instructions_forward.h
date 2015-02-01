@@ -16,15 +16,22 @@ namespace lir {
 class Instruction;
 class InstructionVisitor;
 
+#define FOR_EACH_LIR_INSTRUCTION_0(V) \
+  V(Entry)                            \
+  V(Exit)                             \
+  V(Ret)
+
+#define FOR_EACH_LIR_INSTRUCTION_1(V) V(Call)
+
+#define FOR_EACH_LIR_INSTRUCTION_N(V) V(Jump, (BasicBlock * target_block))
+
 // Visitor |V| takes three parameters:
-//  Name         capitalized name for C++ class
-//  mnemonic     mnemonic; used for formatting
+//  Name        capitalized name for C++ class
+//  parameters  parameters for constructor
 #define FOR_EACH_LIR_INSTRUCTION(V) \
-  V(Call, call)                     \
-  V(Entry, entry)                   \
-  V(Exit, exit)                     \
-  V(Jump, jump)                     \
-  V(Ret, ret)
+  FOR_EACH_LIR_INSTRUCTION_0(V)     \
+  FOR_EACH_LIR_INSTRUCTION_1(V)     \
+  FOR_EACH_LIR_INSTRUCTION_N(V)
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_LIR_INSTRUCTION(V)

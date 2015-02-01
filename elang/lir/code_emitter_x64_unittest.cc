@@ -51,9 +51,9 @@ TEST_F(CodeEmitterX64Test, Call) {
   {
     Editor::ScopedEdit scope(&editor);
     editor.Edit(entry_block);
-    auto const call = factory()->NewCallInstruction();
+    auto const callee = factory()->NewStringValue(L"Foo");
+    auto const call = factory()->NewCallInstruction(callee);
     editor.InsertBefore(call, entry_block->last_instruction());
-    editor.SetInput(call, 0, factory()->NewStringValue(L"Foo"));
   }
   TestMachineCodeBuilder builder;
   CodeEmitter emitter(factory(), &builder);

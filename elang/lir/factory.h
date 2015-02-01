@@ -47,14 +47,20 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Value NewInt64Value(int64_t value);
   Value NewStringValue(base::StringPiece16 data);
 
-// Create Instruction
-#define V(Name, ...) Instruction* New##Name##Instruction();
-  FOR_EACH_LIR_INSTRUCTION(V)
-#undef V
-
   // Unique identifiers
   int NextBasicBlockId();
   int NextInstructionId();
+
+// Create Instruction
+#define V(Name, ...) Instruction* New##Name##Instruction();
+  FOR_EACH_LIR_INSTRUCTION_0(V)
+#undef V
+#define V(Name, ...) Instruction* New##Name##Instruction(Value value);
+  FOR_EACH_LIR_INSTRUCTION_1(V)
+#undef V
+#define V(Name, parameters, ...) Instruction* New##Name##Instruction parameters;
+  FOR_EACH_LIR_INSTRUCTION_N(V)
+#undef V
 
  private:
   base::StringPiece16 NewString(base::StringPiece16 string);

@@ -145,13 +145,6 @@ int Factory::NextInstructionId() {
   return ++last_instruction_id_;
 }
 
-#define V(Name, ...)                               \
-  Instruction* Factory::New##Name##Instruction() { \
-    return new (zone()) Name##Instruction(this);   \
-  }
-FOR_EACH_LIR_INSTRUCTION(V)
-#undef V
-
 base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
   auto const size = string_piece.size() * sizeof(base::char16);
   auto const data = static_cast<base::char16*>(Allocate(size));
@@ -161,6 +154,26 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
 
 Value Factory::RegisterLiteral(Literal* literal) {
   return literal_map_->RegisterLiteral(literal);
+}
+
+// Instructions
+#define V(Name, ...)                               \
+  Instruction* Factory::New##Name##Instruction() { \
+    return new (zone()) Name##Instruction(this);   \
+  }
+FOR_EACH_LIR_INSTRUCTION_0(V)
+#undef V
+
+#define V(Name, ...)                                          \
+  Instruction* Factory::New##Name##Instruction(Value value) { \
+    return new (zone()) Name##Instruction(this, value);       \
+  }
+FOR_EACH_LIR_INSTRUCTION_1(V)
+#undef V
+
+Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
+  DCHECK(target_block->id());
+  return new (zone()) JumpInstruction(this, target_block);
 }
 
 }  // namespace lir

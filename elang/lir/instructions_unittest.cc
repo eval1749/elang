@@ -7,6 +7,7 @@
 #include "elang/base/zone.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
+#include "elang/lir/literals.h"
 #include "gtest/gtest.h"
 
 namespace elang {
@@ -31,18 +32,54 @@ LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 
 // CallInstruction
 TEST_F(LirInstructionTest, CallInstruction) {
-  auto const instr = factory()->NewCallInstruction();
+  auto const callee = factory()->NewStringValue(L"Foo");
+  auto const instr = factory()->NewCallInstruction(callee);
   EXPECT_TRUE(instr->is<CallInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1u, instr->inputs().size());
+  EXPECT_EQ(0u, instr->outputs().size());
+}
+
+// EntryInstruction
+TEST_F(LirInstructionTest, EntryInstruction) {
+  auto const instr = factory()->NewEntryInstruction();
+  EXPECT_TRUE(instr->is<EntryInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(0u, instr->inputs().size());
+  EXPECT_EQ(0u, instr->outputs().size());
+}
+
+// ExitInstruction
+TEST_F(LirInstructionTest, ExitInstruction) {
+  auto const instr = factory()->NewExitInstruction();
+  EXPECT_TRUE(instr->is<ExitInstruction>());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(0u, instr->inputs().size());
+  EXPECT_EQ(0u, instr->outputs().size());
 }
 
 // JumpInstruction
 TEST_F(LirInstructionTest, JumpInstruction) {
-  auto const instr = factory()->NewJumpInstruction();
+  auto const function = factory()->NewFunction();
+  auto const instr = factory()->NewJumpInstruction(function->exit_block());
   EXPECT_TRUE(instr->is<JumpInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1u, instr->inputs().size());
+  EXPECT_EQ(0u, instr->outputs().size());
+}
+
+// RetInstruction
+TEST_F(LirInstructionTest, RetInstruction) {
+  auto const instr = factory()->NewRetInstruction();
+  EXPECT_TRUE(instr->is<RetInstruction>());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(0u, instr->inputs().size());
+  EXPECT_EQ(0u, instr->outputs().size());
 }
 
 }  // namespace lir

@@ -107,9 +107,8 @@ void Editor::SetJump(BasicBlock* target_block) {
     SetInput(last, 0, target_block->value());
     return;
   }
-  auto const instr = factory()->NewJumpInstruction();
+  auto const instr = factory()->NewJumpInstruction(target_block);
   SetTerminator(instr);
-  SetInput(instr, 0, target_block->value());
 }
 
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {

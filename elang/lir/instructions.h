@@ -61,6 +61,8 @@ class ELANG_LIR_EXPORT Instruction
               int output_count,
               int input_count);
 
+  void InitInput(int index, Value new_value);
+
  private:
   // |Editor| changes|basic_block_|, |id_|, and |opcode_|.
   friend class Editor;
@@ -85,7 +87,7 @@ class ELANG_LIR_EXPORT CallInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(CallInstruction);
 
  private:
-  explicit CallInstruction(Factory* factory);
+  explicit CallInstruction(Factory* factory, Value callee);
 };
 
 class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
@@ -109,7 +111,7 @@ class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(JumpInstruction);
 
  private:
-  explicit JumpInstruction(Factory* factory);
+  explicit JumpInstruction(Factory* factory, BasicBlock* target_block);
 
   // Instruction
   bool IsTerminator() const final;

@@ -5,33 +5,31 @@
 #include "base/logging.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/isa_x64.h"
+#include "elang/lir/literals.h"
 
 namespace elang {
 namespace lir {
 
 EntryInstruction::EntryInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::nop, 0, 0) {
-  DCHECK(factory);
 }
 
-CallInstruction::CallInstruction(Factory* factory)
+CallInstruction::CallInstruction(Factory* factory, Value callee)
     : Instruction(factory, isa::Opcode::call_Jv, 0, 1) {
-  DCHECK(factory);
+  InitInput(0, callee);
 }
 
 ExitInstruction::ExitInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::nop, 0, 0) {
-  DCHECK(factory);
 }
 
-JumpInstruction::JumpInstruction(Factory* factory)
+JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
     : Instruction(factory, isa::Opcode::jmp_Jv, 0, 1) {
-  DCHECK(factory);
+  InitInput(0, target_block->value());
 }
 
 RetInstruction::RetInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::ret, 0, 0) {
-  DCHECK(factory);
 }
 
 }  // namespace lir
