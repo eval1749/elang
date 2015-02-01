@@ -52,6 +52,8 @@ void Editor::Edit(BasicBlock* basic_block) {
   DCHECK(!basic_block_);
   DCHECK_EQ(function(), basic_block->function());
   basic_block_ = basic_block;
+  if (basic_block_->instructions().empty())
+    return;
   DCHECK(Validate(basic_block_));
 }
 
@@ -115,6 +117,14 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   return new_block;
 }
 
+void Editor::Remove(Instruction* old_instruction) {
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, old_instruction->basic_block_);
+  basic_block_->instructions_.RemoveNode(old_instruction);
+  old_instruction->id_ = 0;
+  old_instruction->basic_block_ = nullptr;
+}
+
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, instruction->basic_block());
@@ -122,7 +132,26 @@ void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
 }
 
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, instruction->basic_block());
   instruction->outputs_[index] = new_value;
+}
+
+void Editor::SetReturn() {
+  DCHECK(basic_block_);
+  if (auto const last = basic_block_->last_instruction()->as<RetInstruction>())
+    return;
+  SetTerminator(factory()->NewRetInstruction());
+}
+
+void Editor::SetTerminator(Instruction* instr) {
+  DCHECK(basic_block_);
+  DCHECK(!instr->basic_block_);
+  DCHECK(instr->IsTerminator());
+  auto const last = basic_block_->last_instruction();
+  if (last && last->IsTerminator())
+    Remove(last);
+  Append(instr);
 }
 
 bool Editor::Validate(BasicBlock* block) {

@@ -40,6 +40,7 @@ class ELANG_LIR_EXPORT Editor final {
   Editor(Factory* factory, Function* function);
   ~Editor();
 
+  BasicBlock* basic_block() const { return basic_block_; }
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
 
@@ -48,6 +49,8 @@ class ELANG_LIR_EXPORT Editor final {
   // Basic block editing
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
+  void SetReturn();
+  void SetTerminator(Instruction* instruction);
 
   // Returns new basic block inserted before |reference|.
   BasicBlock* NewBasicBlock(BasicBlock* reference);
@@ -55,6 +58,7 @@ class ELANG_LIR_EXPORT Editor final {
   // Instruction editing
   void Append(Instruction* new_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
+  void Remove(Instruction* old_instruction);
   void SetInput(Instruction* instruction, int index, Value new_value);
   void SetOutput(Instruction* instruction, int index, Value new_value);
 
