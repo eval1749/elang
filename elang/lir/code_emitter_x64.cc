@@ -312,6 +312,10 @@ void InstructionEmitter::VisitJump(JumpInstruction* instruction) {
   __assume(instruction);
 }
 
+void InstructionEmitter::VisitLoad(LoadInstruction* instruction) {
+  __assume(instruction);
+}
+
 void InstructionEmitter::VisitRet(RetInstruction* instruction) {
   EmitOpcode(instruction->opcode());
 }

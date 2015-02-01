@@ -28,6 +28,12 @@ JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
   InitInput(0, target_block->value());
 }
 
+LoadInstruction::LoadInstruction(Factory* factory, Value output, Value input)
+    : Instruction(factory, isa::Opcode::mov_Gv_Ev, 1, 1) {
+  InitOutput(0, output);
+  InitInput(0, input);
+}
+
 RetInstruction::RetInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::ret, 0, 0) {
 }

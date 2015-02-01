@@ -62,6 +62,7 @@ class ELANG_LIR_EXPORT Instruction
               int input_count);
 
   void InitInput(int index, Value new_value);
+  void InitOutput(int index, Value new_value);
 
  private:
   // |Editor| changes|basic_block_|, |id_|, and |opcode_|.
@@ -83,6 +84,7 @@ class ELANG_LIR_EXPORT Instruction
   void Accept(InstructionVisitor* visitor) override; \
   friend class Factory;
 
+// CallInstruction
 class ELANG_LIR_EXPORT CallInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(CallInstruction);
 
@@ -90,6 +92,7 @@ class ELANG_LIR_EXPORT CallInstruction final : public Instruction {
   explicit CallInstruction(Factory* factory, Value callee);
 };
 
+// EntryInstruction
 class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(EntryInstruction);
 
@@ -97,6 +100,7 @@ class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
   explicit EntryInstruction(Factory* factory);
 };
 
+// ExitInstruction
 class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(ExitInstruction);
 
@@ -107,6 +111,7 @@ class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
   bool IsTerminator() const final;
 };
 
+// JumpInstruction
 class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(JumpInstruction);
 
@@ -117,6 +122,15 @@ class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
   bool IsTerminator() const final;
 };
 
+// LoadInstruction
+class ELANG_LIR_EXPORT LoadInstruction final : public Instruction {
+  DECLARE_LIR_INSTRUCTION_CLASS(LoadInstruction);
+
+ private:
+  explicit LoadInstruction(Factory* factory, Value output, Value input);
+};
+
+// RetInstruction
 class ELANG_LIR_EXPORT RetInstruction final : public Instruction {
   DECLARE_LIR_INSTRUCTION_CLASS(RetInstruction);
 

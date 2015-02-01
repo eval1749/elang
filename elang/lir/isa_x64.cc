@@ -63,6 +63,11 @@ void MnemonicFactory::VisitJump(JumpInstruction* instruction) {
   mnemonic_ = "jmp";
 }
 
+void MnemonicFactory::VisitLoad(LoadInstruction* instruction) {
+  __assume(instruction);
+  mnemonic_ = "mov";
+}
+
 void MnemonicFactory::VisitRet(RetInstruction* instruction) {
   __assume(instruction);
   mnemonic_ = "ret";

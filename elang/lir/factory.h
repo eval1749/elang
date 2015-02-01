@@ -43,6 +43,8 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns |Literal| object.
   Value NewFloat32Value(float32_t value);
   Value NewFloat64Value(float64_t value);
+  Value NewFloatRegister();
+  Value NewGeneralRegister();
   Value NewInt32Value(int32_t value);
   Value NewInt64Value(int64_t value);
   Value NewStringValue(base::StringPiece16 data);
@@ -53,11 +55,18 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
 // Create Instruction
 #define V(Name, ...) Instruction* New##Name##Instruction();
-  FOR_EACH_LIR_INSTRUCTION_0(V)
+  FOR_EACH_LIR_INSTRUCTION_0_0(V)
 #undef V
-#define V(Name, ...) Instruction* New##Name##Instruction(Value value);
-  FOR_EACH_LIR_INSTRUCTION_1(V)
+
+#define V(Name, ...) Instruction* New##Name##Instruction(Value input);
+  FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
+
+#define V(Name, ...)                                              \
+  Instruction* New##Name##Instruction(Value output, Value input);
+  FOR_EACH_LIR_INSTRUCTION_1_1(V)
+#undef V
+
 #define V(Name, parameters, ...) Instruction* New##Name##Instruction parameters;
   FOR_EACH_LIR_INSTRUCTION_N(V)
 #undef V
@@ -73,6 +82,8 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   const std::unique_ptr<LiteralMap> literal_map_;
   int last_basic_block_id_;
   int last_instruction_id_;
+  int last_float_register_id_;
+  int last_general_register_id_;
   std::unordered_map<base::StringPiece16, Value> string_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

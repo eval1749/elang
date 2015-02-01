@@ -22,6 +22,8 @@ namespace lir {
 Factory::Factory()
     : last_basic_block_id_(0),
       last_instruction_id_(0),
+      last_float_register_id_(0),
+      last_general_register_id_(0),
       literal_map_(new LiteralMap()) {
 }
 
@@ -103,6 +105,15 @@ Value Factory::NewFloat64Value(float64_t data) {
   return value;
 }
 
+Value Factory::NewFloatRegister() {
+  return Value(Value::Kind::VirtualFloatRegister, ++last_float_register_id_);
+}
+
+Value Factory::NewGeneralRegister() {
+  return Value(Value::Kind::VirtualGeneralRegister,
+               ++last_general_register_id_);
+}
+
 Value Factory::NewInt32Value(int32_t data) {
   if (Value::CanBeImmediate(data))
     return Value(Value::Kind::Immediate, data);
@@ -161,14 +172,21 @@ Value Factory::RegisterLiteral(Literal* literal) {
   Instruction* Factory::New##Name##Instruction() { \
     return new (zone()) Name##Instruction(this);   \
   }
-FOR_EACH_LIR_INSTRUCTION_0(V)
+FOR_EACH_LIR_INSTRUCTION_0_0(V)
 #undef V
 
 #define V(Name, ...)                                          \
-  Instruction* Factory::New##Name##Instruction(Value value) { \
-    return new (zone()) Name##Instruction(this, value);       \
+  Instruction* Factory::New##Name##Instruction(Value input) { \
+    return new (zone()) Name##Instruction(this, input);       \
   }
-FOR_EACH_LIR_INSTRUCTION_1(V)
+FOR_EACH_LIR_INSTRUCTION_0_1(V)
+#undef V
+
+#define V(Name, ...)                                                        \
+  Instruction* Factory::New##Name##Instruction(Value output, Value input) { \
+    return new (zone()) Name##Instruction(this, output, input);             \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {

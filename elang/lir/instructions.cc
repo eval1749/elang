@@ -35,8 +35,13 @@ Instruction::Instruction(Factory* factory,
       outputs_(factory->zone(), output_count) {
 }
 
-void Instruction::InitInput(int index, Value new_value) {
-  inputs_[index] = new_value;
+void Instruction::InitInput(int index, Value new_input) {
+  inputs_[index] = new_input;
+}
+
+void Instruction::InitOutput(int index, Value new_output) {
+  DCHECK(new_output.is_register());
+  outputs_[index] = new_output;
 }
 
 bool Instruction::IsTerminator() const {

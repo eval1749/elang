@@ -21,12 +21,12 @@ namespace lir {
 struct ELANG_LIR_EXPORT Value {
   enum class Kind : uint32_t {
     Invalid,
-    GeneralRegister,
     FloatRegister,
+    GeneralRegister,
     Immediate,
     Literal,
-    VirtualRegister,
-    NotUsed6,
+    VirtualGeneralRegister,
+    VirtualFloatRegister,
     NotUsed7,
   };
 
@@ -38,6 +38,12 @@ struct ELANG_LIR_EXPORT Value {
 
   Value() : kind(Kind::Invalid), data(0) {}
   Value(Kind kind, int data) : kind(kind), data(data) {}
+
+  bool is_register() const {
+    return kind == Kind::FloatRegister || kind == Kind::GeneralRegister ||
+           kind == Kind::VirtualFloatRegister ||
+           kind == Kind::VirtualGeneralRegister;
+  }
 
   static bool CanBeImmediate(int value) {
     return value >= kMinimumImmediate && value <= kMaximumImmediate;

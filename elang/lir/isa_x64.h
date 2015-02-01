@@ -22,6 +22,7 @@ namespace isa {
   V1(0x73, jae, Jb)                              \
   V1(0x74, je, Jb)                               \
   V1(0x75, jne, Jb)                              \
+  V2(0x8B, mov, Gv, Ev)                          \
   /* 0x90 */                                     \
   V0(0x90, nop)                                  \
   /* 0xC0 */                                     \

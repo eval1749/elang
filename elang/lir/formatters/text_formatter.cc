@@ -113,23 +113,11 @@ ValueFormatter::ValueFormatter(LiteralMap* literals, std::ostream* ostream)
 }
 
 std::ostream& ValueFormatter::Format(Value value) {
-  switch (value.kind) {
-    case Value::Kind::Invalid:
-      return ostream_ << "invalid";
-    case Value::Kind::GeneralRegister:
-      return ostream_ << "%r" << value.data;
-    case Value::Kind::FloatRegister:
-      return ostream_ << "%f" << value.data;
-    case Value::Kind::Immediate:
-      return ostream_ << value.data;
-    case Value::Kind::Literal: {
-      LiteralFormatter formatter(&ostream_);
-      return formatter.Format(literals_->GetLiteral(value));
-    }
-    case Value::Kind::VirtualRegister:
-      return ostream_ << "%v" << value.data;
+  if (value.kind == Value::Kind::Literal) {
+    LiteralFormatter formatter(&ostream_);
+    return formatter.Format(literals_->GetLiteral(value));
   }
-  return ostream_ << "?Value" << static_cast<int>(value.kind);
+  return ostream_ << value;
 }
 
 }  // namespace
@@ -172,8 +160,10 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
       // Note: We can't print value of literal, since it is hold in
       // |LiteralMap|.
       return ostream << "#" << value.data;
-    case Value::Kind::VirtualRegister:
+    case Value::Kind::VirtualGeneralRegister:
       return ostream << "%v" << value.data;
+    case Value::Kind::VirtualFloatRegister:
+      return ostream << "%w" << value.data;
   }
   return ostream << "?" << value.kind << "?" << value.data;
 }
@@ -181,12 +171,12 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
   static const char* const kinds[] = {
       "Invalid",
-      "GeneralRegister",
       "FloatRegister",
+      "GeneralRegister",
       "Immediate",
       "Literal",
-      "VirtualRegister",
-      "NotUsed6",
+      "VirtualFloatRegister",
+      "VirtualGeneralRegister",
       "NotUsed7",
       "Illegal",
   };
