@@ -21,8 +21,8 @@ Function* LirTestX64::CreateFunctionSample1() {
     Editor::ScopedEdit scope(&editor);
     editor.Edit(entry_block);
     auto const call = factory()->NewCallInstruction();
-    editor.SetInput(call, 0, NewStringValue("Foo"));
     editor.InsertBefore(call, entry_block->last_instruction());
+    editor.SetInput(call, 0, NewStringValue("Foo"));
   }
   return function;
 }

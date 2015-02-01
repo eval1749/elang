@@ -19,39 +19,39 @@ namespace lir {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : factory_(factory), function_(function) {
+    : basic_block_(nullptr), factory_(factory), function_(function) {
   InitializeFunctionIfNeeded();
 }
 
 Editor::~Editor() {
-  DCHECK(basic_blocks_.empty());
+  DCHECK(!basic_block_);
 }
 
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
-  DCHECK(!basic_blocks_.empty());
-  auto const basic_block = basic_blocks_.back();
-  basic_block->instructions_.AppendNode(new_instruction);
-  new_instruction->id_ = factory_->NextInstructionId();
-  new_instruction->basic_block_ = basic_block;
+  DCHECK(basic_block_);
+  basic_block_->instructions_.AppendNode(new_instruction);
+  new_instruction->id_ = factory()->NextInstructionId();
+  new_instruction->basic_block_ = basic_block_;
 }
 
-void Editor::Commit() {
-  DCHECK(!basic_blocks_.empty());
-  for (auto const basic_block : basic_blocks_) {
-    DCHECK(Validate(basic_block));
-  }
-  basic_blocks_.clear();
+bool Editor::Commit() {
+  DCHECK(basic_block_);
+#ifndef NDEBUG
+  basic_block_ = nullptr;
+  return true;
+#else
+  auto const is_valid = Validate(basic_block_);
+  basic_block_ = nullptr;
+  return is_valid;
+#endif
 }
 
 void Editor::Edit(BasicBlock* basic_block) {
-  DCHECK(std::find(basic_blocks_.begin(), basic_blocks_.end(), basic_block) ==
-         basic_blocks_.end());
-  basic_blocks_.push_back(basic_block);
-  if (basic_block->instructions_.empty())
-    return;
-  DCHECK(Validate(basic_block));
+  DCHECK(!basic_block_);
+  basic_block_ = basic_block;
+  DCHECK(Validate(basic_block_));
 }
 
 void Editor::InitializeFunctionIfNeeded() {
@@ -61,25 +61,26 @@ void Editor::InitializeFunctionIfNeeded() {
   }
 
   // Make entry and exit block
-  auto const entry = factory_->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(entry);
-  entry->function_ = function_;
-  entry->id_ = factory_->NextBasicBlockId();
+  // Since |Validator| uses entry and exit blocks, we can't use editing
+  // functions for populating entry and exit block.
+  auto const entry_block = factory()->NewBasicBlock();
+  function_->basic_blocks_.AppendNode(entry_block);
+  entry_block->function_ = function_;
+  entry_block->id_ = factory()->NextBasicBlockId();
 
-  auto const exit = factory_->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(exit);
-  exit->function_ = function_;
-  exit->id_ = factory_->NextBasicBlockId();
+  auto const exit_block = factory()->NewBasicBlock();
+  function_->basic_blocks_.AppendNode(exit_block);
+  exit_block->function_ = function_;
+  exit_block->id_ = factory()->NextBasicBlockId();
 
-  {
-    ScopedEdit edit_scope(this);
-    Edit(entry);
-    Append(factory_->NewEntryInstruction());
-    Append(factory_->NewRetInstruction());
-    Edit(exit);
-    Append(factory_->NewExitInstruction());
-  }
+  basic_block_ = exit_block;
+  Append(factory()->NewExitInstruction());
 
+  basic_block_ = entry_block;
+  Append(factory()->NewEntryInstruction());
+  Append(factory()->NewRetInstruction());
+
+  basic_block_ = nullptr;
   DCHECK(Validate(function_));
 }
 
@@ -89,23 +90,22 @@ void Editor::InsertBefore(Instruction* new_instruction,
     Append(new_instruction);
     return;
   }
-  DCHECK(!basic_blocks_.empty());
-  auto const basic_block = basic_blocks_.back();
-  DCHECK_EQ(basic_block, ref_instruction->basic_block());
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, ref_instruction->basic_block());
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
-  basic_block->instructions_.InsertBefore(new_instruction, ref_instruction);
-  new_instruction->id_ = factory_->NextInstructionId();
-  new_instruction->basic_block_ = basic_block;
+  basic_block_->instructions_.InsertBefore(new_instruction, ref_instruction);
+  new_instruction->id_ = factory()->NextInstructionId();
+  new_instruction->basic_block_ = basic_block_;
 }
 
 BasicBlock* Editor::NewBasicBlock() {
-  auto const basic_block = factory_->NewBasicBlock();
-  basic_blocks_.push_back(basic_block);
-  return basic_block;
+  return factory()->NewBasicBlock();
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, instruction->basic_block());
   instruction->inputs_[index] = new_value;
 }
 

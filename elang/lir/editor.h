@@ -37,10 +37,12 @@ class ELANG_LIR_EXPORT Editor final {
     DISALLOW_COPY_AND_ASSIGN(ScopedEdit);
   };
 
-  explicit Editor(Factory* factory, Function* function);
+  Editor(Factory* factory, Function* function);
   ~Editor();
 
-  void Commit();
+  Factory* factory() const { return factory_; }
+
+  bool Commit();
 
   // Basic block editing
   void Edit(BasicBlock* basic_block);
@@ -59,7 +61,7 @@ class ELANG_LIR_EXPORT Editor final {
  private:
   void InitializeFunctionIfNeeded();
 
-  std::vector<BasicBlock*> basic_blocks_;
+  BasicBlock* basic_block_;
   Factory* const factory_;
   Function* const function_;
 
