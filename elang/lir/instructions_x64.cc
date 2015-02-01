@@ -24,6 +24,11 @@ ExitInstruction::ExitInstruction(Factory* factory)
   DCHECK(factory);
 }
 
+JumpInstruction::JumpInstruction(Factory* factory)
+    : Instruction(factory, isa::Opcode::jmp_Jv, 0, 1) {
+  DCHECK(factory);
+}
+
 RetInstruction::RetInstruction(Factory* factory)
     : Instruction(factory, isa::Opcode::ret, 0, 0) {
   DCHECK(factory);

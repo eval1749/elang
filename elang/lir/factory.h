@@ -52,7 +52,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Value NewStringValue(base::StringPiece16 data);
 
 // Create Instruction
-#define V(Name, ...) Name##Instruction* New##Name##Instruction();
+#define V(Name, ...) Instruction* New##Name##Instruction();
   FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
 

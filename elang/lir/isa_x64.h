@@ -27,7 +27,8 @@ namespace isa {
   /* 0xC0 */                                     \
   V0(0xC3, ret)                                  \
   /* 0xE0 */                                     \
-  V1(0xE8, call, Jv)
+  V1(0xE8, call, Jv)                             \
+  V1(0xE9, jmp, Jv)
 
 enum class Opcode {
 #define V0(opcode, mnemonic) mnemonic = opcode,

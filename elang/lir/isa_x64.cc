@@ -58,6 +58,11 @@ void MnemonicFactory::VisitExit(ExitInstruction* instruction) {
   mnemonic_ = "exit";
 }
 
+void MnemonicFactory::VisitJump(JumpInstruction* instruction) {
+  __assume(instruction);
+  mnemonic_ = "jmp";
+}
+
 void MnemonicFactory::VisitRet(RetInstruction* instruction) {
   __assume(instruction);
   mnemonic_ = "ret";

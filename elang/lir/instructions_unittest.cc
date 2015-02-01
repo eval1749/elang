@@ -29,14 +29,19 @@ class LirInstructionTest : public ::testing::Test {
 LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 }
 
-//////////////////////////////////////////////////////////////////////
-//
 // CallInstruction
-//
 TEST_F(LirInstructionTest, CallInstruction) {
   auto const instr = factory()->NewCallInstruction();
   EXPECT_TRUE(instr->is<CallInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+}
+
+// JumpInstruction
+TEST_F(LirInstructionTest, JumpInstruction) {
+  auto const instr = factory()->NewJumpInstruction();
+  EXPECT_TRUE(instr->is<JumpInstruction>());
+  EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
 }
 

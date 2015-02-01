@@ -41,7 +41,7 @@ class ELANG_LIR_EXPORT Instruction
   DECLARE_CASTABLE_CLASS(Instruction, Castable);
 
  public:
-  // A basic block which this instruction belons to
+  // A basic block which this instruction belongs to
   BasicBlock* basic_block() const { return basic_block_; }
 
   // An integer identifier for debugging.
@@ -59,10 +59,10 @@ class ELANG_LIR_EXPORT Instruction
   virtual bool IsTerminator() const;
 
  protected:
-  explicit Instruction(Factory* factory,
-                       isa::Opcode opcode,
-                       int output_count,
-                       int input_count);
+  Instruction(Factory* factory,
+              isa::Opcode opcode,
+              int output_count,
+              int input_count);
 
  private:
   // |Editor| changes|basic_block_|, |id_|, and |opcode_|.
@@ -105,6 +105,16 @@ class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
 
  private:
   explicit ExitInstruction(Factory* factory);
+
+  // Instruction
+  bool IsTerminator() const final;
+};
+
+class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
+  DECLARE_LIR_INSTRUCTION_CLASS(JumpInstruction);
+
+ private:
+  explicit JumpInstruction(Factory* factory);
 
   // Instruction
   bool IsTerminator() const final;

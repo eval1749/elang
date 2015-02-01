@@ -49,6 +49,7 @@ class ELANG_LIR_EXPORT Editor final {
   // Basic block editing
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
+  void SetJump(BasicBlock* target_block);
   void SetReturn();
   void SetTerminator(Instruction* instruction);
 

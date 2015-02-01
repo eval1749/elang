@@ -131,6 +131,18 @@ void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
   instruction->inputs_[index] = new_value;
 }
 
+void Editor::SetJump(BasicBlock* target_block) {
+  DCHECK(basic_block_);
+  if (auto const last =
+          basic_block_->last_instruction()->as<JumpInstruction>()) {
+    SetInput(last, 0, target_block->value());
+    return;
+  }
+  auto const instr = factory()->NewJumpInstruction();
+  SetTerminator(instr);
+  SetInput(instr, 0, target_block->value());
+}
+
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, instruction->basic_block());

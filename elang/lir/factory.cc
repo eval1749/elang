@@ -119,9 +119,9 @@ int Factory::NextInstructionId() {
   return ++last_instruction_id_;
 }
 
-#define V(Name, ...)                                     \
-  Name##Instruction* Factory::New##Name##Instruction() { \
-    return new (zone()) Name##Instruction(this);         \
+#define V(Name, ...)                               \
+  Instruction* Factory::New##Name##Instruction() { \
+    return new (zone()) Name##Instruction(this);   \
   }
 FOR_EACH_LIR_INSTRUCTION(V)
 #undef V

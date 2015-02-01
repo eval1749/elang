@@ -19,6 +19,7 @@ class InstructionVisitor;
   V(Call, call)                     \
   V(Entry, entry)                   \
   V(Exit, exit)                     \
+  V(Jump, jump)                     \
   V(Ret, ret)
 
 #define V(Name, ...) class Name##Instruction;
