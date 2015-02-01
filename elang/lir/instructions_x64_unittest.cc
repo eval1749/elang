@@ -13,17 +13,17 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LirLiteralsTestX64 offers HIR factories.
+// LirInstructionsTestX64 offers HIR factories.
 //
-class LirLiteralsTestX64 : public testing::LirTestX64 {
+class LirInstructionsTestX64 : public testing::LirTestX64 {
  protected:
-  LirLiteralsTestX64() = default;
+  LirInstructionsTestX64() = default;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(LirLiteralsTestX64);
+  DISALLOW_COPY_AND_ASSIGN(LirInstructionsTestX64);
 };
 
-TEST_F(LirLiteralsTestX64, FunctionEmpty) {
+TEST_F(LirInstructionsTestX64, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
   EXPECT_EQ(
       "Function\n"
@@ -36,7 +36,7 @@ TEST_F(LirLiteralsTestX64, FunctionEmpty) {
       FormatFunction(function));
 }
 
-TEST_F(LirLiteralsTestX64, FunctionSample1) {
+TEST_F(LirInstructionsTestX64, FunctionSample1) {
   auto const function = CreateFunctionSample1();
   EXPECT_EQ(
       "Function\n"
@@ -50,7 +50,7 @@ TEST_F(LirLiteralsTestX64, FunctionSample1) {
       FormatFunction(function));
 }
 
-TEST_F(LirLiteralsTestX64, JumpInstruction) {
+TEST_F(LirInstructionsTestX64, JumpInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   auto const block = editor.NewBasicBlock(function->exit_block());

@@ -80,7 +80,7 @@ source_set("lir_unittests") {
   if (elang_target_arch == "x64") {
     sources += [
       "code_emitter_x64_unittest.cc",
-      "literals_x64_unittest.cc",
+      "instructions_x64_unittest.cc",
     ]
   }
 }
