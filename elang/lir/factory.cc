@@ -14,9 +14,6 @@
 
 namespace elang {
 namespace lir {
-namespace isa {
-base::StringPiece GetMnemonic(const lir::Instruction* instruction);
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -33,10 +30,6 @@ Factory::~Factory() {
 
 Literal* Factory::GetLiteral(Value value) const {
   return literal_map_->GetLiteral(value);
-}
-
-base::StringPiece Factory::GetMnemonic(const Instruction* instruction) {
-  return isa::GetMnemonic(instruction);
 }
 
 BasicBlock* Factory::NewBasicBlock() {

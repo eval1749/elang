@@ -34,9 +34,6 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value) const;
 
-  // Returns mnemonic string for |opcode|.
-  base::StringPiece GetMnemonic(const Instruction* instruction);
-
   // Returns newly created |BasicBlock|.
   BasicBlock* NewBasicBlock();
 
