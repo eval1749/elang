@@ -55,7 +55,7 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }
 
-  // Returns dominator tree for current editing funciton if avaialble.
+  // Returns dominator tree for current editing function if available.
   DominatorTree* maybe_dominator_tree() const;
 
   // Validation errors
