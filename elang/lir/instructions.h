@@ -71,32 +71,46 @@ class ELANG_LIR_EXPORT Instruction
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
-#define DECLARE_LIR_INSTRUCTION_CLASS(Name)          \
+#define DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name) \
   DECLARE_CASTABLE_CLASS(Name, Instruction);         \
   DISALLOW_COPY_AND_ASSIGN(Name);                    \
   base::StringPiece mnemonic() const final;          \
   void Accept(InstructionVisitor* visitor) override; \
   friend class Factory;
 
+// InstructionTemplate
+template <int kOutputCount, int kInputCount>
+class InstructionTemplate : public Instruction {
+ protected:
+  explicit InstructionTemplate(Factory* factory)
+      : Instruction(factory, kOutputCount, kInputCount) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
+};
+
 // CallInstruction
-class ELANG_LIR_EXPORT CallInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(CallInstruction);
+class ELANG_LIR_EXPORT CallInstruction final
+    : public InstructionTemplate<0, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(CallInstruction);
 
  private:
   explicit CallInstruction(Factory* factory, Value callee);
 };
 
 // EntryInstruction
-class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(EntryInstruction);
+class ELANG_LIR_EXPORT EntryInstruction final
+    : public InstructionTemplate<0, 0> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(EntryInstruction);
 
  private:
   explicit EntryInstruction(Factory* factory);
 };
 
 // ExitInstruction
-class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(ExitInstruction);
+class ELANG_LIR_EXPORT ExitInstruction final
+    : public InstructionTemplate<0, 0> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(ExitInstruction);
 
  private:
   explicit ExitInstruction(Factory* factory);
@@ -106,8 +120,9 @@ class ELANG_LIR_EXPORT ExitInstruction final : public Instruction {
 };
 
 // JumpInstruction
-class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(JumpInstruction);
+class ELANG_LIR_EXPORT JumpInstruction final
+    : public InstructionTemplate<0, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(JumpInstruction);
 
  private:
   explicit JumpInstruction(Factory* factory, BasicBlock* target_block);
@@ -117,16 +132,17 @@ class ELANG_LIR_EXPORT JumpInstruction final : public Instruction {
 };
 
 // LoadInstruction
-class ELANG_LIR_EXPORT LoadInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(LoadInstruction);
+class ELANG_LIR_EXPORT LoadInstruction final
+    : public InstructionTemplate<1, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(LoadInstruction);
 
  private:
   explicit LoadInstruction(Factory* factory, Value output, Value input);
 };
 
 // RetInstruction
-class ELANG_LIR_EXPORT RetInstruction final : public Instruction {
-  DECLARE_LIR_INSTRUCTION_CLASS(RetInstruction);
+class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(RetInstruction);
 
  private:
   explicit RetInstruction(Factory* factory);

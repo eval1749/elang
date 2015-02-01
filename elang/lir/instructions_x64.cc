@@ -12,7 +12,7 @@ namespace lir {
 
 // Call
 CallInstruction::CallInstruction(Factory* factory, Value callee)
-    : Instruction(factory, 0, 1) {
+    : InstructionTemplate(factory) {
   InitInput(0, callee);
 }
 
@@ -22,7 +22,7 @@ base::StringPiece CallInstruction::mnemonic() const {
 
 // Entry
 EntryInstruction::EntryInstruction(Factory* factory)
-    : Instruction(factory, 0, 0) {
+    : InstructionTemplate(factory) {
 }
 
 base::StringPiece EntryInstruction::mnemonic() const {
@@ -31,7 +31,7 @@ base::StringPiece EntryInstruction::mnemonic() const {
 
 // Exit
 ExitInstruction::ExitInstruction(Factory* factory)
-    : Instruction(factory, 0, 0) {
+    : InstructionTemplate(factory) {
 }
 
 base::StringPiece ExitInstruction::mnemonic() const {
@@ -40,7 +40,7 @@ base::StringPiece ExitInstruction::mnemonic() const {
 
 // Jump
 JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
-    : Instruction(factory, 0, 1) {
+    : InstructionTemplate(factory) {
   InitInput(0, target_block->value());
 }
 
@@ -50,7 +50,7 @@ base::StringPiece JumpInstruction::mnemonic() const {
 
 // Load
 LoadInstruction::LoadInstruction(Factory* factory, Value output, Value input)
-    : Instruction(factory, 1, 1) {
+    : InstructionTemplate(factory) {
   DCHECK(!input.is_register());
   DCHECK(output.is_register());
   InitOutput(0, output);
@@ -62,7 +62,8 @@ base::StringPiece LoadInstruction::mnemonic() const {
 }
 
 // Ret
-RetInstruction::RetInstruction(Factory* factory) : Instruction(factory, 0, 0) {
+RetInstruction::RetInstruction(Factory* factory)
+    : InstructionTemplate(factory) {
 }
 
 base::StringPiece RetInstruction::mnemonic() const {
