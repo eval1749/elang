@@ -20,7 +20,6 @@ namespace lir {
 //
 Editor::Editor(Factory* factory, Function* function)
     : basic_block_(nullptr), factory_(factory), function_(function) {
-  InitializeFunctionIfNeeded();
 }
 
 Editor::~Editor() {
@@ -59,36 +58,6 @@ void Editor::Edit(BasicBlock* basic_block) {
 
 void Editor::EditNewBasicBlock() {
   Edit(NewBasicBlock(function()->exit_block()));
-}
-
-void Editor::InitializeFunctionIfNeeded() {
-  if (!function()->basic_blocks_.empty()) {
-    DCHECK(Validate(function()));
-    return;
-  }
-
-  // Make entry and exit block
-  // Since |Validator| uses entry and exit blocks, we can't use editing
-  // functions for populating entry and exit block.
-  auto const entry_block = factory()->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(entry_block);
-  entry_block->function_ = function_;
-  entry_block->id_ = factory()->NextBasicBlockId();
-
-  auto const exit_block = factory()->NewBasicBlock();
-  function_->basic_blocks_.AppendNode(exit_block);
-  exit_block->function_ = function_;
-  exit_block->id_ = factory()->NextBasicBlockId();
-
-  basic_block_ = exit_block;
-  Append(factory()->NewExitInstruction());
-
-  basic_block_ = entry_block;
-  Append(factory()->NewEntryInstruction());
-  Append(factory()->NewRetInstruction());
-
-  basic_block_ = nullptr;
-  DCHECK(Validate(function()));
 }
 
 void Editor::InsertBefore(Instruction* new_instruction,

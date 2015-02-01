@@ -68,8 +68,6 @@ class ELANG_LIR_EXPORT Editor final {
   static bool Validate(Function* function);
 
  private:
-  void InitializeFunctionIfNeeded();
-
   BasicBlock* basic_block_;
   Factory* const factory_;
   Function* const function_;

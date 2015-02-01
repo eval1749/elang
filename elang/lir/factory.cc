@@ -55,7 +55,43 @@ Function* Factory::NewFunction() {
   auto const function = new (zone()) Function(next_literal_value());
   auto const value = RegisterLiteral(function);
   DCHECK_EQ(function->value(), value);
-  Editor editor(this, function);
+
+  // Since |Editor| uses entry and exit blocks, we can't use editing
+  // functions for populating entry and exit block.
+
+  // Make entry and exit block
+  //  entry:
+  //    entry
+  //    ret
+  //  exit:
+  //    exit
+  auto const entry_block = NewBasicBlock();
+  function->basic_blocks_.AppendNode(entry_block);
+  entry_block->function_ = function;
+  entry_block->id_ = NextBasicBlockId();
+
+  auto const exit_block = NewBasicBlock();
+  function->basic_blocks_.AppendNode(exit_block);
+  exit_block->function_ = function;
+  exit_block->id_ = NextBasicBlockId();
+
+  auto const entry_instr = NewEntryInstruction();
+  entry_block->instructions_.AppendNode(entry_instr);
+  entry_instr->id_ = NextInstructionId();
+  entry_instr->basic_block_ = entry_block;
+
+  auto const ret_instr = NewRetInstruction();
+  entry_block->instructions_.AppendNode(ret_instr);
+  ret_instr->id_ = NextInstructionId();
+  ret_instr->basic_block_ = entry_block;
+
+  auto const exit_instr = NewExitInstruction();
+  exit_block->instructions_.AppendNode(exit_instr);
+  exit_instr->id_ = NextInstructionId();
+  exit_instr->basic_block_ = exit_block;
+
+  DCHECK(Editor::Validate(function));
+
   return function;
 }
 

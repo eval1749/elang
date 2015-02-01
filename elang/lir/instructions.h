@@ -67,6 +67,7 @@ class ELANG_LIR_EXPORT Instruction
  private:
   // |Editor| changes|basic_block_|, |id_|, and |opcode_|.
   friend class Editor;
+  friend class Factory;
 
   BasicBlock* basic_block_;
   int id_;
