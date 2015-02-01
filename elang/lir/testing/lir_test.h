@@ -43,7 +43,7 @@ class LirTest : public ::testing::Test {
   Value NewStringValue(base::StringPiece data);
 
  private:
-  std::unique_ptr<Factory> factory_;
+  const std::unique_ptr<Factory> factory_;
 
   DISALLOW_COPY_AND_ASSIGN(LirTest);
 };
