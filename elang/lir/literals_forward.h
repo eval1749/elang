@@ -5,9 +5,11 @@
 #ifndef ELANG_LIR_LITERALS_FORWARD_H_
 #define ELANG_LIR_LITERALS_FORWARD_H_
 
+#include <ostream>
 #include <string>
 
 #include "elang/base/float_types.h"
+#include "elang/lir/lir_export.h"
 
 namespace elang {
 namespace lir {
@@ -46,6 +48,16 @@ FOR_EACH_LIR_SIMPLE_LITERAL(V)
 #define V(Name, ...) class Name;
 FOR_EACH_LIR_LITERAL(V)
 #undef V
+
+// Print for formatting and debugging.
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Literal& literal);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const BasicBlock& basic_block);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Function& function);
 
 }  // namespace lir
 }  // namespace elang

@@ -5,8 +5,6 @@
 #ifndef ELANG_LIR_LITERALS_H_
 #define ELANG_LIR_LITERALS_H_
 
-#include <ostream>
-
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
@@ -14,7 +12,6 @@
 #include "elang/base/float_types.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/lir/lir_export.h"
 #include "elang/lir/literals_forward.h"
 
 namespace elang {
@@ -50,10 +47,6 @@ class ELANG_LIR_EXPORT Literal : public Castable,
  private:
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
-
-// Print for formatting and debugging.
-ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Literal& literal);
 
 #define DECLARE_LIR_CONCRETE_LITERAL_CLASS(self) \
   DECLARE_LIR_LITERAL_CLASS(self, Literal);      \
@@ -112,9 +105,6 @@ class ELANG_LIR_EXPORT BasicBlock
   Value const value_;
 };
 
-ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const BasicBlock& basic_block);
-
 //////////////////////////////////////////////////////////////////////
 //
 // Function
@@ -139,9 +129,6 @@ class ELANG_LIR_EXPORT Function : public Literal {
   BasicBlockList basic_blocks_;
   Value const value_;
 };
-
-ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Function& function);
 
 //////////////////////////////////////////////////////////////////////
 //

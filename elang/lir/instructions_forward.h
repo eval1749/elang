@@ -5,6 +5,10 @@
 #ifndef ELANG_LIR_INSTRUCTIONS_FORWARD_H_
 #define ELANG_LIR_INSTRUCTIONS_FORWARD_H_
 
+#include <ostream>
+
+#include "elang/lir/lir_export.h"
+
 namespace elang {
 namespace lir {
 
@@ -29,6 +33,9 @@ FOR_EACH_LIR_INSTRUCTION(V)
 namespace isa {
 enum class Opcode;
 }  //  namespace isa
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Instruction& instruction);
 
 }  // namespace lir
 }  // namespace elang

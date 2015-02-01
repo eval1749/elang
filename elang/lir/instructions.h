@@ -5,15 +5,12 @@
 #ifndef ELANG_LIR_INSTRUCTIONS_H_
 #define ELANG_LIR_INSTRUCTIONS_H_
 
-#include <ostream>
-
 #include "base/basictypes.h"
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
-#include "elang/lir/lir_export.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/value.h"
 
@@ -77,9 +74,6 @@ class ELANG_LIR_EXPORT Instruction
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
-
-ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Instruction& instruction);
 
 #define DECLARE_LIR_INSTRUCTION_CLASS(Name)          \
   DECLARE_CASTABLE_CLASS(Name, Instruction);         \
