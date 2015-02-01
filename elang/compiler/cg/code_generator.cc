@@ -231,7 +231,8 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
   }
 
   DCHECK_EQ(variable->storage(), ir::StorageClass::Local);
-  auto const alloc_instr = factory()->NewStackAlloc(variable_type, 1);
+  auto const alloc_instr =
+      factory()->NewStackAllocInstruction(variable_type, 1);
   DCHECK(!variables_.count(variable));
   variables_[variable] = alloc_instr;
   Emit(alloc_instr);
@@ -564,7 +565,7 @@ void CodeGenerator::VisitCall(ast::Call* node) {
   arguments.resize(0);
   for (auto const argument : node->arguments())
     arguments.push_back(GenerateValue(argument));
-  auto const args_instr = factory()->NewTuple(
+  auto const args_instr = factory()->NewTupleInstruction(
       callee->type()->as<hir::FunctionType>()->parameters_type(), arguments);
   Emit(args_instr);
   EmitOutputInstruction(factory()->NewCallInstruction(callee, args_instr));

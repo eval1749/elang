@@ -117,8 +117,8 @@ TEST_F(HirInstructionTest, BoundInstruction) {
   auto const array_type = types()->NewArrayType(float64_type(), {1});
   auto const array_pointer = NewSource(types()->NewPointerType(array_type));
   editor()->Append(array_pointer);
-  auto const bound =
-      factory()->NewBound(array_pointer, factory()->NewInt32Literal(42));
+  auto const bound = factory()->NewBoundInstruction(
+      array_pointer, factory()->NewInt32Literal(42));
   editor()->Append(bound);
   editor()->Commit();
   EXPECT_EQ("", Validate());
@@ -217,8 +217,8 @@ TEST_F(HirInstructionTest, ElementInstruction) {
   auto const array_type = types()->NewArrayType(float64_type(), {1});
   auto const array_pointer = NewSource(types()->NewPointerType(array_type));
   editor()->Append(array_pointer);
-  auto const element =
-      factory()->NewElement(array_pointer, factory()->NewInt32Literal(42));
+  auto const element = factory()->NewElementInstruction(
+      array_pointer, factory()->NewInt32Literal(42));
   editor()->Append(element);
   editor()->Commit();
   EXPECT_EQ("", Validate());
@@ -380,7 +380,7 @@ TEST_F(HirInstructionTest, StoreInstruction) {
 //
 TEST_F(HirInstructionTest, StackAllocInstruction) {
   editor()->Edit(entry_block());
-  auto const instr = factory()->NewStackAlloc(int32_type(), 3);
+  auto const instr = factory()->NewStackAllocInstruction(int32_type(), 3);
   editor()->Append(instr);
   editor()->Append(factory()->NewLoadInstruction(instr));
   editor()->Commit();
@@ -418,7 +418,7 @@ TEST_F(HirInstructionTest, ThrowInstruction) {
 TEST_F(HirInstructionTest, TupleInstruction) {
   editor()->Edit(entry_block());
   auto const type = types()->NewTupleType({int32_type(), bool_type()});
-  auto const instr = factory()->NewTuple(
+  auto const instr = factory()->NewTupleInstruction(
       type, {int32_type()->default_value(), bool_type()->default_value()});
   editor()->Append(instr);
   editor()->Append(factory()->NewGetInstruction(instr, 0));

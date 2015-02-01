@@ -119,7 +119,8 @@ FOR_EACH_RELATIONAL_OPERATION(V)
 FOR_EACH_TYPE_CAST_OPERATION(V)
 #undef V
 
-Instruction* InstructionFactory::NewBound(Value* array, Value* indexes) {
+Instruction* InstructionFactory::NewBoundInstruction(Value* array,
+                                                     Value* indexes) {
   auto const array_type =
       array->type()->as<PointerType>()->pointee()->as<ArrayType>();
   DCHECK(array_type);
@@ -170,7 +171,8 @@ Instruction* InstructionFactory::NewEntryInstruction(Type* output_type) {
   return new (zone()) EntryInstruction(output_type);
 }
 
-Instruction* InstructionFactory::NewElement(Value* array, Value* indexes) {
+Instruction* InstructionFactory::NewElementInstruction(Value* array,
+                                                       Value* indexes) {
   auto const array_type =
       array->type()->as<PointerType>()->pointee()->as<ArrayType>();
   DCHECK(array_type);
@@ -237,8 +239,8 @@ Instruction* InstructionFactory::NewRetInstruction(Value* value,
   return instr;
 }
 
-Instruction* InstructionFactory::NewThrow(Value* value,
-                                          BasicBlock* exit_block) {
+Instruction* InstructionFactory::NewThrowInstruction(Value* value,
+                                                     BasicBlock* exit_block) {
   DCHECK(!value->is<VoidValue>());
   auto const instr = new (zone()) ThrowInstruction(void_type());
   instr->InitInputAt(0, value);
@@ -246,7 +248,8 @@ Instruction* InstructionFactory::NewThrow(Value* value,
   return instr;
 }
 
-Instruction* InstructionFactory::NewStackAlloc(Type* type, int count) {
+Instruction* InstructionFactory::NewStackAllocInstruction(Type* type,
+                                                          int count) {
   DCHECK(type->can_allocate_on_stack());
   DCHECK_GE(count, 1);
   return new (zone())
@@ -263,8 +266,9 @@ Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
   return instr;
 }
 
-Instruction* InstructionFactory::NewTuple(Type* output_type,
-                                          const std::vector<Value*>& inputs) {
+Instruction* InstructionFactory::NewTupleInstruction(
+    Type* output_type,
+    const std::vector<Value*>& inputs) {
   DCHECK(output_type->is<TupleType>());
   DCHECK(!inputs.empty());
   auto const instr = new (zone())

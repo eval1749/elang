@@ -39,10 +39,9 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
                                     BasicBlock* false_block);
   Instruction* NewBranchInstruction(BasicBlock* target_block);
   Instruction* NewCallInstruction(Value* callee, Value* arguments);
-  Instruction* NewDynamicCast(Type* output_type, Value* input);
   Instruction* NewEntryInstruction(Type* output_type);
-  Instruction* NewBound(Value* array, Value* indexes);
-  Instruction* NewElement(Value* array, Value* indexes);
+  Instruction* NewBoundInstruction(Value* array, Value* indexes);
+  Instruction* NewElementInstruction(Value* array, Value* indexes);
   Instruction* NewExitInstruction();
   Instruction* NewGetInstruction(Value* value, int index);
   Instruction* NewIfInstruction(Type* output_type,
@@ -52,11 +51,11 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
   Instruction* NewLoadInstruction(Value* pointer);
   PhiInstruction* NewPhiInstruction(Type* output_type);
   Instruction* NewRetInstruction(Value* value, BasicBlock* exit_block);
-  Instruction* NewStackAlloc(Type* type, int number_of_element);
-  Instruction* NewStaticCast(Type* output_type, Value* input);
+  Instruction* NewStackAllocInstruction(Type* type, int number_of_element);
   Instruction* NewStoreInstruction(Value* pointer, Value* value);
-  Instruction* NewThrow(Value* value, BasicBlock* exit_block);
-  Instruction* NewTuple(Type* output_type, const std::vector<Value*>& inputs);
+  Instruction* NewThrowInstruction(Value* value, BasicBlock* exit_block);
+  Instruction* NewTupleInstruction(Type* output_type,
+                                   const std::vector<Value*>& inputs);
   Instruction* NewUnreachableInstruction(BasicBlock* exit_block);
 
 #define V(Name, ...)                                                  \

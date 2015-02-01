@@ -342,7 +342,7 @@ void Editor::SetThrow(Value* new_value) {
     SetInput(return_instr, 0, new_value);
     return;
   }
-  SetTerminator(factory()->NewThrow(new_value, exit_block()));
+  SetTerminator(factory()->NewThrowInstruction(new_value, exit_block()));
 }
 
 BasicBlock* Editor::SplitBefore(Instruction* reference) {
