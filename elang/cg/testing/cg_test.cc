@@ -39,7 +39,7 @@ CgTest::~CgTest() {
 
 std::string CgTest::Format(const lir::Function* function) {
   std::stringstream stream;
-  lir::TextFormatter formatter(lir_factory(), &stream);
+  lir::TextFormatter formatter(lir_factory()->literals(), &stream);
   formatter.FormatFunction(function);
   return stream.str();
 }

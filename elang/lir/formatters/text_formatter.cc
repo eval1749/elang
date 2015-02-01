@@ -10,9 +10,9 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/as_printable.h"
-#include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/literal_map.h"
 #include "elang/lir/literal_visitor.h"
 
 namespace base {
@@ -96,20 +96,20 @@ void LiteralFormatter::VisitStringLiteral(StringLiteral* literal) {
 //
 class ValueFormatter final {
  public:
-  explicit ValueFormatter(Factory* factory, std::ostream* ostream);
+  explicit ValueFormatter(LiteralMap* literals, std::ostream* ostream);
   ~ValueFormatter() = default;
 
   std::ostream& Format(Value value);
 
  private:
-  Factory* factory_;
+  LiteralMap* literals_;
   std::ostream& ostream_;
 
   DISALLOW_COPY_AND_ASSIGN(ValueFormatter);
 };
 
-ValueFormatter::ValueFormatter(Factory* factory, std::ostream* ostream)
-    : factory_(factory), ostream_(*ostream) {
+ValueFormatter::ValueFormatter(LiteralMap* literals, std::ostream* ostream)
+    : literals_(literals), ostream_(*ostream) {
 }
 
 std::ostream& ValueFormatter::Format(Value value) {
@@ -124,7 +124,7 @@ std::ostream& ValueFormatter::Format(Value value) {
       return ostream_ << value.data;
     case Value::Kind::Literal: {
       LiteralFormatter formatter(&ostream_);
-      return formatter.Format(factory_->GetLiteral(value));
+      return formatter.Format(literals_->GetLiteral(value));
     }
     case Value::Kind::VirtualRegister:
       return ostream_ << "%v" << value.data;
@@ -169,7 +169,8 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Literal:
-      // Note: We can't print value of literal, since it is hold in |Factory|.
+      // Note: We can't print value of literal, since it is hold in
+      // |LiteralMap|.
       return ostream << "#" << value.data;
     case Value::Kind::VirtualRegister:
       return ostream << "%v" << value.data;
@@ -197,8 +198,8 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
 //
 // TextFormatter
 //
-TextFormatter::TextFormatter(Factory* factory, std::ostream* ostream)
-    : factory_(factory), ostream_(*ostream) {
+TextFormatter::TextFormatter(LiteralMap* literals, std::ostream* ostream)
+    : literals_(literals), ostream_(*ostream) {
 }
 
 TextFormatter::~TextFormatter() {
@@ -232,7 +233,7 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
     }
     ostream_ << " = ";
   }
-  ostream_ << factory_->GetMnemonic(instruction);
+  ostream_ << isa::GetMnemonic(instruction);
   // inputs
   if (!instruction->inputs().empty()) {
     auto separator = " ";
@@ -246,7 +247,7 @@ std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
 }
 
 std::ostream& TextFormatter::FormatValue(Value value) {
-  ValueFormatter formatter(factory_, &ostream_);
+  ValueFormatter formatter(literals_, &ostream_);
   return formatter.Format(value);
 }
 

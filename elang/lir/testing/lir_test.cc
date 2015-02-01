@@ -27,7 +27,7 @@ Function* LirTest::CreateFunctionEmptySample() {
 
 std::string LirTest::FormatFunction(const Function* function) {
   std::stringstream stream;
-  TextFormatter formatter(factory(), &stream);
+  TextFormatter formatter(factory()->literals(), &stream);
   formatter.FormatFunction(function);
   return stream.str();
 }

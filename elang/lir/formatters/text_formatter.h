@@ -5,7 +5,6 @@
 #ifndef ELANG_LIR_FORMATTERS_TEXT_FORMATTER_H_
 #define ELANG_LIR_FORMATTERS_TEXT_FORMATTER_H_
 
-#include <memory>
 #include <ostream>
 
 #include "base/macros.h"
@@ -14,7 +13,7 @@
 namespace elang {
 namespace lir {
 
-class Factory;
+class LiteralMap;
 class Function;
 class Instruction;
 struct Value;
@@ -25,7 +24,7 @@ struct Value;
 //
 class ELANG_LIR_EXPORT TextFormatter final {
  public:
-  explicit TextFormatter(Factory* factory, std::ostream* stream);
+  explicit TextFormatter(LiteralMap* literals, std::ostream* stream);
   ~TextFormatter();
 
   void FormatFunction(const Function* function);
@@ -33,7 +32,7 @@ class ELANG_LIR_EXPORT TextFormatter final {
   std::ostream& FormatValue(Value value);
 
  private:
-  Factory* const factory_;
+  LiteralMap* const literals_;
   std::ostream& ostream_;
 
   DISALLOW_COPY_AND_ASSIGN(TextFormatter);
