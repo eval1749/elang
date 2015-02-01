@@ -94,12 +94,13 @@ class ELANG_LIR_EXPORT BasicBlock
   const InstructionList& instructions() const { return instructions_; }
   Instruction* first_instruction() const;
   Instruction* last_instruction() const;
+  Value value() const { return value_; }
 
  private:
   // |Editor| manipulates instruction list
   friend class Editor;
 
-  BasicBlock();
+  explicit BasicBlock(Value value);
 
   // |function_| holds owner of this |BasicBlock|.
   Function* function_;
@@ -108,6 +109,7 @@ class ELANG_LIR_EXPORT BasicBlock
   int id_;
   // List of instructions.
   InstructionList instructions_;
+  Value const value_;
 };
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
@@ -126,14 +128,16 @@ class ELANG_LIR_EXPORT Function : public Literal {
   const BasicBlockList& basic_blocks() const { return basic_blocks_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
+  Value value() const { return value_; }
 
  private:
   friend class Editor;
 
-  explicit Function(Factory* factory);
+  explicit Function(Value value);
 
-  Function* function_;
   BasicBlockList basic_blocks_;
+  Function* function_;
+  Value const value_;
 };
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,

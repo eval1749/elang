@@ -4,7 +4,6 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
-#include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
@@ -30,7 +29,8 @@ Literal::Literal() {
 //
 // BasicBlock
 //
-BasicBlock::BasicBlock() : function_(nullptr), id_(0) {
+BasicBlock::BasicBlock(Value value)
+    : function_(nullptr), id_(0), value_(value) {
 }
 
 Instruction* BasicBlock::first_instruction() const {
@@ -45,8 +45,7 @@ Instruction* BasicBlock::last_instruction() const {
 //
 // Function
 //
-Function::Function(Factory* factory) : function_(nullptr) {
-  Editor editor(factory, this);
+Function::Function(Value value) : function_(nullptr), value_(value) {
 }
 
 BasicBlock* Function::entry_block() const {

@@ -7,6 +7,7 @@
 #include "elang/lir/factory.h"
 
 #include "elang/base/zone.h"
+#include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 
@@ -26,6 +27,12 @@ Factory::Factory() : last_basic_block_id_(0), last_instruction_id_(0) {
 Factory::~Factory() {
 }
 
+Value Factory::next_literal_value() const {
+  auto const data = static_cast<int>(literals_.size() + 1);
+  DCHECK(Value::CanBeImmediate(data));
+  return Value(Value::Kind::Literal, data);
+}
+
 Literal* Factory::GetLiteral(Value value) {
   DCHECK_EQ(Value::Kind::Literal, value.kind);
   auto const index = static_cast<size_t>(value.data - 1);
@@ -38,11 +45,18 @@ base::StringPiece Factory::GetMnemonic(const Instruction* instruction) {
 }
 
 BasicBlock* Factory::NewBasicBlock() {
-  return new (zone()) BasicBlock();
+  auto const block = new (zone()) BasicBlock(next_literal_value());
+  auto const value = RegisterLiteral(block);
+  DCHECK_EQ(block->value(), value);
+  return block;
 }
 
 Function* Factory::NewFunction() {
-  return new (zone()) Function(this);
+  auto const function = new (zone()) Function(next_literal_value());
+  auto const value = RegisterLiteral(function);
+  DCHECK_EQ(function->value(), value);
+  Editor editor(this, function);
+  return function;
 }
 
 Value Factory::NewFloat32Value(float32_t data) {
@@ -120,10 +134,9 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
 }
 
 Value Factory::RegisterLiteral(Literal* literal) {
+  auto const value = next_literal_value();
   literals_.push_back(literal);
-  auto const data = static_cast<int>(literals_.size());
-  DCHECK(Value::CanBeImmediate(data));
-  return Value(Value::Kind::Literal, data);
+  return value;
 }
 
 }  // namespace lir

@@ -61,6 +61,8 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   int NextInstructionId();
 
  private:
+  Value next_literal_value() const;
+
   base::StringPiece16 NewString(base::StringPiece16 string);
   Value RegisterLiteral(Literal* literal);
 
