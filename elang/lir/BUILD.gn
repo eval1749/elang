@@ -27,6 +27,7 @@ component("lir") {
     "literal_map.h",
     "literal_visitor.cc",
     "literal_visitor.h",
+    "printable.h",
     "value.h",
   ]
 

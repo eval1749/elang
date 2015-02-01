@@ -28,7 +28,7 @@ class ELANG_LIR_EXPORT LiteralMap {
   Value next_literal_value() const;
 
   // Returns |Literal| associated with |index|.
-  Literal* GetLiteral(Value value);
+  Literal* GetLiteral(Value value) const;
 
   // Register |literal|
   Value RegisterLiteral(Literal* literal);

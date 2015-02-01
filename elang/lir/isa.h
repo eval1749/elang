@@ -5,6 +5,8 @@
 #ifndef ELANG_LIR_ISA_H_
 #define ELANG_LIR_ISA_H_
 
+#include "elang/lir/value.h"
+
 #ifdef ELANG_TARGET_ARCH_X64
 #include "elang/lir/isa_x64.h"
 #else

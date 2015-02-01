@@ -27,7 +27,7 @@ Value LiteralMap::next_literal_value() const {
   return Value(Value::Kind::Literal, data);
 }
 
-Literal* LiteralMap::GetLiteral(Value value) {
+Literal* LiteralMap::GetLiteral(Value value) const {
   DCHECK_EQ(Value::Kind::Literal, value.kind);
   auto const index = static_cast<size_t>(value.data - 1);
   DCHECK_LT(index, literals_.size());

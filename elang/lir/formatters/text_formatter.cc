@@ -11,9 +11,11 @@
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/as_printable.h"
 #include "elang/lir/instructions.h"
+#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 #include "elang/lir/literal_visitor.h"
+#include "elang/lir/printable.h"
 
 namespace base {
 std::ostream& operator<<(std::ostream& ostream,
@@ -24,9 +26,6 @@ std::ostream& operator<<(std::ostream& ostream,
 
 namespace elang {
 namespace lir {
-namespace isa {
-base::StringPiece GetMnemonic(const Instruction* instruction);
-}
 
 namespace {
 
@@ -130,16 +129,6 @@ std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function" << function.id();
 }
 
-std::ostream& operator<<(std::ostream& ostream,
-                         const Instruction& instruction) {
-  if (auto const block = instruction.basic_block())
-    ostream << *block;
-  else
-    ostream << "orphan";
-  ostream << "(" << instruction.id() << ")";
-  return ostream << isa::GetMnemonic(&instruction);
-}
-
 std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
   LiteralFormatter literal_formatter(&ostream);
   literal_formatter.Format(&literal);
@@ -147,27 +136,7 @@ std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {
-  switch (value.kind) {
-    case Value::Kind::Invalid:
-      return ostream << "invalid";
-    case Value::Kind::GeneralRegister:
-      return ostream << "r" << value.data;
-    case Value::Kind::FloatRegister:
-      return ostream << "xmm" << value.data;
-    case Value::Kind::Immediate:
-      return ostream << value.data;
-    case Value::Kind::Literal:
-      // Note: We can't print value of literal, since it is hold in
-      // |LiteralMap|.
-      return ostream << "#" << value.data;
-    case Value::Kind::Parameter:
-      return ostream << "%param[" << value.data << "]";
-    case Value::Kind::VirtualGeneralRegister:
-      return ostream << "%r" << value.data;
-    case Value::Kind::VirtualFloatRegister:
-      return ostream << "%f" << value.data;
-  }
-  return ostream << "?" << value.kind << "?" << value.data;
+  return ostream << AsPrintableValue(value);
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
@@ -210,27 +179,7 @@ void TextFormatter::FormatFunction(const Function* function) {
 }
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
-  ostream_ << isa::GetMnemonic(instruction);
-  auto separator = " ";
-  // outputs
-  if (!instruction->outputs().empty()) {
-    ostream_ << separator << instruction->outputs()[0];
-    separator = ", ";
-  }
-  // inputs
-  if (!instruction->inputs().empty()) {
-    for (auto const value : instruction->inputs()) {
-      ostream_ << separator;
-      FormatValue(value);
-      separator = ", ";
-    }
-  }
-  if (instruction->outputs().size() >= 2u) {
-    ostream_ << " ;";
-    for (auto output : instruction->outputs())
-      ostream_ << " " << output;
-  }
-  return ostream_;
+  return ostream_ << AsPrintableInstruction(literals_, instruction);
 }
 
 std::ostream& TextFormatter::FormatValue(Value value) {
