@@ -24,13 +24,9 @@ FOR_EACH_LIR_INSTRUCTION(V)
 //
 // Instruction
 //
-Instruction::Instruction(Factory* factory,
-                         isa::Opcode opcode,
-                         int output_count,
-                         int input_count)
+Instruction::Instruction(Factory* factory, int output_count, int input_count)
     : basic_block_(nullptr),
       id_(0),
-      opcode_(opcode),
       inputs_(factory->zone(), input_count),
       outputs_(factory->zone(), output_count) {
 }

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <ostream>
 #include <string>
 
 #include "base/logging.h"
@@ -15,76 +16,6 @@
 
 namespace elang {
 namespace lir {
-
-namespace isa {
-
-namespace {
-//////////////////////////////////////////////////////////////////////
-//
-// MnemonicFactory
-//
-class MnemonicFactory final : public InstructionVisitor {
- public:
-  MnemonicFactory() = default;
-  ~MnemonicFactory() final = default;
-
-  base::StringPiece GetMnemonic(const Instruction* instruction);
-
-#define V(Name, ...) void Visit##Name(Name##Instruction* instruction) final;
-  FOR_EACH_LIR_INSTRUCTION(V)
-#undef V
-
- private:
-  base::StringPiece mnemonic_;
-
-  DISALLOW_COPY_AND_ASSIGN(MnemonicFactory);
-};
-
-base::StringPiece MnemonicFactory::GetMnemonic(const Instruction* instruction) {
-  mnemonic_.clear();
-  const_cast<Instruction*>(instruction)->Accept(this);
-  DCHECK(!mnemonic_.empty());
-  return mnemonic_;
-}
-
-void MnemonicFactory::VisitCall(CallInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "call";
-}
-
-void MnemonicFactory::VisitEntry(EntryInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "entry";
-}
-
-void MnemonicFactory::VisitExit(ExitInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "exit";
-}
-
-void MnemonicFactory::VisitJump(JumpInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "jmp";
-}
-
-void MnemonicFactory::VisitLoad(LoadInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "mov";
-}
-
-void MnemonicFactory::VisitRet(RetInstruction* instruction) {
-  __assume(instruction);
-  mnemonic_ = "ret";
-}
-
-}  // namespace
-
-base::StringPiece GetMnemonic(const Instruction* instruction) {
-  MnemonicFactory factory;
-  return factory.GetMnemonic(instruction);
-}
-
-}  // namespace isa
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -198,8 +129,7 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << "bb:" << block->id();
   else
     ostream << "--:";
-  ostream << instruction.id() << ":";
-  ostream << isa::GetMnemonic(&instruction);
+  ostream << instruction.id() << ":" << instruction.mnemonic();
   if (!instruction.outputs().empty()) {
     for (auto const output : instruction.outputs())
       ostream << " " << output;
@@ -214,7 +144,7 @@ std::ostream& operator<<(std::ostream& ostream,
                          const AsPrintableInstruction& printable) {
   auto const instruction = printable.instruction;
   auto const literals = printable.literals;
-  ostream << isa::GetMnemonic(instruction);
+  ostream << instruction->mnemonic();
   auto separator = " ";
   // outputs
   if (!instruction->outputs().empty()) {

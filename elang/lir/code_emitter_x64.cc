@@ -11,6 +11,7 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
+#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_visitor.h"
 #include "elang/lir/value.h"
@@ -296,7 +297,7 @@ void InstructionEmitter::Process(const Instruction* instruction) {
 
 // InstructionVisitor
 void InstructionEmitter::VisitCall(CallInstruction* instruction) {
-  EmitOpcode(instruction->opcode());
+  EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instruction->inputs()[0]);
 }
 
@@ -317,7 +318,7 @@ void InstructionEmitter::VisitLoad(LoadInstruction* instruction) {
 }
 
 void InstructionEmitter::VisitRet(RetInstruction* instruction) {
-  EmitOpcode(instruction->opcode());
+  EmitOpcode(isa::Opcode::RET);
 }
 
 }  // namespace

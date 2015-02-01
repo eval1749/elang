@@ -6,6 +6,7 @@
 #define ELANG_LIR_INSTRUCTIONS_H_
 
 #include "base/basictypes.h"
+#include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/visitable.h"
@@ -16,10 +17,6 @@
 
 namespace elang {
 namespace lir {
-
-namespace isa {
-enum class Opcode;
-}
 
 class BasicBlock;
 class Factory;
@@ -44,8 +41,8 @@ class ELANG_LIR_EXPORT Instruction
   // An integer identifier for debugging.
   int id() const { return id_; }
 
-  // Opcode for formatting and debugging
-  isa::Opcode opcode() const { return opcode_; }
+  // ISA dependent mnemonic for printing and debugging
+  virtual base::StringPiece mnemonic() const = 0;
 
   // Operands accessor
   const ZoneVector<Value>& inputs() const { return inputs_; }
@@ -56,10 +53,7 @@ class ELANG_LIR_EXPORT Instruction
   virtual bool IsTerminator() const;
 
  protected:
-  Instruction(Factory* factory,
-              isa::Opcode opcode,
-              int output_count,
-              int input_count);
+  Instruction(Factory* factory, int output_count, int input_count);
 
   void InitInput(int index, Value new_value);
   void InitOutput(int index, Value new_value);
@@ -71,7 +65,6 @@ class ELANG_LIR_EXPORT Instruction
 
   BasicBlock* basic_block_;
   int id_;
-  isa::Opcode opcode_;
   ZoneVector<Value> inputs_;
   ZoneVector<Value> outputs_;
 
@@ -81,6 +74,7 @@ class ELANG_LIR_EXPORT Instruction
 #define DECLARE_LIR_INSTRUCTION_CLASS(Name)          \
   DECLARE_CASTABLE_CLASS(Name, Instruction);         \
   DISALLOW_COPY_AND_ASSIGN(Name);                    \
+  base::StringPiece mnemonic() const final;          \
   void Accept(InstructionVisitor* visitor) override; \
   friend class Factory;
 

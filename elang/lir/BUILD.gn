@@ -46,6 +46,7 @@ component("lir") {
       "instructions_x64.cc",
       "isa_x64.h",
       "isa_x64.cc",
+      "opcodes_x64.h",
     ]
   }
 }

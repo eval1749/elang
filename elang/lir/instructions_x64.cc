@@ -10,34 +10,63 @@
 namespace elang {
 namespace lir {
 
-EntryInstruction::EntryInstruction(Factory* factory)
-    : Instruction(factory, isa::Opcode::nop, 0, 0) {
-}
-
+// Call
 CallInstruction::CallInstruction(Factory* factory, Value callee)
-    : Instruction(factory, isa::Opcode::call_Jv, 0, 1) {
+    : Instruction(factory, 0, 1) {
   InitInput(0, callee);
 }
 
-ExitInstruction::ExitInstruction(Factory* factory)
-    : Instruction(factory, isa::Opcode::nop, 0, 0) {
+base::StringPiece CallInstruction::mnemonic() const {
+  return "call";
 }
 
+// Entry
+EntryInstruction::EntryInstruction(Factory* factory)
+    : Instruction(factory, 0, 0) {
+}
+
+base::StringPiece EntryInstruction::mnemonic() const {
+  return "entry";
+}
+
+// Exit
+ExitInstruction::ExitInstruction(Factory* factory)
+    : Instruction(factory, 0, 0) {
+}
+
+base::StringPiece ExitInstruction::mnemonic() const {
+  return "exit";
+}
+
+// Jump
 JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
-    : Instruction(factory, isa::Opcode::jmp_Jv, 0, 1) {
+    : Instruction(factory, 0, 1) {
   InitInput(0, target_block->value());
 }
 
+base::StringPiece JumpInstruction::mnemonic() const {
+  return "jmp";
+}
+
+// Load
 LoadInstruction::LoadInstruction(Factory* factory, Value output, Value input)
-    : Instruction(factory, isa::Opcode::mov_Gv_Ev, 1, 1) {
+    : Instruction(factory, 1, 1) {
   DCHECK(!input.is_register());
   DCHECK(output.is_register());
   InitOutput(0, output);
   InitInput(0, input);
 }
 
-RetInstruction::RetInstruction(Factory* factory)
-    : Instruction(factory, isa::Opcode::ret, 0, 0) {
+base::StringPiece LoadInstruction::mnemonic() const {
+  return "mov";
+}
+
+// Ret
+RetInstruction::RetInstruction(Factory* factory) : Instruction(factory, 0, 0) {
+}
+
+base::StringPiece RetInstruction::mnemonic() const {
+  return "ret";
 }
 
 }  // namespace lir
