@@ -25,6 +25,7 @@ test("elang_all_unittests") {
   deps = [
     "//base/test:run_all_unittests",
     "//elang/base:base_unittests",
+    "//elang/cg:cg_unittests",
     "//elang/hir:hir_unittests",
     "//elang/lir:lir_unittests",
     "//elang/vm:vm_unittests",

@@ -1,0 +1,59 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+
+static_library("cg") {
+  sources = [
+    "generator.cc",
+    "generator.h",
+  ]
+
+  defines = [ "CG_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/hir",
+    "//elang/lir",
+    "//elang:elang_target_arch",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "generator_x64.cc",
+    ]
+  }
+}
+
+source_set("test_support") {
+  testonly = true
+
+  sources = [
+    "testing/cg_test.cc",
+    "testing/cg_test.h",
+  ]
+
+  public_deps = [
+    "//testing/gtest",
+    ":cg",
+  ]
+}
+
+source_set("cg_unittests") {
+  testonly = true
+
+  sources = [
+  ]
+
+  public_deps = [
+    ":test_support",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "generator_x64_unittest.cc",
+    ]
+  }
+}
