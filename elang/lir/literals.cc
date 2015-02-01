@@ -45,7 +45,7 @@ Instruction* BasicBlock::last_instruction() const {
 //
 // Function
 //
-Function::Function(Value value) : function_(nullptr), value_(value) {
+Function::Function(Value value) : value_(value) {
 }
 
 BasicBlock* Function::entry_block() const {
@@ -58,6 +58,10 @@ BasicBlock* Function::exit_block() const {
   auto const block = basic_blocks_.last_node();
   DCHECK(block->first_instruction()->is<ExitInstruction>());
   return block;
+}
+
+int Function::id() const {
+  return value_.data;
 }
 
 //////////////////////////////////////////////////////////////////////

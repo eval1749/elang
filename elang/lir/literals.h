@@ -128,6 +128,7 @@ class ELANG_LIR_EXPORT Function : public Literal {
   const BasicBlockList& basic_blocks() const { return basic_blocks_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
+  int id() const;
   Value value() const { return value_; }
 
  private:
@@ -136,7 +137,6 @@ class ELANG_LIR_EXPORT Function : public Literal {
   explicit Function(Value value);
 
   BasicBlockList basic_blocks_;
-  Function* function_;
   Value const value_;
 };
 

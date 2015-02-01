@@ -139,7 +139,7 @@ std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Function& function) {
-  return ostream << "function_" << &function;
+  return ostream << "function" << function.id();
 }
 
 std::ostream& operator<<(std::ostream& ostream,
@@ -206,7 +206,7 @@ TextFormatter::~TextFormatter() {
 }
 
 void TextFormatter::FormatFunction(const Function* function) {
-  ostream_ << "Function" << std::endl;
+  ostream_ << *function << ":" << std::endl;
   auto first_block = true;
   for (auto const block : function->basic_blocks()) {
     if (first_block)

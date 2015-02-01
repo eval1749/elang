@@ -12,24 +12,24 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
-// GeneratorTest
+// GeneratorX64Test
 //
-class GeneratorTest : public testing::CgTest {
+class GeneratorX64Test : public testing::CgTest {
  protected:
-  GeneratorTest() = default;
-  ~GeneratorTest() = default;
+  GeneratorX64Test() = default;
+  ~GeneratorX64Test() = default;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(GeneratorTest);
+  DISALLOW_COPY_AND_ASSIGN(GeneratorX64Test);
 };
 
 // Test cases...
 
-TEST_F(GeneratorTest, Basic) {
+TEST_F(GeneratorX64Test, Basic) {
   Generator generator(lir_factory(), function());
   auto const lir_function = generator.Generate();
   EXPECT_EQ(
-      "Function\n"
+      "function1:\n"
       "block1:\n"
       "  entry\n"
       "  ret\n"

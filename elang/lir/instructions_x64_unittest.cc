@@ -26,7 +26,7 @@ class LirInstructionsTestX64 : public testing::LirTestX64 {
 TEST_F(LirInstructionsTestX64, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
   EXPECT_EQ(
-      "Function\n"
+      "function1:\n"
       "block1:\n"
       "  entry\n"
       "  ret\n"
@@ -39,7 +39,7 @@ TEST_F(LirInstructionsTestX64, FunctionEmpty) {
 TEST_F(LirInstructionsTestX64, FunctionSample1) {
   auto const function = CreateFunctionSample1();
   EXPECT_EQ(
-      "Function\n"
+      "function1:\n"
       "block1:\n"
       "  entry\n"
       "  call \"Foo\"\n"
@@ -61,7 +61,7 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
   editor.SetJump(block);
   editor.Commit();
   EXPECT_EQ(
-      "Function\n"
+      "function1:\n"
       "block1:\n"
       "  entry\n"
       "  jmp block3\n"
