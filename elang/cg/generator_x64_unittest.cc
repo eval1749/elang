@@ -33,7 +33,6 @@ TEST_F(GeneratorX64Test, Basic) {
       "block1:\n"
       "  entry\n"
       "  ret\n"
-      "\n"
       "block2:\n"
       "  exit\n",
       Format(lir_function));

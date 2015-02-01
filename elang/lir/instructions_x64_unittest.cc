@@ -13,7 +13,7 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LirInstructionsTestX64 offers HIR factories.
+// LirInstructionsTestX64
 //
 class LirInstructionsTestX64 : public testing::LirTestX64 {
  protected:
@@ -23,6 +23,8 @@ class LirInstructionsTestX64 : public testing::LirTestX64 {
   DISALLOW_COPY_AND_ASSIGN(LirInstructionsTestX64);
 };
 
+// Test cases...
+
 TEST_F(LirInstructionsTestX64, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
   EXPECT_EQ(
@@ -30,7 +32,6 @@ TEST_F(LirInstructionsTestX64, FunctionEmpty) {
       "block1:\n"
       "  entry\n"
       "  ret\n"
-      "\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -44,7 +45,6 @@ TEST_F(LirInstructionsTestX64, FunctionSample1) {
       "  entry\n"
       "  call \"Foo\"\n"
       "  ret\n"
-      "\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -65,10 +65,8 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
       "block1:\n"
       "  entry\n"
       "  jmp block3\n"
-      "\n"
       "block3:\n"
       "  ret\n"
-      "\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));

@@ -207,12 +207,7 @@ TextFormatter::~TextFormatter() {
 
 void TextFormatter::FormatFunction(const Function* function) {
   ostream_ << *function << ":" << std::endl;
-  auto first_block = true;
   for (auto const block : function->basic_blocks()) {
-    if (first_block)
-      first_block = false;
-    else
-      ostream_ << std::endl;
     ostream_ << *block << ":" << std::endl;
     for (auto const instruction : block->instructions()) {
       ostream_ << "  ";
