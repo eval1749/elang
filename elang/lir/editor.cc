@@ -50,13 +50,18 @@ bool Editor::Commit() {
 
 void Editor::Edit(BasicBlock* basic_block) {
   DCHECK(!basic_block_);
+  DCHECK_EQ(function(), basic_block->function());
   basic_block_ = basic_block;
   DCHECK(Validate(basic_block_));
 }
 
+void Editor::EditNewBasicBlock() {
+  Edit(NewBasicBlock(function()->exit_block()));
+}
+
 void Editor::InitializeFunctionIfNeeded() {
-  if (!function_->basic_blocks_.empty()) {
-    DCHECK(Validate(function_));
+  if (!function()->basic_blocks_.empty()) {
+    DCHECK(Validate(function()));
     return;
   }
 
@@ -81,7 +86,7 @@ void Editor::InitializeFunctionIfNeeded() {
   Append(factory()->NewRetInstruction());
 
   basic_block_ = nullptr;
-  DCHECK(Validate(function_));
+  DCHECK(Validate(function()));
 }
 
 void Editor::InsertBefore(Instruction* new_instruction,
@@ -99,8 +104,15 @@ void Editor::InsertBefore(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
 }
 
-BasicBlock* Editor::NewBasicBlock() {
-  return factory()->NewBasicBlock();
+BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
+  DCHECK(reference);
+  DCHECK_EQ(function(), reference->function());
+  auto const new_block = factory()->NewBasicBlock();
+  new_block->function_ = function();
+  new_block->id_ = factory()->NextBasicBlockId();
+  // We keep exit block at end of basic block list.
+  function()->basic_blocks_.InsertBefore(new_block, reference);
+  return new_block;
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {

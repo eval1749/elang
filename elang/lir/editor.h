@@ -41,12 +41,16 @@ class ELANG_LIR_EXPORT Editor final {
   ~Editor();
 
   Factory* factory() const { return factory_; }
+  Function* function() const { return function_; }
 
   bool Commit();
 
   // Basic block editing
   void Edit(BasicBlock* basic_block);
-  BasicBlock* NewBasicBlock();
+  void EditNewBasicBlock();
+
+  // Returns new basic block inserted before |reference|.
+  BasicBlock* NewBasicBlock(BasicBlock* reference);
 
   // Instruction editing
   void Append(Instruction* new_instruction);
