@@ -50,23 +50,23 @@ enum class Opcode {
 //  XMM0, XMM1, XMM2, XMM3
 
 //  HIGH    +--------------+
-//  RSP-40  | parameter[6] |
+//  RSP+56  | parameter[6] |
 //          +--------------+
-//  RSP-32  | parameter[5] |
+//  RSP+48  | parameter[5] |
 //          +--------------+
-//  RSP-28  | parameter[4] |
+//  RSP+40  | parameter[4] |
 //          +--------------+
-//  RSP-24  | parameter[3] | R9/XMM3
+//  RSP+32  | home[3]      | R9/XMM3
 //          +--------------+
-//  RSP-20  | parameter[2] | R8/XMM2
+//  RSP+24  | home[2]      | R8/XMM2
 //          +--------------+
-//  RSP-16  | parameter[1] | RDX/XMM1
+//  RSP+16  | home[1]      | RDX/XMM1
 //          +--------------+
-//  RSP-12  | parameter[0] | RCX/XMM0
+//  RSP+8   | home[0]      | RCX/XMM0
 //          +--------------+
-//  RSP-8   | return IP    |
+//  RSP     | return IP    |
 //          +--------------+
-//  RSP     | RBP          |
+//  RSP     | callee save  |
 //          +--------------+
 
 enum Register {
@@ -159,6 +159,12 @@ enum Register {
   XMM14 = 0x1E,
   XMM15 = 0x1F,
 };
+
+const int kCallerSaveRegisters = RAX | RCX | RDX | R8 | R9 | R10 | R11;
+const int kCalleeSaveRegisters = RBX | RDI | RSI | RSP | R12 | R13 | R14 | R15;
+
+static_assert((kCalleeSaveRegisters | kCalleeSaveRegisters) == 0x30F,
+              "caller and callee registers must contain all registers");
 
 }  // namespace isa
 }  // namespace lir
