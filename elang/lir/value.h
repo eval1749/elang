@@ -27,7 +27,7 @@ struct ELANG_LIR_EXPORT Value {
     Literal,
     VirtualGeneralRegister,
     VirtualFloatRegister,
-    NotUsed7,
+    Parameter,
   };
 
   static const int kMaximumImmediate = 1 << 28;

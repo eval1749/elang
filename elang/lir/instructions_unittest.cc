@@ -72,6 +72,17 @@ TEST_F(LirInstructionTest, JumpInstruction) {
   EXPECT_EQ(0u, instr->outputs().size());
 }
 
+// LoadInstruction
+TEST_F(LirInstructionTest, LoadInstruction) {
+  auto const instr = factory()->NewLoadInstruction(
+      factory()->NewGeneralRegister(), Value(Value::Kind::Parameter, 0));
+  EXPECT_TRUE(instr->is<LoadInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1u, instr->inputs().size());
+  EXPECT_EQ(1u, instr->outputs().size());
+}
+
 // RetInstruction
 TEST_F(LirInstructionTest, RetInstruction) {
   auto const instr = factory()->NewRetInstruction();

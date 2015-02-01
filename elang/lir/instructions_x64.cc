@@ -30,6 +30,8 @@ JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
 
 LoadInstruction::LoadInstruction(Factory* factory, Value output, Value input)
     : Instruction(factory, isa::Opcode::mov_Gv_Ev, 1, 1) {
+  DCHECK(!input.is_register());
+  DCHECK(output.is_register());
   InitOutput(0, output);
   InitInput(0, input);
 }

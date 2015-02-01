@@ -151,19 +151,21 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
     case Value::Kind::Invalid:
       return ostream << "invalid";
     case Value::Kind::GeneralRegister:
-      return ostream << "%r" << value.data;
+      return ostream << "r" << value.data;
     case Value::Kind::FloatRegister:
-      return ostream << "%f" << value.data;
+      return ostream << "xmm" << value.data;
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Literal:
       // Note: We can't print value of literal, since it is hold in
       // |LiteralMap|.
       return ostream << "#" << value.data;
+    case Value::Kind::Parameter:
+      return ostream << "%param[" << value.data << "]";
     case Value::Kind::VirtualGeneralRegister:
-      return ostream << "%v" << value.data;
+      return ostream << "%r" << value.data;
     case Value::Kind::VirtualFloatRegister:
-      return ostream << "%w" << value.data;
+      return ostream << "%f" << value.data;
   }
   return ostream << "?" << value.kind << "?" << value.data;
 }
@@ -208,25 +210,25 @@ void TextFormatter::FormatFunction(const Function* function) {
 }
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
+  ostream_ << isa::GetMnemonic(instruction);
+  auto separator = " ";
   // outputs
   if (!instruction->outputs().empty()) {
-    auto separator = "";
-    for (auto const value : instruction->outputs()) {
-      ostream_ << separator;
-      FormatValue(value);
-      separator = ", ";
-    }
-    ostream_ << " = ";
+    ostream_ << separator << instruction->outputs()[0];
+    separator = ", ";
   }
-  ostream_ << isa::GetMnemonic(instruction);
   // inputs
   if (!instruction->inputs().empty()) {
-    auto separator = " ";
     for (auto const value : instruction->inputs()) {
       ostream_ << separator;
       FormatValue(value);
       separator = ", ";
     }
+  }
+  if (instruction->outputs().size() >= 2u) {
+    ostream_ << " ;";
+    for (auto output : instruction->outputs())
+      ostream_ << " " << output;
   }
   return ostream_;
 }

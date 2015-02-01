@@ -72,5 +72,23 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
       FormatFunction(function));
 }
 
+TEST_F(LirInstructionsTestX64, LoadInstruction) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewLoadInstruction(
+      factory()->NewGeneralRegister(), Value(Value::Kind::Parameter, 4)));
+  editor.Commit();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov %r1, %param[4]\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      FormatFunction(function));
+}
+
 }  // namespace lir
 }  // namespace elang
