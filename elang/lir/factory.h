@@ -8,20 +8,17 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
-#include "elang/lir/lir_export.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/literals_forward.h"
 #include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
-class BasicBlock;
-class Function;
-class Literal;
+
+class LiteralMap;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -32,8 +29,10 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Factory();
   ~Factory();
 
+  LiteralMap* literals() const { return literal_map_.get(); }
+
   // Returns |Literal| associated with |index|.
-  Literal* GetLiteral(Value value);
+  Literal* GetLiteral(Value value) const;
 
   // Returns mnemonic string for |opcode|.
   base::StringPiece GetMnemonic(const Instruction* instruction);
@@ -61,8 +60,6 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   int NextInstructionId();
 
  private:
-  Value next_literal_value() const;
-
   base::StringPiece16 NewString(base::StringPiece16 string);
   Value RegisterLiteral(Literal* literal);
 
@@ -70,10 +67,10 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   std::unordered_map<float64_t, Value> float64_map_;
   std::unordered_map<int32_t, Value> int32_map_;
   std::unordered_map<int64_t, Value> int64_map_;
+  const std::unique_ptr<LiteralMap> literal_map_;
   int last_basic_block_id_;
   int last_instruction_id_;
   std::unordered_map<base::StringPiece16, Value> string_map_;
-  std::vector<Literal*> literals_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

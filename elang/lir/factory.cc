@@ -10,6 +10,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/literal_map.h"
 
 namespace elang {
 namespace lir {
@@ -21,23 +22,17 @@ base::StringPiece GetMnemonic(const lir::Instruction* instruction);
 //
 // Factory
 //
-Factory::Factory() : last_basic_block_id_(0), last_instruction_id_(0) {
+Factory::Factory()
+    : last_basic_block_id_(0),
+      last_instruction_id_(0),
+      literal_map_(new LiteralMap()) {
 }
 
 Factory::~Factory() {
 }
 
-Value Factory::next_literal_value() const {
-  auto const data = static_cast<int>(literals_.size() + 1);
-  DCHECK(Value::CanBeImmediate(data));
-  return Value(Value::Kind::Literal, data);
-}
-
-Literal* Factory::GetLiteral(Value value) {
-  DCHECK_EQ(Value::Kind::Literal, value.kind);
-  auto const index = static_cast<size_t>(value.data - 1);
-  DCHECK_LT(index, literals_.size());
-  return literals_[index];
+Literal* Factory::GetLiteral(Value value) const {
+  return literal_map_->GetLiteral(value);
 }
 
 base::StringPiece Factory::GetMnemonic(const Instruction* instruction) {
@@ -45,14 +40,16 @@ base::StringPiece Factory::GetMnemonic(const Instruction* instruction) {
 }
 
 BasicBlock* Factory::NewBasicBlock() {
-  auto const block = new (zone()) BasicBlock(next_literal_value());
+  auto const block =
+      new (zone()) BasicBlock(literal_map_->next_literal_value());
   auto const value = RegisterLiteral(block);
   DCHECK_EQ(block->value(), value);
   return block;
 }
 
 Function* Factory::NewFunction() {
-  auto const function = new (zone()) Function(next_literal_value());
+  auto const function =
+      new (zone()) Function(literal_map_->next_literal_value());
   auto const value = RegisterLiteral(function);
   DCHECK_EQ(function->value(), value);
 
@@ -170,9 +167,7 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
 }
 
 Value Factory::RegisterLiteral(Literal* literal) {
-  auto const value = next_literal_value();
-  literals_.push_back(literal);
-  return value;
+  return literal_map_->RegisterLiteral(literal);
 }
 
 }  // namespace lir

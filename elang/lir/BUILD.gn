@@ -23,6 +23,8 @@ component("lir") {
     "literals.cc",
     "literals.h",
     "literals_forward.h",
+    "literal_map.cc",
+    "literal_map.h",
     "literal_visitor.cc",
     "literal_visitor.h",
     "value.h",
