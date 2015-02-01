@@ -167,5 +167,34 @@ std::ostream& operator<<(std::ostream& ostream,
   return ostream;
 }
 
+Value Isa::GetRegister(isa::Register name) {
+  auto const number = static_cast<int>(name);
+  if (number >= isa::XMM0 && number <= isa::XMM15)
+    return Value(Value::Kind::FloatRegister, number);
+  return Value(Value::Kind::GeneralRegister, number);
+}
+
+bool Isa::IsCopyable(Value output, Value input) {
+  if (output.kind == Value::Kind::GeneralRegister) {
+    if (input.kind == Value::Kind::GeneralRegister)
+      return (output.data & ~15) == (input.data & ~15);
+    return input.kind == Value::Kind::VirtualGeneralRegister;
+  }
+  if (output.kind == Value::Kind::VirtualGeneralRegister) {
+    return input.kind == Value::Kind::GeneralRegister ||
+           input.kind == Value::Kind::VirtualGeneralRegister;
+  }
+  if (output.kind == Value::Kind::FloatRegister) {
+    return input.kind == Value::Kind::FloatRegister ||
+           input.kind == Value::Kind::VirtualFloatRegister;
+  }
+  if (output.kind == Value::Kind::VirtualFloatRegister) {
+    return input.kind == Value::Kind::FloatRegister ||
+           input.kind == Value::Kind::VirtualFloatRegister;
+  }
+  NOTREACHED() << "Invalid output " << output;
+  return false;
+}
+
 }  // namespace lir
 }  // namespace elang

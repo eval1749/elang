@@ -37,8 +37,19 @@ TEST_F(LirInstructionTest, CallInstruction) {
   EXPECT_TRUE(instr->is<CallInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1u, instr->inputs().size());
-  EXPECT_EQ(0u, instr->outputs().size());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
+}
+
+// CopyInstruction
+TEST_F(LirInstructionTest, CopyInstruction) {
+  auto const instr = factory()->NewCopyInstruction(
+      factory()->NewGeneralRegister(), Value(Value::Kind::GeneralRegister, 1));
+  EXPECT_TRUE(instr->is<CopyInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
 }
 
 // EntryInstruction
@@ -47,8 +58,8 @@ TEST_F(LirInstructionTest, EntryInstruction) {
   EXPECT_TRUE(instr->is<EntryInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(0u, instr->inputs().size());
-  EXPECT_EQ(0u, instr->outputs().size());
+  EXPECT_EQ(0, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
 }
 
 // ExitInstruction
@@ -57,8 +68,8 @@ TEST_F(LirInstructionTest, ExitInstruction) {
   EXPECT_TRUE(instr->is<ExitInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(0u, instr->inputs().size());
-  EXPECT_EQ(0u, instr->outputs().size());
+  EXPECT_EQ(0, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
 }
 
 // JumpInstruction
@@ -68,8 +79,8 @@ TEST_F(LirInstructionTest, JumpInstruction) {
   EXPECT_TRUE(instr->is<JumpInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1u, instr->inputs().size());
-  EXPECT_EQ(0u, instr->outputs().size());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
 }
 
 // LoadInstruction
@@ -79,8 +90,8 @@ TEST_F(LirInstructionTest, LoadInstruction) {
   EXPECT_TRUE(instr->is<LoadInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1u, instr->inputs().size());
-  EXPECT_EQ(1u, instr->outputs().size());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
 }
 
 // RetInstruction
@@ -89,8 +100,8 @@ TEST_F(LirInstructionTest, RetInstruction) {
   EXPECT_TRUE(instr->is<RetInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(0u, instr->inputs().size());
-  EXPECT_EQ(0u, instr->outputs().size());
+  EXPECT_EQ(0, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
 }
 
 }  // namespace lir

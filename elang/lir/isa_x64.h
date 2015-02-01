@@ -5,6 +5,7 @@
 #ifndef ELANG_LIR_ISA_X64_H_
 #define ELANG_LIR_ISA_X64_H_
 
+#include "elang/lir/lir_export.h"
 #include "elang/lir/opcodes_x64.h"
 
 namespace elang {
@@ -134,6 +135,18 @@ static_assert((kCalleeSaveRegisters | kCalleeSaveRegisters) == 0x30F,
               "caller and callee registers must contain all registers");
 
 }  // namespace isa
+
+struct Value;
+
+class ELANG_LIR_EXPORT Isa {
+ public:
+  Isa() = delete;
+  ~Isa() = delete;
+
+  static Value GetRegister(isa::Register name);
+  static bool IsCopyable(Value output, Value input);
+};
+
 }  // namespace lir
 }  // namespace elang
 

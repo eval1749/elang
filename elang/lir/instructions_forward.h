@@ -23,7 +23,9 @@ class InstructionVisitor;
 
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Call)
 
-#define FOR_EACH_LIR_INSTRUCTION_1_1(V) V(Load)
+#define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
+  V(Copy)                               \
+  V(Load)
 
 #define FOR_EACH_LIR_INSTRUCTION_N(V) V(Jump, (BasicBlock * target_block))
 

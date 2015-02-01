@@ -291,33 +291,37 @@ void InstructionEmitter::EmitOperand(Value value) {
   Emit32(0);
 }
 
-void InstructionEmitter::Process(const Instruction* instruction) {
-  const_cast<Instruction*>(instruction)->Accept(this);
+void InstructionEmitter::Process(const Instruction* instr) {
+  const_cast<Instruction*>(instr)->Accept(this);
 }
 
 // InstructionVisitor
-void InstructionEmitter::VisitCall(CallInstruction* instruction) {
+void InstructionEmitter::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
-  EmitOperand(instruction->input(0));
+  EmitOperand(instr->input(0));
 }
 
-void InstructionEmitter::VisitEntry(EntryInstruction* instruction) {
-  __assume(instruction);
+void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
+  __assume(instr);
 }
 
-void InstructionEmitter::VisitExit(ExitInstruction* instruction) {
-  __assume(instruction);
+void InstructionEmitter::VisitEntry(EntryInstruction* instr) {
+  __assume(instr);
 }
 
-void InstructionEmitter::VisitJump(JumpInstruction* instruction) {
-  __assume(instruction);
+void InstructionEmitter::VisitExit(ExitInstruction* instr) {
+  __assume(instr);
 }
 
-void InstructionEmitter::VisitLoad(LoadInstruction* instruction) {
-  __assume(instruction);
+void InstructionEmitter::VisitJump(JumpInstruction* instr) {
+  __assume(instr);
 }
 
-void InstructionEmitter::VisitRet(RetInstruction* instruction) {
+void InstructionEmitter::VisitLoad(LoadInstruction* instr) {
+  __assume(instr);
+}
+
+void InstructionEmitter::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
 }
 

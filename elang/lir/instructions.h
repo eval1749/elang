@@ -178,6 +178,15 @@ class ELANG_LIR_EXPORT CallInstruction final
   explicit CallInstruction(Value callee);
 };
 
+// CopyInstruction
+class ELANG_LIR_EXPORT CopyInstruction final
+    : public InstructionTemplate<1, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Copy);
+
+ private:
+  CopyInstruction(Value output, Value input);
+};
+
 // EntryInstruction
 class ELANG_LIR_EXPORT EntryInstruction final
     : public InstructionTemplate<0, 0> {

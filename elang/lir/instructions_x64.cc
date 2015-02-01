@@ -19,6 +19,20 @@ base::StringPiece CallInstruction::mnemonic() const {
   return "call";
 }
 
+// Copy
+CopyInstruction::CopyInstruction(Value output, Value input) {
+  DCHECK(input.is_register());
+  DCHECK(output.is_register());
+  DCHECK_NE(output, input);
+  DCHECK(Isa::IsCopyable(output, input));
+  InitOutput(0, output);
+  InitInput(0, input);
+}
+
+base::StringPiece CopyInstruction::mnemonic() const {
+  return "mov";
+}
+
 // Entry
 EntryInstruction::EntryInstruction() {
 }

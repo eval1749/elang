@@ -6,6 +6,7 @@
 
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
+#include "elang/lir/isa_x64.h"
 #include "elang/lir/literals.h"
 
 namespace elang {
@@ -24,6 +25,24 @@ class LirInstructionsTestX64 : public testing::LirTestX64 {
 };
 
 // Test cases...
+
+TEST_F(LirInstructionsTestX64, CopyInstruction) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewCopyInstruction(
+      Isa::GetRegister(isa::RAX), factory()->NewGeneralRegister()));
+  editor.Commit();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov RAX, %r1\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      FormatFunction(function));
+}
 
 TEST_F(LirInstructionsTestX64, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
