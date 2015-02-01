@@ -11,8 +11,7 @@ namespace elang {
 namespace lir {
 
 // Call
-CallInstruction::CallInstruction(Factory* factory, Value callee)
-    : InstructionTemplate(factory) {
+CallInstruction::CallInstruction(Value callee) {
   InitInput(0, callee);
 }
 
@@ -21,8 +20,7 @@ base::StringPiece CallInstruction::mnemonic() const {
 }
 
 // Entry
-EntryInstruction::EntryInstruction(Factory* factory)
-    : InstructionTemplate(factory) {
+EntryInstruction::EntryInstruction() {
 }
 
 base::StringPiece EntryInstruction::mnemonic() const {
@@ -30,8 +28,7 @@ base::StringPiece EntryInstruction::mnemonic() const {
 }
 
 // Exit
-ExitInstruction::ExitInstruction(Factory* factory)
-    : InstructionTemplate(factory) {
+ExitInstruction::ExitInstruction() : InstructionTemplate() {
 }
 
 base::StringPiece ExitInstruction::mnemonic() const {
@@ -39,8 +36,7 @@ base::StringPiece ExitInstruction::mnemonic() const {
 }
 
 // Jump
-JumpInstruction::JumpInstruction(Factory* factory, BasicBlock* target_block)
-    : InstructionTemplate(factory) {
+JumpInstruction::JumpInstruction(BasicBlock* target_block) {
   InitInput(0, target_block->value());
 }
 
@@ -49,8 +45,8 @@ base::StringPiece JumpInstruction::mnemonic() const {
 }
 
 // Load
-LoadInstruction::LoadInstruction(Factory* factory, Value output, Value input)
-    : InstructionTemplate(factory) {
+LoadInstruction::LoadInstruction(Value output, Value input)
+    : InstructionTemplate() {
   DCHECK(!input.is_register());
   DCHECK(output.is_register());
   InitOutput(0, output);
@@ -62,8 +58,7 @@ base::StringPiece LoadInstruction::mnemonic() const {
 }
 
 // Ret
-RetInstruction::RetInstruction(Factory* factory)
-    : InstructionTemplate(factory) {
+RetInstruction::RetInstruction() {
 }
 
 base::StringPiece RetInstruction::mnemonic() const {

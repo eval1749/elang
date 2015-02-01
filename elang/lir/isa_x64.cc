@@ -148,7 +148,7 @@ std::ostream& operator<<(std::ostream& ostream,
   auto separator = " ";
   // outputs
   if (!instruction->outputs().empty()) {
-    auto const output = instruction->outputs().front();
+    auto const output = instruction->output(0);
     ostream << separator << AsPrintableValue(literals, output);
     separator = ", ";
   }
@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& ostream,
       separator = ", ";
     }
   }
-  if (instruction->outputs().size() >= 2u) {
+  if (instruction->outputs().size() >= 2) {
     ostream << " ;";
     for (auto output : instruction->outputs())
       ostream << " " << output;

@@ -5,13 +5,14 @@
 #ifndef ELANG_LIR_INSTRUCTIONS_H_
 #define ELANG_LIR_INSTRUCTIONS_H_
 
+#include <array>
+
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
-#include "elang/base/zone_vector.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/value.h"
 
@@ -22,6 +23,7 @@ class BasicBlock;
 class Factory;
 
 // See "instructions_forward.h" for list of all instructions.
+// See "instructions_${arch}.cc" for implementations depend on ISA.
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -35,6 +37,44 @@ class ELANG_LIR_EXPORT Instruction
   DECLARE_CASTABLE_CLASS(Instruction, Castable);
 
  public:
+  class ELANG_LIR_EXPORT Values final {
+   public:
+    class ELANG_LIR_EXPORT Iterator final {
+     public:
+      Iterator(const Iterator& other);
+      explicit Iterator(Value* pointer);
+      ~Iterator();
+
+      Iterator& operator=(const Iterator& other);
+
+      Value operator*() { return *pointer_; }
+      Value operator->() { return operator*(); }
+
+      Iterator& operator++();
+
+      bool operator==(const Iterator& other) const;
+      bool operator!=(const Iterator& other) const;
+
+     private:
+      Value* pointer_;
+    };
+
+    Values(const Values& other);
+    Values(Value* start, Value* end);
+    ~Values();
+
+    Values& operator=(const Values& other);
+
+    Iterator begin() { return Iterator(start_); }
+    bool empty() const { return start_ == end_; }
+    Iterator end() { return Iterator(end_); }
+    int size() const { return static_cast<int>(end_ - start_); }
+
+   private:
+    Value* start_;
+    Value* end_;
+  };
+
   // A basic block which this instruction belongs to
   BasicBlock* basic_block() const { return basic_block_; }
 
@@ -45,15 +85,23 @@ class ELANG_LIR_EXPORT Instruction
   virtual base::StringPiece mnemonic() const = 0;
 
   // Operands accessor
-  const ZoneVector<Value>& inputs() const { return inputs_; }
-  const ZoneVector<Value>& outputs() const { return outputs_; }
+  Value input(int index) const;
+  Values inputs() const;
+  Value output(int index) const;
+  Values outputs() const;
+
+  virtual int CountInputs() const = 0;
+  virtual int CountOutputs() const = 0;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
   virtual bool IsTerminator() const;
 
  protected:
-  Instruction(Factory* factory, int output_count, int input_count);
+  Instruction();
+
+  virtual Value* InputValues() const = 0;
+  virtual Value* OutputValues() const = 0;
 
   void InitInput(int index, Value new_value);
   void InitOutput(int index, Value new_value);
@@ -63,57 +111,89 @@ class ELANG_LIR_EXPORT Instruction
   friend class Editor;
   friend class Factory;
 
+  void SetInput(int index, Value new_value);
+  void SetOutput(int index, Value new_value);
+
   BasicBlock* basic_block_;
   int id_;
-  ZoneVector<Value> inputs_;
-  ZoneVector<Value> outputs_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
-#define DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name) \
-  DECLARE_CASTABLE_CLASS(Name, Instruction);         \
-  DISALLOW_COPY_AND_ASSIGN(Name);                    \
-  base::StringPiece mnemonic() const final;          \
-  void Accept(InstructionVisitor* visitor) override; \
+#define DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name)      \
+  DECLARE_CASTABLE_CLASS(Name##Instruction, Instruction); \
+  DISALLOW_COPY_AND_ASSIGN(Name##Instruction);            \
+  base::StringPiece mnemonic() const final;               \
+  void Accept(InstructionVisitor* visitor) override;      \
   friend class Factory;
 
 // InstructionTemplate
 template <int kOutputCount, int kInputCount>
 class InstructionTemplate : public Instruction {
+ public:
+  int CountInputs() const final { return kInputCount; }
+  int CountOutputs() const final { return kOutputCount; }
+
  protected:
-  explicit InstructionTemplate(Factory* factory)
-      : Instruction(factory, kOutputCount, kInputCount) {}
+  InstructionTemplate() = default;
 
  private:
+  Value* InputValues() const final {
+    auto const self = const_cast<InstructionTemplate*>(this);
+    return self->operands_.data() + kOutputCount;
+  }
+
+  Value* OutputValues() const final {
+    auto const self = const_cast<InstructionTemplate*>(this);
+    return self->operands_.data();
+  }
+
+  std::array<Value, kInputCount + kOutputCount> operands_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
+};
+
+template <>
+class InstructionTemplate<0, 0> : public Instruction {
+ public:
+  int CountInputs() const final { return 0; }
+  int CountOutputs() const final { return 0; }
+
+ protected:
+  InstructionTemplate() = default;
+
+ private:
+  Value* InputValues() const final { return nullptr; }
+  Value* OutputValues() const final { return nullptr; }
+
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
 // CallInstruction
 class ELANG_LIR_EXPORT CallInstruction final
     : public InstructionTemplate<0, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(CallInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Call);
 
  private:
-  explicit CallInstruction(Factory* factory, Value callee);
+  explicit CallInstruction(Value callee);
 };
 
 // EntryInstruction
 class ELANG_LIR_EXPORT EntryInstruction final
     : public InstructionTemplate<0, 0> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(EntryInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Entry);
 
  private:
-  explicit EntryInstruction(Factory* factory);
+  EntryInstruction();
 };
 
 // ExitInstruction
 class ELANG_LIR_EXPORT ExitInstruction final
     : public InstructionTemplate<0, 0> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(ExitInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Exit);
 
  private:
-  explicit ExitInstruction(Factory* factory);
+  ExitInstruction();
 
   // Instruction
   bool IsTerminator() const final;
@@ -122,10 +202,10 @@ class ELANG_LIR_EXPORT ExitInstruction final
 // JumpInstruction
 class ELANG_LIR_EXPORT JumpInstruction final
     : public InstructionTemplate<0, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(JumpInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Jump);
 
  private:
-  explicit JumpInstruction(Factory* factory, BasicBlock* target_block);
+  explicit JumpInstruction(BasicBlock* target_block);
 
   // Instruction
   bool IsTerminator() const final;
@@ -134,18 +214,18 @@ class ELANG_LIR_EXPORT JumpInstruction final
 // LoadInstruction
 class ELANG_LIR_EXPORT LoadInstruction final
     : public InstructionTemplate<1, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(LoadInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Load);
 
  private:
-  explicit LoadInstruction(Factory* factory, Value output, Value input);
+  LoadInstruction(Value output, Value input);
 };
 
 // RetInstruction
 class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(RetInstruction);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Ret);
 
  private:
-  explicit RetInstruction(Factory* factory);
+  RetInstruction();
 
   // Instruction
   bool IsTerminator() const final;

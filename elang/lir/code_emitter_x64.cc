@@ -298,7 +298,7 @@ void InstructionEmitter::Process(const Instruction* instruction) {
 // InstructionVisitor
 void InstructionEmitter::VisitCall(CallInstruction* instruction) {
   EmitOpcode(isa::Opcode::CALL_Jv);
-  EmitOperand(instruction->inputs()[0]);
+  EmitOperand(instruction->input(0));
 }
 
 void InstructionEmitter::VisitEntry(EntryInstruction* instruction) {

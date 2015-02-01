@@ -170,28 +170,28 @@ Value Factory::RegisterLiteral(Literal* literal) {
 // Instructions
 #define V(Name, ...)                               \
   Instruction* Factory::New##Name##Instruction() { \
-    return new (zone()) Name##Instruction(this);   \
+    return new (zone()) Name##Instruction();       \
   }
 FOR_EACH_LIR_INSTRUCTION_0_0(V)
 #undef V
 
 #define V(Name, ...)                                          \
   Instruction* Factory::New##Name##Instruction(Value input) { \
-    return new (zone()) Name##Instruction(this, input);       \
+    return new (zone()) Name##Instruction(input);             \
   }
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
 #define V(Name, ...)                                                        \
   Instruction* Factory::New##Name##Instruction(Value output, Value input) { \
-    return new (zone()) Name##Instruction(this, output, input);             \
+    return new (zone()) Name##Instruction(output, input);                   \
   }
 FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
   DCHECK(target_block->id());
-  return new (zone()) JumpInstruction(this, target_block);
+  return new (zone()) JumpInstruction(target_block);
 }
 
 }  // namespace lir

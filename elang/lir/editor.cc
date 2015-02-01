@@ -101,7 +101,7 @@ void Editor::Remove(Instruction* old_instruction) {
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, instruction->basic_block());
-  instruction->inputs_[index] = new_value;
+  instruction->SetInput(index, new_value);
 }
 
 void Editor::SetJump(BasicBlock* target_block) {
@@ -118,7 +118,7 @@ void Editor::SetJump(BasicBlock* target_block) {
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, instruction->basic_block());
-  instruction->outputs_[index] = new_value;
+  instruction->SetOutput(index, new_value);
 }
 
 void Editor::SetReturn() {
