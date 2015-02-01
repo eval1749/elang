@@ -107,6 +107,7 @@ void Editor::DidChangeControlFlow() {
 
 void Editor::Edit(BasicBlock* basic_block) {
   DCHECK(!basic_block_);
+  DCHECK_EQ(function_, basic_block->function());
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
@@ -207,6 +208,8 @@ bool Editor::IsAlive(Value* value) {
 }
 
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
+  DCHECK(reference);
+  DCHECK_EQ(function(), reference->function());
   auto const new_basic_block = factory()->NewBasicBlock();
   new_basic_block->function_ = function_;
   new_basic_block->id_ = factory()->NextBasicBlockId();
