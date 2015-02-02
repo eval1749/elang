@@ -28,7 +28,7 @@ class InstructionVisitor;
   V(Literal)                            \
   V(Load)
 
-#define FOR_EACH_LIR_INSTRUCTION_N(V) V(Jump, (BasicBlock * target_block))
+#define FOR_EACH_LIR_INSTRUCTION_N_N(V) V(Jump, (BasicBlock * target_block))
 
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class
@@ -37,7 +37,7 @@ class InstructionVisitor;
   FOR_EACH_LIR_INSTRUCTION_0_0(V)   \
   FOR_EACH_LIR_INSTRUCTION_0_1(V)   \
   FOR_EACH_LIR_INSTRUCTION_1_1(V)   \
-  FOR_EACH_LIR_INSTRUCTION_N(V)
+  FOR_EACH_LIR_INSTRUCTION_N_N(V)
 
 #define V(Name, ...) class Name##Instruction;
 FOR_EACH_LIR_INSTRUCTION(V)
