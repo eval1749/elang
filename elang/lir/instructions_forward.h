@@ -42,10 +42,6 @@ class InstructionVisitor;
 FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
 
-namespace isa {
-enum class Opcode;
-}  //  namespace isa
-
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction& instruction);
 
