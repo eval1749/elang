@@ -53,7 +53,6 @@ class CompilerTest : public ::testing::Test {
   std::string GetErrors();
   std::string GetWarnings();
   bool Parse();
-  void PopulateSystemNamespace();
   void Prepare(base::StringPiece16 source_code);
   void Prepare(base::StringPiece source_code);
 
