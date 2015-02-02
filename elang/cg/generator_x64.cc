@@ -74,7 +74,7 @@ void Generator::EmitSetLiteral(lir::Value output, hir::Literal* value) {
 void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
   DCHECK(output.is_register());
   if (auto const instr = value->as<hir::Instruction>()) {
-    Emit(factory()->NewCopyInstruction(output, register_map_[value]));
+    EmitCopy(output, register_map_[value]);
     return;
   }
   if (auto const literal = value->as<hir::Literal>()) {
@@ -105,7 +105,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     auto const output = MapRegister(instr, 32);
     auto const input = lir::Isa::GetParameterAt(output, 0);
     DCHECK(input.is_register());
-    Emit(factory()->NewCopyInstruction(output, input));
+    EmitCopy(output, input);
     return;
   }
   for (auto const user : instr->users()) {
@@ -115,7 +115,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     auto const output = MapRegister(get_instr, 32);
     auto const input = lir::Isa::GetParameterAt(output, get_instr->index());
     if (input.is_register()) {
-      Emit(factory()->NewCopyInstruction(output, input));
+      EmitCopy(output, input);
       continue;
     }
     Emit(factory()->NewLoadInstruction(output, input));

@@ -55,6 +55,11 @@ void Generator::Emit(lir::Instruction* instruction) {
   editor()->Append(instruction);
 }
 
+void Generator::EmitCopy(lir::Value output, lir::Value input) {
+  DCHECK_NE(output, input);
+  Emit(factory()->NewCopyInstruction(output, input));
+}
+
 lir::Function* Generator::Generate() {
   for (auto const hir_block : hir_function_->basic_blocks()) {
     EditBasicBlock(hir_block);
