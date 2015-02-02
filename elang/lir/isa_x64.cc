@@ -211,14 +211,6 @@ Value Isa::GetRegister(isa::Register name) {
                Value::Kind::PhysicalRegister, name & 15);
 }
 
-bool Isa::IsCopyable(Value output, Value input) {
-  if (output.type != input.type || output.size != input.size)
-    return false;
-  if (output.is_register())
-    return true;
-  return input.is_register();
-}
-
 Value::Size Isa::PointerSize() {
   return Value::Size::Size64;
 }

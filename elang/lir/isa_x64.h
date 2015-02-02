@@ -163,8 +163,6 @@ class ELANG_LIR_EXPORT Isa {
 
   static Value GetParameterAt(Value output, int position);
   static Value GetRegister(isa::Register name);
-  static bool IsCopyable(Value output, Value input);
-  static Value::Size NaturalSize();
   static Value::Size PointerSize();
 };
 
