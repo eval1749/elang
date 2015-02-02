@@ -107,6 +107,12 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value::Kind& kind);
 
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Value::Size& size);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Value::Type& type);
+
 }  // namespace lir
 }  // namespace elang
 

@@ -155,6 +155,28 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
          << kinds[std::min(static_cast<size_t>(kind), arraysize(kinds) - 1)];
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Value::Size& size) {
+  static const char* const sizes[] = {
+      "Size8",
+      "Size16",
+      "Size32",
+      "Size64",
+      "Illegal",
+  };
+  return ostream
+         << sizes[std::min(static_cast<size_t>(size), arraysize(sizes) - 1)];
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Value::Type& type) {
+  static const char* const types[] = {
+      "Integer",
+      "Float",
+      "Illegal",
+  };
+  return ostream
+         << types[std::min(static_cast<size_t>(type), arraysize(types) - 1)];
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // TextFormatter
