@@ -20,3 +20,14 @@ static_library("ir") {
     "//elang/base",
   ]
 }
+
+source_set("compiler_ir_test") {
+  testonly = true
+  sources = [
+    "nodes_unittest.cc",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":ir",
+  ]
+}

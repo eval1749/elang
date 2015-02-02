@@ -97,6 +97,31 @@ class Type : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
+// ArrayType
+//
+class ArrayType final : public Type {
+  DECLARE_CONCRETE_IR_NODE_CLASS(ArrayType, Type);
+
+ public:
+  // Dimension of each rank. dimensions.front() == -1 means unbound array.
+  const ZoneVector<int>& dimensions() const { return dimensions_; }
+  Type* element_type() const { return element_type_; }
+  int rank() const { return static_cast<int>(dimensions_.size()); }
+
+ private:
+  ArrayType(Zone* zone, Type* element_type, const std::vector<int>& dimensions);
+
+  // Type
+  bool IsSubtypeOf(const Type* other) const final;
+
+  const ZoneVector<int> dimensions_;
+  Type* const element_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayType);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Class
 //
 class Class final : public Type {

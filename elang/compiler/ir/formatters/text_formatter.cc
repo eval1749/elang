@@ -59,6 +59,18 @@ void Formatter::Format(const Node* node) {
 }
 
 // Visitor
+void Formatter::VisitArrayType(ArrayType* node) {
+  ostream_ << *node->element_type() << "[";
+  auto separator = "";
+  for (auto dimension : node->dimensions()) {
+    ostream_ << separator;
+    if (dimension >= 0)
+      ostream_ << dimension;
+    separator = ",";
+  }
+  ostream_ << "]";
+}
+
 void Formatter::VisitClass(Class* node) {
   ostream_ << node->ast_class()->NewQualifiedName();
 }

@@ -17,6 +17,7 @@ namespace ir {
   V(Value)
 
 #define FOR_EACH_CONCRETE_IR_TYPE_NODE(V) \
+  V(ArrayType)                            \
   V(Class)                                \
   V(Enum)                                 \
   V(Signature)

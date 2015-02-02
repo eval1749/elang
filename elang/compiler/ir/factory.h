@@ -5,6 +5,7 @@
 #ifndef ELANG_COMPILER_IR_FACTORY_H_
 #define ELANG_COMPILER_IR_FACTORY_H_
 
+#include <memory>
 #include <vector>
 
 #include "elang/base/zone_owner.h"
@@ -23,6 +24,12 @@ class Factory final : public ZoneOwner {
  public:
   Factory();
   ~Factory();
+
+  // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
+  // Note: it is valid that one of dimension is zero. In this case, number of
+  // elements in zero.
+  ArrayType* NewArrayType(Type* element_type,
+                          const std::vector<int>& dimensions);
 
   Class* NewClass(ast::Class* ast_class,
                   const std::vector<Class*>& base_classes);
@@ -45,6 +52,10 @@ class Factory final : public ZoneOwner {
                         ast::NamedNode* variable);
 
  private:
+  class ArrayTypeFactory;
+
+  std::unique_ptr<ArrayTypeFactory> array_type_factory_;
+
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
 

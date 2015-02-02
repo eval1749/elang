@@ -55,6 +55,23 @@ Signature::Arity ComputeArity(const std::vector<Parameter*>& parameters) {
 
 }  // namespace
 
+// ArrayType
+ArrayType::ArrayType(Zone* zone,
+                     Type* element_type,
+                     const std::vector<int>& dimensions)
+    : dimensions_(zone, dimensions), element_type_(element_type) {
+}
+
+bool ArrayType::IsSubtypeOf(const Type* other) const {
+  if (this == other)
+    return true;
+  auto const array_type = other->as<ArrayType>();
+  if (!array_type)
+    return false;
+  return dimensions_.size() == array_type->dimensions_.size() &&
+         element_type_->IsSubtypeOf(array_type->element_type_);
+}
+
 // Class
 Class::Class(Zone* zone,
              ast::Class* ast_class,
