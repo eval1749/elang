@@ -20,6 +20,8 @@
 namespace elang {
 namespace cg {
 
+using lir::Isa;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Generator
@@ -46,6 +48,40 @@ lir::Value Generator::AllocateRegister(hir::Value* hir_value,
   }
   NOTREACHED() << "unsupported bit size: " << *primitive_type;
   return factory()->NewRegister();
+}
+
+void Generator::EmitSetLiteral(lir::Value output, hir::Literal* value) {
+  DCHECK(output.is_register());
+
+  if (auto const literal = value->as<hir::BoolLiteral>()) {
+    Emit(factory()->NewLoadInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Int32Literal>()) {
+    Emit(factory()->NewLoadInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Int64Literal>()) {
+    Emit(factory()->NewLoadInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  NOTREACHED() << "unsupported hir::Literal: " << *value;
+}
+
+void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
+  DCHECK(output.is_register());
+  if (auto const instr = value->as<hir::Instruction>()) {
+    Emit(factory()->NewCopyInstruction(output, register_map_[value]));
+    return;
+  }
+  if (auto const literal = value->as<hir::Literal>()) {
+    EmitSetLiteral(output, literal);
+    return;
+  }
+  NOTREACHED() << "unsupported hir::Value: " << *value;
 }
 
 lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
@@ -88,7 +124,16 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
 
 // Set return value and emit 'ret' instruction.
 void Generator::VisitRet(hir::RetInstruction* instr) {
-  DCHECK(instr->input(0)->is<hir::VoidValue>());
+  auto const value = instr->input(0);
+  if (!value->is<hir::VoidValue>()) {
+    auto const primitive_type = value->type()->as<hir::PrimitiveType>();
+    if (primitive_type->is_float())
+      EmitSetValue(Isa::GetRegister(lir::isa::XMM0), value);
+    else if (primitive_type->bit_size() <= 32)
+      EmitSetValue(Isa::GetRegister(lir::isa::EAX), value);
+    else
+      EmitSetValue(Isa::GetRegister(lir::isa::RAX), value);
+  }
   editor()->SetReturn();
 }
 

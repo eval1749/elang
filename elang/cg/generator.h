@@ -15,6 +15,7 @@ namespace elang {
 namespace hir {
 class BasicBlock;
 class Function;
+class Literal;
 class Value;
 }
 namespace lir {
@@ -46,6 +47,8 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   lir::Value AllocateRegister(hir::Value* value, int min_bit_size);
   void EditBasicBlock(hir::BasicBlock* hir_block);
   void Emit(lir::Instruction* instruction);
+  void EmitSetLiteral(lir::Value output, hir::Literal* literal);
+  void EmitSetValue(lir::Value output, hir::Value* input);
   lir::Value MapRegister(hir::Value* value, int min_bit_size);
 
   // hir::InstructionVisitor

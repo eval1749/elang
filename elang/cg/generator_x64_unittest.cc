@@ -77,6 +77,44 @@ TEST_F(GeneratorX64Test, Parameter) {
       Format(result));
 }
 
+TEST_F(GeneratorX64Test, ReturnInt32) {
+  auto const function = NewFunction(int32_type(), void_type());
+  hir::Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.SetReturn(factory()->NewInt32Literal(42));
+  editor.Commit();
+  Generator generator(lir_factory(), function);
+  auto const result = generator.Generate();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov EAX, 42\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      Format(result));
+}
+
+TEST_F(GeneratorX64Test, ReturnInt64) {
+  auto const function = NewFunction(int64_type(), void_type());
+  hir::Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.SetReturn(factory()->NewInt64Literal(42));
+  editor.Commit();
+  Generator generator(lir_factory(), function);
+  auto const result = generator.Generate();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov RAX, 42\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      Format(result));
+}
+
 }  // namespace
 }  // namespace cg
 }  // namespace elang
