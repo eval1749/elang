@@ -178,7 +178,7 @@ std::ostream& operator<<(std::ostream& ostream,
 
 namespace isa {
 static const Register kIntegerParameters[] = {RCX, RDX, R8, R9};
-static const Register kFloatParameters[] = {XMM0, XMM1, XMM2, XMM3};
+static const Register kFloatParameters[] = {XMM0D, XMM1D, XMM2D, XMM3D};
 
 static_assert(sizeof(kIntegerParameters) == sizeof(kFloatParameters),
               "Number of parameter registers should be matched between"
@@ -199,9 +199,13 @@ Value Isa::GetParameterAt(Value output, int position) {
 
 Value Isa::GetRegister(isa::Register name) {
   auto const number = static_cast<int>(name);
-  if (number >= isa::XMM0 && number <= isa::XMM15) {
+  if (number >= isa::XMM0D && number <= isa::XMM15D) {
     return Value(Value::Type::Float, Value::Size::Size64,
-                 Value::Kind::PhysicalRegister, number);
+                 Value::Kind::PhysicalRegister, number & 15);
+  }
+  if (number >= isa::XMM0S && number <= isa::XMM15S) {
+    return Value(Value::Type::Float, Value::Size::Size32,
+                 Value::Kind::PhysicalRegister, number & 15);
   }
   return Value(Value::Type::Integer, static_cast<Value::Size>(name >> 8),
                Value::Kind::PhysicalRegister, name & 15);

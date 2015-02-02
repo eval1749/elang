@@ -127,12 +127,16 @@ void Generator::VisitRet(hir::RetInstruction* instr) {
   auto const value = instr->input(0);
   if (!value->is<hir::VoidValue>()) {
     auto const primitive_type = value->type()->as<hir::PrimitiveType>();
-    if (primitive_type->is_float())
-      EmitSetValue(Isa::GetRegister(lir::isa::XMM0), value);
-    else if (primitive_type->bit_size() <= 32)
+    if (primitive_type->is_float()) {
+      if (primitive_type->bit_size() == 64)
+        EmitSetValue(Isa::GetRegister(lir::isa::XMM0D), value);
+      else
+        EmitSetValue(Isa::GetRegister(lir::isa::XMM0S), value);
+    } else if (primitive_type->bit_size() <= 32) {
       EmitSetValue(Isa::GetRegister(lir::isa::EAX), value);
-    else
+    } else {
       EmitSetValue(Isa::GetRegister(lir::isa::RAX), value);
+    }
   }
   editor()->SetReturn();
 }
