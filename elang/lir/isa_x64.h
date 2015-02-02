@@ -142,6 +142,7 @@ class ELANG_LIR_EXPORT Isa {
   Isa() = delete;
   ~Isa() = delete;
 
+  static Value GetParameterAt(Value output, int position);
   static Value GetRegister(isa::Register name);
   static bool IsCopyable(Value output, Value input);
   static Value::Size NaturalSize();
