@@ -24,7 +24,8 @@ CopyInstruction::CopyInstruction(Value output, Value input) {
   DCHECK(input.is_register());
   DCHECK(output.is_register());
   DCHECK_NE(output, input);
-  DCHECK(Isa::IsCopyable(output, input));
+  DCHECK_EQ(output.size, input.size);
+  DCHECK_EQ(output.type, input.type);
   InitOutput(0, output);
   InitInput(0, input);
 }
@@ -63,6 +64,8 @@ LiteralInstruction::LiteralInstruction(Value output, Value input)
     : InstructionTemplate() {
   DCHECK(input.is_immediate() || input.is_literal());
   DCHECK(output.is_register());
+  DCHECK_EQ(output.size, input.size);
+  DCHECK_EQ(output.type, input.type);
   InitOutput(0, output);
   InitInput(0, input);
 }
@@ -74,6 +77,8 @@ base::StringPiece LiteralInstruction::mnemonic() const {
 // Load
 LoadInstruction::LoadInstruction(Value output, Value input)
     : InstructionTemplate() {
+  DCHECK(!input.is_immediate());
+  DCHECK(!input.is_literal());
   DCHECK(!input.is_register());
   DCHECK(output.is_register());
   InitOutput(0, output);

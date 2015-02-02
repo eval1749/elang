@@ -54,17 +54,57 @@ void Generator::EmitSetLiteral(lir::Value output, hir::Literal* value) {
   DCHECK(output.is_register());
 
   if (auto const literal = value->as<hir::BoolLiteral>()) {
-    Emit(factory()->NewLoadInstruction(
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Float32Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewFloat32Value(literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Float64Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewFloat64Value(literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Int8Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::Int16Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
         output, factory()->NewIntValue(output.size, literal->data())));
     return;
   }
   if (auto const literal = value->as<hir::Int32Literal>()) {
-    Emit(factory()->NewLoadInstruction(
+    Emit(factory()->NewLiteralInstruction(
         output, factory()->NewIntValue(output.size, literal->data())));
     return;
   }
   if (auto const literal = value->as<hir::Int64Literal>()) {
-    Emit(factory()->NewLoadInstruction(
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::UInt8Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::UInt16Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::UInt32Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
+        output, factory()->NewIntValue(output.size, literal->data())));
+    return;
+  }
+  if (auto const literal = value->as<hir::UInt64Literal>()) {
+    Emit(factory()->NewLiteralInstruction(
         output, factory()->NewIntValue(output.size, literal->data())));
     return;
   }
