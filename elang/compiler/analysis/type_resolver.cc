@@ -44,6 +44,19 @@ struct TypeResolver::Context {
 
 //////////////////////////////////////////////////////////////////////
 //
+// TypeResolver::NumericType
+//
+struct TypeResolver::NumericType {
+  enum class Kind { Float, Int, None, UInt };
+
+  Kind kind;
+  int size;
+
+  NumericType(Kind kind, int size) : kind(kind), size(size) {}
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // TypeResolver::ScopedContext
 //
 class TypeResolver::ScopedContext {
@@ -214,6 +227,25 @@ ir::Node* TypeResolver::ValueOf(ast::Node* node) {
 }
 
 // ast::Visitor
+
+// Check |array| is array type and |index|+ are integer type.
+void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
+  auto const array = Resolve(node->array(), any_value());
+  auto const array_type =
+      array->as<ts::Literal>()->value()->is<ir::ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
+    return;
+  }
+  for (auto index : node->indexes()) {
+    auto const result = NumericTypeOf(Resolve(index, any_value()));
+    if (result.kind == NumericType::Kind::Int ||
+        result.kind == NumericType::Kind::UInt) {
+      continue;
+    }
+    Error(ErrorCode::TypeResolverArrayAccessIndex, index);
+  }
+}
 
 void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
   auto const lhs = assignment->left();

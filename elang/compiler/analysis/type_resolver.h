@@ -54,18 +54,10 @@ class TypeResolver final : public Analyzer,
 
  private:
   struct Context;
+  struct NumericType;
   class ScopedContext;
 
-  struct NumericType {
-    enum class Kind { Float, Int, None, UInt };
-
-    Kind kind;
-    int size;
-
-    NumericType(Kind kind, int size) : kind(kind), size(size) {}
-  };
-
-  NumericType NumericTypeOf(ts::Value* vlaue) const;
+  NumericType NumericTypeOf(ts::Value* value) const;
 
   ts::Value* PromoteNumericType(NumericType left_type,
                                 NumericType right_type) const;
@@ -84,6 +76,7 @@ class TypeResolver final : public Analyzer,
   ir::Node* ValueOf(ast::Node* node);
 
   // ast::Visitor
+  void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitAssignment(ast::Assignment* node) final;
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;

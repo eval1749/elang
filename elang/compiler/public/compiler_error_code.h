@@ -195,6 +195,8 @@ namespace compiler {
   E(Token, String, HasNewline)                        \
   E(Token, String, Unclosed)                          \
   /* Type Resolver */                                 \
+  E(TypeResolver, ArrayAccess, Array)                 \
+  E(TypeResolver, ArrayAccess, Index)                 \
   E(TypeResolver, Argument, Unify)                    \
   E(TypeResolver, Assignment, LeftValue)              \
   E(TypeResolver, BinaryOperation, Equality)          \

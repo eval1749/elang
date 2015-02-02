@@ -234,6 +234,41 @@ void MethodAnalyzerTest::SetUp() {
 // Test cases
 //
 
+// Array access
+TEST_F(MethodAnalyzerTest, ArrayAccess) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(String[] args) {"
+      "    Console.WriteLine(args[1]);"
+      "  }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  EXPECT_EQ("System.String[]\n", QuerySemantics(TokenType::LeftSquareBracket));
+}
+
+TEST_F(MethodAnalyzerTest, ArrayAccessErrorArray) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(int args) {"
+      "    Console.WriteLine(args[1]);"
+      "  }"
+      "}");
+  ASSERT_EQ("TypeResolver.ArrayAccess.Array(79) args\n", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, ArrayAccessErrorIndex) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(String[] args) {"
+      "    Console.WriteLine(args[\"foo\"]);"
+      "  }"
+      "}");
+  ASSERT_EQ("TypeResolver.ArrayAccess.Index(89) \"foo\"\n", Analyze());
+}
+
 // Binary operations
 TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat64) {
   Prepare(
@@ -403,9 +438,8 @@ TEST_F(MethodAnalyzerTest, Method) {
       "class Sample {"
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
-  EXPECT_EQ(
-      "System.Void System.Console.WriteLine(System.String string)\n",
-      GetCalls("Sample.Main"));
+  EXPECT_EQ("System.Void System.Console.WriteLine(System.String string)\n",
+            GetCalls("Sample.Main"));
 }
 
 TEST_F(MethodAnalyzerTest, Method2) {
