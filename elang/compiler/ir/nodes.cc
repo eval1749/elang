@@ -60,6 +60,11 @@ ArrayType::ArrayType(Zone* zone,
                      Type* element_type,
                      const std::vector<int>& dimensions)
     : dimensions_(zone, dimensions), element_type_(element_type) {
+  DCHECK(!dimensions_.empty());
+#ifndef NDEBUG
+  for (auto const dimension : dimensions_)
+    DCHECK_GE(dimension, -1);
+#endif
 }
 
 bool ArrayType::IsSubtypeOf(const Type* other) const {
