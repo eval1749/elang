@@ -4,6 +4,7 @@
 
 #include "elang/cg/generator.h"
 
+#include "elang/hir/instructions.h"
 #include "elang/hir/values.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
@@ -48,6 +49,20 @@ void Generator::EditBasicBlock(hir::BasicBlock* hir_block) {
   editor()->EditNewBasicBlock();
   auto const new_lir_block = editor()->basic_block();
   block_map_[hir_block] = new_lir_block;
+}
+
+void Generator::Emit(lir::Instruction* instruction) {
+  editor()->Append(instruction);
+}
+
+lir::Function* Generator::Generate() {
+  for (auto const hir_block : hir_function_->basic_blocks()) {
+    EditBasicBlock(hir_block);
+    for (auto const instruction : hir_block->instructions())
+      const_cast<hir::Instruction*>(instruction)->Accept(this);
+    editor()->Commit();
+  }
+  return editor()->function();
 }
 
 }  // namespace cg
