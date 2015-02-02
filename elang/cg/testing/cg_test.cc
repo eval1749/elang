@@ -47,7 +47,7 @@ std::string CgTest::Format(const lir::Function* function) {
 hir::Function* CgTest::NewFunction(hir::Type* return_type,
                                    hir::Type* parameters_type) {
   return factory()->NewFunction(
-      types()->NewFunctionType(void_type(), void_type()));
+      types()->NewFunctionType(return_type, parameters_type));
 }
 
 }  // namespace testing
