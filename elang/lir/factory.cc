@@ -9,12 +9,31 @@
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
+#include "elang/lir/instruction_visitor.h"
 #include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 
+#ifdef ELANG_TARGET_ARCH_X64
+#include "elang/lir/instructions_x64.h"
+#endif
+
 namespace elang {
 namespace lir {
+
+#define V(Name, ...)                                               \
+  void InstructionVisitor::Visit##Name(Name##Instruction* instr) { \
+    DoDefaultVisit(instr);                                         \
+  }
+FOR_EACH_LIR_INSTRUCTION(V)
+#ifdef ELANG_TARGET_ARCH_X64
+FOR_EACH_LIR_INSTRUCTION_X64(V)
+#endif
+#undef V
+
+void InstructionVisitor::DoDefaultVisit(Instruction* instr) {
+  DCHECK(instr);
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -201,10 +220,36 @@ FOR_EACH_LIR_INSTRUCTION_0_1(V)
 FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
+#define V(Name, ...)                                                     \
+  Instruction* Factory::New##Name##Instruction(Value output, Value left, \
+                                               Value right) {            \
+    return new (zone()) Name##Instruction(output, left, right);          \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_2(V)
+#undef V
+
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
   DCHECK(target_block->id());
   return new (zone()) JumpInstruction(target_block);
 }
+
+#ifdef ELANG_TARGET_ARCH_X64
+Instruction* Factory::NewDiv2Instruction(Value div_output,
+                                         Value mod_output,
+                                         Value high_left,
+                                         Value low_left,
+                                         Value right) {
+  return new (zone())
+      Div2Instruction(div_output, mod_output, high_left, low_left, right);
+}
+
+Instruction* Factory::NewMul2Instruction(Value high_output,
+                                         Value low_output,
+                                         Value left,
+                                         Value right) {
+  return new (zone()) Mul2Instruction(high_output, low_output, left, right);
+}
+#endif
 
 }  // namespace lir
 }  // namespace elang

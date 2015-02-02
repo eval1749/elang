@@ -8,6 +8,10 @@
 #include "elang/lir/instruction_visitor.h"
 #include "elang/lir/value.h"
 
+#ifdef ELANG_TARGET_ARCH_X64
+#include "elang/lir/instructions_x64.h"
+#endif
+
 namespace elang {
 namespace lir {
 
@@ -18,6 +22,9 @@ namespace lir {
     visitor->Visit##Name(this);                                 \
   }
 FOR_EACH_LIR_INSTRUCTION(V)
+#ifdef ELANG_TARGET_ARCH_X64
+FOR_EACH_LIR_INSTRUCTION_X64(V)
+#endif
 #undef V
 
 //////////////////////////////////////////////////////////////////////

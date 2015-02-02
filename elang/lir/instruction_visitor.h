@@ -7,6 +7,9 @@
 
 #include "base/logging.h"
 #include "elang/lir/instructions_forward.h"
+#ifdef ELANG_TARGET_ARCH_X64
+#include "elang/lir/instructions_x64_forward.h"
+#endif
 
 namespace elang {
 namespace lir {
@@ -17,14 +20,18 @@ namespace lir {
 //
 class InstructionVisitor {
  public:
-#define V(Name, ...) \
-  virtual void Visit##Name(Name##Instruction* instruction) = 0;
+#define V(Name, ...) virtual void Visit##Name(Name##Instruction* instruction);
   FOR_EACH_LIR_INSTRUCTION(V)
+#ifdef ELANG_TARGET_ARCH_X64
+  FOR_EACH_LIR_INSTRUCTION_X64(V)
+#endif
 #undef V
 
  protected:
   InstructionVisitor();
   virtual ~InstructionVisitor();
+
+  virtual void DoDefaultVisit(Instruction* instruction);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(InstructionVisitor);

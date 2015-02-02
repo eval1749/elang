@@ -178,15 +178,6 @@ class ELANG_LIR_EXPORT CallInstruction final
   explicit CallInstruction(Value callee);
 };
 
-// CopyInstruction
-class ELANG_LIR_EXPORT CopyInstruction final
-    : public InstructionTemplate<1, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Copy);
-
- private:
-  CopyInstruction(Value output, Value input);
-};
-
 // EntryInstruction
 class ELANG_LIR_EXPORT EntryInstruction final
     : public InstructionTemplate<0, 0> {
@@ -220,24 +211,6 @@ class ELANG_LIR_EXPORT JumpInstruction final
   bool IsTerminator() const final;
 };
 
-// LiteralInstruction - load literal/immediate into register.
-class ELANG_LIR_EXPORT LiteralInstruction final
-    : public InstructionTemplate<1, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Literal);
-
- private:
-  LiteralInstruction(Value output, Value input);
-};
-
-// LoadInstruction
-class ELANG_LIR_EXPORT LoadInstruction final
-    : public InstructionTemplate<1, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Load);
-
- private:
-  LoadInstruction(Value output, Value input);
-};
-
 // RetInstruction
 class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Ret);
@@ -248,6 +221,28 @@ class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
   // Instruction
   bool IsTerminator() const final;
 };
+
+#define V(Name)                                   \
+  class ELANG_LIR_EXPORT Name##Instruction final  \
+      : public InstructionTemplate<1, 1> {        \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name); \
+                                                  \
+   private:                                       \
+    Name##Instruction(Value output, Value input); \
+  };
+FOR_EACH_LIR_INSTRUCTION_1_1(V)
+#undef V
+
+#define V(Name)                                               \
+  class ELANG_LIR_EXPORT Name##Instruction final              \
+      : public InstructionTemplate<1, 2> {                    \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);             \
+                                                              \
+   private:                                                   \
+    Name##Instruction(Value output, Value left, Value right); \
+  };
+FOR_EACH_LIR_INSTRUCTION_1_2(V)
+#undef V
 
 }  // namespace lir
 }  // namespace elang

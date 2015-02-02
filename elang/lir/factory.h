@@ -15,6 +15,10 @@
 #include "elang/lir/literals_forward.h"
 #include "elang/lir/value.h"
 
+#ifdef ELANG_TARGET_ARCH_X64
+#include "elang/lir/instructions_x64_forward.h"
+#endif
+
 namespace elang {
 namespace lir {
 
@@ -74,9 +78,26 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
+#define V(Name, ...) \
+  Instruction* New##Name##Instruction(Value output, Value left, Value right);
+  FOR_EACH_LIR_INSTRUCTION_1_2(V)
+#undef V
+
 #define V(Name, parameters, ...) Instruction* New##Name##Instruction parameters;
   FOR_EACH_LIR_INSTRUCTION_N_N(V)
 #undef V
+
+#ifdef ELANG_TARGET_ARCH_X64
+  Instruction* NewDiv2Instruction(Value div_output,
+                                  Value mod_output,
+                                  Value high_left,
+                                  Value low_left,
+                                  Value right);
+  Instruction* NewMul2Instruction(Value high_output,
+                                  Value low_output,
+                                  Value left,
+                                  Value right);
+#endif
 
  private:
   base::StringPiece16 NewString(base::StringPiece16 string);

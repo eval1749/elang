@@ -251,10 +251,9 @@ class InstructionEmitter final : private InstructionVisitor {
   void EmitOpcode(isa::Opcode opcode);
   void EmitOperand(Value value);
 
-// InstructionVisitor
-#define V(Name, ...) void Visit##Name(Name##Instruction* instruction) final;
-  FOR_EACH_LIR_INSTRUCTION(V)
-#undef V
+  // InstructionVisitor
+  void VisitCall(CallInstruction* instr) final;
+  void VisitRet(RetInstruction* instr) final;
 
   CodeBuffer* const code_buffer_;
 
@@ -300,30 +299,6 @@ void InstructionEmitter::Process(const Instruction* instr) {
 void InstructionEmitter::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instr->input(0));
-}
-
-void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
-  __assume(instr);
-}
-
-void InstructionEmitter::VisitEntry(EntryInstruction* instr) {
-  __assume(instr);
-}
-
-void InstructionEmitter::VisitExit(ExitInstruction* instr) {
-  __assume(instr);
-}
-
-void InstructionEmitter::VisitJump(JumpInstruction* instr) {
-  __assume(instr);
-}
-
-void InstructionEmitter::VisitLiteral(LiteralInstruction* instr) {
-  __assume(instr);
-}
-
-void InstructionEmitter::VisitLoad(LoadInstruction* instr) {
-  __assume(instr);
 }
 
 void InstructionEmitter::VisitRet(RetInstruction* instr) {

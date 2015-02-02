@@ -45,6 +45,8 @@ component("lir") {
     sources += [
       "code_emitter_x64.cc",
       "instructions_x64.cc",
+      "instructions_x64.h",
+      "instructions_x64_forward.h",
       "isa_x64.h",
       "isa_x64.cc",
       "opcodes_x64.h",

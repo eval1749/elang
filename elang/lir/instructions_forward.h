@@ -28,6 +28,23 @@ class InstructionVisitor;
   V(Literal)                            \
   V(Load)
 
+#define FOR_EACH_LIR_INSTRUCTION_1_2(V) \
+  V(Add)                                \
+  V(Div)                                \
+  V(Mul)                                \
+  V(Sub)                                \
+  V(BitAnd)                             \
+  V(BitOr)                              \
+  V(BitXor)                             \
+  V(Shl)                                \
+  V(Shr)                                \
+  V(Eq)                                 \
+  V(Ne)                                 \
+  V(Ge)                                 \
+  V(Gt)                                 \
+  V(Le)                                 \
+  V(Lt)
+
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V) V(Jump, (BasicBlock * target_block))
 
 // Visitor |V| takes three parameters:
@@ -37,6 +54,7 @@ class InstructionVisitor;
   FOR_EACH_LIR_INSTRUCTION_0_0(V)   \
   FOR_EACH_LIR_INSTRUCTION_0_1(V)   \
   FOR_EACH_LIR_INSTRUCTION_1_1(V)   \
+  FOR_EACH_LIR_INSTRUCTION_1_2(V)   \
   FOR_EACH_LIR_INSTRUCTION_N_N(V)
 
 #define V(Name, ...) class Name##Instruction;
