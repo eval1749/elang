@@ -307,16 +307,16 @@ class ArrayType final : public Type {
 
  public:
   Expression* element_type() const { return element_type_; }
-  const ZoneVector<int>& ranks() const { return ranks_; }
+  const ZoneVector<int>& dimensions() const { return dimensions_; }
 
  private:
   ArrayType(Zone* zone,
             Token* op_token,
             Type* element_type,
-            const std::vector<int>& ranks);
+            const std::vector<int>& dimensions);
 
+  const ZoneVector<int> dimensions_;
   Type* const element_type_;
-  const ZoneVector<int> ranks_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };

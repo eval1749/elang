@@ -58,18 +58,37 @@ ast::Type* Parser::NewTypeNameReference(Token* name) {
 }
 
 // ArrayType ::= Type ('[' ','* ']')+
+// Note: This function produces unbound array type. Bound array type are
+// created by array initializer expression.
+// Element type of T[A][B][C] is T[B][C], in other words element type of
+// array type is removing left most rank specifier.
 void Parser::ParseArrayType(Token* bracket) {
-  auto const element_type = ConsumeExpressionAsType();
-  std::vector<int> ranks;
-  do {
-    auto rank = 1;
-    while (AdvanceIf(TokenType::Comma))
-      ++rank;
+  auto element_type = ConsumeExpressionAsType();
+  std::vector<std::vector<int>> dimensions_list;
+  std::vector<Token*> brackets;
+  brackets.push_back(bracket);
+  for (;;) {
+    std::vector<int> dimensions;
+    do {
+      dimensions.push_back(-1);
+    } while (AdvanceIf(TokenType::Comma));
     if (!AdvanceIf(TokenType::RightSquareBracket))
       Error(ErrorCode::SyntaxTypeRightSquareBracket);
-    ranks.push_back(rank);
-  } while (AdvanceIf(TokenType::LeftSquareBracket));
-  ProduceType(factory()->NewArrayType(bracket, element_type, ranks));
+    DCHECK(!dimensions.empty());
+    dimensions_list.push_back(dimensions);
+    if (PeekToken() != TokenType::LeftSquareBracket)
+      break;
+    brackets.push_back(ConsumeToken());
+  }
+  DCHECK_EQ(brackets.size(), dimensions_list.size());
+  auto type = element_type;
+  while (!dimensions_list.empty()) {
+    type =
+        factory()->NewArrayType(brackets.back(), type, dimensions_list.back());
+    brackets.pop_back();
+    dimensions_list.pop_back();
+  }
+  ProduceType(type);
 }
 
 // NamespaceOrTypeName ::=

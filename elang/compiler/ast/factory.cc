@@ -318,8 +318,8 @@ YieldStatement* Factory::NewYieldStatement(Token* keyword, Expression* value) {
 //
 ArrayType* Factory::NewArrayType(Token* op,
                                  Type* element_type,
-                                 const std::vector<int>& ranks) {
-  return new (zone_) ArrayType(zone_, op, element_type, ranks);
+                                 const std::vector<int>& dimensions) {
+  return new (zone_) ArrayType(zone_, op, element_type, dimensions);
 }
 
 ConstructedType* Factory::NewConstructedType(ConstructedName* reference) {

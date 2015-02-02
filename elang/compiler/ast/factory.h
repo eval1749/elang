@@ -144,7 +144,7 @@ class Factory final {
   // Type nodes
   ArrayType* NewArrayType(Token* op,
                           Type* element_type,
-                          const std::vector<int>& ranks);
+                          const std::vector<int>& dimensions);
   ConstructedType* NewConstructedType(ConstructedName* node);
   InvalidType* NewInvalidType(Expression* expression);
   OptionalType* NewOptionalType(Token* op, Type* base_type);

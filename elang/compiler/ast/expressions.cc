@@ -158,8 +158,13 @@ Type::Type(Token* token) : Expression(token) {
 ArrayType::ArrayType(Zone* zone,
                      Token* op,
                      Type* element_type,
-                     const std::vector<int>& ranks)
-    : Type(op), element_type_(element_type), ranks_(zone, ranks) {
+                     const std::vector<int>& dimensions)
+    : Type(op), dimensions_(zone, dimensions), element_type_(element_type) {
+  DCHECK(!dimensions_.empty());
+#ifndef NDEBUG
+  for (auto const dimension : dimensions_)
+    DCHECK_GE(dimension, -1);
+#endif
 }
 
 // ConstructedType

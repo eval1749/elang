@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/compiler/testing/formatter.h"
 
 #include "base/logging.h"
@@ -106,12 +108,22 @@ void Formatter::VisitArrayAccess(ast::ArrayAccess* access) {
   stream_ << "]";
 }
 
-void Formatter::VisitArrayType(ast::ArrayType* array_type) {
-  Visit(array_type->element_type());
-  for (auto const rank : array_type->ranks()) {
+void Formatter::VisitArrayType(ast::ArrayType* node) {
+  std::vector<ast::ArrayType*> array_types;
+  for (ast::Expression* runner = node; runner->is<ast::ArrayType>();
+       runner = runner->as<ast::ArrayType>()->element_type()) {
+    array_types.push_back(runner->as<ast::ArrayType>());
+  }
+  stream_ << *array_types.back()->element_type();
+  for (auto array_type : array_types) {
     stream_ << "[";
-    for (auto counter = rank; counter >= 2; --counter)
-      stream_ << ",";
+    auto separator = "";
+    for (auto dimension : array_type->dimensions()) {
+      stream_ << separator;
+      if (dimension >= 0)
+        stream_ << dimension;
+      separator = ",";
+    }
     stream_ << "]";
   }
 }
