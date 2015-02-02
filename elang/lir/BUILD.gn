@@ -29,6 +29,7 @@ component("lir") {
     "literal_visitor.h",
     "printable.h",
     "value.h",
+    "value.cc",
   ]
 
   defines = [ "LIR_IMPLEMENTATION" ]

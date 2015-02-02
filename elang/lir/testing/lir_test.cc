@@ -44,12 +44,8 @@ Value LirTest::NewFloat64Value(float64_t data) {
   return factory()->NewFloat64Value(data);
 }
 
-Value LirTest::NewInt32Value(int32_t data) {
-  return factory()->NewInt32Value(data);
-}
-
-Value LirTest::NewInt64Value(int64_t data) {
-  return factory()->NewInt64Value(data);
+Value LirTest::NewIntValue(Value::Size size, int64_t data) {
+  return factory()->NewIntValue(size, data);
 }
 
 Value LirTest::NewStringValue(base::StringPiece16 data) {

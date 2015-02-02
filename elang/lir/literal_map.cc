@@ -21,10 +21,11 @@ LiteralMap::LiteralMap() {
 LiteralMap::~LiteralMap() {
 }
 
-Value LiteralMap::next_literal_value() const {
+Value LiteralMap::next_literal_value(Value model) const {
   auto const data = static_cast<int>(literals_.size() + 1);
   DCHECK(Value::CanBeImmediate(data));
-  return Value(Value::Kind::Literal, data);
+  model.data = data;
+  return model;
 }
 
 Literal* LiteralMap::GetLiteral(Value value) const {
@@ -34,10 +35,8 @@ Literal* LiteralMap::GetLiteral(Value value) const {
   return literals_[index];
 }
 
-Value LiteralMap::RegisterLiteral(Literal* literal) {
-  auto const value = next_literal_value();
+void LiteralMap::RegisterLiteral(Literal* literal) {
   literals_.push_back(literal);
-  return value;
 }
 
 }  // namespace lir

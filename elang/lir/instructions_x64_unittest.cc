@@ -30,8 +30,8 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewCopyInstruction(
-      Isa::GetRegister(isa::RAX), factory()->NewGeneralRegister()));
+  editor.Append(factory()->NewCopyInstruction(Isa::GetRegister(isa::RAX),
+                                              factory()->NewRegister()));
   editor.Commit();
   EXPECT_EQ(
       "function1:\n"
@@ -95,8 +95,9 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
+  auto const destination = factory()->NewRegister();
   editor.Append(factory()->NewLoadInstruction(
-      factory()->NewGeneralRegister(), Value(Value::Kind::Parameter, 4)));
+      destination, Value::Parameter(destination.type, destination.size, 4)));
   editor.Commit();
   EXPECT_EQ(
       "function1:\n"

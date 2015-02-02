@@ -95,16 +95,6 @@ std::ostream& operator<<(std::ostream& ostream,
   switch (value.kind) {
     case Value::Kind::Invalid:
       return ostream << "INVALID";
-    case Value::Kind::GeneralRegister:
-      if (value.data >= 0x300)
-        return ostream << names64[value.data & 15];
-      if (value.data >= 0x200)
-        return ostream << names32[value.data & 15];
-      if (value.data >= 0x100)
-        return ostream << names16[value.data & 15];
-      return ostream << names8[value.data & 15];
-    case Value::Kind::FloatRegister:
-      return ostream << "XMM" << value.data;
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Literal:
@@ -113,14 +103,29 @@ std::ostream& operator<<(std::ostream& ostream,
           return ostream << *literal;
       }
       return ostream << "#" << value.data;
+    case Value::Kind::PhysicalRegister:
+      DCHECK_GE(value.data, 0);
+      DCHECK_LT(value.data, 16);
+      if (value.type == Value::Type::Float)
+        return ostream << "XMM" << value.data;
+      switch (value.size) {
+        case Value::Size::Size8:
+          return ostream << names8[value.data];
+        case Value::Size::Size16:
+          return ostream << names16[value.data];
+        case Value::Size::Size32:
+          return ostream << names32[value.data];
+        case Value::Size::Size64:
+          return ostream << names64[value.data];
+      }
+      break;
     case Value::Kind::Parameter:
       return ostream << "%param[" << value.data << "]";
-    case Value::Kind::VirtualGeneralRegister:
-      return ostream << "%r" << value.data;
-    case Value::Kind::VirtualFloatRegister:
-      return ostream << "%f" << value.data;
+    case Value::Kind::VirtualRegister:
+      return ostream << (value.is_float() ? "%f" : "%r") << value.data;
   }
-  return ostream << "?" << value.kind << "?" << value.data;
+  NOTREACHED() << value;
+  return ostream << "NOTREACHED(" << value.data << ")";
 }
 
 std::ostream& operator<<(std::ostream& ostream,
@@ -169,31 +174,24 @@ std::ostream& operator<<(std::ostream& ostream,
 
 Value Isa::GetRegister(isa::Register name) {
   auto const number = static_cast<int>(name);
-  if (number >= isa::XMM0 && number <= isa::XMM15)
-    return Value(Value::Kind::FloatRegister, number);
-  return Value(Value::Kind::GeneralRegister, number);
+  if (number >= isa::XMM0 && number <= isa::XMM15) {
+    return Value(Value::Type::Float, Value::Size::Size64,
+                 Value::Kind::PhysicalRegister, number);
+  }
+  return Value(Value::Type::Integer, static_cast<Value::Size>(name >> 8),
+               Value::Kind::PhysicalRegister, name & 15);
 }
 
 bool Isa::IsCopyable(Value output, Value input) {
-  if (output.kind == Value::Kind::GeneralRegister) {
-    if (input.kind == Value::Kind::GeneralRegister)
-      return (output.data & ~15) == (input.data & ~15);
-    return input.kind == Value::Kind::VirtualGeneralRegister;
-  }
-  if (output.kind == Value::Kind::VirtualGeneralRegister) {
-    return input.kind == Value::Kind::GeneralRegister ||
-           input.kind == Value::Kind::VirtualGeneralRegister;
-  }
-  if (output.kind == Value::Kind::FloatRegister) {
-    return input.kind == Value::Kind::FloatRegister ||
-           input.kind == Value::Kind::VirtualFloatRegister;
-  }
-  if (output.kind == Value::Kind::VirtualFloatRegister) {
-    return input.kind == Value::Kind::FloatRegister ||
-           input.kind == Value::Kind::VirtualFloatRegister;
-  }
-  NOTREACHED() << "Invalid output " << output;
-  return false;
+  if (output.type != input.type || output.size != input.size)
+    return false;
+  if (output.is_register())
+    return true;
+  return input.is_register();
+}
+
+Value::Size Isa::PointerSize() {
+  return Value::Size::Size64;
 }
 
 }  // namespace lir

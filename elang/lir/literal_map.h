@@ -25,13 +25,13 @@ class ELANG_LIR_EXPORT LiteralMap {
   LiteralMap();
   ~LiteralMap();
 
-  Value next_literal_value() const;
+  Value next_literal_value(Value model) const;
 
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value) const;
 
   // Register |literal|
-  Value RegisterLiteral(Literal* literal);
+  void RegisterLiteral(Literal* literal);
 
  private:
   std::vector<Literal*> literals_;

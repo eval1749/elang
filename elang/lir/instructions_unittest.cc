@@ -43,8 +43,8 @@ TEST_F(LirInstructionTest, CallInstruction) {
 
 // CopyInstruction
 TEST_F(LirInstructionTest, CopyInstruction) {
-  auto const instr = factory()->NewCopyInstruction(
-      factory()->NewGeneralRegister(), Value(Value::Kind::GeneralRegister, 1));
+  auto const instr = factory()->NewCopyInstruction(factory()->NewRegister(),
+                                                   factory()->NewRegister());
   EXPECT_TRUE(instr->is<CopyInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
@@ -85,8 +85,9 @@ TEST_F(LirInstructionTest, JumpInstruction) {
 
 // LoadInstruction
 TEST_F(LirInstructionTest, LoadInstruction) {
+  auto const destination = factory()->NewRegister();
   auto const instr = factory()->NewLoadInstruction(
-      factory()->NewGeneralRegister(), Value(Value::Kind::Parameter, 0));
+      destination, Value::Parameter(destination.type, destination.size, 0));
   EXPECT_TRUE(instr->is<LoadInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());

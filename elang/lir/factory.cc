@@ -9,6 +9,7 @@
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
+#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 
@@ -35,18 +36,18 @@ Literal* Factory::GetLiteral(Value value) const {
 }
 
 BasicBlock* Factory::NewBasicBlock() {
+  Value model(Value::Type::Integer, Value::Size::Size8, Value::Kind::Literal);
   auto const block =
-      new (zone()) BasicBlock(literal_map_->next_literal_value());
-  auto const value = RegisterLiteral(block);
-  DCHECK_EQ(block->value(), value);
+      new (zone()) BasicBlock(literal_map_->next_literal_value(model));
+  RegisterLiteral(block);
   return block;
 }
 
 Function* Factory::NewFunction() {
+  Value model(Value::Type::Integer, Value::Size::Size8, Value::Kind::Literal);
   auto const function =
-      new (zone()) Function(literal_map_->next_literal_value());
-  auto const value = RegisterLiteral(function);
-  DCHECK_EQ(function->value(), value);
+      new (zone()) Function(literal_map_->next_literal_value(model));
+  RegisterLiteral(function);
 
   // Since |Editor| uses entry and exit blocks, we can't use editing
   // functions for populating entry and exit block.
@@ -91,7 +92,8 @@ Value Factory::NewFloat32Value(float32_t data) {
   auto const it = float32_map_.find(data);
   if (it != float32_map_.end())
     return it->second;
-  auto const value = RegisterLiteral(new (zone()) Float32Literal(data));
+  auto const value = literal_map_->next_literal_value(Value::Float32Literal());
+  RegisterLiteral(new (zone()) Float32Literal(data));
   float32_map_[value.data] = value;
   return value;
 }
@@ -100,41 +102,49 @@ Value Factory::NewFloat64Value(float64_t data) {
   auto const it = float64_map_.find(data);
   if (it != float64_map_.end())
     return it->second;
-  auto const value = RegisterLiteral(new (zone()) Float64Literal(data));
+  auto const value = literal_map_->next_literal_value(Value::Float64Literal());
+  RegisterLiteral(new (zone()) Float64Literal(data));
   float64_map_[value.data] = value;
   return value;
 }
 
-Value Factory::NewFloatRegister() {
-  return Value(Value::Kind::VirtualFloatRegister, ++last_float_register_id_);
+Value Factory::NewFloatRegister(Value::Size size) {
+  return Value::FloatRegister(size, ++last_float_register_id_);
 }
 
-Value Factory::NewGeneralRegister() {
-  return Value(Value::Kind::VirtualGeneralRegister,
-               ++last_general_register_id_);
+Value Factory::NewRegister(Value::Size size) {
+  return Value::Register(size, ++last_general_register_id_);
 }
 
-Value Factory::NewInt32Value(int32_t data) {
-  if (Value::CanBeImmediate(data))
-    return Value(Value::Kind::Immediate, data);
-  auto const it = int32_map_.find(data);
-  if (it != int32_map_.end())
-    return it->second;
-  auto const value = RegisterLiteral(new (zone()) Int32Literal(data));
-  int32_map_[value.data] = value;
-  return value;
+Value Factory::NewRegister() {
+  return NewRegister(Isa::PointerSize());
 }
 
-Value Factory::NewInt64Value(int64_t data) {
-  if (data >= std::numeric_limits<int32_t>::min() &&
-      data <= std::numeric_limits<int32_t>::max()) {
-    return NewInt32Value(static_cast<int32_t>(data));
+Value Factory::NewIntValue(Value::Size size, int64_t data) {
+  if (size == Value::Size::Size8 || size == Value::Size::Size16 ||
+      Value::CanBeImmediate(data)) {
+    return Value::Immediate(size, data);
   }
+
+  if (size == Value::Size::Size32) {
+    auto const it = int32_map_.find(data);
+    if (it != int32_map_.end())
+      return it->second;
+    auto const value = literal_map_->next_literal_value(
+        Value(Value::Type::Integer, size, Value::Kind::Literal));
+    RegisterLiteral(new (zone()) Int32Literal(data));
+    int32_map_[data] = value;
+    return value;
+  }
+
+  DCHECK(size == Value::Size::Size64);
   auto const it = int64_map_.find(data);
   if (it != int64_map_.end())
     return it->second;
-  auto const value = RegisterLiteral(new (zone()) Int64Literal(data));
-  int64_map_[value.data] = value;
+  auto const value = literal_map_->next_literal_value(
+      Value(Value::Type::Integer, size, Value::Kind::Literal));
+  RegisterLiteral(new (zone()) Int64Literal(data));
+  int64_map_[data] = value;
   return value;
 }
 
@@ -142,8 +152,10 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
     return it->second;
+  Value model(Value::Type::Integer, Isa::PointerSize(), Value::Kind::Literal);
+  auto const value = literal_map_->next_literal_value(model);
   auto const literal = new (zone()) StringLiteral(NewString(data));
-  auto const value = RegisterLiteral(literal);
+  RegisterLiteral(literal);
   string_map_[literal->data()] = value;
   return value;
 }
@@ -163,8 +175,8 @@ base::StringPiece16 Factory::NewString(base::StringPiece16 string_piece) {
   return base::StringPiece16(data, string_piece.size());
 }
 
-Value Factory::RegisterLiteral(Literal* literal) {
-  return literal_map_->RegisterLiteral(literal);
+void Factory::RegisterLiteral(Literal* literal) {
+  literal_map_->RegisterLiteral(literal);
 }
 
 // Instructions

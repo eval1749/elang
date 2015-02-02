@@ -19,49 +19,77 @@ namespace lir {
 // Value represents both input and output operand of instruction.
 //
 struct ELANG_LIR_EXPORT Value {
-  enum class Kind : uint32_t {
-    Invalid,
-    FloatRegister,
-    GeneralRegister,
-    Immediate,
-    Literal,
-    VirtualGeneralRegister,
-    VirtualFloatRegister,
-    Parameter,
+  enum class Type : uint32_t {
+    Integer,
+    Float,
   };
 
-  static const int kMaximumImmediate = 1 << 28;
-  static const int kMinimumImmediate = -1 << 28;
+  enum class Size : uint32_t {
+    Size8,
+    Size16,
+    Size32,
+    Size64,
+  };
 
-  Kind kind : 3;
-  int data : 29;
+  enum class Kind : uint32_t {
+    Invalid = 0,
+    Immediate = 1,
+    Literal = 2,
+    Parameter = 3,
+    PhysicalRegister = 4,
+    VirtualRegister = 5,
+    NotUsed6 = 6,
+    NotUsed7 = 7,
+    NotUsed8,
+    NotUsed9,
+    NotUsed10,
+    NotUsed11,
+    NotUsed12,
+    NotUsed13,
+    NotUsed14,
+    NotUsed15,
+  };
 
-  Value() : kind(Kind::Invalid), data(0) {}
-  Value(Kind kind, int data) : kind(kind), data(data) {}
+  static const int kMaximumImmediate = 1 << 23;
+  static const int kMinimumImmediate = -1 << 23;
+
+  Type type : 1;
+  Size size : 3;
+  Kind kind : 4;
+  int data : 24;
+
+  Value()
+      : type(Type::Integer), size(Size::Size8), kind(Kind::Invalid), data(0) {}
+
+  Value(Type type, Size size, Kind kind, int data)
+      : type(type), size(size), kind(kind), data(data) {}
+
+  Value(Type type, Size size, Kind kind)
+      : type(type), size(size), kind(kind), data(0) {}
+
+  bool is_float() const { return type == Type::Float; }
+  bool is_integer() const { return type == Type::Integer; }
 
   bool is_register() const {
-    return kind == Kind::FloatRegister || kind == Kind::GeneralRegister ||
-           kind == Kind::VirtualFloatRegister ||
-           kind == Kind::VirtualGeneralRegister;
+    return kind == Kind::PhysicalRegister || kind == Kind::VirtualRegister;
   }
 
-  static bool CanBeImmediate(int value) {
-    return value >= kMinimumImmediate && value <= kMaximumImmediate;
-  }
+  static bool CanBeImmediate(int64_t value);
 
-  static bool CanBeImmediate(bool value) = delete;
-  static bool CanBeImmediate(float32_t value) = delete;
-  static bool CanBeImmediate(float64_t value) = delete;
-  static bool CanBeImmediate(int64_t value) = delete;
-  static bool CanBeImmediate(uint32_t value) = delete;
-  static bool CanBeImmediate(uint64_t value) = delete;
+  static Value Float32Literal();
+  static Value Float64Literal();
+  static Value FloatRegister(Size size, int data);
+  static Value Immediate(Size size, int data);
+  static Value Parameter(Type type, Size size, int data);
+  static Value Register(Size size, int data);
 };
 
 static_assert(sizeof(Value) == sizeof(int),
               "Value must be packed into 32bit integer.");
 
 inline bool operator==(const Value& value1, const Value& value2) {
-  return value1.kind == value2.kind && value1.data == value2.data;
+  return value1.data == value2.data && value1.kind == value2.kind &&
+         value1.size == value2.size && value1.type == value2.type;
 }
 
 inline bool operator!=(const Value& value1, const Value& value2) {

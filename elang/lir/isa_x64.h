@@ -91,7 +91,7 @@ enum Register {
   R14W = 0x10E,
   R15W = 0x10F,
 
-  // 16-bit register
+  // 8-bit register
   AL = 0x00,
   CL = 0x01,
   DL = 0x02,
@@ -144,6 +144,8 @@ class ELANG_LIR_EXPORT Isa {
 
   static Value GetRegister(isa::Register name);
   static bool IsCopyable(Value output, Value input);
+  static Value::Size NaturalSize();
+  static Value::Size PointerSize();
 };
 
 }  // namespace lir

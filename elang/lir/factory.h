@@ -43,11 +43,18 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns |Literal| object.
   Value NewFloat32Value(float32_t value);
   Value NewFloat64Value(float64_t value);
-  Value NewFloatRegister();
-  Value NewGeneralRegister();
-  Value NewInt32Value(int32_t value);
-  Value NewInt64Value(int64_t value);
+  Value NewIntValue(Value::Size size, int64_t value);
   Value NewStringValue(base::StringPiece16 data);
+
+  // Virtual register
+  // Returns newly allocated virtual floating-point number register.
+  Value NewFloatRegister(Value::Size size);
+
+  // Returns newly allocated virtual integer register which bit size is |size|.
+  Value NewRegister(Value::Size size);
+
+  // Returns newly allocated virtual integer register which can hold pointer.
+  Value NewRegister();
 
   // Unique identifiers
   int NextBasicBlockId();
@@ -62,7 +69,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...)                                              \
+#define V(Name, ...) \
   Instruction* New##Name##Instruction(Value output, Value input);
   FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
@@ -73,7 +80,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
  private:
   base::StringPiece16 NewString(base::StringPiece16 string);
-  Value RegisterLiteral(Literal* literal);
+  void RegisterLiteral(Literal* literal);
 
   std::unordered_map<float32_t, Value> float32_map_;
   std::unordered_map<float64_t, Value> float64_map_;

@@ -11,6 +11,7 @@
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/float_types.h"
+#include "elang/lir/value.h"
 #include "gtest/gtest.h"
 
 namespace elang {
@@ -37,8 +38,7 @@ class LirTest : public ::testing::Test {
   Literal* GetLiteral(Value value);
   Value NewFloat32Value(float32_t data);
   Value NewFloat64Value(float64_t data);
-  Value NewInt32Value(int32_t data);
-  Value NewInt64Value(int64_t data);
+  Value NewIntValue(Value::Size size, int64_t data);
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(base::StringPiece data);
 
