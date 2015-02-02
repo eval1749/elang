@@ -37,17 +37,17 @@ namespace testing {
 Formatter::FormatBlock::FormatBlock(Formatter* formatter,
                                     NewlineAtEnd newline_at_end)
     : formatter_(formatter), newline_at_end_(newline_at_end) {
-  formatter_->stream_ << "{" << std::endl;
+  formatter_->ostream_ << "{" << std::endl;
   ++formatter_->depth_;
 }
 
 Formatter::FormatBlock::~FormatBlock() {
   --formatter_->depth_;
   formatter_->Indent();
-  formatter_->stream_ << "}";
+  formatter_->ostream_ << "}";
   if (newline_at_end_ == NewlineAtEnd::No)
     return;
-  formatter_->stream_ << std::endl;
+  formatter_->ostream_ << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -59,17 +59,17 @@ Formatter::Formatter() : depth_(0) {
 
 void Formatter::FormatChildStatement(ast::Statement* statement) {
   if (statement->is<ast::BlockStatement>()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(statement);
     return;
   }
-  stream_ << std::endl;
+  ostream_ << std::endl;
   IndentPlusOne();
   Visit(statement);
 }
 
 void Formatter::Indent() {
-  stream_ << std::string(depth_ * 2, ' ');
+  ostream_ << std::string(depth_ * 2, ' ');
 }
 
 void Formatter::IndentPlusOne() {
@@ -79,10 +79,10 @@ void Formatter::IndentPlusOne() {
 }
 
 std::string Formatter::Run(ast::Node* node) {
-  stream_.clear();
+  ostream_.clear();
   depth_ = 0;
   node->Accept(this);
-  return stream_.str();
+  return ostream_.str();
 }
 
 void Formatter::Visit(ast::Node* node) {
@@ -92,20 +92,20 @@ void Formatter::Visit(ast::Node* node) {
 // ast::Visitor
 void Formatter::VisitAlias(ast::Alias* alias) {
   Indent();
-  stream_ << alias->keyword() << " " << alias->name() << " = ";
+  ostream_ << alias->keyword() << " " << alias->name() << " = ";
   Visit(alias->reference());
-  stream_ << ";" << std::endl;
+  ostream_ << ";" << std::endl;
 }
 
 void Formatter::VisitArrayAccess(ast::ArrayAccess* access) {
   Visit(access->array());
   auto separator = "[";
   for (auto const index : access->indexes()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(index);
     separator = ", ";
   }
-  stream_ << "]";
+  ostream_ << "]";
 }
 
 void Formatter::VisitArrayType(ast::ArrayType* node) {
@@ -114,29 +114,29 @@ void Formatter::VisitArrayType(ast::ArrayType* node) {
        runner = runner->as<ast::ArrayType>()->element_type()) {
     array_types.push_back(runner->as<ast::ArrayType>());
   }
-  stream_ << *array_types.back()->element_type();
+  ostream_ << *array_types.back()->element_type();
   for (auto array_type : array_types) {
-    stream_ << "[";
+    ostream_ << "[";
     auto separator = "";
     for (auto dimension : array_type->dimensions()) {
-      stream_ << separator;
+      ostream_ << separator;
       if (dimension >= 0)
-        stream_ << dimension;
+        ostream_ << dimension;
       separator = ",";
     }
-    stream_ << "]";
+    ostream_ << "]";
   }
 }
 
 void Formatter::VisitAssignment(ast::Assignment* assignment) {
   Visit(assignment->left());
-  stream_ << " " << assignment->op() << " ";
+  ostream_ << " " << assignment->op() << " ";
   Visit(assignment->right());
 }
 
 void Formatter::VisitBinaryOperation(ast::BinaryOperation* operation) {
   Visit(operation->left());
-  stream_ << " " << operation->op() << " ";
+  ostream_ << " " << operation->op() << " ";
   Visit(operation->right());
 }
 
@@ -145,25 +145,25 @@ void Formatter::VisitBlockStatement(ast::BlockStatement* block_statement) {
   for (auto const statement : block_statement->statements()) {
     Indent();
     Visit(statement);
-    stream_ << std::endl;
+    ostream_ << std::endl;
   }
 }
 
 void Formatter::VisitBreakStatement(ast::BreakStatement* break_statement) {
   __assume(break_statement);
-  stream_ << "break;";
+  ostream_ << "break;";
 }
 
 void Formatter::VisitCall(ast::Call* call) {
   Visit(call->callee());
-  stream_ << "(";
+  ostream_ << "(";
   auto separator = "";
   for (auto const argument : call->arguments()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(argument);
     separator = ", ";
   }
-  stream_ << ")";
+  ostream_ << ")";
 }
 
 void Formatter::VisitCatchClause(ast::CatchClause* node) {
@@ -173,9 +173,9 @@ void Formatter::VisitCatchClause(ast::CatchClause* node) {
 
 void Formatter::VisitConditional(ast::Conditional* cond) {
   Visit(cond->condition());
-  stream_ << " ? ";
+  ostream_ << " ? ";
   Visit(cond->true_expression());
-  stream_ << " : ";
+  ostream_ << " : ";
   Visit(cond->false_expression());
 }
 
@@ -187,18 +187,18 @@ void Formatter::VisitClass(ast::Class* clazz) {
 void Formatter::VisitClassBody(ast::ClassBody* class_body) {
   auto const clazz = class_body->owner();
   Indent();
-  stream_ << clazz->modifiers();
+  ostream_ << clazz->modifiers();
   if (clazz->modifiers().value())
-    stream_ << " ";
-  stream_ << clazz->token() << " " << clazz->name();
+    ostream_ << " ";
+  ostream_ << clazz->token() << " " << clazz->name();
   auto separator = " : ";
   for (auto const base_class_name : class_body->base_class_names()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(base_class_name);
     separator = ", ";
   }
 
-  stream_ << " ";
+  ostream_ << " ";
   FormatBlock block(this);
   class_body->AcceptForMembers(this);
 }
@@ -206,19 +206,19 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
 void Formatter::VisitContinueStatement(
     ast::ContinueStatement* continue_statement) {
   __assume(continue_statement);
-  stream_ << "continue;";
+  ostream_ << "continue;";
 }
 
 void Formatter::VisitConstructedName(ast::ConstructedName* cons_name) {
   VisitNameReference(cons_name->reference());
-  stream_ << "<";
+  ostream_ << "<";
   auto separator = "";
   for (auto const type_arg : cons_name->arguments()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(type_arg);
     separator = ", ";
   }
-  stream_ << ">";
+  ostream_ << ">";
 }
 
 void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
@@ -226,33 +226,33 @@ void Formatter::VisitConstructedType(ast::ConstructedType* cons_type) {
 }
 
 void Formatter::VisitDoStatement(ast::DoStatement* do_statement) {
-  stream_ << "do ";
+  ostream_ << "do ";
   Visit(do_statement->statement());
-  stream_ << " while (";
+  ostream_ << " while (";
   Visit(do_statement->condition());
-  stream_ << ");";
+  ostream_ << ");";
 }
 
 void Formatter::VisitEmptyStatement(ast::EmptyStatement* empty_statement) {
   __assume(empty_statement);
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 void Formatter::VisitEnum(ast::Enum* enumx) {
   Indent();
-  stream_ << "enum " << enumx->name() << " ";
+  ostream_ << "enum " << enumx->name() << " ";
   FormatBlock block(this);
   for (auto const member : enumx->members()) {
     member->Accept(this);
-    stream_ << "," << std::endl;
+    ostream_ << "," << std::endl;
   }
 }
 
 void Formatter::VisitEnumMember(ast::EnumMember* node) {
   Indent();
-  stream_ << node->name();
+  ostream_ << node->name();
   if (auto const expression = node->expression()) {
-    stream_ << " = ";
+    ostream_ << " = ";
     Visit(expression);
   }
 }
@@ -260,7 +260,7 @@ void Formatter::VisitEnumMember(ast::EnumMember* node) {
 void Formatter::VisitExpressionList(ast::ExpressionList* statement) {
   auto separator = "";
   for (auto const expression : statement->expressions()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(expression);
     separator = ", ";
   }
@@ -268,58 +268,58 @@ void Formatter::VisitExpressionList(ast::ExpressionList* statement) {
 
 void Formatter::VisitExpressionStatement(ast::ExpressionStatement* statement) {
   Visit(statement->expression());
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 void Formatter::VisitField(ast::Field* field) {
   Indent();
   Visit(field->type());
-  stream_ << " " << field->name();
+  ostream_ << " " << field->name();
   if (auto const expression = field->expression()) {
-    stream_ << " = ";
+    ostream_ << " = ";
     Visit(expression);
   }
-  stream_ << ";" << std::endl;
+  ostream_ << ";" << std::endl;
 }
 
 void Formatter::VisitForEachStatement(ast::ForEachStatement* statement) {
-  stream_ << "for (";
+  ostream_ << "for (";
   Visit(statement->variable()->type());
-  stream_ << " " << statement->variable()->name() << " : ";
+  ostream_ << " " << statement->variable()->name() << " : ";
   Visit(statement->enumerable());
-  stream_ << ")";
+  ostream_ << ")";
   FormatChildStatement(statement->statement());
 }
 
 void Formatter::VisitForStatement(ast::ForStatement* statement) {
-  stream_ << "for (";
+  ostream_ << "for (";
   Visit(statement->initializer());
   if (statement->initializer()->is<ast::ExpressionList>())
-    stream_ << ";";
+    ostream_ << ";";
   if (statement->condition()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(statement->condition());
   }
-  stream_ << ";";
+  ostream_ << ";";
   if (statement->step()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(statement->step());
   }
-  stream_ << ")";
+  ostream_ << ")";
   FormatChildStatement(statement->statement());
 }
 
 void Formatter::VisitIfStatement(ast::IfStatement* statement) {
-  stream_ << "if (";
+  ostream_ << "if (";
   Visit(statement->condition());
-  stream_ << ")";
+  ostream_ << ")";
   if (!statement->else_statement()) {
     if (statement->then_statement()->is<ast::BlockStatement>()) {
-      stream_ << " ";
+      ostream_ << " ";
       Visit(statement->then_statement());
       return;
     }
-    stream_ << std::endl;
+    ostream_ << std::endl;
     IndentPlusOne();
     Visit(statement->then_statement());
     return;
@@ -330,67 +330,67 @@ void Formatter::VisitIfStatement(ast::IfStatement* statement) {
       statement->else_statement()->is<ast::BlockStatement>();
 
   if (statement->then_statement()->is<ast::BlockStatement>()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(statement->then_statement());
   } else if (use_brace) {
-    stream_ << " {" << std::endl;
+    ostream_ << " {" << std::endl;
     IndentPlusOne();
     Visit(statement->then_statement());
-    stream_ << std::endl;
+    ostream_ << std::endl;
     Indent();
-    stream_ << "}";
+    ostream_ << "}";
   }
 
   if (statement->else_statement()->is<ast::BlockStatement>()) {
-    stream_ << " else ";
+    ostream_ << " else ";
     Visit(statement->else_statement());
     return;
   }
 
   if (use_brace) {
-    stream_ << " else {" << std::endl;
+    ostream_ << " else {" << std::endl;
     IndentPlusOne();
     Visit(statement->else_statement());
-    stream_ << std::endl;
+    ostream_ << std::endl;
     Indent();
-    stream_ << "}";
+    ostream_ << "}";
     return;
   }
 
-  stream_ << std::endl;
+  ostream_ << std::endl;
   Indent();
-  stream_ << "else" << std::endl;
+  ostream_ << "else" << std::endl;
   IndentPlusOne();
   Visit(statement->then_statement());
 }
 
 void Formatter::VisitImport(ast::Import* import) {
   Indent();
-  stream_ << import->keyword() << " ";
+  ostream_ << import->keyword() << " ";
   Visit(import->reference());
-  stream_ << ";" << std::endl;
+  ostream_ << ";" << std::endl;
 }
 
 void Formatter::VisitInvalidExpression(ast::InvalidExpression* expression) {
-  stream_ << "INVALID('" << expression->token() << "')";
+  ostream_ << "INVALID('" << expression->token() << "')";
 }
 
 void Formatter::VisitInvalidStatement(ast::InvalidStatement* statement) {
-  stream_ << "INVALID '" << statement->token() << "';";
+  ostream_ << "INVALID '" << statement->token() << "';";
 }
 
 void Formatter::VisitInvalidType(ast::InvalidType* type) {
-  stream_ << "INVALID '" << type->token() << "';";
+  ostream_ << "INVALID '" << type->token() << "';";
 }
 
 void Formatter::VisitLiteral(ast::Literal* operation) {
-  stream_ << operation->token();
+  ostream_ << operation->token();
 }
 
 void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
   auto separator = "";
   for (auto const component : member_access->components()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(component);
     separator = ".";
   }
@@ -398,42 +398,42 @@ void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
 
 void Formatter::VisitMethod(ast::Method* method) {
   Indent();
-  stream_ << method->modifiers();
+  ostream_ << method->modifiers();
   if (method->modifiers().value())
-    stream_ << " ";
+    ostream_ << " ";
   Visit(method->return_type());
-  stream_ << " " << method->name();
+  ostream_ << " " << method->name();
   if (!method->type_parameters().empty()) {
     auto separator = "<";
     for (auto const name : method->type_parameters()) {
-      stream_ << separator << name;
+      ostream_ << separator << name;
       separator = ", ";
     }
-    stream_ << ">";
+    ostream_ << ">";
   }
-  stream_ << "(";
+  ostream_ << "(";
   auto separator = "";
   for (auto const param : method->parameters()) {
-    stream_ << separator;
+    ostream_ << separator;
     Visit(param->type());
-    stream_ << " " << param->name();
+    ostream_ << " " << param->name();
     separator = ", ";
   }
-  stream_ << ")";
+  ostream_ << ")";
   auto const statement = method->body();
   if (!statement) {
-    stream_ << ";" << std::endl;
+    ostream_ << ";" << std::endl;
     return;
   }
   if (statement->is<ast::BlockStatement>()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(statement);
-    stream_ << std::endl;
+    ostream_ << std::endl;
     return;
   }
-  stream_ << "=> ";
+  ostream_ << "=> ";
   Visit(statement);
-  stream_ << ";" << std::endl;
+  ostream_ << ";" << std::endl;
 }
 
 void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
@@ -442,7 +442,7 @@ void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
 }
 
 void Formatter::VisitNameReference(ast::NameReference* operation) {
-  stream_ << operation->token();
+  ostream_ << operation->token();
 }
 
 void Formatter::VisitNamespace(ast::Namespace* node) {
@@ -467,14 +467,14 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
     return;
   }
   Indent();
-  stream_ << "namespace " << ns_body->name() << " ";
+  ostream_ << "namespace " << ns_body->name() << " ";
   FormatBlock block(this);
   ns_body->AcceptForMembers(this);
 }
 
 void Formatter::VisitOptionalType(ast::OptionalType* type) {
   Visit(type->base_type());
-  stream_ << "?";
+  ostream_ << "?";
 }
 
 void Formatter::VisitParameter(ast::Parameter* node) {
@@ -483,42 +483,42 @@ void Formatter::VisitParameter(ast::Parameter* node) {
 }
 
 void Formatter::VisitParameterReference(ast::ParameterReference* param) {
-  stream_ << param->token();
+  ostream_ << param->token();
 }
 
 void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {
-  stream_ << "return";
+  ostream_ << "return";
   if (auto const value = return_statement->value()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(value);
   }
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 void Formatter::VisitThrowStatement(ast::ThrowStatement* throw_statement) {
-  stream_ << "throw";
+  ostream_ << "throw";
   if (auto const value = throw_statement->value()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(value);
   }
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 void Formatter::VisitTryStatement(ast::TryStatement* try_statement) {
-  stream_ << "try ";
+  ostream_ << "try ";
   Visit(try_statement->protected_block());
   for (auto const catch_clause : try_statement->catch_clauses()) {
-    stream_ << " catch (";
+    ostream_ << " catch (";
     Visit(catch_clause->type());
     if (auto const variable = catch_clause->variable())
-      stream_ << " " << variable->name();
-    stream_ << ") ";
+      ostream_ << " " << variable->name();
+    ostream_ << ") ";
     Visit(catch_clause->block());
   }
   auto const finally_block = try_statement->finally_block();
   if (!finally_block)
     return;
-  stream_ << " finally ";
+  ostream_ << " finally ";
   Visit(finally_block);
 }
 
@@ -534,27 +534,27 @@ void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
   if (operation->op() == TokenType::PostDecrement ||
       operation->op() == TokenType::PostIncrement) {
     Visit(operation->expression());
-    stream_ << operation->op();
+    ostream_ << operation->op();
     return;
   }
-  stream_ << operation->op();
+  ostream_ << operation->op();
   Visit(operation->expression());
 }
 
 void Formatter::VisitUsingStatement(ast::UsingStatement* using_statement) {
-  stream_ << "using (";
+  ostream_ << "using (";
   if (auto const var = using_statement->variable()) {
-    stream_ << "var ";
-    stream_ << var->name();
-    stream_ << " = ";
+    ostream_ << "var ";
+    ostream_ << var->name();
+    ostream_ << " = ";
   }
   Visit(using_statement->resource());
-  stream_ << ")";
+  ostream_ << ")";
   if (using_statement->statement()->is<ast::BlockStatement>()) {
-    stream_ << " ";
+    ostream_ << " ";
     Visit(using_statement->statement());
   } else {
-    stream_ << std::endl;
+    ostream_ << std::endl;
     Indent();
     Visit(using_statement->statement());
   }
@@ -562,23 +562,23 @@ void Formatter::VisitUsingStatement(ast::UsingStatement* using_statement) {
 
 void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
   if (var_statement->keyword() == TokenType::Const)
-    stream_ << "const ";
+    ostream_ << "const ";
   auto is_first = true;
   for (auto const var : var_statement->variables()) {
     if (is_first) {
       Visit(var->type());
-      stream_ << " ";
+      ostream_ << " ";
       is_first = false;
     } else {
-      stream_ << ", ";
+      ostream_ << ", ";
     }
-    stream_ << var->name();
+    ostream_ << var->name();
     if (auto const value = var->value()) {
-      stream_ << " = ";
+      ostream_ << " = ";
       Visit(value);
     }
   }
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 void Formatter::VisitVariable(ast::Variable* node) {
@@ -587,20 +587,20 @@ void Formatter::VisitVariable(ast::Variable* node) {
 }
 
 void Formatter::VisitVariableReference(ast::VariableReference* var) {
-  stream_ << var->token();
+  ostream_ << var->token();
 }
 
 void Formatter::VisitWhileStatement(ast::WhileStatement* while_statement) {
-  stream_ << "while (";
+  ostream_ << "while (";
   Visit(while_statement->condition());
-  stream_ << ") ";
+  ostream_ << ") ";
   Visit(while_statement->statement());
 }
 
 void Formatter::VisitYieldStatement(ast::YieldStatement* yield_statement) {
-  stream_ << "yield ";
+  ostream_ << "yield ";
   Visit(yield_statement->value());
-  stream_ << ";";
+  ostream_ << ";";
 }
 
 }  // namespace testing
