@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "elang/compiler/ir/formatters/text_formatter.h"
 
@@ -59,16 +60,29 @@ void Formatter::Format(const Node* node) {
 }
 
 // Visitor
+
+// Element type of array type is omitting left most rank, e.g.
+//  element_type_of(T[A]) = T
+//  element_type_of(T[A][B}) = T[B]
+//  element_type_of(T[A][B}[C]) = T[B][C]
 void Formatter::VisitArrayType(ArrayType* node) {
-  ostream_ << *node->element_type() << "[";
-  auto separator = "";
-  for (auto dimension : node->dimensions()) {
-    ostream_ << separator;
-    if (dimension >= 0)
-      ostream_ << dimension;
-    separator = ",";
+  std::vector<ArrayType*> array_types;
+  for (Type* runner = node; runner->is<ArrayType>();
+       runner = runner->as<ArrayType>()->element_type()) {
+    array_types.push_back(runner->as<ArrayType>());
   }
-  ostream_ << "]";
+  ostream_ << *array_types.back()->element_type();
+  for (auto array_type : array_types) {
+    ostream_ << "[";
+    auto separator = "";
+    for (auto dimension : array_type->dimensions()) {
+      ostream_ << separator;
+      if (dimension >= 0)
+        ostream_ << dimension;
+      separator = ",";
+    }
+    ostream_ << "]";
+  }
 }
 
 void Formatter::VisitClass(Class* node) {
