@@ -220,6 +220,15 @@ class ELANG_LIR_EXPORT JumpInstruction final
   bool IsTerminator() const final;
 };
 
+// LiteralInstruction - load literal/immediate into register.
+class ELANG_LIR_EXPORT LiteralInstruction final
+    : public InstructionTemplate<1, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Literal);
+
+ private:
+  LiteralInstruction(Value output, Value input);
+};
+
 // LoadInstruction
 class ELANG_LIR_EXPORT LoadInstruction final
     : public InstructionTemplate<1, 1> {

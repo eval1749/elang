@@ -91,6 +91,28 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
       FormatFunction(function));
 }
 
+TEST_F(LirInstructionsTestX64, LiteralInstruction) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewLiteralInstruction(
+      factory()->NewRegister(),
+      factory()->NewIntValue(Value::Size::Size64, 42)));
+  editor.Append(factory()->NewLiteralInstruction(
+      factory()->NewRegister(), factory()->NewStringValue(L"foo")));
+  editor.Commit();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov %r1, 42\n"
+      "  mov %r2, \"foo\"\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      FormatFunction(function));
+}
+
 TEST_F(LirInstructionsTestX64, LoadInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);

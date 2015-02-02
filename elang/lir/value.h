@@ -67,13 +67,18 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, Size size, Kind kind)
       : type(type), size(size), kind(kind), data(0) {}
 
+  // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
   bool is_integer() const { return type == Type::Integer; }
 
-  bool is_register() const {
-    return kind == Kind::PhysicalRegister || kind == Kind::VirtualRegister;
-  }
+  // predicates for |Kind|
+  bool is_immediate() const { return kind == Kind::Immediate; }
+  bool is_literal() const { return kind == Kind::Literal; }
+  bool is_register() const { return is_physical() || is_virtual(); }
+  bool is_physical() const { return kind == Kind::PhysicalRegister; }
+  bool is_virtual() const { return kind == Kind::VirtualRegister; }
 
+  // Help function
   static bool CanBeImmediate(int64_t value);
 
   static Value Float32Literal();

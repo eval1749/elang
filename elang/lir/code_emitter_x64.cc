@@ -318,6 +318,10 @@ void InstructionEmitter::VisitJump(JumpInstruction* instr) {
   __assume(instr);
 }
 
+void InstructionEmitter::VisitLiteral(LiteralInstruction* instr) {
+  __assume(instr);
+}
+
 void InstructionEmitter::VisitLoad(LoadInstruction* instr) {
   __assume(instr);
 }

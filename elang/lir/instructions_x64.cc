@@ -58,6 +58,19 @@ base::StringPiece JumpInstruction::mnemonic() const {
   return "jmp";
 }
 
+// Literal
+LiteralInstruction::LiteralInstruction(Value output, Value input)
+    : InstructionTemplate() {
+  DCHECK(input.is_immediate() || input.is_literal());
+  DCHECK(output.is_register());
+  InitOutput(0, output);
+  InitInput(0, input);
+}
+
+base::StringPiece LiteralInstruction::mnemonic() const {
+  return "mov";
+}
+
 // Load
 LoadInstruction::LoadInstruction(Value output, Value input)
     : InstructionTemplate() {
