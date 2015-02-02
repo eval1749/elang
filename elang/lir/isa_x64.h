@@ -6,7 +6,6 @@
 #define ELANG_LIR_ISA_X64_H_
 
 #include "elang/lir/lir_export.h"
-#include "elang/lir/opcodes_x64.h"
 
 namespace elang {
 namespace lir {

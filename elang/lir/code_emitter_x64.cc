@@ -14,6 +14,7 @@
 #include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_visitor.h"
+#include "elang/lir/opcodes_x64.h"
 #include "elang/lir/value.h"
 
 namespace elang {
