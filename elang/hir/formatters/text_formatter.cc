@@ -131,7 +131,9 @@ void TypeFormatter::VisitArrayType(ArrayType* type) {
   ostream_ << "[";
   auto separator = "";
   for (auto dimension : type->dimensions()) {
-    ostream_ << separator << dimension;
+    ostream_ << separator;
+    if (dimension >= 0)
+      ostream_ << dimension;
     separator = ", ";
   }
   ostream_ << "]";
