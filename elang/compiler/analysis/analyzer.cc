@@ -10,6 +10,7 @@
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/nodes.h"
 #include "elang/compiler/ir/factory.h"

@@ -16,6 +16,7 @@
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {

@@ -18,6 +18,7 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/ir/factory.h"
 #include "elang/compiler/ir/nodes.h"

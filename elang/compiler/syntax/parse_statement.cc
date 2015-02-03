@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/public/compiler_error_code.h"

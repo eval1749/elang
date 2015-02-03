@@ -25,6 +25,8 @@ static_library("ast") {
     "nodes_forward.h",
     "statements.cc",
     "statements.h",
+    "types.cc",
+    "types.h",
     "visitor.cc",
     "visitor.h",
     "with_modifiers.cc",
