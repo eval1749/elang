@@ -11,8 +11,8 @@ namespace elang {
 namespace lir {
 
 #define FOR_EACH_X64_LIR_INSTRUCTION(V) \
-  V(Div2)                               \
-  V(Mul2)
+  V(DivX64)                             \
+  V(MulX64)
 
 #define V(Name) class Name##Instruction;
 FOR_EACH_X64_LIR_INSTRUCTION(V)

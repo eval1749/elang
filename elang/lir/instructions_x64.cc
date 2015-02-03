@@ -34,12 +34,12 @@ base::StringPiece CopyInstruction::mnemonic() const {
   return "mov";
 }
 
-// Div2
-Div2Instruction::Div2Instruction(Value div_output,
-                                 Value mod_output,
-                                 Value high_left,
-                                 Value low_left,
-                                 Value right) {
+// DivX64
+DivX64Instruction::DivX64Instruction(Value div_output,
+                                     Value mod_output,
+                                     Value high_left,
+                                     Value low_left,
+                                     Value right) {
   InitOutput(0, div_output);
   InitOutput(1, mod_output);
   InitInput(0, high_left);
@@ -47,7 +47,7 @@ Div2Instruction::Div2Instruction(Value div_output,
   InitInput(2, right);
 }
 
-base::StringPiece Div2Instruction::mnemonic() const {
+base::StringPiece DivX64Instruction::mnemonic() const {
   return "div";
 }
 
@@ -106,18 +106,18 @@ base::StringPiece LoadInstruction::mnemonic() const {
   return "mov";
 }
 
-// Mul2
-Mul2Instruction::Mul2Instruction(Value high_output,
-                                 Value low_output,
-                                 Value left,
-                                 Value right) {
+// MulX64
+MulX64Instruction::MulX64Instruction(Value high_output,
+                                     Value low_output,
+                                     Value left,
+                                     Value right) {
   InitOutput(0, high_output);
   InitOutput(1, low_output);
   InitInput(0, left);
   InitInput(1, right);
 }
 
-base::StringPiece Mul2Instruction::mnemonic() const {
+base::StringPiece MulX64Instruction::mnemonic() const {
   return "mul";
 }
 

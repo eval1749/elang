@@ -11,25 +11,28 @@ namespace elang {
 namespace lir {
 
 // Div
-class ELANG_LIR_EXPORT Div2Instruction final
+class ELANG_LIR_EXPORT DivX64Instruction final
     : public InstructionTemplate<2, 3> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Div2);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(DivX64);
 
  private:
-  Div2Instruction(Value div_output,
-                  Value mod_output,
-                  Value high_left,
-                  Value low_left,
-                  Value right);
+  DivX64Instruction(Value div_output,
+                    Value mod_output,
+                    Value high_left,
+                    Value low_left,
+                    Value right);
 };
 
-// Mul2
-class ELANG_LIR_EXPORT Mul2Instruction final
+// MulX64
+class ELANG_LIR_EXPORT MulX64Instruction final
     : public InstructionTemplate<2, 2> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Mul2);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(MulX64);
 
  private:
-  Mul2Instruction(Value high_output, Value low_output, Value left, Value right);
+  MulX64Instruction(Value high_output,
+                    Value low_output,
+                    Value left,
+                    Value right);
 };
 
 }  // namespace lir

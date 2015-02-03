@@ -88,15 +88,15 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 #undef V
 
 #ifdef ELANG_TARGET_ARCH_X64
-  Instruction* NewDiv2Instruction(Value div_output,
-                                  Value mod_output,
-                                  Value high_left,
-                                  Value low_left,
-                                  Value right);
-  Instruction* NewMul2Instruction(Value high_output,
-                                  Value low_output,
-                                  Value left,
-                                  Value right);
+  Instruction* NewDivX64Instruction(Value div_output,
+                                    Value mod_output,
+                                    Value high_left,
+                                    Value low_left,
+                                    Value right);
+  Instruction* NewMulX64Instruction(Value high_output,
+                                    Value low_output,
+                                    Value left,
+                                    Value right);
 #endif
 
  private:

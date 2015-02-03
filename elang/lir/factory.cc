@@ -231,20 +231,20 @@ Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
 }
 
 #ifdef ELANG_TARGET_ARCH_X64
-Instruction* Factory::NewDiv2Instruction(Value div_output,
-                                         Value mod_output,
-                                         Value high_left,
-                                         Value low_left,
-                                         Value right) {
+Instruction* Factory::NewDivX64Instruction(Value div_output,
+                                           Value mod_output,
+                                           Value high_left,
+                                           Value low_left,
+                                           Value right) {
   return new (zone())
-      Div2Instruction(div_output, mod_output, high_left, low_left, right);
+      DivX64Instruction(div_output, mod_output, high_left, low_left, right);
 }
 
-Instruction* Factory::NewMul2Instruction(Value high_output,
-                                         Value low_output,
-                                         Value left,
-                                         Value right) {
-  return new (zone()) Mul2Instruction(high_output, low_output, left, right);
+Instruction* Factory::NewMulX64Instruction(Value high_output,
+                                           Value low_output,
+                                           Value left,
+                                           Value right) {
+  return new (zone()) MulX64Instruction(high_output, low_output, left, right);
 }
 #endif
 
