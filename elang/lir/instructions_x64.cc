@@ -180,6 +180,10 @@ base::StringPiece LtInstruction::mnemonic() const {
   return "lt";
 }
 
+base::StringPiece ModInstruction::mnemonic() const {
+  return "mod";
+}
+
 base::StringPiece MulInstruction::mnemonic() const {
   return "mul";
 }

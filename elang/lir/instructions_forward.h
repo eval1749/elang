@@ -31,6 +31,7 @@ class InstructionVisitor;
 #define FOR_EACH_LIR_INSTRUCTION_1_2(V) \
   V(Add)                                \
   V(Div)                                \
+  V(Mod)                                \
   V(Mul)                                \
   V(Sub)                                \
   V(BitAnd)                             \
