@@ -237,6 +237,8 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
     Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
     return;
   }
+  if (array_type->rank() != static_cast<int>(node->indexes().size()))
+    Error(ErrorCode::TypeResolverArrayAccessRank, node);
   for (auto index : node->indexes()) {
     auto const result = NumericTypeOf(Resolve(index, any_value()));
     if (result.kind == NumericType::Kind::Int ||

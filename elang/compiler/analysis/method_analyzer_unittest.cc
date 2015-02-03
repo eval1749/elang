@@ -269,6 +269,17 @@ TEST_F(MethodAnalyzerTest, ArrayAccessErrorIndex) {
   ASSERT_EQ("TypeResolver.ArrayAccess.Index(89) \"foo\"\n", Analyze());
 }
 
+TEST_F(MethodAnalyzerTest, ArrayAccessErrorRank) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(int[] args) {"
+      "    Console.WriteLine(args[1, 2]);"
+      "  }"
+      "}");
+  ASSERT_EQ("TypeResolver.ArrayAccess.Rank(85) [\n", Analyze());
+}
+
 // Binary operations
 TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat64) {
   Prepare(

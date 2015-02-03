@@ -197,6 +197,7 @@ namespace compiler {
   /* Type Resolver */                                 \
   E(TypeResolver, ArrayAccess, Array)                 \
   E(TypeResolver, ArrayAccess, Index)                 \
+  E(TypeResolver, ArrayAccess, Rank)                  \
   E(TypeResolver, Argument, Unify)                    \
   E(TypeResolver, Assignment, LeftValue)              \
   E(TypeResolver, BinaryOperation, Equality)          \
