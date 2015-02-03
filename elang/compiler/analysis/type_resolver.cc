@@ -232,7 +232,7 @@ ir::Node* TypeResolver::ValueOf(ast::Node* node) {
 void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
   auto const array = Resolve(node->array(), any_value());
   auto const array_type =
-      array->as<ts::Literal>()->value()->is<ir::ArrayType>();
+      array->as<ts::Literal>()->value()->as<ir::ArrayType>();
   if (!array_type) {
     Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
     return;
@@ -245,6 +245,7 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
     }
     Error(ErrorCode::TypeResolverArrayAccessIndex, index);
   }
+  ProduceResult(type_factory()->NewLiteral(array_type->element_type()), node);
 }
 
 void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
@@ -260,6 +261,11 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
     ProduceResolved(rhs, value, assignment);
     return;
   }
+  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
+    auto const element_value = Resolve(reference, any_value());
+    ProduceResolved(rhs, element_value, assignment);
+    return;
+  }
   if (auto const reference = lhs->as<ast::NameReference>()) {
     auto const value = ValueOf(ResolveReference(reference));
     DCHECK(value) << "NYI Assign to field " << *lhs;
@@ -268,12 +274,6 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
     auto const value = ValueOf(ResolveReference(reference));
     DCHECK(value) << "NYI Assign to field " << *lhs;
-    return;
-  }
-  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
-    // TODO(eval1749) We need to have |ir::ArrayType| for resolving
-    // |reference->array()|.
-    DVLOG(0) << "NYI Assign to array " << *lhs;
     return;
   }
   Error(ErrorCode::TypeResolverAssignmentLeftValue, lhs);

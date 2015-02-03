@@ -104,6 +104,29 @@ TEST_F(CodeGeneratorTest, Assignment) {
       Generate("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, AssignmentArrayAccess) {
+  Prepare(
+      "class Sample {\n"
+      "  static void Foo(bool[] bools) {\n"
+      "    bools[42] = true;\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 void(bool[]*)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  bool[]* %p2 = entry\n"
+      "  bool* %p4 = element %p2, 42\n"
+      "  store %p4, true\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
 // Binary Operations
 TEST_F(CodeGeneratorTest, BinaryOperation) {
   Prepare(
