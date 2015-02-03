@@ -236,7 +236,7 @@ void Validator::ValidateArrayAccess(Instruction* instr) {
     Error(ErrorCode::ValidateInstructionType, instr, 1);
     return;
   }
-  if (array_type->rank() == indexes_type->size()) {
+  if (array_type->rank() != indexes_type->size()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 1);
     return;
   }
