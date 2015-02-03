@@ -4,7 +4,6 @@
 
 #include "elang/cg/testing/cg_test.h"
 
-#include "elang/cg/generator.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
@@ -32,8 +31,6 @@ class GeneratorX64Test : public testing::CgTest {
 // Test cases...
 
 TEST_F(GeneratorX64Test, Basic) {
-  Generator generator(lir_factory(), function());
-  auto const result = generator.Generate();
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -41,7 +38,7 @@ TEST_F(GeneratorX64Test, Basic) {
       "  ret\n"
       "block2:\n"
       "  exit\n",
-      Format(result));
+      Generate(function()));
 }
 
 TEST_F(GeneratorX64Test, Parameter) {
@@ -60,8 +57,6 @@ TEST_F(GeneratorX64Test, Parameter) {
   editor.Commit();
   ASSERT_TRUE(editor.Validate());
 
-  Generator generator(lir_factory(), function);
-  auto const result = generator.Generate();
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -74,7 +69,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "  ret\n"
       "block2:\n"
       "  exit\n",
-      Format(result));
+      Generate(function));
 }
 
 TEST_F(GeneratorX64Test, ReturnInt32) {
@@ -83,8 +78,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt32Literal(42));
   editor.Commit();
-  Generator generator(lir_factory(), function);
-  auto const result = generator.Generate();
+  ASSERT_TRUE(editor.Validate());
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -93,7 +87,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
       "  ret\n"
       "block2:\n"
       "  exit\n",
-      Format(result));
+      Generate(function));
 }
 
 TEST_F(GeneratorX64Test, ReturnInt64) {
@@ -102,8 +96,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt64Literal(42));
   editor.Commit();
-  Generator generator(lir_factory(), function);
-  auto const result = generator.Generate();
+  ASSERT_TRUE(editor.Validate());
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -112,7 +105,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
       "  ret\n"
       "block2:\n"
       "  exit\n",
-      Format(result));
+      Generate(function));
 }
 
 }  // namespace

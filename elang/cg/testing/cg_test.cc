@@ -8,6 +8,7 @@
 #include "elang/cg/testing/cg_test.h"
 
 #include "elang/base/atomic_string_factory.h"
+#include "elang/cg/generator.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/type_factory.h"
 #include "elang/lir/factory.h"
@@ -42,6 +43,11 @@ std::string CgTest::Format(const lir::Function* function) {
   lir::TextFormatter formatter(lir_factory()->literals(), &stream);
   formatter.FormatFunction(function);
   return stream.str();
+}
+
+std::string CgTest::Generate(hir::Function* function) {
+  Generator generator(lir_factory(), function);
+  return CgTest::Format(generator.Generate());
 }
 
 hir::Function* CgTest::NewFunction(hir::Type* return_type,

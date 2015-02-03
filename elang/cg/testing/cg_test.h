@@ -40,7 +40,13 @@ class CgTest : public ::testing::Test, public hir::FactoryUser {
   lir::Factory* lir_factory() const { return lir_factory_.get(); }
   hir::Function* function() const { return function_; }
 
+  // Format |function| into human readable format.
   std::string Format(const lir::Function* function);
+
+  // Returns formatted LIR function converted from HIR |function|.
+  std::string Generate(hir::Function* function);
+
+  // Returns new HIR function with specified signature.
   hir::Function* NewFunction(hir::Type* return_type,
                              hir::Type* parameters_type);
 
