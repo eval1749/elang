@@ -179,7 +179,8 @@ ArrayType* TypeFactory::NewArrayType(Type* element_type,
                                      const std::vector<int>& dimensions) {
 #if _DEBUG
   for (auto const dimension : dimensions) {
-    DCHECK_GE(dimension, 0);
+    // dimension == -1 means unbound dimension.
+    DCHECK_GE(dimension, -1);
   }
 #endif
   return array_type_factory_->NewArrayType(element_type, dimensions);

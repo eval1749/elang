@@ -29,7 +29,8 @@ ArrayType::ArrayType(Zone* zone,
       null_literal_(new (zone) NullLiteral(this)) {
 #if _DEBUG
   for (auto const dimension : dimensions) {
-    DCHECK_GE(dimension, 0);
+    // dimension == -1 means unbound dimension.
+    DCHECK_GE(dimension, -1);
   }
 #endif
 }
