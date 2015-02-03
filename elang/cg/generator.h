@@ -48,11 +48,13 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   void EditBasicBlock(hir::BasicBlock* hir_block);
   void Emit(lir::Instruction* instruction);
   void EmitCopy(lir::Value output, lir::Value input);
-  void EmitSetLiteral(lir::Value output, hir::Literal* literal);
   void EmitSetValue(lir::Value output, hir::Value* input);
+  lir::Value MapInput(lir::Value output, hir::Value* instr);
+  lir::Value MapOutput(hir::Instruction* instr);
   lir::Value MapRegister(hir::Value* value, int min_bit_size);
 
   // hir::InstructionVisitor
+  void VisitAdd(hir::AddInstruction* instr);
   void VisitEntry(hir::EntryInstruction* instr);
   void VisitRet(hir::RetInstruction* instr);
 

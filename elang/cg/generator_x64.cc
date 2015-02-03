@@ -50,78 +50,55 @@ lir::Value Generator::AllocateRegister(hir::Value* hir_value,
   return factory()->NewRegister();
 }
 
-void Generator::EmitSetLiteral(lir::Value output, hir::Literal* value) {
-  DCHECK(output.is_register());
-
-  if (auto const literal = value->as<hir::BoolLiteral>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Float32Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewFloat32Value(literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Float64Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewFloat64Value(literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Int8Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Int16Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Int32Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::Int64Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::UInt8Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::UInt16Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::UInt32Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  if (auto const literal = value->as<hir::UInt64Literal>()) {
-    Emit(factory()->NewLiteralInstruction(
-        output, factory()->NewIntValue(output.size, literal->data())));
-    return;
-  }
-  NOTREACHED() << "unsupported hir::Literal: " << *value;
-}
-
 void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
   DCHECK(output.is_register());
+  auto const input = MapInput(output, value);
+  if (input.is_register()) {
+    EmitCopy(output, input);
+    return;
+  }
+  Emit(factory()->NewLiteralInstruction(output, input));
+}
+
+lir::Value Generator::MapInput(lir::Value output, hir::Value* value) {
   if (auto const instr = value->as<hir::Instruction>()) {
-    EmitCopy(output, register_map_[value]);
-    return;
+    auto const it = register_map_.find(instr);
+    DCHECK(it != register_map_.end());
+    return it->second;
   }
-  if (auto const literal = value->as<hir::Literal>()) {
-    EmitSetLiteral(output, literal);
-    return;
-  }
-  NOTREACHED() << "unsupported hir::Value: " << *value;
+
+  if (auto const literal = value->as<hir::BoolLiteral>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::Float32Literal>())
+    return factory()->NewFloat32Value(literal->data());
+  if (auto const literal = value->as<hir::Float64Literal>())
+    return factory()->NewFloat64Value(literal->data());
+  if (auto const literal = value->as<hir::Int8Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::Int16Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::Int32Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::Int64Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::UInt8Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::UInt16Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::UInt32Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+  if (auto const literal = value->as<hir::UInt64Literal>())
+    return factory()->NewIntValue(output.size, literal->data());
+
+  NOTREACHED() << "unsupported hir::Literal: " << *value;
+  return factory()->NewIntValue(output.size, 0);
+}
+
+// Get output register for instruction except for 'load'.
+lir::Value Generator::MapOutput(hir::Instruction* instruction) {
+  DCHECK(!instruction->is<hir::LoadInstruction>());
+  DCHECK(!register_map_.count(instruction));
+  return MapRegister(instruction, 32);
 }
 
 lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
@@ -134,6 +111,13 @@ lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
 }
 
 // hir::InstructionVisitor
+
+void Generator::VisitAdd(hir::AddInstruction* instr) {
+  auto const output = MapOutput(instr);
+  Emit(factory()->NewAddInstruction(output,
+                                    MapInput(output, instr->input(0)),
+                                    MapInput(output, instr->input(1))));
+}
 
 // Load parameters from registers and stack
 void Generator::VisitEntry(hir::EntryInstruction* instr) {
