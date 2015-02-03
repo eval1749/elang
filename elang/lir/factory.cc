@@ -225,9 +225,21 @@ FOR_EACH_LIR_INSTRUCTION_1_1(V)
 FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
+Instruction* Factory::NewBranchInstruction(Value condition,
+                                           BasicBlock* true_block,
+                                           BasicBlock* false_block) {
+  DCHECK(false_block->id());
+  DCHECK(true_block->id());
+  return new (zone()) BranchInstruction(condition, true_block, false_block);
+}
+
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
   DCHECK(target_block->id());
   return new (zone()) JumpInstruction(target_block);
+}
+
+Instruction* Factory::NewPhiInstruction(Value output) {
+  return new (zone()) PhiInstruction(output);
 }
 
 #ifdef ELANG_TARGET_ARCH_X64

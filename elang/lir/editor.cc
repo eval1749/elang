@@ -90,12 +90,36 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   return new_block;
 }
 
+PhiInstruction* Editor::NewPhi(Value output) {
+  DCHECK(basic_block_);
+  auto const phi_instruction = factory()->NewPhiInstruction(output);
+  basic_block_->phi_instructions_.AppendNode(phi_instruction);
+  return phi_instruction->as<PhiInstruction>();
+}
+
 void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
   basic_block_->instructions_.RemoveNode(old_instruction);
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
+}
+
+void Editor::SetBranch(Value condition,
+                       BasicBlock* true_block,
+                       BasicBlock* false_block) {
+  DCHECK(basic_block_);
+  DCHECK(false_block->id());
+  DCHECK(true_block->id());
+  if (auto const last =
+          basic_block_->last_instruction()->as<BranchInstruction>()) {
+    SetInput(last, 0, condition);
+    SetInput(last, 1, true_block->value());
+    SetInput(last, 2, false_block->value());
+    return;
+  }
+  SetTerminator(
+      factory()->NewBranchInstruction(condition, true_block, false_block));
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
@@ -111,8 +135,18 @@ void Editor::SetJump(BasicBlock* target_block) {
     SetInput(last, 0, target_block->value());
     return;
   }
-  auto const instr = factory()->NewJumpInstruction(target_block);
-  SetTerminator(instr);
+  SetTerminator(factory()->NewJumpInstruction(target_block));
+}
+
+void Editor::SetPhiInput(PhiInstruction* phi,
+                         BasicBlock* block,
+                         Value new_value) {
+  if (auto const present = phi->FindPhiInputFor(block)) {
+    present->value_ = new_value;
+    return;
+  }
+  auto const new_input = new (factory()->zone()) PhiInput(block, new_value);
+  phi->phi_inputs_.AppendNode(new_input);
 }
 
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {

@@ -6,6 +6,7 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/value.h"
 
 #ifdef ELANG_TARGET_ARCH_X64
@@ -132,14 +133,97 @@ bool Instruction::IsTerminator() const {
   return false;
 }
 
+// BranchInstruction
+BranchInstruction::BranchInstruction(Value condition,
+                                     BasicBlock* true_block,
+                                     BasicBlock* false_block) {
+  InitInput(0, condition);
+  InitInput(1, true_block->value());
+  InitInput(2, false_block->value());
+}
+
+bool BranchInstruction::IsTerminator() const {
+  return true;
+}
+
+// ExitInstruction
 bool ExitInstruction::IsTerminator() const {
   return true;
 }
 
+// JumpInstruction
 bool JumpInstruction::IsTerminator() const {
   return true;
 }
 
+// PhiInput
+PhiInput::PhiInput(BasicBlock* basic_block, Value value)
+    : basic_block_(basic_block), value_(value) {
+}
+
+// PhiInstruction
+PhiInstruction::PhiInstruction(Value output) : output_(output) {
+}
+
+Value PhiInstruction::input_of(BasicBlock* basic_block) const {
+  auto const phi_input = FindPhiInputFor(basic_block);
+  DCHECK(phi_input);
+  return phi_input->value();
+}
+
+base::StringPiece PhiInstruction::mnemonic() const {
+  return "phi";
+}
+
+int PhiInstruction::CountInputs() const {
+  NOTREACHED();
+  return 0;
+}
+
+int PhiInstruction::CountOutputs() const {
+  return 1;
+}
+
+PhiInput* PhiInstruction::FindPhiInputFor(BasicBlock* block) const {
+  for (auto phi_input : phi_inputs_) {
+    if (phi_input->basic_block() == block)
+      return phi_input;
+  }
+  return nullptr;
+}
+
+Value* PhiInstruction::InputValues() const {
+  NOTREACHED();
+  return nullptr;
+}
+
+Value* PhiInstruction::OutputValues() const {
+  return &const_cast<PhiInstruction*>(this)->output_;
+}
+
+// PhiInstructionList
+PhiInstructionList::PhiInstructionList(const InstructionList& list)
+    : list_(&list) {
+}
+
+PhiInstructionList::Iterator PhiInstructionList::begin() const {
+  return PhiInstructionList::Iterator(list_->begin());
+}
+
+PhiInstructionList::Iterator PhiInstructionList::end() const {
+  return PhiInstructionList::Iterator(list_->end());
+}
+
+PhiInstructionList::Iterator::Iterator(
+    const InstructionList::Iterator& iterator)
+    : IteratorOnIterator(iterator) {
+}
+
+PhiInstruction* PhiInstructionList::Iterator::operator*() const {
+  return (*iterator())->as<PhiInstruction>();
+}
+
+// RetInstruction
 bool RetInstruction::IsTerminator() const {
   return true;
 }

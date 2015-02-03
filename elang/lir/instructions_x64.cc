@@ -10,6 +10,11 @@
 namespace elang {
 namespace lir {
 
+// Branch
+base::StringPiece BranchInstruction::mnemonic() const {
+  return "br";
+}
+
 // Call
 CallInstruction::CallInstruction(Value callee) {
   InitInput(0, callee);

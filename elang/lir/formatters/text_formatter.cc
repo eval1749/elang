@@ -157,11 +157,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Size& size) {
   static const char* const sizes[] = {
-      "Size8",
-      "Size16",
-      "Size32",
-      "Size64",
-      "Illegal",
+      "Size8", "Size16", "Size32", "Size64", "Illegal",
   };
   return ostream
          << sizes[std::min(static_cast<size_t>(size), arraysize(sizes) - 1)];
@@ -169,9 +165,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Size& size) {
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Type& type) {
   static const char* const types[] = {
-      "Integer",
-      "Float",
-      "Illegal",
+      "Integer", "Float", "Illegal",
   };
   return ostream
          << types[std::min(static_cast<size_t>(type), arraysize(types) - 1)];
@@ -192,6 +186,11 @@ void TextFormatter::FormatFunction(const Function* function) {
   ostream_ << *function << ":" << std::endl;
   for (auto const block : function->basic_blocks()) {
     ostream_ << *block << ":" << std::endl;
+    for (auto const phi_instruction : block->phi_instructions()) {
+      ostream_ << "  ";
+      FormatInstruction(phi_instruction);
+      ostream_ << std::endl;
+    }
     for (auto const instruction : block->instructions()) {
       ostream_ << "  ";
       FormatInstruction(instruction);

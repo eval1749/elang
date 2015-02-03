@@ -107,7 +107,7 @@ class ELANG_LIR_EXPORT Instruction
   void InitOutput(int index, Value new_value);
 
  private:
-  // |Editor| changes|basic_block_|, |id_|, and |opcode_|.
+  // |Editor| changes |basic_block_|, |id_|, and |opcode_|.
   friend class Editor;
   friend class Factory;
 
@@ -169,6 +169,20 @@ class InstructionTemplate<0, 0> : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
+// BranchInstruction
+class ELANG_LIR_EXPORT BranchInstruction final
+    : public InstructionTemplate<0, 3> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Branch);
+
+ private:
+  BranchInstruction(Value condition,
+                    BasicBlock* true_block,
+                    BasicBlock* false_block);
+
+  // Instruction
+  bool IsTerminator() const final;
+};
+
 // CallInstruction
 class ELANG_LIR_EXPORT CallInstruction final
     : public InstructionTemplate<0, 1> {
@@ -209,6 +223,120 @@ class ELANG_LIR_EXPORT JumpInstruction final
 
   // Instruction
   bool IsTerminator() const final;
+};
+
+// PhiInput
+class ELANG_LIR_EXPORT PhiInput final
+    : public DoubleLinked<PhiInput, PhiInstruction>::Node,
+      public ZoneAllocated {
+ public:
+  PhiInput(BasicBlock* block, Value value);
+  ~PhiInput() = delete;
+
+  BasicBlock* basic_block() const { return basic_block_; }
+  Value value() const { return value_; }
+
+ private:
+  friend class Editor;
+
+  Value value_;
+  BasicBlock* basic_block_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInput);
+};
+
+// PhiInstruction
+class ELANG_LIR_EXPORT PhiInstruction final : public Instruction {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Phi);
+
+ public:
+  typedef DoubleLinked<PhiInput, PhiInstruction> PhiInputs;
+
+  Value input_of(BasicBlock* block) const;
+  const PhiInputs& phi_inputs() const { return phi_inputs_; }
+
+ private:
+  friend class Editor;
+
+  explicit PhiInstruction(Value output_value);
+
+  PhiInput* FindPhiInputFor(BasicBlock* block) const;
+
+  // Instruction operand protocol
+  int CountInputs() const final;
+  int CountOutputs() const final;
+  Value* InputValues() const final;
+  Value* OutputValues() const final;
+
+  Value output_;
+  PhiInputs phi_inputs_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Help classes for |BasicBlock|.
+//
+typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
+
+// IteratorOnIterator provides functions for implementing iterator on
+// another iterator.
+template <class Derived, class BaseIterator>
+class IteratorOnIterator {
+ public:
+  IteratorOnIterator& operator=(const IteratorOnIterator& other) = default;
+
+  Derived& operator++() {
+    ++iterator_;
+    return *static_cast<Derived*>(this);
+  }
+
+  bool operator==(const IteratorOnIterator& other) const {
+    return iterator_ == other.iterator_;
+  }
+
+  bool operator!=(const IteratorOnIterator& other) const {
+    return !operator==(other);
+  }
+
+ protected:
+  explicit IteratorOnIterator(const BaseIterator& iterator)
+      : iterator_(iterator) {}
+  ~IteratorOnIterator() = default;
+
+  const BaseIterator* iterator() const { return &iterator_; }
+  BaseIterator* iterator() { return &iterator_; }
+
+ private:
+  BaseIterator iterator_;
+};
+
+// PhiInstructionList
+class ELANG_LIR_EXPORT PhiInstructionList final {
+ public:
+  class ELANG_LIR_EXPORT Iterator
+      : public IteratorOnIterator<Iterator, InstructionList::Iterator> {
+   public:
+    explicit Iterator(const InstructionList::Iterator& iterator);
+    Iterator(const Iterator& other) = default;
+    ~Iterator() = default;
+
+    Iterator& operator=(const Iterator& other) = default;
+
+    PhiInstruction* operator->() const { return operator*(); }
+    PhiInstruction* operator*() const;
+  };
+
+  explicit PhiInstructionList(const InstructionList& list);
+  PhiInstructionList(const PhiInstructionList& other) = default;
+  ~PhiInstructionList() = default;
+
+  PhiInstructionList& operator=(const PhiInstructionList& other) = default;
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const InstructionList* list_;
 };
 
 // RetInstruction

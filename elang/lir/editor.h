@@ -18,6 +18,7 @@ class BasicBlock;
 class Factory;
 class Function;
 class Instruction;
+class PhiInstruction;
 struct Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -49,6 +50,9 @@ class ELANG_LIR_EXPORT Editor final {
   // Basic block editing
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
+  void SetBranch(Value condition,
+                 BasicBlock* true_block,
+                 BasicBlock* false_block);
   void SetJump(BasicBlock* target_block);
   void SetReturn();
   void SetTerminator(Instruction* instruction);
@@ -62,6 +66,12 @@ class ELANG_LIR_EXPORT Editor final {
   void Remove(Instruction* old_instruction);
   void SetInput(Instruction* instruction, int index, Value new_value);
   void SetOutput(Instruction* instruction, int index, Value new_value);
+
+  // Phi instruction
+  PhiInstruction* NewPhi(Value output);
+  void SetPhiInput(PhiInstruction* phi_instruction,
+                   BasicBlock* basic_block,
+                   Value value);
 
   // Validation
   static bool Validate(BasicBlock* basic_block);

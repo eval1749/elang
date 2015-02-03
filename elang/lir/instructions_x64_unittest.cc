@@ -26,6 +26,49 @@ class LirInstructionsTestX64 : public testing::LirTestX64 {
 
 // Test cases...
 
+TEST_F(LirInstructionsTestX64, BranchInstruction) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  auto const true_block = editor.NewBasicBlock(function->exit_block());
+  auto const false_block = editor.NewBasicBlock(function->exit_block());
+  auto const merge_block = editor.NewBasicBlock(function->exit_block());
+
+  editor.Edit(function->entry_block());
+  editor.SetBranch(Isa::GetRegister(isa::EFLAGS), true_block, false_block);
+  editor.Commit();
+
+  editor.Edit(true_block);
+  editor.SetJump(merge_block);
+  editor.Commit();
+
+  editor.Edit(false_block);
+  editor.SetJump(merge_block);
+  editor.Commit();
+
+  editor.Edit(merge_block);
+  auto const phi = editor.NewPhi(factory()->NewRegister());
+  editor.SetPhiInput(phi, true_block, Isa::GetRegister(isa::EAX));
+  editor.SetPhiInput(phi, false_block, Isa::GetRegister(isa::EBX));
+  editor.SetReturn();
+  editor.Commit();
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  br EFLAGS, block3, block4\n"
+      "block3:\n"
+      "  jmp block5\n"
+      "block4:\n"
+      "  jmp block5\n"
+      "block5:\n"
+      "  phi %r1 = block3 EAX, block4 EBX\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      FormatFunction(function));
+}
+
 TEST_F(LirInstructionsTestX64, CopyInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);

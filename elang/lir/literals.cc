@@ -41,6 +41,10 @@ Instruction* BasicBlock::last_instruction() const {
   return instructions_.last_node();
 }
 
+PhiInstructionList BasicBlock::phi_instructions() const {
+  return PhiInstructionList(phi_instructions_);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Function

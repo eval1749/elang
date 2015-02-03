@@ -15,6 +15,7 @@ namespace lir {
 // Forward declarations
 class Instruction;
 class InstructionVisitor;
+class PhiInstructionList;
 
 #define FOR_EACH_LIR_INSTRUCTION_0_0(V) \
   V(Entry)                              \
@@ -46,7 +47,11 @@ class InstructionVisitor;
   V(Le)                                 \
   V(Lt)
 
-#define FOR_EACH_LIR_INSTRUCTION_N_N(V) V(Jump, (BasicBlock * target_block))
+#define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                   \
+  V(Branch,                                                               \
+    (Value condition, BasicBlock * true_block, BasicBlock * false_block)) \
+  V(Jump, (BasicBlock * target_block))                                    \
+  V(Phi, (Value output))
 
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class

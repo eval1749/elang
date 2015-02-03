@@ -18,6 +18,8 @@ namespace elang {
 namespace lir {
 
 class Instruction;
+class PhiInstruction;
+class PhiInstructionList;
 
 // Literal class hierarchy:
 //    BasicBlock -- jump target
@@ -57,6 +59,12 @@ class ELANG_LIR_EXPORT Literal : public Castable,
 
 //////////////////////////////////////////////////////////////////////
 //
+// BasicBlock helpers
+//
+typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
+
+//////////////////////////////////////////////////////////////////////
+//
 // BasicBlock
 //
 // You can get predecessors of a basic block from user list in use-def list,
@@ -75,8 +83,6 @@ class ELANG_LIR_EXPORT BasicBlock
   DECLARE_LIR_CONCRETE_LITERAL_CLASS(BasicBlock);
 
  public:
-  typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
-
   // An owner function
   Function* function() const { return function_; }
 
@@ -84,9 +90,12 @@ class ELANG_LIR_EXPORT BasicBlock
   int id() const { return id_; }
 
   // Getters for instructions in this basic block.
-  const InstructionList& instructions() const { return instructions_; }
   Instruction* first_instruction() const;
+  const InstructionList& instructions() const { return instructions_; }
   Instruction* last_instruction() const;
+  PhiInstructionList phi_instructions() const;
+
+  // For literal mapping.
   Value value() const { return value_; }
 
  private:
@@ -102,6 +111,7 @@ class ELANG_LIR_EXPORT BasicBlock
   int id_;
   // List of instructions.
   InstructionList instructions_;
+  InstructionList phi_instructions_;
   Value const value_;
 };
 
