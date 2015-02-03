@@ -16,13 +16,42 @@
 namespace elang {
 namespace lir {
 
-// Constructors are implemented in "instructions_${arch}.cc".
-
 #define V(Name, ...)                                            \
   void Name##Instruction::Accept(InstructionVisitor* visitor) { \
     visitor->Visit##Name(this);                                 \
   }
 FOR_EACH_LIR_INSTRUCTION(V)
+#undef V
+
+// Constructors
+#define V(Name, ...) \
+  Name##Instruction::Name##Instruction() {}
+FOR_EACH_LIR_INSTRUCTION_0_0(V)
+#undef V
+
+#define V(Name, ...) \
+  Name##Instruction::Name##Instruction(Value input) { InitInput(0, input); }
+FOR_EACH_LIR_INSTRUCTION_0_1(V)
+#undef V
+
+#define V(Name, ...)                                                \
+  Name##Instruction::Name##Instruction(Value output, Value input) { \
+    DCHECK(output.is_register());                                   \
+    InitOutput(0, output);                                          \
+    InitInput(0, input);                                            \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_1(V)
+#undef V
+
+#define V(Name, ...)                                             \
+  Name##Instruction::Name##Instruction(Value output, Value left, \
+                                       Value right) {            \
+    DCHECK(output.is_register());                                \
+    InitOutput(0, output);                                       \
+    InitInput(0, left);                                          \
+    InitInput(1, right);                                         \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////
@@ -152,6 +181,10 @@ bool ExitInstruction::IsTerminator() const {
 }
 
 // JumpInstruction
+JumpInstruction::JumpInstruction(BasicBlock* target_block) {
+  InitInput(0, target_block->value());
+}
+
 bool JumpInstruction::IsTerminator() const {
   return true;
 }

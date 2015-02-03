@@ -16,25 +16,11 @@ base::StringPiece BranchInstruction::mnemonic() const {
 }
 
 // Call
-CallInstruction::CallInstruction(Value callee) {
-  InitInput(0, callee);
-}
-
 base::StringPiece CallInstruction::mnemonic() const {
   return "call";
 }
 
 // Copy
-CopyInstruction::CopyInstruction(Value output, Value input) {
-  DCHECK(input.is_register());
-  DCHECK(output.is_register());
-  DCHECK_NE(output, input);
-  DCHECK_EQ(output.size, input.size);
-  DCHECK_EQ(output.type, input.type);
-  InitOutput(0, output);
-  InitInput(0, input);
-}
-
 base::StringPiece CopyInstruction::mnemonic() const {
   return "mov";
 }
@@ -57,56 +43,26 @@ base::StringPiece DivX64Instruction::mnemonic() const {
 }
 
 // Entry
-EntryInstruction::EntryInstruction() {
-}
-
 base::StringPiece EntryInstruction::mnemonic() const {
   return "entry";
 }
 
 // Exit
-ExitInstruction::ExitInstruction() : InstructionTemplate() {
-}
-
 base::StringPiece ExitInstruction::mnemonic() const {
   return "exit";
 }
 
 // Jump
-JumpInstruction::JumpInstruction(BasicBlock* target_block) {
-  InitInput(0, target_block->value());
-}
-
 base::StringPiece JumpInstruction::mnemonic() const {
   return "jmp";
 }
 
 // Literal
-LiteralInstruction::LiteralInstruction(Value output, Value input)
-    : InstructionTemplate() {
-  DCHECK(input.is_immediate() || input.is_literal());
-  DCHECK(output.is_register());
-  DCHECK_EQ(output.size, input.size);
-  DCHECK_EQ(output.type, input.type);
-  InitOutput(0, output);
-  InitInput(0, input);
-}
-
 base::StringPiece LiteralInstruction::mnemonic() const {
   return "mov";
 }
 
 // Load
-LoadInstruction::LoadInstruction(Value output, Value input)
-    : InstructionTemplate() {
-  DCHECK(!input.is_immediate());
-  DCHECK(!input.is_literal());
-  DCHECK(!input.is_register());
-  DCHECK(output.is_register());
-  InitOutput(0, output);
-  InitInput(0, input);
-}
-
 base::StringPiece LoadInstruction::mnemonic() const {
   return "mov";
 }
@@ -127,23 +83,9 @@ base::StringPiece MulX64Instruction::mnemonic() const {
 }
 
 // Ret
-RetInstruction::RetInstruction() {
-}
-
 base::StringPiece RetInstruction::mnemonic() const {
   return "ret";
 }
-
-#define V(Name)                                                               \
-  Name##Instruction::Name##Instruction(Value output, Value left, Value right) \
-      : InstructionTemplate() {                                               \
-    DCHECK(output.is_register());                                             \
-    InitOutput(0, output);                                                    \
-    InitInput(0, left);                                                       \
-    InitInput(1, right);                                                      \
-  }
-FOR_EACH_LIR_INSTRUCTION_1_2(V)
-#undef V
 
 base::StringPiece AddInstruction::mnemonic() const {
   return "add";
