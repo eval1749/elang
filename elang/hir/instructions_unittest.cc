@@ -49,12 +49,12 @@ Instruction* HirInstructionTest::NewSource(Type* output_type) {
 // Bitwise shift operations
 #define V(Name, mnemonic, ...)                                              \
   TEST_F(HirInstructionTest, Name##Instruction) {                           \
+    editor()->Edit(entry_block());                                          \
     auto const left = NewSource(int32_type());                              \
+    editor()->Append(left);                                                 \
     auto const right = editor()->NewInt32(1234);                            \
     auto const instr = editor()->factory()->New##Name##Instruction(         \
         int32_type(), left, right);                                         \
-    editor()->Edit(entry_block());                                          \
-    editor()->Append(left);                                                 \
     editor()->Append(instr);                                                \
     editor()->Commit();                                                     \
     EXPECT_EQ("bb1:5:int32 %r5 = " mnemonic " %r4, 1234", ToString(instr)); \
@@ -73,12 +73,12 @@ FOR_EACH_BITWISE_SHIFT_OPERATION(V)
 // Equality and Relational
 #define V(Name, mnemonic, ...)                                             \
   TEST_F(HirInstructionTest, Name##Instruction) {                          \
+    editor()->Edit(entry_block());                                         \
     auto const left = NewSource(int32_type());                             \
+    editor()->Append(left);                                                \
     auto const right = editor()->NewInt32(1234);                           \
     auto const instr =                                                     \
         editor()->factory()->New##Name##Instruction(left, right);          \
-    editor()->Edit(entry_block());                                         \
-    editor()->Append(left);                                                \
     editor()->Append(instr);                                               \
     editor()->Commit();                                                    \
     EXPECT_EQ("bb1:5:bool %b5 = " mnemonic " %r4, 1234", ToString(instr)); \
@@ -265,11 +265,11 @@ TEST_F(HirInstructionTest, GetInstruction) {
 TEST_F(HirInstructionTest, IfInstruction) {
   auto const true_value = editor()->NewInt32(12);
   auto const false_value = editor()->NewInt32(34);
+  editor()->Edit(entry_block());
   auto const condition = NewSource(bool_type());
+  editor()->Append(condition);
   auto const instr = factory()->NewIfInstruction(int32_type(), condition,
                                                  true_value, false_value);
-  editor()->Edit(entry_block());
-  editor()->Append(condition);
   editor()->Append(instr);
   editor()->Commit();
   EXPECT_EQ("bb1:5:int32 %r5 = if %b4, 12, 34", ToString(instr));
@@ -285,11 +285,11 @@ TEST_F(HirInstructionTest, IfInstruction) {
 // LoadInstruction
 //
 TEST_F(HirInstructionTest, LoadInstruction) {
+  editor()->Edit(entry_block());
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
-  auto const instr = factory()->NewLoadInstruction(source);
-  editor()->Edit(entry_block());
   editor()->Append(source);
+  auto const instr = factory()->NewLoadInstruction(source);
   editor()->Append(instr);
   editor()->Commit();
   EXPECT_EQ("", Validate());
@@ -356,12 +356,12 @@ TEST_F(HirInstructionTest, RetInstruction) {
 // StoreInstruction
 //
 TEST_F(HirInstructionTest, StoreInstruction) {
+  editor()->Edit(entry_block());
   auto const bool_pointer_type = types()->NewPointerType(bool_type());
   auto const source = NewSource(bool_pointer_type);
+  editor()->Append(source);
   auto const value = bool_type()->default_value();
   auto const instr = factory()->NewStoreInstruction(source, value);
-  editor()->Edit(entry_block());
-  editor()->Append(source);
   editor()->Append(instr);
   editor()->Commit();
   EXPECT_EQ("", Validate());

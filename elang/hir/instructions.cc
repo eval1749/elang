@@ -134,6 +134,11 @@ Operands Instruction::inputs() const {
   return Operands(this);
 }
 
+// Value
+bool Instruction::is_alive() const {
+  return basic_block_ && basic_block_->is_alive();
+}
+
 bool Instruction::MaybeUseless() const {
   return !IsTerminator() && users().empty();
 }

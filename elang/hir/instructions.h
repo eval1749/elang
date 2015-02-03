@@ -124,6 +124,9 @@ class ELANG_HIR_EXPORT Instruction
   friend class Editor;
   friend class InstructionFactory;
 
+  // Value
+  bool is_alive() const final;
+
   // Protocol for accessing operands in each instruction implementation.
   virtual UseDefNode* InputAt(int index) const = 0;
 

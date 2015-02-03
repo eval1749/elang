@@ -39,6 +39,10 @@ Instruction* BasicBlock::first_instruction() const {
   return instructions_.first_node();
 }
 
+bool BasicBlock::is_alive() const {
+  return function_ && function_->is_alive();
+}
+
 Instruction* BasicBlock::last_instruction() const {
   return instructions_.last_node();
 }
@@ -142,6 +146,10 @@ FunctionType* Function::function_type() const {
   return type()->as<FunctionType>();
 }
 
+bool Function::is_alive() const {
+  return !!id_;
+}
+
 Type* Function::parameters_type() const {
   return function_type()->parameters_type();
 }
@@ -152,6 +160,10 @@ Type* Function::return_type() const {
 
 // Literal
 Literal::Literal(Type* type) : Value(type) {
+}
+
+bool Literal::is_alive() const {
+  return true;
 }
 
 // NullLiteral
@@ -172,7 +184,7 @@ void UseDefNode::Init(Instruction* instruction, Value* value) {
   DCHECK(value);
   DCHECK(!instruction_);
   DCHECK(!value_);
-  DCHECK(value);
+  DCHECK(value->is_alive());
   instruction_ = instruction;
   value_ = value;
   value_->Use(this);
@@ -185,7 +197,7 @@ void UseDefNode::Reset() {
 }
 
 void UseDefNode::SetValue(Value* new_value) {
-  DCHECK(new_value);
+  DCHECK(new_value->is_alive());
   DCHECK(value_);
   value_->Unuse(this);
   new_value->Use(this);

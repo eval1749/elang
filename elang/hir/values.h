@@ -84,6 +84,7 @@ class ELANG_HIR_EXPORT Value : public Thing, public Visitable<ValueVisitor> {
   DECLARE_HIR_VALUE_CLASS(Value, Thing);
 
  public:
+  virtual bool is_alive() const = 0;
   Type* type() const { return type_; }
   const UseDefList& users() const { return use_def_list_; }
 
@@ -117,6 +118,8 @@ class ELANG_HIR_EXPORT Literal : public Value {
   explicit Literal(Type* type);
 
  private:
+  bool is_alive() const final;
+
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
 
@@ -333,6 +336,9 @@ class ELANG_HIR_EXPORT BasicBlock final
   // An integer identifier for debugging.
   int id() const { return id_; }
 
+  // Value
+  bool is_alive() const final;
+
   // Getters for instructions in this basic block.
   const InstructionList& instructions() const { return instructions_; }
   Instruction* first_instruction() const;
@@ -384,6 +390,9 @@ class ELANG_HIR_EXPORT Function final : public Value {
   int id() const { return id_; }
   Type* parameters_type() const;
   Type* return_type() const;
+
+  // Value
+  bool is_alive() const final;
 
  private:
   friend class Editor;
