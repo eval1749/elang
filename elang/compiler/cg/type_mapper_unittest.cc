@@ -98,7 +98,18 @@ ir::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
   return NewParameter(GetIr(name));
 }
 
-// Tests...
+//////////////////////////////////////////////////////////////////////
+//
+// Test cases...
+//
+
+TEST_F(TypeMapperTest, ArrayType) {
+  std::vector<int> dimensions{-1};
+  EXPECT_EQ(types()->NewPointerType(
+                types()->NewArrayType(types()->int32_type(), dimensions)),
+            Map(ir_factory()->NewArrayType(GetIr(PredefinedName::Int32),
+                                           dimensions)));
+}
 
 TEST_F(TypeMapperTest, FunctionType) {
   EXPECT_EQ(

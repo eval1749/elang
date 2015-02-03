@@ -62,6 +62,16 @@ hir::Type* TypeMapper::Map(ir::Type* type) {
   if (it != type_map_.end())
     return it->second;
 
+  if (auto const array_type = type->as<ir::ArrayType>()) {
+    std::vector<int> dimensions(array_type->dimensions().begin(),
+                                array_type->dimensions().end());
+    auto const hir_array_type =
+        types()->NewArrayType(Map(array_type->element_type()), dimensions);
+    auto const hir_type = types()->NewPointerType(hir_array_type);
+    InstallType(type, hir_type);
+    return hir_type;
+  }
+
   if (auto const clazz = type->as<ir::Class>()) {
     // ir::Class => hir::ExternalType(class_name)
     auto const hir_type = types()->NewExternalType(
