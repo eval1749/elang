@@ -30,6 +30,7 @@
 #include "elang/hir/intrinsic_names.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
+#include "elang/hir/type_factory.h"
 
 namespace elang {
 namespace compiler {
@@ -270,6 +271,40 @@ void CodeGenerator::Generate(ast::Statement* statement) {
   statement->Accept(this);
 }
 
+// Generate:
+//  T* %ptr = element %array, %index
+// Or:
+//  {int,int} %indexes = tuple %index0, %index1
+//  T* %ptr = element %array, %indexes
+hir::Value* CodeGenerator::GenerateArrayAccess(ast::ArrayAccess* node) {
+  // TODO(eval1749) NYI: array bounds check.
+  auto const array = GenerateValue(node->array());
+  std::vector<hir::Value*> index_values(node->indexes().size());
+  index_values.resize(0);
+  std::vector<hir::Type*> index_types(node->indexes().size());
+  index_types.resize(0);
+  for (auto index : node->indexes()) {
+    index_values.push_back(GenerateValue(index));
+    index_types.push_back(index_values.back()->type());
+  }
+  DCHECK(!index_values.empty());
+  DCHECK_EQ(index_values.size(), index_types.size());
+  if (index_values.size() == 1u) {
+    auto const element_instr =
+        factory()->NewElementInstruction(array, index_values.front());
+    Emit(element_instr);
+    return element_instr;
+  }
+  auto const indexes_type = types()->NewTupleType(index_types);
+  auto const indexes_instr =
+      factory()->NewTupleInstruction(indexes_type, index_values);
+  Emit(indexes_instr);
+  auto const element_instr =
+      factory()->NewElementInstruction(array, indexes_instr);
+  Emit(element_instr);
+  return element_instr;
+}
+
 hir::Value* CodeGenerator::GenerateBool(ast::Expression* expression) {
   // TOOD(eval1749) Convert |condition| to |bool|
   auto const value = GenerateValue(expression);
@@ -477,6 +512,17 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
 // ast::Visitor expression nodes
 //
 
+void CodeGenerator::VisitArrayAccess(ast::ArrayAccess* node) {
+  auto const element_instr = GenerateArrayAccess(node);
+  EmitOutputInstruction(factory()->NewLoadInstruction(element_instr));
+}
+
+// There are five patterns:
+//  1. parameter = expression
+//  2. variable = expression
+//  3. array[index+] = expression
+//  5. name = expression; field or property assignment
+//  4. container.member = expression; member assignment
 void CodeGenerator::VisitAssignment(ast::Assignment* node) {
   auto const lhs = node->left();
   auto const rhs = node->right();
@@ -488,16 +534,18 @@ void CodeGenerator::VisitAssignment(ast::Assignment* node) {
     EmitVariableAssignment(reference->variable(), rhs);
     return;
   }
+  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
+    auto const pointer = GenerateArrayAccess(reference);
+    auto const value = GenerateValue(rhs);
+    EmitOutputInstruction(factory()->NewStoreInstruction(pointer, value));
+    return;
+  }
   if (auto const reference = lhs->as<ast::NameReference>()) {
     DVLOG(0) << "NYI Assign to field " << *lhs;
     return;
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
     DVLOG(0) << "NYI Assign to field " << *lhs;
-    return;
-  }
-  if (auto const reference = lhs->as<ast::ArrayAccess>()) {
-    DVLOG(0) << "NYI Assign to array " << *lhs;
     return;
   }
   NOTREACHED() << "Invalid left value " << *lhs;

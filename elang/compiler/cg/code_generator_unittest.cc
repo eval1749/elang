@@ -25,6 +25,60 @@ class CodeGeneratorTest : public testing::CgTest {
 //
 // Tests...
 //
+
+// Array Access
+TEST_F(CodeGeneratorTest, ArrayAccess) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo(int[] array, int index) {\n"
+      "    return array[index];\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 int32(int32[]*, int32)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  {int32[]*, int32} %t2 = entry\n"
+      "  int32[]* %p4 = get %t2, 0\n"
+      "  int32 %r5 = get %t2, 1\n"
+      "  int32* %p6 = element %p4, %r5\n"
+      "  int32 %r7 = load %p6\n"
+      "  ret %r7, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
+TEST_F(CodeGeneratorTest, ArrayAccessMultipleDimensions) {
+  Prepare(
+      "class Sample {\n"
+      "  static int Foo(int[,] array, int index) {\n"
+      "    return array[index, 20];\n"
+      "  }\n"
+      "}\n");
+  EXPECT_EQ(
+      "function1 int32(int32[, ]*, int32)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block2\n"
+      "  {int32[, ]*, int32} %t2 = entry\n"
+      "  int32[, ]* %p4 = get %t2, 0\n"
+      "  int32 %r5 = get %t2, 1\n"
+      "  {int32, int32} %t6 = tuple %r5, 20\n"
+      "  int32* %p7 = element %p4, %t6\n"
+      "  int32 %r8 = load %p7\n"
+      "  ret %r8, block2\n"
+      "block2:\n"
+      "  // In: block1\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Foo"));
+}
+
+// Assignment
 TEST_F(CodeGeneratorTest, Assignment) {
   Prepare(
       "class Sample {\n"

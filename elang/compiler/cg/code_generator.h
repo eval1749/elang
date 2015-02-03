@@ -63,6 +63,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
 
   // Generate value
   void Generate(ast::Statement* statement);
+  hir::Value* GenerateArrayAccess(ast::ArrayAccess* expression);
   hir::Value* GenerateBool(ast::Expression* expression);
   void GenerateDoOrWhile(ast::DoOrWhileStatement* do_or_while_statement);
   hir::Value* GenerateValue(ast::Expression* expression);
@@ -91,6 +92,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void CodeGenerator::VisitMethod(ast::Method* ast_method) final;
 
   // ast::Visitor expression nodes
+  void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitAssignment(ast::Assignment* node) final;
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;
