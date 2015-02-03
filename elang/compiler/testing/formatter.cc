@@ -111,7 +111,7 @@ void Formatter::VisitArrayAccess(ast::ArrayAccess* access) {
 
 void Formatter::VisitArrayType(ast::ArrayType* node) {
   std::vector<ast::ArrayType*> array_types;
-  for (ast::Expression* runner = node; runner->is<ast::ArrayType>();
+  for (ast::Type* runner = node; runner->is<ast::ArrayType>();
        runner = runner->as<ast::ArrayType>()->element_type()) {
     array_types.push_back(runner->as<ast::ArrayType>());
   }

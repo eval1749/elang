@@ -35,7 +35,7 @@ class ArrayType final : public Type {
   DECLARE_CONCRETE_AST_NODE_CLASS(ArrayType, Type);
 
  public:
-  Expression* element_type() const { return element_type_; }
+  Type* element_type() const { return element_type_; }
   const ZoneVector<int>& dimensions() const { return dimensions_; }
 
  private:
