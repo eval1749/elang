@@ -26,9 +26,6 @@ namespace lir {
     DoDefaultVisit(instr);                                         \
   }
 FOR_EACH_LIR_INSTRUCTION(V)
-#ifdef ELANG_TARGET_ARCH_X64
-FOR_EACH_LIR_INSTRUCTION_X64(V)
-#endif
 #undef V
 
 void InstructionVisitor::DoDefaultVisit(Instruction* instr) {

@@ -50,15 +50,15 @@ class InstructionVisitor;
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class
 //  parameters  parameters for constructor
-#define FOR_EACH_LIR_INSTRUCTION(V) \
-  FOR_EACH_LIR_INSTRUCTION_0_0(V)   \
-  FOR_EACH_LIR_INSTRUCTION_0_1(V)   \
-  FOR_EACH_LIR_INSTRUCTION_1_1(V)   \
-  FOR_EACH_LIR_INSTRUCTION_1_2(V)   \
+#define FOR_EACH_COMMON_LIR_INSTRUCTION(V) \
+  FOR_EACH_LIR_INSTRUCTION_0_0(V)          \
+  FOR_EACH_LIR_INSTRUCTION_0_1(V)          \
+  FOR_EACH_LIR_INSTRUCTION_1_1(V)          \
+  FOR_EACH_LIR_INSTRUCTION_1_2(V)          \
   FOR_EACH_LIR_INSTRUCTION_N_N(V)
 
 #define V(Name, ...) class Name##Instruction;
-FOR_EACH_LIR_INSTRUCTION(V)
+FOR_EACH_COMMON_LIR_INSTRUCTION(V)
 #undef V
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,

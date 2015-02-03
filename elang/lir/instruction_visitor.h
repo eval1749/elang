@@ -22,9 +22,6 @@ class InstructionVisitor {
  public:
 #define V(Name, ...) virtual void Visit##Name(Name##Instruction* instruction);
   FOR_EACH_LIR_INSTRUCTION(V)
-#ifdef ELANG_TARGET_ARCH_X64
-  FOR_EACH_LIR_INSTRUCTION_X64(V)
-#endif
 #undef V
 
  protected:

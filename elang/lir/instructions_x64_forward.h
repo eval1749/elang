@@ -10,13 +10,17 @@
 namespace elang {
 namespace lir {
 
-#define FOR_EACH_LIR_INSTRUCTION_X64(V) \
+#define FOR_EACH_X64_LIR_INSTRUCTION(V) \
   V(Div2)                               \
   V(Mul2)
 
 #define V(Name) class Name##Instruction;
-FOR_EACH_LIR_INSTRUCTION_X64(V)
+FOR_EACH_X64_LIR_INSTRUCTION(V)
 #undef V
+
+#define FOR_EACH_LIR_INSTRUCTION(V)  \
+  FOR_EACH_COMMON_LIR_INSTRUCTION(V) \
+  FOR_EACH_X64_LIR_INSTRUCTION(V)
 
 }  // namespace lir
 }  // namespace elang
