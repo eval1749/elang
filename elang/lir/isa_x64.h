@@ -37,6 +37,8 @@ namespace isa {
 //          +--------------+
 
 enum Register {
+  EFLAGS = 0x210,
+
   // 64-bit register
   RAX = 0x300,
   RCX = 0x301,

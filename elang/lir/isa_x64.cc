@@ -125,6 +125,8 @@ std::ostream& operator<<(std::ostream& ostream,
       break;
     case Value::Kind::Parameter:
       return ostream << "%param[" << value.data << "]";
+    case Value::Kind::PseudoRegister:
+      return ostream << "EFLAGS";
     case Value::Kind::VirtualRegister:
       return ostream << (value.is_float() ? "%f" : "%r") << value.data;
   }
@@ -198,6 +200,10 @@ Value Isa::GetParameterAt(Value output, int position) {
 }
 
 Value Isa::GetRegister(isa::Register name) {
+  if (name == isa::EFLAGS) {
+    return Value(Value::Type::Integer, Value::Size::Size32,
+                 Value::Kind::PseudoRegister, 0);
+  }
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
     return Value(Value::Type::Float, Value::Size::Size64,

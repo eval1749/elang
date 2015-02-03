@@ -38,7 +38,7 @@ struct ELANG_LIR_EXPORT Value {
     Parameter = 3,
     PhysicalRegister = 4,
     VirtualRegister = 5,
-    NotUsed6 = 6,
+    PseudoRegister = 6,  // for x64 EFLAGS
     NotUsed7 = 7,
     NotUsed8,
     NotUsed9,
