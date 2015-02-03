@@ -70,5 +70,19 @@ lir::Function* Generator::Generate() {
   return editor()->function();
 }
 
+// hir::InstructionVisitor
+
+#define V(Name, ...)                                           \
+  void Generator::Visit##Name(hir::Name##Instruction* instr) { \
+    auto const output = MapOutput(instr);                      \
+    Emit(factory()->New##Name##Instruction(                    \
+        output, MapInput(output, instr->input(0)),             \
+        MapInput(output, instr->input(1))));                   \
+  }
+FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_BINARY_OPERATION(V)
+FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
+
 }  // namespace cg
 }  // namespace elang

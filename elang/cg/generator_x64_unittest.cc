@@ -41,6 +41,38 @@ TEST_F(GeneratorX64Test, Basic) {
       Generate(function()));
 }
 
+TEST_F(GeneratorX64Test, BinaryOperation) {
+  auto const function =
+      NewFunction(int32_type(), types()->NewTupleType({int32_type(),
+                                                       int32_type()}));
+  auto const entry = function->entry_block()->first_instruction();
+  hir::Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const param0 = factory()->NewGetInstruction(entry, 0);
+  editor.Append(param0);
+  auto const param1 = factory()->NewGetInstruction(entry, 1);
+  editor.Append(param1);
+  auto const add_instr =
+      factory()->NewAddInstruction(int32_type(), param0, param1);
+  editor.Append(add_instr);
+  editor.SetReturn(add_instr);
+  editor.Commit();
+  ASSERT_TRUE(editor.Validate());
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov %r1, ECX\n"
+      "  mov %r2, EDX\n"
+      "  add %r3, %r1, %r2\n"
+      "  mov EAX, %r3\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      Generate(function));
+}
+
 TEST_F(GeneratorX64Test, Parameter) {
   auto const function =
       NewFunction(void_type(), types()->NewTupleType({int32_type(),

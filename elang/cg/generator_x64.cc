@@ -112,13 +112,6 @@ lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
 
 // hir::InstructionVisitor
 
-void Generator::VisitAdd(hir::AddInstruction* instr) {
-  auto const output = MapOutput(instr);
-  Emit(factory()->NewAddInstruction(output,
-                                    MapInput(output, instr->input(0)),
-                                    MapInput(output, instr->input(1))));
-}
-
 // Load parameters from registers and stack
 void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const parameters_type = instr->output_type();

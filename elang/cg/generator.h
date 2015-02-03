@@ -54,9 +54,14 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   lir::Value MapRegister(hir::Value* value, int min_bit_size);
 
   // hir::InstructionVisitor
-  void VisitAdd(hir::AddInstruction* instr);
-  void VisitEntry(hir::EntryInstruction* instr);
-  void VisitRet(hir::RetInstruction* instr);
+  void VisitEntry(hir::EntryInstruction* instr) final;
+  void VisitRet(hir::RetInstruction* instr) final;
+
+#define V(Name, ...) void Visit##Name(hir::Name##Instruction* instr) final;
+  FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
+  FOR_EACH_BITWISE_BINARY_OPERATION(V)
+  FOR_EACH_BITWISE_SHIFT_OPERATION(V)
+#undef V
 
   std::unordered_map<hir::BasicBlock*, lir::BasicBlock*> block_map_;
   std::unordered_map<hir::Value*, lir::Value> register_map_;
