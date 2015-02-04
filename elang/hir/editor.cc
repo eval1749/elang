@@ -200,13 +200,6 @@ void Editor::InsertBefore(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
 }
 
-bool Editor::IsAlive(Value* value) {
-  auto const instruction = value->as<Instruction>();
-  if (!instruction)
-    return true;
-  return !!instruction->id();
-}
-
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   DCHECK(reference);
   DCHECK_EQ(function(), reference->function());
@@ -288,7 +281,7 @@ void Editor::SetBranch(BasicBlock* target_block) {
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
-  DCHECK(IsAlive(new_value)) << *new_value;
+  DCHECK(new_value->is_alive()) << *new_value;
   DCHECK(basic_block_);
   DCHECK_EQ(instruction->basic_block(), basic_block_);
   instruction->SetInputAt(index, new_value);
@@ -297,7 +290,7 @@ void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
 void Editor::SetPhiInput(PhiInstruction* phi,
                          BasicBlock* block,
                          Value* new_value) {
-  DCHECK(IsAlive(new_value)) << *new_value;
+  DCHECK(new_value->is_alive()) << *new_value;
   if (auto const present = phi->FindPhiInputFor(block)) {
     present->SetValue(new_value);
     return;
@@ -307,7 +300,7 @@ void Editor::SetPhiInput(PhiInstruction* phi,
 }
 
 void Editor::SetReturn(Value* new_value) {
-  DCHECK(IsAlive(new_value)) << *new_value;
+  DCHECK(new_value->is_alive()) << *new_value;
   DCHECK(basic_block_);
   if (auto const return_instr =
           basic_block_->last_instruction()->as<RetInstruction>()) {
@@ -337,7 +330,7 @@ void Editor::SetUnreachable() {
 
 void Editor::SetThrow(Value* new_value) {
   DCHECK_NE(void_value(), new_value);
-  DCHECK(IsAlive(new_value)) << *new_value;
+  DCHECK(new_value->is_alive()) << *new_value;
   DCHECK(basic_block_);
   if (auto const return_instr =
           basic_block_->last_instruction()->as<ThrowInstruction>()) {

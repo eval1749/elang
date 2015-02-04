@@ -113,8 +113,6 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   void RemoveInstruction(Instruction* old_instruction);
 
   // Operand manipulation
-  static bool IsAlive(Value* value);
-
   // Replaces all uses of |old_value| by |new_value| and removes |old_value|.
   // |Editor| must be editing a basic block of |old_value|.
   void ReplaceAll(Value* new_value, Instruction* old_value);
