@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
 
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"

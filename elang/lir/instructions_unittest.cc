@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <memory>
+#include <vector>
 
 #include "elang/base/zone.h"
 #include "elang/lir/factory.h"
@@ -93,6 +94,23 @@ TEST_F(LirInstructionTest, LoadInstruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
+}
+
+// PCopyInstruction
+TEST_F(LirInstructionTest, PCopyInstruction) {
+  std::vector<Value> outputs{
+      factory()->NewRegister(), factory()->NewRegister(),
+  };
+  std::vector<Value> inputs{
+      factory()->NewIntValue(outputs.front().size, 42),
+      factory()->NewRegister(),
+  };
+  auto const instr = factory()->NewPCopyInstruction(outputs, inputs);
+  EXPECT_TRUE(instr->is<PCopyInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(2, instr->outputs().size());
 }
 
 // RetInstruction

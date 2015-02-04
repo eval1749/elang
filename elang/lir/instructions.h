@@ -6,6 +6,7 @@
 #define ELANG_LIR_INSTRUCTIONS_H_
 
 #include <array>
+#include <vector>
 
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
@@ -13,6 +14,7 @@
 #include "elang/base/double_linked.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/base/zone_vector.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/value.h"
 
@@ -125,6 +127,7 @@ class ELANG_LIR_EXPORT Instruction
   DISALLOW_COPY_AND_ASSIGN(Name##Instruction);            \
   base::StringPiece mnemonic() const final;               \
   void Accept(InstructionVisitor* visitor) override;      \
+  friend class Editor;                                    \
   friend class Factory;
 
 // InstructionTemplate
@@ -225,6 +228,27 @@ class ELANG_LIR_EXPORT JumpInstruction final
   bool IsTerminator() const final;
 };
 
+// PCopyInstruction - represents parallel copy "pseudo" instruction.
+// Number of input and output operands can not be changed after construction
+// and they are matched.
+class ELANG_LIR_EXPORT PCopyInstruction final : public Instruction {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(PCopy);
+
+ private:
+  PCopyInstruction(Zone* zone,
+                   const std::vector<Value>& outputs,
+                   const std::vector<Value>& inputs);
+
+  // Instruction operand protocol
+  int CountInputs() const final;
+  int CountOutputs() const final;
+  Value* InputValues() const final;
+  Value* OutputValues() const final;
+
+  ZoneVector<Value> inputs_;
+  ZoneVector<Value> outputs_;
+};
+
 // PhiInput
 class ELANG_LIR_EXPORT PhiInput final
     : public DoubleLinked<PhiInput, PhiInstruction>::Node,
@@ -256,8 +280,6 @@ class ELANG_LIR_EXPORT PhiInstruction final : public Instruction {
   const PhiInputs& phi_inputs() const { return phi_inputs_; }
 
  private:
-  friend class Editor;
-
   explicit PhiInstruction(Value output_value);
 
   PhiInput* FindPhiInputFor(BasicBlock* block) const;

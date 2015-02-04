@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <limits>
+#include <vector>
 
 #include "elang/lir/factory.h"
 
@@ -236,6 +236,11 @@ Instruction* Factory::NewBranchInstruction(Value condition,
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
   DCHECK(target_block->id());
   return new (zone()) JumpInstruction(target_block);
+}
+
+Instruction* Factory::NewPCopyInstruction(const std::vector<Value>& outputs,
+                                          const std::vector<Value>& inputs) {
+  return new (zone()) PCopyInstruction(zone(), outputs, inputs);
 }
 
 Instruction* Factory::NewPhiInstruction(Value output) {

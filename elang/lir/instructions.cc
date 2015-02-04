@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "base/logging.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -187,6 +189,39 @@ JumpInstruction::JumpInstruction(BasicBlock* target_block) {
 
 bool JumpInstruction::IsTerminator() const {
   return true;
+}
+
+// PCopyInstruction
+PCopyInstruction::PCopyInstruction(Zone* zone,
+                                   const std::vector<Value>& outputs,
+                                   const std::vector<Value>& inputs)
+    : inputs_(zone, inputs), outputs_(zone, outputs) {
+  DCHECK_EQ(inputs_.size(), outputs_.size());
+#ifndef NDEBUG
+  for (auto const output : outputs_)
+    DCHECK(!output.is_read_only());
+#endif
+}
+
+base::StringPiece PCopyInstruction::mnemonic() const {
+  return "pcopy";
+}
+
+// PCopyInstruction Instruction operand protocol
+int PCopyInstruction::CountInputs() const {
+  return static_cast<int>(inputs_.size());
+}
+
+int PCopyInstruction::CountOutputs() const {
+  return static_cast<int>(outputs_.size());
+}
+
+Value* PCopyInstruction::InputValues() const {
+  return const_cast<PCopyInstruction*>(this)->inputs_.data();
+}
+
+Value* PCopyInstruction::OutputValues() const {
+  return const_cast<PCopyInstruction*>(this)->inputs_.data();
 }
 
 // PhiInput

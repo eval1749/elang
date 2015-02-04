@@ -6,6 +6,7 @@
 #define ELANG_LIR_INSTRUCTIONS_FORWARD_H_
 
 #include <ostream>
+#include <vector>
 
 #include "elang/lir/lir_export.h"
 
@@ -47,10 +48,12 @@ class PhiInstructionList;
   V(Le)                                 \
   V(Lt)
 
-#define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                   \
-  V(Branch,                                                               \
-    (Value condition, BasicBlock * true_block, BasicBlock * false_block)) \
-  V(Jump, (BasicBlock * target_block))                                    \
+#define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
+  V(Branch,                                                                \
+    (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
+  V(Jump, (BasicBlock * target_block))                                     \
+  V(PCopy,                                                                 \
+    (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
   V(Phi, (Value output))
 
 // Visitor |V| takes three parameters:
