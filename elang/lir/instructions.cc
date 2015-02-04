@@ -221,7 +221,7 @@ Value* PCopyInstruction::InputValues() const {
 }
 
 Value* PCopyInstruction::OutputValues() const {
-  return const_cast<PCopyInstruction*>(this)->inputs_.data();
+  return const_cast<PCopyInstruction*>(this)->outputs_.data();
 }
 
 // PhiInput
