@@ -15,6 +15,8 @@ namespace elang {
 namespace lir {
 
 class BasicBlock;
+enum class ErrorCode;
+class ErrorData;
 class Factory;
 class Function;
 class Instruction;
@@ -42,12 +44,20 @@ class ELANG_LIR_EXPORT Editor final {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
+  const std::vector<ErrorData*>& errors() { return errors_; }
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
 
-  bool Commit();
+  // Validation errors
+  void AddError(ErrorCode error_code,
+                Value value,
+                const std::vector<Value> details);
+  void Error(ErrorCode error_code, Value value);
+  void Error(ErrorCode error_code, Value value, Value detail);
+  void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
 
   // Basic block editing
+  bool Commit();
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
   void SetBranch(Value condition,
@@ -73,13 +83,20 @@ class ELANG_LIR_EXPORT Editor final {
                    BasicBlock* basic_block,
                    Value value);
 
-  // Validation
-  static bool Validate(BasicBlock* basic_block);
-  static bool Validate(Function* function);
+  // Expose |Validate()| for testing in release build.
+  bool Validate();
 
  private:
+  bool Validate(BasicBlock* basic_block);
+  bool Validate(Function* function);
+
+  // A basic block being edited, or null if not editing.
   BasicBlock* basic_block_;
+  // List of errors found by validator
+  std::vector<ErrorData*> errors_;
+  // The factory
   Factory* const factory_;
+  // A function being edited.
   Function* const function_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);

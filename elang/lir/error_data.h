@@ -30,7 +30,7 @@ class ELANG_LIR_EXPORT ErrorData final : public ZoneAllocated {
   const ZoneVector<Value>& details() const { return details_; }
   ErrorCode error_code() const { return error_code_; }
   Value error_value() const { return error_value_; }
-  const LiteralMap* literals() const { return literals_; }
+  LiteralMap* literals() const { return literals_; }
 
  private:
   friend class Editor;
@@ -38,7 +38,7 @@ class ELANG_LIR_EXPORT ErrorData final : public ZoneAllocated {
   // |error_value| has error of |error_code| with additional information
   // in |details|.
   ErrorData(Zone* zone,
-            const LiteralMap* literals,
+            LiteralMap* literals,
             ErrorCode error_code,
             Value error_value,
             const std::vector<Value>& details);
@@ -47,7 +47,7 @@ class ELANG_LIR_EXPORT ErrorData final : public ZoneAllocated {
   const ZoneVector<Value> details_;
   ErrorCode const error_code_;
   Value const error_value_;
-  const LiteralMap* const literals_;
+  LiteralMap* const literals_;
 
   DISALLOW_COPY_AND_ASSIGN(ErrorData);
 };

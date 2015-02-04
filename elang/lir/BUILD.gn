@@ -11,6 +11,9 @@ component("lir") {
     "code_emitter.h",
     "editor.cc",
     "editor.h",
+    "error_code.h",
+    "error_data.cc",
+    "error_data.h",
     "factory.cc",
     "factory.h",
     "formatters/text_formatter.cc",
@@ -30,6 +33,8 @@ component("lir") {
     "printable.h",
     "value.h",
     "value.cc",
+    "validator.h",
+    "validator.cc",
   ]
 
   defines = [ "LIR_IMPLEMENTATION" ]

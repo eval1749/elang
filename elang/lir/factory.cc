@@ -100,7 +100,7 @@ Function* Factory::NewFunction() {
   exit_instr->id_ = NextInstructionId();
   exit_instr->basic_block_ = exit_block;
 
-  DCHECK(Editor::Validate(function));
+  DCHECK(Editor(this, function).Validate());
 
   return function;
 }

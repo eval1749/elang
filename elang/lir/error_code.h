@@ -10,22 +10,23 @@ namespace lir {
 
 #define IGNORE_LIR_ERROR(category, subcategory, name)
 
-#define FOR_EACH_LIR_ERROR_CODE(E, W)   \
-  /* Basic Block */                     \
-  E(Validate, BasicBlock, Empty)        \
-  E(Validate, BasicBlock, Entry)        \
-  E(Validate, BasicBlock, Exit)         \
-  E(Validate, BasicBlock, NoFunction)   \
-  E(Validate, BasicBlock, NoId)         \
-  E(Validate, BasicBlock, NoTerminator) \
-  /* Function */                        \
-  E(Validate, Function, Empty)          \
-  E(Validate, Function, NoEntry)        \
-  E(Validate, Function, NoExit)         \
-  E(Validate, Function, Exit)           \
-  /* Instructions */                    \
-  E(Validate, Instruction, BasicBlock)  \
-  E(Validate, Phi, Count)               \
+#define FOR_EACH_LIR_ERROR_CODE(E, W)  \
+  /* Basic Block */                    \
+  E(Validate, BasicBlock, Empty)       \
+  E(Validate, BasicBlock, Entry)       \
+  E(Validate, BasicBlock, Exit)        \
+  E(Validate, BasicBlock, Function)    \
+  E(Validate, BasicBlock, Id)          \
+  E(Validate, BasicBlock, Terminator)  \
+  /* Function */                       \
+  E(Validate, Function, Empty)         \
+  E(Validate, Function, Entry)         \
+  E(Validate, Function, Exit)          \
+  /* Instructions */                   \
+  E(Validate, Instruction, BasicBlock) \
+  E(Validate, Instruction, Id)         \
+  E(Validate, Instruction, Terminator) \
+  E(Validate, Phi, Count)              \
   E(Validate, Phi, NotFound)
 
 //////////////////////////////////////////////////////////////////////

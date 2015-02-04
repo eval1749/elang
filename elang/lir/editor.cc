@@ -7,9 +7,11 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
+#include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/validator.h"
 
 namespace elang {
 namespace lir {
@@ -62,6 +64,28 @@ void Editor::Edit(BasicBlock* basic_block) {
 
 void Editor::EditNewBasicBlock() {
   Edit(NewBasicBlock(function()->exit_block()));
+}
+
+void Editor::AddError(ErrorCode error_code,
+                      Value value,
+                      const std::vector<Value> details) {
+  errors_.push_back(new (factory()->zone()) ErrorData(
+      factory()->zone(), factory()->literals(), error_code, value, details));
+}
+
+void Editor::Error(ErrorCode error_code, Value value) {
+  AddError(error_code, value, {});
+}
+
+void Editor::Error(ErrorCode error_code, Value value, Value detail) {
+  AddError(error_code, value, {detail});
+}
+
+void Editor::Error(ErrorCode error_code,
+                   Value value,
+                   Value detail1,
+                   Value detail2) {
+  AddError(error_code, value, {detail1, detail2});
 }
 
 void Editor::InsertBefore(Instruction* new_instruction,
@@ -172,72 +196,19 @@ void Editor::SetTerminator(Instruction* instr) {
   Append(instr);
 }
 
+bool Editor::Validate() {
+  Validator validator(this);
+  return validator.Validate(function_);
+}
+
 bool Editor::Validate(BasicBlock* block) {
-  if (!block->id()) {
-    DVLOG(0) << *block << " should have id.";
-    return false;
-  }
-  if (!block->function()) {
-    DVLOG(0) << *block << " is orphan.";
-    return false;
-  }
-  if (block->instructions().empty()) {
-    DVLOG(0) << *block << " is empty.";
-    return false;
-  }
-  auto found_terminator = false;
-  for (auto instruction : block->instructions()) {
-    // TODO(eval1749) We should call |Validation()| function in ISA.
-    if (!instruction->id()) {
-      DVLOG(0) << *instruction << " should have an id.";
-      return false;
-    }
-    if (instruction->IsTerminator()) {
-      if (found_terminator) {
-        DVLOG(0) << *block << " has " << *instruction << " at middle.";
-        return false;
-      }
-      found_terminator = true;
-    }
-  }
-  if (!found_terminator) {
-    DVLOG(0) << *block << " should have terminator instruction"
-             << " instead of " << *block->last_instruction();
-    return false;
-  }
-  return true;
+  Validator validator(this);
+  return validator.Validate(block);
 }
 
 bool Editor::Validate(Function* function) {
-  if (function->basic_blocks().empty()) {
-    DVLOG(0) << *function << " should have blocks.";
-    return false;
-  }
-  if (!function->entry_block()->first_instruction()->is<EntryInstruction>()) {
-    DVLOG(0) << *function << " should have an entry block.";
-    return false;
-  }
-  auto found_exit = false;
-  for (auto block : function->basic_blocks()) {
-    if (!block->id()) {
-      DVLOG(0) << *block << " should have an id.";
-      return false;
-    }
-    if (!Validate(block))
-      return false;
-    if (block->last_instruction()->is<ExitInstruction>()) {
-      if (found_exit) {
-        DVLOG(0) << *function << " should have only one exit block.";
-        return false;
-      }
-      found_exit = true;
-    }
-  }
-  if (!found_exit) {
-    DVLOG(0) << *function << " should have an exit block.";
-    return false;
-  }
-  return true;
+  Validator validator(this);
+  return validator.Validate(function);
 }
 
 }  // namespace lir

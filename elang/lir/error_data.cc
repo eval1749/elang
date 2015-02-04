@@ -7,6 +7,7 @@
 #include "elang/lir/error_data.h"
 
 #include "elang/lir/error_code.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/printable.h"
 #include "elang/lir/value.h"
 
@@ -14,7 +15,7 @@ namespace elang {
 namespace lir {
 
 ErrorData::ErrorData(Zone* zone,
-                     const LiteralMap* literals,
+                     LiteralMap* literals,
                      ErrorCode error_code,
                      Value error_value,
                      const std::vector<Value>& details)
