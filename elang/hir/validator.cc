@@ -297,6 +297,10 @@ void Validator::VisitBound(BoundInstruction* instr) {
 }
 
 void Validator::VisitBranch(BranchInstruction* instr) {
+  // Since, we use use-def list for representing predecessors of basic block,
+  // basic block must be unique in inputs.
+  DCHECK_NE(instr->input(1), instr->input(2));
+
   if (!instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
@@ -311,6 +315,10 @@ void Validator::VisitBranch(BranchInstruction* instr) {
     return;
   }
   if (!instr->input(2)->is<BasicBlock>()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 2);
+    return;
+  }
+  if (instr->input(1) == instr->input(2)) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 2);
     return;
   }

@@ -257,6 +257,9 @@ void Editor::SetBranch(Value* condition,
                        BasicBlock* false_block) {
   DCHECK(basic_block_);
   DCHECK(condition->type()->is<BoolType>()) << *condition;
+  // Since, we use use-def list for representing predecessors of basic block,
+  // basic block must be unique in inputs.
+  DCHECK_NE(true_block, false_block);
   if (auto const branch =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     branch->SetInputAt(0, condition);

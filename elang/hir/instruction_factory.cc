@@ -143,6 +143,9 @@ Instruction* InstructionFactory::NewBranchInstruction(Value* condition,
                                                       BasicBlock* true_block,
                                                       BasicBlock* false_block) {
   DCHECK_EQ(bool_type(), condition->type());
+  // Since, we use use-def list for representing predecessors of basic block,
+  // basic block must be unique in inputs.
+  DCHECK_NE(true_block, false_block);
   auto const instr = new (zone()) BranchInstruction(void_type());
   instr->InitInputAt(0, condition);
   instr->InitInputAt(1, true_block);
