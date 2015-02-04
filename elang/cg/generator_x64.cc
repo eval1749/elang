@@ -125,18 +125,19 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     EmitCopy(output, input);
     return;
   }
+  std::vector<lir::Value> inputs(tuple->size());
+  inputs.resize(0);
+  std::vector<lir::Value> outputs(tuple->size());
+  outputs.resize(0);
   for (auto const user : instr->users()) {
     auto const get_instr = user->instruction()->as<hir::GetInstruction>();
     if (!get_instr)
       continue;
     auto const output = MapRegister(get_instr, 32);
-    auto const input = lir::Isa::GetParameterAt(output, get_instr->index());
-    if (input.is_register()) {
-      EmitCopy(output, input);
-      continue;
-    }
-    Emit(factory()->NewLoadInstruction(output, input));
+    outputs.push_back(output);
+    inputs.push_back(lir::Isa::GetParameterAt(output, get_instr->index()));
   }
+  Emit(factory()->NewPCopyInstruction(outputs, inputs));
 }
 
 // Set return value and emit 'ret' instruction.
