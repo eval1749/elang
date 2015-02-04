@@ -21,6 +21,7 @@ class ErrorData;
 class Editor;
 class Function;
 class Instruction;
+class Literal;
 struct Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -37,6 +38,8 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   bool Validate(Instruction* instruction);
 
  private:
+  Editor* editor() const { return editor_; }
+
   // Validation errors
   void AddError(ErrorCode error_code,
                 Value value,
@@ -45,9 +48,13 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
 
   // Helper functions for reporting error
   void Error(ErrorCode error_code, Instruction* instruction);
+  void Error(ErrorCode error_code, Instruction* instruction, int detail);
+  void Error(ErrorCode error_code, Instruction* instruction, Value detail);
   void Error(ErrorCode error_code, Value value);
   void Error(ErrorCode error_code, Value value, Value detail);
   void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
+
+  Literal* GetLiteral(Value value);
 
   // InstructionVisitor
   void VisitBranch(BranchInstruction* instruction) final;

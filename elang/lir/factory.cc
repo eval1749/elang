@@ -39,6 +39,7 @@ void InstructionVisitor::DoDefaultVisit(Instruction* instr) {
 //
 Factory::Factory()
     : last_basic_block_id_(0),
+      last_condition_id_(0),
       last_instruction_id_(0),
       last_float_register_id_(0),
       last_general_register_id_(0),
@@ -58,6 +59,11 @@ BasicBlock* Factory::NewBasicBlock() {
       new (zone()) BasicBlock(literal_map_->next_literal_value(model));
   RegisterLiteral(block);
   return block;
+}
+
+Value Factory::NewCondition() {
+  return Value(Value::Type::Integer, Value::Size::Size8, Value::Kind::Condition,
+               ++last_condition_id_);
 }
 
 Function* Factory::NewFunction() {

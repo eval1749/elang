@@ -45,6 +45,17 @@ void Validator::Error(ErrorCode error_code, Instruction* instruction) {
   Error(error_code, AsValue(instruction));
 }
 
+void Validator::Error(ErrorCode error_code, Instruction* instruction,
+                      int detail) {
+  Error(error_code, AsValue(instruction),
+        editor_->factory()->NewIntValue(Value::Size::Size32, detail));
+}
+
+void Validator::Error(ErrorCode error_code, Instruction* instruction,
+                      Value detail) {
+  Error(error_code, AsValue(instruction), detail);
+}
+
 void Validator::Error(ErrorCode error_code, Value value) {
   AddError(error_code, value, {});
 }
@@ -58,6 +69,12 @@ void Validator::Error(ErrorCode error_code,
                       Value detail1,
                       Value detail2) {
   AddError(error_code, value, {detail1, detail2});
+}
+
+Literal* Validator::GetLiteral(Value value) {
+  if (!value.is_literal())
+    return nullptr;
+  return editor()->factory()->literals()->GetLiteral(value);
 }
 
 bool Validator::Validate(BasicBlock* block) {
@@ -144,13 +161,23 @@ void Validator::VisitBranch(BranchInstruction* instr) {
   // Since we use input values are successors of basic block, input values
   // must not have same block.
   DCHECK_NE(instr->input(1), instr->input(2));
+  if (!instr->input(0).is_condition())
+    Error(ErrorCode::ValidateInstructionInput, instr, 0);
+  if (!GetLiteral(instr->input(1))->is<BasicBlock>()) {
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  }
+  if (!GetLiteral(instr->input(2))->is<BasicBlock>()) {
+    Error(ErrorCode::ValidateInstructionInputType, instr, 2);
+  }
+  if (instr->input(1) == instr->input(2))
+    Error(ErrorCode::ValidateInstructionInput, instr, 2);
 }
 
 void Validator::VisitCopy(CopyInstruction* instr) {
   if (instr->output(0).size != instr->input(0).size)
-    Error(ErrorCode::ValidateInstructionInputSize, instr);
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
   if (instr->output(0).type != instr->input(0).type)
-    Error(ErrorCode::ValidateInstructionInputType, instr);
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
 }
 
 }  // namespace lir

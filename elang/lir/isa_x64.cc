@@ -100,7 +100,7 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::Argument:
       return ostream << "%arg[" << value.data << "]";
     case Value::Kind::Condition:
-      return ostream << "EFLAGS";
+      return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Instruction:
@@ -243,10 +243,6 @@ Value Isa::GetParameterAt(Value output, int position) {
 }
 
 Value Isa::GetRegister(isa::Register name) {
-  if (name == isa::EFLAGS) {
-    return Value(Value::Type::Integer, Value::Size::Size32,
-                 Value::Kind::Condition, 0);
-  }
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
     return Value(Value::Type::Float, Value::Size::Size64,

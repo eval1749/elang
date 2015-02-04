@@ -42,6 +42,9 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns newly created |BasicBlock|.
   BasicBlock* NewBasicBlock();
 
+  // Returns newly created condition.
+  Value NewCondition();
+
   // Returns newly created |Function|.
   Function* NewFunction();
 
@@ -112,6 +115,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   const std::unique_ptr<LiteralMap> literal_map_;
   int last_basic_block_id_;
   int last_instruction_id_;
+  int last_condition_id_;
   int last_float_register_id_;
   int last_general_register_id_;
   std::unordered_map<base::StringPiece16, Value> string_map_;

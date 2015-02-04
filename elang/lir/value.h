@@ -38,7 +38,7 @@ struct ELANG_LIR_EXPORT Value {
     Parameter = 3,
     PhysicalRegister = 4,
     VirtualRegister = 5,
-    Condition = 6,  // for x64 EFLAGS
+    Condition = 6,  // output of equality and relational instructions.
     Argument = 7,
     NotUsed8,
     NotUsed9,

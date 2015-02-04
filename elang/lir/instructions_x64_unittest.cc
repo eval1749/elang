@@ -34,7 +34,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
   auto const merge_block = editor.NewBasicBlock(function->exit_block());
 
   editor.Edit(function->entry_block());
-  editor.SetBranch(Isa::GetRegister(isa::EFLAGS), true_block, false_block);
+  editor.SetBranch(factory()->NewCondition(), true_block, false_block);
   editor.Commit();
 
   editor.Edit(true_block);
@@ -56,7 +56,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  br EFLAGS, block3, block4\n"
+      "  br %b1, block3, block4\n"
       "block3:\n"
       "  jmp block5\n"
       "block4:\n"
