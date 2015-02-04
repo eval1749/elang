@@ -32,7 +32,7 @@ struct ELANG_LIR_EXPORT Value {
   };
 
   enum class Kind : uint32_t {
-    Invalid = 0,
+    Void = 0,
     Immediate = 1,
     Literal = 2,
     Parameter = 3,
@@ -59,7 +59,7 @@ struct ELANG_LIR_EXPORT Value {
   int data : 24;
 
   Value()
-      : type(Type::Integer), size(Size::Size8), kind(Kind::Invalid), data(0) {}
+      : type(Type::Integer), size(Size::Size8), kind(Kind::Void), data(0) {}
 
   Value(Type type, Size size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
@@ -78,6 +78,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
+  bool is_void() const { return kind == Kind::Void; }
 
   // Help function
   static bool CanBeImmediate(int64_t value);

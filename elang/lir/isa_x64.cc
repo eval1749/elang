@@ -97,8 +97,6 @@ std::ostream& operator<<(std::ostream& ostream,
   };
   auto const value = printable.value;
   switch (value.kind) {
-    case Value::Kind::Invalid:
-      return ostream << "INVALID";
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Literal:
@@ -129,6 +127,8 @@ std::ostream& operator<<(std::ostream& ostream,
       return ostream << "EFLAGS";
     case Value::Kind::VirtualRegister:
       return ostream << (value.is_float() ? "%f" : "%r") << value.data;
+    case Value::Kind::Void:
+      return ostream << "void";
   }
   NOTREACHED() << value;
   return ostream << "NOTREACHED(" << value.data << ")";
