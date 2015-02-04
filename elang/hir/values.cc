@@ -74,6 +74,10 @@ bool BasicBlock::HasPredecessor() const {
   return predecessors().begin() != predecessors().end();
 }
 
+bool BasicBlock::HasSuccessor() const {
+  return successors().begin() != successors().end();
+}
+
 // BasicBlockPredecessors
 BasicBlockPredecessors::BasicBlockPredecessors(const BasicBlock* basic_block)
     : basic_block_(basic_block) {

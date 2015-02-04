@@ -100,11 +100,11 @@ Value* Validator::NewInt32(int32_t data) {
 //  - instructions
 bool Validator::Validate(BasicBlock* block) {
   if (!block->id()) {
-    Error(ErrorCode::ValidateBasicBlockNoId, block);
+    Error(ErrorCode::ValidateBasicBlockId, block);
     return false;
   }
   if (!block->function()) {
-    Error(ErrorCode::ValidateBasicBlockNoFunction, block);
+    Error(ErrorCode::ValidateBasicBlockFunction, block);
     return false;
   }
   if (block->instructions().empty()) {
@@ -112,17 +112,35 @@ bool Validator::Validate(BasicBlock* block) {
     return false;
   }
 
+  // Entry block
   auto const entry_block = block->function()->entry_block();
-  if (block->first_instruction()->is<EntryInstruction>() &&
-      entry_block != block) {
-    Error(ErrorCode::ValidateBasicBlockEntry, block, entry_block);
+  if (block == entry_block) {
+    if (!block->first_instruction()->is<EntryInstruction>()) {
+      Error(ErrorCode::ValidateInstructionEntry, block);
+      return false;
+    }
+    if (entry_block->HasPredecessor()) {
+      Error(ErrorCode::ValidateBasicBlockEntry, block);
+      return false;
+    }
+  } else if (block->first_instruction()->is<EntryInstruction>()) {
+    Error(ErrorCode::ValidateInstructionEntry, block->first_instruction());
     return false;
   }
 
+  // Exit block
   auto const exit_block = block->function()->exit_block();
-  if (block->first_instruction()->is<ExitInstruction>() &&
-      exit_block != block) {
-    Error(ErrorCode::ValidateBasicBlockExit, block, exit_block);
+  if (block == exit_block) {
+    if (!block->first_instruction()->is<ExitInstruction>()) {
+      Error(ErrorCode::ValidateInstructionExit, block->first_instruction());
+      return false;
+    }
+    if (exit_block->HasSuccessor()) {
+      Error(ErrorCode::ValidateBasicBlockExit, exit_block);
+      return false;
+    }
+  } else if (block->last_instruction()->is<ExitInstruction>()) {
+    Error(ErrorCode::ValidateInstructionExit, block->last_instruction());
     return false;
   }
 
@@ -145,7 +163,7 @@ bool Validator::Validate(BasicBlock* block) {
       is_valid = false;
   }
   if (!found_terminator) {
-    Error(ErrorCode::ValidateBasicBlockNoTerminator, block);
+    Error(ErrorCode::ValidateBasicBlockTerminator, block);
     return false;
   }
   return is_valid;
@@ -156,31 +174,24 @@ bool Validator::Validate(Function* function) {
     Error(ErrorCode::ValidateFunctionEmpty, function);
     return false;
   }
-  if (!function->entry_block()->first_instruction()->is<EntryInstruction>()) {
-    Error(ErrorCode::ValidateFunctionNoEntry, function);
+  auto const entry_block = function->entry_block();
+  if (!entry_block->first_instruction()->is<EntryInstruction>()) {
+    Error(ErrorCode::ValidateFunctionEntry, function);
     return false;
   }
-  auto found_exit = false;
+
+  auto const exit_block = function->exit_block();
+  if (!exit_block->first_instruction()->is<ExitInstruction>()) {
+    Error(ErrorCode::ValidateFunctionExit, function);
+    return false;
+  }
+
+  auto is_valid = true;
   for (auto block : function->basic_blocks()) {
-    if (!block->id()) {
-      Error(ErrorCode::ValidateBasicBlockNoId, block);
-      return false;
-    }
     if (!Validate(block))
-      return false;
-    if (block->last_instruction()->is<ExitInstruction>()) {
-      if (found_exit) {
-        Error(ErrorCode::ValidateFunctionExit, function);
-        return false;
-      }
-      found_exit = true;
-    }
+      is_valid = false;
   }
-  if (!found_exit) {
-    Error(ErrorCode::ValidateFunctionNoExit, function);
-    return false;
-  }
-  return true;
+  return is_valid;
 }
 
 bool Validator::Validate(Instruction* instruction) {

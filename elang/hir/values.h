@@ -320,6 +320,7 @@ class ELANG_HIR_EXPORT BasicBlock final
 
   bool HasMoreThanOnePredecessors() const;
   bool HasPredecessor() const;
+  bool HasSuccessor() const;
 
  private:
   friend class Editor;
