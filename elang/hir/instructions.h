@@ -531,11 +531,14 @@ class ELANG_HIR_EXPORT StackAllocInstruction final
 class ELANG_HIR_EXPORT TupleInstruction final : public Instruction {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Tuple);
 
+ public:
+  // Instruction operands protocol
+  int CountInputs() const final;
+
  private:
   explicit TupleInstruction(Zone* zone, Type* output_type, int count);
 
   // Instruction
-  int CountInputs() const final;
   UseDefNode* InputAt(int index) const final;
 
   int count_;
