@@ -6,6 +6,7 @@
 
 #include "elang/lir/factory.h"
 
+#include "elang/base/atomic_string.h"
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
@@ -174,6 +175,10 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   RegisterLiteral(literal);
   string_map_[literal->data()] = value;
   return value;
+}
+
+Value Factory::NewStringValue(AtomicString* atomic_string) {
+  return NewStringValue(atomic_string->string());
 }
 
 int Factory::NextBasicBlockId() {

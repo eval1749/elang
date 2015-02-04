@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
 #include "elang/lir/instructions_forward.h"
@@ -22,8 +21,8 @@
 #endif
 
 namespace elang {
+class AtomicString;
 namespace lir {
-
 class LiteralMap;
 
 //////////////////////////////////////////////////////////////////////
@@ -51,6 +50,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Value NewFloat64Value(float64_t value);
   Value NewIntValue(Value::Size size, int64_t value);
   Value NewStringValue(base::StringPiece16 data);
+  Value NewStringValue(AtomicString* atomic_string);
 
   // Virtual register
   // Returns newly allocated virtual floating-point number register.
