@@ -11,6 +11,7 @@
 #include "base/strings/string_piece.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
+#include "elang/base/iterator_on_iterator.h"
 #include "elang/base/visitable.h"
 #include "elang/hir/thing.h"
 #include "elang/hir/types_forward.h"
@@ -219,38 +220,6 @@ class ELANG_HIR_EXPORT OperandIterator final {
 // Help classes for |BasicBlock|.
 //
 typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
-
-// IteratorOnIterator provides functions for implementing iterator on
-// another iterator.
-template <class Derived, class BaseIterator>
-class IteratorOnIterator {
- public:
-  IteratorOnIterator& operator=(const IteratorOnIterator& other) = default;
-
-  Derived& operator++() {
-    ++iterator_;
-    return *static_cast<Derived*>(this);
-  }
-
-  bool operator==(const IteratorOnIterator& other) const {
-    return iterator_ == other.iterator_;
-  }
-
-  bool operator!=(const IteratorOnIterator& other) const {
-    return !operator==(other);
-  }
-
- protected:
-  explicit IteratorOnIterator(const BaseIterator& iterator)
-      : iterator_(iterator) {}
-  ~IteratorOnIterator() = default;
-
-  const BaseIterator* iterator() const { return &iterator_; }
-  BaseIterator* iterator() { return &iterator_; }
-
- private:
-  BaseIterator iterator_;
-};
 
 // BasicBlockPredecessors
 class ELANG_HIR_EXPORT BasicBlockPredecessors final {
