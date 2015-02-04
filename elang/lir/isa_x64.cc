@@ -101,6 +101,12 @@ std::ostream& operator<<(std::ostream& ostream,
       return ostream << "%arg[" << value.data << "]";
     case Value::Kind::Immediate:
       return ostream << value.data;
+    case Value::Kind::Instruction:
+      if (printable.literals) {
+        if (auto const instruction = printable.literals->GetInstruction(value))
+          return ostream << *instruction;
+      }
+      return ostream << "#" << value.data;
     case Value::Kind::Literal:
       if (printable.literals) {
         if (auto const literal = printable.literals->GetLiteral(value))

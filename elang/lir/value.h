@@ -47,7 +47,7 @@ struct ELANG_LIR_EXPORT Value {
     NotUsed12,
     NotUsed13,
     NotUsed14,
-    NotUsed15,
+    Instruction,  // for ErrorData
   };
 
   static const int kMaximumImmediate = 1 << 23;

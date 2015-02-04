@@ -5,6 +5,7 @@
 #ifndef ELANG_LIR_LITERAL_MAP_H_
 #define ELANG_LIR_LITERAL_MAP_H_
 
+#include <unordered_map>
 #include <vector>
 
 #include "base/strings/string_piece.h"
@@ -14,7 +15,10 @@
 namespace elang {
 namespace lir {
 
+class Factory;
+class Instruction;
 class Literal;
+class Validator;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -27,13 +31,24 @@ class ELANG_LIR_EXPORT LiteralMap {
 
   Value next_literal_value(Value model) const;
 
+  // Returns |Instruction| associated with |index|.
+  Instruction* GetInstruction(Value value) const;
+
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value) const;
+
+ private:
+  friend class Factory;
+  friend class Validator;
+
+  // Register |instruction| for error message
+  Value RegisterInstruction(Instruction* instruction);
 
   // Register |literal|
   void RegisterLiteral(Literal* literal);
 
- private:
+  std::unordered_map<Instruction*, Value> instruction_map_;
+  std::vector<Instruction*> instructions_;
   std::vector<Literal*> literals_;
 
   DISALLOW_COPY_AND_ASSIGN(LiteralMap);

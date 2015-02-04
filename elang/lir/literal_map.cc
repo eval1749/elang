@@ -28,11 +28,29 @@ Value LiteralMap::next_literal_value(Value model) const {
   return model;
 }
 
+Instruction* LiteralMap::GetInstruction(Value value) const {
+  DCHECK_EQ(Value::Kind::Instruction, value.kind);
+  auto const index = static_cast<size_t>(value.data - 1);
+  DCHECK_LT(index, instructions_.size());
+  return instructions_[index];
+}
+
 Literal* LiteralMap::GetLiteral(Value value) const {
   DCHECK_EQ(Value::Kind::Literal, value.kind);
   auto const index = static_cast<size_t>(value.data - 1);
   DCHECK_LT(index, literals_.size());
   return literals_[index];
+}
+
+Value LiteralMap::RegisterInstruction(Instruction* instruction) {
+  auto const it = instruction_map_.find(instruction);
+  if (it != instruction_map_.end())
+    return it->second;
+  instructions_.push_back(instruction);
+  Value value(Value::Type::Integer, Value::Size::Size8,
+              Value::Kind::Instruction, static_cast<int>(instructions_.size()));
+  instruction_map_[instruction] = value;
+  return value;
 }
 
 void LiteralMap::RegisterLiteral(Literal* literal) {
