@@ -22,7 +22,8 @@ namespace lir {
 //
 // Validator
 //
-Validator::Validator(Editor* editor) : editor_(editor) {
+Validator::Validator(Editor* editor)
+    : editor_(editor), is_valid_instruction_(false) {
 }
 
 Validator::~Validator() {
@@ -31,6 +32,8 @@ Validator::~Validator() {
 void Validator::AddError(ErrorCode error_code,
                          Value value,
                          const std::vector<Value> details) {
+  if (value.is_instruction())
+    is_valid_instruction_ = false;
   editor_->AddError(error_code, value, details);
 }
 
@@ -70,17 +73,15 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockEmpty, block->value());
     return false;
   }
+  auto is_valid = true;
   auto found_terminator = false;
   for (auto instruction : block->instructions()) {
-    // TODO(eval1749) We should call |Validation()| function in ISA.
-    if (!instruction->id()) {
-      Error(ErrorCode::ValidateInstructionId, instruction);
-      return false;
-    }
+    if (!Validate(instruction))
+      is_valid = false;
     if (instruction->IsTerminator()) {
       if (found_terminator) {
         Error(ErrorCode::ValidateInstructionTerminator, instruction);
-        return false;
+        is_valid = false;
       }
       found_terminator = true;
     }
@@ -89,7 +90,7 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockTerminator, block->value());
     return false;
   }
-  return true;
+  return is_valid;
 }
 
 bool Validator::Validate(Function* function) {
@@ -121,6 +122,35 @@ bool Validator::Validate(Function* function) {
     is_valid = false;
   }
   return is_valid;
+}
+
+bool Validator::Validate(Instruction* instruction) {
+  if (!instruction->id()) {
+    Error(ErrorCode::ValidateInstructionId, instruction);
+    return false;
+  }
+  if (!instruction->basic_block()) {
+    Error(ErrorCode::ValidateInstructionBasicBlock, instruction);
+    return false;
+  }
+  is_valid_instruction_ = true;
+  instruction->Accept(this);
+  return is_valid_instruction_;
+}
+
+// InstructionVisitor
+
+void Validator::VisitBranch(BranchInstruction* instr) {
+  // Since we use input values are successors of basic block, input values
+  // must not have same block.
+  DCHECK_NE(instr->input(1), instr->input(2));
+}
+
+void Validator::VisitCopy(CopyInstruction* instr) {
+  if (instr->output(0).size != instr->input(0).size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr);
+  if (instr->output(0).type != instr->input(0).type)
+    Error(ErrorCode::ValidateInstructionInputType, instr);
 }
 
 }  // namespace lir

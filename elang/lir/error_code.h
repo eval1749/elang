@@ -25,6 +25,8 @@ namespace lir {
   /* Instructions */                   \
   E(Validate, Instruction, BasicBlock) \
   E(Validate, Instruction, Id)         \
+  E(Validate, Instruction, InputSize)  \
+  E(Validate, Instruction, InputType)  \
   E(Validate, Instruction, Terminator) \
   E(Validate, Phi, Count)              \
   E(Validate, Phi, NotFound)

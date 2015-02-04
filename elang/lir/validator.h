@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/lir/instructions_forward.h"
+#include "elang/lir/instruction_visitor.h"
 #include "elang/lir/lir_export.h"
 
 namespace elang {
@@ -25,13 +27,14 @@ struct Value;
 //
 // Validator
 //
-class ELANG_LIR_EXPORT Validator final {
+class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
  public:
   explicit Validator(Editor* editor);
   ~Validator();
 
   bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
+  bool Validate(Instruction* instruction);
 
  private:
   // Validation errors
@@ -46,7 +49,12 @@ class ELANG_LIR_EXPORT Validator final {
   void Error(ErrorCode error_code, Value value, Value detail);
   void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
 
+  // InstructionVisitor
+  void VisitBranch(BranchInstruction* instruction) final;
+  void VisitCopy(CopyInstruction* instruction) final;
+
   Editor* const editor_;
+  bool is_valid_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(Validator);
 };
