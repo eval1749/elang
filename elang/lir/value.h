@@ -38,7 +38,7 @@ struct ELANG_LIR_EXPORT Value {
     Parameter = 3,
     PhysicalRegister = 4,
     VirtualRegister = 5,
-    PseudoRegister = 6,  // for x64 EFLAGS
+    Condition = 6,  // for x64 EFLAGS
     Argument = 7,
     NotUsed8,
     NotUsed9,
@@ -71,6 +71,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_integer() const { return type == Type::Integer; }
 
   // predicates for |Kind|
+  bool is_condition() const { return kind == Kind::Condition; }
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }
   bool is_literal() const { return kind == Kind::Literal; }
