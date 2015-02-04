@@ -130,22 +130,22 @@ enum Register {
   XMM15S = 0x1F,
 
   // Float64 - double precision floating-point
-  XMM0D =  0x20,
-  XMM1D =  0x21,
-  XMM2D =  0x22,
-  XMM3D =  0x23,
-  XMM4D =  0x24,
-  XMM5D =  0x25,
-  XMM6D =  0x26,
-  XMM7D =  0x27,
-  XMM8D =  0x28,
-  XMM9D =  0x29,
-  XMM10D =  0x2A,
-  XMM11D =  0x2B,
-  XMM12D =  0x2C,
-  XMM13D =  0x2D,
-  XMM14D =  0x2E,
-  XMM15D =  0x2F,
+  XMM0D = 0x20,
+  XMM1D = 0x21,
+  XMM2D = 0x22,
+  XMM3D = 0x23,
+  XMM4D = 0x24,
+  XMM5D = 0x25,
+  XMM6D = 0x26,
+  XMM7D = 0x27,
+  XMM8D = 0x28,
+  XMM9D = 0x29,
+  XMM10D = 0x2A,
+  XMM11D = 0x2B,
+  XMM12D = 0x2C,
+  XMM13D = 0x2D,
+  XMM14D = 0x2E,
+  XMM15D = 0x2F,
 };
 
 const int kCallerSaveRegisters = RAX | RCX | RDX | R8 | R9 | R10 | R11;
@@ -163,8 +163,16 @@ class ELANG_LIR_EXPORT Isa {
   Isa() = delete;
   ~Isa() = delete;
 
+  // Returns register or location for argument at |position|.
+  static Value GetArgumentAt(Value output, int position);
+
+  // Returns register or location for parameter at |position|.
   static Value GetParameterAt(Value output, int position);
+
+  // Returns physical/pseudo register of |name|.
   static Value GetRegister(isa::Register name);
+
+  // Returns bit size of pointer.
   static Value::Size PointerSize();
 };
 

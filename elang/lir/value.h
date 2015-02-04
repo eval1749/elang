@@ -39,7 +39,7 @@ struct ELANG_LIR_EXPORT Value {
     PhysicalRegister = 4,
     VirtualRegister = 5,
     PseudoRegister = 6,  // for x64 EFLAGS
-    NotUsed7 = 7,
+    Argument = 7,
     NotUsed8,
     NotUsed9,
     NotUsed10,
@@ -58,8 +58,7 @@ struct ELANG_LIR_EXPORT Value {
   Kind kind : 4;
   int data : 24;
 
-  Value()
-      : type(Type::Integer), size(Size::Size8), kind(Kind::Void), data(0) {}
+  Value() : type(Type::Integer), size(Size::Size8), kind(Kind::Void), data(0) {}
 
   Value(Type type, Size size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
@@ -83,6 +82,7 @@ struct ELANG_LIR_EXPORT Value {
   // Help function
   static bool CanBeImmediate(int64_t value);
 
+  static Value Argument(Type type, Size size, int data);
   static Value Float32Literal();
   static Value Float64Literal();
   static Value FloatRegister(Size size, int data);

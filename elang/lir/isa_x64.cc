@@ -97,6 +97,8 @@ std::ostream& operator<<(std::ostream& ostream,
   };
   auto const value = printable.value;
   switch (value.kind) {
+    case Value::Kind::Argument:
+      return ostream << "%arg[" << value.data << "]";
     case Value::Kind::Immediate:
       return ostream << value.data;
     case Value::Kind::Literal:
@@ -208,6 +210,18 @@ static const Register kFloatParameters[] = {XMM0D, XMM1D, XMM2D, XMM3D};
 static_assert(sizeof(kIntegerParameters) == sizeof(kFloatParameters),
               "Number of parameter registers should be matched between"
               " float and integer");
+}
+
+Value Isa::GetArgumentAt(Value output, int position) {
+  DCHECK_GE(position, 0);
+  if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
+    auto const number = output.is_float() ? isa::kFloatParameters[position]
+                                          : isa::kIntegerParameters[position];
+    return Value(output.type, output.size, Value::Kind::PhysicalRegister,
+                 number & 15);
+  }
+  return Value(output.type, Value::Size::Size64, Value::Kind::Argument,
+               position);
 }
 
 Value Isa::GetParameterAt(Value output, int position) {
