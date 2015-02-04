@@ -80,7 +80,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov RAX, %r1\n"
+      "  mov RAX = %r1\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -148,8 +148,8 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1, 42\n"
-      "  mov %r2, \"foo\"\n"
+      "  mov %r1 = 42\n"
+      "  mov %r2 = \"foo\"\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -168,7 +168,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1, %param[4]\n"
+      "  mov %r1 = %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

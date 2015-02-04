@@ -42,9 +42,8 @@ TEST_F(GeneratorX64Test, Basic) {
 }
 
 TEST_F(GeneratorX64Test, BinaryOperation) {
-  auto const function =
-      NewFunction(int32_type(), types()->NewTupleType({int32_type(),
-                                                       int32_type()}));
+  auto const function = NewFunction(
+      int32_type(), types()->NewTupleType({int32_type(), int32_type()}));
   auto const entry = function->entry_block()->first_instruction();
   hir::Editor editor(factory(), function);
   editor.Edit(function->entry_block());
@@ -63,10 +62,10 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1, ECX\n"
-      "  mov %r2, EDX\n"
-      "  add %r3, %r1, %r2\n"
-      "  mov EAX, %r3\n"
+      "  mov %r1 = ECX\n"
+      "  mov %r2 = EDX\n"
+      "  add %r3 = %r1, %r2\n"
+      "  mov EAX = %r3\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -93,11 +92,11 @@ TEST_F(GeneratorX64Test, Parameter) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1, ECX\n"
-      "  mov %r2, RDX\n"
-      "  mov %r3, R8D\n"
-      "  mov %f1, XMM3\n"
-      "  mov %r4, %param[4]\n"
+      "  mov %r1 = ECX\n"
+      "  mov %r2 = RDX\n"
+      "  mov %r3 = R8D\n"
+      "  mov %f1 = XMM3\n"
+      "  mov %r4 = %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -115,7 +114,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov EAX, 42\n"
+      "  mov EAX = 42\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -133,7 +132,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov RAX, 42\n"
+      "  mov RAX = 42\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

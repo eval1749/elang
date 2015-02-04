@@ -147,7 +147,7 @@ std::ostream& operator<<(std::ostream& ostream,
       ostream << separator << output;
       separator = ", ";
     }
-    ostream << " <-";
+    ostream << " =";
   }
   if (auto const phi = instruction.as<PhiInstruction>()) {
     auto separator = " ";
@@ -171,34 +171,32 @@ std::ostream& operator<<(std::ostream& ostream,
   auto const instruction = printable.instruction;
   auto const literals = printable.literals;
   ostream << instruction->mnemonic();
-  auto separator = " ";
   // outputs
   if (!instruction->outputs().empty()) {
-    auto const output = instruction->output(0);
-    ostream << separator << AsPrintableValue(literals, output);
-    separator = ", ";
+    auto separator = " ";
+    for (auto output : instruction->outputs()) {
+      ostream << separator << output;
+      separator = ", ";
+    }
+    ostream << " =";
   }
   // inputs
   if (auto const phi = instruction->as<PhiInstruction>()) {
-    auto separator = " = ";
+    auto separator = " ";
     for (auto const phi_input : phi->phi_inputs()) {
       ostream << separator << *phi_input->basic_block() << " "
-              << phi_input->value();
+              << AsPrintableValue(literals, phi_input->value());
       separator = ", ";
     }
     DCHECK_EQ(phi->outputs().size(), 1);
     return ostream;
   }
   if (!instruction->inputs().empty()) {
+    auto separator = " ";
     for (auto const value : instruction->inputs()) {
       ostream << separator << AsPrintableValue(literals, value);
       separator = ", ";
     }
-  }
-  if (instruction->outputs().size() >= 2) {
-    ostream << " ;";
-    for (auto output : instruction->outputs())
-      ostream << " " << output;
   }
   return ostream;
 }
