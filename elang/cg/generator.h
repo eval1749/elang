@@ -55,6 +55,7 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
 
   // hir::InstructionVisitor
   void VisitEntry(hir::EntryInstruction* instr) final;
+  void VisitCall(hir::CallInstruction* instr) final;
   void VisitRet(hir::RetInstruction* instr) final;
 
 #define V(Name, ...) void Visit##Name(hir::Name##Instruction* instr) final;

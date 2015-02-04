@@ -71,6 +71,42 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
       Generate(function));
 }
 
+TEST_F(GeneratorX64Test, Call) {
+  hir::Editor editor(factory(), function());
+  editor.Edit(function()->entry_block());
+  auto const params_type = types()->NewTupleType({int32_type(),
+                                                  bool_type(),
+                                                  int64_type(),
+                                                  int16_type(),
+                                                  float32_type(),
+                                                  float64_type()});
+  auto const callee_type = types()->NewFunctionType(void_type(), params_type);
+  auto const callee =
+      factory()->NewReference(callee_type, factory()->NewAtomicString(L"Foo"));
+  auto const arguments = factory()->NewTupleInstruction(
+      params_type, {factory()->NewInt32Literal(42),
+                    true_value(),
+                    factory()->NewInt64Literal(56),
+                    factory()->NewInt16Literal(89),
+                    factory()->NewFloat32Literal(1.2f),
+                    factory()->NewFloat64Literal(3.4)});
+  editor.Append(arguments);
+  editor.Append(factory()->NewCallInstruction(callee, arguments));
+  editor.Commit();
+  ASSERT_TRUE(editor.Validate());
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  pcopy ECX, EDX, R8D, R9D, %arg[4], %arg[5] = 42, 1, 56, 89, 1.2f, "
+      "3.4\n"
+      "  call \"Foo\"\n"
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      Generate(function()));
+}
+
 TEST_F(GeneratorX64Test, Parameter) {
   auto const function =
       NewFunction(void_type(), types()->NewTupleType({int32_type(),

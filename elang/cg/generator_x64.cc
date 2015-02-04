@@ -90,6 +90,9 @@ lir::Value Generator::MapInput(lir::Value output, hir::Value* value) {
   if (auto const literal = value->as<hir::UInt64Literal>())
     return factory()->NewIntValue(output.size, literal->data());
 
+  if (auto const reference = value->as<hir::Reference>())
+    return factory()->NewStringValue(reference->name());
+
   NOTREACHED() << "unsupported hir::Literal: " << *value;
   return factory()->NewIntValue(output.size, 0);
 }
@@ -112,6 +115,47 @@ lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
 
 // hir::InstructionVisitor
 
+void Generator::VisitCall(hir::CallInstruction* instr) {
+  auto const callee_align =
+      lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64,
+                 lir::Value::Kind::Void);
+  auto const lir_callee = MapInput(callee_align, instr->input(0));
+  auto const argument = instr->input(1);
+
+  if (argument->type()->is<hir::VoidType>()) {
+    // No argument
+    Emit(factory()->NewCallInstruction(lir_callee));
+    return;
+  }
+
+  auto const arg_align =
+      lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size32,
+                 lir::Value::Kind::Void);
+  auto const arguments_instr = argument->as<hir::TupleInstruction>();
+  if (!arguments_instr) {
+    // One argument
+    auto const lir_argument = MapInput(arg_align, argument);
+    EmitCopy(Isa::GetArgumentAt(lir_argument, 0), lir_argument);
+    Emit(factory()->NewCallInstruction(lir_callee));
+    return;
+  }
+
+  // Multiple arguments
+  std::vector<lir::Value> inputs(arguments_instr->CountInputs());
+  inputs.resize(0);
+  std::vector<lir::Value> outputs(inputs.size());
+  outputs.resize(0);
+  auto position = 0;
+  for (auto const argument : arguments_instr->inputs()) {
+    auto const lir_argument = MapInput(arg_align, argument);
+    inputs.push_back(lir_argument);
+    outputs.push_back(Isa::GetArgumentAt(lir_argument, position));
+    ++position;
+  }
+  Emit(factory()->NewPCopyInstruction(outputs, inputs));
+  Emit(factory()->NewCallInstruction(lir_callee));
+}
+
 // Load parameters from registers and stack
 void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const parameters_type = instr->output_type();
@@ -127,7 +171,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
   }
   std::vector<lir::Value> inputs(tuple->size());
   inputs.resize(0);
-  std::vector<lir::Value> outputs(tuple->size());
+  std::vector<lir::Value> outputs(inputs.size());
   outputs.resize(0);
   for (auto const user : instr->users()) {
     auto const get_instr = user->instruction()->as<hir::GetInstruction>();
