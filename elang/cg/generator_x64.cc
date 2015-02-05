@@ -52,7 +52,7 @@ lir::Value Generator::AllocateRegister(hir::Value* hir_value,
 
 void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
   DCHECK(output.is_register());
-  auto const input = MapInput(output, value);
+  auto const input = MapInput(value);
   if (input.is_register()) {
     EmitCopy(output, input);
     return;
@@ -60,7 +60,7 @@ void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
   Emit(factory()->NewLiteralInstruction(output, input));
 }
 
-lir::Value Generator::MapInput(lir::Value output, hir::Value* value) {
+lir::Value Generator::MapInput(hir::Value* value) {
   if (auto const instr = value->as<hir::Instruction>()) {
     auto const it = register_map_.find(instr);
     DCHECK(it != register_map_.end());
@@ -68,33 +68,33 @@ lir::Value Generator::MapInput(lir::Value output, hir::Value* value) {
   }
 
   if (auto const literal = value->as<hir::BoolLiteral>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
   if (auto const literal = value->as<hir::Float32Literal>())
     return factory()->NewFloat32Value(literal->data());
   if (auto const literal = value->as<hir::Float64Literal>())
     return factory()->NewFloat64Value(literal->data());
   if (auto const literal = value->as<hir::Int8Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
   if (auto const literal = value->as<hir::Int16Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size16, literal->data());
   if (auto const literal = value->as<hir::Int32Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size32, literal->data());
   if (auto const literal = value->as<hir::Int64Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size64, literal->data());
   if (auto const literal = value->as<hir::UInt8Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
   if (auto const literal = value->as<hir::UInt16Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size16, literal->data());
   if (auto const literal = value->as<hir::UInt32Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size32, literal->data());
   if (auto const literal = value->as<hir::UInt64Literal>())
-    return factory()->NewIntValue(output.size, literal->data());
+    return factory()->NewIntValue(lir::Value::Size::Size64, literal->data());
 
   if (auto const reference = value->as<hir::Reference>())
     return factory()->NewStringValue(reference->name());
 
   NOTREACHED() << "unsupported hir::Literal: " << *value;
-  return factory()->NewIntValue(output.size, 0);
+  return factory()->NewIntValue(lir::Value::Size::Size8, 0);
 }
 
 // Get output register for instruction except for 'load'.
@@ -119,7 +119,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   auto const callee_align =
       lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64,
                  lir::Value::Kind::Void);
-  auto const lir_callee = MapInput(callee_align, instr->input(0));
+  auto const lir_callee = MapInput(instr->input(0));
   auto const argument = instr->input(1);
 
   if (argument->type()->is<hir::VoidType>()) {
@@ -128,13 +128,10 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
     return;
   }
 
-  auto const arg_align =
-      lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size32,
-                 lir::Value::Kind::Void);
   auto const arguments_instr = argument->as<hir::TupleInstruction>();
   if (!arguments_instr) {
     // One argument
-    auto const lir_argument = MapInput(arg_align, argument);
+    auto const lir_argument = MapInput(argument);
     EmitCopy(Isa::GetArgumentAt(lir_argument, 0), lir_argument);
     Emit(factory()->NewCallInstruction(lir_callee));
     return;
@@ -147,7 +144,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   outputs.resize(0);
   auto position = 0;
   for (auto const argument : arguments_instr->inputs()) {
-    auto const lir_argument = MapInput(arg_align, argument);
+    auto const lir_argument = MapInput(argument);
     inputs.push_back(lir_argument);
     outputs.push_back(Isa::GetArgumentAt(lir_argument, position));
     ++position;
