@@ -9,10 +9,10 @@
 #include "base/strings/string_piece.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
-#include "elang/lir/isa_x64.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 #include "elang/lir/printable.h"
+#include "elang/lir/target_x64.h"
 
 namespace elang {
 namespace lir {
@@ -233,7 +233,7 @@ static_assert(sizeof(kIntegerParameters) == sizeof(kFloatParameters),
               " float and integer");
 }
 
-Value Isa::GetArgumentAt(Value output, int position) {
+Value Target::GetArgumentAt(Value output, int position) {
   DCHECK_GE(position, 0);
   if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
@@ -245,7 +245,7 @@ Value Isa::GetArgumentAt(Value output, int position) {
                position);
 }
 
-Value Isa::GetParameterAt(Value output, int position) {
+Value Target::GetParameterAt(Value output, int position) {
   DCHECK_GE(position, 0);
   if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
@@ -257,7 +257,7 @@ Value Isa::GetParameterAt(Value output, int position) {
                position);
 }
 
-Value Isa::GetRegister(isa::Register name) {
+Value Target::GetRegister(isa::Register name) {
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
     return Value(Value::Type::Float, Value::Size::Size64,
@@ -271,11 +271,11 @@ Value Isa::GetRegister(isa::Register name) {
                Value::Kind::PhysicalRegister, name & 15);
 }
 
-Value::Size Isa::PointerSize() {
+Value::Size Target::PointerSize() {
   return Value::Size::Size64;
 }
 
-int Isa::PointerSizeInByte() {
+int Target::PointerSizeInByte() {
   return 8;
 }
 

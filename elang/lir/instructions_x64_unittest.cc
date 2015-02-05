@@ -6,7 +6,7 @@
 
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
-#include "elang/lir/isa_x64.h"
+#include "elang/lir/target_x64.h"
 #include "elang/lir/literals.h"
 
 namespace elang {
@@ -47,8 +47,8 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
 
   editor.Edit(merge_block);
   auto const phi = editor.NewPhi(factory()->NewRegister());
-  editor.SetPhiInput(phi, true_block, Isa::GetRegister(isa::EAX));
-  editor.SetPhiInput(phi, false_block, Isa::GetRegister(isa::EBX));
+  editor.SetPhiInput(phi, true_block, Target::GetRegister(isa::EAX));
+  editor.SetPhiInput(phi, false_block, Target::GetRegister(isa::EBX));
   editor.SetReturn();
   editor.Commit();
 
@@ -73,7 +73,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewCopyInstruction(Isa::GetRegister(isa::RAX),
+  editor.Append(factory()->NewCopyInstruction(Target::GetRegister(isa::RAX),
                                               factory()->NewRegister()));
   editor.Commit();
   EXPECT_EQ(

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_ISA_X64_H_
-#define ELANG_LIR_ISA_X64_H_
+#ifndef ELANG_LIR_TARGET_X64_H_
+#define ELANG_LIR_TARGET_X64_H_
 
 #include "elang/lir/lir_export.h"
 
@@ -156,10 +156,10 @@ static_assert((kCalleeSaveRegisters | kCalleeSaveRegisters) == 0x30F,
 
 struct Value;
 
-class ELANG_LIR_EXPORT Isa {
+class ELANG_LIR_EXPORT Target {
  public:
-  Isa() = delete;
-  ~Isa() = delete;
+  Target() = delete;
+  ~Target() = delete;
 
   // Returns register or location for argument at |position|.
   static Value GetArgumentAt(Value output, int position);
@@ -180,4 +180,4 @@ class ELANG_LIR_EXPORT Isa {
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_ISA_X64_H_
+#endif  // ELANG_LIR_TARGET_X64_H_

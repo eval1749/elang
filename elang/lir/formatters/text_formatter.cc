@@ -11,11 +11,11 @@
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/as_printable.h"
 #include "elang/lir/instructions.h"
-#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 #include "elang/lir/literal_visitor.h"
 #include "elang/lir/printable.h"
+#include "elang/lir/target.h"
 
 namespace base {
 std::ostream& operator<<(std::ostream& ostream,

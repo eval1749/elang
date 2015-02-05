@@ -4,7 +4,7 @@
 
 #include "base/logging.h"
 #include "elang/lir/instructions_x64.h"
-#include "elang/lir/isa_x64.h"
+#include "elang/lir/target_x64.h"
 #include "elang/lir/literals.h"
 
 namespace elang {

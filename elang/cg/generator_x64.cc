@@ -14,13 +14,13 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
-#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 
 namespace elang {
 namespace cg {
 
-using lir::Isa;
+using lir::Target;
 
 namespace {
 
@@ -170,7 +170,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   if (!arguments_instr) {
     // One argument
     auto const lir_argument = MapInput(argument);
-    EmitCopy(Isa::GetArgumentAt(lir_argument, 0), lir_argument);
+    EmitCopy(Target::GetArgumentAt(lir_argument, 0), lir_argument);
     Emit(factory()->NewCallInstruction(lir_callee));
     return;
   }
@@ -184,7 +184,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   for (auto const argument : arguments_instr->inputs()) {
     auto const lir_argument = MapInput(argument);
     inputs.push_back(lir_argument);
-    outputs.push_back(Isa::GetArgumentAt(lir_argument, position));
+    outputs.push_back(Target::GetArgumentAt(lir_argument, position));
     ++position;
   }
   Emit(factory()->NewPCopyInstruction(outputs, inputs));
@@ -212,16 +212,16 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
     return;
   }
   auto const array_ptr = MapInput(instr->input(0));
-  auto const element_start = factory()->NewRegister(Isa::PointerSize());
+  auto const element_start = factory()->NewRegister(Target::PointerSize());
   auto const size_of_array_header =
-      lir::Value::ByteSize(Isa::PointerSize()) * 2;
+      lir::Value::ByteSize(Target::PointerSize()) * 2;
   Emit(factory()->NewAddInstruction(
       element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
   auto const output = MapOutput(instr);
   auto const element =
       MapType(instr->type()->as<hir::PointerType>()->pointee());
-  auto const scaled_index = GenerateShl(MapInput(instr->input(1)),
-                                        lir::Value::Log2(element.size));
+  auto const scaled_index =
+      GenerateShl(MapInput(instr->input(1)), lir::Value::Log2(element.size));
   Emit(factory()->NewAddInstruction(output, element_start, scaled_index));
 }
 
@@ -233,7 +233,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const tuple = parameters_type->as<hir::TupleType>();
   if (!tuple) {
     auto const output = MapRegister(instr, 32);
-    auto const input = lir::Isa::GetParameterAt(output, 0);
+    auto const input = lir::Target::GetParameterAt(output, 0);
     DCHECK(input.is_register());
     EmitCopy(output, input);
     return;
@@ -248,7 +248,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
       continue;
     auto const output = MapRegister(get_instr, 32);
     outputs.push_back(output);
-    inputs.push_back(lir::Isa::GetParameterAt(output, get_instr->index()));
+    inputs.push_back(lir::Target::GetParameterAt(output, get_instr->index()));
   }
   Emit(factory()->NewPCopyInstruction(outputs, inputs));
 }
@@ -265,13 +265,13 @@ void Generator::VisitRet(hir::RetInstruction* instr) {
     auto const primitive_type = value->type()->as<hir::PrimitiveType>();
     if (primitive_type->is_float()) {
       if (primitive_type->bit_size() == 64)
-        EmitSetValue(Isa::GetRegister(lir::isa::XMM0D), value);
+        EmitSetValue(Target::GetRegister(lir::isa::XMM0D), value);
       else
-        EmitSetValue(Isa::GetRegister(lir::isa::XMM0S), value);
+        EmitSetValue(Target::GetRegister(lir::isa::XMM0S), value);
     } else if (primitive_type->bit_size() <= 32) {
-      EmitSetValue(Isa::GetRegister(lir::isa::EAX), value);
+      EmitSetValue(Target::GetRegister(lir::isa::EAX), value);
     } else {
-      EmitSetValue(Isa::GetRegister(lir::isa::RAX), value);
+      EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
     }
   }
   editor()->SetReturn();

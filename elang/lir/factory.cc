@@ -11,9 +11,9 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
-#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
+#include "elang/lir/target.h"
 
 #ifdef ELANG_TARGET_ARCH_X64
 #include "elang/lir/instructions_x64.h"
@@ -140,7 +140,7 @@ Value Factory::NewRegister(Value::Size size) {
 }
 
 Value Factory::NewRegister() {
-  return NewRegister(Isa::PointerSize());
+  return NewRegister(Target::PointerSize());
 }
 
 Value Factory::NewIntValue(Value::Size size, int64_t data) {
@@ -175,7 +175,8 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
     return it->second;
-  Value model(Value::Type::Integer, Isa::PointerSize(), Value::Kind::Literal);
+  Value model(Value::Type::Integer, Target::PointerSize(),
+              Value::Kind::Literal);
   auto const value = literal_map_->next_literal_value(model);
   auto const literal = new (zone()) StringLiteral(NewString(data));
   RegisterLiteral(literal);

@@ -11,10 +11,10 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
-#include "elang/lir/isa.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_visitor.h"
 #include "elang/lir/opcodes_x64.h"
+#include "elang/lir/target.h"
 #include "elang/lir/value.h"
 
 namespace elang {

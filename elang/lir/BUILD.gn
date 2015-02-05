@@ -22,7 +22,6 @@ component("lir") {
     "instructions.h",
     "instruction_visitor.cc",
     "instruction_visitor.h",
-    "isa.h",
     "literals.cc",
     "literals.h",
     "literals_forward.h",
@@ -31,6 +30,7 @@ component("lir") {
     "literal_visitor.cc",
     "literal_visitor.h",
     "printable.h",
+    "target.h",
     "value.h",
     "value.cc",
     "validator.h",
@@ -52,9 +52,9 @@ component("lir") {
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
-      "isa_x64.h",
-      "isa_x64.cc",
       "opcodes_x64.h",
+      "target_x64.h",
+      "target_x64.cc",
     ]
   }
 }
