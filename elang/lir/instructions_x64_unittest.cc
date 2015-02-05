@@ -62,7 +62,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "block4:\n"
       "  jmp block5\n"
       "block5:\n"
-      "  phi %r1 = block3 EAX, block4 EBX\n"
+      "  phi %r1l = block3 EAX, block4 EBX\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -80,7 +80,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov RAX = %r1\n"
+      "  mov RAX = %r1l\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -148,8 +148,8 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1 = 42l\n"
-      "  mov %r2 = \"foo\"\n"
+      "  mov %r1l = 42l\n"
+      "  mov %r2l = \"foo\"\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -168,7 +168,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1 = %param[4]\n"
+      "  mov %r1l = %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

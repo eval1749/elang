@@ -136,11 +136,24 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::Parameter:
       return ostream << "%param[" << value.data << "]";
     case Value::Kind::VirtualRegister:
-      return ostream << (value.is_float() ? "%f" : "%r") << value.data;
+      switch (value.size) {
+        case Value::Size::Size8:
+          return ostream << "%r" << value.data << "b";
+        case Value::Size::Size16:
+          return ostream << "%r" << value.data << "w";
+        case Value::Size::Size32:
+          return ostream << (value.is_float() ? "%f" : "%r") << value.data;
+        case Value::Size::Size64:
+          if (value.is_float())
+            return ostream << "%f" << value.data << "d";
+          return ostream << "%r" << value.data << "l";
+      }
+      NOTREACHED() << value.size;
+      return ostream << "NOTREACHED(" << value.data << ")";
     case Value::Kind::Void:
       return ostream << "void";
   }
-  NOTREACHED() << value;
+  NOTREACHED() << value.kind;
   return ostream << "NOTREACHED(" << value.data << ")";
 }
 

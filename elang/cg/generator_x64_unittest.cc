@@ -125,11 +125,11 @@ TEST_F(GeneratorX64Test, Element) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1 = RCX\n"
-      "  add %r2 = %r1, 2\n"
-      "  add %r3 = %r2, 42\n"
-      "  mov %r4 = %r3\n"
-      "  mov EAX = %r4\n"  // TODO(eval1749) This should be 'load'.
+      "  mov %r1l = RCX\n"
+      "  add %r2l = %r1l, 2\n"
+      "  add %r3l = %r2l, 42\n"
+      "  mov %r4w = %r3l\n"  // TODO(eval1749) This should be 'load'.
+      "  mov EAX = %r4w\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
@@ -156,7 +156,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  pcopy %r1, %r2, %r3, %f1, %r4 = ECX, RDX, R8D, XMM3, %param[4]\n"
+      "  pcopy %r1, %r2l, %r3, %f1d, %r4l = ECX, RDX, R8D, XMM3, %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",
