@@ -157,7 +157,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  pcopy %r1, %r2l, %r3, %f1d, %r4l = ECX, RDX, R8D, XMM3, %param[4]\n"
+      "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8L, XMM3, %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

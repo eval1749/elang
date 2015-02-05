@@ -139,6 +139,12 @@ Value Factory::NewRegister(Value::Size size) {
   return Value::Register(size, ++last_general_register_id_);
 }
 
+Value Factory::NewRegister(Value type) {
+  if (type.type == Value::Type::Float)
+    return NewFloatRegister(type.size);
+  return NewRegister(type.size);
+}
+
 Value Factory::NewRegister() {
   return NewRegister(Target::PointerSize());
 }

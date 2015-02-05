@@ -62,6 +62,9 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns newly allocated virtual integer register which bit size is |size|.
   Value NewRegister(Value::Size size);
 
+  // Returns newly allocated virtual register specified by |type|.
+  Value NewRegister(Value type);
+
   // Returns newly allocated virtual integer register which can hold pointer.
   Value NewRegister();
 

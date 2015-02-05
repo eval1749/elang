@@ -53,29 +53,6 @@ lir::Value MapType(hir::Type* type) {
 //
 // Generator
 //
-lir::Value Generator::AllocateRegister(hir::Value* hir_value,
-                                       int min_bit_size) {
-  auto const primitive_type = hir_value->type()->as<hir::PrimitiveType>();
-  if (!primitive_type)
-    return factory()->NewRegister();
-  if (primitive_type->is<hir::Float32Type>())
-    return factory()->NewFloatRegister(lir::Value::Size::Size32);
-  if (primitive_type->is<hir::Float64Type>())
-    return factory()->NewFloatRegister(lir::Value::Size::Size64);
-  switch (std::max(primitive_type->bit_size(), min_bit_size)) {
-    case 1:
-    case 8:
-      return factory()->NewRegister(lir::Value::Size::Size8);
-    case 16:
-      return factory()->NewRegister(lir::Value::Size::Size16);
-    case 32:
-      return factory()->NewRegister(lir::Value::Size::Size32);
-    case 64:
-      return factory()->NewRegister(lir::Value::Size::Size64);
-  }
-  NOTREACHED() << "unsupported bit size: " << *primitive_type;
-  return factory()->NewRegister();
-}
 
 void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
   DCHECK(output.is_register());
@@ -139,14 +116,14 @@ lir::Value Generator::MapInput(hir::Value* value) {
 lir::Value Generator::MapOutput(hir::Instruction* instruction) {
   DCHECK(!instruction->is<hir::LoadInstruction>());
   DCHECK(!register_map_.count(instruction));
-  return MapRegister(instruction, 32);
+  return MapRegister(instruction);
 }
 
-lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
+lir::Value Generator::MapRegister(hir::Value* value) {
   auto const it = register_map_.find(value);
   if (it != register_map_.end())
     return it->second;
-  auto const new_register = AllocateRegister(value, min_bit_size);
+  auto const new_register = factory()->NewRegister(MapType(value->type()));
   register_map_[value] = new_register;
   return new_register;
 }
@@ -154,9 +131,6 @@ lir::Value Generator::MapRegister(hir::Value* value, int min_bit_size) {
 // hir::InstructionVisitor
 
 void Generator::VisitCall(hir::CallInstruction* instr) {
-  auto const callee_align =
-      lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64,
-                 lir::Value::Kind::Void);
   auto const lir_callee = MapInput(instr->input(0));
   auto const argument = instr->input(1);
 
@@ -232,7 +206,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     return;
   auto const tuple = parameters_type->as<hir::TupleType>();
   if (!tuple) {
-    auto const output = MapRegister(instr, 32);
+    auto const output = MapRegister(instr);
     auto const input = lir::Target::GetParameterAt(output, 0);
     DCHECK(input.is_register());
     EmitCopy(output, input);
@@ -246,7 +220,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     auto const get_instr = user->instruction()->as<hir::GetInstruction>();
     if (!get_instr)
       continue;
-    auto const output = MapRegister(get_instr, 32);
+    auto const output = MapRegister(get_instr);
     outputs.push_back(output);
     inputs.push_back(lir::Target::GetParameterAt(output, get_instr->index()));
   }
@@ -254,7 +228,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
 }
 
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
-  Emit(factory()->NewLoadInstruction(MapRegister(instr, 0),
+  Emit(factory()->NewLoadInstruction(MapRegister(instr),
                                      MapInput(instr->input(0))));
 }
 
