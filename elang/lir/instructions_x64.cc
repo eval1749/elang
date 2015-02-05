@@ -151,5 +151,9 @@ base::StringPiece SubInstruction::mnemonic() const {
   return "sub";
 }
 
+base::StringPiece StoreInstruction::mnemonic() const {
+  return "store";
+}
+
 }  // namespace lir
 }  // namespace elang

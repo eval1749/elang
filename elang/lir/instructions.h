@@ -343,6 +343,17 @@ class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
+#define V(Name)                                        \
+  class ELANG_LIR_EXPORT Name##Instruction final       \
+      : public InstructionTemplate<0, 2> {             \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);      \
+                                                       \
+   private:                                            \
+    Name##Instruction(Value pointer, Value new_value); \
+  };
+FOR_EACH_LIR_INSTRUCTION_0_2(V)
+#undef V
+
 #define V(Name)                                   \
   class ELANG_LIR_EXPORT Name##Instruction final  \
       : public InstructionTemplate<1, 1> {        \

@@ -36,6 +36,14 @@ FOR_EACH_LIR_INSTRUCTION_0_0(V)
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
+#define V(Name, ...)                                              \
+  Name##Instruction::Name##Instruction(Value left, Value right) { \
+    InitInput(0, left);                                           \
+    InitInput(1, right);                                          \
+  }
+FOR_EACH_LIR_INSTRUCTION_0_2(V)
+#undef V
+
 #define V(Name, ...)                                                \
   Name##Instruction::Name##Instruction(Value output, Value input) { \
     DCHECK(output.is_register());                                   \

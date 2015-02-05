@@ -228,6 +228,13 @@ FOR_EACH_LIR_INSTRUCTION_0_0(V)
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
+#define V(Name, ...)                                          \
+  Instruction* Factory::New##Name##Instruction(Value input, Value input2) { \
+    return new (zone()) Name##Instruction(input, input2);             \
+  }
+FOR_EACH_LIR_INSTRUCTION_0_2(V)
+#undef V
+
 #define V(Name, ...)                                                        \
   Instruction* Factory::New##Name##Instruction(Value output, Value input) { \
     return new (zone()) Name##Instruction(output, input);                   \

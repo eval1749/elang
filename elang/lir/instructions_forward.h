@@ -24,6 +24,7 @@ class PhiInstructionList;
   V(Ret)
 
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Call)
+#define FOR_EACH_LIR_INSTRUCTION_0_2(V) V(Store)
 
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
   V(Copy)                               \
@@ -62,6 +63,7 @@ class PhiInstructionList;
 #define FOR_EACH_COMMON_LIR_INSTRUCTION(V) \
   FOR_EACH_LIR_INSTRUCTION_0_0(V)          \
   FOR_EACH_LIR_INSTRUCTION_0_1(V)          \
+  FOR_EACH_LIR_INSTRUCTION_0_2(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_1(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_2(V)          \
   FOR_EACH_LIR_INSTRUCTION_N_N(V)

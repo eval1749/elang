@@ -123,5 +123,16 @@ TEST_F(LirInstructionTest, RetInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
+TEST_F(LirInstructionTest, StoreInstruction) {
+  auto const source = factory()->NewRegister();
+  auto const instr = factory()->NewStoreInstruction(
+      Value::Argument(source.type, source.size, 0), source);
+  EXPECT_TRUE(instr->is<StoreInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
+}
+
 }  // namespace lir
 }  // namespace elang
