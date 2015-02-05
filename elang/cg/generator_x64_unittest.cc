@@ -5,6 +5,7 @@
 #include "elang/cg/testing/cg_test.h"
 
 #include "elang/hir/editor.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
@@ -104,6 +105,36 @@ TEST_F(GeneratorX64Test, Call) {
       "block2:\n"
       "  exit\n",
       Generate(function()));
+}
+
+TEST_F(GeneratorX64Test, Element) {
+  auto const function = NewFunction(
+      char_type(),
+      types()->NewPointerType(types()->NewArrayType(char_type(), {-1})));
+  hir::Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const entry_instr = function->entry_block()->first_instruction();
+  auto const element_instr = factory()->NewElementInstruction(
+      entry_instr, factory()->NewInt32Literal(42));
+  editor.Append(element_instr);
+  auto const load_instr = factory()->NewLoadInstruction(element_instr);
+  editor.Append(load_instr);
+  editor.SetReturn(load_instr);
+  editor.Commit();
+  ASSERT_TRUE(editor.Validate()) << editor.errors();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  entry\n"
+      "  mov %r1 = RCX\n"
+      "  add %r2 = %r1, 2\n"
+      "  add %r3 = %r2, 42\n"
+      "  mov %r4 = %r3\n"
+      "  mov EAX = %r4\n"  // TODO(eval1749) This should be 'load'.
+      "  ret\n"
+      "block2:\n"
+      "  exit\n",
+      Generate(function));
 }
 
 TEST_F(GeneratorX64Test, Parameter) {

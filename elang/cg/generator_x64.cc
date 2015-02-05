@@ -153,6 +153,35 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   Emit(factory()->NewCallInstruction(lir_callee));
 }
 
+// T* %ptr = element %array_ptr, %index...
+// =>
+// pcopy RCX, RDX, ... = %array_ptr%, %index...
+// call `CalculateRowMajorIndex` // for multiple dimension array
+// copy %row_major_index, EAX
+// add %element_start = %element_base, sizeof(ArrayHeader)
+// add %ptr = %element_start, %row_major_index
+//
+// Vector:
+//  +0 object header
+//  +8 length
+//  +16 element[0]
+void Generator::VisitElement(hir::ElementInstruction* instr) {
+  auto const indexes = instr->input(1)->as<hir::TupleInstruction>();
+  if (indexes) {
+    // TODO(eval1749) We need to have helper function to calculate row-major-
+    // index from array type.
+    NOTREACHED() << "NYI: multiple dimension array access";
+    return;
+  }
+  auto const array_ptr = MapInput(instr->input(0));
+  auto const element_start = factory()->NewRegister(Isa::PointerSize());
+  auto const size_of_array_header = Isa::PointerSizeInByte() * 2 / 8;
+  Emit(factory()->NewAddInstruction(
+      element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
+  Emit(factory()->NewAddInstruction(MapOutput(instr), element_start,
+                                    MapInput(instr->input(1))));
+}
+
 // Load parameters from registers and stack
 void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const parameters_type = instr->output_type();
@@ -179,6 +208,11 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     inputs.push_back(lir::Isa::GetParameterAt(output, get_instr->index()));
   }
   Emit(factory()->NewPCopyInstruction(outputs, inputs));
+}
+
+void Generator::VisitLoad(hir::LoadInstruction* instr) {
+  Emit(factory()->NewLoadInstruction(MapRegister(instr, 0),
+                                     MapInput(instr->input(0))));
 }
 
 // Set return value and emit 'ret' instruction.

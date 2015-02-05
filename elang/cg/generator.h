@@ -54,8 +54,10 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   lir::Value MapRegister(hir::Value* value, int min_bit_size);
 
   // hir::InstructionVisitor
+  void VisitElement(hir::ElementInstruction* instr) final;
   void VisitEntry(hir::EntryInstruction* instr) final;
   void VisitCall(hir::CallInstruction* instr) final;
+  void VisitLoad(hir::LoadInstruction* instr) final;
   void VisitRet(hir::RetInstruction* instr) final;
 
 #define V(Name, ...) void Visit##Name(hir::Name##Instruction* instr) final;
