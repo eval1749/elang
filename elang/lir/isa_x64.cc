@@ -102,6 +102,8 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::Condition:
       return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
+      if (value.size == Value::Size::Size64)
+        return ostream << value.data << "l";
       return ostream << value.data;
     case Value::Kind::Instruction:
       if (printable.literals) {

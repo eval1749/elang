@@ -98,7 +98,7 @@ TEST_F(GeneratorX64Test, Call) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  pcopy ECX, DL, R8, R9W, %arg[4], %arg[5] = 42, 1, 56, 89, 1.2f, 3.4\n"
+      "  pcopy ECX, DL, R8, R9W, %arg[4], %arg[5] = 42, 1, 56l, 89, 1.2f, 3.4\n"
       "  call \"Foo\"\n"
       "  ret\n"
       "block2:\n"
@@ -162,7 +162,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov RAX = 42\n"
+      "  mov RAX = 42l\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

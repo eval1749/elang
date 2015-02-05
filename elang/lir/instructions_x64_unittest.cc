@@ -148,7 +148,7 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1 = 42\n"
+      "  mov %r1 = 42l\n"
       "  mov %r2 = \"foo\"\n"
       "  ret\n"
       "block2:\n"
