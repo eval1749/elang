@@ -91,6 +91,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Immediate(Size size, int data);
   static Value Parameter(Type type, Size size, int data);
   static Value Register(Size size, int data);
+  static Value SmallInt32(int data);
 };
 
 static_assert(sizeof(Value) == sizeof(int),

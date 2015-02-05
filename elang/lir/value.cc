@@ -4,6 +4,8 @@
 
 #include "elang/lir/value.h"
 
+#include "base/logging.h"
+
 namespace elang {
 namespace lir {
 
@@ -24,6 +26,7 @@ Value Value::FloatRegister(Size size, int data) {
 }
 
 Value Value::Immediate(Size size, int data) {
+  DCHECK(CanBeImmediate(data));
   return Value(Type::Integer, size, Kind::Immediate, data);
 }
 
@@ -33,6 +36,10 @@ Value Value::Parameter(Type type, Size size, int data) {
 
 Value Value::Register(Size size, int data) {
   return Value(Type::Integer, size, Kind::VirtualRegister, data);
+}
+
+Value Value::SmallInt32(int data) {
+  return Immediate(Value::Size::Size32, data);
 }
 
 }  // namespace lir
