@@ -172,6 +172,9 @@ class ELANG_LIR_EXPORT Isa {
 
   // Returns bit size of pointer.
   static Value::Size PointerSize();
+
+  // Returns byte size of pointer.
+  static int PointerSizeInByte();
 };
 
 }  // namespace lir

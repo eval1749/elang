@@ -262,5 +262,9 @@ Value::Size Isa::PointerSize() {
   return Value::Size::Size64;
 }
 
+int Isa::PointerSizeInByte() {
+  return 8;
+}
+
 }  // namespace lir
 }  // namespace elang
