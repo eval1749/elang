@@ -187,15 +187,6 @@ class ELANG_LIR_EXPORT BranchInstruction final
   bool IsTerminator() const final;
 };
 
-// CallInstruction
-class ELANG_LIR_EXPORT CallInstruction final
-    : public InstructionTemplate<0, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Call);
-
- private:
-  explicit CallInstruction(Value callee);
-};
-
 // EntryInstruction
 class ELANG_LIR_EXPORT EntryInstruction final
     : public InstructionTemplate<0, 0> {
@@ -340,6 +331,17 @@ class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
   // Instruction
   bool IsTerminator() const final;
 };
+
+#define V(Name)                                   \
+  class ELANG_LIR_EXPORT Name##Instruction final  \
+      : public InstructionTemplate<0, 1> {        \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name); \
+                                                  \
+   private:                                       \
+    Name##Instruction(Value pointer);             \
+  };
+FOR_EACH_LIR_INSTRUCTION_0_1(V)
+#undef V
 
 #define V(Name)                                   \
   class ELANG_LIR_EXPORT Name##Instruction final  \
