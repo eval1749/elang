@@ -12,16 +12,21 @@
 
 namespace elang {
 
-struct ELANG_BASE_EXPORT AsPrintable {
+struct ELANG_BASE_EXPORT PrintableCharacter {
   base::char16 data;
   base::char16 delimiter;
 
-  AsPrintable(base::char16 data, base::char16 delimiter)
+  PrintableCharacter(base::char16 data, base::char16 delimiter)
       : data(data), delimiter(delimiter) {}
 };
 
+inline PrintableCharacter AsPrintable(base::char16 data,
+                                      base::char16 delimiter) {
+  return PrintableCharacter(data, delimiter);
+}
+
 ELANG_BASE_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                           const AsPrintable& printable);
+                                           const PrintableCharacter& printable);
 
 }  // namespace elang
 

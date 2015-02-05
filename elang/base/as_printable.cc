@@ -6,7 +6,8 @@
 
 namespace elang {
 
-std::ostream& operator<<(std::ostream& ostream, const AsPrintable& printable) {
+std::ostream& operator<<(std::ostream& ostream,
+                         const PrintableCharacter& printable) {
   static char const xdigits[] = "0123456789ABCDEF";
   static char const escapes[] = "0------abtnvfr";
   auto const ch = printable.data;
