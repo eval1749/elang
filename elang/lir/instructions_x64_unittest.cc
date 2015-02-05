@@ -168,7 +168,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  mov %r1l = %param[4]\n"
+      "  load %r1l = %param[4]\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

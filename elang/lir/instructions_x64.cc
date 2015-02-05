@@ -64,7 +64,7 @@ base::StringPiece LiteralInstruction::mnemonic() const {
 
 // Load
 base::StringPiece LoadInstruction::mnemonic() const {
-  return "mov";
+  return "load";
 }
 
 // MulX64

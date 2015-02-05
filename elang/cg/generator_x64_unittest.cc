@@ -129,7 +129,7 @@ TEST_F(GeneratorX64Test, Element) {
       "  add %r2l = %r1l, 16\n"
       "  shl %r4 = 42, 1\n"
       "  add %r3l = %r2l, %r4\n"
-      "  mov %r5w = %r3l\n"
+      "  load %r5w = %r3l\n"
       "  mov EAX = %r5w\n"
       "  ret\n"
       "block2:\n"
