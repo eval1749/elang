@@ -37,9 +37,9 @@ std::ostream& operator<<(std::ostream& ostream, const ErrorData& error) {
                               arraysize(mnemonics) - 1);
   auto const literals = error.literals();
   ostream << mnemonics[index] << "("
-          << AsPrintableValue(literals, error.error_value());
+          << PrintableValue(literals, error.error_value());
   for (auto detail : error.details())
-    ostream << " " << AsPrintableValue(literals, detail);
+    ostream << " " << PrintableValue(literals, detail);
   return ostream << ")";
 }
 

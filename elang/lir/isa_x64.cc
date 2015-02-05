@@ -19,10 +19,10 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// AsPrintableValue
+// PrintableValue
 //
 std::ostream& operator<<(std::ostream& ostream,
-                         const AsPrintableValue& printable) {
+                         const PrintableValue& printable) {
   static const char* const names8[16] = {
       "AL",
       "CL",
@@ -175,7 +175,7 @@ std::ostream& operator<<(std::ostream& ostream,
 }
 
 std::ostream& operator<<(std::ostream& ostream,
-                         const AsPrintableInstruction& printable) {
+                         const PrintableInstruction& printable) {
   auto const instruction = printable.instruction;
   auto const literals = printable.literals;
   ostream << instruction->mnemonic();
@@ -193,7 +193,7 @@ std::ostream& operator<<(std::ostream& ostream,
     auto separator = " ";
     for (auto const phi_input : phi->phi_inputs()) {
       ostream << separator << *phi_input->basic_block() << " "
-              << AsPrintableValue(literals, phi_input->value());
+              << PrintableValue(literals, phi_input->value());
       separator = ", ";
     }
     DCHECK_EQ(phi->outputs().size(), 1);
@@ -202,7 +202,7 @@ std::ostream& operator<<(std::ostream& ostream,
   if (!instruction->inputs().empty()) {
     auto separator = " ";
     for (auto const value : instruction->inputs()) {
-      ostream << separator << AsPrintableValue(literals, value);
+      ostream << separator << PrintableValue(literals, value);
       separator = ", ";
     }
   }

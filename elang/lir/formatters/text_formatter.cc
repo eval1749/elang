@@ -136,7 +136,7 @@ std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {
-  return ostream << AsPrintableValue(value);
+  return ostream << PrintableValue(value);
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
@@ -200,7 +200,7 @@ void TextFormatter::FormatFunction(const Function* function) {
 }
 
 std::ostream& TextFormatter::FormatInstruction(const Instruction* instruction) {
-  return ostream_ << AsPrintableInstruction(literals_, instruction);
+  return ostream_ << PrintableInstruction(literals_, instruction);
 }
 
 std::ostream& TextFormatter::FormatValue(Value value) {

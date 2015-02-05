@@ -15,32 +15,32 @@ namespace lir {
 class Instruction;
 class LiteralMap;
 
-struct AsPrintableInstruction {
+struct PrintableInstruction {
   const Instruction* instruction;
   const LiteralMap* literals;
 
-  explicit AsPrintableInstruction(const Instruction* instruction)
+  explicit PrintableInstruction(const Instruction* instruction)
       : instruction(instruction), literals(nullptr) {}
 
-  AsPrintableInstruction(const LiteralMap* literals,
-                         const Instruction* instruction)
+  PrintableInstruction(const LiteralMap* literals,
+                       const Instruction* instruction)
       : instruction(instruction), literals(literals) {}
 };
 
-struct AsPrintableValue {
+struct PrintableValue {
   const LiteralMap* literals;
   Value value;
 
-  explicit AsPrintableValue(Value value) : literals(nullptr), value(value) {}
+  explicit PrintableValue(Value value) : literals(nullptr), value(value) {}
 
-  AsPrintableValue(const LiteralMap* literals, Value value)
+  PrintableValue(const LiteralMap* literals, Value value)
       : literals(literals), value(value) {}
 };
 
 std::ostream& operator<<(std::ostream& ostream,
-                         const AsPrintableInstruction& printable);
+                         const PrintableInstruction& printable);
 std::ostream& operator<<(std::ostream& ostream,
-                         const AsPrintableValue& printable);
+                         const PrintableValue& printable);
 
 }  // namespace lir
 }  // namespace elang
