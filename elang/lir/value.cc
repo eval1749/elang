@@ -9,6 +9,10 @@
 namespace elang {
 namespace lir {
 
+Value Value::Argument(Type type, Size size, int data) {
+  return Value(type, size, Kind::Argument, data);
+}
+
 bool Value::CanBeImmediate(int64_t value) {
   return value >= kMinimumImmediate && value <= kMaximumImmediate;
 }
