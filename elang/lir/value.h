@@ -24,6 +24,8 @@ struct ELANG_LIR_EXPORT Value {
     Float,
   };
 
+  // If you change definition of |Size|, please change |Log2(Size)| and
+  // |BitSize(size)| appropiratly.
   enum class Size : uint32_t {
     Size8,
     Size16,
@@ -64,7 +66,10 @@ struct ELANG_LIR_EXPORT Value {
       : type(type), size(size), kind(kind), data(data) {}
 
   Value(Type type, Size size, Kind kind)
-      : type(type), size(size), kind(kind), data(0) {}
+      : Value(type, size, kind, 0) {}
+
+  Value(Type type, Size size)
+      : Value(type, size, Kind::Void, 0) {}
 
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
@@ -81,8 +86,13 @@ struct ELANG_LIR_EXPORT Value {
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
   bool is_void() const { return kind == Kind::Void; }
 
-  // Help function
+  // Helper functions
   static bool CanBeImmediate(int64_t value);
+
+  // |Size| properties
+  static int BitSize(Value::Size size) { return ByteSize(size) * 8; }
+  static int ByteSize(Value::Size size) { return 1 << Log2(size); }
+  static int Log2(Value::Size size) { return static_cast<int>(size); }
 
   static Value Argument(Type type, Size size, int data);
   static Value Float32Literal();
