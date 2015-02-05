@@ -16,6 +16,7 @@
 
 namespace elang {
 namespace hir {
+class Editor;
 class Factory;
 class Function;
 class Type;
@@ -49,6 +50,8 @@ class CgTest : public ::testing::Test, public hir::FactoryUser {
   // Returns new HIR function with specified signature.
   hir::Function* NewFunction(hir::Type* return_type,
                              hir::Type* parameters_type);
+
+  std::string Validate(hir::Editor* editor);
 
  private:
   const std::unique_ptr<hir::Factory> factory_;

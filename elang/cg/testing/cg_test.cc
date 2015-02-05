@@ -9,6 +9,8 @@
 
 #include "elang/base/atomic_string_factory.h"
 #include "elang/cg/generator.h"
+#include "elang/hir/editor.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/type_factory.h"
 #include "elang/lir/factory.h"
@@ -39,10 +41,10 @@ CgTest::~CgTest() {
 }
 
 std::string CgTest::Format(const lir::Function* function) {
-  std::stringstream stream;
-  lir::TextFormatter formatter(lir_factory()->literals(), &stream);
+  std::stringstream ostream;
+  lir::TextFormatter formatter(lir_factory()->literals(), &ostream);
   formatter.FormatFunction(function);
-  return stream.str();
+  return ostream.str();
 }
 
 std::string CgTest::Generate(hir::Function* function) {
@@ -54,6 +56,14 @@ hir::Function* CgTest::NewFunction(hir::Type* return_type,
                                    hir::Type* parameters_type) {
   return factory()->NewFunction(
       types()->NewFunctionType(return_type, parameters_type));
+}
+
+std::string CgTest::Validate(hir::Editor* editor) {
+  if (editor->Validate())
+    return "";
+  std::stringstream ostream;
+  ostream << editor->errors();
+  return ostream.str();
 }
 
 }  // namespace testing

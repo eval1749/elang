@@ -5,7 +5,6 @@
 #include "elang/cg/testing/cg_test.h"
 
 #include "elang/hir/editor.h"
-#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
 #include "elang/hir/types.h"
@@ -57,7 +56,7 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
   editor.Append(add_instr);
   editor.SetReturn(add_instr);
   editor.Commit();
-  ASSERT_TRUE(editor.Validate());
+  ASSERT_EQ("", Validate(&editor));
 
   EXPECT_EQ(
       "function1:\n"
@@ -94,7 +93,7 @@ TEST_F(GeneratorX64Test, Call) {
   editor.Append(arguments);
   editor.Append(factory()->NewCallInstruction(callee, arguments));
   editor.Commit();
-  ASSERT_TRUE(editor.Validate());
+  ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -121,7 +120,7 @@ TEST_F(GeneratorX64Test, Element) {
   editor.Append(load_instr);
   editor.SetReturn(load_instr);
   editor.Commit();
-  ASSERT_TRUE(editor.Validate()) << editor.errors();
+  ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -151,7 +150,7 @@ TEST_F(GeneratorX64Test, Parameter) {
   for (auto position = 0; position < num_parameters; ++position)
     editor.Append(factory()->NewGetInstruction(entry, position));
   editor.Commit();
-  ASSERT_TRUE(editor.Validate());
+  ASSERT_EQ("", Validate(&editor));
 
   EXPECT_EQ(
       "function1:\n"
@@ -170,7 +169,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt32Literal(42));
   editor.Commit();
-  ASSERT_TRUE(editor.Validate());
+  ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -188,7 +187,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt64Literal(42));
   editor.Commit();
-  ASSERT_TRUE(editor.Validate());
+  ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
