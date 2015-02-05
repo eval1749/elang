@@ -126,10 +126,11 @@ TEST_F(GeneratorX64Test, Element) {
       "block1:\n"
       "  entry\n"
       "  mov %r1l = RCX\n"
-      "  add %r2l = %r1l, 2\n"
-      "  add %r3l = %r2l, 42\n"
-      "  mov %r4w = %r3l\n"  // TODO(eval1749) This should be 'load'.
-      "  mov EAX = %r4w\n"
+      "  add %r2l = %r1l, 16\n"
+      "  shl %r4 = 42, 1\n"
+      "  add %r3l = %r2l, %r4\n"
+      "  mov %r5w = %r3l\n"
+      "  mov EAX = %r5w\n"
       "  ret\n"
       "block2:\n"
       "  exit\n",

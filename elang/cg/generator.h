@@ -49,6 +49,7 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   void Emit(lir::Instruction* instruction);
   void EmitCopy(lir::Value output, lir::Value input);
   void EmitSetValue(lir::Value output, hir::Value* input);
+  lir::Value GenerateShl(lir::Value index, int shift_count);
   lir::Value MapInput(hir::Value* instr);
   lir::Value MapOutput(hir::Instruction* instr);
   lir::Value MapRegister(hir::Value* value, int min_bit_size);

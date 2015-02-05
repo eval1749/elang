@@ -22,6 +22,33 @@ namespace cg {
 
 using lir::Isa;
 
+namespace {
+
+lir::Value MapType(hir::Type* type) {
+  auto const primitive_type = type->as<hir::PrimitiveType>();
+  if (!primitive_type)
+    return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64);
+  if (primitive_type->is<hir::Float32Type>())
+    return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size32);
+  if (primitive_type->is<hir::Float64Type>())
+    return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size64);
+  switch (primitive_type->bit_size()) {
+    case 1:
+    case 8:
+      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size8);
+    case 16:
+      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size16);
+    case 32:
+      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size32);
+    case 64:
+      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64);
+  }
+  NOTREACHED() << "unsupported bit size: " << *primitive_type;
+  return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size64);
+}
+
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Generator
@@ -58,6 +85,17 @@ void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
     return;
   }
   Emit(factory()->NewLiteralInstruction(output, input));
+}
+
+lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
+  shift_count &= lir::Value::BitSize(input.size) - 1;
+  DCHECK_GE(shift_count, 0);
+  if (!shift_count)
+    return input;
+  auto const output = factory()->NewRegister(input.size);
+  Emit(factory()->NewShlInstruction(output, input,
+                                    lir::Value::SmallInt32(shift_count)));
+  return output;
 }
 
 lir::Value Generator::MapInput(hir::Value* value) {
@@ -175,11 +213,16 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   }
   auto const array_ptr = MapInput(instr->input(0));
   auto const element_start = factory()->NewRegister(Isa::PointerSize());
-  auto const size_of_array_header = Isa::PointerSizeInByte() * 2 / 8;
+  auto const size_of_array_header =
+      lir::Value::ByteSize(Isa::PointerSize()) * 2;
   Emit(factory()->NewAddInstruction(
       element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
-  Emit(factory()->NewAddInstruction(MapOutput(instr), element_start,
-                                    MapInput(instr->input(1))));
+  auto const output = MapOutput(instr);
+  auto const element =
+      MapType(instr->type()->as<hir::PointerType>()->pointee());
+  auto const scaled_index = GenerateShl(MapInput(instr->input(1)),
+                                        lir::Value::Log2(element.size));
+  Emit(factory()->NewAddInstruction(output, element_start, scaled_index));
 }
 
 // Load parameters from registers and stack
