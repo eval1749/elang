@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
-#include "elang/base/graph/graph_editor.h"
+#include "elang/base/graphs/graph_editor.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/lir_export.h"
 

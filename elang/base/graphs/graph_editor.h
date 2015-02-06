@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_GRAPH_GRAPH_EDITOR_H_
-#define ELANG_BASE_GRAPH_GRAPH_EDITOR_H_
+#ifndef ELANG_BASE_GRAPHS_GRAPH_EDITOR_H_
+#define ELANG_BASE_GRAPHS_GRAPH_EDITOR_H_
 
 #include <vector>
 
 #include "base/logging.h"
-#include "elang/base/graph/graph.h"
+#include "elang/base/graphs/graph.h"
 
 namespace elang {
 
@@ -67,4 +67,4 @@ void GraphEditor<Owner, T>::RemoveNode(T* old_node) {
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_GRAPH_GRAPH_EDITOR_H_
+#endif  // ELANG_BASE_GRAPHS_GRAPH_EDITOR_H_

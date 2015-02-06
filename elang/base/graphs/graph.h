@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_GRAPH_GRAPH_H_
-#define ELANG_BASE_GRAPH_GRAPH_H_
+#ifndef ELANG_BASE_GRAPHS_GRAPH_H_
+#define ELANG_BASE_GRAPHS_GRAPH_H_
 
 #include "elang/base/double_linked.h"
 #include "elang/base/zone_unordered_set.h"
@@ -76,4 +76,4 @@ Graph<Owner, T>::Node::Node(Zone* zone)
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_GRAPH_GRAPH_H_
+#endif  // ELANG_BASE_GRAPHS_GRAPH_H_

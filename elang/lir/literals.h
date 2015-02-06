@@ -10,7 +10,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
-#include "elang/base/graph/graph.h"
+#include "elang/base/graphs/graph.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/literals_forward.h"
