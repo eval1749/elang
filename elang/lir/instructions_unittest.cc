@@ -31,6 +31,25 @@ class LirInstructionTest : public ::testing::Test {
 LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 }
 
+// Test cases...
+
+// BranchInstruction
+TEST_F(LirInstructionTest, BranchInstruction) {
+  auto const function = factory()->NewFunction();
+  auto const entry_block = function->entry_block();
+  auto const exit_block = function->exit_block();
+  auto const instr =
+      factory()->NewBranchInstruction(Value::True(), entry_block, exit_block);
+  EXPECT_TRUE(instr->is<BranchInstruction>());
+  EXPECT_TRUE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(Value::True(), instr->input(0));
+  EXPECT_EQ(0, instr->outputs().size());
+  EXPECT_EQ(entry_block, instr->as<BranchInstruction>()->true_block());
+  EXPECT_EQ(exit_block, instr->as<BranchInstruction>()->false_block());
+}
+
 // CallInstruction
 TEST_F(LirInstructionTest, CallInstruction) {
   auto const callee = factory()->NewStringValue(L"Foo");

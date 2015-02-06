@@ -138,8 +138,8 @@ void Editor::SetBranch(Value condition,
   if (auto const last =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     SetInput(last, 0, condition);
-    SetInput(last, 1, true_block->value());
-    SetInput(last, 2, false_block->value());
+    last->false_block_ = false_block;
+    last->true_block_ = true_block;
     return;
   }
   SetTerminator(

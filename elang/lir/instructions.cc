@@ -197,10 +197,9 @@ bool Instruction::IsTerminator() const {
 // BranchInstruction
 BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
-                                     BasicBlock* false_block) {
+                                     BasicBlock* false_block)
+    : false_block_(false_block), true_block_(true_block) {
   InitInput(0, condition);
-  InitInput(1, true_block->value());
-  InitInput(2, false_block->value());
 }
 
 bool BranchInstruction::IsTerminator() const {

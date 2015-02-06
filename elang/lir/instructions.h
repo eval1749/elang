@@ -190,8 +190,12 @@ class InstructionTemplate<0, 0> : public Instruction {
 
 // BranchInstruction
 class ELANG_LIR_EXPORT BranchInstruction final
-    : public InstructionTemplate<0, 3> {
+    : public InstructionTemplate<0, 1> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Branch);
+
+ public:
+  BasicBlock* false_block() const { return false_block_; }
+  BasicBlock* true_block() const { return true_block_; }
 
  private:
   BranchInstruction(Value condition,
@@ -200,6 +204,9 @@ class ELANG_LIR_EXPORT BranchInstruction final
 
   // Instruction
   bool IsTerminator() const final;
+
+  BasicBlock* false_block_;
+  BasicBlock* true_block_;
 };
 
 // EntryInstruction
