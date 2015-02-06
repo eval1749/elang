@@ -7,8 +7,6 @@ import("//elang/build/elang_target_arch.gni")
 component("lir") {
   output_name = "elang_lir"
   sources = [
-    "analysis/liveness_analyzer.cc",
-    "analysis/liveness_analyzer.h",
     "code_emitter.cc",
     "code_emitter.h",
     "editor.cc",

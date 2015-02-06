@@ -10,7 +10,6 @@
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
-#include "elang/base/iterator_on_iterator.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/literals_forward.h"
@@ -66,55 +65,6 @@ typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
 
 //////////////////////////////////////////////////////////////////////
 //
-// OperandIterator
-//
-class ELANG_LIR_EXPORT OperandIterator final {
- public:
-  OperandIterator(const Instruction* instruction, int current);
-  OperandIterator(const OperandIterator& other);
-  ~OperandIterator();
-
-  OperandIterator& operator=(const OperandIterator& other);
-  OperandIterator& operator++();
-  Value* operator*() const;
-  Value* operator->() const;
-  bool operator==(const OperandIterator& other) const;
-  bool operator!=(const OperandIterator& other) const;
-
- private:
-  const Instruction* instruction_;
-  int current_;
-};
-
-// BasicBlockSuccessors
-class ELANG_LIR_EXPORT BasicBlockSuccessors final {
- public:
-  class ELANG_LIR_EXPORT Iterator final
-      : public IteratorOnIterator<Iterator, OperandIterator> {
-   public:
-    explicit Iterator(const OperandIterator& iterator);
-    Iterator(const Iterator& iterator) = default;
-    ~Iterator() = default;
-
-    BasicBlock* operator->() const { return operator*(); }
-    BasicBlock* operator*() const;
-  };
-
-  explicit BasicBlockSuccessors(const BasicBlock* block);
-  BasicBlockSuccessors(const BasicBlockSuccessors& other) = default;
-  ~BasicBlockSuccessors() = default;
-
-  BasicBlockSuccessors& operator=(const BasicBlockSuccessors& other) = default;
-
-  Iterator begin() const;
-  Iterator end() const;
-
- private:
-  const BasicBlock* basic_block_;
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // BasicBlock
 //
 // You can get predecessors of a basic block from user list in use-def list,
@@ -144,9 +94,6 @@ class ELANG_LIR_EXPORT BasicBlock
   const InstructionList& instructions() const { return instructions_; }
   Instruction* last_instruction() const;
   PhiInstructionList phi_instructions() const;
-
-  // Control flow graph
-  BasicBlockSuccessors successors() const;
 
   // For literal mapping.
   Value value() const { return value_; }
