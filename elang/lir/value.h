@@ -5,9 +5,10 @@
 #ifndef ELANG_LIR_VALUE_H_
 #define ELANG_LIR_VALUE_H_
 
-#include <stdint.h>
+#include <algorithm>
 #include <ostream>
 
+#include "base/basictypes.h"
 #include "elang/base/float_types.h"
 #include "elang/lir/lir_export.h"
 
@@ -65,11 +66,9 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, Size size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
-  Value(Type type, Size size, Kind kind)
-      : Value(type, size, kind, 0) {}
+  Value(Type type, Size size, Kind kind) : Value(type, size, kind, 0) {}
 
-  Value(Type type, Size size)
-      : Value(type, size, Kind::Void, 0) {}
+  Value(Type type, Size size) : Value(type, size, Kind::Void, 0) {}
 
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
@@ -130,5 +129,12 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
 
 }  // namespace lir
 }  // namespace elang
+
+namespace std {
+template <>
+struct hash<elang::lir::Value> {
+  size_t operator()(const elang::lir::Value& pair) const;
+};
+}  // namespace std
 
 #endif  // ELANG_LIR_VALUE_H_
