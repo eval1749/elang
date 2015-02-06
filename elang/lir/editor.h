@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/base/graph/graph.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/lir_export.h"
 
@@ -98,6 +99,8 @@ class ELANG_LIR_EXPORT Editor final {
   Factory* const factory_;
   // A function being edited.
   Function* const function_;
+
+  Graph<Function, BasicBlock>::Editor graph_editor_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

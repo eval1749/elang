@@ -44,7 +44,7 @@ Literal* Factory::GetLiteral(Value value) const {
 BasicBlock* Factory::NewBasicBlock() {
   Value model(Value::Type::Integer, Value::Size::Size8, Value::Kind::Literal);
   auto const block =
-      new (zone()) BasicBlock(literal_map_->next_literal_value(model));
+      new (zone()) BasicBlock(zone(), literal_map_->next_literal_value(model));
   RegisterLiteral(block);
   return block;
 }
@@ -69,13 +69,14 @@ Function* Factory::NewFunction() {
   //    ret
   //  exit:
   //    exit
+  Function::Editor editor(function);
   auto const entry_block = NewBasicBlock();
-  function->basic_blocks_.AppendNode(entry_block);
+  editor.AppendNode(entry_block);
   entry_block->function_ = function;
   entry_block->id_ = NextBasicBlockId();
 
   auto const exit_block = NewBasicBlock();
-  function->basic_blocks_.AppendNode(exit_block);
+  editor.AppendNode(exit_block);
   exit_block->function_ = function;
   exit_block->id_ = NextBasicBlockId();
 

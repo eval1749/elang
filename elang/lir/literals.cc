@@ -29,8 +29,8 @@ Literal::Literal() {
 //
 // BasicBlock
 //
-BasicBlock::BasicBlock(Value value)
-    : function_(nullptr), id_(0), value_(value) {
+BasicBlock::BasicBlock(Zone* zone, Value value)
+    : Node(zone), function_(nullptr), id_(0), value_(value) {
 }
 
 Instruction* BasicBlock::first_instruction() const {
@@ -53,13 +53,13 @@ Function::Function(Value value) : value_(value) {
 }
 
 BasicBlock* Function::entry_block() const {
-  auto const block = basic_blocks_.first_node();
+  auto const block = nodes().first_node();
   DCHECK(block->first_instruction()->is<EntryInstruction>());
   return block;
 }
 
 BasicBlock* Function::exit_block() const {
-  auto const block = basic_blocks_.last_node();
+  auto const block = nodes().last_node();
   DCHECK(block->first_instruction()->is<ExitInstruction>());
   return block;
 }

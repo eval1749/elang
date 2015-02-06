@@ -21,7 +21,10 @@ namespace lir {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : basic_block_(nullptr), factory_(factory), function_(function) {
+    : basic_block_(nullptr),
+      factory_(factory),
+      function_(function),
+      graph_editor_(function) {
 }
 
 Editor::~Editor() {
@@ -110,7 +113,7 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   new_block->function_ = function();
   new_block->id_ = factory()->NextBasicBlockId();
   // We keep exit block at end of basic block list.
-  function()->basic_blocks_.InsertBefore(new_block, reference);
+  graph_editor_.InsertNode(new_block, reference);
   return new_block;
 }
 

@@ -10,6 +10,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
+#include "elang/base/graph/graph.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/literals_forward.h"
@@ -77,9 +78,9 @@ typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
 // TODO(eval1749) Should we add |BasicBlock| to |Function| automatically when
 // we insert 'jump' instruction?
 //
-class ELANG_LIR_EXPORT BasicBlock
+class ELANG_LIR_EXPORT BasicBlock final
     : public Literal,
-      public DoubleLinked<BasicBlock, Function>::Node {
+      public Graph<Function, BasicBlock>::Node {
   DECLARE_LIR_CONCRETE_LITERAL_CLASS(BasicBlock);
 
  public:
@@ -102,7 +103,7 @@ class ELANG_LIR_EXPORT BasicBlock
   // |Editor| manipulates instruction list
   friend class Editor;
 
-  explicit BasicBlock(Value value);
+  BasicBlock(Zone* zone, Value value);
 
   // |function_| holds owner of this |BasicBlock|.
   Function* function_;
@@ -119,13 +120,12 @@ class ELANG_LIR_EXPORT BasicBlock
 //
 // Function
 //
-class ELANG_LIR_EXPORT Function : public Literal {
+class ELANG_LIR_EXPORT Function : public Literal,
+                                  public Graph<Function, BasicBlock> {
   DECLARE_LIR_CONCRETE_LITERAL_CLASS(Function);
 
  public:
-  typedef DoubleLinked<BasicBlock, Function> BasicBlockList;
-
-  const BasicBlockList& basic_blocks() const { return basic_blocks_; }
+  const Nodes& basic_blocks() const { return nodes(); }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   int id() const;
@@ -136,7 +136,6 @@ class ELANG_LIR_EXPORT Function : public Literal {
 
   explicit Function(Value value);
 
-  BasicBlockList basic_blocks_;
   Value const value_;
 };
 
