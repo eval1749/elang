@@ -129,13 +129,89 @@ std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function" << function.id();
 }
 
-std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
-  return ostream << ToStringPiece(opcode);
+std::ostream& operator<<(std::ostream& ostream,
+                         const Instruction& instruction) {
+  if (auto const block = instruction.basic_block())
+    ostream << "bb:" << block->id();
+  else
+    ostream << "--:";
+  ostream << instruction.id() << ":" << instruction.mnemonic();
+  if (!instruction.outputs().empty()) {
+    auto separator = "";
+    for (auto const output : instruction.outputs()) {
+      ostream << separator << output;
+      separator = ", ";
+    }
+    ostream << " =";
+  }
+  if (auto const phi = instruction.as<PhiInstruction>()) {
+    auto separator = " ";
+    for (auto const phi_input : phi->phi_inputs()) {
+      ostream << separator << *phi_input->basic_block() << " "
+              << phi_input->value();
+      separator = ", ";
+    }
+    return ostream;
+  }
+  auto separator = " ";
+  for (auto const input : instruction.inputs()) {
+    ostream << separator << input;
+    separator = ", ";
+  }
+  return ostream;
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
   LiteralFormatter literal_formatter(&ostream);
   literal_formatter.Format(&literal);
+  return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
+  return ostream << ToStringPiece(opcode);
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const PrintableInstruction& printable) {
+  auto const instruction = printable.instruction;
+  auto const literals = printable.literals;
+  ostream << instruction->mnemonic();
+
+  if (auto const branch = instruction->as<BranchInstruction>()) {
+    return ostream << " " << PrintableValue(literals, branch->input(0)) << ", "
+                   << *branch->true_block() << ", " << *branch->false_block();
+  }
+
+  if (auto const jump = instruction->as<JumpInstruction>())
+    return ostream << " " << *jump->target_block();
+
+  // outputs
+  if (!instruction->outputs().empty()) {
+    auto separator = " ";
+    for (auto output : instruction->outputs()) {
+      ostream << separator << output;
+      separator = ", ";
+    }
+    ostream << " =";
+  }
+  // inputs
+  if (auto const phi = instruction->as<PhiInstruction>()) {
+    auto separator = " ";
+    for (auto const phi_input : phi->phi_inputs()) {
+      ostream << separator << *phi_input->basic_block() << " "
+              << PrintableValue(literals, phi_input->value());
+      separator = ", ";
+    }
+    DCHECK_EQ(phi->outputs().size(), 1);
+    return ostream;
+  }
+  if (!instruction->inputs().empty()) {
+    auto separator = " ";
+    for (auto const value : instruction->inputs()) {
+      ostream << separator << PrintableValue(literals, value);
+      separator = ", ";
+    }
+  }
   return ostream;
 }
 
