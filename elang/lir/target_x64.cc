@@ -100,6 +100,10 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::Argument:
       return ostream << "%arg[" << value.data << "]";
     case Value::Kind::Condition:
+      if (value.data == 0)
+        return ostream << "true";
+      if (value.data == 1)
+        return ostream << "false";
       return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
       if (value.size == Value::Size::Size64)

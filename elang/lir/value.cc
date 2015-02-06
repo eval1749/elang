@@ -17,6 +17,10 @@ bool Value::CanBeImmediate(int64_t value) {
   return value >= kMinimumImmediate && value <= kMaximumImmediate;
 }
 
+Value Value::False() {
+  return Value(Type::Integer, Size::Size8, Kind::Condition, 0);
+}
+
 Value Value::Float32Literal() {
   return Value(Type::Float, Size::Size32, Kind::Literal);
 }
@@ -44,6 +48,10 @@ Value Value::Register(Size size, int data) {
 
 Value Value::SmallInt32(int data) {
   return Immediate(Value::Size::Size32, data);
+}
+
+Value Value::True() {
+  return Value(Type::Integer, Size::Size8, Kind::Condition, 1);
 }
 
 }  // namespace lir

@@ -95,6 +95,7 @@ struct ELANG_LIR_EXPORT Value {
   static int Log2(Value::Size size) { return static_cast<int>(size); }
 
   static Value Argument(Type type, Size size, int data);
+  static Value False();
   static Value Float32Literal();
   static Value Float64Literal();
   static Value FloatRegister(Size size, int data);
@@ -102,6 +103,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Parameter(Type type, Size size, int data);
   static Value Register(Size size, int data);
   static Value SmallInt32(int data);
+  static Value True();
 };
 
 static_assert(sizeof(Value) == sizeof(int),

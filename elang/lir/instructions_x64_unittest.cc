@@ -56,7 +56,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  br %b1, block3, block4\n"
+      "  br %b2, block3, block4\n"
       "block3:\n"
       "  jmp block5\n"
       "block4:\n"
