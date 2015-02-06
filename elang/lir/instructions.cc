@@ -213,8 +213,8 @@ bool ExitInstruction::IsTerminator() const {
 }
 
 // JumpInstruction
-JumpInstruction::JumpInstruction(BasicBlock* target_block) {
-  InitInput(0, target_block->value());
+JumpInstruction::JumpInstruction(BasicBlock* target_block)
+    : target_block_(target_block) {
 }
 
 bool JumpInstruction::IsTerminator() const {

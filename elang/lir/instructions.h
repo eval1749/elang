@@ -225,14 +225,19 @@ class ELANG_LIR_EXPORT ExitInstruction final
 
 // JumpInstruction
 class ELANG_LIR_EXPORT JumpInstruction final
-    : public InstructionTemplate<0, 1> {
+    : public InstructionTemplate<0, 0> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Jump);
+
+ public:
+  BasicBlock* target_block() const { return target_block_; }
 
  private:
   explicit JumpInstruction(BasicBlock* target_block);
 
   // Instruction
   bool IsTerminator() const final;
+
+  BasicBlock* target_block_;
 };
 
 // PCopyInstruction - represents parallel copy "pseudo" instruction.

@@ -194,6 +194,10 @@ std::ostream& operator<<(std::ostream& ostream,
   auto const instruction = printable.instruction;
   auto const literals = printable.literals;
   ostream << instruction->mnemonic();
+
+  if (auto const jump = instruction->as<JumpInstruction>())
+    return ostream << " " << *jump->target_block();
+
   // outputs
   if (!instruction->outputs().empty()) {
     auto separator = " ";

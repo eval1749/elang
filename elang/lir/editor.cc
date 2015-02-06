@@ -156,7 +156,7 @@ void Editor::SetJump(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const last =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
-    SetInput(last, 0, target_block->value());
+    last->target_block_ = target_block;
     return;
   }
   SetTerminator(factory()->NewJumpInstruction(target_block));

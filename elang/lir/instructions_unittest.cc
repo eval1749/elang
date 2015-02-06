@@ -76,12 +76,14 @@ TEST_F(LirInstructionTest, ExitInstruction) {
 // JumpInstruction
 TEST_F(LirInstructionTest, JumpInstruction) {
   auto const function = factory()->NewFunction();
-  auto const instr = factory()->NewJumpInstruction(function->exit_block());
+  auto const exit_block = function->exit_block();
+  auto const instr = factory()->NewJumpInstruction(exit_block);
   EXPECT_TRUE(instr->is<JumpInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(0, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
+  EXPECT_EQ(exit_block, instr->as<JumpInstruction>()->target_block());
 }
 
 // LoadInstruction
