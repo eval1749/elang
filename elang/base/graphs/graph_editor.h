@@ -54,8 +54,6 @@ void GraphEditor<Owner, T>::InsertNode(T* new_node, T* ref_node) {
 
 template <typename Owner, typename T>
 void GraphEditor<Owner, T>::RemoveEdge(T* from, T* to) {
-  DCHECK(from->successors_.count(to));
-  DCHECK(to->predecessors_.count(from));
   from->successors_.erase(to);
   to->predecessors_.erase(from);
 }
