@@ -72,6 +72,10 @@ BitSet::BitSet(Zone* zone, const BitSet& other)
   CopyFrom(other);
 }
 
+BitSet::~BitSet() {
+  NOTREACHED();
+}
+
 BitSet::BitSet(Zone* zone, int size)
     : data_size_(IndexOf(size)),
       size_(size),

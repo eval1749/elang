@@ -40,7 +40,7 @@ class ELANG_BASE_EXPORT BitSet final : public ZoneAllocated {
 
   BitSet(Zone* zone, const BitSet& other);
   BitSet(Zone* zone, int size);
-  ~BitSet() = delete;
+  ~BitSet();
 
   Iterator begin() const;
   Iterator end() const;
