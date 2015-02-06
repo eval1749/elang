@@ -142,6 +142,14 @@ TEST_F(GraphTest, AddEdge) {
   auto const block3 = block_at(2);
   auto const block4 = block_at(3);
 
+  EXPECT_TRUE(function()->HasEdge(block1, block2));
+  EXPECT_TRUE(function()->HasEdge(block1, block3));
+  EXPECT_TRUE(function()->HasEdge(block2, block4));
+  EXPECT_TRUE(function()->HasEdge(block3, block4));
+
+  EXPECT_FALSE(function()->HasEdge(block2, block1));
+  EXPECT_FALSE(function()->HasEdge(block3, block1));
+
   EXPECT_FALSE(block1->HasPredecessor());
   EXPECT_TRUE(block1->HasSucccessor());
   EXPECT_FALSE(block1->HasMoreThanOnePredecessors());

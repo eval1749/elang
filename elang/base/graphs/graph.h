@@ -43,6 +43,7 @@ class Graph {
 
    private:
     friend class Editor;
+    friend class Graph;
 
     // For control flow graph, most of most of basic block has only one
     // successors, e.g. by unconditional jump, and return. More than two
@@ -57,6 +58,8 @@ class Graph {
   // Returns a list of graph node.
   const Nodes& nodes() const { return nodes_; }
 
+  bool HasEdge(Derived* from, Derived* to) const;
+
  protected:
   Graph() = default;
   ~Graph() = default;
@@ -68,6 +71,11 @@ class Graph {
 
   DISALLOW_COPY_AND_ASSIGN(Graph);
 };
+
+template <typename Owner, typename T>
+bool Graph<Owner, T>::HasEdge(T* from, T* to) const {
+  return from->successors_.count(to) != 0;
+}
 
 template <typename Owner, typename T>
 Graph<Owner, T>::Node::Node(Zone* zone)
