@@ -88,6 +88,8 @@ class ELANG_LIR_EXPORT Editor final {
   bool Validate();
 
  private:
+  void ResetSuccessors(Instruction* instruction);
+  void SetSuccessors(Instruction* instruction);
   bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
 

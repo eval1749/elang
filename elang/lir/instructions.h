@@ -41,6 +41,50 @@ enum class Opcode {
 
 //////////////////////////////////////////////////////////////////////
 //
+// BasicBlockOperands
+//
+class BasicBlockOperands final {
+ public:
+  class Iterator final {
+   public:
+    explicit Iterator(BasicBlock** pointer);
+    Iterator(const Iterator& other);
+    ~Iterator();
+
+    Iterator& operator=(const Iterator& other);
+
+    bool operator==(const Iterator& other) const;
+    bool operator!=(const Iterator& other) const;
+
+    BasicBlock* operator*() { return *pointer_; }
+    BasicBlock* operator->() { return *pointer_; }
+    Iterator& operator++();
+
+   private:
+    BasicBlock** pointer_;
+  };
+
+  BasicBlockOperands(const BasicBlockOperands& other);
+  BasicBlockOperands(BasicBlock** start, BasicBlock** end);
+  BasicBlockOperands();
+  ~BasicBlockOperands();
+
+  BasicBlockOperands& operator=(const BasicBlockOperands& other);
+
+  Iterator begin() const { return Iterator(start_); }
+  bool empty() const { return start_ == end_; }
+  Iterator end() const { return Iterator(end_); }
+  int size() const { return static_cast<int>(end_ - start_); }
+
+ private:
+  friend class Instruction;
+
+  BasicBlock** start_;
+  BasicBlock** end_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Instruction
 //
 class ELANG_LIR_EXPORT Instruction
@@ -107,6 +151,8 @@ class ELANG_LIR_EXPORT Instruction
   Values inputs() const;
   Value output(int index) const;
   Values outputs() const;
+  virtual BasicBlockOperands block_operands() const;
+  BasicBlock* block_operand(int index) const;
 
   virtual int CountInputs() const = 0;
   virtual int CountOutputs() const = 0;
@@ -129,6 +175,7 @@ class ELANG_LIR_EXPORT Instruction
   friend class Editor;
   friend class Factory;
 
+  void SetBlockOperand(int index, BasicBlock* new_value);
   void SetInput(int index, Value new_value);
   void SetOutput(int index, Value new_value);
 
@@ -188,25 +235,40 @@ class InstructionTemplate<0, 0> : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
 
+template <int kInputOperands, int kBasicBlockOperands>
+class TerminatorInstruction : public InstructionTemplate<0, kInputOperands> {
+ public:
+  BasicBlockOperands block_operands() const final {
+    auto const self = const_cast<TerminatorInstruction*>(this);
+    return BasicBlockOperands(
+        self->block_operands_.data(),
+        self->block_operands_.data() + kBasicBlockOperands);
+  }
+
+  bool IsTerminator() const { return true; }
+
+ protected:
+  void InitBasicBlock(int index, BasicBlock* block) {
+    block_operands_[index] = block;
+  }
+
+ private:
+  std::array<BasicBlock*, kBasicBlockOperands> block_operands_;
+};
+
 // BranchInstruction
 class ELANG_LIR_EXPORT BranchInstruction final
-    : public InstructionTemplate<0, 1> {
+    : public TerminatorInstruction<1, 2> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Branch);
 
  public:
-  BasicBlock* false_block() const { return false_block_; }
-  BasicBlock* true_block() const { return true_block_; }
+  BasicBlock* false_block() const { return block_operand(1); }
+  BasicBlock* true_block() const { return block_operand(0); }
 
  private:
   BranchInstruction(Value condition,
                     BasicBlock* true_block,
                     BasicBlock* false_block);
-
-  // Instruction
-  bool IsTerminator() const final;
-
-  BasicBlock* false_block_;
-  BasicBlock* true_block_;
 };
 
 // EntryInstruction
@@ -220,31 +282,23 @@ class ELANG_LIR_EXPORT EntryInstruction final
 
 // ExitInstruction
 class ELANG_LIR_EXPORT ExitInstruction final
-    : public InstructionTemplate<0, 0> {
+    : public TerminatorInstruction<0, 0> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Exit);
 
  private:
   ExitInstruction();
-
-  // Instruction
-  bool IsTerminator() const final;
 };
 
 // JumpInstruction
 class ELANG_LIR_EXPORT JumpInstruction final
-    : public InstructionTemplate<0, 0> {
+    : public TerminatorInstruction<0, 1> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Jump);
 
  public:
-  BasicBlock* target_block() const { return target_block_; }
+  BasicBlock* target_block() const { return block_operand(0); }
 
  private:
   explicit JumpInstruction(BasicBlock* target_block);
-
-  // Instruction
-  bool IsTerminator() const final;
-
-  BasicBlock* target_block_;
 };
 
 // PCopyInstruction - represents parallel copy "pseudo" instruction.
@@ -349,14 +403,12 @@ class ELANG_LIR_EXPORT PhiInstructionList final {
 };
 
 // RetInstruction
-class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
+class ELANG_LIR_EXPORT RetInstruction final
+    : public TerminatorInstruction<0, 0> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Ret);
 
  private:
   RetInstruction();
-
-  // Instruction
-  bool IsTerminator() const final;
 };
 
 #define V(Name, ...)                              \

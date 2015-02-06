@@ -95,6 +95,8 @@ Function* Factory::NewFunction() {
   exit_instr->id_ = NextInstructionId();
   exit_instr->basic_block_ = exit_block;
 
+  editor.AddEdge(entry_block, exit_block);
+
   DCHECK(Editor(this, function).Validate());
 
   return function;

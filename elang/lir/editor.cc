@@ -31,17 +31,26 @@ Editor::~Editor() {
   DCHECK(!basic_block_);
 }
 
+void Editor::AddError(ErrorCode error_code,
+                      Value value,
+                      const std::vector<Value> details) {
+  errors_.push_back(new (factory()->zone()) ErrorData(
+      factory()->zone(), factory()->literals(), error_code, value, details));
+}
+
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
   DCHECK(basic_block_);
-  auto const last = basic_block_->last_instruction();
-  if (last && last->IsTerminator())
-    basic_block_->instructions_.InsertBefore(new_instruction, last);
-  else
-    basic_block_->instructions_.AppendNode(new_instruction);
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block_;
+  auto const last = basic_block_->last_instruction();
+  if (last && last->IsTerminator()) {
+    basic_block_->instructions_.InsertBefore(new_instruction, last);
+    return;
+  }
+  basic_block_->instructions_.AppendNode(new_instruction);
+  SetSuccessors(new_instruction);
 }
 
 bool Editor::Commit() {
@@ -67,13 +76,6 @@ void Editor::Edit(BasicBlock* basic_block) {
 
 void Editor::EditNewBasicBlock() {
   Edit(NewBasicBlock(function()->exit_block()));
-}
-
-void Editor::AddError(ErrorCode error_code,
-                      Value value,
-                      const std::vector<Value> details) {
-  errors_.push_back(new (factory()->zone()) ErrorData(
-      factory()->zone(), factory()->literals(), error_code, value, details));
 }
 
 void Editor::Error(ErrorCode error_code, Value value) {
@@ -127,9 +129,23 @@ PhiInstruction* Editor::NewPhi(Value output) {
 void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
+  ResetSuccessors(old_instruction);
   basic_block_->instructions_.RemoveNode(old_instruction);
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
+}
+
+void Editor::ResetSuccessors(Instruction* instruction) {
+  if (!instruction->IsTerminator())
+    return;
+  auto const block = instruction->basic_block();
+  if (instruction->opcode() == Opcode::Ret) {
+    graph_editor_.RemoveEdge(block, function()->exit_block());
+    return;
+  }
+  for (auto successor : instruction->block_operands()) {
+    graph_editor_.RemoveEdge(block, successor);
+  }
 }
 
 void Editor::SetBranch(Value condition,
@@ -141,8 +157,10 @@ void Editor::SetBranch(Value condition,
   if (auto const last =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     SetInput(last, 0, condition);
-    last->false_block_ = false_block;
-    last->true_block_ = true_block;
+    ResetSuccessors(last);
+    last->SetBlockOperand(0, true_block);
+    last->SetBlockOperand(1, false_block);
+    SetSuccessors(last);
     return;
   }
   SetTerminator(
@@ -159,7 +177,9 @@ void Editor::SetJump(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const last =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
-    last->target_block_ = target_block;
+    ResetSuccessors(last);
+    last->SetBlockOperand(0, target_block);
+    SetSuccessors(last);
     return;
   }
   SetTerminator(factory()->NewJumpInstruction(target_block));
@@ -187,6 +207,19 @@ void Editor::SetReturn() {
   if (auto const last = basic_block_->last_instruction()->as<RetInstruction>())
     return;
   SetTerminator(factory()->NewRetInstruction());
+}
+
+void Editor::SetSuccessors(Instruction* instruction) {
+  if (!instruction->IsTerminator())
+    return;
+  auto const block = instruction->basic_block();
+  if (instruction->opcode() == Opcode::Ret) {
+    graph_editor_.AddEdge(block, function()->exit_block());
+    return;
+  }
+  for (auto successor : instruction->block_operands()) {
+    graph_editor_.AddEdge(block, successor);
+  }
 }
 
 void Editor::SetTerminator(Instruction* instr) {

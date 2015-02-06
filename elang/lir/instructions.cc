@@ -84,6 +84,67 @@ FOR_EACH_LIR_INSTRUCTION_1_2(V)
 
 //////////////////////////////////////////////////////////////////////
 //
+// BasicBlockOperands::Iterator
+//
+BasicBlockOperands::Iterator::Iterator(const Iterator& other)
+    : Iterator(other.pointer_) {
+}
+
+BasicBlockOperands::Iterator::Iterator(BasicBlock** pointer)
+    : pointer_(pointer) {
+}
+
+BasicBlockOperands::Iterator::~Iterator() {
+}
+
+BasicBlockOperands::Iterator& BasicBlockOperands::Iterator::operator=(
+    const Iterator& other) {
+  pointer_ = other.pointer_;
+  return *this;
+}
+
+BasicBlockOperands::Iterator& BasicBlockOperands::Iterator::operator++() {
+  ++pointer_;
+  return *this;
+}
+
+bool BasicBlockOperands::Iterator::operator==(const Iterator& other) const {
+  return pointer_ == other.pointer_;
+}
+
+bool BasicBlockOperands::Iterator::operator!=(const Iterator& other) const {
+  return !operator==(other);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// BasicBlockOperands
+//
+BasicBlockOperands::BasicBlockOperands(const BasicBlockOperands& other)
+    : BasicBlockOperands(other.start_, other.end_) {
+}
+
+BasicBlockOperands::BasicBlockOperands(BasicBlock** start, BasicBlock** end)
+    : end_(end), start_(start) {
+  DCHECK_LE(start_, end_);
+}
+
+BasicBlockOperands::BasicBlockOperands()
+    : BasicBlockOperands(nullptr, nullptr) {
+}
+
+BasicBlockOperands::~BasicBlockOperands() {
+}
+
+BasicBlockOperands& BasicBlockOperands::operator=(
+    const BasicBlockOperands& other) {
+  end_ = other.end_;
+  start_ = other.start_;
+  return *this;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Instruction::Values
 //
 Instruction::Values::Values(const Values& other)
@@ -143,6 +204,17 @@ Instruction::Values::Iterator& Instruction::Values::Iterator::operator++() {
 Instruction::Instruction() : basic_block_(nullptr), id_(0) {
 }
 
+BasicBlock* Instruction::block_operand(int index) const {
+  auto const operands = block_operands();
+  DCHECK_GE(index, 0);
+  DCHECK_LT(index, operands.size());
+  return operands.start_[index];
+}
+
+BasicBlockOperands Instruction::block_operands() const {
+  return BasicBlockOperands();
+}
+
 Value Instruction::input(int index) const {
   DCHECK_GE(index, 0);
   DCHECK_LE(index, CountInputs());
@@ -177,6 +249,13 @@ void Instruction::InitOutput(int index, Value new_output) {
   SetOutput(index, new_output);
 }
 
+void Instruction::SetBlockOperand(int index, BasicBlock* new_value) {
+  auto const operands = block_operands();
+  DCHECK_GE(index, 0);
+  DCHECK_LT(index, operands.size());
+  operands.start_[index] = new_value;
+}
+
 void Instruction::SetInput(int index, Value new_input) {
   DCHECK_GE(index, 0);
   DCHECK_LE(index, CountInputs());
@@ -197,27 +276,15 @@ bool Instruction::IsTerminator() const {
 // BranchInstruction
 BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
-                                     BasicBlock* false_block)
-    : false_block_(false_block), true_block_(true_block) {
+                                     BasicBlock* false_block) {
   InitInput(0, condition);
-}
-
-bool BranchInstruction::IsTerminator() const {
-  return true;
-}
-
-// ExitInstruction
-bool ExitInstruction::IsTerminator() const {
-  return true;
+  InitBasicBlock(0, true_block);
+  InitBasicBlock(1, false_block);
 }
 
 // JumpInstruction
-JumpInstruction::JumpInstruction(BasicBlock* target_block)
-    : target_block_(target_block) {
-}
-
-bool JumpInstruction::IsTerminator() const {
-  return true;
+JumpInstruction::JumpInstruction(BasicBlock* target_block) {
+  InitBasicBlock(0, target_block);
 }
 
 // PCopyInstruction
@@ -314,10 +381,6 @@ PhiInstruction* PhiInstructionList::Iterator::operator*() const {
 
 // RetInstruction
 RetInstruction::RetInstruction() {
-}
-
-bool RetInstruction::IsTerminator() const {
-  return true;
 }
 
 }  // namespace lir

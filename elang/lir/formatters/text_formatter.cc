@@ -177,14 +177,6 @@ std::ostream& operator<<(std::ostream& ostream,
   auto const literals = printable.literals;
   ostream << instruction->mnemonic();
 
-  if (auto const branch = instruction->as<BranchInstruction>()) {
-    return ostream << " " << PrintableValue(literals, branch->input(0)) << ", "
-                   << *branch->true_block() << ", " << *branch->false_block();
-  }
-
-  if (auto const jump = instruction->as<JumpInstruction>())
-    return ostream << " " << *jump->target_block();
-
   // outputs
   if (!instruction->outputs().empty()) {
     auto separator = " ";
@@ -205,10 +197,16 @@ std::ostream& operator<<(std::ostream& ostream,
     DCHECK_EQ(phi->outputs().size(), 1);
     return ostream;
   }
+  auto separator = " ";
   if (!instruction->inputs().empty()) {
-    auto separator = " ";
     for (auto const value : instruction->inputs()) {
       ostream << separator << PrintableValue(literals, value);
+      separator = ", ";
+    }
+  }
+  if (!instruction->block_operands().empty()) {
+    for (auto const block : instruction->block_operands()) {
+      ostream << separator << *block;
       separator = ", ";
     }
   }
