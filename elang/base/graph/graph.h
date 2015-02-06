@@ -5,14 +5,13 @@
 #ifndef ELANG_BASE_GRAPH_GRAPH_H_
 #define ELANG_BASE_GRAPH_GRAPH_H_
 
-#include <vector>
-
-#include "base/logging.h"
-#include "base/macros.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/zone_unordered_set.h"
 
 namespace elang {
+
+template <typename Owner, typename Derived>
+class GraphEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -21,6 +20,9 @@ namespace elang {
 template <typename Owner, typename Derived>
 class Graph {
  public:
+  typedef GraphEditor<Owner, Derived> Editor;
+  typedef DoubleLinked<Derived, Owner> Nodes;
+
   // Node represents graph node having edges.
   class Node : public DoubleLinked<Derived, Owner>::Node {
    public:
@@ -52,26 +54,6 @@ class Graph {
     DISALLOW_COPY_AND_ASSIGN(Node);
   };
 
-  // Editor edits a graph object.
-  class Editor {
-   public:
-    explicit Editor(Graph* graph) : graph_(graph) {}
-    ~Editor() = default;
-
-    void AppendNode(Derived* new_node);
-    void AddEdge(Derived* from, Derived* to);
-    void InsertNode(Derived* new_node, Derived* ref_node);
-    void RemoveEdge(Derived* from, Derived* to);
-    void RemoveNode(Derived* ref_node);
-
-   private:
-    Graph* const graph_;
-
-    DISALLOW_COPY_AND_ASSIGN(Editor);
-  };
-
-  typedef DoubleLinked<Derived, Owner> Nodes;
-
   // Returns a list of graph node.
   const Nodes& nodes() const { return nodes_; }
 
@@ -90,35 +72,6 @@ class Graph {
 template <typename Owner, typename T>
 Graph<Owner, T>::Node::Node(Zone* zone)
     : predecessors_(zone), successors_(zone) {
-}
-
-template <typename Owner, typename T>
-void Graph<Owner, T>::Editor::AppendNode(T* new_node) {
-  graph_->nodes_.AppendNode(new_node);
-}
-
-template <typename Owner, typename T>
-void Graph<Owner, T>::Editor::AddEdge(T* from, T* to) {
-  from->successors_.insert(to);
-  to->predecessors_.insert(from);
-}
-
-template <typename Owner, typename T>
-void Graph<Owner, T>::Editor::InsertNode(T* new_node, T* ref_node) {
-  graph_->nodes_.InsertBefore(new_node, ref_node);
-}
-
-template <typename Owner, typename T>
-void Graph<Owner, T>::Editor::RemoveEdge(T* from, T* to) {
-  DCHECK(from->successors_.count(to));
-  DCHECK(to->predecessors_.count(from));
-  from->successors_.erase(to);
-  to->predecessors_.erase(from);
-}
-
-template <typename Owner, typename T>
-void Graph<Owner, T>::Editor::RemoveNode(T* old_node) {
-  graph_->nodes_.RemoveNode(old_node);
 }
 
 }  // namespace elang

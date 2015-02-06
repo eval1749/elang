@@ -17,6 +17,7 @@ component("base") {
     "double_linked.h",
     "float_types.h",
     "graph/graph.h",
+    "graph/graph_editor.h",
     "index_sequence.h",
     "iterator_on_iterator.h",
     "liveness.cc",

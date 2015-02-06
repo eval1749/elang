@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "elang/base/graph/graph.h"
+#include "elang/base/graph/graph_editor.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
 #include "gtest/gtest.h"
