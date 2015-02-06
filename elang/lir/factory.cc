@@ -84,7 +84,7 @@ Function* Factory::NewFunction() {
   entry_instr->id_ = NextInstructionId();
   entry_instr->basic_block_ = entry_block;
 
-  auto const ret_instr = NewRetInstruction(exit_block);
+  auto const ret_instr = NewRetInstruction();
   entry_block->instructions_.AppendNode(ret_instr);
   ret_instr->id_ = NextInstructionId();
   ret_instr->basic_block_ = entry_block;
@@ -260,9 +260,8 @@ Instruction* Factory::NewPhiInstruction(Value output) {
   return new (zone()) PhiInstruction(output);
 }
 
-Instruction* Factory::NewRetInstruction(BasicBlock* target_block) {
-  DCHECK(target_block->id());
-  return new (zone()) RetInstruction(target_block);
+Instruction* Factory::NewRetInstruction() {
+  return new (zone()) RetInstruction();
 }
 
 #ifdef ELANG_TARGET_ARCH_X64

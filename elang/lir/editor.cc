@@ -183,7 +183,7 @@ void Editor::SetReturn() {
   DCHECK(basic_block_);
   if (auto const last = basic_block_->last_instruction()->as<RetInstruction>())
     return;
-  SetTerminator(factory()->NewRetInstruction(function()->exit_block()));
+  SetTerminator(factory()->NewRetInstruction());
 }
 
 void Editor::SetTerminator(Instruction* instr) {

@@ -314,8 +314,7 @@ PhiInstruction* PhiInstructionList::Iterator::operator*() const {
 }
 
 // RetInstruction
-RetInstruction::RetInstruction(BasicBlock* target_block) {
-  InitInput(0, target_block->value());
+RetInstruction::RetInstruction() {
 }
 
 bool RetInstruction::IsTerminator() const {

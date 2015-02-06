@@ -120,7 +120,7 @@ TEST_F(LirInstructionTest, RetInstruction) {
   EXPECT_TRUE(instr->is<RetInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
   EXPECT_NE(0, instr->id());
-  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(0, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
 }
 

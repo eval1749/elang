@@ -35,7 +35,7 @@ TEST_F(GeneratorX64Test, Basic) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function()));
@@ -65,7 +65,7 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  add %r3 = %r1, %r2\n"
       "  mov EAX = %r3\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function));
@@ -100,7 +100,7 @@ TEST_F(GeneratorX64Test, Call) {
       "  entry\n"
       "  pcopy ECX, DL, R8, R9W, %arg[4], %arg[5] = 42, 1, 56l, 89, 1.2f, 3.4\n"
       "  call \"Foo\"\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function()));
@@ -131,7 +131,7 @@ TEST_F(GeneratorX64Test, Element) {
       "  add %r3l = %r2l, %r4\n"
       "  load %r5w = %r3l\n"
       "  mov EAX = %r5w\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function));
@@ -158,7 +158,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "block1:\n"
       "  entry\n"
       "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8L, XMM3, %param[4]\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function));
@@ -176,7 +176,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
       "block1:\n"
       "  entry\n"
       "  mov EAX = 42\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function));
@@ -194,7 +194,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
       "block1:\n"
       "  entry\n"
       "  mov RAX = 42l\n"
-      "  ret block2\n"
+      "  ret\n"
       "block2:\n"
       "  exit\n",
       Generate(function));
