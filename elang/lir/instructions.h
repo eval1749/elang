@@ -22,11 +22,22 @@
 namespace elang {
 namespace lir {
 
-class BasicBlock;
-class Factory;
-
 // See "instructions_forward.h" for list of all instructions.
 // See "instructions_${arch}.cc" for implementations depend on ISA.
+
+class BasicBlock;
+class Editor;
+class Factory;
+
+//////////////////////////////////////////////////////////////////////
+//
+// Opcode
+//
+enum class Opcode {
+#define V(Name, mnemonic, ...) Name,
+  FOR_EACH_LIR_INSTRUCTION(V)
+#undef V
+};
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -84,8 +95,12 @@ class ELANG_LIR_EXPORT Instruction
   // An integer identifier for debugging.
   int id() const { return id_; }
 
-  // ISA dependent mnemonic for printing and debugging
-  virtual base::StringPiece mnemonic() const = 0;
+  // ISA independent mnemonic for printing and debugging, see also
+  // |MnemonicOf(Opcode) -> base::StringPiece|.
+  base::StringPiece mnemonic() const;
+
+  // Operation code of this instruction.
+  virtual Opcode opcode() const = 0;
 
   // Operands accessor
   Value input(int index) const;
@@ -126,7 +141,7 @@ class ELANG_LIR_EXPORT Instruction
 #define DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name)      \
   DECLARE_CASTABLE_CLASS(Name##Instruction, Instruction); \
   DISALLOW_COPY_AND_ASSIGN(Name##Instruction);            \
-  base::StringPiece mnemonic() const final;               \
+  Opcode opcode() const final { return Opcode::Name; }    \
   void Accept(InstructionVisitor* visitor) override;      \
   friend class Editor;                                    \
   friend class Factory;
@@ -332,7 +347,7 @@ class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 1> {
   bool IsTerminator() const final;
 };
 
-#define V(Name)                                   \
+#define V(Name, ...)                              \
   class ELANG_LIR_EXPORT Name##Instruction final  \
       : public InstructionTemplate<0, 1> {        \
     DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name); \
@@ -343,7 +358,7 @@ class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 1> {
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name)                                        \
+#define V(Name, ...)                                   \
   class ELANG_LIR_EXPORT Name##Instruction final       \
       : public InstructionTemplate<0, 2> {             \
     DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);      \
@@ -354,7 +369,7 @@ FOR_EACH_LIR_INSTRUCTION_0_1(V)
 FOR_EACH_LIR_INSTRUCTION_0_2(V)
 #undef V
 
-#define V(Name)                                   \
+#define V(Name, ...)                              \
   class ELANG_LIR_EXPORT Name##Instruction final  \
       : public InstructionTemplate<1, 1> {        \
     DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name); \
@@ -365,7 +380,7 @@ FOR_EACH_LIR_INSTRUCTION_0_2(V)
 FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
-#define V(Name)                                               \
+#define V(Name, ...)                                          \
   class ELANG_LIR_EXPORT Name##Instruction final              \
       : public InstructionTemplate<1, 2> {                    \
     DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);             \

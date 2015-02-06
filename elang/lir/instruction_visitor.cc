@@ -17,5 +17,9 @@ InstructionVisitor::InstructionVisitor() {
 InstructionVisitor::~InstructionVisitor() {
 }
 
+void InstructionVisitor::DoDefaultVisit(Instruction* instr) {
+  DCHECK(instr);
+}
+
 }  // namespace lir
 }  // namespace elang

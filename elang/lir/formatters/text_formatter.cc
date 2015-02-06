@@ -129,6 +129,10 @@ std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function" << function.id();
 }
 
+std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
+  return ostream << ToStringPiece(opcode);
+}
+
 std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
   LiteralFormatter literal_formatter(&ostream);
   literal_formatter.Format(&literal);

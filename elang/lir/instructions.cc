@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
 #include <vector>
 
 #include "base/logging.h"
@@ -18,9 +19,26 @@
 namespace elang {
 namespace lir {
 
-#define V(Name, ...)                                            \
-  void Name##Instruction::Accept(InstructionVisitor* visitor) { \
-    visitor->Visit##Name(this);                                 \
+base::StringPiece ToStringPiece(Opcode opcode) {
+  static const char* const mnemonics[] = {
+#define V(Name, mnemonic, ...) mnemonic,
+      FOR_EACH_LIR_INSTRUCTION(V)
+#undef V
+          "Invalid",
+  };
+  return mnemonics[std::min(static_cast<size_t>(opcode),
+                            arraysize(mnemonics) - 1)];
+}
+
+// Implement visitor pattern:
+//  InstructionVIsitor::VisitXXX(XXXInstruction* instruction)
+//  XXXInstruction::Accept(InstructionVisitor* visitor)
+#define V(Name, ...)                                               \
+  void InstructionVisitor::Visit##Name(Name##Instruction* instr) { \
+    DoDefaultVisit(instr);                                         \
+  }                                                                \
+  void Name##Instruction::Accept(InstructionVisitor* visitor) {    \
+    visitor->Visit##Name(this);                                    \
   }
 FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
@@ -136,6 +154,10 @@ Instruction::Values Instruction::inputs() const {
   return Values(start, start + CountInputs());
 }
 
+base::StringPiece Instruction::mnemonic() const {
+  return ToStringPiece(opcode());
+}
+
 Value Instruction::output(int index) const {
   DCHECK_GE(index, 0);
   DCHECK_LE(index, CountOutputs());
@@ -211,10 +233,6 @@ PCopyInstruction::PCopyInstruction(Zone* zone,
 #endif
 }
 
-base::StringPiece PCopyInstruction::mnemonic() const {
-  return "pcopy";
-}
-
 // PCopyInstruction Instruction operand protocol
 int PCopyInstruction::CountInputs() const {
   return static_cast<int>(inputs_.size());
@@ -245,10 +263,6 @@ Value PhiInstruction::input_of(BasicBlock* basic_block) const {
   auto const phi_input = FindPhiInputFor(basic_block);
   DCHECK(phi_input);
   return phi_input->value();
-}
-
-base::StringPiece PhiInstruction::mnemonic() const {
-  return "phi";
 }
 
 int PhiInstruction::CountInputs() const {

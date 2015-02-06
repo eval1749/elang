@@ -10,7 +10,6 @@
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
-#include "elang/lir/instruction_visitor.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
 #include "elang/lir/target.h"
@@ -21,17 +20,6 @@
 
 namespace elang {
 namespace lir {
-
-#define V(Name, ...)                                               \
-  void InstructionVisitor::Visit##Name(Name##Instruction* instr) { \
-    DoDefaultVisit(instr);                                         \
-  }
-FOR_EACH_LIR_INSTRUCTION(V)
-#undef V
-
-void InstructionVisitor::DoDefaultVisit(Instruction* instr) {
-  DCHECK(instr);
-}
 
 //////////////////////////////////////////////////////////////////////
 //
