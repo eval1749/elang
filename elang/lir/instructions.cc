@@ -300,6 +300,10 @@ PhiInstruction* PhiInstructionList::Iterator::operator*() const {
 }
 
 // RetInstruction
+RetInstruction::RetInstruction(BasicBlock* target_block) {
+  InitInput(0, target_block->value());
+}
+
 bool RetInstruction::IsTerminator() const {
   return true;
 }

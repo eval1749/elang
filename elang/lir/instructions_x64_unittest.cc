@@ -63,7 +63,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "  jmp block5\n"
       "block5:\n"
       "  phi %r1l = block3 EAX, block4 EBX\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -81,7 +81,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
       "block1:\n"
       "  entry\n"
       "  mov RAX = %r1l\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -93,7 +93,7 @@ TEST_F(LirInstructionsTestX64, FunctionEmpty) {
       "function1:\n"
       "block1:\n"
       "  entry\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -106,7 +106,7 @@ TEST_F(LirInstructionsTestX64, FunctionSample1) {
       "block1:\n"
       "  entry\n"
       "  call \"Foo\"\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -128,7 +128,7 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
       "  entry\n"
       "  jmp block3\n"
       "block3:\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -150,7 +150,7 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       "  entry\n"
       "  mov %r1l = 42l\n"
       "  mov %r2l = \"foo\"\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));
@@ -169,7 +169,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "block1:\n"
       "  entry\n"
       "  load %r1l = %param[4]\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  exit\n",
       FormatFunction(function));

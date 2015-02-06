@@ -322,11 +322,11 @@ class ELANG_LIR_EXPORT PhiInstructionList final {
 };
 
 // RetInstruction
-class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 0> {
+class ELANG_LIR_EXPORT RetInstruction final : public InstructionTemplate<0, 1> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Ret);
 
  private:
-  RetInstruction();
+  explicit RetInstruction(BasicBlock* exit_block);
 
   // Instruction
   bool IsTerminator() const final;

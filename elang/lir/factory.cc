@@ -96,7 +96,7 @@ Function* Factory::NewFunction() {
   entry_instr->id_ = NextInstructionId();
   entry_instr->basic_block_ = entry_block;
 
-  auto const ret_instr = NewRetInstruction();
+  auto const ret_instr = NewRetInstruction(exit_block);
   entry_block->instructions_.AppendNode(ret_instr);
   ret_instr->id_ = NextInstructionId();
   ret_instr->basic_block_ = entry_block;
@@ -228,9 +228,9 @@ FOR_EACH_LIR_INSTRUCTION_0_0(V)
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...)                                          \
+#define V(Name, ...)                                                        \
   Instruction* Factory::New##Name##Instruction(Value input, Value input2) { \
-    return new (zone()) Name##Instruction(input, input2);             \
+    return new (zone()) Name##Instruction(input, input2);                   \
   }
 FOR_EACH_LIR_INSTRUCTION_0_2(V)
 #undef V
@@ -270,6 +270,11 @@ Instruction* Factory::NewPCopyInstruction(const std::vector<Value>& outputs,
 
 Instruction* Factory::NewPhiInstruction(Value output) {
   return new (zone()) PhiInstruction(output);
+}
+
+Instruction* Factory::NewRetInstruction(BasicBlock* target_block) {
+  DCHECK(target_block->id());
+  return new (zone()) RetInstruction(target_block);
 }
 
 #ifdef ELANG_TARGET_ARCH_X64

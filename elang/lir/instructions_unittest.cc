@@ -115,11 +115,12 @@ TEST_F(LirInstructionTest, PCopyInstruction) {
 
 // RetInstruction
 TEST_F(LirInstructionTest, RetInstruction) {
-  auto const instr = factory()->NewRetInstruction();
+  auto const function = factory()->NewFunction();
+  auto const instr = function->entry_block()->last_instruction();
   EXPECT_TRUE(instr->is<RetInstruction>());
   EXPECT_TRUE(instr->IsTerminator());
-  EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(0, instr->inputs().size());
+  EXPECT_NE(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
 }
 

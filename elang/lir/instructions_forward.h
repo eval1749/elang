@@ -20,10 +20,10 @@ class PhiInstructionList;
 
 #define FOR_EACH_LIR_INSTRUCTION_0_0(V) \
   V(Entry)                              \
-  V(Exit)                               \
-  V(Ret)
+  V(Exit)
 
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Call)
+
 #define FOR_EACH_LIR_INSTRUCTION_0_2(V) V(Store)
 
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
@@ -55,7 +55,8 @@ class PhiInstructionList;
   V(Jump, (BasicBlock * target_block))                                     \
   V(PCopy,                                                                 \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
-  V(Phi, (Value output))
+  V(Phi, (Value output))                                                   \
+  V(Ret, (BasicBlock * target_block))
 
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class
