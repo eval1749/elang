@@ -31,6 +31,14 @@ Editor::~Editor() {
   DCHECK(!basic_block_);
 }
 
+BasicBlock* Editor::entry_block() const {
+  return function()->entry_block();
+}
+
+BasicBlock* Editor::exit_block() const {
+  return function()->exit_block();
+}
+
 void Editor::AddError(ErrorCode error_code,
                       Value value,
                       const std::vector<Value> details) {
@@ -50,7 +58,7 @@ void Editor::Append(Instruction* new_instruction) {
     return;
   }
   basic_block_->instructions_.AppendNode(new_instruction);
-  SetSuccessors(new_instruction);
+  SetBlockEdges(new_instruction);
 }
 
 bool Editor::Commit() {
@@ -75,7 +83,7 @@ void Editor::Edit(BasicBlock* basic_block) {
 }
 
 void Editor::EditNewBasicBlock() {
-  Edit(NewBasicBlock(function()->exit_block()));
+  Edit(NewBasicBlock(exit_block()));
 }
 
 void Editor::Error(ErrorCode error_code, Value value) {
@@ -129,22 +137,29 @@ PhiInstruction* Editor::NewPhi(Value output) {
 void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
-  ResetSuccessors(old_instruction);
+  ResetBlockEdges(old_instruction);
   basic_block_->instructions_.RemoveNode(old_instruction);
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
 }
 
-void Editor::ResetSuccessors(Instruction* instruction) {
+// Remove edges between |instruction|'s block and old successors.
+void Editor::ResetBlockEdges(Instruction* instruction) {
   if (!instruction->IsTerminator())
     return;
   auto const block = instruction->basic_block();
-  if (instruction->opcode() == Opcode::Ret) {
-    graph_editor_.RemoveEdge(block, function()->exit_block());
-    return;
-  }
   for (auto successor : instruction->block_operands()) {
     graph_editor_.RemoveEdge(block, successor);
+  }
+}
+
+// Add edges between |instruction|'s block and new successors.
+void Editor::SetBlockEdges(Instruction* instruction) {
+  if (!instruction->IsTerminator())
+    return;
+  auto const block = instruction->basic_block();
+  for (auto successor : instruction->block_operands()) {
+    graph_editor_.AddEdge(block, successor);
   }
 }
 
@@ -157,10 +172,10 @@ void Editor::SetBranch(Value condition,
   if (auto const last =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     SetInput(last, 0, condition);
-    ResetSuccessors(last);
+    ResetBlockEdges(last);
     last->SetBlockOperand(0, true_block);
     last->SetBlockOperand(1, false_block);
-    SetSuccessors(last);
+    SetBlockEdges(last);
     return;
   }
   SetTerminator(
@@ -177,9 +192,9 @@ void Editor::SetJump(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const last =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
-    ResetSuccessors(last);
+    ResetBlockEdges(last);
     last->SetBlockOperand(0, target_block);
-    SetSuccessors(last);
+    SetBlockEdges(last);
     return;
   }
   SetTerminator(factory()->NewJumpInstruction(target_block));
@@ -206,20 +221,7 @@ void Editor::SetReturn() {
   DCHECK(basic_block_);
   if (auto const last = basic_block_->last_instruction()->as<RetInstruction>())
     return;
-  SetTerminator(factory()->NewRetInstruction());
-}
-
-void Editor::SetSuccessors(Instruction* instruction) {
-  if (!instruction->IsTerminator())
-    return;
-  auto const block = instruction->basic_block();
-  if (instruction->opcode() == Opcode::Ret) {
-    graph_editor_.AddEdge(block, function()->exit_block());
-    return;
-  }
-  for (auto successor : instruction->block_operands()) {
-    graph_editor_.AddEdge(block, successor);
-  }
+  SetTerminator(factory()->NewRetInstruction(exit_block()));
 }
 
 void Editor::SetTerminator(Instruction* instr) {

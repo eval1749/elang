@@ -85,15 +85,15 @@ Function* Factory::NewFunction() {
   entry_instr->id_ = NextInstructionId();
   entry_instr->basic_block_ = entry_block;
 
-  auto const ret_instr = NewRetInstruction();
-  entry_block->instructions_.AppendNode(ret_instr);
-  ret_instr->id_ = NextInstructionId();
-  ret_instr->basic_block_ = entry_block;
-
   auto const exit_instr = NewExitInstruction();
   exit_block->instructions_.AppendNode(exit_instr);
   exit_instr->id_ = NextInstructionId();
   exit_instr->basic_block_ = exit_block;
+
+  auto const ret_instr = NewRetInstruction(exit_block);
+  entry_block->instructions_.AppendNode(ret_instr);
+  ret_instr->id_ = NextInstructionId();
+  ret_instr->basic_block_ = entry_block;
 
   editor.AddEdge(entry_block, exit_block);
 
@@ -263,8 +263,8 @@ Instruction* Factory::NewPhiInstruction(Value output) {
   return new (zone()) PhiInstruction(output);
 }
 
-Instruction* Factory::NewRetInstruction() {
-  return new (zone()) RetInstruction();
+Instruction* Factory::NewRetInstruction(BasicBlock* exit_block) {
+  return new (zone()) RetInstruction(exit_block);
 }
 
 #ifdef ELANG_TARGET_ARCH_X64

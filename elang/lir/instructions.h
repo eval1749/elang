@@ -248,7 +248,7 @@ class TerminatorInstruction : public InstructionTemplate<0, kInputOperands> {
   bool IsTerminator() const { return true; }
 
  protected:
-  void InitBasicBlock(int index, BasicBlock* block) {
+  void InitBlockOperand(int index, BasicBlock* block) {
     block_operands_[index] = block;
   }
 
@@ -404,11 +404,11 @@ class ELANG_LIR_EXPORT PhiInstructionList final {
 
 // RetInstruction
 class ELANG_LIR_EXPORT RetInstruction final
-    : public TerminatorInstruction<0, 0> {
+    : public TerminatorInstruction<0, 1> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Ret);
 
  private:
-  RetInstruction();
+  explicit RetInstruction(BasicBlock* exit_block);
 };
 
 #define V(Name, ...)                              \

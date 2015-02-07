@@ -45,7 +45,9 @@ class ELANG_LIR_EXPORT Editor final {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
+  BasicBlock* entry_block() const;
   const std::vector<ErrorData*>& errors() { return errors_; }
+  BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
 
@@ -88,8 +90,8 @@ class ELANG_LIR_EXPORT Editor final {
   bool Validate();
 
  private:
-  void ResetSuccessors(Instruction* instruction);
-  void SetSuccessors(Instruction* instruction);
+  void ResetBlockEdges(Instruction* instruction);
+  void SetBlockEdges(Instruction* instruction);
   bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
 

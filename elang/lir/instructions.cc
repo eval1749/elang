@@ -278,13 +278,13 @@ BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
                                      BasicBlock* false_block) {
   InitInput(0, condition);
-  InitBasicBlock(0, true_block);
-  InitBasicBlock(1, false_block);
+  InitBlockOperand(0, true_block);
+  InitBlockOperand(1, false_block);
 }
 
 // JumpInstruction
 JumpInstruction::JumpInstruction(BasicBlock* target_block) {
-  InitBasicBlock(0, target_block);
+  InitBlockOperand(0, target_block);
 }
 
 // PCopyInstruction
@@ -380,7 +380,9 @@ PhiInstruction* PhiInstructionList::Iterator::operator*() const {
 }
 
 // RetInstruction
-RetInstruction::RetInstruction() {
+RetInstruction::RetInstruction(BasicBlock* exit_block) {
+  DCHECK(exit_block->first_instruction()->is<ExitInstruction>());
+  InitBlockOperand(0, exit_block);
 }
 
 }  // namespace lir

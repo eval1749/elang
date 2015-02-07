@@ -52,7 +52,7 @@ namespace lir {
   V(PCopy, "pcopy",                                                        \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
   V(Phi, "phi", (Value output))                                            \
-  V(Ret, "ret", ())
+  V(Ret, "ret", (BasicBlock* exit_block))
 
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class
