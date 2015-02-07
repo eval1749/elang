@@ -11,73 +11,56 @@
 #include "elang/base/base_export.h"
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
+#include "elang/base/analysis/liveness_editor.h"
 
 namespace elang {
-
-class BitSet;
-
-//////////////////////////////////////////////////////////////////////
-//
-// LivenessEditor
-//
-class ELANG_BASE_EXPORT LivenessEditor {
- protected:
-  LivenessEditor();
-  ~LivenessEditor();
-
-  BitSet* in_of(Liveness* liveness) { return &liveness->in_; }
-  BitSet* kill_of(Liveness* liveness) { return &liveness->kill_; }
-  BitSet* out_of(Liveness* liveness) { return &liveness->out_; }
-
-  void MarkKill(Liveness* liveness, int number);
-  void MarkUse(Liveness* liveness, int number);
-  Liveness* NewLiveness(Zone* zone, int size);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(LivenessEditor);
-};
 
 //////////////////////////////////////////////////////////////////////
 //
 // LivenessBuilder
 //
-template <typename Block, typename Value>
-class LivenessBuilder : public LivenessEditor {
+template <typename Node, typename Variable>
+class LivenessBuilder : public LivenessEditor<Node, Variable> {
  public:
-  typedef LivenessCollection<Block, Value> Collection;
+  typedef LivenessCollection<Node, Variable> Collection;
 
-  LivenessBuilder() : collection_(new Collection()) {}
+  LivenessBuilder()
+      : LivenessEditor(new Collection()), collection_(collection()) {}
   ~LivenessBuilder() = default;
 
-  void AddBlock(Block block) {
-    DCHECK(!collection_->block_map_.count(block));
-    auto const size = static_cast<int>(collection_->value_map_.size());
-    collection_->block_map_[block] = NewLiveness(zone(), size);
+  void AddNode(Node node) {
+    DCHECK(!collection_->node_map_.count(node));
+    collection_->node_map_[node] = NewLiveness(zone(), bit_set_size());
   }
 
-  void AddValue(Value value) {
-    DCHECK(!collection_->value_map_.count(value));
-    collection_->value_map_[value] =
-        static_cast<int>(collection_->value_map_.size());
+  void AddVariable(Variable value) {
+    DCHECK(!collection_->variable_map_.count(value));
+    collection_->variable_map_[value] =
+        static_cast<int>(collection_->variable_map_.size());
   }
 
-  std::unique_ptr<Collection> Finish() { return std::move(collection_); }
-
-  Liveness* LivenessOf(Block block) {
-    return &const_cast<Liveness&>(collection_->LivenessOf(block));
+  // Returns newly created liveness collection based on given information so
+  // far.
+  std::unique_ptr<Collection> Finish() {
+    collection_->work_ = new (zone()) BitSet(zone(), bit_set_size());
+    return std::move(collection_);
   }
 
-  void MarkKill(Liveness* liveness, Value value) {
+  void MarkKill(Liveness* liveness, Variable value) {
     LivenessEditor::MarkKill(liveness, NumberOf(value));
   }
 
-  void MarkUse(Liveness* liveness, Value value) {
+  void MarkUse(Liveness* liveness, Variable value) {
     LivenessEditor::MarkUse(liveness, NumberOf(value));
   }
 
-  int NumberOf(Value value) const { return collection_->NumberOf(value); }
+  int NumberOf(Variable value) const { return collection_->NumberOf(value); }
 
  private:
+  int bit_set_size() {
+    return static_cast<int>(collection_->variable_map_.size());
+  }
+
   Zone* zone() const { return collection_->zone(); }
 
   std::unique_ptr<Collection> collection_;

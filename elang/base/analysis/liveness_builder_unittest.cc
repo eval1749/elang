@@ -23,21 +23,21 @@ std::string ToString(const Liveness& liveness) {
 // Test cases...
 TEST(LivenessBuilderTest, Basic) {
   MyLivenessBuilder builder;
-  builder.AddValue(0);
-  builder.AddValue(1);
-  builder.AddValue(2);
+  builder.AddVariable(0);
+  builder.AddVariable(1);
+  builder.AddVariable(2);
 
-  builder.AddBlock("bb1");
-  builder.MarkKill(builder.LivenessOf("bb1"), 0);
+  builder.AddNode("bb1");
+  builder.MarkKill(builder.Edit("bb1"), 0);
 
-  builder.AddBlock("bb2");
-  builder.MarkUse(builder.LivenessOf("bb2"), 0);
-  builder.MarkKill(builder.LivenessOf("bb2"), 1);
-  builder.MarkUse(builder.LivenessOf("bb2"), 1);
+  builder.AddNode("bb2");
+  builder.MarkUse(builder.Edit("bb2"), 0);
+  builder.MarkKill(builder.Edit("bb2"), 1);
+  builder.MarkUse(builder.Edit("bb2"), 1);
 
-  builder.AddBlock("bb3");
-  builder.MarkUse(builder.LivenessOf("bb3"), 0);
-  builder.MarkUse(builder.LivenessOf("bb3"), 1);
+  builder.AddNode("bb3");
+  builder.MarkUse(builder.Edit("bb3"), 0);
+  builder.MarkUse(builder.Edit("bb3"), 1);
 
   auto collection = builder.Finish();
   EXPECT_EQ("{in:{}, out:{}, kill:{0}}",

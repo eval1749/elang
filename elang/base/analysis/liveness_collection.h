@@ -15,37 +15,54 @@
 
 namespace elang {
 
-template <typename Block, typename Value>
+template <typename Node, typename Variable>
 class LivenessBuilder;
+
+template <typename Node, typename Variable>
+class LivenessEditor;
+
 class Liveness;
 
 //////////////////////////////////////////////////////////////////////
 //
 // LivenessCollection
 //
-template <typename Block, typename Value>
+template <typename Node, typename Variable>
 class LivenessCollection final : public ZoneOwner {
  public:
   ~LivenessCollection() = default;
 
-  const Liveness& LivenessOf(Block block) const {
-    auto const it = block_map_.find(block);
-    DCHECK(it != block_map_.end());
+  const Liveness& LivenessOf(Node node) const {
+    auto const it = node_map_.find(node);
+    DCHECK(it != node_map_.end());
     return *it->second;
   }
 
-  int NumberOf(Value value) const {
-    auto const it = value_map_.find(value);
-    return it == value_map_.end() ? -1 : it->second;
+  int NumberOf(Variable value) const {
+    auto const it = variable_map_.find(value);
+    return it == variable_map_.end() ? -1 : it->second;
   }
 
  private:
-  friend class LivenessBuilder<Block, Value>;
+  friend class LivenessBuilder<Node, Variable>;
+  friend class LivenessEditor<Node, Variable>;
 
-  LivenessCollection() : block_map_(zone()), value_map_(zone()) {}
+  LivenessCollection()
+      : node_map_(zone()), variable_map_(zone()), work_(nullptr) {}
 
-  ZoneUnorderedMap<Block, Liveness*> block_map_;
-  ZoneUnorderedMap<Value, int> value_map_;
+  BitSet* work() const { return work_; }
+
+  Liveness* EditableLivenessOf(Node node) const {
+    auto const it = node_map_.find(node);
+    DCHECK(it != node_map_.end());
+    return it->second;
+  }
+
+  ZoneUnorderedMap<Node, Liveness*> node_map_;
+  ZoneUnorderedMap<Variable, int> variable_map_;
+
+  // Work area for backward solver.
+  BitSet* work_;
 
   DISALLOW_COPY_AND_ASSIGN(LivenessCollection);
 };

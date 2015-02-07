@@ -7,8 +7,9 @@ component("base") {
   sources = [
     "analysis/liveness.cc",
     "analysis/liveness.h",
-    "analysis/liveness_builder.cc",
     "analysis/liveness_builder.h",
+    "analysis/liveness_editor.h",
+    "analysis/liveness_editor.cc",
     "analysis/liveness_collection.h",
     "as_printable.cc",
     "as_printable.h",
@@ -60,6 +61,7 @@ component("base") {
 source_set("base_unittests") {
   testonly = true
   sources = [
+    "analysis/liveness_builder_unittest.cc",
     "as_printable_unittest.cc",
     "atomic_string_unittest.cc",
     "bits_unittest.cc",
@@ -68,7 +70,6 @@ source_set("base_unittests") {
     "double_linked_unittest.cc",
     "graphs/graph_unittest.cc",
     "iterator_on_iterator_unittest.cc",
-    "analysis/liveness_builder_unittest.cc",
     "ordered_list_unittest.cc",
     "simple_directed_graph_unittest.cc",
     "temporary_change_value_unittest.cc",

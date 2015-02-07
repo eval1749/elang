@@ -14,7 +14,7 @@
 
 namespace elang {
 
-class LivenessEditor;
+class LivenessEditorBase;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,7 +29,7 @@ class ELANG_BASE_EXPORT Liveness : public ZoneAllocated {
   const BitSet& out() const { return out_; }
 
  private:
-  friend class LivenessEditor;
+  friend class LivenessEditorBase;
 
   Liveness(Zone* zone, int size);
 
