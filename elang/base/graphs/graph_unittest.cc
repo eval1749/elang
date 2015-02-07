@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "elang/base/graphs/graph_editor.h"
+#include "elang/base/graphs/graph_sorter.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
 #include "gtest/gtest.h"
@@ -196,11 +197,14 @@ TEST_F(GraphTest, InsertNode) {
 }
 
 TEST_F(GraphTest, OrderedList) {
-  EXPECT_EQ("[1, 2, 4, 3]", ToString(function()->ComputePreOrderList()));
-  EXPECT_EQ("[4, 2, 3, 1]", ToString(function()->ComputePostOrderList()));
-  EXPECT_EQ("[3, 4, 2, 1]", ToString(function()->ComputeReversePreOrderList()));
+  EXPECT_EQ("[1, 2, 4, 3]",
+            ToString(Function::Sorter::SortByPreOrder(function())));
+  EXPECT_EQ("[4, 2, 3, 1]",
+            ToString(Function::Sorter::SortByPostOrder(function())));
+  EXPECT_EQ("[3, 4, 2, 1]",
+            ToString(Function::Sorter::SortByReversePreOrder(function())));
   EXPECT_EQ("[1, 3, 2, 4]",
-            ToString(function()->ComputeReversePostOrderList()));
+            ToString(Function::Sorter::SortByReversePostOrder(function())));
 }
 
 TEST_F(GraphTest, RemoveEdge) {

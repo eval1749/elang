@@ -7,7 +7,7 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
-#include "elang/base/ordered_list.h"
+#include "elang/base/graphs/graph_sorter.h"
 #include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -145,7 +145,7 @@ PhiInstruction* Editor::NewPhi(Value output) {
 const OrderedBlockList& Editor::PreOrderList() const {
   if (!pre_order_list_) {
     pre_order_list_.reset(
-        new OrderedBlockList(function()->ComputePreOrderList()));
+        new OrderedBlockList(Function::Sorter::SortByPreOrder(function())));
   }
   return *pre_order_list_;
 }
@@ -153,7 +153,7 @@ const OrderedBlockList& Editor::PreOrderList() const {
 const OrderedBlockList& Editor::PostOrderList() const {
   if (!post_order_list_) {
     post_order_list_.reset(
-        new OrderedBlockList(function()->ComputePostOrderList()));
+        new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
   }
   return *pre_order_list_;
 }
@@ -172,16 +172,16 @@ void Editor::Remove(Instruction* old_instruction) {
 
 const OrderedBlockList& Editor::ReversePreOrderList() const {
   if (!reverse_pre_order_list_) {
-    reverse_pre_order_list_.reset(
-        new OrderedBlockList(function()->ComputeReversePreOrderList()));
+    reverse_pre_order_list_.reset(new OrderedBlockList(
+        Function::Sorter::SortByReversePreOrder(function())));
   }
   return *pre_order_list_;
 }
 
 const OrderedBlockList& Editor::ReversePostOrderList() const {
   if (!reverse_post_order_list_) {
-    reverse_post_order_list_.reset(
-        new OrderedBlockList(function()->ComputeReversePostOrderList()));
+    reverse_post_order_list_.reset(new OrderedBlockList(
+        Function::Sorter::SortByReversePostOrder(function())));
   }
   return *pre_order_list_;
 }
