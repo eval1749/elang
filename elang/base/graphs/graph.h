@@ -5,6 +5,7 @@
 #ifndef ELANG_BASE_GRAPHS_GRAPH_H_
 #define ELANG_BASE_GRAPHS_GRAPH_H_
 
+#include "base/logging.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/zone_unordered_set.h"
 
@@ -74,7 +75,12 @@ class Graph {
 
 template <typename Owner, typename T>
 bool Graph<Owner, T>::HasEdge(T* from, T* to) const {
-  return from->successors_.count(to) != 0;
+  if (from->successors_.count(to) == 1) {
+    DCHECK_EQ(to->predecessors_.count(from), 1u);
+    return true;
+  }
+  DCHECK_EQ(to->predecessors_.count(from), 0u);
+  return false;
 }
 
 template <typename Owner, typename T>
