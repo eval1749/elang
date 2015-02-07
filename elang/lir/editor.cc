@@ -63,7 +63,7 @@ void Editor::Append(Instruction* new_instruction) {
 
 bool Editor::Commit() {
   DCHECK(basic_block_);
-#ifndef NDEBUG
+#ifdef NDEBUG
   basic_block_ = nullptr;
   return true;
 #else

@@ -16,6 +16,7 @@
 
 namespace elang {
 namespace lir {
+class Editor;
 class Factory;
 class Function;
 class Literal;
@@ -33,6 +34,7 @@ class LirTest : public ::testing::Test {
 
   Factory* factory() { return factory_.get(); }
 
+  std::string Commit(Editor* editor);
   Function* CreateFunctionEmptySample();
   std::string FormatFunction(const Function* function);
   Literal* GetLiteral(Value value);

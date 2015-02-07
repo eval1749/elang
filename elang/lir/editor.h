@@ -87,12 +87,12 @@ class ELANG_LIR_EXPORT Editor final {
                    Value value);
 
   // Expose |Validate()| for testing in release build.
+  bool Validate(BasicBlock* basic_block);
   bool Validate();
 
  private:
   void ResetBlockEdges(Instruction* instruction);
   void SetBlockEdges(Instruction* instruction);
-  bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
 
   // A basic block being edited, or null if not editing.

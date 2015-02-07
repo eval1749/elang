@@ -202,19 +202,8 @@ bool Validator::Validate(Instruction* instruction) {
 // InstructionVisitor
 
 void Validator::VisitBranch(BranchInstruction* instr) {
-  // Since we use input values are successors of basic block, input values
-  // must not have same block.
-  DCHECK_NE(instr->input(1), instr->input(2));
   if (!instr->input(0).is_condition())
     Error(ErrorCode::ValidateInstructionInput, instr, 0);
-  if (!GetLiteral(instr->input(1))->is<BasicBlock>()) {
-    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
-  }
-  if (!GetLiteral(instr->input(2))->is<BasicBlock>()) {
-    Error(ErrorCode::ValidateInstructionInputType, instr, 2);
-  }
-  if (instr->input(1) == instr->input(2))
-    Error(ErrorCode::ValidateInstructionInput, instr, 2);
 }
 
 void Validator::VisitCopy(CopyInstruction* instr) {

@@ -7,6 +7,7 @@
 #include "elang/lir/testing/lir_test.h"
 
 #include "base/strings/utf_string_conversions.h"
+#include "elang/lir/error_data.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
@@ -19,6 +20,16 @@ namespace testing {
 LirTest::LirTest() : factory_(new Factory()) {
 }
 
+std::string LirTest::Commit(Editor* editor) {
+  if (editor->Validate(editor->basic_block())) {
+    editor->Commit();
+    return "";
+  }
+  std::stringstream ostream;
+  ostream << editor->errors();
+  return ostream.str();
+}
+
 Function* LirTest::CreateFunctionEmptySample() {
   auto const function = factory()->NewFunction();
   Editor editor(factory(), function);
@@ -26,10 +37,10 @@ Function* LirTest::CreateFunctionEmptySample() {
 }
 
 std::string LirTest::FormatFunction(const Function* function) {
-  std::stringstream stream;
-  TextFormatter formatter(factory()->literals(), &stream);
+  std::stringstream ostream;
+  TextFormatter formatter(factory()->literals(), &ostream);
   formatter.FormatFunction(function);
-  return stream.str();
+  return ostream.str();
 }
 
 Literal* LirTest::GetLiteral(Value value) {

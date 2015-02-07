@@ -35,22 +35,22 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
 
   editor.Edit(function->entry_block());
   editor.SetBranch(factory()->NewCondition(), true_block, false_block);
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(true_block);
   editor.SetJump(merge_block);
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(false_block);
   editor.SetJump(merge_block);
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(merge_block);
   auto const phi = editor.NewPhi(factory()->NewRegister());
   editor.SetPhiInput(phi, true_block, Target::GetRegister(isa::EAX));
   editor.SetPhiInput(phi, false_block, Target::GetRegister(isa::EBX));
   editor.SetReturn();
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
       "function1:\n"
@@ -75,7 +75,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewCopyInstruction(Target::GetRegister(isa::RAX),
                                               factory()->NewRegister()));
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -118,10 +118,10 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
   auto const block = editor.NewBasicBlock(function->exit_block());
   editor.Edit(block);
   editor.SetReturn();
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
   editor.Edit(function->entry_block());
   editor.SetJump(block);
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -143,7 +143,7 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       factory()->NewIntValue(Value::Size::Size64, 42)));
   editor.Append(factory()->NewLiteralInstruction(
       factory()->NewRegister(), factory()->NewStringValue(L"foo")));
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -163,7 +163,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
   auto const destination = factory()->NewRegister();
   editor.Append(factory()->NewLoadInstruction(
       destination, Value::Parameter(destination.type, destination.size, 4)));
-  editor.Commit();
+  EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
