@@ -19,22 +19,24 @@ namespace elang {
 //
 class ELANG_BASE_EXPORT BitSet final : public ZoneAllocated {
  public:
+  typedef uintptr_t Pack;
+
   class ELANG_BASE_EXPORT Iterator final {
    public:
-    Iterator(uintptr_t* pointer, int index);
+    Iterator(const BitSet* bit_set, int index);
     Iterator(const Iterator& other);
     ~Iterator();
 
     Iterator& operator=(const Iterator& other);
 
-    bool operator*();
+    int operator*();
     Iterator& operator++();
 
     bool operator==(const Iterator& other) const;
     bool operator!=(const Iterator& other) const;
 
    private:
-    uintptr_t* pointer_;
+    const BitSet* bit_set_;
     int index_;
   };
 
@@ -58,9 +60,13 @@ class ELANG_BASE_EXPORT BitSet final : public ZoneAllocated {
   void Union(const BitSet& other);
 
  private:
-  int const data_size_;
+  int IndexOf(int start) const;
+  int LastIndexOf(int start) const;
+
+  int const pack_size_;
   int const size_;
-  uintptr_t* const data_;
+  // |packs_| should be initialized after |pack_size_|.
+  Pack* const packs_;
 
   DISALLOW_COPY_AND_ASSIGN(BitSet);
 };

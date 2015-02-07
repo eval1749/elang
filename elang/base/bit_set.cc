@@ -10,19 +10,21 @@
 namespace elang {
 
 namespace {
-const uintptr_t kOne = static_cast<uintptr_t>(1);
-const int kBitSize = sizeof(uintptr_t) == 8 ? 6 : 5;
-uintptr_t kShiftMask = (kOne << kBitSize) - 1;
 
-int IndexOf(int index) {
-  return (index + sizeof(uintptr_t) - 1) / sizeof(uintptr_t);
+const BitSet::Pack kOne = static_cast<BitSet::Pack>(1);
+const int kPackSize = sizeof(BitSet::Pack) * 8;
+const int kShiftCount = sizeof(BitSet::Pack) == 8 ? 6 : 5;
+const int kShiftMask = (1 << kShiftCount) - 1;
+
+int PackIndexOf(int index) {
+  return index >> kShiftCount;
 }
 
 int ShiftCountOf(int index) {
   return index & kShiftMask;
 }
 
-uintptr_t BitMaskOf(int index) {
+BitSet::Pack BitMaskOf(int index) {
   return kOne << ShiftCountOf(index);
 }
 
@@ -32,28 +34,34 @@ uintptr_t BitMaskOf(int index) {
 //
 // BitSet::Iterator
 //
-BitSet::Iterator::Iterator(uintptr_t* pointer, int index)
-    : index_(index), pointer_(pointer) {
+BitSet::Iterator::Iterator(const BitSet* bit_set, int index)
+    : bit_set_(bit_set), index_(index) {
+  DCHECK_GE(index_, -1);
+  DCHECK_LE(index_, bit_set_->size_);
 }
 
 BitSet::Iterator::Iterator(const Iterator& other)
-    : index_(other.index_), pointer_(other.pointer_) {
+    : Iterator(other.bit_set_, other.index_) {
 }
 
 BitSet::Iterator::~Iterator() {
 }
 
-bool BitSet::Iterator::operator*() {
-  return (pointer_[IndexOf(index_)] & BitMaskOf(index_)) != 0;
+int BitSet::Iterator::operator*() {
+  DCHECK_GE(index_, 0);
+  DCHECK_LT(index_, bit_set_->size());
+  return index_;
 }
 
 BitSet::Iterator& BitSet::Iterator::operator++() {
-  ++index_;
+  DCHECK_GE(index_, 0);
+  DCHECK_LE(index_ + 1, bit_set_->size());
+  index_ = bit_set_->IndexOf(index_ + 1);
   return *this;
 }
 
 bool BitSet::Iterator::operator==(const Iterator& other) const {
-  DCHECK_EQ(pointer_, other.pointer_);
+  DCHECK_EQ(bit_set_, other.bit_set_);
   return index_ == other.index_;
 }
 
@@ -66,9 +74,9 @@ bool BitSet::Iterator::operator!=(const Iterator& other) const {
 // BitSet
 //
 BitSet::BitSet(Zone* zone, const BitSet& other)
-    : data_size_(other.data_size_),
+    : pack_size_(other.pack_size_),
       size_(other.size_),
-      data_(zone->AllocateObjects<uintptr_t>(data_size_)) {
+      packs_(zone->AllocateObjects<Pack>(pack_size_)) {
   CopyFrom(other);
 }
 
@@ -77,88 +85,153 @@ BitSet::~BitSet() {
 }
 
 BitSet::BitSet(Zone* zone, int size)
-    : data_size_(IndexOf(size)),
+    : pack_size_((size + kPackSize - 1) / kPackSize),
       size_(size),
-      data_(zone->AllocateObjects<uintptr_t>(data_size_)) {
+      packs_(zone->AllocateObjects<Pack>(pack_size_)) {
   DCHECK_GT(size_, 0);
   Clear();
 }
 
 BitSet::Iterator BitSet::begin() const {
-  return Iterator(data_, 0);
+  return Iterator(this, IndexOf(0));
 }
 
 BitSet::Iterator BitSet::end() const {
-  return Iterator(data_, size_);
+  DCHECK_GT(size_, 0);
+  return Iterator(this, LastIndexOf(size_ - 1));
 }
 
 void BitSet::Add(int index) {
-  data_[IndexOf(index)] |= BitMaskOf(index);
+  DCHECK_NE(BitMaskOf(index), 0u);
+  auto const pack_index = PackIndexOf(index);
+  DCHECK_LT(pack_index, pack_size_);
+  packs_[pack_index] |= BitMaskOf(index);
 }
 
 void BitSet::Clear() {
-  for (auto i = 0; i < data_size_; ++i)
-    data_[i] = 0;
+  for (auto i = 0; i < pack_size_; ++i)
+    packs_[i] = 0;
 }
 
 bool BitSet::Contains(int index) const {
-  return (data_[IndexOf(index)] & BitMaskOf(index)) != 0;
+  return (packs_[PackIndexOf(index)] & BitMaskOf(index)) != 0;
 }
 
 void BitSet::CopyFrom(const BitSet& other) {
   DCHECK_GE(size_, other.size_);
-  for (int i = 0; i < other.data_size_; ++i)
-    data_[i] = other.data_[i];
-  for (int i = other.data_size_; i < data_size_; ++i)
-    data_[i] = 0;
+  for (int i = 0; i < other.pack_size_; ++i)
+    packs_[i] = other.packs_[i];
+  for (int i = other.pack_size_; i < pack_size_; ++i)
+    packs_[i] = 0;
 }
 
 bool BitSet::Equals(const BitSet& other) const {
   DCHECK_EQ(size_, other.size_);
-  for (auto index = 0; index < data_size_; ++index) {
-    if (data_[index] != other.data_[index])
+  for (auto index = 0; index < pack_size_; ++index) {
+    if (packs_[index] != other.packs_[index])
       return false;
   }
   return true;
+}
+
+// Returns an index where |packs_[index] == 1| from |start| until |size_| or
+// |size_| if there are no one in |data|.
+int BitSet::IndexOf(int start) const {
+  DCHECK_GE(start, 0);
+  DCHECK_LE(start, size_);
+  if (start == size_)
+    return size_;
+  auto index = start;
+  auto pack_index = PackIndexOf(index);
+  auto pack = packs_[pack_index] >> ShiftCountOf(index);
+  if (!pack) {
+    do {
+      ++pack_index;
+      if (pack_index == pack_size_)
+        return -1;
+      pack = packs_[pack_index];
+    } while (!pack);
+    index = pack_index * kPackSize;
+  }
+  // We found pack which contains one, let's calculate index of one bit.
+  DCHECK_NE(pack, 0);
+  while (pack && (pack & 0xFF) == 0) {
+    pack >>= 8;
+    index += 8;
+  }
+  while (pack && (pack & 1) == 0) {
+    pack >>= 1;
+    ++index;
+  }
+  DCHECK_LE(index, size_);
+  return index;
 }
 
 void BitSet::Intersect(const BitSet& other) {
   DCHECK_EQ(size_, other.size_);
-  for (auto i = 0; i < data_size_; ++i)
-    data_[i] &= other.data_[i];
+  for (auto i = 0; i < pack_size_; ++i)
+    packs_[i] &= other.packs_[i];
 }
 
 bool BitSet::IsEmpty() const {
-  for (auto i = 0; i < data_size_; ++i) {
-    if (data_[i])
+  for (auto i = 0; i < pack_size_; ++i) {
+    if (packs_[i])
       return false;
   }
   return true;
 }
 
+// Returns an last index where bit is one or |-1| if not found.
+int BitSet::LastIndexOf(int start) const {
+  DCHECK_GE(start, 0);
+  DCHECK_LT(start, size_);
+  auto index = start;
+  auto pack_index = PackIndexOf(index);
+  auto pack = packs_[pack_index] >> ShiftCountOf(start);
+  if (!pack) {
+    do {
+      if (!pack_index)
+        return -1;
+      --pack_index;
+      pack = packs_[pack_index];
+    } while (!pack);
+    index = pack_index * kPackSize;
+  }
+  // We found pack which contains one, let's calculate index of MSB + 1.
+  DCHECK_NE(pack, 0);
+  while (pack && (pack && 0xFF) == 0) {
+    pack >>= 8;
+    index += 8;
+  }
+  while (pack) {
+    pack >>= 1;
+    ++index;
+  }
+  DCHECK_LE(index, size_);
+  return index;
+}
+
 void BitSet::Remove(int index) {
-  data_[IndexOf(index)] &= ~BitMaskOf(index);
+  packs_[PackIndexOf(index)] &= ~BitMaskOf(index);
 }
 
 void BitSet::Subtract(const BitSet& other) {
   DCHECK_EQ(size_, other.size_);
-  for (auto i = 0; i < data_size_; ++i)
-    data_[i] &= ~other.data_[i];
+  for (auto i = 0; i < pack_size_; ++i)
+    packs_[i] &= ~other.packs_[i];
 }
 
 void BitSet::Union(const BitSet& other) {
   DCHECK_EQ(size_, other.size_);
-  for (auto i = 0; i < data_size_; ++i)
-    data_[i] |= other.data_[i];
+  for (auto i = 0; i < pack_size_; ++i)
+    packs_[i] |= other.packs_[i];
 }
 
 std::ostream& operator<<(std::ostream& ostream, const BitSet& bit_set) {
   ostream << "{";
   auto separator = "";
-  for (auto position = 0; position < bit_set.size(); ++position) {
-    if (!bit_set.Contains(position))
-      continue;
-    ostream << separator << position;
+  for (auto const index : bit_set) {
+    ostream << separator << index;
     separator = ", ";
   }
   return ostream << "}";
