@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "elang/lir/formatters/text_formatter.h"
 
@@ -24,10 +25,31 @@ std::ostream& operator<<(std::ostream& ostream,
 }
 }  // namespace base
 
+namespace std {
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::vector<elang::lir::BasicBlock*>& blocks) {
+  ostream << "{";
+  auto separator = "";
+  for (auto const block : blocks) {
+    ostream << separator << *block;
+    separator = ", ";
+  }
+  return ostream << "}";
+}
+}  // namespace std
+
 namespace elang {
 namespace lir {
 
 namespace {
+
+std::vector<BasicBlock*> SortBasicBlocks(
+    const ZoneUnorderedSet<BasicBlock*>& block_set) {
+  std::vector<BasicBlock*> blocks(block_set.begin(), block_set.end());
+  std::sort(blocks.begin(), blocks.end(),
+            [](BasicBlock* a, BasicBlock* b) { return a->id() < b->id(); });
+  return blocks;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -264,6 +286,15 @@ void TextFormatter::FormatFunction(const Function* function) {
   ostream_ << *function << ":" << std::endl;
   for (auto const block : function->basic_blocks()) {
     ostream_ << *block << ":" << std::endl;
+
+    ostream_ << "  // In: ";
+    ostream_ << SortBasicBlocks(block->predecessors());
+    ostream_ << std::endl;
+
+    ostream_ << "  // Out: ";
+    ostream_ << SortBasicBlocks(block->successors());
+    ostream_ << std::endl;
+
     for (auto const phi_instruction : block->phi_instructions()) {
       ostream_ << "  ";
       FormatInstruction(phi_instruction);

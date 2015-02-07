@@ -34,9 +34,13 @@ TEST_F(GeneratorX64Test, Basic) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function()));
 }
@@ -61,12 +65,16 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  add %r3 = %r1, %r2\n"
       "  mov EAX = %r3\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function));
 }
@@ -97,11 +105,15 @@ TEST_F(GeneratorX64Test, Call) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  pcopy ECX, DL, R8, R9W, %arg[4], %arg[5] = 42, 1, 56l, 89, 1.2f, 3.4\n"
       "  call \"Foo\"\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function()));
 }
@@ -124,6 +136,8 @@ TEST_F(GeneratorX64Test, Element) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  mov %r1l = RCX\n"
       "  add %r2l = %r1l, 16\n"
@@ -133,6 +147,8 @@ TEST_F(GeneratorX64Test, Element) {
       "  mov EAX = %r5w\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function));
 }
@@ -156,10 +172,14 @@ TEST_F(GeneratorX64Test, Parameter) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8L, XMM3, %param[4]\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function));
 }
@@ -174,10 +194,14 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  mov EAX = 42\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function));
 }
@@ -192,10 +216,14 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  mov RAX = 42l\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       Generate(function));
 }

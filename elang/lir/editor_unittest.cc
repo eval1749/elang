@@ -31,9 +31,13 @@ TEST_F(EditorTest, FunctionEmpty) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }
@@ -44,10 +48,14 @@ TEST_F(EditorTest, FunctionSample1) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  call \"Foo\"\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }
@@ -65,11 +73,17 @@ TEST_F(EditorTest, JumpInstruction) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3}\n"
       "  entry\n"
       "  jmp block3\n"
       "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block3}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }
@@ -87,11 +101,15 @@ TEST_F(EditorTest, LiteralInstruction) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  mov %r1l = 42l\n"
       "  mov %r2l = \"foo\"\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }

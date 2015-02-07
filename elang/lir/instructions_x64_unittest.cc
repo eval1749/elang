@@ -55,16 +55,26 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block4}\n"
       "  entry\n"
       "  br %b2, block3, block4\n"
       "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block5}\n"
       "  jmp block5\n"
       "block4:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block5}\n"
       "  jmp block5\n"
       "block5:\n"
+      "  // In: {block3, block4}\n"
+      "  // Out: {block2}\n"
       "  phi %r1l = block3 EAX, block4 EBX\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block5}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }
@@ -79,10 +89,14 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  mov RAX = %r1l\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }
@@ -98,10 +112,14 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
       "  entry\n"
       "  load %r1l = %param[4]\n"
       "  ret block2\n"
       "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
 }

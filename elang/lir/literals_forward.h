@@ -7,6 +7,7 @@
 
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "elang/base/float_types.h"
 #include "elang/lir/lir_export.h"
@@ -61,5 +62,10 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
 
 }  // namespace lir
 }  // namespace elang
+
+namespace std {
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::vector<elang::lir::BasicBlock*>& blocks);
+}  // namespace std
 
 #endif  // ELANG_LIR_LITERALS_FORWARD_H_
