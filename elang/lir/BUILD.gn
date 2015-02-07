@@ -94,6 +94,7 @@ source_set("lir_unittests") {
     sources += [
       "code_emitter_x64_unittest.cc",
       "instructions_x64_unittest.cc",
+      "target_x64_unittest.cc",
     ]
   }
 }
