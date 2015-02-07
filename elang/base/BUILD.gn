@@ -5,6 +5,7 @@
 component("base") {
   output_name = "elang_base"
   sources = [
+    "analysis/data_flow_solver.h",
     "analysis/liveness.cc",
     "analysis/liveness.h",
     "analysis/liveness_builder.h",
@@ -61,6 +62,7 @@ component("base") {
 source_set("base_unittests") {
   testonly = true
   sources = [
+    "analysis/data_flow_solver_unittest.cc",
     "analysis/liveness_builder_unittest.cc",
     "as_printable_unittest.cc",
     "atomic_string_unittest.cc",
