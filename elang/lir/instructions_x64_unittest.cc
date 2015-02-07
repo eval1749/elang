@@ -66,7 +66,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, CopyInstruction) {
@@ -84,11 +84,12 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -96,11 +97,12 @@ TEST_F(LirInstructionsTestX64, FunctionEmpty) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, FunctionSample1) {
   auto const function = CreateFunctionSample1();
+  Editor editor(factory(), function);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -109,7 +111,7 @@ TEST_F(LirInstructionsTestX64, FunctionSample1) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, JumpInstruction) {
@@ -131,7 +133,7 @@ TEST_F(LirInstructionsTestX64, JumpInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, LiteralInstruction) {
@@ -153,7 +155,7 @@ TEST_F(LirInstructionsTestX64, LiteralInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 TEST_F(LirInstructionsTestX64, LoadInstruction) {
@@ -172,7 +174,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  exit\n",
-      FormatFunction(function));
+      FormatFunction(&editor));
 }
 
 }  // namespace lir

@@ -36,7 +36,7 @@ class LirTest : public ::testing::Test {
 
   std::string Commit(Editor* editor);
   Function* CreateFunctionEmptySample();
-  std::string FormatFunction(const Function* function);
+  std::string FormatFunction(Editor* editor);
   Literal* GetLiteral(Value value);
   Value NewFloat32Value(float32_t data);
   Value NewFloat64Value(float64_t data);

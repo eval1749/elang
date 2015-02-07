@@ -36,10 +36,14 @@ Function* LirTest::CreateFunctionEmptySample() {
   return function;
 }
 
-std::string LirTest::FormatFunction(const Function* function) {
+std::string LirTest::FormatFunction(Editor* editor) {
   std::stringstream ostream;
-  TextFormatter formatter(factory()->literals(), &ostream);
-  formatter.FormatFunction(function);
+  if (!editor->Validate()) {
+    ostream << editor->errors();
+  } else {
+    TextFormatter formatter(factory()->literals(), &ostream);
+    formatter.FormatFunction(editor->function());
+  }
   return ostream.str();
 }
 
