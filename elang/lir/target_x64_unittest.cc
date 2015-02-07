@@ -8,6 +8,7 @@
 #include <string>
 
 #include "elang/lir/target_x64.h"
+#include "elang/lir/value.h"
 #include "gtest/gtest.h"
 
 namespace elang {
@@ -16,31 +17,31 @@ namespace lir {
 using namespace isa;  // NOLINT [build/namespaces]
 
 TEST(LirTargetX64Test, GetArgumentAt) {
-  Value float32_type(Value::Type::Float, Value::Size::Size32);
-  Value float64_type(Value::Type::Float, Value::Size::Size64);
-  Value int32_type(Value::Type::Integer, Value::Size::Size32);
-  Value int64_type(Value::Type::Integer, Value::Size::Size64);
+  Value float32_type(Value::Type::Float, ValueSize::Size32);
+  Value float64_type(Value::Type::Float, ValueSize::Size64);
+  Value int32_type(Value::Type::Integer, ValueSize::Size32);
+  Value int64_type(Value::Type::Integer, ValueSize::Size64);
 
   EXPECT_EQ(Target::GetRegister(ECX), Target::GetArgumentAt(int32_type, 0));
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetArgumentAt(int32_type, 1));
   EXPECT_EQ(Target::GetRegister(R8D), Target::GetArgumentAt(int32_type, 2));
   EXPECT_EQ(Target::GetRegister(R9D), Target::GetArgumentAt(int32_type, 3));
-  EXPECT_EQ(Value::Argument(Value::Type::Integer, Value::Size::Size32, 4),
+  EXPECT_EQ(Value::Argument(Value::Type::Integer, ValueSize::Size32, 4),
             Target::GetArgumentAt(int32_type, 4));
 
   EXPECT_EQ(Target::GetRegister(RCX), Target::GetArgumentAt(int64_type, 0));
   EXPECT_EQ(Target::GetRegister(RDX), Target::GetArgumentAt(int64_type, 1));
   EXPECT_EQ(Target::GetRegister(R8), Target::GetArgumentAt(int64_type, 2));
   EXPECT_EQ(Target::GetRegister(R9), Target::GetArgumentAt(int64_type, 3));
-  EXPECT_EQ(Value::Argument(Value::Type::Integer, Value::Size::Size64, 4),
+  EXPECT_EQ(Value::Argument(Value::Type::Integer, ValueSize::Size64, 4),
             Target::GetArgumentAt(int64_type, 4));
 }
 
 TEST(LirTargetX64Test, GetParameterAt) {
-  Value float32_type(Value::Type::Float, Value::Size::Size32);
-  Value float64_type(Value::Type::Float, Value::Size::Size64);
-  Value int32_type(Value::Type::Integer, Value::Size::Size32);
-  Value int64_type(Value::Type::Integer, Value::Size::Size64);
+  Value float32_type(Value::Type::Float, ValueSize::Size32);
+  Value float64_type(Value::Type::Float, ValueSize::Size64);
+  Value int32_type(Value::Type::Integer, ValueSize::Size32);
+  Value int64_type(Value::Type::Integer, ValueSize::Size64);
 
   EXPECT_EQ(Target::GetRegister(ECX), Target::GetParameterAt(int32_type, 0));
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetParameterAt(int32_type, 1));
@@ -48,36 +49,36 @@ TEST(LirTargetX64Test, GetParameterAt) {
   EXPECT_EQ(Target::GetRegister(R9D), Target::GetParameterAt(int32_type, 3));
   // TODO(eval1749) We should use |Size32| for parameter if 32-bit value is
   // requrested.
-  EXPECT_EQ(Value::Parameter(Value::Type::Integer, Value::Size::Size64, 4),
+  EXPECT_EQ(Value::Parameter(Value::Type::Integer, ValueSize::Size64, 4),
             Target::GetParameterAt(int32_type, 4));
 
   EXPECT_EQ(Target::GetRegister(RCX), Target::GetParameterAt(int64_type, 0));
   EXPECT_EQ(Target::GetRegister(RDX), Target::GetParameterAt(int64_type, 1));
   EXPECT_EQ(Target::GetRegister(R8), Target::GetParameterAt(int64_type, 2));
   EXPECT_EQ(Target::GetRegister(R9), Target::GetParameterAt(int64_type, 3));
-  EXPECT_EQ(Value::Parameter(Value::Type::Integer, Value::Size::Size64, 4),
+  EXPECT_EQ(Value::Parameter(Value::Type::Integer, ValueSize::Size64, 4),
             Target::GetParameterAt(int64_type, 4));
 }
 
 TEST(LirTargetX64Test, GetReturn) {
-  Value float32_type(Value::Type::Float, Value::Size::Size32);
-  Value float64_type(Value::Type::Float, Value::Size::Size64);
-  Value int32_type(Value::Type::Integer, Value::Size::Size32);
-  Value int64_type(Value::Type::Integer, Value::Size::Size64);
+  Value float32_type(Value::Type::Float, ValueSize::Size32);
+  Value float64_type(Value::Type::Float, ValueSize::Size64);
+  Value int32_type(Value::Type::Integer, ValueSize::Size32);
+  Value int64_type(Value::Type::Integer, ValueSize::Size64);
 
-  EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size32,
+  EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, EAX & 15),
             Target::GetReturn(int32_type));
 
-  EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size64,
+  EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, RAX & 15),
             Target::GetReturn(int64_type));
 
-  EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size32,
+  EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, XMM0S & 15),
             Target::GetReturn(float32_type));
 
-  EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size64,
+  EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, XMM0D & 15),
             Target::GetReturn(float64_type));
 }
@@ -198,44 +199,44 @@ TEST(LirTargetX64Test, GetRegister) {
   };
 
   for (auto const reg : int8_regs) {
-    EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size8,
+    EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size8,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 
   for (auto const reg : int16_regs) {
-    EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size16,
+    EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size16,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 
   for (auto const reg : int32_regs) {
-    EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size32,
+    EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size32,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 
   for (auto const reg : int64_regs) {
-    EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size64,
+    EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size64,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 
   for (auto const reg : float32_regs) {
-    EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size32,
+    EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size32,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 
   for (auto const reg : float64_regs) {
-    EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size64,
+    EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size64,
                     Value::Kind::PhysicalRegister, reg & 15),
               Target::GetRegister(reg));
   }
 }
 
 TEST(LirTargetX64Test, PointerSize) {
-  EXPECT_EQ(Value::Size::Size64, Target::PointerSize());
+  EXPECT_EQ(ValueSize::Size64, Target::PointerSize());
 }
 
 TEST(LirTargetX64Test, PointerSizeInByte) {

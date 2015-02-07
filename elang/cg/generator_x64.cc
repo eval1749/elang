@@ -27,24 +27,24 @@ namespace {
 lir::Value MapType(hir::Type* type) {
   auto const primitive_type = type->as<hir::PrimitiveType>();
   if (!primitive_type)
-    return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64);
+    return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size64);
   if (primitive_type->is<hir::Float32Type>())
-    return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size32);
+    return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size32);
   if (primitive_type->is<hir::Float64Type>())
-    return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size64);
+    return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size64);
   switch (primitive_type->bit_size()) {
     case 1:
     case 8:
-      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size8);
+      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size8);
     case 16:
-      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size16);
+      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size16);
     case 32:
-      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size32);
+      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size32);
     case 64:
-      return lir::Value(lir::Value::Type::Integer, lir::Value::Size::Size64);
+      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size64);
   }
   NOTREACHED() << "unsupported bit size: " << *primitive_type;
-  return lir::Value(lir::Value::Type::Float, lir::Value::Size::Size64);
+  return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size64);
 }
 
 }  // namespace
@@ -83,33 +83,33 @@ lir::Value Generator::MapInput(hir::Value* value) {
   }
 
   if (auto const literal = value->as<hir::BoolLiteral>())
-    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
   if (auto const literal = value->as<hir::Float32Literal>())
     return factory()->NewFloat32Value(literal->data());
   if (auto const literal = value->as<hir::Float64Literal>())
     return factory()->NewFloat64Value(literal->data());
   if (auto const literal = value->as<hir::Int8Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
   if (auto const literal = value->as<hir::Int16Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size16, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size16, literal->data());
   if (auto const literal = value->as<hir::Int32Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size32, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size32, literal->data());
   if (auto const literal = value->as<hir::Int64Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size64, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size64, literal->data());
   if (auto const literal = value->as<hir::UInt8Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size8, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
   if (auto const literal = value->as<hir::UInt16Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size16, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size16, literal->data());
   if (auto const literal = value->as<hir::UInt32Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size32, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size32, literal->data());
   if (auto const literal = value->as<hir::UInt64Literal>())
-    return factory()->NewIntValue(lir::Value::Size::Size64, literal->data());
+    return factory()->NewIntValue(lir::ValueSize::Size64, literal->data());
 
   if (auto const reference = value->as<hir::Reference>())
     return factory()->NewStringValue(reference->name());
 
   NOTREACHED() << "unsupported hir::Literal: " << *value;
-  return factory()->NewIntValue(lir::Value::Size::Size8, 0);
+  return factory()->NewIntValue(lir::ValueSize::Size8, 0);
 }
 
 // Get output register for instruction except for 'load'.

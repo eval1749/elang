@@ -255,7 +255,7 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
          << kinds[std::min(static_cast<size_t>(kind), arraysize(kinds) - 1)];
 }
 
-std::ostream& operator<<(std::ostream& ostream, const Value::Size& size) {
+std::ostream& operator<<(std::ostream& ostream, const ValueSize& size) {
   static const char* const sizes[] = {
       "Size8", "Size16", "Size32", "Size64", "Illegal",
   };

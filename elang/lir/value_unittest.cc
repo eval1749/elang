@@ -10,11 +10,11 @@ namespace lir {
 
 TEST(LirValueTest, Basic) {
   EXPECT_EQ(Value(), Value());
-  auto const value1 = Value(Value::Type::Integer, Value::Size::Size32,
+  auto const value1 = Value(Value::Type::Integer, ValueSize::Size32,
                             Value::Kind::Immediate, 42);
-  auto const value2 = Value(Value::Type::Integer, Value::Size::Size32,
+  auto const value2 = Value(Value::Type::Integer, ValueSize::Size32,
                             Value::Kind::Immediate, 42);
-  auto const value3 = Value(Value::Type::Integer, Value::Size::Size32,
+  auto const value3 = Value(Value::Type::Integer, ValueSize::Size32,
                             Value::Kind::Immediate, 123);
   EXPECT_EQ(value1, value2);
   EXPECT_NE(value1, value3);

@@ -42,7 +42,7 @@ Literal* Factory::GetLiteral(Value value) const {
 }
 
 BasicBlock* Factory::NewBasicBlock() {
-  Value model(Value::Type::Integer, Value::Size::Size8, Value::Kind::Literal);
+  Value model(Value::Type::Integer, ValueSize::Size8, Value::Kind::Literal);
   auto const block =
       new (zone()) BasicBlock(zone(), literal_map_->next_literal_value(model));
   RegisterLiteral(block);
@@ -50,12 +50,12 @@ BasicBlock* Factory::NewBasicBlock() {
 }
 
 Value Factory::NewCondition() {
-  return Value(Value::Type::Integer, Value::Size::Size8, Value::Kind::Condition,
+  return Value(Value::Type::Integer, ValueSize::Size8, Value::Kind::Condition,
                ++last_condition_id_);
 }
 
 Function* Factory::NewFunction() {
-  Value model(Value::Type::Integer, Value::Size::Size8, Value::Kind::Literal);
+  Value model(Value::Type::Integer, ValueSize::Size8, Value::Kind::Literal);
   auto const function =
       new (zone()) Function(literal_map_->next_literal_value(model));
   RegisterLiteral(function);
@@ -122,11 +122,11 @@ Value Factory::NewFloat64Value(float64_t data) {
   return value;
 }
 
-Value Factory::NewFloatRegister(Value::Size size) {
+Value Factory::NewFloatRegister(ValueSize size) {
   return Value::FloatRegister(size, ++last_float_register_id_);
 }
 
-Value Factory::NewRegister(Value::Size size) {
+Value Factory::NewRegister(ValueSize size) {
   return Value::Register(size, ++last_general_register_id_);
 }
 
@@ -140,13 +140,13 @@ Value Factory::NewRegister() {
   return NewRegister(Target::PointerSize());
 }
 
-Value Factory::NewIntValue(Value::Size size, int64_t data) {
-  if (size == Value::Size::Size8 || size == Value::Size::Size16 ||
+Value Factory::NewIntValue(ValueSize size, int64_t data) {
+  if (size == ValueSize::Size8 || size == ValueSize::Size16 ||
       Value::CanBeImmediate(data)) {
     return Value::Immediate(size, data);
   }
 
-  if (size == Value::Size::Size32) {
+  if (size == ValueSize::Size32) {
     auto const it = int32_map_.find(data);
     if (it != int32_map_.end())
       return it->second;
@@ -157,7 +157,7 @@ Value Factory::NewIntValue(Value::Size size, int64_t data) {
     return value;
   }
 
-  DCHECK(size == Value::Size::Size64);
+  DCHECK(size == ValueSize::Size64);
   auto const it = int64_map_.find(data);
   if (it != int64_map_.end())
     return it->second;

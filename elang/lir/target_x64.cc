@@ -106,7 +106,7 @@ std::ostream& operator<<(std::ostream& ostream,
         return ostream << "false";
       return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
-      if (value.size == Value::Size::Size64)
+      if (value.size == ValueSize::Size64)
         return ostream << value.data << "l";
       return ostream << value.data;
     case Value::Kind::Instruction:
@@ -127,13 +127,13 @@ std::ostream& operator<<(std::ostream& ostream,
       if (value.type == Value::Type::Float)
         return ostream << "XMM" << value.data;
       switch (value.size) {
-        case Value::Size::Size8:
+        case ValueSize::Size8:
           return ostream << names8[value.data];
-        case Value::Size::Size16:
+        case ValueSize::Size16:
           return ostream << names16[value.data];
-        case Value::Size::Size32:
+        case ValueSize::Size32:
           return ostream << names32[value.data];
-        case Value::Size::Size64:
+        case ValueSize::Size64:
           return ostream << names64[value.data];
       }
       break;
@@ -141,13 +141,13 @@ std::ostream& operator<<(std::ostream& ostream,
       return ostream << "%param[" << value.data << "]";
     case Value::Kind::VirtualRegister:
       switch (value.size) {
-        case Value::Size::Size8:
+        case ValueSize::Size8:
           return ostream << "%r" << value.data << "b";
-        case Value::Size::Size16:
+        case ValueSize::Size16:
           return ostream << "%r" << value.data << "w";
-        case Value::Size::Size32:
+        case ValueSize::Size32:
           return ostream << (value.is_float() ? "%f" : "%r") << value.data;
-        case Value::Size::Size64:
+        case ValueSize::Size64:
           if (value.is_float())
             return ostream << "%f" << value.data << "d";
           return ostream << "%r" << value.data << "l";
@@ -189,34 +189,34 @@ Value Target::GetParameterAt(Value output, int position) {
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
                  number & 15);
   }
-  return Value(output.type, Value::Size::Size64, Value::Kind::Parameter,
+  return Value(output.type, ValueSize::Size64, Value::Kind::Parameter,
                position);
 }
 
 Value Target::GetRegister(isa::Register name) {
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
-    return Value(Value::Type::Float, Value::Size::Size64,
+    return Value(Value::Type::Float, ValueSize::Size64,
                  Value::Kind::PhysicalRegister, number & 15);
   }
   if (number >= isa::XMM0S && number <= isa::XMM15S) {
-    return Value(Value::Type::Float, Value::Size::Size32,
+    return Value(Value::Type::Float, ValueSize::Size32,
                  Value::Kind::PhysicalRegister, number & 15);
   }
-  return Value(Value::Type::Integer, static_cast<Value::Size>(name >> 8),
+  return Value(Value::Type::Integer, static_cast<ValueSize>(name >> 8),
                Value::Kind::PhysicalRegister, name & 15);
 }
 
 Value Target::GetReturn(Value type) {
   if (type.type == Value::Type::Float) {
-    return GetRegister(type.size == Value::Size::Size32 ? isa::XMM0S
-                                                        : isa::XMM0D);
+    return GetRegister(type.size == ValueSize::Size32 ? isa::XMM0S
+                                                      : isa::XMM0D);
   }
-  return GetRegister(type.size == Value::Size::Size64 ? isa::RAX : isa::EAX);
+  return GetRegister(type.size == ValueSize::Size64 ? isa::RAX : isa::EAX);
 }
 
-Value::Size Target::PointerSize() {
-  return Value::Size::Size64;
+ValueSize Target::PointerSize() {
+  return ValueSize::Size64;
 }
 
 int Target::PointerSizeInByte() {

@@ -40,9 +40,9 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
   auto const merge_block = editor.NewBasicBlock(exit_block);
 
   std::vector<Value> values{
-      factory()->NewRegister(Value::Size::Size32),
-      factory()->NewRegister(Value::Size::Size32),
-      factory()->NewRegister(Value::Size::Size32),
+      factory()->NewRegister(ValueSize::Size32),
+      factory()->NewRegister(ValueSize::Size32),
+      factory()->NewRegister(ValueSize::Size32),
   };
 
   // merge block
@@ -60,7 +60,7 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
                                Target::GetParameterAt(values[1], 1)}));
   auto const cond1 = factory()->NewCondition();
   editor.Append(factory()->NewEqInstruction(
-      cond1, values[0], factory()->NewIntValue(Value::Size::Size32, 0)));
+      cond1, values[0], factory()->NewIntValue(ValueSize::Size32, 0)));
   editor.SetBranch(cond1, true_block, false_block);
   EXPECT_EQ("", Commit(&editor));
 
@@ -73,7 +73,7 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
   // false block
   editor.Edit(false_block);
   editor.SetPhiInput(merge_phi, false_block,
-                     factory()->NewIntValue(Value::Size::Size32, 42));
+                     factory()->NewIntValue(ValueSize::Size32, 42));
   editor.SetJump(merge_block);
   EXPECT_EQ("", Commit(&editor));
 
@@ -160,8 +160,7 @@ TEST_F(LirEditorTest, LiteralInstruction) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewLiteralInstruction(
-      factory()->NewRegister(),
-      factory()->NewIntValue(Value::Size::Size64, 42)));
+      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
   editor.Append(factory()->NewLiteralInstruction(
       factory()->NewRegister(), factory()->NewStringValue(L"foo")));
   EXPECT_EQ("", Commit(&editor));

@@ -41,7 +41,7 @@ class LirTest : public ::testing::Test {
   Literal* GetLiteral(Value value);
   Value NewFloat32Value(float32_t data);
   Value NewFloat64Value(float64_t data);
-  Value NewIntValue(Value::Size size, int64_t data);
+  Value NewIntValue(ValueSize size, int64_t data);
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(base::StringPiece data);
 

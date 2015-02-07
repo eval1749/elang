@@ -51,16 +51,16 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns |Literal| object.
   Value NewFloat32Value(float32_t value);
   Value NewFloat64Value(float64_t value);
-  Value NewIntValue(Value::Size size, int64_t value);
+  Value NewIntValue(ValueSize size, int64_t value);
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(AtomicString* atomic_string);
 
   // Virtual register
   // Returns newly allocated virtual floating-point number register.
-  Value NewFloatRegister(Value::Size size);
+  Value NewFloatRegister(ValueSize size);
 
   // Returns newly allocated virtual integer register which bit size is |size|.
-  Value NewRegister(Value::Size size);
+  Value NewRegister(ValueSize size);
 
   // Returns newly allocated virtual register specified by |type|.
   Value NewRegister(Value type);

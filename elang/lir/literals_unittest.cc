@@ -41,10 +41,9 @@ TEST_F(LirLiteralsTest, SimpleLiterals) {
   std::stringstream stream;
   stream << *GetLiteral(NewFloat32Value(3.2f)) << std::endl;
   stream << *GetLiteral(NewFloat64Value(6.4f)) << std::endl;
-  stream << *GetLiteral(NewIntValue(Value::Size::Size32, 1 << 30)) << std::endl;
-  stream << *GetLiteral(
-                NewIntValue(Value::Size::Size64, static_cast<int64_t>(1) << 40))
-         << std::endl;
+  stream << *GetLiteral(NewIntValue(ValueSize::Size32, 1 << 30)) << std::endl;
+  stream << *GetLiteral(NewIntValue(ValueSize::Size64, static_cast<int64_t>(1)
+                                                           << 40)) << std::endl;
 
   EXPECT_EQ(
       "3.2f\n"

@@ -61,7 +61,7 @@ void Validator::Error(ErrorCode error_code,
                       Instruction* instruction,
                       int detail) {
   Error(error_code, AsValue(instruction),
-        editor_->factory()->NewIntValue(Value::Size::Size32, detail));
+        editor_->factory()->NewIntValue(ValueSize::Size32, detail));
 }
 
 void Validator::Error(ErrorCode error_code,

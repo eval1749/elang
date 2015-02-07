@@ -9,7 +9,7 @@
 namespace elang {
 namespace lir {
 
-Value Value::Argument(Type type, Size size, int data) {
+Value Value::Argument(Type type, ValueSize size, int data) {
   return Value(type, size, Kind::Argument, data);
 }
 
@@ -18,40 +18,40 @@ bool Value::CanBeImmediate(int64_t value) {
 }
 
 Value Value::False() {
-  return Value(Type::Integer, Size::Size8, Kind::Condition, 0);
+  return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 0);
 }
 
 Value Value::Float32Literal() {
-  return Value(Type::Float, Size::Size32, Kind::Literal);
+  return Value(Type::Float, ValueSize::Size32, Kind::Literal);
 }
 
 Value Value::Float64Literal() {
-  return Value(Type::Float, Size::Size64, Kind::Literal);
+  return Value(Type::Float, ValueSize::Size64, Kind::Literal);
 }
 
-Value Value::FloatRegister(Size size, int data) {
+Value Value::FloatRegister(ValueSize size, int data) {
   return Value(Type::Float, size, Kind::VirtualRegister, data);
 }
 
-Value Value::Immediate(Size size, int data) {
+Value Value::Immediate(ValueSize size, int data) {
   DCHECK(CanBeImmediate(data));
   return Value(Type::Integer, size, Kind::Immediate, data);
 }
 
-Value Value::Parameter(Type type, Size size, int data) {
+Value Value::Parameter(Type type, ValueSize size, int data) {
   return Value(type, size, Kind::Parameter, data);
 }
 
-Value Value::Register(Size size, int data) {
+Value Value::Register(ValueSize size, int data) {
   return Value(Type::Integer, size, Kind::VirtualRegister, data);
 }
 
 Value Value::SmallInt32(int data) {
-  return Immediate(Value::Size::Size32, data);
+  return Immediate(ValueSize::Size32, data);
 }
 
 Value Value::True() {
-  return Value(Type::Integer, Size::Size8, Kind::Condition, 1);
+  return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 1);
 }
 
 }  // namespace lir

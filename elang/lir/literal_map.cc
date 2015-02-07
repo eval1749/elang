@@ -47,8 +47,8 @@ Value LiteralMap::RegisterInstruction(Instruction* instruction) {
   if (it != instruction_map_.end())
     return it->second;
   instructions_.push_back(instruction);
-  Value value(Value::Type::Integer, Value::Size::Size8,
-              Value::Kind::Instruction, static_cast<int>(instructions_.size()));
+  Value value(Value::Type::Integer, ValueSize::Size8, Value::Kind::Instruction,
+              static_cast<int>(instructions_.size()));
   instruction_map_[instruction] = value;
   return value;
 }

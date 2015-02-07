@@ -14,6 +14,15 @@
 namespace elang {
 namespace lir {
 
+// If you change definition of |ValueSize|, please change |Log2(ValueSize)| and
+// |BitSize(size)| appropriately.
+enum class ValueSize : uint32_t {
+  Size8,
+  Size16,
+  Size32,
+  Size64,
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Value represents both input and output operand of instruction.
@@ -22,15 +31,6 @@ struct ELANG_LIR_EXPORT Value {
   enum class Type : uint32_t {
     Integer,
     Float,
-  };
-
-  // If you change definition of |Size|, please change |Log2(Size)| and
-  // |BitSize(size)| appropiratly.
-  enum class Size : uint32_t {
-    Size8,
-    Size16,
-    Size32,
-    Size64,
   };
 
   enum class Kind : uint32_t {
@@ -56,18 +56,22 @@ struct ELANG_LIR_EXPORT Value {
   static const int kMinimumImmediate = -1 << 23;
 
   Type type : 1;
-  Size size : 3;
+  ValueSize size : 3;
   Kind kind : 4;
   int data : 24;
 
-  Value() : type(Type::Integer), size(Size::Size8), kind(Kind::Void), data(0) {}
+  Value()
+      : type(Type::Integer),
+        size(ValueSize::Size8),
+        kind(Kind::Void),
+        data(0) {}
 
-  Value(Type type, Size size, Kind kind, int data)
+  Value(Type type, ValueSize size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
-  Value(Type type, Size size, Kind kind) : Value(type, size, kind, 0) {}
+  Value(Type type, ValueSize size, Kind kind) : Value(type, size, kind, 0) {}
 
-  Value(Type type, Size size) : Value(type, size, Kind::Void, 0) {}
+  Value(Type type, ValueSize size) : Value(type, size, Kind::Void, 0) {}
 
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
@@ -90,19 +94,19 @@ struct ELANG_LIR_EXPORT Value {
   // Helper functions
   static bool CanBeImmediate(int64_t value);
 
-  // |Size| properties
-  static int BitSize(Value::Size size) { return ByteSize(size) * 8; }
-  static int ByteSize(Value::Size size) { return 1 << Log2(size); }
-  static int Log2(Value::Size size) { return static_cast<int>(size); }
+  // |ValueSize| properties
+  static int BitSize(ValueSize size) { return ByteSize(size) * 8; }
+  static int ByteSize(ValueSize size) { return 1 << Log2(size); }
+  static int Log2(ValueSize size) { return static_cast<int>(size); }
 
-  static Value Argument(Type type, Size size, int data);
+  static Value Argument(Type type, ValueSize size, int data);
   static Value False();
   static Value Float32Literal();
   static Value Float64Literal();
-  static Value FloatRegister(Size size, int data);
-  static Value Immediate(Size size, int data);
-  static Value Parameter(Type type, Size size, int data);
-  static Value Register(Size size, int data);
+  static Value FloatRegister(ValueSize size, int data);
+  static Value Immediate(ValueSize size, int data);
+  static Value Parameter(Type type, ValueSize size, int data);
+  static Value Register(ValueSize size, int data);
   static Value SmallInt32(int data);
   static Value True();
 };
@@ -126,7 +130,7 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value::Kind& kind);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          const Value::Size& size);
+                                          const ValueSize& size);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value::Type& type);
