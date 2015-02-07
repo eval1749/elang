@@ -11,6 +11,7 @@ component("base") {
     "atomic_string.h",
     "atomic_string_factory.cc",
     "atomic_string_factory.h",
+    "bits.h",
     "bit_set.cc",
     "bit_set.h",
     "castable.h",
@@ -60,6 +61,7 @@ source_set("base_unittests") {
   sources = [
     "as_printable_unittest.cc",
     "atomic_string_unittest.cc",
+    "bits_unittest.cc",
     "bit_set_unittest.cc",
     "castable_unittest.cc",
     "double_linked_unittest.cc",
