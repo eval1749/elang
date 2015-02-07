@@ -56,3 +56,11 @@ Value Value::True() {
 
 }  // namespace lir
 }  // namespace elang
+
+namespace std {
+size_t hash<elang::lir::Value>::operator()(
+    const elang::lir::Value& value) const {
+  auto const p = reinterpret_cast<const uint32_t*>(&value);
+  return std::hash<uint32_t>()(*p);
+}
+}  // namespace std

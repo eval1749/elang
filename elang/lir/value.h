@@ -134,4 +134,11 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
 }  // namespace lir
 }  // namespace elang
 
+namespace std {
+template <>
+struct ELANG_LIR_EXPORT hash<elang::lir::Value> {
+  size_t operator()(const elang::lir::Value& pair) const;
+};
+}  // namespace std
+
 #endif  // ELANG_LIR_VALUE_H_
