@@ -65,11 +65,9 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, Size size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
-  Value(Type type, Size size, Kind kind)
-      : Value(type, size, kind, 0) {}
+  Value(Type type, Size size, Kind kind) : Value(type, size, kind, 0) {}
 
-  Value(Type type, Size size)
-      : Value(type, size, Kind::Void, 0) {}
+  Value(Type type, Size size) : Value(type, size, Kind::Void, 0) {}
 
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
@@ -80,6 +78,9 @@ struct ELANG_LIR_EXPORT Value {
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }
   bool is_literal() const { return kind == Kind::Literal; }
+  bool is_output() const {
+    return is_condition() || is_register() || is_physical();
+  }
   bool is_register() const { return is_physical() || is_virtual(); }
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
