@@ -15,6 +15,8 @@
 
 namespace elang {
 
+class BitSet;
+
 template <typename Node, typename Variable>
 class LivenessBuilder;
 
