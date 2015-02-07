@@ -7,7 +7,9 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
+#include "elang/base/analysis/liveness_collection.h"
 #include "elang/base/graphs/graph_sorter.h"
+#include "elang/lir/analysis/liveness_analyzer.h"
 #include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -47,6 +49,13 @@ void Editor::AddError(ErrorCode error_code,
       factory()->zone(), factory()->literals(), error_code, value, details));
 }
 
+const Editor::LivenessData& Editor::AnalyzeLiveness() const {
+  if (liveness_data_)
+    return *liveness_data_;
+  liveness_data_ = std::move(::elang::lir::AnalyzeLiveness(function()));
+  return *liveness_data_;
+}
+
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
@@ -75,6 +84,7 @@ bool Editor::Commit() {
 }
 
 void Editor::DidChangeControlFlow() {
+  liveness_data_.reset();
   pre_order_list_.reset();
   post_order_list_.reset();
   reverse_pre_order_list_.reset();

@@ -15,6 +15,10 @@
 #include "elang/lir/literals_forward.h"
 
 namespace elang {
+
+template <typename Node, typename Variable>
+class LivenessCollection;
+
 namespace lir {
 
 enum class ErrorCode;
@@ -30,6 +34,9 @@ struct Value;
 //
 class ELANG_LIR_EXPORT Editor final {
  public:
+  typedef LivenessCollection<BasicBlock*, Value> LivenessData;
+
+  // ScopedEdit
   class ELANG_LIR_EXPORT ScopedEdit final {
    public:
     explicit ScopedEdit(Editor* editor) : editor_(editor) {}
@@ -50,6 +57,9 @@ class ELANG_LIR_EXPORT Editor final {
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
+
+  // Analysis
+  const LivenessData& AnalyzeLiveness() const;
 
   // Validation errors
   void AddError(ErrorCode error_code,
@@ -116,6 +126,9 @@ class ELANG_LIR_EXPORT Editor final {
   mutable std::unique_ptr<OrderedBlockList> post_order_list_;
   mutable std::unique_ptr<OrderedBlockList> reverse_pre_order_list_;
   mutable std::unique_ptr<OrderedBlockList> reverse_post_order_list_;
+
+  // Cached liveness
+  mutable std::unique_ptr<LivenessData> liveness_data_;
 
   GraphEditor<Function, BasicBlock> graph_editor_;
 
