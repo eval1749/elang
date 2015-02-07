@@ -13,13 +13,11 @@
 #include "elang/lir/lir_export.h"
 
 namespace elang {
-namespace lir {
 
-// Forward declarations
-class Editor;
-class Factory;
-class Literal;
-class LiteralVisitor;
+template <typename T>
+class OrderedList;
+
+namespace lir {
 
 // Visitor |V| takes three parameters:
 //  Name     capitalized name for C++ class
@@ -49,6 +47,13 @@ FOR_EACH_LIR_SIMPLE_LITERAL(V)
 #define V(Name, ...) class Name;
 FOR_EACH_LIR_LITERAL(V)
 #undef V
+
+// Forward declarations
+class Editor;
+class Factory;
+class Literal;
+class LiteralVisitor;
+using OrderedBlockList = OrderedList<BasicBlock*>;
 
 // Print for formatting and debugging.
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,

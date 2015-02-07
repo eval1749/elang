@@ -5,21 +5,21 @@
 #ifndef ELANG_LIR_EDITOR_H_
 #define ELANG_LIR_EDITOR_H_
 
+#include <memory>
 #include <vector>
 
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/lir_export.h"
+#include "elang/lir/literals_forward.h"
 
 namespace elang {
 namespace lir {
 
-class BasicBlock;
 enum class ErrorCode;
 class ErrorData;
 class Factory;
-class Function;
 class Instruction;
 class PhiInstruction;
 struct Value;
@@ -70,6 +70,12 @@ class ELANG_LIR_EXPORT Editor final {
   void SetReturn();
   void SetTerminator(Instruction* instruction);
 
+  // Basic block ordered list.
+  const OrderedBlockList& PreOrderList() const;
+  const OrderedBlockList& PostOrderList() const;
+  const OrderedBlockList& ReversePreOrderList() const;
+  const OrderedBlockList& ReversePostOrderList() const;
+
   // Returns new basic block inserted before |reference|.
   BasicBlock* NewBasicBlock(BasicBlock* reference);
 
@@ -91,6 +97,7 @@ class ELANG_LIR_EXPORT Editor final {
   bool Validate();
 
  private:
+  void DidChangeControlFlow();
   void ResetBlockEdges(Instruction* instruction);
   void SetBlockEdges(Instruction* instruction);
   bool Validate(Function* function);
@@ -103,6 +110,12 @@ class ELANG_LIR_EXPORT Editor final {
   Factory* const factory_;
   // A function being edited.
   Function* const function_;
+
+  // Cached basic block lists.
+  mutable std::unique_ptr<OrderedBlockList> pre_order_list_;
+  mutable std::unique_ptr<OrderedBlockList> post_order_list_;
+  mutable std::unique_ptr<OrderedBlockList> reverse_pre_order_list_;
+  mutable std::unique_ptr<OrderedBlockList> reverse_post_order_list_;
 
   GraphEditor<Function, BasicBlock> graph_editor_;
 

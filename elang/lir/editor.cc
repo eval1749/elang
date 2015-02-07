@@ -7,6 +7,7 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
+#include "elang/base/ordered_list.h"
 #include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -73,6 +74,13 @@ bool Editor::Commit() {
 #endif
 }
 
+void Editor::DidChangeControlFlow() {
+  pre_order_list_.reset();
+  post_order_list_.reset();
+  reverse_pre_order_list_.reset();
+  reverse_post_order_list_.reset();
+}
+
 void Editor::Edit(BasicBlock* basic_block) {
   DCHECK(!basic_block_);
   DCHECK_EQ(function(), basic_block->function());
@@ -134,13 +142,48 @@ PhiInstruction* Editor::NewPhi(Value output) {
   return phi_instruction->as<PhiInstruction>();
 }
 
+const OrderedBlockList& Editor::PreOrderList() const {
+  if (!pre_order_list_) {
+    pre_order_list_.reset(
+        new OrderedBlockList(function()->ComputePreOrderList()));
+  }
+  return *pre_order_list_;
+}
+
+const OrderedBlockList& Editor::PostOrderList() const {
+  if (!post_order_list_) {
+    post_order_list_.reset(
+        new OrderedBlockList(function()->ComputePostOrderList()));
+  }
+  return *pre_order_list_;
+}
+
 void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
-  ResetBlockEdges(old_instruction);
+  if (old_instruction->IsTerminator()) {
+    ResetBlockEdges(old_instruction);
+    DidChangeControlFlow();
+  }
   basic_block_->instructions_.RemoveNode(old_instruction);
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
+}
+
+const OrderedBlockList& Editor::ReversePreOrderList() const {
+  if (!reverse_pre_order_list_) {
+    reverse_pre_order_list_.reset(
+        new OrderedBlockList(function()->ComputeReversePreOrderList()));
+  }
+  return *pre_order_list_;
+}
+
+const OrderedBlockList& Editor::ReversePostOrderList() const {
+  if (!reverse_post_order_list_) {
+    reverse_post_order_list_.reset(
+        new OrderedBlockList(function()->ComputeReversePostOrderList()));
+  }
+  return *pre_order_list_;
 }
 
 // Remove edges between |instruction|'s block and old successors.
@@ -161,6 +204,7 @@ void Editor::SetBlockEdges(Instruction* instruction) {
   for (auto successor : instruction->block_operands()) {
     graph_editor_.AddEdge(block, successor);
   }
+  DidChangeControlFlow();
 }
 
 void Editor::SetBranch(Value condition,
