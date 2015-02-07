@@ -74,7 +74,7 @@ FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #define V(Name, ...)                                             \
   Name##Instruction::Name##Instruction(Value output, Value left, \
                                        Value right) {            \
-    DCHECK(output.is_register());                                \
+    DCHECK(output.is_output());                                  \
     InitOutput(0, output);                                       \
     InitInput(0, left);                                          \
     InitInput(1, right);                                         \
@@ -265,7 +265,7 @@ void Instruction::SetInput(int index, Value new_input) {
 void Instruction::SetOutput(int index, Value new_output) {
   DCHECK_GE(index, 0);
   DCHECK_LE(index, CountOutputs());
-  DCHECK(new_output.is_register());
+  DCHECK(new_output.is_output());
   OutputValues()[index] = new_output;
 }
 
