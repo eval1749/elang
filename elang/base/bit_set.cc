@@ -5,6 +5,7 @@
 #include "elang/base/bit_set.h"
 
 #include "base/logging.h"
+#include "elang/base/bits.h"
 #include "elang/base/zone.h"
 
 namespace elang {
@@ -155,14 +156,7 @@ int BitSet::IndexOf(int start) const {
   }
   // We found pack which contains one, let's calculate index of one bit.
   DCHECK_NE(pack, 0);
-  while (pack && (pack & 0xFF) == 0) {
-    pack >>= 8;
-    index += 8;
-  }
-  while (pack && (pack & 1) == 0) {
-    pack >>= 1;
-    ++index;
-  }
+  index += CountTrailingZeros(pack);
   DCHECK_LE(index, size_);
   return index;
 }
@@ -199,14 +193,7 @@ int BitSet::LastIndexOf(int start) const {
   }
   // We found pack which contains one, let's calculate index of MSB + 1.
   DCHECK_NE(pack, 0);
-  while (pack && (pack && 0xFF) == 0) {
-    pack >>= 8;
-    index += 8;
-  }
-  while (pack) {
-    pack >>= 1;
-    ++index;
-  }
+  index += kPackSize - CountLeadingZeros(pack);
   DCHECK_LE(index, size_);
   return index;
 }
