@@ -25,8 +25,9 @@ class GraphSorter;
 template <typename Owner, typename Derived>
 class Graph {
  public:
-  typedef DoubleLinked<Derived, Owner> Nodes;
   typedef GraphEditor<Owner, Derived> Editor;
+  typedef Derived Derived;
+  typedef DoubleLinked<Derived, Owner> Nodes;
   typedef GraphSorter<Owner, Derived> Sorter;
 
   // Node represents graph node having edges.
@@ -60,6 +61,10 @@ class Graph {
 
     DISALLOW_COPY_AND_ASSIGN(Node);
   };
+
+  // Returns first block.
+  Derived* first_node() const { return nodes_.first_node(); }
+  Derived* last_node() const { return nodes_.last_node(); }
 
   // Returns a list of graph node.
   const Nodes& nodes() const { return nodes_; }
