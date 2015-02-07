@@ -277,6 +277,7 @@ bool Instruction::IsTerminator() const {
 BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
                                      BasicBlock* false_block) {
+  DCHECK(condition.is_condition());
   InitInput(0, condition);
   InitBlockOperand(0, true_block);
   InitBlockOperand(1, false_block);
