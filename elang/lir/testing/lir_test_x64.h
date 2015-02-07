@@ -17,9 +17,8 @@ namespace testing {
 //
 class LirTestX64 : public LirTest {
  protected:
-  LirTestX64() = default;
-
-  Function* CreateFunctionSample1();
+  LirTestX64();
+  ~LirTestX64();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LirTestX64);

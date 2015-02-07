@@ -4,26 +4,16 @@
 
 #include "elang/lir/testing/lir_test_x64.h"
 
-#include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
-#include "elang/lir/instructions.h"
-#include "elang/lir/literals.h"
 
 namespace elang {
 namespace lir {
 namespace testing {
 
-Function* LirTestX64::CreateFunctionSample1() {
-  auto const function = factory()->NewFunction();
-  Editor editor(factory(), function);
-  auto const entry_block = function->entry_block();
-  {
-    Editor::ScopedEdit scope(&editor);
-    editor.Edit(entry_block);
-    auto const call = factory()->NewCallInstruction(NewStringValue("Foo"));
-    editor.InsertBefore(call, entry_block->last_instruction());
-  }
-  return function;
+LirTestX64::LirTestX64() {
+}
+
+LirTestX64::~LirTestX64() {
 }
 
 }  // namespace testing

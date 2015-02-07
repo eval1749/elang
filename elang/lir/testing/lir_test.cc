@@ -11,6 +11,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -33,6 +34,19 @@ std::string LirTest::Commit(Editor* editor) {
 Function* LirTest::CreateFunctionEmptySample() {
   auto const function = factory()->NewFunction();
   Editor editor(factory(), function);
+  return function;
+}
+
+Function* LirTest::CreateFunctionSample1() {
+  auto const function = factory()->NewFunction();
+  Editor editor(factory(), function);
+  auto const entry_block = function->entry_block();
+  {
+    Editor::ScopedEdit scope(&editor);
+    editor.Edit(entry_block);
+    auto const call = factory()->NewCallInstruction(NewStringValue("Foo"));
+    editor.InsertBefore(call, entry_block->last_instruction());
+  }
   return function;
 }
 
