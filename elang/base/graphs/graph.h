@@ -35,7 +35,7 @@ class Graph {
       return predecessors_.size() > 1u;
     }
     bool HasPredecessor() const { return !predecessors_.empty(); }
-    bool HasSucccessor() const { return !successors_.empty(); }
+    bool HasSuccessor() const { return !successors_.empty(); }
 
    protected:
     explicit Node(Zone* zone);

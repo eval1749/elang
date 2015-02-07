@@ -151,19 +151,19 @@ TEST_F(GraphTest, AddEdge) {
   EXPECT_FALSE(function()->HasEdge(block3, block1));
 
   EXPECT_FALSE(block1->HasPredecessor());
-  EXPECT_TRUE(block1->HasSucccessor());
+  EXPECT_TRUE(block1->HasSuccessor());
   EXPECT_FALSE(block1->HasMoreThanOnePredecessors());
 
   EXPECT_TRUE(block2->HasPredecessor());
-  EXPECT_TRUE(block2->HasSucccessor());
+  EXPECT_TRUE(block2->HasSuccessor());
   EXPECT_FALSE(block2->HasMoreThanOnePredecessors());
 
   EXPECT_TRUE(block3->HasPredecessor());
-  EXPECT_TRUE(block3->HasSucccessor());
+  EXPECT_TRUE(block3->HasSuccessor());
   EXPECT_FALSE(block3->HasMoreThanOnePredecessors());
 
   EXPECT_TRUE(block4->HasPredecessor());
-  EXPECT_FALSE(block4->HasSucccessor());
+  EXPECT_FALSE(block4->HasSuccessor());
   EXPECT_TRUE(block4->HasMoreThanOnePredecessors());
 }
 
@@ -199,19 +199,19 @@ TEST_F(GraphTest, RemoveEdge) {
       ToString(function()));
 
   EXPECT_FALSE(block1->HasPredecessor());
-  EXPECT_TRUE(block1->HasSucccessor());
+  EXPECT_TRUE(block1->HasSuccessor());
   EXPECT_FALSE(block1->HasMoreThanOnePredecessors());
 
   EXPECT_FALSE(block2->HasPredecessor());
-  EXPECT_FALSE(block2->HasSucccessor());
+  EXPECT_FALSE(block2->HasSuccessor());
   EXPECT_FALSE(block2->HasMoreThanOnePredecessors());
 
   EXPECT_TRUE(block3->HasPredecessor());
-  EXPECT_TRUE(block3->HasSucccessor());
+  EXPECT_TRUE(block3->HasSuccessor());
   EXPECT_FALSE(block3->HasMoreThanOnePredecessors());
 
   EXPECT_TRUE(block4->HasPredecessor());
-  EXPECT_FALSE(block4->HasSucccessor());
+  EXPECT_FALSE(block4->HasSuccessor());
   EXPECT_FALSE(block4->HasMoreThanOnePredecessors());
 }
 

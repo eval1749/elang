@@ -124,7 +124,7 @@ bool Validator::Validate(BasicBlock* block) {
       Error(ErrorCode::ValidateInstructionExit, block->first_instruction());
       return false;
     }
-    if (block->HasSucccessor()) {
+    if (block->HasSuccessor()) {
       Error(ErrorCode::ValidateBasicBlockExit, block->value());
       return false;
     }
