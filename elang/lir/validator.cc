@@ -57,13 +57,15 @@ void Validator::Error(ErrorCode error_code, Instruction* instruction) {
   Error(error_code, AsValue(instruction));
 }
 
-void Validator::Error(ErrorCode error_code, Instruction* instruction,
+void Validator::Error(ErrorCode error_code,
+                      Instruction* instruction,
                       int detail) {
   Error(error_code, AsValue(instruction),
         editor_->factory()->NewIntValue(Value::Size::Size32, detail));
 }
 
-void Validator::Error(ErrorCode error_code, Instruction* instruction,
+void Validator::Error(ErrorCode error_code,
+                      Instruction* instruction,
                       Value detail) {
   Error(error_code, AsValue(instruction), detail);
 }
@@ -133,6 +135,21 @@ bool Validator::Validate(BasicBlock* block) {
     return false;
   }
 
+  // Check edges
+  for (auto const predecessor : block->predecessors()) {
+    if (!function()->HasEdge(predecessor, block)) {
+      Error(ErrorCode::ValidateBasicBlockPredecessor, block->value(),
+            predecessor->value());
+    }
+  }
+
+  for (auto const successor : block->successors()) {
+    if (!function()->HasEdge(block, successor)) {
+      Error(ErrorCode::ValidateBasicBlockSuccessor, block->value(),
+            successor->value());
+    }
+  }
+
   // Check instructions
   auto is_valid = true;
   auto found_terminator = false;
@@ -194,6 +211,14 @@ bool Validator::Validate(Instruction* instruction) {
     Error(ErrorCode::ValidateInstructionBasicBlock, instruction);
     return false;
   }
+  // All block operands must be alive.
+  auto position = 0;
+  for (auto const target_block : instruction->block_operands()) {
+    if (!target_block->id())
+      Error(ErrorCode::ValidateInstructionBlockOperand, instruction, position);
+    ++position;
+  }
+  // Instruction specific validation.
   is_valid_instruction_ = true;
   instruction->Accept(this);
   return is_valid_instruction_;
@@ -215,7 +240,7 @@ void Validator::VisitCopy(CopyInstruction* instr) {
 
 void Validator::VisitRet(RetInstruction* instr) {
   if (instr->block_operand(0) != exit_block())
-    Error(ErrorCode::ValidateInstructionSuccessor, instr, 0);
+    Error(ErrorCode::ValidateInstructionBlockOperand, instr, 0);
 }
 
 }  // namespace lir
