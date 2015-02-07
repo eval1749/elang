@@ -33,6 +33,17 @@ LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 
 // Test cases...
 
+// AssignInstruction
+TEST_F(LirInstructionTest, AssignInstruction) {
+  auto const instr = factory()->NewAssignInstruction(factory()->NewRegister(),
+                                                     factory()->NewRegister());
+  EXPECT_TRUE(instr->is<AssignInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+}
+
 // BranchInstruction
 TEST_F(LirInstructionTest, BranchInstruction) {
   auto const function = factory()->NewFunction();

@@ -23,6 +23,7 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_0_2(V) V(Store, "store")
 
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
+  V(Assign, "assign")                   \
   V(Copy, "mov")                        \
   V(Literal, "mov")                     \
   V(Load, "load")
@@ -48,7 +49,7 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
-  V(Jump, "jmp", (BasicBlock * target_block))                              \
+  V(Jump, "jmp", (BasicBlock* target_block))                               \
   V(PCopy, "pcopy",                                                        \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
   V(Phi, "phi", (Value output))                                            \
