@@ -207,6 +207,14 @@ Value Target::GetRegister(isa::Register name) {
                Value::Kind::PhysicalRegister, name & 15);
 }
 
+Value Target::GetReturn(Value type) {
+  if (type.type == Value::Type::Float) {
+    return GetRegister(type.size == Value::Size::Size32 ? isa::XMM0S
+                                                        : isa::XMM0D);
+  }
+  return GetRegister(type.size == Value::Size::Size64 ? isa::RAX : isa::EAX);
+}
+
 Value::Size Target::PointerSize() {
   return Value::Size::Size64;
 }

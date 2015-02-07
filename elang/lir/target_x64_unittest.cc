@@ -59,6 +59,29 @@ TEST(LirTargetX64Test, GetParameterAt) {
             Target::GetParameterAt(int64_type, 4));
 }
 
+TEST(LirTargetX64Test, GetReturn) {
+  Value float32_type(Value::Type::Float, Value::Size::Size32);
+  Value float64_type(Value::Type::Float, Value::Size::Size64);
+  Value int32_type(Value::Type::Integer, Value::Size::Size32);
+  Value int64_type(Value::Type::Integer, Value::Size::Size64);
+
+  EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size32,
+                  Value::Kind::PhysicalRegister, EAX & 15),
+            Target::GetReturn(int32_type));
+
+  EXPECT_EQ(Value(Value::Type::Integer, Value::Size::Size64,
+                  Value::Kind::PhysicalRegister, RAX & 15),
+            Target::GetReturn(int64_type));
+
+  EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size32,
+                  Value::Kind::PhysicalRegister, XMM0S & 15),
+            Target::GetReturn(float32_type));
+
+  EXPECT_EQ(Value(Value::Type::Float, Value::Size::Size64,
+                  Value::Kind::PhysicalRegister, XMM0D & 15),
+            Target::GetReturn(float64_type));
+}
+
 TEST(LirTargetX64Test, GetRegister) {
   std::array<Register, 16> int8_regs{
       AL,

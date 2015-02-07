@@ -6,6 +6,8 @@
 #define ELANG_LIR_TARGET_X64_H_
 
 #include "elang/lir/lir_export.h"
+// TODO(eval1749) We should introduce |ValueSize| to avoid including "value.h".
+#include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
@@ -154,8 +156,6 @@ static_assert((kCalleeSaveRegisters | kCalleeSaveRegisters) == 0x30F,
 
 }  // namespace isa
 
-struct Value;
-
 class ELANG_LIR_EXPORT Target {
  public:
   Target() = delete;
@@ -169,6 +169,9 @@ class ELANG_LIR_EXPORT Target {
 
   // Returns physical/pseudo register of |name|.
   static Value GetRegister(isa::Register name);
+
+  // Returns physical register for return value.
+  static Value GetReturn(Value type);
 
   // Returns bit size of pointer.
   static Value::Size PointerSize();
