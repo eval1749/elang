@@ -74,6 +74,18 @@ std::string ToString(Function* function) {
   return ostream.str();
 }
 
+std::string ToString(const OrderedList<Block*>& list) {
+  std::stringstream ostream;
+  ostream << "[";
+  auto separator = "";
+  for (auto const block : list) {
+    ostream << separator << block->id();
+    separator = ", ";
+  }
+  ostream << "]";
+  return ostream.str();
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // GraphTest
@@ -181,6 +193,14 @@ TEST_F(GraphTest, InsertNode) {
       "{id:2 predecessors:{1} successors:{4}}\n"
       "{id:4 predecessors:{2, 3} successors:{}}\n",
       ToString(function()));
+}
+
+TEST_F(GraphTest, OrderedList) {
+  EXPECT_EQ("[1, 2, 4, 3]", ToString(function()->ComputePreOrderList()));
+  EXPECT_EQ("[4, 2, 3, 1]", ToString(function()->ComputePostOrderList()));
+  EXPECT_EQ("[3, 4, 2, 1]", ToString(function()->ComputeReversePreOrderList()));
+  EXPECT_EQ("[1, 3, 2, 4]",
+            ToString(function()->ComputeReversePostOrderList()));
 }
 
 TEST_F(GraphTest, RemoveEdge) {
