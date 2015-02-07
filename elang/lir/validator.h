@@ -39,6 +39,9 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
 
  private:
   Editor* editor() const { return editor_; }
+  BasicBlock* entry_block() const;
+  BasicBlock* exit_block() const;
+  Function* function() const;
 
   // Validation errors
   void AddError(ErrorCode error_code,
@@ -59,6 +62,7 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   // InstructionVisitor
   void VisitBranch(BranchInstruction* instruction) final;
   void VisitCopy(CopyInstruction* instruction) final;
+  void VisitRet(RetInstruction* instruction) final;
 
   Editor* const editor_;
   bool is_valid_instruction_;

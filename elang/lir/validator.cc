@@ -29,6 +29,18 @@ Validator::Validator(Editor* editor)
 Validator::~Validator() {
 }
 
+BasicBlock* Validator::entry_block() const {
+  return function()->entry_block();
+}
+
+BasicBlock* Validator::exit_block() const {
+  return function()->exit_block();
+}
+
+Function* Validator::function() const {
+  return editor()->function();
+}
+
 void Validator::AddError(ErrorCode error_code,
                          Value value,
                          const std::vector<Value> details) {
@@ -90,6 +102,38 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockEmpty, block->value());
     return false;
   }
+
+  // Entry block
+  if (block == entry_block()) {
+    if (!block->first_instruction()->is<EntryInstruction>()) {
+      Error(ErrorCode::ValidateInstructionEntry, block->first_instruction());
+      return false;
+    }
+    if (block->HasPredecessor()) {
+      Error(ErrorCode::ValidateBasicBlockEntry, block->value());
+      return false;
+    }
+  } else if (block->first_instruction()->is<EntryInstruction>()) {
+    Error(ErrorCode::ValidateInstructionEntry, block->first_instruction());
+    return false;
+  }
+
+  // Exit block
+  if (block == exit_block()) {
+    if (!block->first_instruction()->is<ExitInstruction>()) {
+      Error(ErrorCode::ValidateInstructionExit, block->first_instruction());
+      return false;
+    }
+    if (block->HasSucccessor()) {
+      Error(ErrorCode::ValidateBasicBlockExit, block->value());
+      return false;
+    }
+  } else if (block->last_instruction()->is<ExitInstruction>()) {
+    Error(ErrorCode::ValidateInstructionExit, block->last_instruction());
+    return false;
+  }
+
+  // Check instructions
   auto is_valid = true;
   auto found_terminator = false;
   for (auto instruction : block->instructions()) {
@@ -178,6 +222,11 @@ void Validator::VisitCopy(CopyInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
   if (instr->output(0).type != instr->input(0).type)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+}
+
+void Validator::VisitRet(RetInstruction* instr) {
+  if (instr->block_operand(0) != exit_block())
+    Error(ErrorCode::ValidateInstructionSuccessor, instr, 0);
 }
 
 }  // namespace lir
