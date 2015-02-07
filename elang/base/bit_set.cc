@@ -38,7 +38,7 @@ BitSet::Pack BitMaskOf(int index) {
 BitSet::Iterator::Iterator(const BitSet* bit_set, int index)
     : bit_set_(bit_set), index_(index) {
   DCHECK_GE(index_, -1);
-  DCHECK_LE(index_, bit_set_->size_);
+  DCHECK_LE(index_, bit_set_->capacity_);
 }
 
 BitSet::Iterator::Iterator(const Iterator& other)
@@ -50,13 +50,13 @@ BitSet::Iterator::~Iterator() {
 
 int BitSet::Iterator::operator*() {
   DCHECK_GE(index_, 0);
-  DCHECK_LT(index_, bit_set_->size());
+  DCHECK_LT(index_, bit_set_->capacity_);
   return index_;
 }
 
 BitSet::Iterator& BitSet::Iterator::operator++() {
   DCHECK_GE(index_, 0);
-  DCHECK_LE(index_ + 1, bit_set_->size());
+  DCHECK_LE(index_ + 1, bit_set_->capacity_);
   index_ = bit_set_->IndexOf(index_ + 1);
   return *this;
 }
@@ -76,7 +76,7 @@ bool BitSet::Iterator::operator!=(const Iterator& other) const {
 //
 BitSet::BitSet(Zone* zone, const BitSet& other)
     : pack_size_(other.pack_size_),
-      size_(other.size_),
+      capacity_(other.capacity_),
       packs_(zone->AllocateObjects<Pack>(pack_size_)) {
   CopyFrom(other);
 }
@@ -87,9 +87,9 @@ BitSet::~BitSet() {
 
 BitSet::BitSet(Zone* zone, int size)
     : pack_size_((size + kPackSize - 1) / kPackSize),
-      size_(size),
+      capacity_(size),
       packs_(zone->AllocateObjects<Pack>(pack_size_)) {
-  DCHECK_GT(size_, 0);
+  DCHECK_GT(capacity_, 0);
   Clear();
 }
 
@@ -98,8 +98,8 @@ BitSet::Iterator BitSet::begin() const {
 }
 
 BitSet::Iterator BitSet::end() const {
-  DCHECK_GT(size_, 0);
-  return Iterator(this, LastIndexOf(size_ - 1));
+  DCHECK_GT(capacity_, 0);
+  return Iterator(this, LastIndexOf(capacity_ - 1));
 }
 
 void BitSet::Add(int index) {
@@ -119,7 +119,7 @@ bool BitSet::Contains(int index) const {
 }
 
 void BitSet::CopyFrom(const BitSet& other) {
-  DCHECK_GE(size_, other.size_);
+  DCHECK_GE(capacity_, other.capacity_);
   for (int i = 0; i < other.pack_size_; ++i)
     packs_[i] = other.packs_[i];
   for (int i = other.pack_size_; i < pack_size_; ++i)
@@ -127,7 +127,7 @@ void BitSet::CopyFrom(const BitSet& other) {
 }
 
 bool BitSet::Equals(const BitSet& other) const {
-  DCHECK_EQ(size_, other.size_);
+  DCHECK_EQ(capacity_, other.capacity_);
   for (auto index = 0; index < pack_size_; ++index) {
     if (packs_[index] != other.packs_[index])
       return false;
@@ -135,13 +135,13 @@ bool BitSet::Equals(const BitSet& other) const {
   return true;
 }
 
-// Returns an index where |packs_[index] == 1| from |start| until |size_| or
-// |size_| if there are no one in |data|.
+// Returns an index where |packs_[index] == 1| from |start| until |capacity_| or
+// |capacity_| if there are no one in |data|.
 int BitSet::IndexOf(int start) const {
   DCHECK_GE(start, 0);
-  DCHECK_LE(start, size_);
-  if (start == size_)
-    return size_;
+  DCHECK_LE(start, capacity_);
+  if (start == capacity_)
+    return capacity_;
   auto index = start;
   auto pack_index = PackIndexOf(index);
   auto pack = packs_[pack_index] >> ShiftCountOf(index);
@@ -157,12 +157,12 @@ int BitSet::IndexOf(int start) const {
   // We found pack which contains one, let's calculate index of one bit.
   DCHECK_NE(pack, 0);
   index += CountTrailingZeros(pack);
-  DCHECK_LE(index, size_);
+  DCHECK_LE(index, capacity_);
   return index;
 }
 
 void BitSet::Intersect(const BitSet& other) {
-  DCHECK_EQ(size_, other.size_);
+  DCHECK_EQ(capacity_, other.capacity_);
   for (auto i = 0; i < pack_size_; ++i)
     packs_[i] &= other.packs_[i];
 }
@@ -178,7 +178,7 @@ bool BitSet::IsEmpty() const {
 // Returns an last index where bit is one or |-1| if not found.
 int BitSet::LastIndexOf(int start) const {
   DCHECK_GE(start, 0);
-  DCHECK_LT(start, size_);
+  DCHECK_LT(start, capacity_);
   auto index = start;
   auto pack_index = PackIndexOf(index);
   auto pack = packs_[pack_index] >> ShiftCountOf(start);
@@ -194,7 +194,7 @@ int BitSet::LastIndexOf(int start) const {
   // We found pack which contains one, let's calculate index of MSB + 1.
   DCHECK_NE(pack, 0);
   index += kPackSize - CountLeadingZeros(pack);
-  DCHECK_LE(index, size_);
+  DCHECK_LE(index, capacity_);
   return index;
 }
 
@@ -203,13 +203,13 @@ void BitSet::Remove(int index) {
 }
 
 void BitSet::Subtract(const BitSet& other) {
-  DCHECK_EQ(size_, other.size_);
+  DCHECK_EQ(capacity_, other.capacity_);
   for (auto i = 0; i < pack_size_; ++i)
     packs_[i] &= ~other.packs_[i];
 }
 
 void BitSet::Union(const BitSet& other) {
-  DCHECK_EQ(size_, other.size_);
+  DCHECK_EQ(capacity_, other.capacity_);
   for (auto i = 0; i < pack_size_; ++i)
     packs_[i] |= other.packs_[i];
 }

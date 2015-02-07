@@ -46,7 +46,6 @@ class ELANG_BASE_EXPORT BitSet final : public ZoneAllocated {
 
   Iterator begin() const;
   Iterator end() const;
-  int size() const { return size_; }
 
   void Add(int index);
   void Clear();
@@ -63,8 +62,10 @@ class ELANG_BASE_EXPORT BitSet final : public ZoneAllocated {
   int IndexOf(int start) const;
   int LastIndexOf(int start) const;
 
+  // Maximum number of bits in this |BitSet|.
+  int const capacity_;
+  // Number of allocated packs.
   int const pack_size_;
-  int const size_;
   // |packs_| should be initialized after |pack_size_|.
   Pack* const packs_;
 
