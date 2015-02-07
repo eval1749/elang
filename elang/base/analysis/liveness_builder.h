@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_LIVENESS_BUILDER_H_
-#define ELANG_BASE_LIVENESS_BUILDER_H_
+#ifndef ELANG_BASE_ANALYSIS_LIVENESS_BUILDER_H_
+#define ELANG_BASE_ANALYSIS_LIVENESS_BUILDER_H_
 
 #include <memory>
 
 #include "base/macros.h"
 #include "elang/base/base_export.h"
-#include "elang/base/liveness.h"
-#include "elang/base/liveness_collection.h"
+#include "elang/base/analysis/liveness.h"
+#include "elang/base/analysis/liveness_collection.h"
 
 namespace elang {
 
@@ -87,4 +87,4 @@ class LivenessBuilder : public LivenessEditor {
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_LIVENESS_BUILDER_H_
+#endif  // ELANG_BASE_ANALYSIS_LIVENESS_BUILDER_H_

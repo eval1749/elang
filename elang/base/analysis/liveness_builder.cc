@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/base/liveness_builder.h"
+#include "elang/base/analysis/liveness_builder.h"
 
 namespace elang {
 

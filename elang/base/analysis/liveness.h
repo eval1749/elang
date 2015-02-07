@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_LIVENESS_H_
-#define ELANG_BASE_LIVENESS_H_
+#ifndef ELANG_BASE_ANALYSIS_LIVENESS_H_
+#define ELANG_BASE_ANALYSIS_LIVENESS_H_
 
 #include <ostream>
 
@@ -45,4 +45,4 @@ ELANG_BASE_EXPORT std::ostream& operator<<(std::ostream& ostream,
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_LIVENESS_H_
+#endif  // ELANG_BASE_ANALYSIS_LIVENESS_H_

@@ -5,6 +5,11 @@
 component("base") {
   output_name = "elang_base"
   sources = [
+    "analysis/liveness.cc",
+    "analysis/liveness.h",
+    "analysis/liveness_builder.cc",
+    "analysis/liveness_builder.h",
+    "analysis/liveness_collection.h",
     "as_printable.cc",
     "as_printable.h",
     "atomic_string.cc",
@@ -22,11 +27,6 @@ component("base") {
     "graphs/graph_sorter.h",
     "index_sequence.h",
     "iterator_on_iterator.h",
-    "liveness.cc",
-    "liveness.h",
-    "liveness_builder.cc",
-    "liveness_builder.h",
-    "liveness_collection.h",
     "maybe.h",
     "ordered_list.h",
     "simple_directed_graph.h",
@@ -68,7 +68,7 @@ source_set("base_unittests") {
     "double_linked_unittest.cc",
     "graphs/graph_unittest.cc",
     "iterator_on_iterator_unittest.cc",
-    "liveness_builder_unittest.cc",
+    "analysis/liveness_builder_unittest.cc",
     "ordered_list_unittest.cc",
     "simple_directed_graph_unittest.cc",
     "temporary_change_value_unittest.cc",

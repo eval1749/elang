@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_LIVENESS_COLLECTION_H_
-#define ELANG_BASE_LIVENESS_COLLECTION_H_
+#ifndef ELANG_BASE_ANALYSIS_LIVENESS_COLLECTION_H_
+#define ELANG_BASE_ANALYSIS_LIVENESS_COLLECTION_H_
 
 #include <unordered_map>
 
@@ -52,4 +52,4 @@ class LivenessCollection final : public ZoneOwner {
 
 }  // namespace elang
 
-#endif  // ELANG_BASE_LIVENESS_COLLECTION_H_
+#endif  // ELANG_BASE_ANALYSIS_LIVENESS_COLLECTION_H_

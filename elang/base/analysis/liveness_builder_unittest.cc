@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-#include "elang/base/liveness_builder.h"
+#include "elang/base/analysis/liveness_builder.h"
 #include "gtest/gtest.h"
 
 namespace elang {
