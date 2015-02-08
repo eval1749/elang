@@ -293,6 +293,8 @@ void Editor::SetInput(Instruction* instruction, int index, Value* new_value) {
 void Editor::SetPhiInput(PhiInstruction* phi,
                          BasicBlock* block,
                          Value* new_value) {
+  DCHECK_EQ(basic_block_, phi->basic_block_);
+  DCHECK(basic_block_);
   DCHECK(new_value->is_alive()) << *new_value;
   if (auto const present = phi->FindPhiInputFor(block)) {
     present->SetValue(new_value);
