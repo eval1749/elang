@@ -61,9 +61,12 @@ void Editor::AddError(ErrorCode error_code,
       factory()->zone(), factory()->literals(), error_code, value, details));
 }
 
-const Editor::LivenessData& Editor::AnalyzeLiveness() const {
+const Editor::LivenessData& Editor::AnalyzeLiveness() {
   if (liveness_data_)
     return *liveness_data_;
+  // Clients of liveness information don't like critical edges, e.g. convert
+  // back to SSA to CFG.
+  RemoveCriticalEdges();
   liveness_data_ = std::move(::elang::lir::AnalyzeLiveness(function()));
   return *liveness_data_;
 }

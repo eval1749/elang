@@ -59,7 +59,7 @@ class ELANG_LIR_EXPORT Editor final {
   Function* function() const { return function_; }
 
   // Analysis
-  const LivenessData& AnalyzeLiveness() const;
+  const LivenessData& AnalyzeLiveness();
 
   // Validation errors
   void AddError(ErrorCode error_code,
