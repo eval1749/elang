@@ -42,6 +42,18 @@ BasicBlock* Editor::exit_block() const {
   return function()->exit_block();
 }
 
+// Add edges between |instruction|'s block and new successors.
+// Note: This function doesn't call |DidChangeControlFlow()| because this
+// function is used for multiple edge mutation, e.g. |DidChangeControlFlow()|.
+// Callers must call |DidChangeControlFlow()| to notify control flow change.
+void Editor::AddEdgesFrom(Instruction* instruction) {
+  if (!instruction->IsTerminator())
+    return;
+  auto const block = instruction->basic_block();
+  for (auto successor : instruction->block_operands())
+    graph_editor_.AddEdge(block, successor);
+}
+
 void Editor::AddError(ErrorCode error_code,
                       Value value,
                       const std::vector<Value> details) {
@@ -68,7 +80,8 @@ void Editor::Append(Instruction* new_instruction) {
     return;
   }
   basic_block_->instructions_.AppendNode(new_instruction);
-  SetBlockEdges(new_instruction);
+  AddEdgesFrom(new_instruction);
+  DidChangeControlFlow();
 }
 
 bool Editor::Commit() {
@@ -197,7 +210,7 @@ void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
   if (old_instruction->IsTerminator()) {
-    ResetBlockEdges(old_instruction);
+    RemoveEdgesFrom(old_instruction);
     DidChangeControlFlow();
   }
   basic_block_->instructions_.RemoveNode(old_instruction);
@@ -236,24 +249,13 @@ const OrderedBlockList& Editor::ReversePostOrderList() const {
 }
 
 // Remove edges between |instruction|'s block and old successors.
-void Editor::ResetBlockEdges(Instruction* instruction) {
+void Editor::RemoveEdgesFrom(Instruction* instruction) {
   if (!instruction->IsTerminator())
     return;
   auto const block = instruction->basic_block();
   for (auto successor : instruction->block_operands()) {
     graph_editor_.RemoveEdge(block, successor);
   }
-}
-
-// Add edges between |instruction|'s block and new successors.
-void Editor::SetBlockEdges(Instruction* instruction) {
-  if (!instruction->IsTerminator())
-    return;
-  auto const block = instruction->basic_block();
-  for (auto successor : instruction->block_operands()) {
-    graph_editor_.AddEdge(block, successor);
-  }
-  DidChangeControlFlow();
 }
 
 void Editor::SetBranch(Value condition,
@@ -265,10 +267,10 @@ void Editor::SetBranch(Value condition,
   if (auto const last =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     SetInput(last, 0, condition);
-    ResetBlockEdges(last);
+    RemoveEdgesFrom(last);
     last->SetBlockOperand(0, true_block);
     last->SetBlockOperand(1, false_block);
-    SetBlockEdges(last);
+    AddEdgesFrom(last);
     return;
   }
   SetTerminator(
@@ -285,9 +287,9 @@ void Editor::SetJump(BasicBlock* target_block) {
   DCHECK(basic_block_);
   if (auto const last =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
-    ResetBlockEdges(last);
+    RemoveEdgesFrom(last);
     last->SetBlockOperand(0, target_block);
-    SetBlockEdges(last);
+    AddEdgesFrom(last);
     return;
   }
   SetTerminator(factory()->NewJumpInstruction(target_block));

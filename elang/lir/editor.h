@@ -73,6 +73,7 @@ class ELANG_LIR_EXPORT Editor final {
   bool Commit();
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
+
   void SetBranch(Value condition,
                  BasicBlock* true_block,
                  BasicBlock* false_block);
@@ -114,9 +115,9 @@ class ELANG_LIR_EXPORT Editor final {
   bool Validate();
 
  private:
+  void AddEdgesFrom(Instruction* instruction);
   void DidChangeControlFlow();
-  void ResetBlockEdges(Instruction* instruction);
-  void SetBlockEdges(Instruction* instruction);
+  void RemoveEdgesFrom(Instruction* instruction);
   bool Validate(Function* function);
 
   // A basic block being edited, or null if not editing.
