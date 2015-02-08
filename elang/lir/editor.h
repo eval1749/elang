@@ -74,6 +74,10 @@ class ELANG_LIR_EXPORT Editor final {
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
 
+  // Remove critical edges to blocks having 'phi' instructions. Editor must not
+  // be editing block.
+  void RemoveCriticalEdges();
+
   void SetBranch(Value condition,
                  BasicBlock* true_block,
                  BasicBlock* false_block);

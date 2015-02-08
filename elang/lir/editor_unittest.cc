@@ -199,6 +199,82 @@ TEST_F(LirEditorTest, LiteralInstruction) {
       FormatFunction(&editor));
 }
 
+// The sample block for RemoveCriticalEdges test case:
+//   entry:
+//    br start
+//   start:
+//    br sample
+//   sample:
+//    br %flag1, merge, start
+//   merge:
+//    phi %1 = start 39, sample 42
+//    ret
+// An edge sample => merge is a critical edge.
+//
+TEST_F(LirEditorTest, RemoveCriticalEdges) {
+  auto const function = CreateFunctionEmptySample();
+  auto const entry_block = function->entry_block();
+  auto const exit_block = function->exit_block();
+
+  Editor editor(factory(), function);
+
+  Value type(Value::Type::Integer, ValueSize::Size32);
+  auto const start_block = editor.NewBasicBlock(exit_block);
+  auto const sample_block = editor.NewBasicBlock(exit_block);
+  auto const merge_block = editor.NewBasicBlock(exit_block);
+
+  editor.Edit(entry_block);
+  editor.SetJump(start_block);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(start_block);
+  editor.SetJump(merge_block);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(sample_block);
+  editor.SetBranch(factory()->NewCondition(), merge_block, start_block);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(merge_block);
+  auto const phi_instr = editor.NewPhi(NewRegister(type));
+  editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
+  editor.SetPhiInput(phi_instr, start_block, Value::SmallInt32(39));
+  editor.SetReturn();
+  ASSERT_EQ("", Commit(&editor));
+
+  ASSERT_EQ("", Validate(&editor));
+  editor.RemoveCriticalEdges();
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3}\n"
+      "  entry\n"
+      "  jmp block3\n"
+      "block3:\n"
+      "  // In: {block1, block4}\n"
+      "  // Out: {block5}\n"
+      "  jmp block5\n"
+      "block4:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block6}\n"
+      "  br %b2, block6, block3\n"
+      "block6:\n"  // a new block introduced by |RemoveCriticalEdges()|.
+      "  // In: {block4}\n"
+      "  // Out: {block5}\n"
+      "  jmp block5\n"
+      "block5:\n"
+      "  // In: {block3, block6}\n"
+      "  // Out: {block2}\n"
+      "  phi %r1 = block6 42, block3 39\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block5}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
 TEST_F(LirEditorTest, Replace) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
