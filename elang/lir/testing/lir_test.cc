@@ -12,13 +12,14 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 #include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
 namespace testing {
 
-LirTest::LirTest() : factory_(new Factory()) {
+LirTest::LirTest() : FactoryUser(new Factory()), factory_(factory()) {
 }
 
 std::string LirTest::Commit(Editor* editor) {
@@ -48,6 +49,19 @@ Function* LirTest::CreateFunctionSample1() {
     editor.InsertBefore(call, entry_block->last_instruction());
   }
   return function;
+}
+
+std::vector<Value> LirTest::EmitCopyParameters(Editor* editor,
+                                               Value type,
+                                               int count) {
+  std::vector<Value> registers;
+  std::vector<Value> parameters;
+  for (auto position = 0; position < count; ++position) {
+    registers.push_back(factory()->NewRegister(type));
+    parameters.push_back(Target::GetParameterAt(type, position));
+  }
+  editor->Append(factory()->NewPCopyInstruction(registers, parameters));
+  return registers;
 }
 
 std::string LirTest::FormatFunction(Editor* editor) {
@@ -82,6 +96,14 @@ Value LirTest::NewStringValue(base::StringPiece16 data) {
 }
 Value LirTest::NewStringValue(base::StringPiece data) {
   return factory()->NewStringValue(base::UTF8ToUTF16(data));
+}
+
+std::string LirTest::Validate(Editor* editor) {
+  if (editor->Validate())
+    return "";
+  std::stringstream ostream;
+  ostream << editor->errors();
+  return ostream.str();
 }
 
 }  // namespace testing
