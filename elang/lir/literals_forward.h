@@ -54,6 +54,7 @@ class Factory;
 class Literal;
 class LiteralVisitor;
 using OrderedBlockList = OrderedList<BasicBlock*>;
+struct Value;
 
 // Print for formatting and debugging.
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
