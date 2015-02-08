@@ -89,10 +89,10 @@ void X64LoweringPass::VisitBitXor(BitXorInstruction* instr) {
 
 //   div %a = %b, %c
 //   =>
-//   copy %1 = %b
-//   xor rdx = rdx, rdx
-//   div rax, rdx = rax, rdx, %c
-//   copy %a = %rax
+//   copy RAX = %b
+//   xor RDX = RDX, RDX
+//   div RAX, RDX = RAX, RDX, %c
+//   copy %a = RAX
 void X64LoweringPass::VisitDiv(DivInstruction* instr) {
   auto const output = instr->output(0);
   if (output.is_float()) {
@@ -110,6 +110,26 @@ void X64LoweringPass::VisitDiv(DivInstruction* instr) {
                                       zero_instr->output(0), instr->input(1));
   editor()->InsertBefore(div_instr, instr);
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
+}
+
+//   mul %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   mul RAX, RDX = RAX, %c
+//   copy %a = %RAX
+void X64LoweringPass::VisitMul(MulInstruction* instr) {
+  auto const output = instr->output(0);
+  if (output.is_float()) {
+    RewriteToTwoOperands(instr);
+    return;
+  }
+
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const mul_instr = factory()->NewMulX64Instruction(
+      GetRAX(output), GetRDX(output), input, instr->input(1));
+  editor()->InsertBefore(mul_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, mul_instr->output(0)), instr);
 }
 
 void X64LoweringPass::VisitSub(SubInstruction* instr) {

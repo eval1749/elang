@@ -49,6 +49,7 @@ class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
   void VisitDiv(DivInstruction* instr) final;
+  void VisitMul(MulInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
 
   DISALLOW_COPY_AND_ASSIGN(X64LoweringPass);
