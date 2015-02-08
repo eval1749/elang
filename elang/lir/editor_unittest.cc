@@ -148,7 +148,32 @@ TEST_F(LirEditorTest, InsertAfter) {
   EXPECT_EQ(new_instr, ref_instr->next());
 }
 
-TEST_F(LirEditorTest, JumpInstruction) {
+TEST_F(LirEditorTest, LiteralInstruction) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewLiteralInstruction(
+      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
+  editor.Append(factory()->NewLiteralInstruction(
+      factory()->NewRegister(), factory()->NewStringValue(L"foo")));
+  EXPECT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  mov %r1l = 42l\n"
+      "  mov %r2l = \"foo\"\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
+TEST_F(LirEditorTest, SetJump) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   auto const block = editor.NewBasicBlock(function->exit_block());
@@ -171,31 +196,6 @@ TEST_F(LirEditorTest, JumpInstruction) {
       "  ret block2\n"
       "block2:\n"
       "  // In: {block3}\n"
-      "  // Out: {}\n"
-      "  exit\n",
-      FormatFunction(&editor));
-}
-
-TEST_F(LirEditorTest, LiteralInstruction) {
-  auto const function = CreateFunctionEmptySample();
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
-  editor.Append(factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
-  editor.Append(factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewStringValue(L"foo")));
-  EXPECT_EQ("", Commit(&editor));
-  EXPECT_EQ(
-      "function1:\n"
-      "block1:\n"
-      "  // In: {}\n"
-      "  // Out: {block2}\n"
-      "  entry\n"
-      "  mov %r1l = 42l\n"
-      "  mov %r2l = \"foo\"\n"
-      "  ret block2\n"
-      "block2:\n"
-      "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
