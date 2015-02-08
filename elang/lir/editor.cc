@@ -119,6 +119,12 @@ void Editor::Error(ErrorCode error_code,
   AddError(error_code, value, {detail1, detail2});
 }
 
+void Editor::InsertAfter(Instruction* new_instruction,
+                         Instruction* ref_instruction) {
+  DCHECK(ref_instruction);
+  InsertBefore(new_instruction, ref_instruction->next());
+}
+
 void Editor::InsertBefore(Instruction* new_instruction,
                           Instruction* ref_instruction) {
   if (!ref_instruction) {
@@ -134,10 +140,23 @@ void Editor::InsertBefore(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
 }
 
-void Editor::InsertAfter(Instruction* new_instruction,
-                         Instruction* ref_instruction) {
-  DCHECK(ref_instruction);
-  InsertBefore(new_instruction, ref_instruction->next());
+Value Editor::InsertCopyBefore(Value output,
+                               Value input,
+                               Instruction* ref_instruction) {
+  DCHECK(output.is_output());
+  DCHECK(basic_block_);
+  if (ref_instruction) {
+    auto const previous = ref_instruction->previous();
+    if (previous && previous->is<CopyInstruction>() &&
+        previous->output(0) == input && previous->input(0) == output) {
+      // Avoid to emit useless copy
+      //   copy %input = %output
+      //   copy %output = %input
+      return output;
+    }
+  }
+  InsertBefore(factory()->NewCopyInstruction(output, input), ref_instruction);
+  return output;
 }
 
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {

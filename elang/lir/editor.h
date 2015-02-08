@@ -98,6 +98,11 @@ class ELANG_LIR_EXPORT Editor final {
   void SetInput(Instruction* instruction, int index, Value new_value);
   void SetOutput(Instruction* instruction, int index, Value new_value);
 
+  // Emit instructions
+  Value InsertCopyBefore(Value output,
+                         Value input,
+                         Instruction* ref_instruction);
+
   // Phi instruction
   PhiInstruction* NewPhi(Value output);
   void SetPhiInput(PhiInstruction* phi_instruction,

@@ -148,6 +148,32 @@ TEST_F(LirEditorTest, InsertAfter) {
   EXPECT_EQ(new_instr, ref_instr->next());
 }
 
+TEST_F(LirEditorTest, InsertCopyBefore) {
+  auto const function = CreateFunctionEmptySample();
+  auto const entry_block = function->entry_block();
+  auto const last_instruction = entry_block->last_instruction();
+  Editor editor(factory(), function);
+  editor.Edit(entry_block);
+  auto const register1 = factory()->NewRegister();
+  auto const register2 = factory()->NewRegister();
+  editor.InsertCopyBefore(register1, register2, last_instruction);
+  editor.InsertCopyBefore(register2, register1, last_instruction);
+  EXPECT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  mov %r1l = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
 TEST_F(LirEditorTest, LiteralInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
