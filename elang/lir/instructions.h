@@ -397,6 +397,7 @@ class ELANG_LIR_EXPORT PhiInstructionList final {
 
   Iterator begin() const;
   Iterator end() const;
+  bool empty() const { return list_->empty(); }
 
  private:
   const InstructionList* list_;
