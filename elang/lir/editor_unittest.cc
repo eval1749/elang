@@ -46,14 +46,6 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
       factory()->NewRegister(ValueSize::Size32),
   };
 
-  // merge block
-  editor.Edit(merge_block);
-  auto const merge_phi = editor.NewPhi(values[2]);
-  editor.Append(
-      factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
-  editor.SetReturn();
-  EXPECT_EQ("", Commit(&editor));
-
   // entry block
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewPCopyInstruction(
@@ -67,15 +59,23 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
 
   // true block
   editor.Edit(true_block);
-  editor.SetPhiInput(merge_phi, true_block, values[1]);
   editor.SetJump(merge_block);
   EXPECT_EQ("", Commit(&editor));
 
   // false block
   editor.Edit(false_block);
+  editor.SetJump(merge_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  // merge block
+  editor.Edit(merge_block);
+  auto const merge_phi = editor.NewPhi(values[2]);
+  editor.SetPhiInput(merge_phi, true_block, values[1]);
   editor.SetPhiInput(merge_phi, false_block,
                      factory()->NewIntValue(ValueSize::Size32, 42));
-  editor.SetJump(merge_block);
+  editor.Append(
+      factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
+  editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
   auto const& collection = editor.AnalyzeLiveness();

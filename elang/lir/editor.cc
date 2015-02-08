@@ -187,6 +187,8 @@ PhiInstruction* Editor::NewPhi(Value output) {
   DCHECK(basic_block_);
   auto const phi_instruction = factory()->NewPhiInstruction(output);
   basic_block_->phi_instructions_.AppendNode(phi_instruction);
+  phi_instruction->basic_block_ = basic_block_;
+  phi_instruction->id_ = factory()->NextInstructionId();
   return phi_instruction->as<PhiInstruction>();
 }
 
@@ -394,6 +396,8 @@ void Editor::SetJump(BasicBlock* target_block) {
 void Editor::SetPhiInput(PhiInstruction* phi,
                          BasicBlock* block,
                          Value new_value) {
+  DCHECK_EQ(basic_block_, phi->basic_block());
+  DCHECK(basic_block_);
   if (auto const present = phi->FindPhiInputFor(block)) {
     present->value_ = new_value;
     return;
