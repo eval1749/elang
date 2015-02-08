@@ -57,6 +57,9 @@ class ListOwner {
   void PrependNode(Node* new_node) { nodes_.PrependNode(new_node); }
   void RemoveAll() { nodes_.RemoveAll(); }
   void RemoveNode(Node* old_node) { nodes_.RemoveNode(old_node); }
+  void ReplaceNode(Node* new_node, Node* ref_node) {
+    nodes_.ReplaceNode(new_node, ref_node);
+  }
 
   std::string ToString() const {
     std::string result;
@@ -167,6 +170,18 @@ TEST_F(DoubleLinkedTest, RemoveNode) {
 
   list2.RemoveNode(&node_a);
   EXPECT_EQ(2, list2.Count());
+}
+
+TEST_F(DoubleLinkedTest, ReplaceNode) {
+  Node node_x("X");
+  list1.ReplaceNode(&node_x, &node_a);
+  EXPECT_EQ("X, B, C", list1.ToString());
+
+  list1.ReplaceNode(&node_a, &node_b);
+  EXPECT_EQ("X, A, C", list1.ToString());
+
+  list1.ReplaceNode(&node_b, &node_c);
+  EXPECT_EQ("X, A, B", list1.ToString());
 }
 
 TEST_F(DoubleLinkedTest, ReverseIterator) {

@@ -232,6 +232,42 @@ class DoubleLinked final {
     old_node->previous_ = nullptr;
   }
 
+  // Replaces |old_derived| by |new_derived|. |new_derived| should not be in
+  // this list.
+  void ReplaceNode(Derived* new_derived, Derived* old_derived) {
+    auto const new_node = static_cast<Node*>(new_derived);
+#if _DEBUG
+    DCHECK(!new_node->owner_);
+    new_node->owner_ = this;
+#endif
+    DCHECK(!new_node->next_) << "new node should not be in this list.";
+    DCHECK(!new_node->previous_);
+    DCHECK_NE(first_, new_node);
+
+    auto const old_node = static_cast<Node*>(old_derived);
+#if _DEBUG
+    DCHECK_EQ(this, old_node->owner_) << "old node must be in this list.";
+    old_node->owner_ = nullptr;
+#endif
+
+    auto const next = old_node->next_;
+    if (next)
+      static_cast<Node*>(next)->previous_ = new_derived;
+    else
+      last_ = new_derived;
+    new_node->next_ = next;
+
+    auto const previous = old_node->previous_;
+    if (previous)
+      static_cast<Node*>(previous)->next_ = new_derived;
+    else
+      first_ = new_derived;
+
+    new_node->previous_ = previous;
+    old_node->next_ = nullptr;
+    old_node->previous_ = nullptr;
+  }
+
   void PrependNode(Derived* new_derived) {
     auto const new_node = static_cast<Node*>(new_derived);
     DCHECK(!new_node->next_);
