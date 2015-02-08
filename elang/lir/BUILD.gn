@@ -41,6 +41,8 @@ component("lir") {
     "pass.cc",
     "printable.h",
     "target.h",
+    "transforms/lowering_x64.cc",
+    "transforms/lowering_x64.h",
     "value.h",
     "value.cc",
     "validator.h",
@@ -105,6 +107,7 @@ source_set("lir_unittests") {
       "code_emitter_x64_unittest.cc",
       "instructions_x64_unittest.cc",
       "target_x64_unittest.cc",
+      "transforms/lowering_x64_unittest.cc",
     ]
   }
 }
