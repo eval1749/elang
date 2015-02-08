@@ -139,8 +139,8 @@ TEST_F(LirEditorTest, InsertAfter) {
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(function->entry_block());
-  auto const new_instr = factory()->NewCopyInstruction(
-      factory()->NewRegister(), ref_instr->output(0));
+  auto const new_instr = factory()->NewCopyInstruction(factory()->NewRegister(),
+                                                       ref_instr->output(0));
   editor.InsertAfter(new_instr, ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
@@ -171,6 +171,31 @@ TEST_F(LirEditorTest, LiteralInstruction) {
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
+}
+
+TEST_F(LirEditorTest, Replace) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+
+  auto const entry_block = function->entry_block();
+  editor.Edit(entry_block);
+  auto const ref_instr = factory()->NewLiteralInstruction(
+      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+  editor.Append(ref_instr);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(entry_block);
+  auto const new_instr = factory()->NewCopyInstruction(factory()->NewRegister(),
+                                                       ref_instr->output(0));
+  editor.Replace(new_instr, ref_instr);
+  EXPECT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(entry_block->last_instruction(), new_instr->next());
+  EXPECT_EQ(entry_block->first_instruction(), new_instr->previous());
+
+  EXPECT_EQ(0, ref_instr->id());
+  EXPECT_EQ(nullptr, ref_instr->next());
+  EXPECT_EQ(nullptr, ref_instr->previous());
 }
 
 TEST_F(LirEditorTest, SetJump) {

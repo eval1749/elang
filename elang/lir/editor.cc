@@ -186,6 +186,20 @@ void Editor::Remove(Instruction* old_instruction) {
   old_instruction->basic_block_ = nullptr;
 }
 
+void Editor::Replace(Instruction* new_instruction,
+                     Instruction* old_instruction) {
+  DCHECK(!new_instruction->IsTerminator())
+      << "Please use Editor::SetTerminator() to replace terminator";
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, old_instruction->basic_block_);
+  DCHECK(!new_instruction->basic_block());
+  basic_block_->instructions_.ReplaceNode(new_instruction, old_instruction);
+  new_instruction->id_ = old_instruction->id_;
+  new_instruction->basic_block_ = basic_block_;
+  old_instruction->id_ = 0;
+  old_instruction->basic_block_ = nullptr;
+}
+
 const OrderedBlockList& Editor::ReversePreOrderList() const {
   if (!reverse_pre_order_list_) {
     reverse_pre_order_list_.reset(new OrderedBlockList(
