@@ -166,18 +166,21 @@ TEST_F(GraphTest, AddEdge) {
   EXPECT_FALSE(block1->HasPredecessor());
   EXPECT_TRUE(block1->HasSuccessor());
   EXPECT_FALSE(block1->HasMoreThanOnePredecessors());
-
+  EXPECT_TRUE(block1->HasMoreThanOneSuccessors());
   EXPECT_TRUE(block2->HasPredecessor());
   EXPECT_TRUE(block2->HasSuccessor());
   EXPECT_FALSE(block2->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block2->HasMoreThanOneSuccessors());
 
   EXPECT_TRUE(block3->HasPredecessor());
   EXPECT_TRUE(block3->HasSuccessor());
   EXPECT_FALSE(block3->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block3->HasMoreThanOneSuccessors());
 
   EXPECT_TRUE(block4->HasPredecessor());
   EXPECT_FALSE(block4->HasSuccessor());
   EXPECT_TRUE(block4->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block4->HasMoreThanOneSuccessors());
 }
 
 TEST_F(GraphTest, InsertNode) {

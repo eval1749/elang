@@ -41,6 +41,9 @@ class Graph {
     bool HasMoreThanOnePredecessors() const {
       return predecessors_.size() > 1u;
     }
+    bool HasMoreThanOneSuccessors() const {
+      return successors_.size() > 1u;
+    }
     bool HasPredecessor() const { return !predecessors_.empty(); }
     bool HasSuccessor() const { return !successors_.empty(); }
 
