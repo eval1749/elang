@@ -14,6 +14,7 @@
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/literals_forward.h"
+#include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
