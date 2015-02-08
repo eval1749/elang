@@ -134,6 +134,12 @@ void Editor::InsertBefore(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
 }
 
+void Editor::InsertAfter(Instruction* new_instruction,
+                         Instruction* ref_instruction) {
+  DCHECK(ref_instruction);
+  InsertBefore(new_instruction, ref_instruction->next());
+}
+
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   DCHECK(reference);
   DCHECK_EQ(function(), reference->function());

@@ -8,6 +8,7 @@
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
+#include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 
@@ -125,6 +126,26 @@ TEST_F(LirEditorTest, FunctionSample1) {
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
+}
+
+TEST_F(LirEditorTest, InsertAfter) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+
+  editor.Edit(function->entry_block());
+  auto const ref_instr = factory()->NewLiteralInstruction(
+      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+  editor.Append(ref_instr);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(function->entry_block());
+  auto const new_instr = factory()->NewCopyInstruction(
+      factory()->NewRegister(), ref_instr->output(0));
+  editor.InsertAfter(new_instr, ref_instr);
+  EXPECT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(ref_instr, new_instr->previous());
+  EXPECT_EQ(new_instr, ref_instr->next());
 }
 
 TEST_F(LirEditorTest, JumpInstruction) {

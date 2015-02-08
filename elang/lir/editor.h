@@ -91,6 +91,7 @@ class ELANG_LIR_EXPORT Editor final {
 
   // Instruction editing
   void Append(Instruction* new_instruction);
+  void InsertAfter(Instruction* new_instruction, Instruction* ref_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
   void Remove(Instruction* old_instruction);
   void SetInput(Instruction* instruction, int index, Value new_value);
