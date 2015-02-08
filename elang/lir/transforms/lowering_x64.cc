@@ -25,6 +25,18 @@ base::StringPiece X64LoweringPass::name() const {
   return "lowering_x64";
 }
 
+Value X64LoweringPass::GetRAX(Value type) {
+  DCHECK_EQ(type.type, Value::Type::Integer);
+  return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RAX
+                                                            : isa::EAX);
+}
+
+Value X64LoweringPass::GetRDX(Value type) {
+  DCHECK_EQ(type.type, Value::Type::Integer);
+  return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RDX
+                                                            : isa::EDX);
+}
+
 // Rewrite three operands instruction to two operands instruction.
 //   add %a = %b, %c
 //   =>
@@ -73,6 +85,31 @@ void X64LoweringPass::VisitBitOr(BitOrInstruction* instr) {
 
 void X64LoweringPass::VisitBitXor(BitXorInstruction* instr) {
   RewriteToTwoOperands(instr);
+}
+
+//   div %a = %b, %c
+//   =>
+//   copy %1 = %b
+//   xor rdx = rdx, rdx
+//   div rax, rdx = rax, rdx, %c
+//   copy %a = %rax
+void X64LoweringPass::VisitDiv(DivInstruction* instr) {
+  auto const output = instr->output(0);
+  if (output.is_float()) {
+    RewriteToTwoOperands(instr);
+    return;
+  }
+
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const zero_instr =
+      NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
+  editor()->InsertBefore(zero_instr, instr);
+  auto const div_instr =
+      factory()->NewDivX64Instruction(GetRAX(output), GetRDX(output), input,
+                                      zero_instr->output(0), instr->input(1));
+  editor()->InsertBefore(div_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }
 
 void X64LoweringPass::VisitSub(SubInstruction* instr) {
