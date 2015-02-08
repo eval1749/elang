@@ -41,6 +41,7 @@ class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
   // Support functions
   Value GetRAX(Value type);
   Value GetRDX(Value type);
+  void RewriteShiftInstruciton(Instruction* instr);
   void RewriteToTwoOperands(Instruction* instr);
 
   // InstructionVisitor
@@ -50,6 +51,8 @@ class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
   void VisitBitXor(BitXorInstruction* instr) final;
   void VisitDiv(DivInstruction* instr) final;
   void VisitMul(MulInstruction* instr) final;
+  void VisitShl(ShlInstruction* instr) final;
+  void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
 
   DISALLOW_COPY_AND_ASSIGN(X64LoweringPass);

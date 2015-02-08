@@ -37,6 +37,17 @@ Value X64LoweringPass::GetRDX(Value type) {
                                                             : isa::EDX);
 }
 
+// Rewrite count operand to use |CL| register.
+void X64LoweringPass::RewriteShiftInstruciton(Instruction* instr) {
+  auto const count_input = instr->input(1);
+  if (!count_input.is_register())
+    return;
+  auto const count_register = Target::GetRegister(
+      count_input.size == ValueSize::Size64 ? isa::RCX : isa::ECX);
+  editor()->InsertCopyBefore(count_register, count_input, instr);
+  editor()->SetInput(instr, 1, count_register);
+}
+
 // Rewrite three operands instruction to two operands instruction.
 //   add %a = %b, %c
 //   =>
@@ -130,6 +141,14 @@ void X64LoweringPass::VisitMul(MulInstruction* instr) {
       GetRAX(output), GetRDX(output), input, instr->input(1));
   editor()->InsertBefore(mul_instr, instr);
   editor()->Replace(NewCopyInstruction(output, mul_instr->output(0)), instr);
+}
+
+void X64LoweringPass::VisitShl(ShlInstruction* instr) {
+  RewriteShiftInstruciton(instr);
+}
+
+void X64LoweringPass::VisitShr(ShrInstruction* instr) {
+  RewriteShiftInstruciton(instr);
 }
 
 void X64LoweringPass::VisitSub(SubInstruction* instr) {

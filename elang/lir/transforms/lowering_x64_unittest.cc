@@ -196,5 +196,52 @@ TEST_F(LirLoweringX64Test, MulInt) {
       FormatFunction(&editor));
 }
 
+// int Foo(int x, int y) {
+//   var z = x << 5;
+//   return x << y;
+// }
+#define DEFINE_SHIFT_OPERATION_TEST(Name, mnemonic)                            \
+  TEST_F(LirLoweringX64Test, Name) {                                           \
+    auto const function = CreateFunctionEmptySample();                         \
+    auto const entry_block = function->entry_block();                          \
+    Editor editor(factory(), function);                                        \
+    editor.Edit(entry_block);                                                  \
+    auto const type = Value(Value::Type::Integer, ValueSize::Size32);          \
+    auto const parameters = EmitCopyParameters(&editor, type, 2);              \
+    auto output = NewRegister(type);                                           \
+    auto output2 = NewRegister(type);                                          \
+    editor.Append(                                                             \
+        New##Name##Instruction(output2, parameters[0], Value::SmallInt32(5))); \
+    editor.Append(New##Name##Instruction(output, output2, parameters[1]));     \
+    editor.Append(NewCopyInstruction(Target::GetReturn(type), output));        \
+    editor.SetReturn();                                                        \
+    EXPECT_EQ("", Commit(&editor));                                            \
+    ASSERT_EQ("", Validate(&editor));                                          \
+                                                                               \
+    X64LoweringPass(factory(), function).Run();                                \
+    EXPECT_EQ(                                                                 \
+        "function1:\n"                                                         \
+        "block1:\n"                                                            \
+        "  // In: {}\n"                                                        \
+        "  // Out: {block2}\n"                                                 \
+        "  entry\n"                                                            \
+        "  pcopy %r1, %r2 = ECX, EDX\n"                                        \
+        "  " mnemonic                                                          \
+        " %r4 = %r1, 5\n"                                                      \
+        "  mov ECX = %r2\n"                                                    \
+        "  " mnemonic                                                          \
+        " %r3 = %r4, ECX\n"                                                    \
+        "  mov EAX = %r3\n"                                                    \
+        "  ret block2\n"                                                       \
+        "block2:\n"                                                            \
+        "  // In: {block1}\n"                                                  \
+        "  // Out: {}\n"                                                       \
+        "  exit\n",                                                            \
+        FormatFunction(&editor));                                              \
+  }
+
+DEFINE_SHIFT_OPERATION_TEST(Shl, "shl")
+DEFINE_SHIFT_OPERATION_TEST(Shr, "shr")
+
 }  // namespace lir
 }  // namespace elang
