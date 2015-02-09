@@ -159,7 +159,7 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << "--:";
   ostream << instruction.id() << ":" << instruction.mnemonic();
   if (!instruction.outputs().empty()) {
-    auto separator = "";
+    auto separator = " ";
     for (auto const output : instruction.outputs()) {
       ostream << separator << output;
       separator = ", ";
