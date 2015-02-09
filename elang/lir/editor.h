@@ -36,6 +36,13 @@ class ELANG_LIR_EXPORT Editor final {
  public:
   typedef LivenessCollection<BasicBlock*, Value> LivenessData;
 
+  // Counters
+  struct Counters {
+    int block_counter;
+    int instruction_counter;
+    int output_counter;
+  };
+
   // ScopedEdit
   class ELANG_LIR_EXPORT ScopedEdit final {
    public:
@@ -60,6 +67,7 @@ class ELANG_LIR_EXPORT Editor final {
 
   // Analysis
   const LivenessData& AnalyzeLiveness();
+  Counters AssignIndex();
 
   // Validation errors
   void AddError(ErrorCode error_code,

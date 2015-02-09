@@ -201,7 +201,7 @@ Instruction::Values::Iterator& Instruction::Values::Iterator::operator++() {
 //
 // Instruction
 //
-Instruction::Instruction() : basic_block_(nullptr), id_(0) {
+Instruction::Instruction() : basic_block_(nullptr), id_(0), index_(0) {
 }
 
 BasicBlock* Instruction::block_operand(int index) const {

@@ -68,6 +68,42 @@ const Editor::LivenessData& Editor::AnalyzeLiveness() {
   return *liveness_data_;
 }
 
+Editor::Counters Editor::AssignIndex() {
+  DCHECK(!basic_block_);
+  Counters counters;
+  counters.block_counter = 0;
+  counters.instruction_counter = 0;
+  counters.output_counter = 0;
+  for (auto const block : function()->basic_blocks()) {
+    block->index_ = counters.block_counter;
+    ++counters.block_counter;
+    for (auto const phi_instr : block->phi_instructions()) {
+      auto const output = phi_instr->output(0);
+      DCHECK(output.is_virtual());
+      phi_instr->SetOutput(0, Value(output.type, output.size, output.kind,
+                                    counters.output_counter));
+      ++counters.output_counter;
+      phi_instr->index_ = counters.instruction_counter;
+      ++counters.instruction_counter;
+    }
+    for (auto const instr : block->instructions()) {
+      auto position = 0;
+      for (auto const output : instr->outputs()) {
+        if (output.is_virtual()) {
+          instr->SetOutput(position, Value(output.type, output.size,
+                                           output.kind,
+                                           counters.output_counter));
+          ++counters.output_counter;
+        }
+        ++position;
+      }
+      instr->index_ = counters.instruction_counter;
+      ++counters.instruction_counter;
+    }
+  }
+  return counters;
+}
+
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);

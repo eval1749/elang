@@ -138,6 +138,7 @@ class ELANG_LIR_EXPORT Instruction
 
   // An integer identifier for debugging.
   int id() const { return id_; }
+  int index() const { return index_; }
 
   // ISA independent mnemonic for printing and debugging, see also
   // |MnemonicOf(Opcode) -> base::StringPiece|.
@@ -181,6 +182,7 @@ class ELANG_LIR_EXPORT Instruction
 
   BasicBlock* basic_block_;
   int id_;
+  int index_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };

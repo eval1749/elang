@@ -93,6 +93,36 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
   EXPECT_TRUE(merge_liveness.in().Contains(collection.NumberOf(values[1])));
 }
 
+TEST_F(LirEditorTest, AssignIndex) {
+  auto const function = CreateFunctionEmptySample();
+  auto const entry_block = function->entry_block();
+  auto const last_instruction = entry_block->last_instruction();
+  Editor editor(factory(), function);
+  editor.Edit(entry_block);
+  auto const register1 = factory()->NewRegister();
+  auto const register2 = factory()->NewRegister();
+  editor.InsertCopyBefore(register1, register2, last_instruction);
+  EXPECT_EQ("", Commit(&editor));
+  ASSERT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  mov %r1l = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+
+  auto counters = editor.AssignIndex();
+  EXPECT_EQ(2, counters.block_counter);
+  EXPECT_EQ(4, counters.instruction_counter);
+  EXPECT_EQ(1, counters.output_counter);
+}
+
 TEST_F(LirEditorTest, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);

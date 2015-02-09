@@ -30,7 +30,7 @@ Literal::Literal() {
 // BasicBlock
 //
 BasicBlock::BasicBlock(Zone* zone, Value value)
-    : Node(zone), function_(nullptr), id_(0), value_(value) {
+    : Node(zone), function_(nullptr), id_(0), index_(0), value_(value) {
 }
 
 Instruction* BasicBlock::first_instruction() const {

@@ -90,6 +90,7 @@ class ELANG_LIR_EXPORT BasicBlock final
 
   // An integer identifier for debugging.
   int id() const { return id_; }
+  int index() const { return index_; }
 
   // Getters for instructions in this basic block.
   Instruction* first_instruction() const;
@@ -111,6 +112,7 @@ class ELANG_LIR_EXPORT BasicBlock final
   // |id_| is assign positive integer by |FunctionEditor|. When this basic
   // block is removed from |Function|, |id_| is reset to zero.
   int id_;
+  int index_;
   // List of instructions.
   InstructionList instructions_;
   InstructionList phi_instructions_;
