@@ -75,6 +75,7 @@ class GraphTestBase : public ::testing::Test, public ZoneOwner {
   Function* function() { return &function_; }
 
   void MakeDiamondGraph();
+  void MakeSampleGraph1();
   Block* NewBlock(int id);
   static std::string ToString(const OrderedList<Block*>& list);
 

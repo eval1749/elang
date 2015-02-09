@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <array>
 #include <sstream>
 
 #include "elang/base/graphs/graph_editor.h"
@@ -88,6 +89,63 @@ void GraphTestBase::MakeDiamondGraph() {
   editor.AddEdge(block1, block3);
   editor.AddEdge(block2, block4);
   editor.AddEdge(block3, block4);
+}
+
+//      B0---------+    B0 -> B1, B5
+//      |          |
+//      B1<------+ |    B1 -> B2, B4
+//      |        | |
+//   +->B2-->B5  | |    B2 -> B3, B6
+//   |  |    |   | |
+//   +--B3<--+   | |    B3 -> B2, B4
+//      |        | |
+//      B4<------+ |    B4 -> B1, B6
+//      |          |    B5 -> B3
+//      B6<--------+    B6
+//
+//  B0: parent=ENTRY children=[B1, B5]
+//  B1: parent=B0    children=[B2, B4]
+//  B2: parent=B1    children=[B2, B3]
+//  B3: parent=B2    children=[]
+//  B4: parent=B1    children=[]
+//  B5: parent=B2    children=[]
+//  B6: parent=B0    children=[EXIT]
+void GraphTestBase::MakeSampleGraph1() {
+  Function::Editor editor(function());
+
+  auto const entry_block = NewBlock(-1);
+  auto const exit_block = NewBlock(-2);
+
+  editor.AppendNode(entry_block);
+  std::array<Block*, 7> blocks;
+  auto id = 0;
+  for (auto& ref : blocks) {
+    ref = NewBlock(id);
+    editor.AppendNode(blocks[id]);
+    ++id;
+  }
+  editor.AppendNode(exit_block);
+
+  editor.AddEdge(entry_block, blocks[0]);
+
+  editor.AddEdge(blocks[0], blocks[1]);
+  editor.AddEdge(blocks[0], blocks[6]);
+
+  editor.AddEdge(blocks[1], blocks[2]);
+  editor.AddEdge(blocks[1], blocks[4]);
+
+  editor.AddEdge(blocks[2], blocks[3]);
+  editor.AddEdge(blocks[2], blocks[5]);
+
+  editor.AddEdge(blocks[3], blocks[2]);
+  editor.AddEdge(blocks[3], blocks[4]);
+
+  editor.AddEdge(blocks[4], blocks[1]);
+  editor.AddEdge(blocks[4], blocks[6]);
+
+  editor.AddEdge(blocks[5], blocks[3]);
+
+  editor.AddEdge(blocks[6], exit_block);
 }
 
 }  // namespace testing
