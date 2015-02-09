@@ -157,7 +157,6 @@ TEST_F(LirEditorTest, InsertCopyBefore) {
   auto const register1 = factory()->NewRegister();
   auto const register2 = factory()->NewRegister();
   editor.InsertCopyBefore(register1, register2, last_instruction);
-  editor.InsertCopyBefore(register2, register1, last_instruction);
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"

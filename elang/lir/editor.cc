@@ -165,7 +165,8 @@ Value Editor::InsertCopyBefore(Value output,
       // Avoid to emit useless copy
       //   copy %input = %output
       //   copy %output = %input
-      return output;
+      // TODO(eval1749) We believe LIR transforms don't insert useless copy.
+      NOTREACHED() << "useless copy instruction: " << *ref_instruction;
     }
   }
   InsertBefore(factory()->NewCopyInstruction(output, input), ref_instruction);
