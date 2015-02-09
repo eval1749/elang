@@ -59,6 +59,18 @@ component("base") {
   }
 }
 
+source_set("test_support") {
+  testonly = true
+  sources = [
+    "graphs/graph_test.cc",
+    "graphs/graph_test.h",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":base",
+  ]
+}
+
 source_set("base_unittests") {
   testonly = true
   sources = [
@@ -78,8 +90,7 @@ source_set("base_unittests") {
   ]
 
   public_deps = [
-    "//testing/gtest",
-    ":base",
+    ":test_support",
   ]
 }
 
