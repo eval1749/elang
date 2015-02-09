@@ -5,8 +5,6 @@
 #ifndef ELANG_LIR_ANALYSIS_USE_DEF_LIST_BUILDER_H_
 #define ELANG_LIR_ANALYSIS_USE_DEF_LIST_BUILDER_H_
 
-#include <memory>
-
 #include "base/macros.h"
 #include "elang/lir/lir_export.h"
 
@@ -24,18 +22,18 @@ struct Value;
 //
 class ELANG_LIR_EXPORT UseDefListBuilder final {
  public:
-  UseDefListBuilder();
+  explicit UseDefListBuilder(Function* function);
   ~UseDefListBuilder();
 
-  std::unique_ptr<UseDefList> Build(Function* function);
+  UseDefList Build();
 
  private:
   friend class UseDefListBuilderBuilder;
 
-  void AddUser(Value value, Instruction* instruction);
-  void Assign(Value value);
+  void AddUser(UseDefList* use_def_list, Value value, Instruction* instruction);
+  void Assign(UseDefList* use_def_list, Value value);
 
-  std::unique_ptr<UseDefList> use_def_list_;
+  Function* const function_;
 
   DISALLOW_COPY_AND_ASSIGN(UseDefListBuilder);
 };

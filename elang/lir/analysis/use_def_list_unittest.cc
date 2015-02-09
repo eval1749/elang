@@ -62,13 +62,13 @@ TEST_F(UseDefListTest, Basic) {
 
   ASSERT_EQ("", Commit(&editor));
 
-  auto const use_def_list = UseDefListBuilder().Build(function);
+  auto const use_def_list = UseDefListBuilder(function).Build();
   EXPECT_EQ(
       "bb:15:and %r2 = %r1, %r1\n"
       "bb:16:or %r3 = %r1, %r2\n",
-      ToString(use_def_list->UsersOf(reg1)));
-  EXPECT_EQ("bb:16:or %r3 = %r1, %r2\n", ToString(use_def_list->UsersOf(reg2)));
-  EXPECT_EQ("", ToString(use_def_list->UsersOf(reg3))) << "%r3 isn't used.";
+      ToString(use_def_list.UsersOf(reg1)));
+  EXPECT_EQ("bb:16:or %r3 = %r1, %r2\n", ToString(use_def_list.UsersOf(reg2)));
+  EXPECT_EQ("", ToString(use_def_list.UsersOf(reg3))) << "%r3 isn't used.";
 }
 
 }  // namespace

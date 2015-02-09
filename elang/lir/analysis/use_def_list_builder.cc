@@ -13,45 +13,47 @@
 namespace elang {
 namespace lir {
 
-UseDefListBuilder::UseDefListBuilder() : use_def_list_(new UseDefList()) {
+UseDefListBuilder::UseDefListBuilder(Function* function)
+    : function_(function) {
 }
 
 UseDefListBuilder::~UseDefListBuilder() {
 }
 
-void UseDefListBuilder::AddUser(Value value, Instruction* user) {
+void UseDefListBuilder::AddUser(UseDefList* use_def_list,
+                                Value value,
+                                Instruction* user) {
   if (!value.is_virtual())
     return;
-  auto const it = use_def_list_->map_.find(value);
-  DCHECK(it != use_def_list_->map_.end());
+  auto const it = use_def_list->map_.find(value);
+  DCHECK(it != use_def_list->map_.end());
   auto const users = it->second;
   if (!users->empty() && users->users_.back() == user)
     return;
   users->users_.push_back(user);
 }
 
-void UseDefListBuilder::Assign(Value value) {
+void UseDefListBuilder::Assign(UseDefList* use_def_list, Value value) {
   if (!value.is_virtual())
     return;
-  DCHECK(!use_def_list_->map_.count(value));
-  auto const zone = use_def_list_->zone();
-  use_def_list_->map_[value] = new (zone) UseDefList::Users(zone);
+  DCHECK(!use_def_list->map_.count(value));
+  auto const zone = use_def_list->zone();
+  use_def_list->map_[value] = new (zone) UseDefList::Users(zone);
 }
 
-std::unique_ptr<UseDefList> UseDefListBuilder::Build(Function* function) {
-  DCHECK(use_def_list_);
-  auto use_def_list = std::make_unique<UseDefList>();
-  for (auto const block : function->basic_blocks()) {
+UseDefList UseDefListBuilder::Build() {
+  UseDefList use_def_list;
+  for (auto const block : function_->basic_blocks()) {
     for (auto const phi : block->phi_instructions())
-      Assign(phi->output(0));
+      Assign(&use_def_list, phi->output(0));
     for (auto const instr : block->instructions()) {
       for (auto const input : instr->inputs())
-        AddUser(input, instr);
+        AddUser(&use_def_list, input, instr);
       for (auto const output : instr->outputs())
-        Assign(output);
+        Assign(&use_def_list, output);
     }
   }
-  return std::move(use_def_list_);
+  return std::move(use_def_list);
 }
 
 }  // namespace lir

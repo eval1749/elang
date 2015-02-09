@@ -20,10 +20,21 @@ UseDefList::Users::Users(Zone* zone) : users_(zone) {
 //
 // UseDefList
 //
-UseDefList::UseDefList() : map_(zone()) {
+UseDefList::UseDefList(UseDefList&& other)
+    : ZoneOwner(std::move(static_cast<ZoneOwner&&>(other))),
+      map_(std::move(other.map_)) {
+}
+
+UseDefList::UseDefList() {
 }
 
 UseDefList::~UseDefList() {
+}
+
+UseDefList& UseDefList::operator=(UseDefList&& other) {
+  *static_cast<ZoneOwner*>(this) = std::move(static_cast<ZoneOwner&&>(other));
+  map_ = std::move(other.map_);
+  return *this;
 }
 
 const UseDefList::Users& UseDefList::UsersOf(Value value) const {

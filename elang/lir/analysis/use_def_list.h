@@ -5,10 +5,11 @@
 #ifndef ELANG_LIR_ANALYSIS_USE_DEF_LIST_H_
 #define ELANG_LIR_ANALYSIS_USE_DEF_LIST_H_
 
+#include <unordered_map>
+
 #include "base/macros.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
-#include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/value.h"
@@ -46,18 +47,20 @@ class ELANG_LIR_EXPORT UseDefList final : public ZoneOwner {
     ZoneVector<Instruction*> users_;
   };
 
-  // Expose |UseDefList| constructor for |std::make_unique<T>(...)|.
+  UseDefList(const UseDefList& other) = delete;
+  UseDefList(UseDefList&&);
   UseDefList();
   ~UseDefList();
+
+  UseDefList& operator=(const UseDefList& other) = delete;
+  UseDefList& operator=(UseDefList&&);
 
   const Users& UsersOf(Value value) const;
 
  private:
   friend class UseDefListBuilder;
 
-  ZoneUnorderedMap<Value, Users*> map_;
-
-  DISALLOW_COPY_AND_ASSIGN(UseDefList);
+  std::unordered_map<Value, Users*> map_;
 };
 
 }  // namespace lir
