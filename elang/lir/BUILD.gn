@@ -9,6 +9,10 @@ component("lir") {
   sources = [
     "analysis/liveness_analyzer.cc",
     "analysis/liveness_analyzer.h",
+    "analysis/use_def_list.cc",
+    "analysis/use_def_list.h",
+    "analysis/use_def_list_builder.cc",
+    "analysis/use_def_list_builder.h",
     "code_emitter.cc",
     "code_emitter.h",
     "editor.cc",
@@ -94,6 +98,7 @@ source_set("test_support") {
 source_set("lir_unittests") {
   testonly = true
   sources = [
+    "analysis/use_def_list_unittest.cc",
     "editor_unittest.cc",
     "instructions_unittest.cc",
     "literals_unittest.cc",
