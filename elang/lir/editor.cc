@@ -78,24 +78,15 @@ Editor::Counters Editor::AssignIndex() {
     block->index_ = counters.block_counter;
     ++counters.block_counter;
     for (auto const phi_instr : block->phi_instructions()) {
-      auto const output = phi_instr->output(0);
-      DCHECK(output.is_virtual());
-      phi_instr->SetOutput(0, Value(output.type, output.size, output.kind,
-                                    counters.output_counter));
+      DCHECK(phi_instr->output(0).is_virtual());
       ++counters.output_counter;
       phi_instr->index_ = counters.instruction_counter;
       ++counters.instruction_counter;
     }
     for (auto const instr : block->instructions()) {
-      auto position = 0;
       for (auto const output : instr->outputs()) {
-        if (output.is_virtual()) {
-          instr->SetOutput(position, Value(output.type, output.size,
-                                           output.kind,
-                                           counters.output_counter));
+        if (output.is_virtual())
           ++counters.output_counter;
-        }
-        ++position;
       }
       instr->index_ = counters.instruction_counter;
       ++counters.instruction_counter;
