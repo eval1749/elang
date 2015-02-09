@@ -16,8 +16,13 @@ namespace elang {
 //
 class ELANG_BASE_EXPORT Zone final {
  public:
+  Zone(const Zone& other) = delete;
+  Zone(Zone&& other);
   Zone();
   ~Zone();
+
+  Zone& operator=(const Zone& other) = delete;
+  Zone& operator=(Zone&& other);
 
   // Allocate |size| bytes of memory in the Zone.
   void* Allocate(size_t size);
@@ -31,8 +36,6 @@ class ELANG_BASE_EXPORT Zone final {
   class Segment;
 
   Segment* segment_;
-
-  DISALLOW_COPY_AND_ASSIGN(Zone);
 };
 
 }  // namespace elang

@@ -17,19 +17,23 @@ namespace elang {
 //
 class ELANG_BASE_EXPORT ZoneOwner {
  public:
+  ZoneOwner(const ZoneOwner& other) = delete;
+
+  ZoneOwner& operator=(const ZoneOwner& other) = delete;
+  ZoneOwner& operator=(ZoneOwner&& other);
+
   Zone* zone() { return &zone_; }
 
   // Allocate |size| bytes of memory in the Zone.
   void* Allocate(size_t size);
 
  protected:
+  ZoneOwner(ZoneOwner&& other);
   ZoneOwner();
   ~ZoneOwner();
 
  private:
   Zone zone_;
-
-  DISALLOW_COPY_AND_ASSIGN(ZoneOwner);
 };
 
 }  // namespace elang

@@ -2,14 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <utility>
+
 #include "elang/base/zone_owner.h"
 
 namespace elang {
+
+ZoneOwner::ZoneOwner(ZoneOwner&& other) : zone_(std::move(other.zone_)) {
+}
 
 ZoneOwner::ZoneOwner() {
 }
 
 ZoneOwner::~ZoneOwner() {
+}
+
+ZoneOwner& ZoneOwner::operator=(ZoneOwner&& other) {
+  zone_ = std::move(other.zone_);
+  return *this;
 }
 
 void* ZoneOwner::Allocate(size_t size) {

@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/base/zone_allocated.h"
+#include <utility>
 
 #include "elang/base/zone.h"
+
+#include "elang/base/zone_allocated.h"
 
 namespace elang {
 
@@ -65,6 +67,10 @@ void* Zone::Segment::Allocate(size_t size) {
 //
 // Zone
 //
+Zone::Zone(Zone&& other) : segment_(other.segment_) {
+  other.segment_ = nullptr;
+}
+
 Zone::Zone() : segment_(new Segment(0, nullptr)) {
 }
 
@@ -75,6 +81,12 @@ Zone::~Zone() {
     delete segment;
     segment = next_segment;
   }
+}
+
+Zone& Zone::operator=(Zone&& other) {
+  segment_ = other.segment_;
+  other.segment_ = nullptr;
+  return *this;
 }
 
 void* Zone::Allocate(size_t size) {
