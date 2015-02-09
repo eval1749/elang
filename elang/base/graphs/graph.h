@@ -12,10 +12,13 @@
 
 namespace elang {
 
+template <typename Graph>
+struct ForwardFlowGraph;
+
 template <typename Owner, typename Derived>
 class GraphEditor;
 
-template <typename Graph>
+template <typename Graph, typename Direction>
 class GraphSorter;
 
 //////////////////////////////////////////////////////////////////////
@@ -27,16 +30,15 @@ class Graph {
  public:
   typedef GraphEditor<Owner, Derived> Editor;
   typedef Derived Derived;
+  typedef ZoneUnorderedSet<Derived*> NodeSet;
   typedef DoubleLinked<Derived, Owner> Nodes;
-  typedef GraphSorter<Graph> Sorter;
+  typedef GraphSorter<Graph, ForwardFlowGraph<Graph>> Sorter;
 
   // Node represents graph node having edges.
   class Node : public DoubleLinked<Derived, Owner>::Node {
    public:
-    const ZoneUnorderedSet<Derived*>& predecessors() const {
-      return predecessors_;
-    }
-    const ZoneUnorderedSet<Derived*>& successors() const { return successors_; }
+    const NodeSet& predecessors() const { return predecessors_; }
+    const NodeSet& successors() const { return successors_; }
 
     bool HasMoreThanOnePredecessors() const {
       return predecessors_.size() > 1u;
@@ -57,8 +59,8 @@ class Graph {
     // successors, e.g. by unconditional jump, and return. More than two
     // successors are introduced by switch like statement. So, using
     // |ZoneUnorderedSet| may be overkill regarding memory consumption.
-    ZoneUnorderedSet<Derived*> predecessors_;
-    ZoneUnorderedSet<Derived*> successors_;
+    NodeSet predecessors_;
+    NodeSet successors_;
 
     DISALLOW_COPY_AND_ASSIGN(Node);
   };

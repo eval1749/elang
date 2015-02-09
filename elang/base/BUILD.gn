@@ -24,6 +24,7 @@ component("base") {
     "castable.h",
     "double_linked.h",
     "float_types.h",
+    "graphs/flow_graph.h",
     "graphs/graph.h",
     "graphs/graph_editor.h",
     "graphs/graph_sorter.h",

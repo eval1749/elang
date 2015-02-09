@@ -5,6 +5,7 @@
 #ifndef ELANG_BASE_GRAPHS_GRAPH_SORTER_H_
 #define ELANG_BASE_GRAPHS_GRAPH_SORTER_H_
 
+#include "elang/base/graphs/flow_graph.h"
 #include "elang/base/graphs/graph.h"
 #include "elang/base/ordered_list.h"
 
@@ -14,7 +15,7 @@ namespace elang {
 //
 // Sort graph.
 //
-template <typename Graph>
+template <typename Graph, typename Direction = ForwardFlowGraph>
 class GraphSorter final {
  public:
   typedef typename Graph::Derived GraphNode;
@@ -53,57 +54,58 @@ class GraphSorter final {
 // GraphSorter
 
 // Graph::GraphSorter
-template <typename Graph>
-GraphSorter<Graph>::GraphSorter(const Graph* graph,
-                                Order order,
-                                Reverse reverse)
+template <typename Graph, typename Direction>
+GraphSorter<Graph, Direction>::GraphSorter(const Graph* graph,
+                                           Order order,
+                                           Reverse reverse)
     : graph_(graph), order_(order), reverse_(reverse) {
 }
 
-template <typename Graph>
-OrderedList<typename Graph::Derived*> GraphSorter<Graph>::Sort() {
+template <typename Graph, typename Direction>
+OrderedList<typename Graph::Derived*> GraphSorter<Graph, Direction>::Sort() {
   OrderedList::Builder builder;
-  Visit(&builder, *graph_->nodes().begin());
+  Visit(&builder, Direction::EntryOf(graph_));
   if (reverse_ == Reverse::Yes)
     builder.Reverse();
   return builder.Get();
 }
 
-template <typename Graph>
-void GraphSorter<Graph>::Visit(typename OrderedList::Builder* builder,
-                               GraphNode* node) {
+template <typename Graph, typename Direction>
+void GraphSorter<Graph, Direction>::Visit(
+    typename OrderedList::Builder* builder,
+    GraphNode* node) {
   if (visited_.count(node))
     return;
   visited_.insert(node);
   if (order_ == Order::PreOrder)
     builder->Add(node);
-  for (auto const successor : node->successors())
+  for (auto const successor : Direction::SuccessorsOf(node))
     Visit(builder, successor);
   if (order_ == Order::PostOrder)
     builder->Add(node);
 }
 
-template <typename Graph>
-OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByPreOrder(
-    const Graph* graph) {
+template <typename Graph, typename Direction>
+OrderedList<typename Graph::Derived*>
+GraphSorter<Graph, Direction>::SortByPreOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::No).Sort();
 }
 
-template <typename Graph>
-OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByPostOrder(
-    const Graph* graph) {
+template <typename Graph, typename Direction>
+OrderedList<typename Graph::Derived*>
+GraphSorter<Graph, Direction>::SortByPostOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::No).Sort();
 }
 
-template <typename Graph>
-OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByReversePreOrder(
-    const Graph* graph) {
+template <typename Graph, typename Direction>
+OrderedList<typename Graph::Derived*>
+GraphSorter<Graph, Direction>::SortByReversePreOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::Yes).Sort();
 }
 
-template <typename Graph>
+template <typename Graph, typename Direction>
 OrderedList<typename Graph::Derived*>
-GraphSorter<Graph>::SortByReversePostOrder(const Graph* graph) {
+GraphSorter<Graph, Direction>::SortByReversePostOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::Yes).Sort();
 }
 
