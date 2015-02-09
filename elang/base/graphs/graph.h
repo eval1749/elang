@@ -15,7 +15,7 @@ namespace elang {
 template <typename Owner, typename Derived>
 class GraphEditor;
 
-template <typename Owner, typename Derived>
+template <typename Graph>
 class GraphSorter;
 
 //////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ class Graph {
   typedef GraphEditor<Owner, Derived> Editor;
   typedef Derived Derived;
   typedef DoubleLinked<Derived, Owner> Nodes;
-  typedef GraphSorter<Owner, Derived> Sorter;
+  typedef GraphSorter<Graph> Sorter;
 
   // Node represents graph node having edges.
   class Node : public DoubleLinked<Derived, Owner>::Node {
@@ -41,9 +41,7 @@ class Graph {
     bool HasMoreThanOnePredecessors() const {
       return predecessors_.size() > 1u;
     }
-    bool HasMoreThanOneSuccessors() const {
-      return successors_.size() > 1u;
-    }
+    bool HasMoreThanOneSuccessors() const { return successors_.size() > 1u; }
     bool HasPredecessor() const { return !predecessors_.empty(); }
     bool HasSuccessor() const { return !successors_.empty(); }
 

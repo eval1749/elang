@@ -14,11 +14,11 @@ namespace elang {
 //
 // Sort graph.
 //
-template <typename Owner, typename Derived>
+template <typename Graph>
 class GraphSorter final {
  public:
-  typedef Graph<Owner, Derived> Graph;
-  typedef OrderedList<Derived*> OrderedList;
+  typedef typename Graph::Derived GraphNode;
+  typedef OrderedList<GraphNode*> OrderedList;
 
   static OrderedList SortByPreOrder(const Graph* graph);
   static OrderedList SortByPostOrder(const Graph* graph);
@@ -40,12 +40,12 @@ class GraphSorter final {
   ~GraphSorter() = default;
 
   OrderedList Sort();
-  void Visit(typename OrderedList::Builder* builder, Derived* node);
+  void Visit(typename OrderedList::Builder* builder, GraphNode* node);
 
   const Graph* const graph_;
   Order const order_;
   Reverse const reverse_;
-  std::unordered_set<Derived*> visited_;
+  std::unordered_set<GraphNode*> visited_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphSorter);
 };
@@ -53,15 +53,15 @@ class GraphSorter final {
 // GraphSorter
 
 // Graph::GraphSorter
-template <typename Owner, typename Derived>
-GraphSorter<Owner, Derived>::GraphSorter(const Graph* graph,
-                                         Order order,
-                                         Reverse reverse)
+template <typename Graph>
+GraphSorter<Graph>::GraphSorter(const Graph* graph,
+                                Order order,
+                                Reverse reverse)
     : graph_(graph), order_(order), reverse_(reverse) {
 }
 
-template <typename Owner, typename Derived>
-OrderedList<Derived*> GraphSorter<Owner, Derived>::Sort() {
+template <typename Graph>
+OrderedList<typename Graph::Derived*> GraphSorter<Graph>::Sort() {
   OrderedList::Builder builder;
   Visit(&builder, *graph_->nodes().begin());
   if (reverse_ == Reverse::Yes)
@@ -69,9 +69,9 @@ OrderedList<Derived*> GraphSorter<Owner, Derived>::Sort() {
   return builder.Get();
 }
 
-template <typename Owner, typename Derived>
-void GraphSorter<Owner, Derived>::Visit(typename OrderedList::Builder* builder,
-                                        Derived* node) {
+template <typename Graph>
+void GraphSorter<Graph>::Visit(typename OrderedList::Builder* builder,
+                               GraphNode* node) {
   if (visited_.count(node))
     return;
   visited_.insert(node);
@@ -83,25 +83,27 @@ void GraphSorter<Owner, Derived>::Visit(typename OrderedList::Builder* builder,
     builder->Add(node);
 }
 
-template <typename Owner, typename T>
-OrderedList<T*> GraphSorter<Owner, T>::SortByPreOrder(const Graph* graph) {
+template <typename Graph>
+OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByPreOrder(
+    const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::No).Sort();
 }
 
-template <typename Owner, typename T>
-OrderedList<T*> GraphSorter<Owner, T>::SortByPostOrder(const Graph* graph) {
+template <typename Graph>
+OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByPostOrder(
+    const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::No).Sort();
 }
 
-template <typename Owner, typename T>
-OrderedList<T*> GraphSorter<Owner, T>::SortByReversePreOrder(
+template <typename Graph>
+OrderedList<typename Graph::Derived*> GraphSorter<Graph>::SortByReversePreOrder(
     const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::Yes).Sort();
 }
 
-template <typename Owner, typename T>
-OrderedList<T*> GraphSorter<Owner, T>::SortByReversePostOrder(
-    const Graph* graph) {
+template <typename Graph>
+OrderedList<typename Graph::Derived*>
+GraphSorter<Graph>::SortByReversePostOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::Yes).Sort();
 }
 
