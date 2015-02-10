@@ -45,6 +45,8 @@ component("lir") {
     "pass.cc",
     "printable.h",
     "target.h",
+    "transforms/stack_allocator.cc",
+    "transforms/stack_allocator.h",
     "value.h",
     "value.cc",
     "validator.h",
@@ -102,6 +104,7 @@ source_set("lir_unittests") {
     "editor_unittest.cc",
     "instructions_unittest.cc",
     "literals_unittest.cc",
+    "transforms/stack_allocator_unittest.cc",
     "value_unittest.cc",
   ]
   public_deps = [
