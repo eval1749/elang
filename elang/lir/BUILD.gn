@@ -45,8 +45,6 @@ component("lir") {
     "pass.cc",
     "printable.h",
     "target.h",
-    "transforms/lowering_x64.cc",
-    "transforms/lowering_x64.h",
     "value.h",
     "value.cc",
     "validator.h",
@@ -71,6 +69,8 @@ component("lir") {
       "opcodes_x64.h",
       "target_x64.h",
       "target_x64.cc",
+      "transforms/lowering_x64.cc",
+      "transforms/lowering_x64.h",
     ]
   }
 }
