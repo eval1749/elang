@@ -10,7 +10,6 @@
 
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
-#include "elang/lir/editor.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/literals_forward.h"
 
