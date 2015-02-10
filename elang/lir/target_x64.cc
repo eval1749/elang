@@ -217,6 +217,16 @@ Value Target::GetReturn(Value type) {
   return GetRegister(type.size == ValueSize::Size64 ? isa::RAX : isa::EAX);
 }
 
+bool Target::IsCalleeSaveRegister(Value value) {
+  DCHECK(value.is_physical());
+  return (isa::kCalleeSaveRegisters & (1 << (value.data & 15))) != 0;
+}
+
+bool Target::IsCallerSaveRegister(Value value) {
+  DCHECK(value.is_physical());
+  return (isa::kCallerSaveRegisters & (1 << (value.data & 15))) != 0;
+}
+
 ValueSize Target::PointerSize() {
   return ValueSize::Size64;
 }

@@ -146,11 +146,23 @@ enum Register {
   XMM15D = 0x2F,
 };
 
-const int kCallerSaveRegisters = RAX | RCX | RDX | R8 | R9 | R10 | R11;
-const int kCalleeSaveRegisters = RBX | RDI | RSI | RSP | R12 | R13 | R14 | R15;
+// Note: RBP isn't neither callee nor caller save register.
+#define REGISTER_MASK(name) (1 << (name & 15))
+const int kCalleeSaveRegisters = REGISTER_MASK(RAX) | REGISTER_MASK(RCX) |
+                                 REGISTER_MASK(RDX) | REGISTER_MASK(R8) |
+                                 REGISTER_MASK(R9) | REGISTER_MASK(R10) |
+                                 REGISTER_MASK(R11);
+const int kCallerSaveRegisters = REGISTER_MASK(RBX) | REGISTER_MASK(RDI) |
+                                 REGISTER_MASK(RSI) | REGISTER_MASK(RSP) |
+                                 REGISTER_MASK(R12) | REGISTER_MASK(R13) |
+                                 REGISTER_MASK(R14) | REGISTER_MASK(R15);
+#undef REGISTER_MASK
 
-static_assert((kCalleeSaveRegisters | kCalleeSaveRegisters) == 0x30F,
-              "caller and callee registers must contain all registers");
+static_assert((kCalleeSaveRegisters & kCallerSaveRegisters) == 0,
+              "caller and callee registers should not contains same register");
+
+const int kNumberOfFloatRegisters = 16;
+const int kNumberOfGeneralRegisters = 16;
 
 }  // namespace isa
 
@@ -173,6 +185,12 @@ class ELANG_LIR_EXPORT Target {
 
   // Returns physical register for return value.
   static Value GetReturn(Value type);
+
+  // Returns true if |physical| is callee save register.
+  static bool IsCalleeSaveRegister(Value physical);
+
+  // Returns true if |physical| is caller save register.
+  static bool IsCallerSaveRegister(Value physical);
 
   // Returns bit size of pointer.
   static ValueSize PointerSize();

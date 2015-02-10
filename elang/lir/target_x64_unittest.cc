@@ -235,6 +235,44 @@ TEST(LirTargetX64Test, GetRegister) {
   }
 }
 
+TEST(LirTargetX64Test, IsCalleeSaveRegister) {
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(RAX)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(RBX)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(RCX)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(RDX)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(RDI)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(RSI)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(RBP)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(RSP)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(R8)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(R9)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(R10)));
+  EXPECT_TRUE(Target::IsCalleeSaveRegister(Target::GetRegister(R11)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(R12)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(R13)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(R14)));
+  EXPECT_FALSE(Target::IsCalleeSaveRegister(Target::GetRegister(R15)));
+}
+
+TEST(LirTargetX64Test, IsCallerSaveRegister) {
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(RAX)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(RBX)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(RCX)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(RDX)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(RDI)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(RSI)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(RBP)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(RSP)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(R8)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(R9)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(R10)));
+  EXPECT_FALSE(Target::IsCallerSaveRegister(Target::GetRegister(R11)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(R12)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(R13)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(R14)));
+  EXPECT_TRUE(Target::IsCallerSaveRegister(Target::GetRegister(R15)));
+}
+
 TEST(LirTargetX64Test, PointerSize) {
   EXPECT_EQ(ValueSize::Size64, Target::PointerSize());
 }
