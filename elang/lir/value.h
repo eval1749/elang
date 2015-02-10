@@ -42,7 +42,7 @@ struct ELANG_LIR_EXPORT Value {
     VirtualRegister = 5,
     Condition = 6,  // output of equality and relational instructions.
     Argument = 7,
-    NotUsed8,
+    Stack,  // stack location for spilled registers
     NotUsed9,
     NotUsed10,
     NotUsed11,
@@ -107,6 +107,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Immediate(ValueSize size, int data);
   static Value Parameter(Type type, ValueSize size, int data);
   static Value Register(ValueSize size, int data);
+  static Value Stack(Value type, int data);
   static Value SmallInt32(int data);
   static Value True();
 };

@@ -50,6 +50,10 @@ Value Value::SmallInt32(int data) {
   return Immediate(ValueSize::Size32, data);
 }
 
+Value Value::Stack(Value type, int data) {
+  return Value(type.type, type.size, Kind::Stack, data);
+}
+
 Value Value::True() {
   return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 1);
 }
