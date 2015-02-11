@@ -35,8 +35,10 @@ class LirTest : public ::testing::Test, public FactoryUser {
   ~LirTest() override = default;
 
   std::string Commit(Editor* editor);
+  std::vector<Value> CollectRegisters(const Function* function);
   Function* CreateFunctionEmptySample();
   Function* CreateFunctionSample1();
+  Function* CreateFunctionSample2();
 
   // Emit instructions to copy parameters to virtual registers and returns
   // list of registers holding parameters.

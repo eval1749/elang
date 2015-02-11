@@ -33,51 +33,14 @@ class LirEditorTest : public testing::LirTest {
 //   return x == 0 ? y : 42;
 // }
 TEST_F(LirEditorTest, AnalyzeLiveness) {
-  auto const function = CreateFunctionEmptySample();
-  auto const exit_block = function->exit_block();
+  auto const function = CreateFunctionSample2();
+  auto const entry_block = function->entry_block();
+  auto const values = CollectRegisters(function);
+  auto const true_block = entry_block->last_instruction()->block_operand(0);
+  auto const false_block = entry_block->last_instruction()->block_operand(1);
+  auto const merge_block = true_block->last_instruction()->block_operand(0);
+
   Editor editor(factory(), function);
-  auto const true_block = editor.NewBasicBlock(exit_block);
-  auto const false_block = editor.NewBasicBlock(exit_block);
-  auto const merge_block = editor.NewBasicBlock(exit_block);
-
-  std::vector<Value> values{
-      factory()->NewRegister(ValueSize::Size32),
-      factory()->NewRegister(ValueSize::Size32),
-      factory()->NewRegister(ValueSize::Size32),
-  };
-
-  // entry block
-  editor.Edit(function->entry_block());
-  editor.Append(factory()->NewPCopyInstruction(
-      {values[0], values[1]}, {Target::GetParameterAt(values[0], 0),
-                               Target::GetParameterAt(values[1], 1)}));
-  auto const cond1 = factory()->NewCondition();
-  editor.Append(factory()->NewEqInstruction(
-      cond1, values[0], factory()->NewIntValue(ValueSize::Size32, 0)));
-  editor.SetBranch(cond1, true_block, false_block);
-  EXPECT_EQ("", Commit(&editor));
-
-  // true block
-  editor.Edit(true_block);
-  editor.SetJump(merge_block);
-  EXPECT_EQ("", Commit(&editor));
-
-  // false block
-  editor.Edit(false_block);
-  editor.SetJump(merge_block);
-  EXPECT_EQ("", Commit(&editor));
-
-  // merge block
-  editor.Edit(merge_block);
-  auto const merge_phi = editor.NewPhi(values[2]);
-  editor.SetPhiInput(merge_phi, true_block, values[1]);
-  editor.SetPhiInput(merge_phi, false_block,
-                     factory()->NewIntValue(ValueSize::Size32, 42));
-  editor.Append(
-      factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
-  editor.SetReturn();
-  EXPECT_EQ("", Commit(&editor));
-
   auto const& collection = editor.AnalyzeLiveness();
 
   auto& true_liveness = collection.LivenessOf(true_block);

@@ -11,6 +11,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
+#include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/value.h"
@@ -32,6 +33,19 @@ std::string LirTest::Commit(Editor* editor) {
   return ostream.str();
 }
 
+std::vector<Value> LirTest::CollectRegisters(const Function* function) {
+  std::vector<Value> registers;
+  for (auto const block : function->basic_blocks()) {
+    for (auto const phi : block->phi_instructions())
+      registers.push_back(phi->output(0));
+    for (auto const instr : block->instructions()) {
+      for (auto const output : instr->outputs())
+        registers.push_back(output);
+    }
+  }
+  return registers;
+}
+
 Function* LirTest::CreateFunctionEmptySample() {
   auto const function = factory()->NewFunction();
   Editor editor(factory(), function);
@@ -48,6 +62,82 @@ Function* LirTest::CreateFunctionSample1() {
     auto const call = factory()->NewCallInstruction(NewStringValue("Foo"));
     editor.InsertBefore(call, entry_block->last_instruction());
   }
+  return function;
+}
+
+// Populate |Function| with following basic blocks and instrucitons:
+//    function1:
+//    block1:
+//      // In: {}
+//      // Out: {block3, block4}
+//      entry
+//      pcopy %r1, %r2 = ECX, EDX
+//      eq %b2 = %r1, 0
+//      br %b2, block3, block4
+//    block3:
+//      // In: {block1}
+//      // Out: {block5}
+//      jmp block5
+//    block4:
+//      // In: {block1}
+//      // Out: {block5}
+//      jmp block5
+//    block5:
+//      // In: {block3, block4}
+//      // Out: {block2}
+//      phi %r3 = block3 %r2, block4 42
+//      mov EAX = %r3
+//      ret block2
+//    block2:
+//      // In: {block5}
+//      // Out: {}
+//      exit
+Function* LirTest::CreateFunctionSample2() {
+  auto const function = CreateFunctionEmptySample();
+  auto const exit_block = function->exit_block();
+  Editor editor(factory(), function);
+  auto const true_block = editor.NewBasicBlock(exit_block);
+  auto const false_block = editor.NewBasicBlock(exit_block);
+  auto const merge_block = editor.NewBasicBlock(exit_block);
+
+  std::vector<Value> values{
+      factory()->NewRegister(ValueSize::Size32),
+      factory()->NewRegister(ValueSize::Size32),
+      factory()->NewRegister(ValueSize::Size32),
+  };
+
+  // entry block
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewPCopyInstruction(
+      {values[0], values[1]}, {Target::GetParameterAt(values[0], 0),
+                               Target::GetParameterAt(values[1], 1)}));
+  auto const cond1 = factory()->NewCondition();
+  editor.Append(factory()->NewEqInstruction(
+      cond1, values[0], factory()->NewIntValue(ValueSize::Size32, 0)));
+  editor.SetBranch(cond1, true_block, false_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  // true block
+  editor.Edit(true_block);
+  editor.SetJump(merge_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  // false block
+  editor.Edit(false_block);
+  editor.SetJump(merge_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  // merge block
+  editor.Edit(merge_block);
+  auto const merge_phi = editor.NewPhi(values[2]);
+  editor.SetPhiInput(merge_phi, true_block, values[1]);
+  editor.SetPhiInput(merge_phi, false_block,
+                     factory()->NewIntValue(ValueSize::Size32, 42));
+  editor.Append(
+      factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
+  editor.SetReturn();
+  EXPECT_EQ("", Commit(&editor));
+
   return function;
 }
 
