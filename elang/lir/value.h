@@ -88,6 +88,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_register() const { return is_physical() || is_virtual(); }
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
+  bool is_stack() const { return kind == Kind::Stack; }
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
   bool is_void() const { return kind == Kind::Void; }
 
