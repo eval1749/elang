@@ -5,6 +5,8 @@
 #ifndef ELANG_LIR_TARGET_X64_H_
 #define ELANG_LIR_TARGET_X64_H_
 
+#include <vector>
+
 #include "elang/lir/lir_export.h"
 
 namespace elang {
@@ -146,23 +148,57 @@ enum Register {
   XMM15D = 0x2F,
 };
 
-// Note: RBP isn't neither callee nor caller save register.
 #define REGISTER_MASK(name) (1 << (name & 15))
-const int kCalleeSaveRegisters = REGISTER_MASK(RAX) | REGISTER_MASK(RCX) |
-                                 REGISTER_MASK(RDX) | REGISTER_MASK(R8) |
-                                 REGISTER_MASK(R9) | REGISTER_MASK(R10) |
-                                 REGISTER_MASK(R11);
-const int kCallerSaveRegisters = REGISTER_MASK(RBX) | REGISTER_MASK(RDI) |
-                                 REGISTER_MASK(RSI) | REGISTER_MASK(RSP) |
-                                 REGISTER_MASK(R12) | REGISTER_MASK(R13) |
-                                 REGISTER_MASK(R14) | REGISTER_MASK(R15);
-#undef REGISTER_MASK
-
-static_assert((kCalleeSaveRegisters & kCallerSaveRegisters) == 0,
-              "caller and callee registers should not contains same register");
 
 const int kNumberOfFloatRegisters = 16;
 const int kNumberOfGeneralRegisters = 16;
+
+const int kAllFloatRegisters = (1 << kNumberOfFloatRegisters) - 1;
+const int kAllGeneralRegisters = (1 << kNumberOfGeneralRegisters) - 1;
+
+// All registers except for XMM0 are allocatable.
+const int kAllocatableFloatRegisters = kAllocatableFloatRegisters;
+
+// All registers except for RBP and RSP are allocatable.
+const int kAllocatableGeneralRegisters =
+    kAllGeneralRegisters & ~REGISTER_MASK(RBP) & ~REGISTER_MASK(RSP);
+
+// Registers must be saved if callee changes them.
+const int kFloatCalleeSavedRegisters =
+    REGISTER_MASK(XMM6D) | REGISTER_MASK(XMM7D) | REGISTER_MASK(XMM8D) |
+    REGISTER_MASK(XMM9D) | REGISTER_MASK(XMM10D) | REGISTER_MASK(XMM11D) |
+    REGISTER_MASK(XMM12D) | REGISTER_MASK(XMM13D) | REGISTER_MASK(XMM14D) |
+    REGISTER_MASK(XMM15D);
+
+// Registers must be saved if caller uses them.
+const int kFloatCallerSavedRegisters =
+    REGISTER_MASK(XMM4D) | REGISTER_MASK(XMM5D);
+
+static_assert(!(kFloatCalleeSavedRegisters & kFloatCallerSavedRegisters),
+              "caller and callee registers should not contains same register");
+
+// Registers must be saved if callee changes them.
+const int kGeneralCalleeSavedRegisters =
+    REGISTER_MASK(RBX) | REGISTER_MASK(RDI) | REGISTER_MASK(RSI) |
+    REGISTER_MASK(R12) | REGISTER_MASK(R13) | REGISTER_MASK(R14) |
+    REGISTER_MASK(R15);
+
+// Registers must be saved if caller uses them.
+const int kGeneralCallerSavedRegisters =
+    REGISTER_MASK(R10) | REGISTER_MASK(R11);
+
+static_assert(!(kGeneralCalleeSavedRegisters & kGeneralCallerSavedRegisters),
+              "caller and callee registers should not contains same register");
+
+// Parameter registers
+const int kGeneralParameterRegisters = REGISTER_MASK(RCX) | REGISTER_MASK(RDX) |
+                                       REGISTER_MASK(R8) | REGISTER_MASK(R9);
+
+const int kFloatParameterRegisters =
+    REGISTER_MASK(XMM0D) | REGISTER_MASK(XMM1D) | REGISTER_MASK(XMM2D) |
+    REGISTER_MASK(XMM3D);
+
+#undef REGISTER_MASK
 
 }  // namespace isa
 
@@ -173,6 +209,11 @@ class ELANG_LIR_EXPORT Target {
  public:
   Target() = delete;
   ~Target() = delete;
+
+  // TODO(eval1749) |AllocatableXXXRegisters()| should return reference
+  // rather than object to avoid copying vector elements.
+  static std::vector<Value> AllocatableFloatRegisters();
+  static std::vector<Value> AllocatableGeneralRegisters();
 
   // Returns register or location for argument at |position|.
   static Value GetArgumentAt(Value output, int position);
@@ -187,10 +228,13 @@ class ELANG_LIR_EXPORT Target {
   static Value GetReturn(Value type);
 
   // Returns true if |physical| is callee save register.
-  static bool IsCalleeSaveRegister(Value physical);
+  static bool IsCalleeSavedRegister(Value physical);
 
   // Returns true if |physical| is caller save register.
-  static bool IsCallerSaveRegister(Value physical);
+  static bool IsCallerSavedRegister(Value physical);
+
+  // Returns true if |physical| is register parameter
+  static bool IsParameterRegister(Value physical);
 
   // Returns bit size of pointer.
   static ValueSize PointerSize();

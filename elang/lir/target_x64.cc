@@ -172,6 +172,33 @@ static_assert(sizeof(kIntegerParameters) == sizeof(kFloatParameters),
               " float and integer");
 }
 
+// All registers except for XMM0 are allocatable.
+std::vector<Value> Target::AllocatableFloatRegisters() {
+  std::vector<Value> registers(0);
+  auto index = 0;
+  for (auto mask = isa::kAllocatableFloatRegisters; mask; mask >>= 1) {
+    if ((mask & 1) == 0)
+      continue;
+    registers.push_back(
+        GetRegister(static_cast<isa::Register>(isa::XMM0D + index)));
+    ++index;
+  }
+  return registers;
+}
+
+std::vector<Value> Target::AllocatableGeneralRegisters() {
+  std::vector<Value> registers(0);
+  auto index = 0;
+  for (auto mask = isa::kAllocatableGeneralRegisters; mask; mask >>= 1) {
+    if ((mask & 1) == 0)
+      continue;
+    registers.push_back(
+        GetRegister(static_cast<isa::Register>(isa::RAX + index)));
+    ++index;
+  }
+  return registers;
+}
+
 Value Target::GetArgumentAt(Value output, int position) {
   DCHECK_GE(position, 0);
   if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
@@ -217,14 +244,28 @@ Value Target::GetReturn(Value type) {
   return GetRegister(type.size == ValueSize::Size64 ? isa::RAX : isa::EAX);
 }
 
-bool Target::IsCalleeSaveRegister(Value value) {
+bool Target::IsCalleeSavedRegister(Value value) {
   DCHECK(value.is_physical());
-  return (isa::kCalleeSaveRegisters & (1 << (value.data & 15))) != 0;
+  auto const mask = 1 << (value.data & 15);
+  if (value.type == Value::Type::Float)
+    return (isa::kFloatCalleeSavedRegisters & mask) != 0;
+  return (isa::kGeneralCalleeSavedRegisters & mask) != 0;
 }
 
-bool Target::IsCallerSaveRegister(Value value) {
+bool Target::IsCallerSavedRegister(Value value) {
   DCHECK(value.is_physical());
-  return (isa::kCallerSaveRegisters & (1 << (value.data & 15))) != 0;
+  auto const mask = 1 << (value.data & 15);
+  if (value.type == Value::Type::Float)
+    return (isa::kFloatCallerSavedRegisters & mask) != 0;
+  return (isa::kGeneralCallerSavedRegisters & mask) != 0;
+}
+
+bool Target::IsParameterRegister(Value value) {
+  DCHECK(value.is_physical());
+  auto const mask = 1 << (value.data & 15);
+  if (value.type == Value::Type::Float)
+    return (isa::kFloatParameterRegisters & mask) != 0;
+  return (isa::kGeneralParameterRegisters & mask) != 0;
 }
 
 ValueSize Target::PointerSize() {
