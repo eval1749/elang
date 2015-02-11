@@ -65,7 +65,7 @@ Function* LirTest::CreateFunctionSample1() {
   return function;
 }
 
-// Populate |Function| with following basic blocks and instrucitons:
+// Populate |Function| with following basic blocks and instructions:
 //    function1:
 //    block1:
 //      // In: {}
@@ -74,11 +74,11 @@ Function* LirTest::CreateFunctionSample1() {
 //      pcopy %r1, %r2 = ECX, EDX
 //      eq %b2 = %r1, 0
 //      br %b2, block3, block4
-//    block3:
+//    block3: // true block
 //      // In: {block1}
 //      // Out: {block5}
 //      jmp block5
-//    block4:
+//    block4:  // false block
 //      // In: {block1}
 //      // Out: {block5}
 //      jmp block5

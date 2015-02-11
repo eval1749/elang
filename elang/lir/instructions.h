@@ -354,10 +354,10 @@ class ELANG_LIR_EXPORT PhiInstruction final : public Instruction {
   Value input_of(BasicBlock* block) const;
   const PhiInputs& phi_inputs() const { return phi_inputs_; }
 
+  PhiInput* FindPhiInputFor(BasicBlock* block) const;
+
  private:
   explicit PhiInstruction(Value output_value);
-
-  PhiInput* FindPhiInputFor(BasicBlock* block) const;
 
   // Instruction operand protocol
   int CountInputs() const final;

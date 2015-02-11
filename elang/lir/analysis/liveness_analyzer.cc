@@ -42,13 +42,11 @@ AnalyzeLiveness(Function* function) {
       for (auto output : instruction->outputs())
         builder.MarkKill(liveness, output);
     }
-
-    // Mark phi input in successor block in In(successor).
+    // Mark use phi input in successor block.
     for (auto const successor : block->successors()) {
-      auto const liveness = builder.Edit(successor);
       for (auto const phi_instruction : successor->phi_instructions()) {
-        for (auto const input : phi_instruction->phi_inputs())
-          builder.MarkUse(liveness, input->value());
+        auto const phi_input = phi_instruction->FindPhiInputFor(block);
+        builder.MarkUse(liveness, phi_input->value());
       }
     }
   }

@@ -78,11 +78,11 @@ TEST_F(LirEditorTest, AnalyzeLiveness) {
 
   auto& false_liveness = collection.LivenessOf(false_block);
   EXPECT_FALSE(false_liveness.in().Contains(collection.NumberOf(values[0])));
-  EXPECT_TRUE(false_liveness.in().Contains(collection.NumberOf(values[1])));
+  EXPECT_FALSE(false_liveness.in().Contains(collection.NumberOf(values[1])));
 
   auto& merge_liveness = collection.LivenessOf(merge_block);
   EXPECT_FALSE(merge_liveness.in().Contains(collection.NumberOf(values[0])));
-  EXPECT_TRUE(merge_liveness.in().Contains(collection.NumberOf(values[1])));
+  EXPECT_FALSE(merge_liveness.in().Contains(collection.NumberOf(values[1])));
 }
 
 TEST_F(LirEditorTest, AssignIndex) {
