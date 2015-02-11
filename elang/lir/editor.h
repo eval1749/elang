@@ -68,7 +68,7 @@ class ELANG_LIR_EXPORT Editor final {
   Function* function() const { return function_; }
 
   // Analysis
-  const LivenessData& AnalyzeLiveness();
+  const LivenessData& AnalyzeLiveness() const;
   Counters AssignIndex();
 
   // Dominator tree
