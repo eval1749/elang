@@ -177,13 +177,16 @@ const int kFloatCallerSavedRegisters =
 static_assert(!(kFloatCalleeSavedRegisters & kFloatCallerSavedRegisters),
               "caller and callee registers should not contains same register");
 
-// Registers must be saved if callee changes them.
+// Registers must be saved if callee changes them. These registers are used to
+// hold long-lived values that should be preserved across calls.
 const int kGeneralCalleeSavedRegisters =
     REGISTER_MASK(RBX) | REGISTER_MASK(RDI) | REGISTER_MASK(RSI) |
     REGISTER_MASK(R12) | REGISTER_MASK(R13) | REGISTER_MASK(R14) |
     REGISTER_MASK(R15);
 
-// Registers must be saved if caller uses them.
+// Registers must be saved if caller wants to preserve across call.
+// These registers are used to hold temporary value that need not be preserved
+// across calls.
 const int kGeneralCallerSavedRegisters =
     REGISTER_MASK(R10) | REGISTER_MASK(R11);
 
