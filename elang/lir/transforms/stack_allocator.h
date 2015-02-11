@@ -24,9 +24,11 @@ class ELANG_LIR_EXPORT StackAllocator final {
   explicit StackAllocator(int alignment);
   ~StackAllocator();
 
+  void AllocateAt(Value stack_location);
   Value Allocate(Value type);
   void Free(Value location);
   int RequiredSize() const;
+  void Reset();
 
  private:
   int Allocate(int size);

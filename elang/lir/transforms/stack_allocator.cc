@@ -61,6 +61,17 @@ Value StackAllocator::Allocate(Value type) {
   return Value::Stack(type, Allocate(Value::ByteSize(type.size)));
 }
 
+void StackAllocator::AllocateAt(Value stack_location) {
+  DCHECK(stack_location.is_stack());
+  auto const offset = stack_location.data;
+  auto const size = Value::ByteSize(stack_location.size);
+#ifndef _NDEBUG
+  for (auto index = offset; index < offset + size; ++index)
+    DCHECK(!uses_[index]);
+#endif
+  std::fill(uses_.begin() + offset, uses_.begin() + offset + size, true);
+}
+
 void StackAllocator::Free(Value location) {
   DCHECK_EQ(Value::Kind::Stack, location.kind);
   std::fill(uses_.begin() + location.data,
@@ -70,6 +81,10 @@ void StackAllocator::Free(Value location) {
 
 int StackAllocator::RequiredSize() const {
   return static_cast<int>(uses_.size());
+}
+
+void StackAllocator::Reset() {
+  uses_.resize(0);
 }
 
 }  // namespace lir
