@@ -35,8 +35,9 @@ class LivenessBuilder : public LivenessEditor<Node, Variable> {
 
   void AddVariable(Variable value) {
     DCHECK(!collection_->variable_map_.count(value));
-    collection_->variable_map_[value] =
-        static_cast<int>(collection_->variable_map_.size());
+    auto const number = static_cast<int>(collection_->variables_.size());
+    collection_->variables_.push_back(value);
+    collection_->variable_map_[value] = number;
   }
 
   // Returns newly created liveness collection based on given information so
