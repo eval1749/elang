@@ -94,7 +94,7 @@ class DominatorTreeBuilder final : public DominatorTreeEditor<Graph> {
   explicit DominatorTreeBuilder(const Graph* graph);
   ~DominatorTreeBuilder() = default;
 
-  // |zone| for storing |DominatorTree|.
+  // Returns newly created |DominatorTree<Graph>|.
   std::unique_ptr<DominatorTree> Build();
 
  private:
@@ -135,6 +135,7 @@ DominatorTreeBuilder<Graph, Direction>::Build() {
   // Set sentinel
   SetTreeNodeParent(entry_node_, entry_node_, 1);
   ComputeParentForAll();
+  // Reset sentinel
   SetTreeNodeParent(entry_node_, nullptr, 1);
   ComputeChildren();
   ComputeFrontiers();
