@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_set>
+
 #include "elang/lir/testing/lir_test_x64.h"
 
+#include "elang/base/analysis/dominator_tree.h"
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/lir/editor.h"
@@ -14,6 +17,32 @@
 
 namespace elang {
 namespace lir {
+
+namespace {
+//////////////////////////////////////////////////////////////////////
+//
+// DominatorTreeWalker visits child nodes in dominator tree.
+//
+struct DominatorTreeWalker {
+  std::unordered_set<BasicBlock*> visited;
+  const DominatorTree<Function>* dominator_tree;
+
+  explicit DominatorTreeWalker(const DominatorTree<Function>* dominator_tree)
+      : dominator_tree(dominator_tree) {}
+
+  bool IsVisited(BasicBlock* block) const { return visited.count(block); }
+
+  void Visit(BasicBlock* block) {
+    EXPECT_FALSE(IsVisited(block)) << "Dominator tree contains " << *block
+                                   << " more than once.";
+    visited.insert(block);
+    for (auto const child_node :
+         dominator_tree->TreeNodeOf(block)->children()) {
+      Visit(child_node->value());
+    }
+  }
+};
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -84,6 +113,28 @@ TEST_F(LirEditorTest, AssignIndex) {
   EXPECT_EQ(2, counters.block_counter);
   EXPECT_EQ(4, counters.instruction_counter);
   EXPECT_EQ(1, counters.output_counter);
+}
+
+TEST_F(LirEditorTest, BuildDominatorTree) {
+  auto const function = CreateFunctionSample2();
+  Editor editor(factory(), function);
+  auto const& dominator_tree = editor.BuildDominatorTree();
+  DominatorTreeWalker walker(&dominator_tree);
+  walker.Visit(function->entry_block());
+  for (auto const block : function->basic_blocks())
+    EXPECT_TRUE(walker.IsVisited(block)) << *block
+                                         << " is not in dominator tree.";
+}
+
+TEST_F(LirEditorTest, BuildPostDominatorTree) {
+  auto const function = CreateFunctionSample2();
+  Editor editor(factory(), function);
+  auto const& dominator_tree = editor.BuildPostDominatorTree();
+  DominatorTreeWalker walker(&dominator_tree);
+  walker.Visit(function->exit_block());
+  for (auto const block : function->basic_blocks())
+    EXPECT_TRUE(walker.IsVisited(block)) << *block
+                                         << " is not in dominator tree.";
 }
 
 TEST_F(LirEditorTest, FunctionEmpty) {

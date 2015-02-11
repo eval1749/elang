@@ -18,6 +18,9 @@ namespace elang {
 template <typename Node, typename Variable>
 class LivenessCollection;
 
+template <typename Graph>
+class DominatorTree;
+
 namespace lir {
 
 enum class ErrorCode;
@@ -67,6 +70,10 @@ class ELANG_LIR_EXPORT Editor final {
   // Analysis
   const LivenessData& AnalyzeLiveness();
   Counters AssignIndex();
+
+  // Dominator tree
+  const DominatorTree<Function>& BuildDominatorTree() const;
+  const DominatorTree<Function>& BuildPostDominatorTree() const;
 
   // Validation errors
   void AddError(ErrorCode error_code,
@@ -139,6 +146,10 @@ class ELANG_LIR_EXPORT Editor final {
   Factory* const factory_;
   // A function being edited.
   Function* const function_;
+
+  // Cached liveness
+  mutable std::unique_ptr<DominatorTree<Function>> dominator_tree_;
+  mutable std::unique_ptr<DominatorTree<Function>> post_dominator_tree_;
 
   // Cached basic block lists.
   mutable std::unique_ptr<OrderedBlockList> pre_order_list_;

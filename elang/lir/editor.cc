@@ -7,6 +7,7 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
+#include "elang/base/analysis/dominator_tree_builder.h"
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/base/graphs/graph_sorter.h"
 #include "elang/lir/analysis/liveness_analyzer.h"
@@ -111,6 +112,24 @@ void Editor::Append(Instruction* new_instruction) {
   DidChangeControlFlow();
 }
 
+const DominatorTree<Function>& Editor::BuildDominatorTree() const {
+  if (dominator_tree_)
+    return *dominator_tree_;
+  dominator_tree_ =
+      std::move(DominatorTreeBuilder<Function, ForwardFlowGraph<Function>>(
+                    function()).Build());
+  return *dominator_tree_;
+}
+
+const DominatorTree<Function>& Editor::BuildPostDominatorTree() const {
+  if (dominator_tree_)
+    return *dominator_tree_;
+  dominator_tree_ =
+      std::move(DominatorTreeBuilder<Function, BackwardFlowGraph<Function>>(
+                    function()).Build());
+  return *dominator_tree_;
+}
+
 bool Editor::Commit() {
   DCHECK(basic_block_);
 #ifdef NDEBUG
@@ -124,6 +143,8 @@ bool Editor::Commit() {
 }
 
 void Editor::DidChangeControlFlow() {
+  dominator_tree_.reset();
+  post_dominator_tree_.reset();
   liveness_data_.reset();
   pre_order_list_.reset();
   post_order_list_.reset();
