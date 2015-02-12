@@ -478,6 +478,16 @@ void Editor::SetTerminator(Instruction* instr) {
   Append(instr);
 }
 
+// Replaces phi input for |old_block| to |new_block|.
+void Editor::ReplacePhiInputs(BasicBlock* new_block, BasicBlock* old_block) {
+  DCHECK(basic_block_);
+  DCHECK_NE(new_block, old_block);
+  for (auto const phi : basic_block_->phi_instructions()) {
+    auto const phi_input = phi->FindPhiInputFor(old_block);
+    phi_input->basic_block_ = new_block;
+  }
+}
+
 bool Editor::Validate() {
   Validator validator(this);
   return validator.Validate(function_);

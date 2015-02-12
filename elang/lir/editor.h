@@ -127,6 +127,8 @@ class ELANG_LIR_EXPORT Editor final {
   void SetPhiInput(PhiInstruction* phi_instruction,
                    BasicBlock* basic_block,
                    Value value);
+  // Replaces phi input for |old_block| to |new_block|.
+  void ReplacePhiInputs(BasicBlock* new_block, BasicBlock* old_block);
 
   // Expose |Validate()| for testing in release build.
   bool Validate(BasicBlock* basic_block);

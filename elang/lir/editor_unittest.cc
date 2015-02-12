@@ -330,5 +330,59 @@ TEST_F(LirEditorTest, SetJump) {
       FormatFunction(&editor));
 }
 
+TEST_F(LirEditorTest, ReplacePhiInputs) {
+  auto const function = CreateFunctionWithCriticalEdge();
+  Editor editor(factory(), function);
+  std::vector<BasicBlock*> blocks(function->basic_blocks().begin(),
+                                  function->basic_blocks().end());
+  auto const merge_block = blocks[3];
+  ASSERT_FALSE(merge_block->phi_instructions().empty());
+  auto const sample_block = blocks[2];
+  auto const new_block = editor.NewBasicBlock(merge_block);
+
+  editor.Edit(new_block);
+  editor.SetJump(merge_block);
+  editor.Commit();
+
+  editor.Edit(sample_block);
+  auto const branch = sample_block->last_instruction();
+  editor.SetBranch(branch->input(0), new_block, branch->block_operand(1));
+  editor.Commit();
+
+  editor.Edit(merge_block);
+  editor.ReplacePhiInputs(new_block, sample_block);
+  editor.Commit();
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3}\n"
+      "  entry\n"
+      "  jmp block3\n"
+      "block3:\n"
+      "  // In: {block1, block4}\n"
+      "  // Out: {block5}\n"
+      "  jmp block5\n"
+      "block4:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block6}\n"
+      "  br %b2, block6, block3\n"
+      "block6:\n"   // |new_block|
+      "  // In: {block4}\n"
+      "  // Out: {block5}\n"
+      "  jmp block5\n"
+      "block5:\n"
+      "  // In: {block3, block6}\n"
+      "  // Out: {block2}\n"
+      "  phi %r1 = block6 42, block3 39\n"  // updated |PhiInput|.
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block5}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
 }  // namespace lir
 }  // namespace elang
