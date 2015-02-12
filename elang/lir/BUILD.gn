@@ -45,6 +45,8 @@ component("lir") {
     "pass.cc",
     "printable.h",
     "target.h",
+    "transforms/prepare_phi_inversion.cc",
+    "transforms/prepare_phi_inversion.h",
     "transforms/register_allocation.cc",
     "transforms/register_allocation.h",
     "transforms/register_allocation_tracker.cc",
