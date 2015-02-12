@@ -230,6 +230,9 @@ class ELANG_LIR_EXPORT Target {
   // Returns physical register for return value.
   static Value GetReturn(Value type);
 
+  static bool HasCopyImmediateToMemory() { return true; }
+  static bool HasSwapInstruction() { return true; }
+
   // Returns true if |physical| is callee save register.
   static bool IsCalleeSavedRegister(Value physical);
 
