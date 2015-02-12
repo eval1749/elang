@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <string>
+#include <vector>
 
 #include "elang/base/double_linked.h"
 #include "gtest/gtest.h"
@@ -144,6 +145,16 @@ TEST_F(DoubleLinkedTest, Iterator) {
   std::string result;
   for (auto it = list1.begin(); it != list1.end(); ++it)
     result += it->value();
+  EXPECT_EQ("ABC", result);
+}
+
+TEST_F(DoubleLinkedTest, IteratorCategory) {
+  // |std::vector<T>(begin, end)| constructor requires |iterator_category| for
+  // parameters.
+  std::vector<Node*> nodes(list1.begin(), list1.end());
+  std::string result;
+  for (auto node : nodes)
+    result += node->value();
   EXPECT_EQ("ABC", result);
 }
 

@@ -5,6 +5,8 @@
 #ifndef ELANG_BASE_DOUBLE_LINKED_H_
 #define ELANG_BASE_DOUBLE_LINKED_H_
 
+#include <iterator>
+
 #include "base/macros.h"
 #include "base/logging.h"
 
@@ -51,6 +53,7 @@ namespace elang {
 template <typename Derived, typename AnchorType>
 class DoubleLinked final {
  public:
+  // Node
   class Node {
    public:
     Derived* next() const { return next_; }
@@ -78,6 +81,12 @@ class DoubleLinked final {
 
   class Iterator final : public IteratorBase {
    public:
+    typedef std::forward_iterator_tag iterator_category;
+    typedef int difference_type;
+    typedef Derived value_type;
+    typedef Derived* pointer;
+    typedef Derived& reference;
+
     explicit Iterator(Derived* node) : IteratorBase(node) {}
     Iterator(const Iterator& other) = default;
     ~Iterator() = default;
@@ -93,6 +102,12 @@ class DoubleLinked final {
 
   class ReverseIterator final : public IteratorBase {
    public:
+    typedef std::forward_iterator_tag iterator_category;
+    typedef int difference_type;
+    typedef Derived value_type;
+    typedef Derived* pointer;
+    typedef Derived& reference;
+
     explicit ReverseIterator(Derived* node) : IteratorBase(node) {}
     ReverseIterator(const ReverseIterator& other) = default;
     ~ReverseIterator() = default;
