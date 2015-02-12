@@ -12,6 +12,7 @@ namespace elang {
 namespace lir {
 
 class Editor;
+class Function;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -23,6 +24,7 @@ class ELANG_LIR_EXPORT EditorUser {
   ~EditorUser();
 
   Editor* editor() const { return editor_; }
+  Function* function() const;
 
  private:
   Editor* const editor_;
