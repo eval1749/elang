@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <string>
+#include <unordered_set>
 
 #include "elang/lir/validator.h"
 
@@ -150,10 +151,34 @@ bool Validator::Validate(BasicBlock* block) {
     }
   }
 
+  // Check phi inputs
+  {
+    std::unordered_set<BasicBlock*> predecessors(block->predecessors().begin(),
+                                                 block->predecessors().end());
+    for (auto const phi : block->phi_instructions()) {
+      std::unordered_set<BasicBlock*> visited;
+      for (auto const phi_input : phi->phi_inputs()) {
+        auto const predecessor = phi_input->basic_block();
+        if (!predecessors.count(predecessor)) {
+          Error(ErrorCode::ValidatePhiInputInvalid, phi, predecessor->value());
+          continue;
+        }
+        if (visited.count(predecessor))
+          Error(ErrorCode::ValidatePhiInputMultiple, phi, predecessor->value());
+        visited.insert(predecessor);
+      }
+      for (auto const predecessor : predecessors) {
+        if (visited.count(predecessor))
+          continue;
+        Error(ErrorCode::ValidatePhiInputMissing, phi, predecessor->value());
+      }
+    }
+  }
+
   // Check instructions
   auto is_valid = true;
   auto found_terminator = false;
-  for (auto instruction : block->instructions()) {
+  for (auto const instruction : block->instructions()) {
     if (!Validate(instruction))
       is_valid = false;
     if (instruction->IsTerminator()) {

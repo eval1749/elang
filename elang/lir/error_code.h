@@ -35,8 +35,9 @@ namespace lir {
   E(Validate, Instruction, InputType)    \
   E(Validate, Instruction, Output)       \
   E(Validate, Instruction, Terminator)   \
-  E(Validate, Phi, Count)                \
-  E(Validate, Phi, NotFound)
+  E(Validate, PhiInput, Invalid)         \
+  E(Validate, PhiInput, Missing)         \
+  E(Validate, PhiInput, Multiple)
 
 //////////////////////////////////////////////////////////////////////
 //
