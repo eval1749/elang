@@ -22,7 +22,8 @@ int RoundUp(int value, int alignment) {
 //
 // StackAllocator
 //
-StackAllocator::StackAllocator(int alignment) : alignment_(alignment) {
+StackAllocator::StackAllocator(int alignment)
+    : alignment_(alignment), maximum_size_(0) {
   DCHECK(alignment_ == 4 || alignment_ == 8 || alignment_ == 16);
   // Reserve spaces to reduce number of dynamic expansion.
   uses_.reserve(alignment_ * 32);
@@ -51,7 +52,7 @@ int StackAllocator::Allocate(int size) {
     runner = next_use;
   }
   // We expand allocation map since there are no free slots for |size|.
-  auto const offset = static_cast<int>(uses_.size());
+  auto const offset = current_size();
   uses_.resize(offset + RoundUp(size, alignment_));
   std::fill(uses_.begin() + offset, uses_.begin() + offset + size, true);
   return offset;
@@ -67,7 +68,7 @@ void StackAllocator::AllocateAt(Value stack_slot) {
   DCHECK(stack_slot.is_stack());
   auto const offset = stack_slot.data;
   auto const size = Value::ByteSize(stack_slot.size);
-  if (offset + size > static_cast<int>(uses_.size()))
+  if (offset + size > current_size())
     uses_.resize(offset + size);
 #ifndef _NDEBUG
   for (auto index = offset; index < offset + size; ++index)
@@ -84,10 +85,11 @@ void StackAllocator::Free(Value location) {
 }
 
 int StackAllocator::RequiredSize() const {
-  return static_cast<int>(uses_.size());
+  return std::max(maximum_size_, current_size());
 }
 
 void StackAllocator::Reset() {
+  maximum_size_ = std::max(maximum_size_, current_size());
   uses_.resize(0);
 }
 

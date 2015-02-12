@@ -87,6 +87,22 @@ TEST(StackAllocatorTest, Alignment8) {
       << "size of stack isn't changed";
 }
 
+TEST(StackAllocatorTest, AllocateAt) {
+  auto const int32_type = Value(Value::Type::Integer, ValueSize::Size32);
+
+  StackAllocator allocator(4);
+  allocator.Allocate(int32_type);
+  auto const stack_slot1 = allocator.Allocate(int32_type);
+  allocator.Allocate(int32_type);
+
+  allocator.Reset();
+  allocator.AllocateAt(stack_slot1);
+  EXPECT_EQ(Value::Stack(int32_type, 0), allocator.Allocate(int32_type));
+
+  EXPECT_EQ(8, allocator.current_size());
+  EXPECT_EQ(12, allocator.RequiredSize());
+}
+
 }  // namespace
 }  // namespace lir
 }  // namespace elang

@@ -24,6 +24,8 @@ class ELANG_LIR_EXPORT StackAllocator final {
   explicit StackAllocator(int alignment);
   ~StackAllocator();
 
+  int current_size() const { return static_cast<int>(uses_.size()); }
+
   void AllocateAt(Value stack_slot);
   Value Allocate(Value type);
   void Free(Value location);
@@ -34,6 +36,7 @@ class ELANG_LIR_EXPORT StackAllocator final {
   int Allocate(int size);
 
   int const alignment_;
+  int maximum_size_;
   std::vector<bool> uses_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAllocator);
