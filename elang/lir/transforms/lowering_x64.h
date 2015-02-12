@@ -5,7 +5,6 @@
 #ifndef ELANG_LIR_TRANSFORMS_LOWERING_X64_H_
 #define ELANG_LIR_TRANSFORMS_LOWERING_X64_H_
 
-#include "elang/lir/editor_owner.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/instruction_visitor.h"
 #include "elang/lir/pass.h"
@@ -13,8 +12,6 @@
 namespace elang {
 namespace lir {
 
-class Factory;
-class Function;
 struct Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -25,10 +22,9 @@ struct Value;
 //  - Transforms 'div' to use 'RAX'/'RDX'
 //
 class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
-                                               public EditorOwner,
                                                public InstructionVisitor {
  public:
-  X64LoweringPass(Factory* factory, Function* function);
+  explicit X64LoweringPass(Editor* editor);
   ~X64LoweringPass() final;
 
  private:

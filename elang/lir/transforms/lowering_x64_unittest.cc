@@ -47,7 +47,7 @@ class LirLoweringX64Test : public testing::LirTest {
     EXPECT_EQ("", Commit(&editor));                                     \
     ASSERT_EQ("", Validate(&editor));                                   \
                                                                         \
-    X64LoweringPass(factory(), function).Run();                         \
+    X64LoweringPass(&editor).Run();                         \
     EXPECT_EQ(                                                          \
         "function1:\n"                                                  \
         "block1:\n"                                                     \
@@ -87,7 +87,7 @@ class LirLoweringX64Test : public testing::LirTest {
     EXPECT_EQ("", Commit(&editor));                                     \
     ASSERT_EQ("", Validate(&editor));                                   \
                                                                         \
-    X64LoweringPass(factory(), function).Run();                         \
+    X64LoweringPass(&editor).Run();                         \
     EXPECT_EQ(                                                          \
         "function1:\n"                                                  \
         "block1:\n"                                                     \
@@ -138,7 +138,7 @@ TEST_F(LirLoweringX64Test, DivInt) {
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
 
-  X64LoweringPass(factory(), function).Run();
+  X64LoweringPass(&editor).Run();
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -176,7 +176,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
 
-  X64LoweringPass(factory(), function).Run();
+  X64LoweringPass(&editor).Run();
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -218,7 +218,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
     EXPECT_EQ("", Commit(&editor));                                            \
     ASSERT_EQ("", Validate(&editor));                                          \
                                                                                \
-    X64LoweringPass(factory(), function).Run();                                \
+    X64LoweringPass(&editor).Run();                                \
     EXPECT_EQ(                                                                 \
         "function1:\n"                                                         \
         "block1:\n"                                                            \

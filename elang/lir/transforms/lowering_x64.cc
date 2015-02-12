@@ -14,8 +14,7 @@
 namespace elang {
 namespace lir {
 
-X64LoweringPass::X64LoweringPass(Factory* factory, Function* function)
-    : FunctionPass(factory, function), EditorOwner(factory, function) {
+X64LoweringPass::X64LoweringPass(Editor* editor) : FunctionPass(editor) {
 }
 
 X64LoweringPass::~X64LoweringPass() {

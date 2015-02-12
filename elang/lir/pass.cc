@@ -4,6 +4,8 @@
 
 #include "elang/lir/pass.h"
 
+#include "elang/lir/editor.h"
+
 namespace elang {
 namespace lir {
 
@@ -15,14 +17,13 @@ Pass::~Pass() {
 }
 
 // FuncitonPass
-FunctionPass::FunctionPass(Factory* factory, Function* function)
-    : Pass(factory), function_(function) {
+FunctionPass::FunctionPass(Editor* editor)
+    : Pass(editor->factory()), EditorUser(editor) {
 }
 
 FunctionPass::~FunctionPass() {
 }
 
-// Pass
 void FunctionPass::Run() {
   RunOnFunction();
 }

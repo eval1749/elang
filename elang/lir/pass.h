@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/lir/editor_user.h"
 #include "elang/lir/factory_user.h"
 
 namespace elang {
@@ -39,21 +40,19 @@ class ELANG_LIR_EXPORT Pass : public FactoryUser {
 //
 // FunctionPass
 //
-class ELANG_LIR_EXPORT FunctionPass : public Pass {
+class ELANG_LIR_EXPORT FunctionPass : public Pass, public EditorUser {
  public:
   virtual ~FunctionPass();
+
+  // Pass
   void Run() final;
 
  protected:
-  FunctionPass(Factory* factory, Function* function);
-
-  Function* function() const { return function_; }
+  explicit FunctionPass(Editor* editor);
 
   virtual void RunOnFunction() = 0;
 
  private:
-  Function* const function_;
-
   DISALLOW_COPY_AND_ASSIGN(FunctionPass);
 };
 
