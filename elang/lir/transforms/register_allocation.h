@@ -49,7 +49,7 @@ class LocalAllocation final : public ZoneAllocated {
   ~LocalAllocation();
 
   Value PhysicalFor(Value vreg) const;
-  Value StackLocationFor(Value vreg) const;
+  Value StackSlotFor(Value vreg) const;
 
  private:
   friend class RegisterAllocationTracker;
@@ -62,7 +62,7 @@ class LocalAllocation final : public ZoneAllocated {
   ZoneUnorderedMap<Value, Value> physical_map_;
 
   // Map virtual register to stack location.
-  ZoneUnorderedMap<Value, Value> stack_location_map_;
+  ZoneUnorderedMap<Value, Value> stack_slot_map_;
 
   DISALLOW_COPY_AND_ASSIGN(LocalAllocation);
 };

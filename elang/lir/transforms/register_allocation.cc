@@ -15,7 +15,7 @@ namespace lir {
 // LocalAllocation
 //
 LocalAllocation::LocalAllocation(Zone* zone)
-    : physical_map_(zone), stack_location_map_(zone) {
+    : physical_map_(zone), stack_slot_map_(zone) {
 }
 
 Value LocalAllocation::PhysicalFor(Value vreg) const {
@@ -24,10 +24,10 @@ Value LocalAllocation::PhysicalFor(Value vreg) const {
   return it == physical_map_.end() ? Value() : it->second;
 }
 
-Value LocalAllocation::StackLocationFor(Value vreg) const {
+Value LocalAllocation::StackSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = stack_location_map_.find(vreg);
-  return it == stack_location_map_.end() ? Value() : it->second;
+  auto const it = stack_slot_map_.find(vreg);
+  return it == stack_slot_map_.end() ? Value() : it->second;
 }
 
 //////////////////////////////////////////////////////////////////////

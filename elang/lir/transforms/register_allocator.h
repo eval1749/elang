@@ -66,11 +66,11 @@ class ELANG_LIR_EXPORT RegisterAllocator final {
   // Called when input operands of |instruction| are processed.
   Value DidProcessInputOperands(Instruction* instruction);
   Value ChooseRegisterToSpill(Instruction* instruction, Value vreg) const;
-  Value EnsureStackLocation(Value vreg);
+  Value EnsureStackSlot(Value vreg);
   void FreeInputIfPossible(Instruction* instruction, Value input);
   void MustAllocate(Instruction* instruction, Value output, Value physical);
-  Instruction* NewReload(Value physical, Value stack_location);
-  Instruction* NewSpill(Value stack_location, Value physical);
+  Instruction* NewReload(Value physical, Value stack_slot);
+  Instruction* NewSpill(Value stack_slot, Value physical);
   void PopulateAllocationMap(BasicBlock* block);
   void ProcessBlock(BasicBlock* block);
   void ProcessInputOperand(Instruction* instruction, Value input, int position);
@@ -80,7 +80,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final {
   // Returns true if |output| is allocated to |physical|, or returns false.
   bool TryAllocate(Instruction* instruction, Value output, Value physical);
 
-  Value StackLocationFor(Value virtual_register) const;
+  Value StackSlotFor(Value virtual_register) const;
 
   std::unique_ptr<RegisterAllocationTracker> allocation_tracker_;
   const Editor* const editor_;

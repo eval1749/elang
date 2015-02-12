@@ -61,10 +61,10 @@ Value StackAllocator::Allocate(Value type) {
   return Value::Stack(type, Allocate(Value::ByteSize(type.size)));
 }
 
-void StackAllocator::AllocateAt(Value stack_location) {
-  DCHECK(stack_location.is_stack());
-  auto const offset = stack_location.data;
-  auto const size = Value::ByteSize(stack_location.size);
+void StackAllocator::AllocateAt(Value stack_slot) {
+  DCHECK(stack_slot.is_stack());
+  auto const offset = stack_slot.data;
+  auto const size = Value::ByteSize(stack_slot.size);
 #ifndef _NDEBUG
   for (auto index = offset; index < offset + size; ++index)
     DCHECK(!uses_[index]);

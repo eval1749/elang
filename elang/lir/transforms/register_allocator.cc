@@ -166,10 +166,10 @@ void RegisterAllocator::AllocatePhis(BasicBlock* block) {
     if (allocated)
       continue;
 
-    auto const stack_location = stack_allocator_->Allocate(output);
-    DCHECK(stack_location.is_stack());
-    allocation_tracker_->TrackStackLocation(output, stack_location);
-    allocation_tracker_->SetAllocation(phi, output, stack_location);
+    auto const stack_slot = stack_allocator_->Allocate(output);
+    DCHECK(stack_slot.is_stack());
+    allocation_tracker_->TrackStackSlot(output, stack_slot);
+    allocation_tracker_->SetAllocation(phi, output, stack_slot);
   }
 }
 
@@ -189,7 +189,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
       victim.next_use = next_use->index();
       victim.vreg = candidate;
     }
-    if (StackLocationFor(candidate).is_stack() &&
+    if (StackSlotFor(candidate).is_stack() &&
         spilled_victim.next_use < next_use->index()) {
       spilled_victim.next_use = next_use->index();
       spilled_victim.vreg = candidate;
@@ -220,9 +220,9 @@ Value RegisterAllocator::DidProcessInputOperands(Instruction* instr) {
     if (!Target::IsCallerSavedRegister(physical))
       continue;
     auto const vreg = virtual_physical.first;
-    auto const stack_location = EnsureStackLocation(vreg);
-    allocation_tracker_->TrackStackLocation(vreg, stack_location);
-    save_actions.push_back(NewSpill(stack_location, physical));
+    auto const stack_slot = EnsureStackSlot(vreg);
+    allocation_tracker_->TrackStackSlot(vreg, stack_slot);
+    save_actions.push_back(NewSpill(stack_slot, physical));
   }
   for (auto const save_action : save_actions)
     allocation_tracker_->FreePhysical(save_action->input(0));
@@ -230,9 +230,9 @@ Value RegisterAllocator::DidProcessInputOperands(Instruction* instr) {
   return Value();
 }
 
-Value RegisterAllocator::EnsureStackLocation(Value vreg) {
+Value RegisterAllocator::EnsureStackSlot(Value vreg) {
   DCHECK(vreg.is_virtual());
-  auto const present = StackLocationFor(vreg);
+  auto const present = StackSlotFor(vreg);
   return present.is_stack() ? present : stack_allocator_->Allocate(vreg);
 }
 
@@ -253,17 +253,16 @@ void RegisterAllocator::MustAllocate(Instruction* instr,
   DCHECK(allocated);
 }
 
-Instruction* RegisterAllocator::NewReload(Value physical,
-                                          Value stack_location) {
+Instruction* RegisterAllocator::NewReload(Value physical, Value stack_slot) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_location.is_stack());
-  return factory()->NewCopyInstruction(physical, stack_location);
+  DCHECK(stack_slot.is_stack());
+  return factory()->NewCopyInstruction(physical, stack_slot);
 }
 
-Instruction* RegisterAllocator::NewSpill(Value stack_location, Value physical) {
+Instruction* RegisterAllocator::NewSpill(Value stack_slot, Value physical) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_location.is_stack());
-  return factory()->NewCopyInstruction(stack_location, physical);
+  DCHECK(stack_slot.is_stack());
+  return factory()->NewCopyInstruction(stack_slot, physical);
 }
 
 // Incorporate allocation map from predecessors.
@@ -275,14 +274,14 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
       auto const input = liveness_.VariableOf(number);
 
       // Stack location
-      auto const stack_location = allocation.StackLocationFor(input);
-      if (stack_location.is_stack()) {
-        auto const present = allocation_tracker_->StackLocationFor(input);
+      auto const stack_slot = allocation.StackSlotFor(input);
+      if (stack_slot.is_stack()) {
+        auto const present = allocation_tracker_->StackSlotFor(input);
         if (present.is_void()) {
-          allocation_tracker_->TrackStackLocation(input, stack_location);
-          stack_allocator_->AllocateAt(stack_location);
+          allocation_tracker_->TrackStackSlot(input, stack_slot);
+          stack_allocator_->AllocateAt(stack_slot);
         } else {
-          DCHECK_EQ(present, stack_location);
+          DCHECK_EQ(present, stack_slot);
         }
       }
 
@@ -369,15 +368,15 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
   auto const victim = ChooseRegisterToSpill(instr, input);
   DCHECK(victim.is_virtual());
   auto const physical = allocation_tracker_->PhysicalFor(victim);
-  auto const spill_location = EnsureStackLocation(victim);
+  auto const spill_location = EnsureStackSlot(victim);
   allocation_tracker_->FreePhysical(physical);
   allocation_tracker_->SetBeforeAction(
       instr, {
               NewSpill(spill_location, physical),
-              NewReload(physical, StackLocationFor(input)),
+              NewReload(physical, StackSlotFor(input)),
              });
   allocation_tracker_->SetAllocation(instr, input, physical);
-  allocation_tracker_->TrackStackLocation(victim, spill_location);
+  allocation_tracker_->TrackStackSlot(victim, spill_location);
 }
 
 void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
@@ -425,14 +424,14 @@ void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
   DCHECK(victim.is_virtual());
   auto const physical = allocation_tracker_->PhysicalFor(victim);
   DCHECK(physical.is_physical());
-  auto const spill_location = EnsureStackLocation(victim);
+  auto const spill_location = EnsureStackSlot(victim);
   allocation_tracker_->FreePhysical(physical);
   allocation_tracker_->SetBeforeAction(instr,
                                        {
                                         NewSpill(spill_location, physical),
                                        });
   allocation_tracker_->SetAllocation(instr, output, physical);
-  allocation_tracker_->TrackStackLocation(victim, spill_location);
+  allocation_tracker_->TrackStackSlot(victim, spill_location);
 }
 
 // FunctionPass - This is entry point of |RegisterAllocator|. We process
@@ -459,8 +458,8 @@ void RegisterAllocator::SortAllocatableRegisters() {
             CompareRegisterInNonLeaf);
 }
 
-Value RegisterAllocator::StackLocationFor(Value vreg) const {
-  return allocation_tracker_->StackLocationFor(vreg);
+Value RegisterAllocator::StackSlotFor(Value vreg) const {
+  return allocation_tracker_->StackSlotFor(vreg);
 }
 
 bool RegisterAllocator::TryAllocate(Instruction* instr,
