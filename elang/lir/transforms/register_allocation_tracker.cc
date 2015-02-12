@@ -99,7 +99,7 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
     TrackPhysical(vreg, allocated);
     return;
   }
-  if (allocated.is_stack()) {
+  if (allocated.is_stack_slot()) {
     TrackStackSlot(vreg, allocated);
     return;
   }
@@ -122,7 +122,7 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
 
 void RegisterAllocationTracker::TrackStackSlot(Value vreg, Value stack_slot) {
   DCHECK(vreg.is_virtual());
-  DCHECK(stack_slot.is_stack());
+  DCHECK(stack_slot.is_stack_slot());
   DCHECK(!location_allocation_->stack_slot_map_.count(stack_slot));
   location_allocation_->stack_slot_map_[vreg] = stack_slot;
 }

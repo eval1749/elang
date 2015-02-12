@@ -42,7 +42,7 @@ struct ELANG_LIR_EXPORT Value {
     VirtualRegister = 5,
     Condition = 6,  // output of equality and relational instructions.
     Argument = 7,
-    Stack,  // stack location for spilled registers
+    StackSlot,  // stack location for spilled registers
     NotUsed9,
     NotUsed10,
     NotUsed11,
@@ -88,7 +88,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_register() const { return is_physical() || is_virtual(); }
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
-  bool is_stack() const { return kind == Kind::Stack; }
+  bool is_stack_slot() const { return kind == Kind::StackSlot; }
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
   bool is_void() const { return kind == Kind::Void; }
 
@@ -108,7 +108,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Immediate(ValueSize size, int data);
   static Value Parameter(Type type, ValueSize size, int data);
   static Value Register(ValueSize size, int data);
-  static Value Stack(Value type, int data);
+  static Value StackSlot(Value type, int data);
   static Value SmallInt32(int data);
   static Value True();
 };

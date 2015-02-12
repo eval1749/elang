@@ -19,31 +19,31 @@ TEST(StackAllocatorTest, Alignment4) {
 
   StackAllocator allocator(4);
 
-  EXPECT_EQ(Value::Stack(int32_type, 0), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::Stack(int32_type, 4), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::Stack(int16_type, 8), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::Stack(int16_type, 10), allocator.Allocate(int16_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 4), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int16_type, 8), allocator.Allocate(int16_type));
+  EXPECT_EQ(Value::StackSlot(int16_type, 10), allocator.Allocate(int16_type));
   EXPECT_EQ(12, allocator.RequiredSize()) << "stack is align 4 byte";
 
-  EXPECT_EQ(Value::Stack(int32_type, 12), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 12), allocator.Allocate(int32_type));
   ASSERT_EQ(16, allocator.RequiredSize()) << "stack is aligned 4 byte";
 
-  EXPECT_EQ(Value::Stack(int64_type, 16), allocator.Allocate(int64_type));
+  EXPECT_EQ(Value::StackSlot(int64_type, 16), allocator.Allocate(int64_type));
   ASSERT_EQ(24, allocator.RequiredSize()) << "stack is aligned 8 byte";
 
-  EXPECT_EQ(Value::Stack(int32_type, 24), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 24), allocator.Allocate(int32_type));
   auto const max_stack_size = 28;
   EXPECT_EQ(max_stack_size, allocator.RequiredSize())
       << "size of stack isn't changed";
 
   // Reuse free slots
-  allocator.Free(Value::Stack(int32_type, 0));
-  EXPECT_EQ(Value::Stack(int8_type, 0), allocator.Allocate(int8_type));
-  EXPECT_EQ(Value::Stack(int16_type, 2), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::Stack(int8_type, 1), allocator.Allocate(int8_type));
-  allocator.Free(Value::Stack(int16_type, 8));
-  allocator.Free(Value::Stack(int16_type, 10));
-  EXPECT_EQ(Value::Stack(int32_type, 8), allocator.Allocate(int32_type));
+  allocator.Free(Value::StackSlot(int32_type, 0));
+  EXPECT_EQ(Value::StackSlot(int8_type, 0), allocator.Allocate(int8_type));
+  EXPECT_EQ(Value::StackSlot(int16_type, 2), allocator.Allocate(int16_type));
+  EXPECT_EQ(Value::StackSlot(int8_type, 1), allocator.Allocate(int8_type));
+  allocator.Free(Value::StackSlot(int16_type, 8));
+  allocator.Free(Value::StackSlot(int16_type, 10));
+  EXPECT_EQ(Value::StackSlot(int32_type, 8), allocator.Allocate(int32_type));
 
   EXPECT_EQ(max_stack_size, allocator.RequiredSize())
       << "size of stack isn't changed";
@@ -57,31 +57,31 @@ TEST(StackAllocatorTest, Alignment8) {
 
   StackAllocator allocator(8);
 
-  EXPECT_EQ(Value::Stack(int32_type, 0), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::Stack(int32_type, 4), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::Stack(int16_type, 8), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::Stack(int32_type, 12), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 4), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int16_type, 8), allocator.Allocate(int16_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 12), allocator.Allocate(int32_type));
   EXPECT_EQ(16, allocator.RequiredSize());
 
-  EXPECT_EQ(Value::Stack(int32_type, 16), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 16), allocator.Allocate(int32_type));
   ASSERT_EQ(24, allocator.RequiredSize()) << "stack is aligned 8 byte";
 
-  EXPECT_EQ(Value::Stack(int64_type, 24), allocator.Allocate(int64_type));
+  EXPECT_EQ(Value::StackSlot(int64_type, 24), allocator.Allocate(int64_type));
   auto const max_stack_size = 32;
   ASSERT_EQ(max_stack_size, allocator.RequiredSize())
       << "stack is aligned 8 byte";
 
-  EXPECT_EQ(Value::Stack(int32_type, 20), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 20), allocator.Allocate(int32_type));
   EXPECT_EQ(max_stack_size, allocator.RequiredSize())
       << "size of stack isn't changed";
 
   // Reuse free slots
-  allocator.Free(Value::Stack(int32_type, 0));
-  EXPECT_EQ(Value::Stack(int8_type, 0), allocator.Allocate(int8_type));
-  EXPECT_EQ(Value::Stack(int16_type, 2), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::Stack(int8_type, 1), allocator.Allocate(int8_type));
-  allocator.Free(Value::Stack(int16_type, 8));
-  EXPECT_EQ(Value::Stack(int32_type, 8), allocator.Allocate(int32_type));
+  allocator.Free(Value::StackSlot(int32_type, 0));
+  EXPECT_EQ(Value::StackSlot(int8_type, 0), allocator.Allocate(int8_type));
+  EXPECT_EQ(Value::StackSlot(int16_type, 2), allocator.Allocate(int16_type));
+  EXPECT_EQ(Value::StackSlot(int8_type, 1), allocator.Allocate(int8_type));
+  allocator.Free(Value::StackSlot(int16_type, 8));
+  EXPECT_EQ(Value::StackSlot(int32_type, 8), allocator.Allocate(int32_type));
 
   EXPECT_EQ(max_stack_size, allocator.RequiredSize())
       << "size of stack isn't changed";
@@ -97,7 +97,7 @@ TEST(StackAllocatorTest, AllocateAt) {
 
   allocator.Reset();
   allocator.AllocateAt(stack_slot1);
-  EXPECT_EQ(Value::Stack(int32_type, 0), allocator.Allocate(int32_type));
+  EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
 
   EXPECT_EQ(8, allocator.current_size());
   EXPECT_EQ(12, allocator.RequiredSize());

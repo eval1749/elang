@@ -73,7 +73,7 @@ void RegisterAllocation::SetAllocation(Instruction* instr,
                                        Value vreg,
                                        Value allocated) {
   DCHECK(vreg.is_virtual());
-  DCHECK(allocated.is_physical() || allocated.is_stack());
+  DCHECK(allocated.is_physical() || allocated.is_stack_slot());
   map_[std::make_pair(instr, vreg)] = allocated;
 }
 

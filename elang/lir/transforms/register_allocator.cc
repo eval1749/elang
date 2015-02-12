@@ -167,7 +167,7 @@ void RegisterAllocator::AllocatePhis(BasicBlock* block) {
       continue;
 
     auto const stack_slot = stack_allocator_->Allocate(output);
-    DCHECK(stack_slot.is_stack());
+    DCHECK(stack_slot.is_stack_slot());
     allocation_tracker_->TrackStackSlot(output, stack_slot);
     allocation_tracker_->SetAllocation(phi, output, stack_slot);
   }
@@ -189,7 +189,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
       victim.next_use = next_use->index();
       victim.vreg = candidate;
     }
-    if (StackSlotFor(candidate).is_stack() &&
+    if (StackSlotFor(candidate).is_stack_slot() &&
         spilled_victim.next_use < next_use->index()) {
       spilled_victim.next_use = next_use->index();
       spilled_victim.vreg = candidate;
@@ -233,7 +233,7 @@ Value RegisterAllocator::DidProcessInputOperands(Instruction* instr) {
 Value RegisterAllocator::EnsureStackSlot(Value vreg) {
   DCHECK(vreg.is_virtual());
   auto const present = StackSlotFor(vreg);
-  return present.is_stack() ? present : stack_allocator_->Allocate(vreg);
+  return present.is_stack_slot() ? present : stack_allocator_->Allocate(vreg);
 }
 
 void RegisterAllocator::FreeInputIfPossible(Instruction* instr, Value input) {
@@ -255,13 +255,13 @@ void RegisterAllocator::MustAllocate(Instruction* instr,
 
 Instruction* RegisterAllocator::NewReload(Value physical, Value stack_slot) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_slot.is_stack());
+  DCHECK(stack_slot.is_stack_slot());
   return factory()->NewCopyInstruction(physical, stack_slot);
 }
 
 Instruction* RegisterAllocator::NewSpill(Value stack_slot, Value physical) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_slot.is_stack());
+  DCHECK(stack_slot.is_stack_slot());
   return factory()->NewCopyInstruction(stack_slot, physical);
 }
 
@@ -275,7 +275,7 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
 
       // Stack location
       auto const stack_slot = allocation.StackSlotFor(input);
-      if (stack_slot.is_stack()) {
+      if (stack_slot.is_stack_slot()) {
         auto const present = allocation_tracker_->StackSlotFor(input);
         if (present.is_void()) {
           allocation_tracker_->TrackStackSlot(input, stack_slot);

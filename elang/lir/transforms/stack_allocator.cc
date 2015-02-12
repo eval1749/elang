@@ -59,13 +59,13 @@ int StackAllocator::Allocate(int size) {
 }
 
 Value StackAllocator::Allocate(Value type) {
-  return Value::Stack(type, Allocate(Value::ByteSize(type.size)));
+  return Value::StackSlot(type, Allocate(Value::ByteSize(type.size)));
 }
 
 // Allocate stack by offset and size specified by |stack_slot|. This function
 // may be called after |Reset()|.
 void StackAllocator::AllocateAt(Value stack_slot) {
-  DCHECK(stack_slot.is_stack());
+  DCHECK(stack_slot.is_stack_slot());
   auto const offset = stack_slot.data;
   auto const size = Value::ByteSize(stack_slot.size);
   if (offset + size > current_size())
@@ -78,7 +78,7 @@ void StackAllocator::AllocateAt(Value stack_slot) {
 }
 
 void StackAllocator::Free(Value location) {
-  DCHECK_EQ(Value::Kind::Stack, location.kind);
+  DCHECK(location.is_stack_slot()) << location;
   std::fill(uses_.begin() + location.data,
             uses_.begin() + location.data + Value::ByteSize(location.size),
             false);

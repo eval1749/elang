@@ -154,7 +154,7 @@ std::ostream& operator<<(std::ostream& ostream,
       }
       NOTREACHED() << value.size;
       return ostream << "NOTREACHED(" << value.data << ")";
-    case Value::Kind::Stack:
+    case Value::Kind::StackSlot:
       return ostream << "%stack[" << value.data << "]";
     case Value::Kind::Void:
       return ostream << "void";
