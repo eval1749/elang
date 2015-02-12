@@ -114,6 +114,7 @@ source_set("lir_unittests") {
     "editor_unittest.cc",
     "instructions_unittest.cc",
     "literals_unittest.cc",
+    "transforms/prepare_phi_inversion_unittest.cc",
     "transforms/stack_allocator_unittest.cc",
     "value_unittest.cc",
   ]

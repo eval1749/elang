@@ -32,42 +32,50 @@ base::StringPiece PreparePhiInversionPass::name() const {
 // Inserts a new block between predecessors of phi block if predecessor block
 // has more than one successors.
 void PreparePhiInversionPass::RunOnFunction() {
-  std::vector<BasicBlock*> blocks;
+  // Since we modify predecessors of phi block, we can't use |predecessors()|
+  // during inserting new block.
+  struct WorkItem {
+    BasicBlock* phi_block;
+    BasicBlock* predecessor;
+  };
+  std::vector<WorkItem> items;
+
+  // Collection phase
   for (auto const block : function()->basic_blocks()) {
     if (block->phi_instructions().empty())
       continue;
     for (auto const predecessor : block->predecessors()) {
-      if (predecessor->HasMoreThanOneSuccessors()) {
-        blocks.push_back(block);
-        break;
-      }
+      if (!predecessor->HasMoreThanOneSuccessors())
+        continue;
+      items.push_back({block, predecessor});
     }
   }
 
-  for (auto const phi_block : blocks) {
-    for (auto const predecessor : phi_block->predecessors()) {
-      if (!predecessor->HasMoreThanOneSuccessors())
-        continue;
-      // Insert new block after |predecessor|.
-      auto const new_block = editor()->NewBasicBlock(predecessor->next());
-      editor()->Edit(new_block);
-      editor()->SetJump(phi_block);
-      editor()->Commit();
+  // Rewriting phase
+  for (auto const item : items) {
+    // Insert new block after |predecessor|.
+    auto const new_block = editor()->NewBasicBlock(item.predecessor->next());
 
-      editor()->Edit(predecessor);
-      auto const last = predecessor->last_instruction();
-      auto position = 0;
-      for (auto const target : last->block_operands()) {
-        if (target == phi_block)
-          editor()->SetBlockOperand(last, position, new_block);
-        ++position;
-      }
-      editor()->Commit();
+    // |new_block| to |phi_block|
+    editor()->Edit(new_block);
+    editor()->SetJump(item.phi_block);
+    editor()->Commit();
 
-      editor()->Edit(phi_block);
-      editor()->ReplacePhiInputs(new_block, predecessor);
-      editor()->Commit();
+    // Redirect edge |predecessor| => |phi_block| to |new_block| => |phi_block|
+    editor()->Edit(item.predecessor);
+    auto const last = item.predecessor->last_instruction();
+    auto position = 0;
+    for (auto const target : last->block_operands()) {
+      if (target == item.phi_block)
+        editor()->SetBlockOperand(last, position, new_block);
+      ++position;
     }
+    editor()->Commit();
+
+    // Update phi inputs
+    editor()->Edit(item.phi_block);
+    editor()->ReplacePhiInputs(new_block, item.predecessor);
+    editor()->Commit();
   }
 }
 
