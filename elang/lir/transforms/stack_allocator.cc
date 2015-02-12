@@ -23,7 +23,7 @@ int RoundUp(int value, int alignment) {
 // StackAllocator
 //
 StackAllocator::StackAllocator(int alignment)
-    : alignment_(alignment), maximum_size_(0) {
+    : alignment_(alignment), maximum_argc_(0), maximum_size_(0) {
   DCHECK(alignment_ == 4 || alignment_ == 8 || alignment_ == 16);
   // Reserve spaces to reduce number of dynamic expansion.
   uses_.reserve(alignment_ * 32);
@@ -91,6 +91,11 @@ int StackAllocator::RequiredSize() const {
 void StackAllocator::Reset() {
   maximum_size_ = std::max(maximum_size_, current_size());
   uses_.resize(0);
+}
+
+void StackAllocator::TrackNumberOfArguments(int argc) {
+  DCHECK_GE(argc, 0);
+  maximum_argc_ = std::max(maximum_argc_, argc);
 }
 
 }  // namespace lir

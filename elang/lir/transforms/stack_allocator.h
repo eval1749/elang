@@ -25,17 +25,20 @@ class ELANG_LIR_EXPORT StackAllocator final {
   ~StackAllocator();
 
   int current_size() const { return static_cast<int>(uses_.size()); }
+  int maximum_argc() const { return maximum_argc_; }
 
   void AllocateAt(Value stack_slot);
   Value Allocate(Value type);
   void Free(Value location);
   int RequiredSize() const;
   void Reset();
+  void TrackNumberOfArguments(int number_of_arguments);
 
  private:
   int Allocate(int size);
 
   int const alignment_;
+  int maximum_argc_;
   int maximum_size_;
   std::vector<bool> uses_;
 

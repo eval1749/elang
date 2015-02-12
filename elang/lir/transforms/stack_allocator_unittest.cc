@@ -103,6 +103,15 @@ TEST(StackAllocatorTest, AllocateAt) {
   EXPECT_EQ(12, allocator.RequiredSize());
 }
 
+TEST(StackAllocatorTest, TrackNumberOfArguments) {
+  StackAllocator allocator(4);
+  allocator.TrackNumberOfArguments(4);
+  allocator.TrackNumberOfArguments(3);
+  allocator.TrackNumberOfArguments(2);
+  allocator.TrackNumberOfArguments(0);
+  EXPECT_EQ(4, allocator.maximum_argc());
+}
+
 }  // namespace
 }  // namespace lir
 }  // namespace elang
