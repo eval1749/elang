@@ -67,7 +67,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final {
   Value DidProcessInputOperands(Instruction* instruction);
   Value ChooseRegisterToSpill(Instruction* instruction, Value vreg) const;
   Value EnsureStackSlot(Value vreg);
-  void FreeInputIfPossible(Instruction* instruction, Value input);
+  void FreeInputIfNotUsed(Instruction* instruction, Value input);
   void MustAllocate(Instruction* instruction, Value output, Value physical);
   Instruction* NewReload(Value physical, Value stack_slot);
   Instruction* NewSpill(Value stack_slot, Value physical);

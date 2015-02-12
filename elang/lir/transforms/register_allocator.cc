@@ -207,7 +207,7 @@ Value RegisterAllocator::DidProcessInputOperands(Instruction* instr) {
   for (auto const input : instr->inputs()) {
     if (!position)
       physical_at_0 = allocation_tracker_->PhysicalFor(input);
-    FreeInputIfPossible(instr, input);
+    FreeInputIfNotUsed(instr, input);
     ++position;
   }
   if (!instr->is<CallInstruction>())
@@ -236,7 +236,7 @@ Value RegisterAllocator::EnsureStackSlot(Value vreg) {
   return present.is_stack_slot() ? present : stack_allocator_->Allocate(vreg);
 }
 
-void RegisterAllocator::FreeInputIfPossible(Instruction* instr, Value input) {
+void RegisterAllocator::FreeInputIfNotUsed(Instruction* instr, Value input) {
   if (!input.is_virtual())
     return;
   if (usage_tracker_.IsUsedAfter(input, instr))
