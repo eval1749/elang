@@ -405,6 +405,16 @@ void Editor::RemoveEdgesFrom(Instruction* instruction) {
   }
 }
 
+void Editor::SetBlockOperand(Instruction* instruction,
+                             int index,
+                             BasicBlock* new_block) {
+  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_->last_instruction(), instruction);
+  RemoveEdgesFrom(instruction);
+  instruction->SetBlockOperand(index, new_block);
+  AddEdgesFrom(instruction);
+}
+
 void Editor::SetBranch(Value condition,
                        BasicBlock* true_block,
                        BasicBlock* false_block) {

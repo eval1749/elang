@@ -346,7 +346,7 @@ TEST_F(LirEditorTest, ReplacePhiInputs) {
 
   editor.Edit(sample_block);
   auto const branch = sample_block->last_instruction();
-  editor.SetBranch(branch->input(0), new_block, branch->block_operand(1));
+  editor.SetBlockOperand(branch, 0, new_block);
   editor.Commit();
 
   editor.Edit(merge_block);
