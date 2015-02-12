@@ -141,6 +141,54 @@ Function* LirTest::CreateFunctionSample2() {
   return function;
 }
 
+// The sample block for RemoveCriticalEdges test case:
+//   entry:
+//    br start
+//   start:
+//    br sample
+//   sample:
+//    br %flag1, merge, start
+//   merge:
+//    phi %1 = start 39, sample 42
+//    ret
+// An edge sample => merge is a critical edge.
+//
+Function* LirTest::CreateFunctionWithCriticalEdge() {
+  auto const function = CreateFunctionEmptySample();
+  auto const entry_block = function->entry_block();
+  auto const exit_block = function->exit_block();
+
+  Editor editor(factory(), function);
+
+  Value type(Value::Type::Integer, ValueSize::Size32);
+  auto const start_block = editor.NewBasicBlock(exit_block);
+  auto const sample_block = editor.NewBasicBlock(exit_block);
+  auto const merge_block = editor.NewBasicBlock(exit_block);
+
+  editor.Edit(entry_block);
+  editor.SetJump(start_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(start_block);
+  editor.SetJump(merge_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(sample_block);
+  editor.SetBranch(factory()->NewCondition(), merge_block, start_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(merge_block);
+  auto const phi_instr = editor.NewPhi(NewRegister(type));
+  editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
+  editor.SetPhiInput(phi_instr, start_block, Value::SmallInt32(39));
+  editor.SetReturn();
+  EXPECT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("", Validate(&editor));
+
+  return function;
+}
+
 std::vector<Value> LirTest::EmitCopyParameters(Editor* editor,
                                                Value type,
                                                int count) {

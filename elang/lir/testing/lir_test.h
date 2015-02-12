@@ -39,6 +39,7 @@ class LirTest : public ::testing::Test, public FactoryUser {
   Function* CreateFunctionEmptySample();
   Function* CreateFunctionSample1();
   Function* CreateFunctionSample2();
+  Function* CreateFunctionWithCriticalEdge();
 
   // Emit instructions to copy parameters to virtual registers and returns
   // list of registers holding parameters.
