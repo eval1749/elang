@@ -61,10 +61,14 @@ Value StackAllocator::Allocate(Value type) {
   return Value::Stack(type, Allocate(Value::ByteSize(type.size)));
 }
 
+// Allocate stack by offset and size specified by |stack_slot|. This function
+// may be called after |Reset()|.
 void StackAllocator::AllocateAt(Value stack_slot) {
   DCHECK(stack_slot.is_stack());
   auto const offset = stack_slot.data;
   auto const size = Value::ByteSize(stack_slot.size);
+  if (offset + size > static_cast<int>(uses_.size()))
+    uses_.resize(offset + size);
 #ifndef _NDEBUG
   for (auto index = offset; index < offset + size; ++index)
     DCHECK(!uses_[index]);
