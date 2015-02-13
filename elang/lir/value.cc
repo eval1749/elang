@@ -58,6 +58,19 @@ Value Value::True() {
   return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 1);
 }
 
+bool Value::is_output() const {
+  switch (kind) {
+    case Kind::Argument:
+    case Kind::Condition:
+    case Kind::Parameter:
+    case Kind::PhysicalRegister:
+    case Kind::StackSlot:
+    case Kind::VirtualRegister:
+      return true;
+  }
+  return false;
+}
+
 }  // namespace lir
 }  // namespace elang
 
