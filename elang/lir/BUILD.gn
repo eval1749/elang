@@ -47,6 +47,8 @@ component("lir") {
     "printer_generic.h",
     "printer_generic.cc",
     "target.h",
+    "transforms/parallel_copy_expander.cc",
+    "transforms/parallel_copy_expander.h",
     "transforms/prepare_phi_inversion.cc",
     "transforms/prepare_phi_inversion.h",
     "transforms/register_allocation.cc",
@@ -128,6 +130,7 @@ source_set("lir_unittests") {
       "code_emitter_x64_unittest.cc",
       "instructions_x64_unittest.cc",
       "target_x64_unittest.cc",
+      "transforms/parallel_copy_expander_unittest.cc",
       "transforms/lowering_x64_unittest.cc",
     ]
   }
