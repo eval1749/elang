@@ -13,6 +13,7 @@
 #include "base/strings/string_piece.h"
 #include "elang/base/float_types.h"
 #include "elang/lir/factory_user.h"
+#include "elang/lir/printer_generic.h"
 #include "elang/lir/value.h"
 #include "gtest/gtest.h"
 
