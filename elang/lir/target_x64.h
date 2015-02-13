@@ -230,8 +230,10 @@ class ELANG_LIR_EXPORT Target {
   // Returns physical register for return value.
   static Value GetReturn(Value type);
 
-  static bool HasCopyImmediateToMemory() { return true; }
-  static bool HasSwapInstruction() { return true; }
+  // TODO(eval1749) Make |HasCopyImmediateToMemory()| to take immediate value
+  // to check whether immediate value is fit in 32-bit or not.
+  static bool HasCopyImmediateToMemory(Value type);
+  static bool HasSwapInstruction(Value type);
 
   // Returns true if |physical| is callee save register.
   static bool IsCalleeSavedRegister(Value physical);

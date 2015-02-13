@@ -244,6 +244,16 @@ Value Target::GetReturn(Value type) {
   return GetRegister(type.size == ValueSize::Size64 ? isa::RAX : isa::EAX);
 }
 
+// We can use |MOV r/m, imm32| instruction.
+bool Target::HasCopyImmediateToMemory(Value type) {
+  return type.type == Value::Type::Integer && Value::ByteSize(type.size) <= 4;
+}
+
+// For integer, we can use |XCHG r, r/m| instruction.
+bool Target::HasSwapInstruction(Value type) {
+  return type.type == Value::Type::Integer;
+}
+
 bool Target::IsCalleeSavedRegister(Value value) {
   DCHECK(value.is_physical());
   auto const mask = 1 << (value.data & 15);
