@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
 #include <sstream>
 
 #include "elang/lir/testing/lir_test.h"
@@ -20,7 +21,14 @@ namespace elang {
 namespace lir {
 namespace testing {
 
+//////////////////////////////////////////////////////////////////////
+//
+// LirTest
+//
 LirTest::LirTest() : FactoryUser(new Factory()), factory_(factory()) {
+}
+
+LirTest::~LirTest() {
 }
 
 std::string LirTest::Commit(Editor* editor) {

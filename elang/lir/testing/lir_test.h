@@ -33,7 +33,7 @@ namespace testing {
 class LirTest : public ::testing::Test, public FactoryUser {
  protected:
   LirTest();
-  ~LirTest() override = default;
+  ~LirTest() override;
 
   std::string Commit(Editor* editor);
   std::vector<Value> CollectRegisters(const Function* function);
