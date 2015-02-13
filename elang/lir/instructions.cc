@@ -64,7 +64,7 @@ FOR_EACH_LIR_INSTRUCTION_0_2(V)
 
 #define V(Name, ...)                                                \
   Name##Instruction::Name##Instruction(Value output, Value input) { \
-    DCHECK(output.is_register());                                   \
+    DCHECK(output.is_output());                                     \
     InitOutput(0, output);                                          \
     InitInput(0, input);                                            \
   }

@@ -44,6 +44,8 @@ component("lir") {
     "pass.h",
     "pass.cc",
     "printable.h",
+    "printer_generic.h",
+    "printer_generic.cc",
     "target.h",
     "transforms/prepare_phi_inversion.cc",
     "transforms/prepare_phi_inversion.h",
