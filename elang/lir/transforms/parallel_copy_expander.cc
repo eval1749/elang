@@ -32,7 +32,6 @@ bool IsImmediate(Value value) {
 struct ParallelCopyExpander::Task {
   Value output;
   Value input;
-  // Task(Value output, Value input) : output
 };
 
 //////////////////////////////////////////////////////////////////////
