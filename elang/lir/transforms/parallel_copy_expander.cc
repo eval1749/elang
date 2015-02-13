@@ -93,28 +93,38 @@ void ParallelCopyExpander::EmitCopy(Value output, Value input) {
 ParallelCopyExpander::Task ParallelCopyExpander::EmitSwap(Value output,
                                                           Value input) {
   dependency_graph_.RemoveEdge(output, input);
-  if (!output.is_physical() || !input.is_physical()) {
-    if (output.is_physical() || input.is_physical()) {
-      EmitCopy(output, input);
+
+  if (output.is_physical() && input.is_physical()) {
+    if (Target::HasSwapInstruction(type_)) {
+      instructions_.push_back(
+          factory()->NewPCopyInstruction({output, input}, {input, output}));
       return {input, input};
     }
     EmitCopy(scratch1_, input);
-    EmitCopy(scratch2_, output);
-    EmitCopy(input, scratch2_);
+    EmitCopy(input, output);
     EmitCopy(output, scratch1_);
-    return {scratch2_, input};
-  }
-
-  DCHECK(output.is_physical() && input.is_physical());
-  if (Target::HasSwapInstruction(type_)) {
-    instructions_.push_back(
-        factory()->NewPCopyInstruction({output, input}, {input, output}));
     return {input, input};
   }
+
+  if (output.is_physical()) {
+    EmitCopy(scratch1_, input);
+    EmitCopy(input, output);
+    EmitCopy(output, scratch1_);
+    return {scratch1_, input};
+  }
+
+  if (input.is_physical()) {
+    EmitCopy(scratch1_, output);
+    EmitCopy(output, input);
+    EmitCopy(input, scratch1_);
+    return {scratch1_, input};
+  }
+
   EmitCopy(scratch1_, input);
-  EmitCopy(input, output);
+  EmitCopy(scratch2_, output);
+  EmitCopy(input, scratch2_);
   EmitCopy(output, scratch1_);
-  return {input, input};
+  return {scratch2_, input};
 }
 
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
