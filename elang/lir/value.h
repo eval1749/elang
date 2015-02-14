@@ -78,12 +78,14 @@ struct ELANG_LIR_EXPORT Value {
   bool is_integer() const { return type == Type::Integer; }
 
   // predicates for |Kind|
+  bool is_argument() const { return kind == Kind::Argument; }
   bool is_condition() const { return kind == Kind::Condition; }
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }
   bool is_literal() const { return kind == Kind::Literal; }
   bool is_output() const;
   bool is_register() const { return is_physical() || is_virtual(); }
+  bool is_parameter() const { return kind == Kind::Parameter; }
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
   bool is_stack_slot() const { return kind == Kind::StackSlot; }
