@@ -383,7 +383,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     auto const input = MapInput(task.input);
     if (task.output == input)
       continue;
-    EmitCopy(task.output, input);
+    MustEmitCopy(task.output, input);
   }
   return std::move(instructions_);
 }
