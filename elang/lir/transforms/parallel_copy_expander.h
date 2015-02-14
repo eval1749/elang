@@ -88,9 +88,6 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
   // source of pending task.
   void GiveScratchIfNotUsed(Value input);
 
-  // Returns true if |task| doesn't need to use other registers to complete.
-  bool IsFreeTask(Task task) const;
-
   // Returns true if |value| is a source of pending task.
   bool IsSourceOfTask(Value value) const;
 
@@ -99,6 +96,9 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
 
   // Emit instructions for copying |input| to |output|.
   void MustEmitCopy(Value output, Value input);
+
+  // Returns true if |task| need to use another registers to complete.
+  bool NeedRegister(Task task) const;
 
   // Returns scratch register holding |input| or void if scratch registers are
   // unavailable.

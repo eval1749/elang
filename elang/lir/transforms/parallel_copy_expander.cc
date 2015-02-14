@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "elang/lir/transforms/parallel_copy_expander.h"
@@ -100,6 +101,7 @@ void ParallelCopyExpander::AddTask(Value output, Value input) {
 bool ParallelCopyExpander::EmitCopy(Value output, Value input) {
   DCHECK(!input.is_void());
   DCHECK(!output.is_void());
+  DCHECK_NE(output, input);
   if (input.is_physical()) {
     instructions_.push_back(factory()->NewCopyInstruction(output, input));
     return true;
@@ -216,6 +218,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   ScopedExpand expand_scope(this);
   std::list<Task> copy_tasks;
   std::vector<Task> free_tasks;
+  std::unordered_set<Value> outputs;
 
   // Sort tasks to process memory operand first.
   std::sort(tasks_.begin(), tasks_.end(),
@@ -226,13 +229,17 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   });
 
   // Step 1: Build dependency graph for tracking usage of output.
-  for (auto const task : tasks_)
-    dependency_graph_->AddEdge(task.output, task.input);
+  for (auto const task : tasks_) {
+    auto const output = task.output;
+    DCHECK(!outputs.count(output)) << output << " is used more than once.";
+    dependency_graph_->AddEdge(output, task.input);
+    outputs.insert(output);
+  }
 
   // Step 2: Collect scratch registers. We can use a register as scratch if it
   // is not input of another task, input of task is immediate or memory.
   for (auto const task : tasks_) {
-    if (!IsFreeTask(task)) {
+    if (outputs.count(task.input) || NeedRegister(task)) {
       copy_tasks.push_back(task);
       continue;
     }
@@ -294,7 +301,10 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   for (auto const task : free_tasks) {
     if (task.input.is_void())
       continue;
-    EmitCopy(task.output, task.input);
+    auto const input = MapInput(task.input);
+    if (task.output == input)
+      continue;
+    EmitCopy(task.output, input);
   }
   return std::move(instructions_);
 }
@@ -312,20 +322,6 @@ void ParallelCopyExpander::GiveScratchIfNotUsed(Value source) {
   GiveScratch(source);
 }
 
-bool ParallelCopyExpander::IsFreeTask(Task task) const {
-  if (task.input.is_void()) {
-    DCHECK(task.output.is_physical()) << "Bad scratch register";
-    return true;
-  }
-  if (IsSourceOfTask(task.output))
-    return false;
-  if (task.input.is_physical())
-    return true;
-  if (IsImmediate(task.input))
-    return Target::HasCopyImmediateToMemory(task.input);
-  return false;
-}
-
 bool ParallelCopyExpander::IsSourceOfTask(Value value) const {
   return dependency_graph_->HasInEdge(value);
 }
@@ -340,6 +336,14 @@ Value ParallelCopyExpander::MapInput(Value source) const {
 void ParallelCopyExpander::MustEmitCopy(Value output, Value input) {
   auto const succeeded = EmitCopy(output, input);
   DCHECK(succeeded) << "EmitCopy(" << output << ", " << input << ") failed";
+}
+
+bool ParallelCopyExpander::NeedRegister(Task task) const {
+  if (task.output.is_physical())
+    return false;
+  DCHECK(!task.input.is_void());
+  return !IsImmediate(task.input) ||
+         !Target::HasCopyImmediateToMemory(task.input);
 }
 
 Value ParallelCopyExpander::TakeScratch(Value source) {
