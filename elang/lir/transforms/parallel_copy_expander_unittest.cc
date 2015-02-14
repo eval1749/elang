@@ -312,6 +312,80 @@ TEST_F(LirParallelCopyExpanderTest, Swap) {
       "pcopy R0, R1 = R1, R0\n");
 }
 
+// R0 <- R1 <- R0, M2 <- M3 <- M2
+TEST_F(LirParallelCopyExpanderTest, TwoCycles) {
+  ExpandWithScratch2(
+      {
+       std::make_pair(physical(0), physical(1)),
+       std::make_pair(physical(1), physical(0)),
+       std::make_pair(stack_slot(2), stack_slot(3)),
+       std::make_pair(stack_slot(3), stack_slot(2)),
+      },
+      physical(4), physical(5),
+      "pcopy R0, R1 = R1, R0\n"
+      "mov R5 = sp[3]\n"
+      "mov R4 = sp[2]\n"
+      "mov sp[2] = R5\n"
+      "mov sp[3] = R4\n");
+}
+
+// R0 <- M1 <- R0, R2 <- M3 <- R2
+TEST_F(LirParallelCopyExpanderTest, TwoCycles2) {
+  ExpandWithScratch(
+      {
+       std::make_pair(physical(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), physical(0)),
+       std::make_pair(physical(2), stack_slot(3)),
+       std::make_pair(stack_slot(3), physical(2)),
+      },
+      physical(4),
+      "mov R4 = sp[1]\n"
+      "mov sp[1] = R0\n"
+      "mov R0 = R4\n"
+      "mov R4 = sp[3]\n"
+      "mov sp[3] = R2\n"
+      "mov R2 = R4\n");
+}
+
+// R0 <- M1 <- M2 <- R0, R3 <- M4 <- R3
+TEST_F(LirParallelCopyExpanderTest, TwoCycles3) {
+  ExpandWithScratch(
+      {
+       std::make_pair(physical(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), physical(0)),
+       std::make_pair(stack_slot(2), physical(0)),
+       std::make_pair(physical(3), stack_slot(4)),
+       std::make_pair(stack_slot(4), physical(3)),
+      },
+      physical(5),
+      "mov sp[2] = R0\n"
+      "mov R5 = sp[1]\n"
+      "mov sp[1] = R0\n"
+      "mov R0 = R5\n"
+      "mov R5 = sp[4]\n"
+      "mov sp[4] = R3\n"
+      "mov R3 = R5\n");
+}
+
+// R0 <- M1 <- R0, M2 <- M3 <- M2
+TEST_F(LirParallelCopyExpanderTest, TwoCycles4) {
+  ExpandWithScratch2(
+      {
+       std::make_pair(physical(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), physical(0)),
+       std::make_pair(stack_slot(2), stack_slot(3)),
+       std::make_pair(stack_slot(3), stack_slot(2)),
+      },
+      physical(4), physical(5),
+      "mov R5 = sp[1]\n"
+      "mov sp[1] = R0\n"
+      "mov R0 = R5\n"
+      "mov R5 = sp[3]\n"
+      "mov R4 = sp[2]\n"
+      "mov sp[2] = R5\n"
+      "mov sp[3] = R4\n");
+}
+
 }  // namespace
 }  // namespace lir
 }  // namespace elang

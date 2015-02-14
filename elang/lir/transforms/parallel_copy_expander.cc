@@ -137,6 +137,13 @@ void ParallelCopyExpander::AddTask(Value output, Value input) {
   tasks_.push_back({output, input});
 }
 
+void ParallelCopyExpander::DidCopy(Value output, Value input) {
+  dependency_graph_->RemoveEdge(output, input);
+  if (!IsRegister(input) || IsSourceOfTask(input))
+    return;
+  scratches_.push_back(input);
+}
+
 bool ParallelCopyExpander::EmitCopy(Value output, Value input) {
   DCHECK(!input.is_void());
   DCHECK(!output.is_void());
@@ -208,7 +215,6 @@ bool ParallelCopyExpander::EmitSwap(Task task) {
       return false;
     MustEmitCopy(input, output);
     MustEmitCopy(output, scratch);
-    GiveScratchIfNotUsed(input);
     return true;
   }
 
@@ -222,7 +228,7 @@ bool ParallelCopyExpander::EmitSwap(Task task) {
     // Release scratch register for |output| since caller will replace all
     // reference of |output| in tasks to |input|.
     if (!IsSourceOfTask(output)) {
-      GiveScratch(output);
+      GiveScratchFor(output);
       return true;
     }
     scratch_map_.erase(scratch_map_.find(output));
@@ -245,10 +251,9 @@ bool ParallelCopyExpander::EmitSwap(Task task) {
     scratch_map_.erase(scratch_map_.find(output));
     scratch_map_[input] = scratch2;
     scratches_.push_back(scratch1);
-  } else {
-    GiveScratch(output);
-    GiveScratchIfNotUsed(input);
+    return true;
   }
+  GiveScratchFor(output);
   return true;
 }
 
@@ -257,7 +262,8 @@ bool ParallelCopyExpander::EmitSwap(Task task) {
 //  2. Build dependency graph to identify output/input dependency
 //  3. Emit instructions for broken cycle task
 //  4. Emit swap to break cycle
-//  5. Emit instructions for free tasks
+//  5 Rewrite rest of tasks using swapped output.
+//  6. Emit instructions for free tasks
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
   DCHECK(HasTasks()) << "Please don't call |Expand()| without tasks.";
   ScopedExpand expand_scope(this);
@@ -305,9 +311,10 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
         pending_tasks.push_back(task);
         continue;
       }
-      dependency_graph_->RemoveEdge(task.output, task.input);
-      if (EmitCopy(task.output, task.input))
+      if (EmitCopy(task.output, task.input)) {
+        DidCopy(task.output, task.input);
         continue;
+      }
       if (pending_tasks.empty())
         return {};
       pending_tasks.push_back(task);
@@ -319,15 +326,14 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       continue;
     }
 
-    // Step 4: Emit swap for one task and rewrite rest of tasks using swapped
-    // output.
+    // Step 4: Emit swap for one task to break cycle.
     Task swapped = TrySwap(pending_tasks);
     if (swapped.output.is_void()) {
       while (!scratch_candidates.empty()) {
         auto const scratch = scratch_candidates.back();
         scratch_candidates.pop_back();
-        scratches_.push_back(scratch.input);
-        EmitCopy(scratch.output, scratch.input);
+        MustEmitCopy(scratch.output, scratch.input);
+        DidCopy(scratch.output, scratch.input);
         free_tasks.push_back({scratch.input, scratch.output});
         swapped = TrySwap(pending_tasks);
         if (!swapped.output.is_void())
@@ -337,7 +343,9 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
         return {};
     }
 
+    // Step 5 Rewrite rest of tasks using swapped output.
     copy_tasks.clear();
+    auto const input = MapInput(swapped.input);
     for (auto& task : pending_tasks) {
       if (task == swapped)
         continue;
@@ -354,13 +362,17 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
         continue;
       if (last->is<CopyInstruction>() && task.output == last->output(0))
         instructions_.pop_back();
-      auto const input = MapInput(swapped.input);
       copy_tasks.push_back({task.output, input});
       dependency_graph_->AddEdge(task.output, input);
     }
+
+    if (input != swapped.input && !IsSourceOfTask(input)) {
+      DCHECK(input.is_physical());
+      GiveScratchFor(swapped.input);
+    }
   }
 
-  // Step 5: Expand free tasks, e.g. load immediate to physical register,
+  // Step 6: Expand free tasks, e.g. load immediate to physical register,
   // load memory content to physical register.
   free_tasks.insert(free_tasks.end(), scratch_candidates.begin(),
                     scratch_candidates.end());
@@ -376,17 +388,11 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   return std::move(instructions_);
 }
 
-void ParallelCopyExpander::GiveScratch(Value source) {
+void ParallelCopyExpander::GiveScratchFor(Value source) {
   auto const it = scratch_map_.find(source);
   DCHECK(it != scratch_map_.end());
   scratches_.push_back(it->second);
   scratch_map_.erase(it);
-}
-
-void ParallelCopyExpander::GiveScratchIfNotUsed(Value source) {
-  if (IsSourceOfTask(source))
-    return;
-  GiveScratch(source);
 }
 
 bool ParallelCopyExpander::IsSourceOfTask(Value value) const {

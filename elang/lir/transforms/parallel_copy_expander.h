@@ -71,6 +71,8 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
   class ScopedExpand;
   struct Task;
 
+  void DidCopy(Value output, Value input);
+
   // Emit instructions for copying |input| to |output| and returns true if
   // succeeded, otherwise false. This function fails if |output| isn't a
   // physical and |input| is memory or immediate and there are no scratch
@@ -83,11 +85,7 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
   Task TrySwap(const std::vector<Task>& tasks);
 
   // Release scratch register containing value of |input|.
-  void GiveScratch(Value input);
-
-  // Release scratch register containing value of |input| if |input| isn't
-  // source of pending task.
-  void GiveScratchIfNotUsed(Value input);
+  void GiveScratchFor(Value input);
 
   // Returns true if |value| is a source of pending task.
   bool IsSourceOfTask(Value value) const;
