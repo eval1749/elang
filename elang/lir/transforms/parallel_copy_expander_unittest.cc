@@ -5,10 +5,12 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "elang/lir/testing/lir_test.h"
 
+#include "base/logging.h"
 #include "elang/lir/transforms/parallel_copy_expander.h"
 
 namespace elang {
@@ -21,6 +23,8 @@ namespace {
 //
 class LirParallelCopyExpanderTest : public testing::LirTest {
  protected:
+  typedef std::pair<Value, Value> Task;
+
   LirParallelCopyExpanderTest() = default;
   ~LirParallelCopyExpanderTest() = default;
 
@@ -38,119 +42,161 @@ class LirParallelCopyExpanderTest : public testing::LirTest {
                  Value::Kind::StackSlot, data);
   }
 
-  std::string Expand(ParallelCopyExpander* expander);
+  void Expand(const std::vector<Task>& tasks, base::StringPiece expected);
+  void ExpandWithScratch(const std::vector<Task>& tasks,
+                         Value scratch,
+                         base::StringPiece expected);
+  void ExpandWithScratch2(const std::vector<Task>& tasks,
+                          Value scratch1,
+                          Value scratch2,
+                          base::StringPiece expected);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LirParallelCopyExpanderTest);
 };
 
-std::string LirParallelCopyExpanderTest::Expand(
-    ParallelCopyExpander* expander) {
-  std::stringstream ostream;
-  for (auto const instr : expander->Expand())
-    ostream << PrintAsGeneric(instr) << std::endl;
-  return ostream.str();
+void LirParallelCopyExpanderTest::Expand(const std::vector<Task>& tasks,
+                                         base::StringPiece expected) {
+  ExpandWithScratch2(tasks, Value(), Value(), expected);
+}
+
+void LirParallelCopyExpanderTest::ExpandWithScratch(
+    const std::vector<Task>& tasks,
+    Value scratch1,
+    base::StringPiece expected) {
+  ExpandWithScratch2(tasks, scratch1, Value(), expected);
+}
+
+void LirParallelCopyExpanderTest::ExpandWithScratch2(
+    const std::vector<Task>& original_tasks,
+    Value scratch1,
+    Value scratch2,
+    base::StringPiece expected) {
+  auto tasks = original_tasks;
+  DCHECK(!tasks.empty());
+  for (auto count = 0u; count < tasks.size(); ++count) {
+    ParallelCopyExpander expander(factory(), int32_type());
+    for (auto task : tasks)
+      expander.AddTask(task.first, task.second);
+    if (scratch1.is_physical())
+      expander.AddScratch(scratch1);
+    if (scratch2.is_physical())
+      expander.AddScratch(scratch2);
+
+    std::stringstream ostream;
+    for (auto const instr : expander.Expand())
+      ostream << PrintAsGeneric(instr) << std::endl;
+    EXPECT_EQ(expected, ostream.str());
+
+    std::rotate(tasks.begin(), tasks.begin() + 1, tasks.end());
+  }
 }
 
 // Test cases...
 
 TEST_F(LirParallelCopyExpanderTest, Basic) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(physical(0), physical(1));
-  expander.AddTask(physical(2), physical(1));
-  expander.AddTask(physical(4), physical(3));
-  EXPECT_EQ(
+  Expand(
+      {
+       std::make_pair(physical(0), physical(1)),
+       std::make_pair(physical(2), physical(1)),
+       std::make_pair(physical(4), physical(3)),
+      },
       "mov R0 = R1\n"
       "mov R2 = R1\n"
-      "mov R4 = R3\n",
-      Expand(&expander));
+      "mov R4 = R3\n");
 }
 
 TEST_F(LirParallelCopyExpanderTest, MemorySwap) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(stack_slot(0), stack_slot(1));
-  expander.AddTask(stack_slot(1), stack_slot(0));
-  expander.AddScratch(physical(2));
-  expander.AddScratch(physical(3));
-  EXPECT_EQ(
-      "mov R3 = sp[0]\n"
-      "mov R2 = sp[1]\n"
-      "mov sp[1] = R3\n"
-      "mov sp[0] = R2\n",
-      Expand(&expander));
+  ExpandWithScratch2(
+      {
+       std::make_pair(stack_slot(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), stack_slot(0)),
+      },
+      physical(2), physical(3),
+      "mov R3 = sp[1]\n"
+      "mov R2 = sp[0]\n"
+      "mov sp[0] = R3\n"
+      "mov sp[1] = R2\n");
 }
 
+// memory swap requires 2 scratch register
 TEST_F(LirParallelCopyExpanderTest, MemorySwapNoScratch) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(stack_slot(0), stack_slot(1));
-  expander.AddTask(stack_slot(1), stack_slot(0));
-  EXPECT_EQ("", Expand(&expander)) << "memory swap requires 2 scratch register";
+  Expand(
+      {
+       std::make_pair(stack_slot(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), stack_slot(0)),
+      },
+      "");
 }
 
+// memory swap requires 2 scratch register
 TEST_F(LirParallelCopyExpanderTest, MemorySwapOneScratch) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(stack_slot(0), stack_slot(1));
-  expander.AddTask(stack_slot(1), stack_slot(0));
-  EXPECT_EQ("", Expand(&expander)) << "memory swap requires 2 scratch register";
+  Expand(
+      {
+       std::make_pair(stack_slot(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), stack_slot(0)),
+      },
+      "");
 }
 
 TEST_F(LirParallelCopyExpanderTest, PhysicalToMemory) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(stack_slot(0), physical(0));
-  expander.AddTask(stack_slot(1), physical(1));
-  EXPECT_EQ(
+  Expand(
+      {
+       std::make_pair(stack_slot(0), physical(0)),
+       std::make_pair(stack_slot(1), physical(1)),
+      },
       "mov sp[0] = R0\n"
-      "mov sp[1] = R1\n",
-      Expand(&expander));
+      "mov sp[1] = R1\n");
 }
 
 TEST_F(LirParallelCopyExpanderTest, Rotate) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(physical(0), physical(1));
-  expander.AddTask(physical(1), physical(2));
-  expander.AddTask(physical(2), physical(0));
-  EXPECT_EQ(
-      "pcopy R2, R0 = R0, R2\n"
-      "pcopy R1, R0 = R0, R1\n",
-      Expand(&expander));
+  Expand(
+      {
+       std::make_pair(physical(0), physical(1)),
+       std::make_pair(physical(1), physical(2)),
+       std::make_pair(physical(2), physical(0)),
+      },
+      "pcopy R0, R1 = R1, R0\n"
+      "pcopy R1, R2 = R2, R1\n");
 }
 
 TEST_F(LirParallelCopyExpanderTest, RotateMemory) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(stack_slot(0), stack_slot(1));
-  expander.AddTask(stack_slot(1), stack_slot(2));
-  expander.AddTask(stack_slot(2), stack_slot(0));
-  expander.AddScratch(physical(4));
-  expander.AddScratch(physical(5));
-  EXPECT_EQ(
-      "mov R5 = sp[0]\n"
-      "mov R4 = sp[2]\n"
-      "mov sp[2] = R5\n"
+  ExpandWithScratch2(
+      {
+       std::make_pair(stack_slot(0), stack_slot(1)),
+       std::make_pair(stack_slot(1), stack_slot(2)),
+       std::make_pair(stack_slot(2), stack_slot(0)),
+      },
+      physical(4), physical(5),
       "mov R5 = sp[1]\n"
+      "mov R4 = sp[0]\n"
       "mov sp[0] = R5\n"
-      "mov sp[1] = R4\n",
-      Expand(&expander));
+      "mov R5 = sp[2]\n"
+      "mov sp[1] = R5\n"
+      "mov sp[2] = R4\n");
 }
 
 TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(physical(0), physical(1));
-  expander.AddTask(physical(1), stack_slot(2));
-  expander.AddTask(stack_slot(2), physical(0));
-  expander.AddScratch(physical(2));
-  EXPECT_EQ(
+  ExpandWithScratch(
+      {
+       std::make_pair(physical(0), physical(1)),
+       std::make_pair(physical(1), stack_slot(2)),
+       std::make_pair(stack_slot(2), physical(0)),
+      },
+      physical(2),
       "mov R2 = sp[2]\n"
       "mov sp[2] = R0\n"
       "mov R0 = R1\n"
-      "mov R1 = R2\n",
-      Expand(&expander));
+      "mov R1 = R2\n");
 }
 
 TEST_F(LirParallelCopyExpanderTest, Swap) {
-  ParallelCopyExpander expander(factory(), int32_type());
-  expander.AddTask(physical(0), physical(1));
-  expander.AddTask(physical(1), physical(0));
-  EXPECT_EQ("pcopy R1, R0 = R0, R1\n", Expand(&expander));
+  Expand(
+      {
+       std::make_pair(physical(0), physical(1)),
+       std::make_pair(physical(1), physical(0)),
+      },
+      "pcopy R0, R1 = R1, R0\n");
 }
 
 }  // namespace

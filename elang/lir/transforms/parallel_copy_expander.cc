@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+#include <list>
 #include <memory>
 #include <vector>
 
@@ -212,8 +214,16 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
   DCHECK(HasTasks()) << "Please don't call |Expand()| without tasks.";
   ScopedExpand expand_scope(this);
-  std::vector<Task> copy_tasks;
+  std::list<Task> copy_tasks;
   std::vector<Task> free_tasks;
+
+  // Sort tasks to process memory operand first.
+  std::sort(tasks_.begin(), tasks_.end(),
+            [](const Task& task1, const Task& task2) {
+    if (task1.output.kind == task2.output.kind)
+      return task1.output.data < task2.output.data;
+    return !task1.output.is_physical();
+  });
 
   // Step 1: Build dependency graph for tracking usage of output.
   for (auto const task : tasks_)
@@ -234,7 +244,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
 
   // Step 3: Expand copy tasks
   while (!copy_tasks.empty()) {
-    std::vector<Task> pending_tasks;
+    std::list<Task> pending_tasks;
     for (auto const& task : copy_tasks) {
       if (IsSourceOfTask(task.output)) {
         pending_tasks.push_back(task);
@@ -247,11 +257,14 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     }
     if (pending_tasks.empty())
       break;
-    DCHECK_GE(pending_tasks.size(), 2u);
+    if (pending_tasks.size() == 1u) {
+      copy_tasks = pending_tasks;
+      continue;
+    }
 
     // Emit swap for one task and rewrite rest of tasks using swapped output.
-    auto const swap = pending_tasks.back();
-    pending_tasks.pop_back();
+    auto const swap = pending_tasks.front();
+    pending_tasks.pop_front();
     if (!EmitSwap(swap.output, swap.input))
       return {};
     copy_tasks.clear();
@@ -260,7 +273,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       if (task.input != swap.output) {
         if (last->is<CopyInstruction>() && task.output == last->output(0))
           instructions_.pop_back();
-        copy_tasks.push_back({task.output, MapInput(task.input)});
+        copy_tasks.push_back(task);
         continue;
       }
       // Rewrite task to use new input.
