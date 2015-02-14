@@ -23,11 +23,19 @@ namespace elang {
 namespace lir {
 
 namespace {
-bool IsImmediate(Value value) {
-  return !value.is_physical() && !value.is_virtual() &&
-         value.kind != Value::Kind::Argument &&
-         value.kind != Value::Kind::Parameter && !value.is_stack_slot();
+
+bool IsMemory(Value value) {
+  return value.is_argument() || value.is_parameter() || value.is_stack_slot();
 }
+
+bool IsRegister(Value value) {
+  return value.is_physical();
+}
+
+bool IsImmediate(Value value) {
+  return !IsRegister(value) && !IsMemory(value);
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -67,7 +75,23 @@ class ParallelCopyExpander::ScopedExpand {
 struct ParallelCopyExpander::Task {
   Value output;
   Value input;
+
+  static int OrderOf(const Task task);
 };
+
+// The order of task is possibility of freeing register.
+//   1. Register to memory
+//   2. Register to register
+//   3. Memory to memory
+//   4. Memory to register
+//   5. Immediate to register/memory
+int ParallelCopyExpander::Task::OrderOf(Task task) {
+  if (IsRegister(task.input))
+    return IsMemory(task.output) ? 1 : 2;
+  if (IsMemory(task.input))
+    return IsMemory(task.output) ? 3 : 4;
+  return 5;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -213,6 +237,11 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
   return true;
 }
 
+// Process tasks by following steps:
+//  1. Sort tasks by |Task::OrderOf(Task)|.
+//  2. Build dependency graph to identify output/input dependency
+//  3. Emit instructions for dependent task
+//  4. Emit instructions for free tasks
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
   DCHECK(HasTasks()) << "Please don't call |Expand()| without tasks.";
   ScopedExpand expand_scope(this);
@@ -223,9 +252,9 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   // Sort tasks to process memory operand first.
   std::sort(tasks_.begin(), tasks_.end(),
             [](const Task& task1, const Task& task2) {
-    if (task1.output.kind == task2.output.kind)
-      return task1.output.data < task2.output.data;
-    return !task1.output.is_physical();
+    if (auto const diff = Task::OrderOf(task1) - Task::OrderOf(task2))
+      return diff < 0;
+    return task1.output.data < task2.output.data;
   });
 
   // Step 1: Build dependency graph for tracking usage of output.
