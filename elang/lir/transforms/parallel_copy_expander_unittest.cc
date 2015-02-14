@@ -94,6 +94,19 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
 
 // Test cases...
 
+TEST_F(LirParallelCopyExpanderTest, AutoScratchByImmediate) {
+  Expand(
+      {
+       std::make_pair(stack_slot(0), stack_slot(2)),
+       std::make_pair(stack_slot(1), physical(0)),
+       std::make_pair(physical(1), Value::SmallInt32(42)),
+      },
+      "mov R1 = sp[2]\n"
+      "mov sp[0] = R1\n"
+      "mov sp[1] = R0\n"
+      "mov R1 = #42\n");
+}
+
 TEST_F(LirParallelCopyExpanderTest, Basic) {
   Expand(
       {

@@ -237,8 +237,9 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       continue;
     }
     free_tasks.push_back(task);
-    if (!task.output.is_physical() || IsSourceOfTask(task.output))
+    if (!task.output.is_physical())
       continue;
+    DCHECK(!IsSourceOfTask(task.output));
     scratches_.push_back(task.output);
   }
 
@@ -316,7 +317,7 @@ bool ParallelCopyExpander::IsFreeTask(Task task) const {
     DCHECK(task.output.is_physical()) << "Bad scratch register";
     return true;
   }
-  if (IsSourceOfTask(task.input))
+  if (IsSourceOfTask(task.output))
     return false;
   if (task.input.is_physical())
     return true;
