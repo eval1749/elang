@@ -75,8 +75,8 @@ TEST_F(LirParallelCopyExpanderTest, MemorySwap) {
   EXPECT_EQ(
       "mov R3 = sp[0]\n"
       "mov R2 = sp[1]\n"
-      "mov sp[0] = R2\n"
-      "mov sp[1] = R3\n",
+      "mov sp[1] = R3\n"
+      "mov sp[0] = R2\n",
       Expand(&expander));
 }
 
@@ -125,11 +125,10 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemory) {
   EXPECT_EQ(
       "mov R5 = sp[0]\n"
       "mov R4 = sp[2]\n"
-      "mov sp[0] = R4\n"
       "mov sp[2] = R5\n"
-      "mov R4 = sp[1]\n"
-      "mov sp[0] = R4\n"
-      "mov sp[1] = R5\n",
+      "mov R5 = sp[1]\n"
+      "mov sp[0] = R5\n"
+      "mov sp[1] = R4\n",
       Expand(&expander));
 }
 
@@ -142,8 +141,8 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical) {
   EXPECT_EQ(
       "mov R2 = sp[2]\n"
       "mov sp[2] = R0\n"
-      "mov R0 = R2\n"
-      "pcopy R1, R0 = R0, R1\n",
+      "mov R0 = R1\n"
+      "mov R1 = R2\n",
       Expand(&expander));
 }
 

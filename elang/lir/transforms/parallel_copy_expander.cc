@@ -171,14 +171,19 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
 
   if (input.is_physical()) {
     // Swap physical register and memory.
-    auto const scratch = TakeScratch(output);
-    if (scratch.is_void())
+    auto const scratch2 = TakeScratch(output);
+    if (scratch2.is_void())
       return false;
     MustEmitCopy(output, input);
-    MustEmitCopy(input, scratch);
+    MustEmitCopy(input, scratch2);
     // Release scratch register for |output| since caller will replace all
     // reference of |output| in tasks to |input|.
-    GiveScratch(output);
+    if (!IsSourceOfTask(output)) {
+      GiveScratch(output);
+      return true;
+    }
+    scratch_map_.erase(scratch_map_.find(output));
+    scratch_map_[input] = scratch2;
     return true;
   }
 
@@ -189,16 +194,18 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
   auto const scratch2 = TakeScratch(output);
   if (scratch2.is_void())
     return false;
-  MustEmitCopy(input, scratch2);
   MustEmitCopy(output, scratch1);
+  MustEmitCopy(input, scratch2);
   // Release scratch register for |output| since caller will replace all
   // reference of |output| in tasks to |input|.
-  GiveScratch(output);
   if (IsSourceOfTask(output)) {
-    scratch_map_[input] = scratch1;
-    return true;
+    scratch_map_.erase(scratch_map_.find(output));
+    scratch_map_[input] = scratch2;
+    scratches_.push_back(scratch1);
+  } else {
+    GiveScratch(output);
+    GiveScratchIfNotUsed(input);
   }
-  GiveScratchIfNotUsed(input);
   return true;
 }
 
@@ -249,14 +256,19 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       return {};
     copy_tasks.clear();
     for (auto& task : pending_tasks) {
+      auto const last = instructions_.back();
       if (task.input != swap.output) {
-        copy_tasks.push_back(task);
+        if (last->is<CopyInstruction>() && task.output == last->output(0))
+          instructions_.pop_back();
+        copy_tasks.push_back({task.output, MapInput(task.input)});
         continue;
       }
       // Rewrite task to use new input.
       dependency_graph_->RemoveEdge(task.output, task.input);
       if (task.output == swap.input)
         continue;
+      if (last->is<CopyInstruction>() && task.output == last->output(0))
+        instructions_.pop_back();
       auto const input = MapInput(swap.input);
       copy_tasks.push_back({task.output, input});
       dependency_graph_->AddEdge(task.output, input);
