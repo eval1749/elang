@@ -254,8 +254,14 @@ bool Target::HasCopyImmediateToMemory(Value value) {
 }
 
 // For integer, we can use |XCHG r, r/m| instruction.
-bool Target::HasSwapInstruction(Value type) {
-  return type.type == Value::Type::Integer;
+// Note: We should not use |XCHG| with memory operand, since is is slow and
+// locks memory.
+bool Target::HasSwapInstruction(Value value) {
+  return value.type == Value::Type::Integer;
+}
+
+bool Target::HasXorInstruction(Value value) {
+  return true;
 }
 
 bool Target::IsCalleeSavedRegister(Value value) {

@@ -233,7 +233,17 @@ class ELANG_LIR_EXPORT Target {
   // Returns true if |value| is an integer literal represented in 32-bit
   // integer, otherwise false.
   static bool HasCopyImmediateToMemory(Value value);
-  static bool HasSwapInstruction(Value type);
+
+  // Returns true if this target has 'swap' instruction for |value|. Parallel
+  // copy expander emits 'swap' instruction for swapping physical registers.
+  // For x64, we use 'XCHG' instruction for swapping integer register.
+  static bool HasSwapInstruction(Value value);
+
+  // Returns true if this target 'xor' instruction for |value|. Parallel copy
+  // expander emits 'xor' instruction for swapping physical registers without
+  // temporary register. For x64, we use 'XORSD'/'XORSS' for swapping float
+  // registers.
+  static bool HasXorInstruction(Value value);
 
   // Returns true if |physical| is callee save register.
   static bool IsCalleeSavedRegister(Value physical);
