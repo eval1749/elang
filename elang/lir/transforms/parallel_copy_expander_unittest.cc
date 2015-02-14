@@ -72,10 +72,16 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
     Value scratch1,
     Value scratch2,
     base::StringPiece expected) {
-  auto tasks = original_tasks;
-  DCHECK(!tasks.empty());
-  for (auto count = 0u; count < tasks.size(); ++count) {
+  DCHECK(!original_tasks.empty());
+  std::vector<int> indexes(original_tasks.size());
+  for (auto index = 0u; index < indexes.size(); ++index)
+    indexes[index] = index;
+  do {
     ParallelCopyExpander expander(factory(), int32_type());
+    std::vector<Task> tasks(indexes.size());
+    tasks.resize(0);
+    for (auto const index : indexes)
+      tasks.push_back(original_tasks[index]);
     for (auto task : tasks)
       expander.AddTask(task.first, task.second);
     if (scratch1.is_physical())
@@ -89,7 +95,7 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
     EXPECT_EQ(expected, ostream.str());
 
     std::rotate(tasks.begin(), tasks.begin() + 1, tasks.end());
-  }
+  } while (std::next_permutation(indexes.begin(), indexes.end()));
 }
 
 // Test cases...
