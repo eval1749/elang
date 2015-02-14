@@ -76,14 +76,29 @@ struct ParallelCopyExpander::Task {
   Value output;
   Value input;
 
+  static bool Less(const Task& task1, const Task& task2);
   static int OrderOf(const Task task);
+
+  bool operator==(const Task& other) const {
+    return output == other.output && input == other.input;
+  }
+
+  bool operator!=(const Task& other) const {
+    return !operator==(other);
+  }
 };
 
-// The order of task is possibility of freeing register.
-//   1. Register to memory
-//   2. Register to register
-//   3. Memory to memory
-//   4. Memory to register
+bool ParallelCopyExpander::Task::Less(const Task& task1, const Task& task2) {
+  if (auto const diff = Task::OrderOf(task1) - Task::OrderOf(task2))
+    return diff < 0;
+  return task1.output.data < task2.output.data;
+}
+
+// The order of task:
+//   1. break register to memory by using scratch
+//   2. break register to register by using swap
+//   3. break memory to memory by using scratch
+//   4. break memory to register by using scratch
 //   5. Immediate to register/memory
 int ParallelCopyExpander::Task::OrderOf(Task task) {
   if (IsRegister(task.input))
@@ -152,11 +167,11 @@ bool ParallelCopyExpander::EmitCopy(Value output, Value input) {
   return true;
 }
 
-bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
+bool ParallelCopyExpander::EmitSwap(Task task) {
+  auto const output = task.output;
+  auto const input = MapInput(task.input);
   DCHECK(!IsImmediate(output));
-  DCHECK(!IsImmediate(source));
-  dependency_graph_->RemoveEdge(output, source);
-  auto const input = MapInput(source);
+  DCHECK(!IsImmediate(input));
   if (output.is_physical() && input.is_physical()) {
     // Swap two physical registers
     if (Target::HasSwapInstruction(type_)) {
@@ -240,22 +255,19 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
 // Process tasks by following steps:
 //  1. Sort tasks by |Task::OrderOf(Task)|.
 //  2. Build dependency graph to identify output/input dependency
-//  3. Emit instructions for dependent task
-//  4. Emit instructions for free tasks
+//  3. Emit instructions for broken cycle task
+//  4. Emit swap to break cycle
+//  5. Emit instructions for free tasks
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
   DCHECK(HasTasks()) << "Please don't call |Expand()| without tasks.";
   ScopedExpand expand_scope(this);
-  std::list<Task> copy_tasks;
+  std::vector<Task> copy_tasks;
   std::vector<Task> free_tasks;
   std::unordered_set<Value> outputs;
+  std::vector<Task> scratch_candidates;
 
   // Sort tasks to process memory operand first.
-  std::sort(tasks_.begin(), tasks_.end(),
-            [](const Task& task1, const Task& task2) {
-    if (auto const diff = Task::OrderOf(task1) - Task::OrderOf(task2))
-      return diff < 0;
-    return task1.output.data < task2.output.data;
-  });
+  std::sort(tasks_.begin(), tasks_.end(), Task::Less);
 
   // Step 1: Build dependency graph for tracking usage of output.
   for (auto const task : tasks_) {
@@ -273,24 +285,32 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       continue;
     }
     free_tasks.push_back(task);
-    if (!task.output.is_physical())
+    if (task.output.is_physical()) {
+      DCHECK(!IsSourceOfTask(task.output));
+      scratches_.push_back(task.output);
+    }
+    if (!task.input.is_physical())
       continue;
-    DCHECK(!IsSourceOfTask(task.output));
-    scratches_.push_back(task.output);
+    if (dependency_graph_->GetInEdges(task.input).size() >= 2u)
+      continue;
+    free_tasks.pop_back();
+    scratch_candidates.push_back(task);
   }
 
-  // Step 3: Expand copy tasks
   while (!copy_tasks.empty()) {
-    std::list<Task> pending_tasks;
+    std::vector<Task> pending_tasks;
+    // Step 3: Expand cycle resolved tasks
     for (auto const& task : copy_tasks) {
       if (IsSourceOfTask(task.output)) {
         pending_tasks.push_back(task);
         continue;
       }
-      if (!IsImmediate(task.input))
-        dependency_graph_->RemoveEdge(task.output, task.input);
-      if (!EmitCopy(task.output, task.input))
+      dependency_graph_->RemoveEdge(task.output, task.input);
+      if (EmitCopy(task.output, task.input))
+        continue;
+      if (pending_tasks.empty())
         return {};
+      pending_tasks.push_back(task);
     }
     if (pending_tasks.empty())
       break;
@@ -299,15 +319,30 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       continue;
     }
 
-    // Emit swap for one task and rewrite rest of tasks using swapped output.
-    auto const swap = pending_tasks.front();
-    pending_tasks.pop_front();
-    if (!EmitSwap(swap.output, swap.input))
-      return {};
+    // Step 4: Emit swap for one task and rewrite rest of tasks using swapped
+    // output.
+    Task swapped = TrySwap(pending_tasks);
+    if (swapped.output.is_void()) {
+      while (!scratch_candidates.empty()) {
+        auto const scratch = scratch_candidates.back();
+        scratch_candidates.pop_back();
+        scratches_.push_back(scratch.input);
+        EmitCopy(scratch.output, scratch.input);
+        free_tasks.push_back({scratch.input, scratch.output});
+        swapped = TrySwap(pending_tasks);
+        if (!swapped.output.is_void())
+          break;
+      }
+      if (swapped.output.is_void())
+        return {};
+    }
+
     copy_tasks.clear();
     for (auto& task : pending_tasks) {
+      if (task == swapped)
+        continue;
       auto const last = instructions_.back();
-      if (task.input != swap.output) {
+      if (task.input != swapped.output) {
         if (last->is<CopyInstruction>() && task.output == last->output(0))
           instructions_.pop_back();
         copy_tasks.push_back(task);
@@ -315,18 +350,21 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       }
       // Rewrite task to use new input.
       dependency_graph_->RemoveEdge(task.output, task.input);
-      if (task.output == swap.input)
+      if (task.output == swapped.input)
         continue;
       if (last->is<CopyInstruction>() && task.output == last->output(0))
         instructions_.pop_back();
-      auto const input = MapInput(swap.input);
+      auto const input = MapInput(swapped.input);
       copy_tasks.push_back({task.output, input});
       dependency_graph_->AddEdge(task.output, input);
     }
   }
 
-  // Step 4: Expand free tasks, e.g. load immediate to physical register,
+  // Step 5: Expand free tasks, e.g. load immediate to physical register,
   // load memory content to physical register.
+  free_tasks.insert(free_tasks.end(), scratch_candidates.begin(),
+                    scratch_candidates.end());
+  std::sort(free_tasks.begin(), free_tasks.end(), Task::Less);
   for (auto const task : free_tasks) {
     if (task.input.is_void())
       continue;
@@ -371,6 +409,11 @@ bool ParallelCopyExpander::NeedRegister(Task task) const {
   if (task.output.is_physical())
     return false;
   DCHECK(!task.input.is_void());
+  if (task.input.is_physical()) {
+    DCHECK(dependency_graph_->HasInEdge(task.input))
+        << "We must have edge output to input.";
+    return dependency_graph_->GetInEdges(task.input).size() >= 2u;
+  }
   return !IsImmediate(task.input) ||
          !Target::HasCopyImmediateToMemory(task.input);
 }
@@ -385,6 +428,17 @@ Value ParallelCopyExpander::TakeScratch(Value source) {
   DCHECK(!scratch_map_.count(source));
   scratch_map_[source] = scratch;
   return scratch;
+}
+
+ParallelCopyExpander::Task ParallelCopyExpander::TrySwap(
+    const std::vector<Task>& tasks) {
+  for (auto const task : tasks) {
+    if (EmitSwap(task)) {
+      dependency_graph_->RemoveEdge(task.output, task.input);
+      return task;
+    }
+  }
+  return Task();
 }
 
 }  // namespace lir

@@ -79,7 +79,8 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
 
   // Emit instructions for swapping |output| and |input| and returns true if
   // succeeded, otherwise returns false.
-  bool EmitSwap(Value output, Value input);
+  bool EmitSwap(Task task);
+  Task TrySwap(const std::vector<Task>& tasks);
 
   // Release scratch register containing value of |input|.
   void GiveScratch(Value input);
