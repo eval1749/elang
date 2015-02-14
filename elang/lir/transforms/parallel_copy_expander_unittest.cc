@@ -73,10 +73,10 @@ TEST_F(LirParallelCopyExpanderTest, MemorySwap) {
   expander.AddScratch(physical(2));
   expander.AddScratch(physical(3));
   EXPECT_EQ(
-      "mov R2 = sp[0]\n"
-      "mov R3 = sp[1]\n"
-      "mov sp[0] = R3\n"
-      "mov sp[1] = R2\n",
+      "mov R3 = sp[0]\n"
+      "mov R2 = sp[1]\n"
+      "mov sp[0] = R2\n"
+      "mov sp[1] = R3\n",
       Expand(&expander));
 }
 
@@ -84,14 +84,14 @@ TEST_F(LirParallelCopyExpanderTest, MemorySwapNoScratch) {
   ParallelCopyExpander expander(factory(), int32_type());
   expander.AddTask(stack_slot(0), stack_slot(1));
   expander.AddTask(stack_slot(1), stack_slot(0));
-  EXPECT_EQ("", Expand(&expander));
+  EXPECT_EQ("", Expand(&expander)) << "memory swap requires 2 scratch register";
 }
 
 TEST_F(LirParallelCopyExpanderTest, MemorySwapOneScratch) {
   ParallelCopyExpander expander(factory(), int32_type());
   expander.AddTask(stack_slot(0), stack_slot(1));
   expander.AddTask(stack_slot(1), stack_slot(0));
-  EXPECT_EQ("", Expand(&expander));
+  EXPECT_EQ("", Expand(&expander)) << "memory swap requires 2 scratch register";
 }
 
 TEST_F(LirParallelCopyExpanderTest, PhysicalToMemory) {
@@ -115,13 +115,43 @@ TEST_F(LirParallelCopyExpanderTest, Rotate) {
       Expand(&expander));
 }
 
+TEST_F(LirParallelCopyExpanderTest, RotateMemory) {
+  ParallelCopyExpander expander(factory(), int32_type());
+  expander.AddTask(stack_slot(0), stack_slot(1));
+  expander.AddTask(stack_slot(1), stack_slot(2));
+  expander.AddTask(stack_slot(2), stack_slot(0));
+  expander.AddScratch(physical(4));
+  expander.AddScratch(physical(5));
+  EXPECT_EQ(
+      "mov R5 = sp[0]\n"
+      "mov R4 = sp[2]\n"
+      "mov sp[0] = R4\n"
+      "mov sp[2] = R5\n"
+      "mov R4 = sp[1]\n"
+      "mov sp[0] = R4\n"
+      "mov sp[1] = R5\n",
+      Expand(&expander));
+}
+
+TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical) {
+  ParallelCopyExpander expander(factory(), int32_type());
+  expander.AddTask(physical(0), physical(1));
+  expander.AddTask(physical(1), stack_slot(2));
+  expander.AddTask(stack_slot(2), physical(0));
+  expander.AddScratch(physical(2));
+  EXPECT_EQ(
+      "mov R2 = sp[2]\n"
+      "mov sp[2] = R0\n"
+      "mov R0 = R2\n"
+      "pcopy R1, R0 = R0, R1\n",
+      Expand(&expander));
+}
+
 TEST_F(LirParallelCopyExpanderTest, Swap) {
   ParallelCopyExpander expander(factory(), int32_type());
   expander.AddTask(physical(0), physical(1));
   expander.AddTask(physical(1), physical(0));
-  EXPECT_EQ(
-      "pcopy R1, R0 = R0, R1\n",
-      Expand(&expander));
+  EXPECT_EQ("pcopy R1, R0 = R0, R1\n", Expand(&expander));
 }
 
 }  // namespace

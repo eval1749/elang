@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <memory>
 #include <vector>
 
 #include "elang/lir/transforms/parallel_copy_expander.h"
 
 #include "base/logging.h"
+#include "elang/base/simple_directed_graph.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -27,6 +29,36 @@ bool IsImmediate(Value value) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// ParallelCopyExpander::ScopedExpand
+//
+class ParallelCopyExpander::ScopedExpand {
+ public:
+  const std::unique_ptr<SimpleDirectedGraph<Value>> dependency_graph_;
+  ParallelCopyExpander* expander_;
+
+  explicit ScopedExpand(ParallelCopyExpander* expander)
+      : dependency_graph_(new SimpleDirectedGraph<Value>()),
+        expander_(expander) {
+    DCHECK(expander_->instructions_.empty());
+    DCHECK(expander_->scratches_.empty());
+    DCHECK(expander_->scratch_map_.empty());
+    DCHECK(!expander_->dependency_graph_);
+    expander_->dependency_graph_ = dependency_graph_.get();
+  }
+
+  ~ScopedExpand() {
+    expander_->dependency_graph_ = nullptr;
+    expander_->instructions_.clear();
+    expander_->scratches_.clear();
+    expander_->scratch_map_.clear();
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ScopedExpand);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ParallelCopyExpander::Task
 //
 struct ParallelCopyExpander::Task {
@@ -39,7 +71,7 @@ struct ParallelCopyExpander::Task {
 // ParallelCopyExpander
 //
 ParallelCopyExpander::ParallelCopyExpander(Factory* factory, Value type)
-    : FactoryUser(factory), type_(type) {
+    : FactoryUser(factory), dependency_graph_(nullptr), type_(type) {
 }
 
 ParallelCopyExpander::~ParallelCopyExpander() {
@@ -47,100 +79,161 @@ ParallelCopyExpander::~ParallelCopyExpander() {
 
 void ParallelCopyExpander::AddScratch(Value scratch) {
   DCHECK(scratch.is_physical());
-  DCHECK(scratch.type == type_.type);
-  if (scratch1_.is_void()) {
-    DCHECK_NE(scratch1_, scratch);
-    scratch1_ = scratch;
-    return;
-  }
-  DCHECK_NE(scratch1_, scratch);
-  DCHECK(scratch2_.is_void());
-  scratch2_ = scratch;
+  DCHECK_EQ(scratch.type, type_.type);
+  tasks_.push_back({scratch, Value()});
 }
 
 void ParallelCopyExpander::AddTask(Value output, Value input) {
   if (output == input)
     return;
   DCHECK_NE(output, input);
+  DCHECK(!input.is_void());
   DCHECK_EQ(output.type, type_.type);
-  DCHECK_EQ(input.type, type_.type);
   DCHECK_EQ(output.size, input.size);
-
-  if (!IsImmediate(input))
-    dependency_graph_.AddEdge(output, input);
+  DCHECK_EQ(input.type, type_.type);
   tasks_.push_back({output, input});
 }
 
-void ParallelCopyExpander::EmitCopy(Value output, Value input) {
+bool ParallelCopyExpander::EmitCopy(Value output, Value input) {
+  DCHECK(!input.is_void());
+  DCHECK(!output.is_void());
   if (input.is_physical()) {
     instructions_.push_back(factory()->NewCopyInstruction(output, input));
-    return;
+    return true;
   }
   if (IsImmediate(input)) {
     if (output.is_physical() || Target::HasCopyImmediateToMemory(type_)) {
       instructions_.push_back(factory()->NewLiteralInstruction(output, input));
-      return;
+      return true;
     }
+    auto const scratch = TakeScratch(input);
+    if (!scratch.is_physical())
+      return false;
+    MustEmitCopy(output, scratch);
+    return true;
   }
   if (output.is_physical()) {
     instructions_.push_back(factory()->NewCopyInstruction(output, input));
-    return;
+    return true;
   }
-  EmitCopy(scratch1_, input);
-  EmitCopy(output, scratch1_);
+  auto const scratch = TakeScratch(input);
+  if (!scratch.is_physical())
+    return false;
+  MustEmitCopy(output, scratch);
+  return true;
 }
 
-ParallelCopyExpander::Task ParallelCopyExpander::EmitSwap(Value output,
-                                                          Value input) {
-  dependency_graph_.RemoveEdge(output, input);
-
+bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
+  DCHECK(!IsImmediate(output));
+  DCHECK(!IsImmediate(source));
+  dependency_graph_->RemoveEdge(output, source);
+  auto const input = MapInput(source);
   if (output.is_physical() && input.is_physical()) {
+    // Swap two physical registers
     if (Target::HasSwapInstruction(type_)) {
       instructions_.push_back(
           factory()->NewPCopyInstruction({output, input}, {input, output}));
-      return {input, input};
+      return true;
     }
-    EmitCopy(scratch1_, input);
-    EmitCopy(input, output);
-    EmitCopy(output, scratch1_);
-    return {input, input};
+    auto const scratch = TakeScratch(input);
+    if (scratch.is_void()) {
+      if (!Target::HasXorInstruction(input))
+        return false;
+      // Scratch register free, two operands arithmetic compatible register
+      // swap:
+      //    xor a = b  ; a := a ^ b
+      //    xor b = a  ; b := b ^ a = (a ^ b ^ b) = a
+      //    xor a = b  ; a := a ^ b = (a ^ b ^ a) = b
+      instructions_.push_back(
+          factory()->NewBitXorInstruction(output, output, input));
+      instructions_.push_back(
+          factory()->NewBitXorInstruction(input, input, output));
+      instructions_.push_back(
+          factory()->NewBitXorInstruction(output, output, input));
+      return true;
+    }
+    MustEmitCopy(input, output);
+    MustEmitCopy(output, scratch);
+    return true;
   }
 
   if (output.is_physical()) {
-    EmitCopy(scratch1_, input);
-    EmitCopy(input, output);
-    EmitCopy(output, scratch1_);
-    return {scratch1_, input};
+    // Swap physical register and memory.
+    auto const scratch = TakeScratch(input);
+    if (scratch.is_void())
+      return false;
+    MustEmitCopy(input, output);
+    MustEmitCopy(output, scratch);
+    GiveScratchIfNotUsed(input);
+    return true;
   }
 
   if (input.is_physical()) {
-    EmitCopy(scratch1_, output);
-    EmitCopy(output, input);
-    EmitCopy(input, scratch1_);
-    return {scratch1_, input};
+    // Swap physical register and memory.
+    auto const scratch = TakeScratch(output);
+    if (scratch.is_void())
+      return false;
+    MustEmitCopy(output, input);
+    MustEmitCopy(input, scratch);
+    // Release scratch register for |output| since caller will replace all
+    // reference of |output| in tasks to |input|.
+    GiveScratch(output);
+    return true;
   }
 
-  EmitCopy(scratch1_, input);
-  EmitCopy(scratch2_, output);
-  EmitCopy(input, scratch2_);
-  EmitCopy(output, scratch1_);
-  return {scratch2_, input};
+  // Swap memory operands.
+  auto const scratch1 = TakeScratch(input);
+  if (scratch1.is_void())
+    return false;
+  auto const scratch2 = TakeScratch(output);
+  if (scratch2.is_void())
+    return false;
+  MustEmitCopy(input, scratch2);
+  MustEmitCopy(output, scratch1);
+  // Release scratch register for |output| since caller will replace all
+  // reference of |output| in tasks to |input|.
+  GiveScratch(output);
+  if (IsSourceOfTask(output)) {
+    scratch_map_[input] = scratch1;
+    return true;
+  }
+  GiveScratchIfNotUsed(input);
+  return true;
 }
 
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
-  if (!Prepare())
-    return {};
-  DCHECK(instructions_.empty());
-  while (!tasks_.empty()) {
+  ScopedExpand expand_scope(this);
+  std::vector<Task> copy_tasks;
+  std::vector<Task> free_tasks;
+
+  // Step 1: Build dependency graph for tracking usage of output.
+  for (auto const task : tasks_)
+    dependency_graph_->AddEdge(task.output, task.input);
+
+  // Collect scratch registers. We can use a register as scratch if it is
+  // not input of another task, input of task is immediate or memory.
+  for (auto const task : tasks_) {
+    if (!IsFreeTask(task)) {
+      copy_tasks.push_back(task);
+      continue;
+    }
+    free_tasks.push_back(task);
+    if (!task.output.is_physical() || IsSourceOfTask(task.output))
+      continue;
+    scratches_.push_back(task.output);
+  }
+
+  while (!copy_tasks.empty()) {
     std::vector<Task> pending_tasks;
-    for (auto const& task : tasks_) {
-      if (dependency_graph_.HasInEdge(task.output)) {
+    for (auto const& task : copy_tasks) {
+      if (IsSourceOfTask(task.output)) {
         pending_tasks.push_back(task);
         continue;
       }
       if (!IsImmediate(task.input))
-        dependency_graph_.RemoveEdge(task.output, task.input);
-      EmitCopy(task.output, task.input);
+        dependency_graph_->RemoveEdge(task.output, task.input);
+      if (!EmitCopy(task.output, task.input))
+        return {};
     }
     if (pending_tasks.empty())
       break;
@@ -149,71 +242,85 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     // Emit swap for one task and rewrite rest of tasks using swapped output.
     auto const swap = pending_tasks.back();
     pending_tasks.pop_back();
-    auto const swapped = EmitSwap(swap.output, swap.input);
-    tasks_.clear();
+    if (!EmitSwap(swap.output, swap.input))
+      return {};
+    copy_tasks.clear();
     for (auto& task : pending_tasks) {
       if (task.input != swap.output) {
-        tasks_.push_back(task);
+        copy_tasks.push_back(task);
         continue;
       }
       // Rewrite task to use new input.
-      dependency_graph_.RemoveEdge(task.output, task.input);
-      if (task.output == swapped.input)
+      dependency_graph_->RemoveEdge(task.output, task.input);
+      if (task.output == swap.input)
         continue;
-      tasks_.push_back({task.output, swapped.output});
-      dependency_graph_.AddEdge(task.output, swapped.output);
+      auto const input = MapInput(swap.input);
+      copy_tasks.push_back({task.output, input});
+      dependency_graph_->AddEdge(task.output, input);
     }
+  }
+
+  for (auto const task : free_tasks) {
+    if (task.input.is_void())
+      continue;
+    EmitCopy(task.output, task.input);
   }
   return std::move(instructions_);
 }
 
-bool ParallelCopyExpander::Prepare() {
-  if (scratch2_.is_physical())
+void ParallelCopyExpander::GiveScratch(Value source) {
+  auto const it = scratch_map_.find(source);
+  DCHECK(it != scratch_map_.end());
+  scratches_.push_back(it->second);
+  scratch_map_.erase(it);
+}
+
+void ParallelCopyExpander::GiveScratchIfNotUsed(Value source) {
+  if (IsSourceOfTask(source))
+    return;
+  GiveScratch(source);
+}
+
+bool ParallelCopyExpander::IsFreeTask(Task task) const {
+  if (task.input.is_void()) {
+    DCHECK(task.output.is_physical()) << "Bad scratch register";
     return true;
-
-  auto number_of_scratches = scratch1_.is_physical() ? 1 : 0;
-  auto number_of_required_scratches = 0;
-
-  for (auto const& task : tasks_) {
-    auto const output = task.output;
-    if (output.is_physical()) {
-      if (dependency_graph_.HasInEdge(output))
-        continue;
-      if (scratch1_.is_void()) {
-        DCHECK_EQ(number_of_scratches, 0);
-        scratch1_ = output;
-        number_of_scratches = 1;
-        continue;
-      }
-      // Since, we can do all variation of copy by two scratch registers,
-      // we don't need to check rest of tasks.
-      DCHECK_EQ(number_of_scratches, 1);
-      DCHECK_NE(scratch1_, scratch2_);
-      scratch2_ = output;
-      return true;
-    }
-
-    if (number_of_required_scratches == 2)
-      continue;
-
-    auto const input = task.input;
-    if (input.is_physical())
-      continue;
-    if (IsImmediate(input)) {
-      if (Target::HasCopyImmediateToMemory(input))
-        continue;
-      number_of_required_scratches = 1;
-      continue;
-    }
-    if (!dependency_graph_.HasInEdge(output)) {
-      number_of_required_scratches = 1;
-      continue;
-    }
-    // Memory rotation requires two scratch registers.
-    number_of_required_scratches = 2;
   }
+  if (IsSourceOfTask(task.input))
+    return false;
+  if (task.input.is_physical())
+    return true;
+  if (IsImmediate(task.input))
+    return Target::HasCopyImmediateToMemory(task.input);
+  return false;
+}
 
-  return number_of_scratches >= number_of_required_scratches;
+bool ParallelCopyExpander::IsSourceOfTask(Value value) const {
+  return dependency_graph_->HasInEdge(value);
+}
+
+Value ParallelCopyExpander::MapInput(Value source) const {
+  auto const it = scratch_map_.find(source);
+  if (it != scratch_map_.end())
+    return it->second;
+  return source;
+}
+
+void ParallelCopyExpander::MustEmitCopy(Value output, Value input) {
+  auto const succeeded = EmitCopy(output, input);
+  DCHECK(succeeded) << "EmitCopy(" << output << ", " << input << ") failed";
+}
+
+Value ParallelCopyExpander::TakeScratch(Value source) {
+  if (scratches_.empty())
+    return Value();
+  auto const scratch = scratches_.back();
+  DCHECK(scratch.is_physical());
+  MustEmitCopy(scratch, source);
+  scratches_.pop_back();
+  DCHECK(!scratch_map_.count(source));
+  scratch_map_[source] = scratch;
+  return scratch;
 }
 
 }  // namespace lir
