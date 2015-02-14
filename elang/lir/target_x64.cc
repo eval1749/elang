@@ -245,8 +245,12 @@ Value Target::GetReturn(Value type) {
 }
 
 // We can use |MOV r/m, imm32| instruction.
-bool Target::HasCopyImmediateToMemory(Value type) {
-  return type.type == Value::Type::Integer && Value::ByteSize(type.size) <= 4;
+bool Target::HasCopyImmediateToMemory(Value value) {
+  if (value.type == Value::Type::Float)
+    return false;
+  // TODO(eval1749) We should check literal map whether value is 32-bit integer
+  // or not.
+  return value.is_immediate() || Value::ByteSize(value.size) <= 4;
 }
 
 // For integer, we can use |XCHG r, r/m| instruction.
