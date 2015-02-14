@@ -78,6 +78,7 @@ ParallelCopyExpander::~ParallelCopyExpander() {
 }
 
 void ParallelCopyExpander::AddScratch(Value scratch) {
+  DCHECK(HasTasks()) << "Please add a task before adding scratch register.";
   DCHECK(scratch.is_physical());
   DCHECK_EQ(scratch.type, type_.type);
   tasks_.push_back({scratch, Value()});
@@ -202,6 +203,7 @@ bool ParallelCopyExpander::EmitSwap(Value output, Value source) {
 }
 
 std::vector<Instruction*> ParallelCopyExpander::Expand() {
+  DCHECK(HasTasks()) << "Please don't call |Expand()| without tasks.";
   ScopedExpand expand_scope(this);
   std::vector<Task> copy_tasks;
   std::vector<Task> free_tasks;
@@ -210,8 +212,8 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
   for (auto const task : tasks_)
     dependency_graph_->AddEdge(task.output, task.input);
 
-  // Collect scratch registers. We can use a register as scratch if it is
-  // not input of another task, input of task is immediate or memory.
+  // Step 2: Collect scratch registers. We can use a register as scratch if it
+  // is not input of another task, input of task is immediate or memory.
   for (auto const task : tasks_) {
     if (!IsFreeTask(task)) {
       copy_tasks.push_back(task);
@@ -223,6 +225,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     scratches_.push_back(task.output);
   }
 
+  // Step 3: Expand copy tasks
   while (!copy_tasks.empty()) {
     std::vector<Task> pending_tasks;
     for (auto const& task : copy_tasks) {
@@ -260,6 +263,8 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     }
   }
 
+  // Step 4: Expand free tasks, e.g. load immediate to physical register,
+  // load memory content to physical register.
   for (auto const task : free_tasks) {
     if (task.input.is_void())
       continue;
