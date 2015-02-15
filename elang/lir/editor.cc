@@ -122,12 +122,12 @@ const DominatorTree<Function>& Editor::BuildDominatorTree() const {
 }
 
 const DominatorTree<Function>& Editor::BuildPostDominatorTree() const {
-  if (dominator_tree_)
-    return *dominator_tree_;
-  dominator_tree_ =
+  if (post_dominator_tree_)
+    return *post_dominator_tree_;
+  post_dominator_tree_ =
       std::move(DominatorTreeBuilder<Function, BackwardFlowGraph<Function>>(
                     function()).Build());
-  return *dominator_tree_;
+  return *post_dominator_tree_;
 }
 
 bool Editor::Commit() {
