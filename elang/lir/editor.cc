@@ -254,7 +254,7 @@ const OrderedBlockList& Editor::PostOrderList() const {
     post_order_list_.reset(
         new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
   }
-  return *pre_order_list_;
+  return *post_order_list_;
 }
 
 void Editor::Remove(Instruction* old_instruction) {
@@ -389,7 +389,7 @@ const OrderedBlockList& Editor::ReversePostOrderList() const {
     reverse_post_order_list_.reset(new OrderedBlockList(
         Function::Sorter::SortByReversePostOrder(function())));
   }
-  return *pre_order_list_;
+  return *reverse_post_order_list_;
 }
 
 // Remove edges between |instruction|'s block and old successors.
