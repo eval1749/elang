@@ -26,6 +26,7 @@ FunctionPass::~FunctionPass() {
 
 void FunctionPass::Run() {
   RunOnFunction();
+  DCHECK(editor()->Validate());
 }
 
 }  // namespace lir
