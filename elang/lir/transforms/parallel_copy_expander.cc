@@ -83,9 +83,7 @@ struct ParallelCopyExpander::Task {
     return output == other.output && input == other.input;
   }
 
-  bool operator!=(const Task& other) const {
-    return !operator==(other);
-  }
+  bool operator!=(const Task& other) const { return !operator==(other); }
 };
 
 bool ParallelCopyExpander::Task::Less(const Task& task1, const Task& task2) {
@@ -127,6 +125,8 @@ void ParallelCopyExpander::AddScratch(Value scratch) {
 }
 
 void ParallelCopyExpander::AddTask(Value output, Value input) {
+  DCHECK(!output.is_virtual());
+  DCHECK(!input.is_virtual());
   if (output == input)
     return;
   DCHECK_NE(output, input);
