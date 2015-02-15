@@ -55,6 +55,7 @@ TEST_F(LirPreparePhiInversionTest, Basic) {
       "  // In: {block3, block6}\n"
       "  // Out: {block2}\n"
       "  phi %r1 = block6 42, block3 39\n"
+      "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block5}\n"

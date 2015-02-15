@@ -287,6 +287,7 @@ Function* LirTest::CreateFunctionSampleAdd() {
 //    br %flag1, merge, start
 //   merge:
 //    phi %1 = start 39, sample 42
+//    mov EAX = %1
 //    ret
 // An edge sample => merge is a critical edge.
 //
@@ -318,6 +319,8 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   auto const phi_instr = editor.NewPhi(NewRegister(type));
   editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
   editor.SetPhiInput(phi_instr, start_block, Value::SmallInt32(39));
+  editor.Append(factory()->NewCopyInstruction(
+      Target::GetReturn(phi_instr->output(0)), phi_instr->output(0)));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
