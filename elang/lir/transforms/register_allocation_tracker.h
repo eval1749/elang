@@ -35,13 +35,17 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   const ZoneUnorderedMap<Value, Value>& physical_map() const;
 
   // Basic block related operations
-  const LocalAllocation& AllocationOf(BasicBlock* block) const;
+  const LocalAllocation& AllocationsOf(BasicBlock* block) const;
   void StartBlock(BasicBlock* block);
   void EndBlock(BasicBlock* block);
 
   // Query current mapping
+  Value AllocationOf(Value virtual_register) const;
   Value PhysicalFor(Value virtual_register) const;
   Value StackSlotFor(Value virtual_register) const;
+
+  // Expose for testing purpose.
+  Value VirtualFor(Value physical) const;
 
   // Update current mapping
   void FreeVirtual(Value virtual_register);
@@ -54,13 +58,10 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   bool TryAllocate(Instruction* instr, Value output, Value physical);
 
   // Recording allocation
-  void SetBeforeAction(Instruction* instr,
-                       const std::vector<Instruction*>& actions);
+  void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
   void SetAllocation(Instruction* instr, Value vreg, Value allocated);
 
  private:
-  Value VirtualFor(Value physical) const;
-
   // Result of register allocation.
   RegisterAllocation* const register_allocation_;
 

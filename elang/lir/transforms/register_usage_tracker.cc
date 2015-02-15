@@ -33,7 +33,7 @@ bool RegisterUsageTracker::IsUsedAfter(Value input, Instruction* instr) const {
   auto const block = instr->basic_block();
   for (auto const user : use_def_list_.UsersOf(input)) {
     if (user->basic_block() == block) {
-      if (user->index() < instr->index())
+      if (user->index() <= instr->index())
         continue;
       return true;
     }

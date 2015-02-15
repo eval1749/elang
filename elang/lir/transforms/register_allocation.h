@@ -76,17 +76,17 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
   struct Actions : ZoneAllocated {
     ZoneVector<Instruction*> actions;
 
-    Actions(Zone* zone, const std::vector<Instruction*> actions);
+    explicit Actions(Zone* zone);
   };
 
   RegisterAllocation();
   ~RegisterAllocation();
 
   // Returns |LocalAllocation| of |block|.
-  const LocalAllocation& AllocationOf(BasicBlock* block) const;
+  const LocalAllocation& AllocationsOf(BasicBlock* block) const;
 
-  // Returns allocated value for |vreg| at |instr|.
-  Value AllocationOf(Instruction* instr, Value vreg) const;
+  // Returns allocated value for |value| at |instr|.
+  Value AllocationOf(Instruction* instr, Value value) const;
 
   // Returns |actions| executed before |instr|.
   const ZoneVector<Instruction*>& BeforeActionOf(Instruction* instr) const;
@@ -94,11 +94,10 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
  private:
   friend class RegisterAllocationTracker;
 
-  void SetAllocation(Instruction* instr, Value vreg, Value allocated);
+  // Inserts |new_instr| before |ref_instr|.
+  void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
 
-  // Set copy actions in |copies| before executing |instr|.
-  void SetBeforeAction(Instruction* instr,
-                       const std::vector<Instruction*>& copies);
+  void SetAllocation(Instruction* instr, Value vreg, Value allocated);
 
   std::unordered_map<Instruction*, Actions*> before_action_map_;
   std::unordered_map<BasicBlock*, LocalAllocation*> block_map_;

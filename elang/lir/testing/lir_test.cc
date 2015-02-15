@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <string>
 
 #include "elang/lir/testing/lir_test.h"
 
@@ -15,11 +16,43 @@
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
+#include "elang/lir/transforms/prepare_phi_inversion.h"
+#include "elang/lir/transforms/register_allocation.h"
+#include "elang/lir/transforms/register_allocator.h"
+#include "elang/lir/transforms/register_usage_tracker.h"
+#include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/value.h"
+
+// TODO(eval1749) We should share |std::vector<BasicBlock*> with
+// |TextFormatter|.
+namespace std {
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::vector<elang::lir::BasicBlock*>& blocks) {
+  ostream << "{";
+  auto separator = "";
+  for (auto const block : blocks) {
+    ostream << separator << *block;
+    separator = ", ";
+  }
+  return ostream << "}";
+}
+}  // namespace std
 
 namespace elang {
 namespace lir {
 namespace testing {
+
+namespace {
+
+// TODO(eval1749) We should share |SortBasicBlocks()| with |TextFormatter|.
+std::vector<BasicBlock*> SortBasicBlocks(
+    const ZoneUnorderedSet<BasicBlock*>& block_set) {
+  std::vector<BasicBlock*> blocks(block_set.begin(), block_set.end());
+  std::sort(blocks.begin(), blocks.end(),
+            [](BasicBlock* a, BasicBlock* b) { return a->id() < b->id(); });
+  return blocks;
+}
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,6 +62,66 @@ LirTest::LirTest() : FactoryUser(new Factory()), factory_(factory()) {
 }
 
 LirTest::~LirTest() {
+}
+
+std::string LirTest::Allocate(Function* function) {
+  Editor editor(factory(), function);
+
+  Run<PreparePhiInversionPass>(&editor);
+
+  RegisterAllocation result;
+  RegisterUsageTracker usage_tracker(&editor);
+  StackAllocator stack_allocator(8);
+  RegisterAllocator allocator(&editor, &result, editor.AnalyzeLiveness(),
+                              usage_tracker, &stack_allocator);
+  allocator.Run();
+
+  std::stringstream ostream;
+  ostream << *function << ":" << std::endl;
+  for (auto const block : function->basic_blocks()) {
+    ostream << *block << ":" << std::endl;
+
+    ostream << "  // In: ";
+    ostream << SortBasicBlocks(block->predecessors());
+    ostream << std::endl;
+
+    ostream << "  // Out: ";
+    ostream << SortBasicBlocks(block->successors());
+    ostream << std::endl;
+
+    for (auto const phi : block->phi_instructions()) {
+      auto const output = result.AllocationOf(phi, phi->output(0));
+      ostream << "  phi " << PrintAsGeneric(output) << " = ";
+      auto separator = "";
+      for (auto const phi_input : phi->phi_inputs()) {
+        auto const input = result.AllocationOf(phi, phi_input->value());
+        ostream << separator << *phi_input->basic_block() << " ";
+        ostream << PrintAsGeneric(input);
+        separator = ", ";
+      }
+      ostream << std::endl;
+    }
+    for (auto const instr : block->instructions()) {
+      ostream << "  " << instr->opcode();
+      if (!instr->outputs().empty()) {
+        auto separator = " ";
+        for (auto const output : instr->outputs()) {
+          auto const allocation = result.AllocationOf(instr, output);
+          ostream << separator << PrintAsGeneric(allocation);
+          separator = ", ";
+        }
+        ostream << " =";
+      }
+      auto separator = " ";
+      for (auto const input : instr->inputs()) {
+        auto const allocation = result.AllocationOf(instr, input);
+        ostream << separator << PrintAsGeneric(allocation);
+        separator = ", ";
+      }
+      ostream << std::endl;
+    }
+  }
+  return ostream.str();
 }
 
 std::string LirTest::Commit(Editor* editor) {
@@ -47,8 +140,11 @@ std::vector<Value> LirTest::CollectRegisters(const Function* function) {
     for (auto const phi : block->phi_instructions())
       registers.push_back(phi->output(0));
     for (auto const instr : block->instructions()) {
-      for (auto const output : instr->outputs())
+      for (auto const output : instr->outputs()) {
+        if (!output.is_virtual())
+          continue;
         registers.push_back(output);
+      }
     }
   }
   return registers;
@@ -146,6 +242,39 @@ Function* LirTest::CreateFunctionSample2() {
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
+  return function;
+}
+
+//  function1:
+//  block1:
+//    // In: {}
+//    // Out: {block2}
+//    entry
+//    pcopy %r1l, %r2l = RCX, RDX
+//    add %r3l = %r1l, %r2l
+//    mov RAX = %r3l
+//    ret block2
+//  block2:
+//    // In: {block1}
+//    // Out: {}
+//    exit
+Function* LirTest::CreateFunctionSampleAdd() {
+  auto const function = CreateFunctionEmptySample();
+  std::vector<Instruction*> instructions;
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const var0 = factory()->NewRegister();
+  auto const var1 = factory()->NewRegister();
+  auto const var2 = factory()->NewRegister();
+  instructions.push_back(factory()->NewPCopyInstruction(
+      {var0, var1},
+      {Target::GetParameterAt(var0, 0), Target::GetParameterAt(var1, 1)}));
+  instructions.push_back(factory()->NewAddInstruction(var2, var0, var1));
+  instructions.push_back(
+      factory()->NewCopyInstruction(Target::GetReturn(var2), var2));
+  for (auto const instr : instructions)
+    editor.Append(instr);
+  EXPECT_EQ("", Commit(&editor));
   return function;
 }
 

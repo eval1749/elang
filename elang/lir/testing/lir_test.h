@@ -35,11 +35,28 @@ class LirTest : public ::testing::Test, public FactoryUser {
   LirTest();
   ~LirTest() override;
 
+  // Returns instruction dump with register allocation results for |function|.
+  std::string LirTest::Allocate(Function* function);
+
+  // Returns validation results as string after calling |Editor::Commit()|.
   std::string Commit(Editor* editor);
+
+  // Returns virtual registers in |function|.
   std::vector<Value> CollectRegisters(const Function* function);
+
+  // TODO(eval1749) Should we move |Run<Pass>()| somewhere?
+  // Note: |::testing::Test| also defines |Run<T>()|.
+  template <typename Pass>
+  void Run(Editor* editor) {
+    Pass pass(editor);
+    pass.Run();
+  }
+
+  // Samples
   Function* CreateFunctionEmptySample();
   Function* CreateFunctionSample1();
   Function* CreateFunctionSample2();
+  Function* CreateFunctionSampleAdd();
   Function* CreateFunctionWithCriticalEdge();
 
   // Emit instructions to copy parameters to virtual registers and returns

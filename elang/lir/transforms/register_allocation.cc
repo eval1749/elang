@@ -34,9 +34,7 @@ Value LocalAllocation::StackSlotFor(Value vreg) const {
 //
 // RegisterAllocation::Actions
 //
-RegisterAllocation::Actions::Actions(Zone* zone,
-                                     const std::vector<Instruction*> actions)
-    : actions(zone, actions) {
+RegisterAllocation::Actions::Actions(Zone* zone) : actions(zone) {
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -49,15 +47,17 @@ RegisterAllocation::RegisterAllocation() {
 RegisterAllocation::~RegisterAllocation() {
 }
 
-const LocalAllocation& RegisterAllocation::AllocationOf(
+const LocalAllocation& RegisterAllocation::AllocationsOf(
     BasicBlock* block) const {
   auto const it = block_map_.find(block);
   DCHECK(it != block_map_.end());
   return *it->second;
 }
 
-Value RegisterAllocation::AllocationOf(Instruction* instr, Value vreg) const {
-  auto const it = map_.find(std::make_pair(instr, vreg));
+Value RegisterAllocation::AllocationOf(Instruction* instr, Value value) const {
+  if (!value.is_virtual())
+    return value;
+  auto const it = map_.find(std::make_pair(instr, value));
   DCHECK(it != map_.end());
   return it->second;
 }
@@ -69,19 +69,24 @@ const ZoneVector<Instruction*>& RegisterAllocation::BeforeActionOf(
   return it->second->actions;
 }
 
+void RegisterAllocation::InsertBefore(Instruction* new_instr,
+                                      Instruction* ref_instr) {
+  auto const it = before_action_map_.find(ref_instr);
+  if (it == before_action_map_.end()) {
+    auto const actions = new (zone()) Actions(zone());
+    actions->actions.push_back(new_instr);
+    before_action_map_[ref_instr] = actions;
+    return;
+  }
+  it->second->actions.push_back(new_instr);
+}
+
 void RegisterAllocation::SetAllocation(Instruction* instr,
                                        Value vreg,
                                        Value allocated) {
   DCHECK(vreg.is_virtual());
   DCHECK(allocated.is_physical() || allocated.is_stack_slot());
   map_[std::make_pair(instr, vreg)] = allocated;
-}
-
-void RegisterAllocation::SetBeforeAction(
-    Instruction* instr,
-    const std::vector<Instruction*>& actions) {
-  DCHECK(!before_action_map_.count(instr));
-  before_action_map_[instr] = new (zone()) Actions(zone(), actions);
 }
 
 }  // namespace lir

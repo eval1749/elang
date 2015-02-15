@@ -33,9 +33,16 @@ const ZoneUnorderedMap<Value, Value>& RegisterAllocationTracker::physical_map()
   return location_allocation_->physical_map_;
 }
 
-const LocalAllocation& RegisterAllocationTracker::AllocationOf(
+const LocalAllocation& RegisterAllocationTracker::AllocationsOf(
     BasicBlock* block) const {
-  return register_allocation_->AllocationOf(block);
+  return register_allocation_->AllocationsOf(block);
+}
+
+Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
+  auto const physical = PhysicalFor(virtual_register);
+  if (physical.is_physical())
+    return physical;
+  return StackSlotFor(virtual_register);
 }
 
 void RegisterAllocationTracker::EndBlock(BasicBlock* block) {
@@ -69,6 +76,11 @@ void RegisterAllocationTracker::FreeVirtual(Value vreg) {
     location_allocation_->stack_slot_map_.erase(stack_slot_it);
 }
 
+void RegisterAllocationTracker::InsertBefore(Instruction* new_instr,
+                                             Instruction* ref_instr) {
+  register_allocation_->InsertBefore(new_instr, ref_instr);
+}
+
 Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
   auto const it = location_allocation_->physical_map_.find(vreg);
@@ -96,20 +108,14 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
   DCHECK(vreg.is_virtual());
   register_allocation_->SetAllocation(instr, vreg, allocated);
   if (allocated.is_physical()) {
-    TrackPhysical(vreg, allocated);
+    DCHECK_EQ(PhysicalFor(vreg), allocated);
     return;
   }
   if (allocated.is_stack_slot()) {
-    TrackStackSlot(vreg, allocated);
+    DCHECK_EQ(StackSlotFor(vreg), allocated);
     return;
   }
   NOTREACHED() << "Unexpected allocation: " << allocated;
-}
-
-void RegisterAllocationTracker::SetBeforeAction(
-    Instruction* instr,
-    const std::vector<Instruction*>& actions) {
-  register_allocation_->SetBeforeAction(instr, actions);
 }
 
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
@@ -137,6 +143,7 @@ bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
     DCHECK_NE(present, vreg);
     return false;
   }
+  TrackPhysical(vreg, physical);
   SetAllocation(instr, vreg, physical);
   return true;
 }

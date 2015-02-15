@@ -6,9 +6,11 @@
 #define ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATOR_H_
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/lir/instruction_visitor.h"
 #include "elang/lir/lir_export.h"
 
 namespace elang {
@@ -45,7 +47,11 @@ struct Value;
 //  and store them in |RegisterAllocation| instance via
 //  |RegisterAllocationTracker|.
 //
-class ELANG_LIR_EXPORT RegisterAllocator final {
+// Prerequisite:
+//  - Predecessors of phi block must end with unconditional branch.
+//  - No users virtual register must not be appeared.
+//
+class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
  public:
   RegisterAllocator(const Editor* editor,
                     RegisterAllocation* register_allocation,
@@ -58,29 +64,66 @@ class ELANG_LIR_EXPORT RegisterAllocator final {
   void Run();
 
  private:
+  typedef std::pair<Value, Value> ValuePair;
+
   Factory* factory() const;
   Function* function() const;
 
-  const std::vector<Value>& AllocatableRegistersFor(Value output) const;
-  void AllocatePhis(BasicBlock* block);
-  // Called when input operands of |instruction| are processed.
-  Value DidProcessInputOperands(Instruction* instruction);
-  Value ChooseRegisterToSpill(Instruction* instruction, Value vreg) const;
+  // Returns list of all allocatable registers for |type|. Returned list
+  // contains both allocated and free registers.
+  const std::vector<Value>& AllocatableRegistersFor(Value type) const;
   Value EnsureStackSlot(Value vreg);
-  void FreeInputIfNotUsed(Instruction* instruction, Value input);
+  void ExpandParallelCopy(const std::vector<ValuePair>& pairs,
+                          Instruction* ref_instr);
+  void FreeInputOperandsIfNotUsed(Instruction* instruction);
   void MustAllocate(Instruction* instruction, Value output, Value physical);
-  Instruction* NewReload(Value physical, Value stack_slot);
-  Instruction* NewSpill(Value stack_slot, Value physical);
   void PopulateAllocationMap(BasicBlock* block);
   void ProcessBlock(BasicBlock* block);
   void ProcessInputOperand(Instruction* instruction, Value input, int position);
+  void ProcessInputOperands(Instruction* instruction);
   void ProcessOutputOperand(Instruction* instruction, Value output);
+  void ProcessOutputOperands(Instruction* instruction);
+  void ProcessPhiInstructions(BasicBlock* block);
+  void ProcessPhiOutputOperands(BasicBlock* block);
   void SortAllocatableRegisters();
 
   // Returns true if |output| is allocated to |physical|, or returns false.
   bool TryAllocate(Instruction* instruction, Value output, Value physical);
 
+  ////////////////////////////////////////////////////////////
+  //
+  // Spill and Reload
+  //
+  Value ChooseRegisterToSpill(Instruction* instruction, Value type) const;
+
+  // Spill physical register allocated to virtual register |victim| before
+  // |instruction|.
+  Value Spill(Instruction* instruction, Value victim);
+  Instruction* NewReload(Value physical, Value stack_slot);
+  Instruction* NewSpill(Value stack_slot, Value physical);
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Query allocation for virtual register.
+  //
+
+  // Returns physical register or stacl slot for virtual register, or |value|
+  // if |value| isn't a virtual register.
+  Value AllocationOf(Value value) const;
+
+  // Returns allocated physical register for |virtual_register|, or void if
+  // not allocated.
+  Value PhysicalFor(Value value) const;
+
+  // Returns allocated stack slot for |virtual_register|, or void if not
+  // allocated.
   Value StackSlotFor(Value virtual_register) const;
+
+  // InstructionVisitor
+  void DoDefaultVisit(Instruction* instruction);
+  void VisitCall(CallInstruction* instr);
+  void VisitCopy(CopyInstruction* instr);
+  void VisitPCopy(PCopyInstruction* instr);
 
   std::unique_ptr<RegisterAllocationTracker> allocation_tracker_;
   const Editor* const editor_;
