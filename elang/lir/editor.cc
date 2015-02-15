@@ -158,7 +158,7 @@ void Editor::Edit(BasicBlock* basic_block) {
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
-  DCHECK(Validate(basic_block_));
+  DCHECK(Validate(basic_block_)) << errors();
 }
 
 void Editor::EditNewBasicBlock() {
@@ -346,20 +346,17 @@ void Editor::RemoveCriticalEdges() {
 
       auto const last_instruction = predecessor->last_instruction();
       RemoveEdgesFrom(last_instruction);
-
+      // Collect operand position for target block is |phi_block|.
       auto position = 0;
       for (auto target : last_instruction->block_operands()) {
-        if (target != phi_block) {
-          ++position;
-          continue;
-        }
-
-        last_instruction->SetBlockOperand(position, new_block);
-        for (auto const phi : phi_block->phi_instructions())
-          phi->FindPhiInputFor(predecessor)->basic_block_ = new_block;
+        if (target == phi_block)
+          last_instruction->SetBlockOperand(position, new_block);
+        ++position;
       }
-
       AddEdgesFrom(last_instruction);
+
+      for (auto const phi : phi_block->phi_instructions())
+        phi->FindPhiInputFor(predecessor)->basic_block_ = new_block;
     }
   }
   DidChangeControlFlow();
