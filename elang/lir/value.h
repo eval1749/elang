@@ -105,7 +105,9 @@ struct ELANG_LIR_EXPORT Value {
   static Value Float32Literal();
   static Value Float64Literal();
   static Value FloatRegister(ValueSize size, int data);
+  static Value FloatType();
   static Value Immediate(ValueSize size, int data);
+  static Value IntegerType();
   static Value Parameter(Type type, ValueSize size, int data);
   static Value Register(ValueSize size, int data);
   static Value StackSlot(Value type, int data);

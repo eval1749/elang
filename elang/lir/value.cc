@@ -33,9 +33,17 @@ Value Value::FloatRegister(ValueSize size, int data) {
   return Value(Type::Float, size, Kind::VirtualRegister, data);
 }
 
+Value Value::FloatType() {
+  return Value(Type::Float, ValueSize::Size32, Kind::Void);
+}
+
 Value Value::Immediate(ValueSize size, int data) {
   DCHECK(CanBeImmediate(data));
   return Value(Type::Integer, size, Kind::Immediate, data);
+}
+
+Value Value::IntegerType() {
+  return Value(Type::Integer, ValueSize::Size32, Kind::Void);
 }
 
 Value Value::Parameter(Type type, ValueSize size, int data) {
