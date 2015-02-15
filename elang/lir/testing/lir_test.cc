@@ -131,6 +131,9 @@ std::string LirTest::Commit(Editor* editor) {
   }
   std::stringstream ostream;
   ostream << editor->errors();
+  ostream << std::endl;
+  TextFormatter formatter(factory()->literals(), &ostream);
+  formatter.FormatFunction(editor->function());
   return ostream.str();
 }
 
@@ -350,13 +353,12 @@ std::vector<Value> LirTest::EmitCopyParameters(Editor* editor,
 }
 
 std::string LirTest::FormatFunction(Editor* editor) {
+  auto const result = Validate(editor);
+  if (result != "")
+    return result;
   std::stringstream ostream;
-  if (!editor->Validate()) {
-    ostream << editor->errors();
-  } else {
-    TextFormatter formatter(factory()->literals(), &ostream);
-    formatter.FormatFunction(editor->function());
-  }
+  TextFormatter formatter(factory()->literals(), &ostream);
+  formatter.FormatFunction(editor->function());
   return ostream.str();
 }
 
@@ -388,6 +390,9 @@ std::string LirTest::Validate(Editor* editor) {
     return "";
   std::stringstream ostream;
   ostream << editor->errors();
+  ostream << std::endl;
+  TextFormatter formatter(factory()->literals(), &ostream);
+  formatter.FormatFunction(editor->function());
   return ostream.str();
 }
 
