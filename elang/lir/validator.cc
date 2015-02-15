@@ -24,7 +24,7 @@ namespace lir {
 // Validator
 //
 Validator::Validator(Editor* editor)
-    : editor_(editor), is_valid_instruction_(false) {
+    : editor_(editor), is_valid_(false) {
 }
 
 Validator::~Validator() {
@@ -46,7 +46,7 @@ void Validator::AddError(ErrorCode error_code,
                          Value value,
                          const std::vector<Value> details) {
   if (value.is_instruction())
-    is_valid_instruction_ = false;
+    is_valid_ = false;
   editor_->AddError(error_code, value, details);
 }
 
@@ -176,16 +176,13 @@ bool Validator::Validate(BasicBlock* block) {
   }
 
   // Check instructions
-  auto is_valid = true;
   auto found_terminator = false;
   for (auto const instruction : block->instructions()) {
-    if (!Validate(instruction))
-      is_valid = false;
+    Validate(instruction);
+
     if (instruction->IsTerminator()) {
-      if (found_terminator) {
+      if (found_terminator)
         Error(ErrorCode::ValidateInstructionTerminator, instruction);
-        is_valid = false;
-      }
       found_terminator = true;
     }
   }
@@ -193,10 +190,11 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockTerminator, block->value());
     return false;
   }
-  return is_valid;
+  return is_valid_;
 }
 
 bool Validator::Validate(Function* function) {
+  is_valid_ = true;
   if (function->basic_blocks().empty()) {
     Error(ErrorCode::ValidateFunctionEmpty, function->value());
     return false;
@@ -208,35 +206,24 @@ bool Validator::Validate(Function* function) {
   }
   auto const exit_block = function->exit_block();
   auto found_exit = false;
-  auto is_valid = true;
   for (auto block : function->basic_blocks()) {
-    if (block != entry_block && !block->HasPredecessor()) {
+    if (block != entry_block && !block->HasPredecessor())
       Error(ErrorCode::ValidateBasicBlockUnreachable, block->value());
-      is_valid = false;
-    }
 
-    if (block != exit_block && !block->HasSuccessor()) {
+    if (block != exit_block && !block->HasSuccessor())
       Error(ErrorCode::ValidateBasicBlockDeadEnd, block->value());
-      is_valid = false;
-    }
 
-    if (!Validate(block)) {
-      is_valid = false;
+    if (!Validate(block))
       continue;
-    }
     if (block->last_instruction()->is<ExitInstruction>()) {
-      if (found_exit) {
+      if (found_exit)
         Error(ErrorCode::ValidateBasicBlockExit, block->value());
-        is_valid = false;
-      }
       found_exit = true;
     }
   }
-  if (!found_exit) {
+  if (!found_exit)
     Error(ErrorCode::ValidateBasicBlockExit, function->value());
-    is_valid = false;
-  }
-  return is_valid;
+  return is_valid_;
 }
 
 bool Validator::Validate(Instruction* instruction) {
@@ -256,9 +243,9 @@ bool Validator::Validate(Instruction* instruction) {
     ++position;
   }
   // Instruction specific validation.
-  is_valid_instruction_ = true;
+  is_valid_ = true;
   instruction->Accept(this);
-  return is_valid_instruction_;
+  return is_valid_;
 }
 
 // InstructionVisitor
