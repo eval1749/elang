@@ -12,6 +12,7 @@ namespace lir {
 
 #define FOR_EACH_LIR_ERROR_CODE(E, W)    \
   /* Basic Block */                      \
+  E(Validate, BasicBlock, DeadEnd)       \
   E(Validate, BasicBlock, Empty)         \
   E(Validate, BasicBlock, Entry)         \
   E(Validate, BasicBlock, Exit)          \
@@ -20,6 +21,7 @@ namespace lir {
   E(Validate, BasicBlock, Predecessor)   \
   E(Validate, BasicBlock, Successor)     \
   E(Validate, BasicBlock, Terminator)    \
+  E(Validate, BasicBlock, Unreachable)   \
   /* Function */                         \
   E(Validate, Function, Empty)           \
   E(Validate, Function, Entry)           \

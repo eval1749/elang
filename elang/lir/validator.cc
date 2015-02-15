@@ -201,13 +201,25 @@ bool Validator::Validate(Function* function) {
     Error(ErrorCode::ValidateFunctionEmpty, function->value());
     return false;
   }
-  if (!function->entry_block()->first_instruction()->is<EntryInstruction>()) {
+  auto const entry_block = function->entry_block();
+  if (!entry_block->first_instruction()->is<EntryInstruction>()) {
     Error(ErrorCode::ValidateFunctionEntry, function->value());
     return false;
   }
+  auto const exit_block = function->exit_block();
   auto found_exit = false;
   auto is_valid = true;
   for (auto block : function->basic_blocks()) {
+    if (block != entry_block && !block->HasPredecessor()) {
+      Error(ErrorCode::ValidateBasicBlockUnreachable, block->value());
+      is_valid = false;
+    }
+
+    if (block != exit_block && !block->HasSuccessor()) {
+      Error(ErrorCode::ValidateBasicBlockDeadEnd, block->value());
+      is_valid = false;
+    }
+
     if (!Validate(block)) {
       is_valid = false;
       continue;
