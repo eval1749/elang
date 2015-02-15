@@ -21,21 +21,21 @@ namespace lir {
 // RegisterAllocationTracker
 //
 RegisterAllocationTracker::RegisterAllocationTracker(
-    RegisterAllocation* allocation_map)
-    : register_allocation_(allocation_map), location_allocation_(nullptr) {
+    RegisterAllocation* allocations_map)
+    : allocations_(allocations_map) {
 }
 
 RegisterAllocationTracker::~RegisterAllocationTracker() {
 }
 
-const ZoneUnorderedMap<Value, Value>& RegisterAllocationTracker::physical_map()
-    const {
-  return location_allocation_->physical_map_;
+const std::unordered_map<Value, Value>&
+RegisterAllocationTracker::physical_map() const {
+  return physical_map_;
 }
 
-const LocalAllocation& RegisterAllocationTracker::AllocationsOf(
-    BasicBlock* block) const {
-  return register_allocation_->AllocationsOf(block);
+Value RegisterAllocationTracker::AllocationOf(BasicBlock* block,
+                                              Value value) const {
+  return allocations_->AllocationOf(block, value);
 }
 
 Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
@@ -47,16 +47,19 @@ Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
 
 void RegisterAllocationTracker::EndBlock(BasicBlock* block) {
   DCHECK(block);
-  // TODO(eval1749) record elapsed time for |block|.
-  location_allocation_ = nullptr;
+  for (auto pair : physical_map_) {
+    auto const physical = pair.second;
+    if (!physical.is_physical())
+      continue;
+    allocations_->SetPhysical(block, pair.first, physical);
+  }
 }
 
 void RegisterAllocationTracker::FreePhysical(Value physical) {
   DCHECK(physical.is_physical());
-  for (auto it = location_allocation_->physical_map_.begin();
-       it != location_allocation_->physical_map_.end(); ++it) {
+  for (auto it = physical_map_.begin(); it != physical_map_.end(); ++it) {
     if (it->second == physical) {
-      location_allocation_->physical_map_.erase(it);
+      physical_map_.erase(it);
       return;
     }
   }
@@ -65,72 +68,75 @@ void RegisterAllocationTracker::FreePhysical(Value physical) {
 
 void RegisterAllocationTracker::FreeVirtual(Value vreg) {
   DCHECK(vreg.is_virtual());
-  DCHECK(location_allocation_->physical_map_.count(vreg) ||
-         location_allocation_->stack_slot_map_.count(vreg));
-  auto const physical_it = location_allocation_->physical_map_.find(vreg);
-  if (physical_it != location_allocation_->physical_map_.end())
-    location_allocation_->physical_map_.erase(physical_it);
+  DCHECK(PhysicalFor(vreg).is_physical() || StackSlotFor(vreg).is_stack_slot());
+  auto const physical_it = physical_map_.find(vreg);
+  if (physical_it != physical_map_.end())
+    physical_map_.erase(physical_it);
 
-  auto const stack_slot_it = location_allocation_->stack_slot_map_.find(vreg);
-  if (stack_slot_it != location_allocation_->stack_slot_map_.end())
-    location_allocation_->stack_slot_map_.erase(stack_slot_it);
+  auto const stack_slot_it = allocations_->stack_slot_map_.find(vreg);
+  if (stack_slot_it != allocations_->stack_slot_map_.end())
+    allocations_->stack_slot_map_.erase(stack_slot_it);
 }
 
 void RegisterAllocationTracker::InsertBefore(Instruction* new_instr,
                                              Instruction* ref_instr) {
-  register_allocation_->InsertBefore(new_instr, ref_instr);
+  allocations_->InsertBefore(new_instr, ref_instr);
 }
 
 Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = location_allocation_->physical_map_.find(vreg);
-  return it == location_allocation_->physical_map_.end() ? Value() : it->second;
+  auto const it = physical_map_.find(vreg);
+  return it == physical_map_.end() ? Value() : it->second;
 }
 
 Value RegisterAllocationTracker::StackSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = location_allocation_->stack_slot_map_.find(vreg);
-  return it == location_allocation_->stack_slot_map_.end() ? Value()
-                                                           : it->second;
+  auto const it = allocations_->stack_slot_map_.find(vreg);
+  return it == allocations_->stack_slot_map_.end() ? Value() : it->second;
 }
 
 void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
-  DCHECK(!register_allocation_->block_map_.count(block));
-  DCHECK(!location_allocation_);
-  auto const zone = register_allocation_->zone();
-  location_allocation_ = new (zone) LocalAllocation(zone);
-  register_allocation_->block_map_[block] = location_allocation_;
+  DCHECK(block);
+  physical_map_.clear();
 }
 
 void RegisterAllocationTracker::SetAllocation(Instruction* instr,
                                               Value vreg,
-                                              Value allocated) {
+                                              Value allocation) {
   DCHECK(vreg.is_virtual());
-  register_allocation_->SetAllocation(instr, vreg, allocated);
-  if (allocated.is_physical()) {
-    DCHECK_EQ(PhysicalFor(vreg), allocated);
+  allocations_->SetAllocation(instr, vreg, allocation);
+  if (allocation.is_physical()) {
+    DCHECK_EQ(PhysicalFor(vreg), allocation);
     return;
   }
-  if (allocated.is_stack_slot()) {
-    DCHECK_EQ(StackSlotFor(vreg), allocated);
+  if (allocation.is_stack_slot()) {
+    DCHECK_EQ(StackSlotFor(vreg), allocation);
     return;
   }
-  NOTREACHED() << "Unexpected allocation: " << allocated;
+  NOTREACHED() << "Unexpected allocation: " << allocation;
+}
+
+void RegisterAllocationTracker::SetPhysical(BasicBlock* block,
+                                            Value vreg,
+                                            Value physical) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(physical.is_physical());
+  allocations_->SetPhysical(block, vreg, physical);
 }
 
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
-  DCHECK(!location_allocation_->physical_map_.count(vreg));
+  DCHECK(!physical_map_.count(vreg));
   DCHECK(VirtualFor(physical).is_void());
-  location_allocation_->physical_map_[vreg] = physical;
+  physical_map_[vreg] = physical;
 }
 
 void RegisterAllocationTracker::TrackStackSlot(Value vreg, Value stack_slot) {
   DCHECK(vreg.is_virtual());
   DCHECK(stack_slot.is_stack_slot());
-  DCHECK(!location_allocation_->stack_slot_map_.count(stack_slot));
-  location_allocation_->stack_slot_map_[vreg] = stack_slot;
+  DCHECK(!allocations_->stack_slot_map_.count(stack_slot));
+  allocations_->stack_slot_map_[vreg] = stack_slot;
 }
 
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
@@ -150,7 +156,7 @@ bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
 
 Value RegisterAllocationTracker::VirtualFor(Value physical) const {
   DCHECK(physical.is_physical());
-  for (auto const pair : location_allocation_->physical_map_) {
+  for (auto const pair : physical_map_) {
     if (pair.second == physical)
       return pair.first;
   }

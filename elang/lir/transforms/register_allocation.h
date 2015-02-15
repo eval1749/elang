@@ -6,7 +6,6 @@
 #define ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_H_
 
 #include <algorithm>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -24,48 +23,25 @@ namespace lir {
 class BasicBlock;
 class Instruction;
 class RegisterAllocationTracker;
-typedef std::pair<Instruction*, Value> ValueLocation;
-
+typedef std::pair<BasicBlock*, Value> BasicBlockValue;
+typedef std::pair<Instruction*, Value> InstructionValue;
 }  // namespace lir
 }  // namespace elang
 
 namespace std {
 template <>
-struct hash<elang::lir::ValueLocation> {
-  size_t operator()(const elang::lir::ValueLocation& location) const;
+struct hash<elang::lir::BasicBlockValue> {
+  size_t operator()(const elang::lir::BasicBlockValue& location) const;
+};
+
+template <>
+struct hash<elang::lir::InstructionValue> {
+  size_t operator()(const elang::lir::InstructionValue& location) const;
 };
 }  // namespace std
 
 namespace elang {
 namespace lir {
-
-//////////////////////////////////////////////////////////////////////
-//
-// LocalAllocation contains virtual register allocation information
-// at end of basic block.
-//
-class LocalAllocation final : public ZoneAllocated {
- public:
-  ~LocalAllocation();
-
-  Value PhysicalFor(Value vreg) const;
-  Value StackSlotFor(Value vreg) const;
-
- private:
-  friend class RegisterAllocationTracker;
-
-  explicit LocalAllocation(Zone* zone);
-
-  void RegisterAllocation(Value vreg, Value allocation);
-
-  // Map virtual register to physical register.
-  ZoneUnorderedMap<Value, Value> physical_map_;
-
-  // Map virtual register to stack location.
-  ZoneUnorderedMap<Value, Value> stack_slot_map_;
-
-  DISALLOW_COPY_AND_ASSIGN(LocalAllocation);
-};
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -82,8 +58,8 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
   RegisterAllocation();
   ~RegisterAllocation();
 
-  // Returns |LocalAllocation| of |block|.
-  const LocalAllocation& AllocationsOf(BasicBlock* block) const;
+  // Returns allocated value for |value| after last instruction.
+  Value AllocationOf(BasicBlock* block, Value value) const;
 
   // Returns allocated value for |value| at |instr|.
   Value AllocationOf(Instruction* instr, Value value) const;
@@ -97,11 +73,16 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
   // Inserts |new_instr| before |ref_instr|.
   void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
 
-  void SetAllocation(Instruction* instr, Value vreg, Value allocated);
+  void SetAllocation(Instruction* instr, Value vreg, Value allocation);
+  void SetPhysical(BasicBlock* block, Value vreg, Value physical);
+  void SetStackSlot(Value vreg, Value stack_slot);
 
-  std::unordered_map<Instruction*, Actions*> before_action_map_;
-  std::unordered_map<BasicBlock*, LocalAllocation*> block_map_;
-  std::unordered_map<ValueLocation, Value> map_;
+  ZoneUnorderedMap<BasicBlockValue, Value> block_value_map_;
+  ZoneUnorderedMap<Instruction*, Actions*> before_action_map_;
+  ZoneUnorderedMap<InstructionValue, Value> instruction_value_map_;
+
+  // Map virtual register to stack location.
+  ZoneUnorderedMap<Value, Value> stack_slot_map_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAllocation);
 };

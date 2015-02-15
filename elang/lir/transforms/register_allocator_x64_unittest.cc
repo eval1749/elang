@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <sstream>
-#include <string>
-
 #include "elang/lir/testing/lir_test.h"
 
 #include "elang/lir/editor.h"
@@ -66,6 +63,44 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
       "  // Out: {}\n"
       "  exit\n",
       Allocate(function));
+}
+
+//  function1:
+//  block1:
+//    // In: {}
+//    // Out: {block3}
+//    entry
+//    jmp block3
+//  block3:
+//    // In: {block1, block4}
+//    // Out: {block5}
+//    jmp block5
+//  block4:
+//    // In: {}
+//    // Out: {block3, block6}
+//    br %b2, block6, block3
+//  block6:
+//    // In: {block4}
+//    // Out: {block5}
+//    jmp block5
+//  block5:
+//    // In: {block3, block6}
+//    // Out: {block2}
+//    phi %r1 = block6 42, block3 39
+//    mov EAX = %r1
+//    ret block2
+//  block2:
+//    // In: {block5}
+//    // Out: {}
+//    exit
+TEST_F(LirRegisterAllocatorX64Test, WithCriticalEdge) {
+  auto const function = CreateFunctionWithCriticalEdge();
+  {
+    Editor editor(factory(), function);
+    Run<X64LoweringPass>(&editor);
+  }
+
+  EXPECT_EQ("foo", Allocate(function));
 }
 
 }  // namespace lir

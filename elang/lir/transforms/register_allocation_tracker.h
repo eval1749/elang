@@ -18,7 +18,6 @@ namespace lir {
 
 class BasicBlock;
 class Instruction;
-class LocalAllocation;
 class RegisterAllocation;
 struct Value;
 
@@ -32,12 +31,12 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   ~RegisterAllocationTracker();
 
   // Returns map from virtual register to physical register.
-  const ZoneUnorderedMap<Value, Value>& physical_map() const;
+  const std::unordered_map<Value, Value>& physical_map() const;
 
-  // Basic block related operations
-  const LocalAllocation& AllocationsOf(BasicBlock* block) const;
-  void StartBlock(BasicBlock* block);
+  Value AllocationOf(BasicBlock* block, Value vreg) const;
   void EndBlock(BasicBlock* block);
+  void StartBlock(BasicBlock* block);
+  void SetPhysical(BasicBlock* block, Value vreg, Value physical);
 
   // Query current mapping
   Value AllocationOf(Value virtual_register) const;
@@ -63,10 +62,10 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
 
  private:
   // Result of register allocation.
-  RegisterAllocation* const register_allocation_;
+  RegisterAllocation* const allocations_;
 
-  // Local allocation
-  LocalAllocation* location_allocation_;
+  // Map virtual register to physical register.
+  std::unordered_map<Value, Value> physical_map_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAllocationTracker);
 };

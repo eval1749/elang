@@ -12,26 +12,6 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LocalAllocation
-//
-LocalAllocation::LocalAllocation(Zone* zone)
-    : physical_map_(zone), stack_slot_map_(zone) {
-}
-
-Value LocalAllocation::PhysicalFor(Value vreg) const {
-  DCHECK(vreg.is_virtual());
-  auto const it = physical_map_.find(vreg);
-  return it == physical_map_.end() ? Value() : it->second;
-}
-
-Value LocalAllocation::StackSlotFor(Value vreg) const {
-  DCHECK(vreg.is_virtual());
-  auto const it = stack_slot_map_.find(vreg);
-  return it == stack_slot_map_.end() ? Value() : it->second;
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // RegisterAllocation::Actions
 //
 RegisterAllocation::Actions::Actions(Zone* zone) : actions(zone) {
@@ -41,24 +21,29 @@ RegisterAllocation::Actions::Actions(Zone* zone) : actions(zone) {
 //
 // RegisterAllocation
 //
-RegisterAllocation::RegisterAllocation() {
+RegisterAllocation::RegisterAllocation()
+    : block_value_map_(zone()),
+      before_action_map_(zone()),
+      instruction_value_map_(zone()),
+      stack_slot_map_(zone()) {
 }
 
 RegisterAllocation::~RegisterAllocation() {
 }
 
-const LocalAllocation& RegisterAllocation::AllocationsOf(
-    BasicBlock* block) const {
-  auto const it = block_map_.find(block);
-  DCHECK(it != block_map_.end());
-  return *it->second;
+Value RegisterAllocation::AllocationOf(BasicBlock* block, Value value) const {
+  if (!value.is_virtual())
+    return value;
+  auto const it = block_value_map_.find(std::make_pair(block, value));
+  DCHECK(it != block_value_map_.end());
+  return it->second;
 }
 
 Value RegisterAllocation::AllocationOf(Instruction* instr, Value value) const {
   if (!value.is_virtual())
     return value;
-  auto const it = map_.find(std::make_pair(instr, value));
-  DCHECK(it != map_.end());
+  auto const it = instruction_value_map_.find(std::make_pair(instr, value));
+  DCHECK(it != instruction_value_map_.end());
   return it->second;
 }
 
@@ -83,18 +68,39 @@ void RegisterAllocation::InsertBefore(Instruction* new_instr,
 
 void RegisterAllocation::SetAllocation(Instruction* instr,
                                        Value vreg,
-                                       Value allocated) {
+                                       Value allocation) {
   DCHECK(vreg.is_virtual());
-  DCHECK(allocated.is_physical() || allocated.is_stack_slot());
-  map_[std::make_pair(instr, vreg)] = allocated;
+  DCHECK(allocation.is_physical() || allocation.is_stack_slot());
+  instruction_value_map_[std::make_pair(instr, vreg)] = allocation;
+}
+
+void RegisterAllocation::SetPhysical(BasicBlock* block,
+                                     Value vreg,
+                                     Value physical) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(physical.is_physical());
+  block_value_map_[std::make_pair(block, vreg)] = physical;
+}
+
+void RegisterAllocation::SetStackSlot(Value vreg, Value stack_slot) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(stack_slot.is_stack_slot());
+  DCHECK(!stack_slot_map_.count(vreg));
+  stack_slot_map_[vreg] = stack_slot;
 }
 
 }  // namespace lir
 }  // namespace elang
 
 namespace std {
-size_t hash<elang::lir::ValueLocation>::operator()(
-    const elang::lir::ValueLocation& location) const {
+size_t hash<elang::lir::BasicBlockValue>::operator()(
+    const elang::lir::BasicBlockValue& location) const {
+  return std::hash<elang::lir::BasicBlock*>()(location.first) ^
+         std::hash<elang::lir::Value>()(location.second);
+}
+
+size_t hash<elang::lir::InstructionValue>::operator()(
+    const elang::lir::InstructionValue& location) const {
   return std::hash<elang::lir::Instruction*>()(location.first) ^
          std::hash<elang::lir::Value>()(location.second);
 }

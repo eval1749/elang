@@ -12,6 +12,7 @@
 #include "elang/base/analysis/dominator_tree.h"
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
+#include "elang/base/ordered_list.h"
 #include "elang/lir/analysis/use_def_list.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/editor.h"
@@ -253,26 +254,34 @@ Value RegisterAllocator::PhysicalFor(Value value) const {
 
 // Incorporate allocation map from predecessors.
 void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
+  // Populate stack slots by LiveIn(block)
   stack_allocator_->Reset();
+  for (auto const number : liveness_.LivenessOf(block).in()) {
+    auto const input = liveness_.VariableOf(number);
+    // Stack location
+    auto const stack_slot = StackSlotFor(input);
+    if (!stack_slot.is_stack_slot())
+      continue;
+    allocation_tracker_->TrackStackSlot(input, stack_slot);
+    stack_allocator_->AllocateAt(stack_slot);
+  }
+
+  auto const& rpo_list = editor_->ReversePostOrderList();
+  auto const rpo_number = rpo_list.position_of(block);
   for (auto const predecessor : block->predecessors()) {
-    auto& allocation = allocation_tracker_->AllocationsOf(predecessor);
+    if (rpo_list.position_of(predecessor) >= rpo_number) {
+      // We've not yet processed |predecessor|. So, we can't determine live
+      // register allocations.
+      return;
+    }
+  }
+
+  // Populate virtual-physical-register tracker.
+  for (auto const predecessor : block->predecessors()) {
     for (auto const number : liveness_.LivenessOf(predecessor).in()) {
       auto const input = liveness_.VariableOf(number);
-
-      // Stack location
-      auto const stack_slot = allocation.StackSlotFor(input);
-      if (stack_slot.is_stack_slot()) {
-        auto const present = allocation_tracker_->StackSlotFor(input);
-        if (present.is_void()) {
-          allocation_tracker_->TrackStackSlot(input, stack_slot);
-          stack_allocator_->AllocateAt(stack_slot);
-        } else {
-          DCHECK_EQ(present, stack_slot);
-        }
-      }
-
-      // Physical register
-      auto const physical = allocation.PhysicalFor(input);
+      auto const physical =
+          allocation_tracker_->AllocationOf(predecessor, input);
       if (!physical.is_physical())
         continue;
       auto const present = PhysicalFor(input);
@@ -296,6 +305,7 @@ void RegisterAllocator::ProcessBlock(BasicBlock* block) {
     instr->Accept(this);
   }
   allocation_tracker_->EndBlock(block);
+  // TODO(eval1749) We should visit dominator children in RPO order.
   for (auto const child_node : dominator_tree_.TreeNodeOf(block)->children())
     ProcessBlock(child_node->value());
 }
@@ -367,7 +377,7 @@ void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
     }
   }
   for (auto const physical : AllocatableRegistersFor(output)) {
-    if (allocation_tracker_->TryAllocate(instr, output, physical))
+    if (TryAllocate(instr, output, physical))
       return;
   }
 
@@ -392,6 +402,9 @@ void RegisterAllocator::ProcessOutputOperands(Instruction* instr) {
 
 // TODO(eval1749) Allocate physical registers to frequently used phi outputs.
 void RegisterAllocator::ProcessPhiInstructions(BasicBlock* block) {
+  if (block->phi_instructions().empty())
+    return;
+
   ProcessPhiOutputOperands(block);
 
   // Insert pcopy expanded into predecessors.
@@ -454,7 +467,7 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
       continue;
 
     for (auto const physical : AllocatableRegistersFor(output)) {
-      if (allocation_tracker_->TryAllocate(phi, output, physical)) {
+      if (TryAllocate(phi, output, physical)) {
         allocated = true;
         break;
       }
