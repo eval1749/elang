@@ -23,8 +23,7 @@ namespace lir {
 //
 // Validator
 //
-Validator::Validator(Editor* editor)
-    : editor_(editor), is_valid_(false) {
+Validator::Validator(Editor* editor) : editor_(editor) {
 }
 
 Validator::~Validator() {
@@ -45,8 +44,6 @@ Function* Validator::function() const {
 void Validator::AddError(ErrorCode error_code,
                          Value value,
                          const std::vector<Value> details) {
-  if (value.is_instruction())
-    is_valid_ = false;
   editor_->AddError(error_code, value, details);
 }
 
@@ -151,30 +148,6 @@ bool Validator::Validate(BasicBlock* block) {
     }
   }
 
-  // Check phi inputs
-  {
-    std::unordered_set<BasicBlock*> predecessors(block->predecessors().begin(),
-                                                 block->predecessors().end());
-    for (auto const phi : block->phi_instructions()) {
-      std::unordered_set<BasicBlock*> visited;
-      for (auto const phi_input : phi->phi_inputs()) {
-        auto const predecessor = phi_input->basic_block();
-        if (!predecessors.count(predecessor)) {
-          Error(ErrorCode::ValidatePhiInputInvalid, phi, predecessor->value());
-          continue;
-        }
-        if (visited.count(predecessor))
-          Error(ErrorCode::ValidatePhiInputMultiple, phi, predecessor->value());
-        visited.insert(predecessor);
-      }
-      for (auto const predecessor : predecessors) {
-        if (visited.count(predecessor))
-          continue;
-        Error(ErrorCode::ValidatePhiInputMissing, phi, predecessor->value());
-      }
-    }
-  }
-
   // Check instructions
   auto found_terminator = false;
   for (auto const instruction : block->instructions()) {
@@ -190,11 +163,10 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockTerminator, block->value());
     return false;
   }
-  return is_valid_;
+  return editor()->errors().empty();
 }
 
 bool Validator::Validate(Function* function) {
-  is_valid_ = true;
   if (function->basic_blocks().empty()) {
     Error(ErrorCode::ValidateFunctionEmpty, function->value());
     return false;
@@ -213,8 +185,34 @@ bool Validator::Validate(Function* function) {
     if (block != exit_block && !block->HasSuccessor())
       Error(ErrorCode::ValidateBasicBlockDeadEnd, block->value());
 
-    if (!Validate(block))
-      continue;
+    // Check phi inputs
+    {
+      std::unordered_set<BasicBlock*> predecessors(
+          block->predecessors().begin(), block->predecessors().end());
+      for (auto const phi : block->phi_instructions()) {
+        std::unordered_set<BasicBlock*> visited;
+        for (auto const phi_input : phi->phi_inputs()) {
+          auto const predecessor = phi_input->basic_block();
+          if (!predecessors.count(predecessor)) {
+            Error(ErrorCode::ValidatePhiInputInvalid, phi,
+                  predecessor->value());
+            continue;
+          }
+          if (visited.count(predecessor))
+            Error(ErrorCode::ValidatePhiInputMultiple, phi,
+                  predecessor->value());
+          visited.insert(predecessor);
+        }
+        for (auto const predecessor : predecessors) {
+          if (visited.count(predecessor))
+            continue;
+          Error(ErrorCode::ValidatePhiInputMissing, phi, predecessor->value());
+        }
+      }
+    }
+
+    Validate(block);
+
     if (block->last_instruction()->is<ExitInstruction>()) {
       if (found_exit)
         Error(ErrorCode::ValidateBasicBlockExit, block->value());
@@ -223,7 +221,7 @@ bool Validator::Validate(Function* function) {
   }
   if (!found_exit)
     Error(ErrorCode::ValidateBasicBlockExit, function->value());
-  return is_valid_;
+  return editor()->errors().empty();
 }
 
 bool Validator::Validate(Instruction* instruction) {
@@ -243,9 +241,8 @@ bool Validator::Validate(Instruction* instruction) {
     ++position;
   }
   // Instruction specific validation.
-  is_valid_ = true;
   instruction->Accept(this);
-  return is_valid_;
+  return editor()->errors().empty();
 }
 
 // InstructionVisitor

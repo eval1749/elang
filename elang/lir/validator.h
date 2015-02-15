@@ -65,7 +65,6 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   void VisitRet(RetInstruction* instruction) final;
 
   Editor* const editor_;
-  bool is_valid_;
 
   DISALLOW_COPY_AND_ASSIGN(Validator);
 };
