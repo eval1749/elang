@@ -241,15 +241,9 @@ std::ostream& operator<<(std::ostream& ostream, const Value& value) {
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
   static const char* const kinds[] = {
-      "Invalid",
-      "FloatRegister",
-      "GeneralRegister",
-      "Immediate",
-      "Literal",
-      "VirtualFloatRegister",
-      "VirtualGeneralRegister",
-      "NotUsed7",
-      "Illegal",
+#define V(Name) #Name,
+      FOR_EACH_VALUE_KIND(V)
+#undef V
   };
   return ostream
          << kinds[std::min(static_cast<size_t>(kind), arraysize(kinds) - 1)];

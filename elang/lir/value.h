@@ -23,6 +23,24 @@ enum class ValueSize : uint32_t {
   Size64,
 };
 
+#define FOR_EACH_VALUE_KIND(V)                                       \
+  V(Void)                                                            \
+  V(Immediate)                                                       \
+  V(Literal)                                                         \
+  V(Parameter)                                                       \
+  V(PhysicalRegister)                                                \
+  V(VirtualRegister)                                                 \
+  V(Condition) /* output of equality and relational instructions. */ \
+  V(Argument)                                                        \
+  V(StackSlot) /* stack location for spilled registers */            \
+  V(NotUsed9)                                                        \
+  V(NotUsed10)                                                       \
+  V(NotUsed11)                                                       \
+  V(NotUsed12)                                                       \
+  V(NotUsed13)                                                       \
+  V(NotUsed14)                                                       \
+  V(Instruction) /* for ErrorData */
+
 //////////////////////////////////////////////////////////////////////
 //
 // Value represents both input and output operand of instruction.
@@ -34,22 +52,9 @@ struct ELANG_LIR_EXPORT Value {
   };
 
   enum class Kind : uint32_t {
-    Void = 0,
-    Immediate = 1,
-    Literal = 2,
-    Parameter = 3,
-    PhysicalRegister = 4,
-    VirtualRegister = 5,
-    Condition = 6,  // output of equality and relational instructions.
-    Argument = 7,
-    StackSlot,  // stack location for spilled registers
-    NotUsed9,
-    NotUsed10,
-    NotUsed11,
-    NotUsed12,
-    NotUsed13,
-    NotUsed14,
-    Instruction,  // for ErrorData
+#define V(Name) Name,
+    FOR_EACH_VALUE_KIND(V)
+#undef V
   };
 
   static const int kMaximumImmediate = 1 << 23;
