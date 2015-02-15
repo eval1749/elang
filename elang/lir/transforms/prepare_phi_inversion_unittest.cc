@@ -30,8 +30,7 @@ class LirPreparePhiInversionTest : public testing::LirTest {
 TEST_F(LirPreparePhiInversionTest, Basic) {
   auto const function = CreateFunctionWithCriticalEdge();
   Editor editor(factory(), function);
-  PreparePhiInversionPass pass(&editor);
-  pass.Run();
+  Run<PreparePhiInversionPass>(&editor);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -41,24 +40,28 @@ TEST_F(LirPreparePhiInversionTest, Basic) {
       "  jmp block3\n"
       "block3:\n"
       "  // In: {block1, block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // Out: {block4, block5}\n"
+      "  br %b2, block5, block4\n"
       "block4:\n"
-      "  // In: {}\n"
-      "  // Out: {block3, block6}\n"
-      "  br %b2, block6, block3\n"
-      "block6:\n"  // new block |block6| is inserted.
+      "  // In: {block3}\n"
+      "  // Out: {block3, block7}\n"
+      "  br %b3, block7, block3\n"
+      "block7:\n"
       "  // In: {block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
       "block5:\n"
-      "  // In: {block3, block6}\n"
+      "  // In: {block3}\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
+      "block6:\n"
+      "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block6 42, block3 39\n"
+      "  phi %r1 = block7 42, block3 39\n"
       "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
-      "  // In: {block5}\n"
+      "  // In: {block6}\n"
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));

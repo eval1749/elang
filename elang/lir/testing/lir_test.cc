@@ -282,9 +282,11 @@ Function* LirTest::CreateFunctionSampleAdd() {
 //   entry:
 //    br start
 //   start:
-//    br sample
+//    br %flag1, sample2, sample
 //   sample:
-//    br %flag1, merge, start
+//    br %flag2, merge, start
+//   sample2:
+//    jump merge
 //   merge:
 //    phi %1 = start 39, sample 42
 //    mov EAX = %1
@@ -301,6 +303,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   Value type(Value::Type::Integer, ValueSize::Size32);
   auto const start_block = editor.NewBasicBlock(exit_block);
   auto const sample_block = editor.NewBasicBlock(exit_block);
+  auto const sample2_block = editor.NewBasicBlock(exit_block);
   auto const merge_block = editor.NewBasicBlock(exit_block);
 
   editor.Edit(entry_block);
@@ -308,11 +311,15 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(start_block);
-  editor.SetJump(merge_block);
+  editor.SetBranch(factory()->NewCondition(), sample2_block, sample_block);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(sample_block);
   editor.SetBranch(factory()->NewCondition(), merge_block, start_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(sample2_block);
+  editor.SetJump(merge_block);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(merge_block);

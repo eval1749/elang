@@ -242,6 +242,36 @@ TEST_F(LirEditorTest, LiteralInstruction) {
       FormatFunction(&editor));
 }
 
+// Before removing critical edges:
+//    function1:
+//    block1:
+//      // In: {}
+//      // Out: {block3}
+//      entry
+//      jmp block3
+//    block3:
+//      // In: {block1, block4}
+//      // Out: {block4, block5}
+//      br %b2, block5, block4
+//    block4:
+//      // In: {block3}
+//      // Out: {block3, block6}
+//      br %b3, block6, block3
+//    block5:
+//      // In: {block3}
+//      // Out: {block6}
+//      jmp block6
+//    block6:
+//      // In: {block4, block5}
+//      // Out: {block2}
+//      phi %r1 = block4 42, block3 39
+//      mov EAX = %r1
+//      ret block2
+//    block2:
+//      // In: {block6}
+//      // Out: {}
+//      exit
+// Edge block4=>block6 is a critical edge.
 TEST_F(LirEditorTest, RemoveCriticalEdges) {
   auto const function = CreateFunctionWithCriticalEdge();
   Editor editor(factory(), function);
@@ -255,24 +285,28 @@ TEST_F(LirEditorTest, RemoveCriticalEdges) {
       "  jmp block3\n"
       "block3:\n"
       "  // In: {block1, block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // Out: {block4, block5}\n"
+      "  br %b2, block5, block4\n"
       "block4:\n"
-      "  // In: {}\n"
-      "  // Out: {block3, block6}\n"
-      "  br %b2, block6, block3\n"
-      "block6:\n"  // a new block introduced by |RemoveCriticalEdges()|.
-      "  // In: {block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // In: {block3}\n"
+      "  // Out: {block3, block7}\n"
+      "  br %b3, block7, block3\n"
       "block5:\n"
-      "  // In: {block3, block6}\n"
+      "  // In: {block3}\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
+      "block7:\n"  // a new block introduced by |RemoveCriticalEdges()|.
+      "  // In: {block4}\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
+      "block6:\n"
+      "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block6 42, block3 39\n"
+      "  phi %r1 = block7 42, block3 39\n"
       "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
-      "  // In: {block5}\n"
+      "  // In: {block6}\n"
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
@@ -336,7 +370,7 @@ TEST_F(LirEditorTest, ReplacePhiInputs) {
   Editor editor(factory(), function);
   std::vector<BasicBlock*> blocks(function->basic_blocks().begin(),
                                   function->basic_blocks().end());
-  auto const merge_block = blocks[3];
+  auto const merge_block = blocks[4];
   ASSERT_FALSE(merge_block->phi_instructions().empty());
   auto const sample_block = blocks[2];
   auto const new_block = editor.NewBasicBlock(merge_block);
@@ -363,24 +397,28 @@ TEST_F(LirEditorTest, ReplacePhiInputs) {
       "  jmp block3\n"
       "block3:\n"
       "  // In: {block1, block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // Out: {block4, block5}\n"
+      "  br %b2, block5, block4\n"
       "block4:\n"
-      "  // In: {}\n"
-      "  // Out: {block3, block6}\n"
-      "  br %b2, block6, block3\n"
-      "block6:\n"   // |new_block|
-      "  // In: {block4}\n"
-      "  // Out: {block5}\n"
-      "  jmp block5\n"
+      "  // In: {block3}\n"
+      "  // Out: {block3, block7}\n"
+      "  br %b3, block7, block3\n"
       "block5:\n"
-      "  // In: {block3, block6}\n"
+      "  // In: {block3}\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
+      "block7:\n"
+      "  // In: {block4}\n"
+      "  // Out: {block6}\n"
+      "  jmp block6\n"
+      "block6:\n"
+      "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block6 42, block3 39\n"  // updated |PhiInput|.
+      "  phi %r1 = block7 42, block3 39\n"
       "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
-      "  // In: {block5}\n"
+      "  // In: {block6}\n"
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
