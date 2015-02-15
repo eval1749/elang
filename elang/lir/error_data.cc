@@ -38,8 +38,11 @@ std::ostream& operator<<(std::ostream& ostream, const ErrorData& error) {
   auto const literals = error.literals();
   ostream << mnemonics[index] << "("
           << PrintableValue(literals, error.error_value());
-  for (auto detail : error.details())
-    ostream << " " << PrintableValue(literals, detail);
+  auto separator = ": ";
+  for (auto detail : error.details()) {
+    ostream << separator << PrintableValue(literals, detail);
+    separator = ", ";
+  }
   return ostream << ")";
 }
 
