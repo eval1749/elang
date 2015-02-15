@@ -328,7 +328,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   editor.Edit(merge_block);
   auto const phi_instr = editor.NewPhi(NewRegister(type));
   editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
-  editor.SetPhiInput(phi_instr, start_block, Value::SmallInt32(39));
+  editor.SetPhiInput(phi_instr, sample2_block, Value::SmallInt32(39));
   editor.Append(factory()->NewCopyInstruction(
       Target::GetReturn(phi_instr->output(0)), phi_instr->output(0)));
   editor.SetReturn();

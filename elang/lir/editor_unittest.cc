@@ -264,7 +264,7 @@ TEST_F(LirEditorTest, LiteralInstruction) {
 //    block6:
 //      // In: {block4, block5}
 //      // Out: {block2}
-//      phi %r1 = block4 42, block3 39
+//      phi %r1 = block4 42, block5 39
 //      mov EAX = %r1
 //      ret block2
 //    block2:
@@ -302,7 +302,7 @@ TEST_F(LirEditorTest, RemoveCriticalEdges) {
       "block6:\n"
       "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block7 42, block3 39\n"
+      "  phi %r1 = block7 42, block5 39\n"
       "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
@@ -414,7 +414,7 @@ TEST_F(LirEditorTest, ReplacePhiInputs) {
       "block6:\n"
       "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block7 42, block3 39\n"
+      "  phi %r1 = block7 42, block5 39\n"
       "  mov EAX = %r1\n"
       "  ret block2\n"
       "block2:\n"
