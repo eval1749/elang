@@ -159,7 +159,7 @@ void DominatorTreeBuilder<Graph, Direction>::ComputeChildren() {
 template <typename Graph, typename Direction>
 void DominatorTreeBuilder<Graph, Direction>::ComputeFrontiers() {
   for (auto const graph_node : graph_nodes_) {
-    if (!Direction::HasMoreThanOnePredecessors(graph_node))
+    if (!Direction::HasMoreThanOnePredecessor(graph_node))
       continue;
     auto const node = TreeNodeOf(graph_node);
     for (auto const predecessor_graph_node :

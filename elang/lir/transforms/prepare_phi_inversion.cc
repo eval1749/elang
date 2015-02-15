@@ -45,7 +45,7 @@ void PreparePhiInversionPass::RunOnFunction() {
     if (block->phi_instructions().empty())
       continue;
     for (auto const predecessor : block->predecessors()) {
-      if (!predecessor->HasMoreThanOneSuccessors())
+      if (!predecessor->HasMoreThanOneSuccessor())
         continue;
       items.push_back({block, predecessor});
     }

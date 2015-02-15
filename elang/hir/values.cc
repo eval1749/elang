@@ -59,7 +59,7 @@ BasicBlockSuccessors BasicBlock::successors() const {
   return BasicBlockSuccessors(this);
 }
 
-bool BasicBlock::HasMoreThanOnePredecessors() const {
+bool BasicBlock::HasMoreThanOnePredecessor() const {
   auto count = 0;
   for (auto predecessor : predecessors()) {
     DCHECK(predecessor);

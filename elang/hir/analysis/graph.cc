@@ -104,8 +104,8 @@ std::vector<Value*> Graph::SuccessorsOf(Value* value) const {
   return std::vector<Value*>(provider_->SuccessorsOf(value));
 }
 
-bool Graph::HasMoreThanOnePredecessors(Value* value) const {
-  return provider_->HasMoreThanOnePredecessors(value);
+bool Graph::HasMoreThanOnePredecessor(Value* value) const {
+  return provider_->HasMoreThanOnePredecessor(value);
 }
 
 OrderedList<Value*> Graph::PostOrderList() const {
@@ -137,8 +137,8 @@ Value* ControlFlowGraph::entry() const {
   return function_->entry_block();
 }
 
-bool ControlFlowGraph::HasMoreThanOnePredecessors(Value* value) const {
-  return value->as<BasicBlock>()->HasMoreThanOnePredecessors();
+bool ControlFlowGraph::HasMoreThanOnePredecessor(Value* value) const {
+  return value->as<BasicBlock>()->HasMoreThanOnePredecessor();
 }
 
 std::vector<Value*> ControlFlowGraph::PredecessorsOf(Value* value) const {

@@ -69,22 +69,22 @@ TEST_F(GraphTest, AddEdge) {
 
   EXPECT_FALSE(block1->HasPredecessor());
   EXPECT_TRUE(block1->HasSuccessor());
-  EXPECT_FALSE(block1->HasMoreThanOnePredecessors());
-  EXPECT_TRUE(block1->HasMoreThanOneSuccessors());
+  EXPECT_FALSE(block1->HasMoreThanOnePredecessor());
+  EXPECT_TRUE(block1->HasMoreThanOneSuccessor());
   EXPECT_TRUE(block2->HasPredecessor());
   EXPECT_TRUE(block2->HasSuccessor());
-  EXPECT_FALSE(block2->HasMoreThanOnePredecessors());
-  EXPECT_FALSE(block2->HasMoreThanOneSuccessors());
+  EXPECT_FALSE(block2->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block2->HasMoreThanOneSuccessor());
 
   EXPECT_TRUE(block3->HasPredecessor());
   EXPECT_TRUE(block3->HasSuccessor());
-  EXPECT_FALSE(block3->HasMoreThanOnePredecessors());
-  EXPECT_FALSE(block3->HasMoreThanOneSuccessors());
+  EXPECT_FALSE(block3->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block3->HasMoreThanOneSuccessor());
 
   EXPECT_TRUE(block4->HasPredecessor());
   EXPECT_FALSE(block4->HasSuccessor());
-  EXPECT_TRUE(block4->HasMoreThanOnePredecessors());
-  EXPECT_FALSE(block4->HasMoreThanOneSuccessors());
+  EXPECT_TRUE(block4->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block4->HasMoreThanOneSuccessor());
 }
 
 TEST_F(GraphTest, InsertNode) {
@@ -133,19 +133,19 @@ TEST_F(GraphTest, RemoveEdge) {
 
   EXPECT_FALSE(block1->HasPredecessor());
   EXPECT_TRUE(block1->HasSuccessor());
-  EXPECT_FALSE(block1->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block1->HasMoreThanOnePredecessor());
 
   EXPECT_FALSE(block2->HasPredecessor());
   EXPECT_FALSE(block2->HasSuccessor());
-  EXPECT_FALSE(block2->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block2->HasMoreThanOnePredecessor());
 
   EXPECT_TRUE(block3->HasPredecessor());
   EXPECT_TRUE(block3->HasSuccessor());
-  EXPECT_FALSE(block3->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block3->HasMoreThanOnePredecessor());
 
   EXPECT_TRUE(block4->HasPredecessor());
   EXPECT_FALSE(block4->HasSuccessor());
-  EXPECT_FALSE(block4->HasMoreThanOnePredecessors());
+  EXPECT_FALSE(block4->HasMoreThanOnePredecessor());
 }
 
 }  // namespace

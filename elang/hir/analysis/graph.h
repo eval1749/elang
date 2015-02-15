@@ -28,7 +28,7 @@ class ELANG_HIR_EXPORT Graph {
     virtual ~Provider();
 
     virtual Value* entry() const = 0;
-    virtual bool HasMoreThanOnePredecessors(Value* value) const = 0;
+    virtual bool HasMoreThanOnePredecessor(Value* value) const = 0;
     virtual std::vector<Value*> PredecessorsOf(Value* value) const = 0;
     virtual std::vector<Value*> SuccessorsOf(Value* value) const = 0;
 
@@ -43,7 +43,7 @@ class ELANG_HIR_EXPORT Graph {
 
   Value* entry() const;
 
-  bool HasMoreThanOnePredecessors(Value* value) const;
+  bool HasMoreThanOnePredecessor(Value* value) const;
   std::vector<Value*> PredecessorsOf(Value* value) const;
   std::vector<Value*> SuccessorsOf(Value* value) const;
 
@@ -75,7 +75,7 @@ class ELANG_HIR_EXPORT ControlFlowGraph : public Graph, public Graph::Provider {
   Value* entry() const final;
   std::vector<Value*> PredecessorsOf(Value* value) const final;
   std::vector<Value*> SuccessorsOf(Value* value) const final;
-  bool HasMoreThanOnePredecessors(Value* value) const final;
+  bool HasMoreThanOnePredecessor(Value* value) const final;
 
  private:
   Function* const function_;

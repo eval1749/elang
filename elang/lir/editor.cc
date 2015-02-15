@@ -306,11 +306,11 @@ void Editor::RemoveCriticalEdges() {
   for (auto const block : function()->basic_blocks()) {
     if (block->phi_instructions().empty())
       continue;
-    if (!block->HasMoreThanOnePredecessors())
+    if (!block->HasMoreThanOnePredecessor())
       continue;
     auto has_critical_edges = false;
     for (auto const predecessor : block->predecessors()) {
-      if (predecessor->HasMoreThanOneSuccessors()) {
+      if (predecessor->HasMoreThanOneSuccessor()) {
         has_critical_edges = true;
         break;
       }
@@ -331,7 +331,7 @@ void Editor::RemoveCriticalEdges() {
     // iteration, we need to Collect predecessors of |phi_block|.
     std::vector<BasicBlock*> predecessors;
     for (auto const predecessor : phi_block->predecessors()) {
-      if (!predecessor->HasMoreThanOneSuccessors())
+      if (!predecessor->HasMoreThanOneSuccessor())
         continue;
       predecessors.push_back(predecessor);
     }

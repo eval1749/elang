@@ -68,7 +68,7 @@ void DominatorTreeBuilder::ComputeChildren() {
 //  Loop over all basic block which has more than one predecessors.
 void DominatorTreeBuilder::ComputeFrontiers() {
   for (auto const value : dfs_list_) {
-    if (!graph_->HasMoreThanOnePredecessors(value))
+    if (!graph_->HasMoreThanOnePredecessor(value))
       continue;
     auto const node = dominator_tree_->node_of(value);
     for (auto const predecessor_value : graph_->PredecessorsOf(value)) {

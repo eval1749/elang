@@ -228,7 +228,7 @@ PhiInserter::PhiInserter(hir::Editor* editor,
 
 void PhiInserter::InsertPhi(const VariableUsages::Data* data,
                             hir::BasicBlock* block) {
-  DCHECK(block->HasMoreThanOnePredecessors());
+  DCHECK(block->HasMoreThanOnePredecessor());
   if (visited_.count(block))
     return;
   visited_.insert(block);

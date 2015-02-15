@@ -40,10 +40,8 @@ class Graph {
     const NodeSet& predecessors() const { return predecessors_; }
     const NodeSet& successors() const { return successors_; }
 
-    bool HasMoreThanOnePredecessors() const {
-      return predecessors_.size() > 1u;
-    }
-    bool HasMoreThanOneSuccessors() const { return successors_.size() > 1u; }
+    bool HasMoreThanOnePredecessor() const { return predecessors_.size() > 1u; }
+    bool HasMoreThanOneSuccessor() const { return successors_.size() > 1u; }
     bool HasPredecessor() const { return !predecessors_.empty(); }
     bool HasSuccessor() const { return !successors_.empty(); }
 
