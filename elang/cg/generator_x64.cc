@@ -235,19 +235,46 @@ void Generator::VisitLoad(hir::LoadInstruction* instr) {
 // Set return value and emit 'ret' instruction.
 void Generator::VisitRet(hir::RetInstruction* instr) {
   auto const value = instr->input(0);
-  if (!value->is<hir::VoidValue>()) {
-    auto const primitive_type = value->type()->as<hir::PrimitiveType>();
-    if (primitive_type->is_float()) {
-      if (primitive_type->bit_size() == 64)
-        EmitSetValue(Target::GetRegister(lir::isa::XMM0D), value);
-      else
-        EmitSetValue(Target::GetRegister(lir::isa::XMM0S), value);
-    } else if (primitive_type->bit_size() <= 32) {
-      EmitSetValue(Target::GetRegister(lir::isa::EAX), value);
-    } else {
-      EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
-    }
+  if (value->is<hir::VoidValue>()) {
+    editor()->SetReturn();
+    return;
   }
+  auto const primitive_type = value->type()->as<hir::PrimitiveValueType>();
+  if (!primitive_type) {
+    EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
+    editor()->SetReturn();
+    return;
+  }
+
+  if (primitive_type->is_float()) {
+    if (primitive_type->bit_size() == 64)
+      EmitSetValue(Target::GetRegister(lir::isa::XMM0D), value);
+    else
+      EmitSetValue(Target::GetRegister(lir::isa::XMM0S), value);
+    editor()->SetReturn();
+    return;
+  }
+
+  if (primitive_type->bit_size() == 64) {
+    EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
+    editor()->SetReturn();
+    return;
+  }
+
+  auto const output = Target::GetRegister(lir::isa::EAX);
+  auto const input = MapInput(value);
+  if (primitive_type->bit_size() == 32 || !input.is_register()) {
+    EmitSetValue(output, value);
+    editor()->SetReturn();
+    return;
+  }
+
+  if (primitive_type->is_signed()) {
+    Emit(factory()->NewSignExtendInstruction(output, input));
+    editor()->SetReturn();
+    return;
+  }
+  Emit(factory()->NewZeroExtendInstruction(output, input));
   editor()->SetReturn();
 }
 

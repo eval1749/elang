@@ -144,7 +144,7 @@ TEST_F(GeneratorX64Test, Element) {
       "  shl %r4 = 42, 1\n"
       "  add %r3l = %r2l, %r4\n"
       "  load %r5w = %r3l\n"
-      "  mov EAX = %r5w\n"
+      "  zext EAX = %r5w\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
