@@ -52,6 +52,8 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
       "  // Out: {block2}\n"
       "  entry\n"
       // TODO(eval1749) we should allocate |R1|, |R2| instead of |R10|, |R11|.
+      "* mov R10 = R1\n"
+      "* mov R11 = R2\n"
       "  pcopy R10, R11 = R1, R2\n"
       "  assign R10 = R10\n"
       "  add R10 = R10, R11\n"
@@ -100,7 +102,42 @@ TEST_F(LirRegisterAllocatorX64Test, WithCriticalEdge) {
     Run<X64LoweringPass>(&editor);
   }
 
-  EXPECT_EQ("foo", Allocate(function));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3}\n"
+      "  entry\n"
+      "  jmp block3\n"
+      "block3:\n"
+      "  // In: {block1, block4}\n"
+      "  // Out: {block4, block5}\n"
+      "  br %b2, block5, block4\n"
+      "block4:\n"
+      "  // In: {block3}\n"
+      "  // Out: {block3, block7}\n"
+      "  br %b3, block7, block3\n"
+      "block7:\n"
+      "  // In: {block4}\n"
+      "  // Out: {block6}\n"
+      "* mov R10 = #42\n"  // from phi-instruciton
+      "  jmp block6\n"
+      "block5:\n"
+      "  // In: {block3}\n"
+      "  // Out: {block6}\n"
+      "* mov R10 = #39\n"  // from phi-instruciton
+      "  jmp block6\n"
+      "block6:\n"
+      "  // In: {block5, block7}\n"
+      "  // Out: {block2}\n"
+      "  phi R10 = block7 #42, block5 #39\n"
+      "  mov R0 = R10\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block6}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Allocate(function));
 }
 
 }  // namespace lir

@@ -75,7 +75,7 @@ std::ostream& operator<<(std::ostream& ostream,
   ostream << instr->opcode();
   if (auto const phi = instr->as<PhiInstruction>()) {
     auto const output = allocations->AllocationOf(phi, phi->output(0));
-    ostream << PrintAsGeneric(output) << " = ";
+    ostream << " " << PrintAsGeneric(output) << " = ";
     auto separator = "";
     for (auto const phi_input : phi->phi_inputs()) {
       auto const input = allocations->AllocationOf(phi, phi_input->value());
@@ -146,8 +146,13 @@ std::string LirTest::Allocate(Function* function) {
 
     for (auto const phi : block->phi_instructions())
       ostream << "  " << PrintWithAllocation(allocations, phi) << std::endl;
-    for (auto const instr : block->instructions())
+    for (auto const instr : block->instructions()) {
+      for (auto action : allocations.BeforeActionOf(instr)) {
+        ostream << "* " << PrintWithAllocation(allocations, action)
+                << std::endl;
+      }
       ostream << "  " << PrintWithAllocation(allocations, instr) << std::endl;
+    }
   }
   return ostream.str();
 }
