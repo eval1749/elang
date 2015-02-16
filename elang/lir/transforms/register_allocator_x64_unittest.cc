@@ -57,7 +57,7 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
       "  add R10 = R10, R11\n"
       "  mov R10 = R10\n"
       "  mov R0 = R10\n"
-      "  ret\n"
+      "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
       "  // Out: {}\n"
