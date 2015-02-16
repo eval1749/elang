@@ -25,7 +25,7 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
   V(Assign, "assign")                   \
   V(Copy, "mov")                        \
-  V(Extend, "extend")                   \
+  V(Extend, "ext")                      \
   V(Literal, "lit")                     \
   V(Load, "load")                       \
   V(SignedConvert, "sconv")             \
