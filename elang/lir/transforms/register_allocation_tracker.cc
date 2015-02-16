@@ -16,6 +16,15 @@
 namespace elang {
 namespace lir {
 
+namespace {
+bool EqualsIgnoringSize(Value physical1, Value physical2) {
+  DCHECK(physical1.is_physical());
+  DCHECK(physical2.is_physical());
+  DCHECK_EQ(physical1.type, physical2.type);
+  return physical1.data == physical2.data;
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // RegisterAllocationTracker
@@ -165,7 +174,7 @@ bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
 Value RegisterAllocationTracker::VirtualFor(Value physical) const {
   DCHECK(physical.is_physical());
   for (auto const pair : physical_map_) {
-    if (pair.second == physical)
+    if (EqualsIgnoringSize(pair.second, physical))
       return pair.first;
   }
   return Value();
