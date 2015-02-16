@@ -43,9 +43,9 @@ enum class Opcode {
 //
 // BasicBlockOperands
 //
-class BasicBlockOperands final {
+class ELANG_LIR_EXPORT BasicBlockOperands final {
  public:
-  class Iterator final {
+  class ELANG_LIR_EXPORT Iterator final {
    public:
     explicit Iterator(BasicBlock** pointer);
     Iterator(const Iterator& other);

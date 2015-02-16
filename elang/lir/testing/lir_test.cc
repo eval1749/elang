@@ -118,6 +118,10 @@ std::string LirTest::Allocate(Function* function) {
         ostream << separator << PrintAsGeneric(allocation);
         separator = ", ";
       }
+      for (auto const block : instr->block_operands()) {
+        ostream << separator << *block;
+        separator = ", ";
+      }
       ostream << std::endl;
     }
   }
