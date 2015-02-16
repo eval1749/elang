@@ -111,7 +111,7 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchByImmediate) {
       "mov R1 = sp[2]\n"
       "mov sp[0] = R1\n"
       "mov sp[1] = R0\n"
-      "mov R1 = #42\n");
+      "lit R1 = #42\n");
 }
 
 // M0, R1 <- M2, M1 <- M0

@@ -120,12 +120,12 @@ TEST_F(LirRegisterAllocatorX64Test, WithCriticalEdge) {
       "block7:\n"
       "  // In: {block4}\n"
       "  // Out: {block6}\n"
-      "* mov R10 = #42\n"  // from phi-instruciton
+      "* lit R10 = #42\n"  // from phi-instruciton
       "  jmp block6\n"
       "block5:\n"
       "  // In: {block3}\n"
       "  // Out: {block6}\n"
-      "* mov R10 = #39\n"  // from phi-instruciton
+      "* lit R10 = #39\n"  // from phi-instruciton
       "  jmp block6\n"
       "block6:\n"
       "  // In: {block5, block7}\n"

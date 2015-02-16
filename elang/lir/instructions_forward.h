@@ -26,7 +26,7 @@ namespace lir {
   V(Assign, "assign")                   \
   V(Copy, "mov")                        \
   V(Extend, "extend")                   \
-  V(Literal, "mov")                     \
+  V(Literal, "lit")                     \
   V(Load, "load")                       \
   V(SignedConvert, "sconv")             \
   V(SignExtend, "sext")                 \
