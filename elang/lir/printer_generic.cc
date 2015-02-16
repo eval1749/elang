@@ -7,6 +7,7 @@
 #include "elang/lir/printer_generic.h"
 
 #include "elang/lir/instructions.h"
+#include "elang/lir/literals.h"
 
 namespace elang {
 namespace lir {
@@ -73,6 +74,10 @@ std::ostream& operator<<(std::ostream& ostream,
   separator = " ";
   for (auto const input : instr->inputs()) {
     ostream << separator << PrintAsGeneric(input);
+    separator = ", ";
+  }
+  for (auto const block : instr->block_operands()) {
+    ostream << separator << *block;
     separator = ", ";
   }
   return ostream;
