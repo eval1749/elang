@@ -30,6 +30,8 @@ std::ostream& operator<<(std::ostream& ostream,
   switch (value.kind) {
     case Value::Kind::Argument:
       return ostream << "arg[" << value.data << "]";
+    case Value::Kind::Condition:
+      return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
       return ostream << "#" << value.data;
     case Value::Kind::Parameter:
