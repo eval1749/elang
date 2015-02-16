@@ -53,6 +53,11 @@ namespace hir {
  private:                                            \
   void Accept(TypeVisitor* visitor) override;
 
+enum class Signedness {
+  Unsigned,
+  Signed,
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Represent HIR type.
@@ -163,6 +168,7 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
   DECLARE_HIR_TYPE_ABSTRACT_CLASS(PrimitiveType, Type);
 
  public:
+  // TODO(eval1749) Move |PrimitiveType::bit_size()| to |PrimitiveValueType|.
   virtual int bit_size() const = 0;
 
  protected:
@@ -172,31 +178,51 @@ class ELANG_HIR_EXPORT PrimitiveType : public Type {
   DISALLOW_COPY_AND_ASSIGN(PrimitiveType);
 };
 
-#define V(Name, name, value_type, ...)                               \
-  class ELANG_HIR_EXPORT Name##Type final : public PrimitiveType {   \
-    DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveType);      \
-                                                                     \
-   public:                                                           \
-    /* Protocol defined by |PrimitiveType| class */                  \
-    int bit_size() const final;                                      \
-    Value* default_value() const final;                              \
-    RegisterClass register_class() const final;                      \
-                                                                     \
-   private:                                                          \
-    /* Allow |Factory| to access |NewLiteral()|. */                  \
-    friend class Factory;                                            \
-    friend class TypeFactory;                                        \
-    /* Since primitive types exist only one instance per factory. */ \
-    /* Only |TypeFactory| can construct them. */                     \
-    Name##Type(Zone* zone);                                          \
-                                                                     \
-    /* Primitive types are factory of |Literal| objects. */          \
-    Name##Literal* NewLiteral(Zone* zone, value_type data);          \
-                                                                     \
-    ZoneUnorderedMap<value_type, Name##Literal*> literal_cache_;     \
-    Name##Literal* const default_value_;                             \
-                                                                     \
-    DISALLOW_COPY_AND_ASSIGN(Name##Type);                            \
+// PrimitiveValueType is a base class for Int{8,16,32,64}Type,
+// Float{32,64}Type, and so on.
+class ELANG_HIR_EXPORT PrimitiveValueType : public PrimitiveType {
+  DECLARE_HIR_TYPE_ABSTRACT_CLASS(PrimitiveValueType, PrimitiveType);
+
+ public:
+  bool is_signed() const { return signedness() == Signedness::Signed; }
+  bool is_unsigned() const { return signedness() == Signedness::Unsigned; }
+
+ protected:
+  PrimitiveValueType() = default;
+
+  virtual Signedness signedness() const = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(PrimitiveValueType);
+};
+
+#define V(Name, name, value_type, ...)                                  \
+  class ELANG_HIR_EXPORT Name##Type final : public PrimitiveValueType { \
+    DECLARE_HIR_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveValueType);    \
+                                                                        \
+   public:                                                              \
+    /* Protocol defined by |PrimitiveType| class */                     \
+    int bit_size() const final;                                         \
+    Value* default_value() const final;                                 \
+    RegisterClass register_class() const final;                         \
+                                                                        \
+   private:                                                             \
+    /* Allow |Factory| to access |NewLiteral()|. */                     \
+    friend class Factory;                                               \
+    friend class TypeFactory;                                           \
+    /* Since primitive types exist only one instance per factory. */    \
+    /* Only |TypeFactory| can construct them. */                        \
+    Name##Type(Zone* zone);                                             \
+                                                                        \
+    Signedness signedness() const final;                                \
+                                                                        \
+    /* Primitive types are factory of |Literal| objects. */             \
+    Name##Literal* NewLiteral(Zone* zone, value_type data);             \
+                                                                        \
+    ZoneUnorderedMap<value_type, Name##Literal*> literal_cache_;        \
+    Name##Literal* const default_value_;                                \
+                                                                        \
+    DISALLOW_COPY_AND_ASSIGN(Name##Type);                               \
   };
 FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V)
 #undef V

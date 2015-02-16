@@ -16,6 +16,7 @@ namespace hir {
 // List of abstract C++ classes representing HIR type.
 #define FOR_EACH_HIR_ABSTRACT_TYPE(V) \
   V(PrimitiveType)                    \
+  V(PrimitiveValueType)               \
   V(ReferenceType)                    \
   V(Type)
 
@@ -50,19 +51,19 @@ namespace hir {
 //  data_type  C++ type for |NewLiteral(Factory*, data_type)|.
 //  bit_size    number of bits
 //  kind        kind of register to hold the value.
-#define FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V) \
-  V(Bool, bool, bool, 1, General)            \
-  V(Char, char, base::char16, 16, General)   \
-  V(Float32, float32, float32_t, 32, Float)  \
-  V(Float64, float64, float64_t, 64, Float)  \
-  V(Int16, int16, int16_t, 16, Integer)      \
-  V(Int32, int32, int32_t, 32, Integer)      \
-  V(Int64, int64, int64_t, 64, Integer)      \
-  V(Int8, int8, int8_t, 8, Integer)          \
-  V(UInt16, uint16, uint16_t, 16, Integer)   \
-  V(UInt32, uint32, uint32_t, 32, Integer)   \
-  V(UInt64, uint64, uint64_t, 64, Integer)   \
-  V(UInt8, uint8, uint8_t, 8, Integer)
+#define FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V)         \
+  V(Bool, bool, bool, 1, General, Unsigned)          \
+  V(Char, char, base::char16, 16, General, Unsigned) \
+  V(Float32, float32, float32_t, 32, Float, Signed)  \
+  V(Float64, float64, float64_t, 64, Float, Signed)  \
+  V(Int16, int16, int16_t, 16, Integer, Signed)      \
+  V(Int32, int32, int32_t, 32, Integer, Signed)      \
+  V(Int64, int64, int64_t, 64, Integer, Signed)      \
+  V(Int8, int8, int8_t, 8, Integer, Signed)          \
+  V(UInt16, uint16, uint16_t, 16, Integer, Unsigned) \
+  V(UInt32, uint32, uint32_t, 32, Integer, Unsigned) \
+  V(UInt64, uint64, uint64_t, 64, Integer, Unsigned) \
+  V(UInt8, uint8, uint8_t, 8, Integer, Unsigned)
 
 #define FOR_EACH_HIR_PRIMITIVE_TYPE(V) \
   FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V) \
@@ -74,6 +75,7 @@ FOR_EACH_HIR_CONCRETE_TYPE(V)
 #undef V
 
 // Forward declarations
+enum class Signedness;
 class Thing;
 class TypeFactory;
 class TypeVisitor;
