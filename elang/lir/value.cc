@@ -33,8 +33,12 @@ Value Value::FloatRegister(ValueSize size, int data) {
   return Value(Type::Float, size, Kind::VirtualRegister, data);
 }
 
-Value Value::FloatType() {
+Value Value::Float32Type() {
   return Value(Type::Float, ValueSize::Size32, Kind::Void);
+}
+
+Value Value::Float64Type() {
+  return Value(Type::Float, ValueSize::Size64, Kind::Void);
 }
 
 Value Value::Immediate(ValueSize size, int data) {
@@ -42,8 +46,12 @@ Value Value::Immediate(ValueSize size, int data) {
   return Value(Type::Integer, size, Kind::Immediate, data);
 }
 
-Value Value::IntegerType() {
+Value Value::Int32Type() {
   return Value(Type::Integer, ValueSize::Size32, Kind::Void);
+}
+
+Value Value::Int64Type() {
+  return Value(Type::Integer, ValueSize::Size64, Kind::Void);
 }
 
 Value Value::Parameter(Type type, ValueSize size, int data) {
