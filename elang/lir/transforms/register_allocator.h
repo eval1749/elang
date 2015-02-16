@@ -69,7 +69,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   Factory* factory() const;
   Function* function() const;
 
-  // Returns list of all allocatable registers for |type|. Returned list
+  // Returns list of all allocatable natural registers for |type|. Returned list
   // contains both allocated and free registers.
   const std::vector<Value>& AllocatableRegistersFor(Value type) const;
   Value EnsureStackSlot(Value vreg);

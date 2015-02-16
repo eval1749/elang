@@ -37,6 +37,11 @@ struct SpillVictim {
   SpillVictim() : next_use(0) {}
 };
 
+Value AdjustSize(Value type, Value value) {
+  DCHECK_EQ(type.type, value.type);
+  return Value(type.type, type.size, value.kind, value.data);
+}
+
 Value AssignedPhysicalFor(Instruction* instr) {
   auto const previous = instr;
   if (!previous || !previous->is<AssignInstruction>())
@@ -44,8 +49,11 @@ Value AssignedPhysicalFor(Instruction* instr) {
   return previous->output(0);
 }
 
-std::array<Value, 2> IntegeTypeAndFloatType() {
-  return {Value::IntegerType(), Value::FloatType()};
+std::array<Value, 4> IntegerTypesAndFloatTypes() {
+  return {Value::Int32Type(),
+          Value::Int64Type(),
+          Value::Float32Type(),
+          Value::Float64Type()};
 }
 
 int PreferenceOfInLeaf(const Value& reg) {
@@ -179,10 +187,12 @@ void RegisterAllocator::ExpandParallelCopy(const std::vector<ValuePair>& pairs,
   for (auto const pair : allocation_tracker_->physical_map()) {
     if (pair.first.type != type.type)
       continue;
+    if (pair.first.size != type.size)
+      continue;
     live_registers.insert(pair.second);
   }
 
-  // Expand needs at most two scratch registers.
+  // Expander needs at most two scratch registers.
   for (auto count = 0; count < 2; ++count) {
     ParallelCopyExpander expander(factory(), type);
     for (auto const pair : pairs) {
@@ -196,7 +206,9 @@ void RegisterAllocator::ExpandParallelCopy(const std::vector<ValuePair>& pairs,
     }
     if (!expander.HasTasks())
       return;
-    for (auto const value : AllocatableRegistersFor(type)) {
+    // Tells available scratch registers to Expander.
+    for (auto const natural : AllocatableRegistersFor(type)) {
+      auto const value = AdjustSize(type, natural);
       if (live_registers.count(value))
         continue;
       expander.AddScratch(value);
@@ -376,7 +388,8 @@ void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
       ++position;
     }
   }
-  for (auto const physical : AllocatableRegistersFor(output)) {
+  for (auto const natural : AllocatableRegistersFor(output)) {
+    auto const physical = AdjustSize(output, natural);
     if (TryAllocate(instr, output, physical))
       return;
   }
@@ -407,17 +420,21 @@ void RegisterAllocator::ProcessPhiInstructions(BasicBlock* block) {
 
   ProcessPhiOutputOperands(block);
 
+  // TODO(eval1749) We should use free output registers in different size, e.g.
+  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register durign
+  // expanding float 32.
   // Insert pcopy expanded into predecessors.
-  for (auto const type : IntegeTypeAndFloatType()) {
+  for (auto const type : IntegerTypesAndFloatTypes()) {
     for (auto const predecessor : block->predecessors()) {
       DCHECK_EQ(predecessor->successors().size(), 1u);
       std::vector<ValuePair> pairs;
       for (auto const phi : block->phi_instructions()) {
         auto const output = phi->output(0);
-        if (output.type != type.type)
+        if (output.type != type.type || output.size != type.size)
           continue;
         auto const input = phi->FindPhiInputFor(predecessor)->value();
         DCHECK_EQ(output.type, input.type);
+        DCHECK_EQ(output.size, input.size);
         pairs.push_back(std::make_pair(output, input));
       }
       auto const last = predecessor->last_instruction();
@@ -452,8 +469,8 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
     }
     std::sort(candidates.begin(), candidates.end(),
               [](const InputFrequency& entry1, const InputFrequency& entry2) {
-      return entry1.count > entry2.count;
-    });
+                return entry1.count > entry2.count;
+              });
 
     auto const output = phi->output(0);
     auto allocated = false;
@@ -466,7 +483,8 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
     if (allocated)
       continue;
 
-    for (auto const physical : AllocatableRegistersFor(output)) {
+    for (auto const natural : AllocatableRegistersFor(output)) {
+      auto const physical = AdjustSize(output, natural);
       if (TryAllocate(phi, output, physical)) {
         allocated = true;
         break;
@@ -583,14 +601,18 @@ void RegisterAllocator::VisitCopy(CopyInstruction* instr) {
 void RegisterAllocator::VisitPCopy(PCopyInstruction* instr) {
   FreeInputOperandsIfNotUsed(instr);
   ProcessOutputOperands(instr);
-  for (auto const type : IntegeTypeAndFloatType()) {
+  // TODO(eval1749) We should use free output registers in different size, e.g.
+  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register durign
+  // expanding float 32.
+  for (auto const type : IntegerTypesAndFloatTypes()) {
     std::vector<ValuePair> pairs;
     auto inputs = instr->inputs().begin();
     for (auto const output : instr->outputs()) {
       auto const input = *inputs;
       ++inputs;
-      if (output.type != type.type)
+      if (output.size != type.size || output.type != type.type)
         continue;
+      DCHECK_EQ(output.size, input.size);
       DCHECK_EQ(output.type, input.type);
       pairs.push_back(std::make_pair(output, input));
     }

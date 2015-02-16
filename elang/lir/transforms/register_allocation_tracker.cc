@@ -104,6 +104,8 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
                                               Value vreg,
                                               Value allocation) {
   DCHECK(vreg.is_virtual());
+  DCHECK_EQ(vreg.type, allocation.type);
+  DCHECK_EQ(vreg.size, allocation.size);
   allocations_->SetAllocation(instr, vreg, allocation);
   if (allocation.is_physical()) {
     DCHECK_EQ(PhysicalFor(vreg), allocation);
@@ -121,12 +123,16 @@ void RegisterAllocationTracker::SetPhysical(BasicBlock* block,
                                             Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
+  DCHECK_EQ(vreg.type, physical.type);
+  DCHECK_EQ(vreg.size, physical.size);
   allocations_->SetPhysical(block, vreg, physical);
 }
 
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
+  DCHECK_EQ(vreg.type, physical.type);
+  DCHECK_EQ(vreg.size, physical.size);
   DCHECK(!physical_map_.count(vreg));
   DCHECK(VirtualFor(physical).is_void());
   physical_map_[vreg] = physical;
@@ -142,6 +148,8 @@ void RegisterAllocationTracker::TrackStackSlot(Value vreg, Value stack_slot) {
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
                                             Value vreg,
                                             Value physical) {
+  DCHECK_EQ(vreg.type, physical.type);
+  DCHECK_EQ(vreg.size, physical.size);
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
   auto const present = VirtualFor(physical);
