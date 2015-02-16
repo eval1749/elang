@@ -25,8 +25,14 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
   V(Assign, "assign")                   \
   V(Copy, "mov")                        \
+  V(Extend, "extend")                   \
   V(Literal, "mov")                     \
-  V(Load, "load")
+  V(Load, "load")                       \
+  V(SignedConvert, "sconv")             \
+  V(SignExtend, "sext")                 \
+  V(Truncate, "trunc")                  \
+  V(UnsignedConvert, "uconv")           \
+  V(ZeroExtend, "zext")
 
 #define FOR_EACH_LIR_INSTRUCTION_1_2(V) \
   V(Add, "add")                         \
@@ -49,11 +55,11 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
-  V(Jump, "jmp", (BasicBlock* target_block))                               \
+  V(Jump, "jmp", (BasicBlock * target_block))                              \
   V(PCopy, "pcopy",                                                        \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
   V(Phi, "phi", (Value output))                                            \
-  V(Ret, "ret", (BasicBlock* exit_block))
+  V(Ret, "ret", (BasicBlock * exit_block))
 
 // Visitor |V| takes three parameters:
 //  Name        capitalized name for C++ class

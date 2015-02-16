@@ -259,9 +259,65 @@ void Validator::VisitCopy(CopyInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
 }
 
+void Validator::VisitExtend(ExtendInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type != Value::Type::Float)
+    Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
+  if (input.type != Value::Type::Float)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (Value::ByteSize(output.size) <= Value::ByteSize(input.size))
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
 void Validator::VisitRet(RetInstruction* instr) {
   if (instr->block_operand(0) != exit_block())
     Error(ErrorCode::ValidateInstructionBlockOperand, instr, 0);
+}
+
+void Validator::VisitSignedConvert(SignedConvertInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type == input.type)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+}
+
+void Validator::VisitSignExtend(SignExtendInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type != Value::Type::Integer)
+    Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
+  if (input.type != Value::Type::Integer)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (Value::ByteSize(output.size) <= Value::ByteSize(input.size))
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
+void Validator::VisitTruncate(TruncateInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type != input.type)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (Value::ByteSize(output.size) >= Value::ByteSize(input.size))
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
+void Validator::VisitUnsignedConvert(UnsignedConvertInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type == input.type)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+}
+
+void Validator::VisitZeroExtend(ZeroExtendInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (output.type != Value::Type::Integer)
+    Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
+  if (input.type != Value::Type::Integer)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (Value::ByteSize(output.size) <= Value::ByteSize(input.size))
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
 }  // namespace lir

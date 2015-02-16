@@ -62,7 +62,13 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   // InstructionVisitor
   void VisitBranch(BranchInstruction* instruction) final;
   void VisitCopy(CopyInstruction* instruction) final;
+  void VisitExtend(ExtendInstruction* instruction) final;
   void VisitRet(RetInstruction* instruction) final;
+  void VisitSignedConvert(SignedConvertInstruction* instruction) final;
+  void VisitSignExtend(SignExtendInstruction* instruction) final;
+  void VisitTruncate(TruncateInstruction* instruction) final;
+  void VisitUnsignedConvert(UnsignedConvertInstruction* instruction) final;
+  void VisitZeroExtend(ZeroExtendInstruction* instruction) final;
 
   Editor* const editor_;
 
