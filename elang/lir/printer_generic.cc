@@ -6,14 +6,21 @@
 
 #include "elang/lir/printer_generic.h"
 
+#include "base/strings/string_piece.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 
 namespace elang {
 namespace lir {
 
-GenericPrintableInstruction PrintAsGeneric(
-    const Instruction* instruction) {
+namespace {
+base::StringPiece SizeSuffixOf(Value value) {
+  static const char* const suffixes[] = {"b", "w", "", "l"};
+  return suffixes[static_cast<int>(value.size)];
+}
+}  // namespace
+
+GenericPrintableInstruction PrintAsGeneric(const Instruction* instruction) {
   return GenericPrintableInstruction(instruction);
 }
 
@@ -30,23 +37,30 @@ std::ostream& operator<<(std::ostream& ostream,
   auto const value = printable.value;
   switch (value.kind) {
     case Value::Kind::Argument:
-      return ostream << "arg[" << value.data << "]";
+      ostream << "arg[" << value.data << "]";
+      break;
     case Value::Kind::Condition:
       return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
-      return ostream << "#" << value.data;
+      ostream << "#" << value.data << SizeSuffixOf(value);
+      break;
     case Value::Kind::Parameter:
-      return ostream << "param[" << value.data << "]";
+      ostream << "param[" << value.data << "]";
+      break;
     case Value::Kind::PhysicalRegister:
-      return ostream << (value.type == Value::Type::Float ? "F" : "R")
-                     << value.data;
+      ostream << (value.type == Value::Type::Float ? "f" : "r") << value.data;
+      break;
     case Value::Kind::VirtualRegister:
-      return ostream << (value.type == Value::Type::Float ? "%f" : "%r")
-                     << value.data;
+      ostream << (value.type == Value::Type::Float ? "%f" : "%r") << value.data;
+      break;
     case Value::Kind::StackSlot:
-      return ostream << "sp[" << value.data << "]";
+      ostream << "sp[" << value.data << "]";
+      break;
+    default:
+      ostream << "UNSUPPORTED(" << value << ")";
+      return ostream;
   }
-  return ostream << "UNSUPPORTED(" << value << ")";
+  return ostream << SizeSuffixOf(value);
 }
 
 std::ostream& operator<<(std::ostream& ostream,

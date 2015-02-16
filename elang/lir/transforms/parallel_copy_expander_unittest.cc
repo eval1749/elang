@@ -100,7 +100,7 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
 
 // Test cases...
 
-// M0 <- M2, M1 <- R0, R1 <- I0
+// M0 <- M2, M1 <- r0, r1 <- I0
 TEST_F(LirParallelCopyExpanderTest, AutoScratchByImmediate) {
   Expand(
       {
@@ -108,13 +108,13 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchByImmediate) {
        std::make_pair(stack_slot(1), physical(0)),
        std::make_pair(physical(1), Value::SmallInt32(42)),
       },
-      "mov R1 = sp[2]\n"
-      "mov sp[0] = R1\n"
-      "mov sp[1] = R0\n"
-      "lit R1 = #42\n");
+      "mov r1 = sp[2]\n"
+      "mov sp[0] = r1\n"
+      "mov sp[1] = r0\n"
+      "lit r1 = #42\n");
 }
 
-// M0, R1 <- M2, M1 <- M0
+// M0, r1 <- M2, M1 <- M0
 TEST_F(LirParallelCopyExpanderTest, AutoScratchByMemory) {
   Expand(
       {
@@ -122,12 +122,12 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchByMemory) {
        std::make_pair(stack_slot(1), physical(0)),
        std::make_pair(physical(1), stack_slot(2)),
       },
-      "mov R1 = sp[2]\n"
-      "mov sp[0] = R1\n"
-      "mov sp[1] = R0\n");
+      "mov r1 = sp[2]\n"
+      "mov sp[0] = r1\n"
+      "mov sp[1] = r0\n");
 }
 
-// M0 <- M2, M1 <- R0, R1 <- M3
+// M0 <- M2, M1 <- r0, r1 <- M3
 TEST_F(LirParallelCopyExpanderTest, AutoScratchByMemory2) {
   Expand(
       {
@@ -135,13 +135,13 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchByMemory2) {
        std::make_pair(stack_slot(1), physical(0)),
        std::make_pair(physical(1), stack_slot(3)),
       },
-      "mov R1 = sp[2]\n"
-      "mov sp[0] = R1\n"
-      "mov sp[1] = R0\n"
-      "mov R1 = sp[3]\n");
+      "mov r1 = sp[2]\n"
+      "mov sp[0] = r1\n"
+      "mov sp[1] = r0\n"
+      "mov r1 = sp[3]\n");
 }
 
-// R0 <- M1 <- R0, M2 <- R3; we can use M2 as spill location for R0.
+// r0 <- M1 <- r0, M2 <- r3; we can use M2 as spill location for r0.
 TEST_F(LirParallelCopyExpanderTest, AutoScratchFromStore) {
   Expand(
       {
@@ -149,14 +149,14 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchFromStore) {
        std::make_pair(stack_slot(1), physical(0)),
        std::make_pair(stack_slot(2), physical(3)),
       },
-      "mov sp[2] = R3\n"  // store R3
-      "mov R3 = sp[1]\n"
-      "mov sp[1] = R0\n"
-      "mov R0 = R3\n"
-      "mov R3 = sp[2]\n");  // reload R3
+      "mov sp[2] = r3\n"  // store r3
+      "mov r3 = sp[1]\n"
+      "mov sp[1] = r0\n"
+      "mov r0 = r3\n"
+      "mov r3 = sp[2]\n");  // reload r3
 }
 
-// R0 <- R1 <- R0, M2 <- R1
+// r0 <- r1 <- r0, M2 <- r1
 TEST_F(LirParallelCopyExpanderTest, AutoScratchFromSwap) {
   Expand(
       {
@@ -164,11 +164,11 @@ TEST_F(LirParallelCopyExpanderTest, AutoScratchFromSwap) {
        std::make_pair(physical(1), physical(0)),
        std::make_pair(stack_slot(2), physical(1)),
       },
-      "mov sp[2] = R1\n"
-      "pcopy R0, R1 = R1, R0\n");
+      "mov sp[2] = r1\n"
+      "pcopy r0, r1 = r1, r0\n");
 }
 
-// R0, R2 <- R1, R4 <- R3
+// r0, r2 <- r1, r4 <- r3
 TEST_F(LirParallelCopyExpanderTest, Basic) {
   Expand(
       {
@@ -176,9 +176,9 @@ TEST_F(LirParallelCopyExpanderTest, Basic) {
        std::make_pair(physical(2), physical(1)),
        std::make_pair(physical(4), physical(3)),
       },
-      "mov R0 = R1\n"
-      "mov R2 = R1\n"
-      "mov R4 = R3\n");
+      "mov r0 = r1\n"
+      "mov r2 = r1\n"
+      "mov r4 = r3\n");
 }
 
 // M0 <- M1 <- M0
@@ -189,10 +189,10 @@ TEST_F(LirParallelCopyExpanderTest, MemorySwap) {
        std::make_pair(stack_slot(1), stack_slot(0)),
       },
       physical(2), physical(3),
-      "mov R3 = sp[1]\n"
-      "mov R2 = sp[0]\n"
-      "mov sp[0] = R3\n"
-      "mov sp[1] = R2\n");
+      "mov r3 = sp[1]\n"
+      "mov r2 = sp[0]\n"
+      "mov sp[0] = r3\n"
+      "mov sp[1] = r2\n");
 }
 
 // memory swap requires 2 scratch register
@@ -215,18 +215,18 @@ TEST_F(LirParallelCopyExpanderTest, MemorySwapOneScratch) {
       "");
 }
 
-// M0 <- R0, M1 <- R1
+// M0 <- r0, M1 <- r1
 TEST_F(LirParallelCopyExpanderTest, PhysicalToMemory) {
   Expand(
       {
        std::make_pair(stack_slot(0), physical(0)),
        std::make_pair(stack_slot(1), physical(1)),
       },
-      "mov sp[0] = R0\n"
-      "mov sp[1] = R1\n");
+      "mov sp[0] = r0\n"
+      "mov sp[1] = r1\n");
 }
 
-// R0 <- R1 <- R2 <- R0
+// r0 <- r1 <- r2 <- r0
 TEST_F(LirParallelCopyExpanderTest, Rotate) {
   Expand(
       {
@@ -234,8 +234,8 @@ TEST_F(LirParallelCopyExpanderTest, Rotate) {
        std::make_pair(physical(1), physical(2)),
        std::make_pair(physical(2), physical(0)),
       },
-      "pcopy R0, R1 = R1, R0\n"
-      "pcopy R1, R2 = R2, R1\n");
+      "pcopy r0, r1 = r1, r0\n"
+      "pcopy r1, r2 = r2, r1\n");
 }
 
 // M0 <- M1 <- M2 <- M0
@@ -247,15 +247,15 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemory) {
        std::make_pair(stack_slot(2), stack_slot(0)),
       },
       physical(4), physical(5),
-      "mov R5 = sp[1]\n"
-      "mov R4 = sp[0]\n"
-      "mov sp[0] = R5\n"
-      "mov R5 = sp[2]\n"
-      "mov sp[1] = R5\n"
-      "mov sp[2] = R4\n");
+      "mov r5 = sp[1]\n"
+      "mov r4 = sp[0]\n"
+      "mov sp[0] = r5\n"
+      "mov r5 = sp[2]\n"
+      "mov sp[1] = r5\n"
+      "mov sp[2] = r4\n");
 }
 
-// R0 <- R1 <- M2 <- R0
+// r0 <- r1 <- M2 <- r0
 TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical) {
   ExpandWithScratch(
       {
@@ -264,13 +264,13 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical) {
        std::make_pair(stack_slot(2), physical(0)),
       },
       physical(3),
-      "mov R3 = sp[2]\n"
-      "mov sp[2] = R0\n"
-      "mov R0 = R1\n"
-      "mov R1 = R3\n");
+      "mov r3 = sp[2]\n"
+      "mov sp[2] = r0\n"
+      "mov r0 = r1\n"
+      "mov r1 = r3\n");
 }
 
-// R0 <- M1 <- M2 <- R0
+// r0 <- M1 <- M2 <- r0
 TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical2) {
   ExpandWithScratch(
       {
@@ -279,13 +279,13 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical2) {
        std::make_pair(stack_slot(2), physical(0)),
       },
       physical(3),
-      "mov R3 = sp[2]\n"
-      "mov sp[2] = R0\n"
-      "mov R0 = sp[1]\n"
-      "mov sp[1] = R3\n");
+      "mov r3 = sp[2]\n"
+      "mov sp[2] = r0\n"
+      "mov r0 = sp[1]\n"
+      "mov sp[1] = r3\n");
 }
 
-// R0 <- R1 <- M2 <- M3 <- R0
+// r0 <- r1 <- M2 <- M3 <- r0
 TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical3) {
   ExpandWithScratch(
       {
@@ -295,24 +295,24 @@ TEST_F(LirParallelCopyExpanderTest, RotateMemoryAndPhysical3) {
        std::make_pair(stack_slot(3), physical(0)),
       },
       physical(4),
-      "mov R4 = sp[3]\n"
-      "mov sp[3] = R0\n"
-      "mov R0 = R1\n"
-      "mov R1 = sp[2]\n"
-      "mov sp[2] = R4\n");
+      "mov r4 = sp[3]\n"
+      "mov sp[3] = r0\n"
+      "mov r0 = r1\n"
+      "mov r1 = sp[2]\n"
+      "mov sp[2] = r4\n");
 }
 
-// R0 <- R1 <- R0
+// r0 <- r1 <- r0
 TEST_F(LirParallelCopyExpanderTest, Swap) {
   Expand(
       {
        std::make_pair(physical(0), physical(1)),
        std::make_pair(physical(1), physical(0)),
       },
-      "pcopy R0, R1 = R1, R0\n");
+      "pcopy r0, r1 = r1, r0\n");
 }
 
-// R0 <- R1 <- R0, M2 <- M3 <- M2
+// r0 <- r1 <- r0, M2 <- M3 <- M2
 TEST_F(LirParallelCopyExpanderTest, TwoCycles) {
   ExpandWithScratch2(
       {
@@ -322,14 +322,14 @@ TEST_F(LirParallelCopyExpanderTest, TwoCycles) {
        std::make_pair(stack_slot(3), stack_slot(2)),
       },
       physical(4), physical(5),
-      "pcopy R0, R1 = R1, R0\n"
-      "mov R5 = sp[3]\n"
-      "mov R4 = sp[2]\n"
-      "mov sp[2] = R5\n"
-      "mov sp[3] = R4\n");
+      "pcopy r0, r1 = r1, r0\n"
+      "mov r5 = sp[3]\n"
+      "mov r4 = sp[2]\n"
+      "mov sp[2] = r5\n"
+      "mov sp[3] = r4\n");
 }
 
-// R0 <- M1 <- R0, R2 <- M3 <- R2
+// r0 <- M1 <- r0, r2 <- M3 <- r2
 TEST_F(LirParallelCopyExpanderTest, TwoCycles2) {
   ExpandWithScratch(
       {
@@ -339,15 +339,15 @@ TEST_F(LirParallelCopyExpanderTest, TwoCycles2) {
        std::make_pair(stack_slot(3), physical(2)),
       },
       physical(4),
-      "mov R4 = sp[1]\n"
-      "mov sp[1] = R0\n"
-      "mov R0 = R4\n"
-      "mov R4 = sp[3]\n"
-      "mov sp[3] = R2\n"
-      "mov R2 = R4\n");
+      "mov r4 = sp[1]\n"
+      "mov sp[1] = r0\n"
+      "mov r0 = r4\n"
+      "mov r4 = sp[3]\n"
+      "mov sp[3] = r2\n"
+      "mov r2 = r4\n");
 }
 
-// R0 <- M1 <- M2 <- R0, R3 <- M4 <- R3
+// r0 <- M1 <- M2 <- r0, r3 <- M4 <- r3
 TEST_F(LirParallelCopyExpanderTest, TwoCycles3) {
   ExpandWithScratch(
       {
@@ -358,16 +358,16 @@ TEST_F(LirParallelCopyExpanderTest, TwoCycles3) {
        std::make_pair(stack_slot(4), physical(3)),
       },
       physical(5),
-      "mov sp[2] = R0\n"
-      "mov R5 = sp[1]\n"
-      "mov sp[1] = R0\n"
-      "mov R0 = R5\n"
-      "mov R5 = sp[4]\n"
-      "mov sp[4] = R3\n"
-      "mov R3 = R5\n");
+      "mov sp[2] = r0\n"
+      "mov r5 = sp[1]\n"
+      "mov sp[1] = r0\n"
+      "mov r0 = r5\n"
+      "mov r5 = sp[4]\n"
+      "mov sp[4] = r3\n"
+      "mov r3 = r5\n");
 }
 
-// R0 <- M1 <- R0, M2 <- M3 <- M2
+// r0 <- M1 <- r0, M2 <- M3 <- M2
 TEST_F(LirParallelCopyExpanderTest, TwoCycles4) {
   ExpandWithScratch2(
       {
@@ -377,13 +377,13 @@ TEST_F(LirParallelCopyExpanderTest, TwoCycles4) {
        std::make_pair(stack_slot(3), stack_slot(2)),
       },
       physical(4), physical(5),
-      "mov R5 = sp[1]\n"
-      "mov sp[1] = R0\n"
-      "mov R0 = R5\n"
-      "mov R5 = sp[3]\n"
-      "mov R4 = sp[2]\n"
-      "mov sp[2] = R5\n"
-      "mov sp[3] = R4\n");
+      "mov r5 = sp[1]\n"
+      "mov sp[1] = r0\n"
+      "mov r0 = r5\n"
+      "mov r5 = sp[3]\n"
+      "mov r4 = sp[2]\n"
+      "mov sp[2] = r5\n"
+      "mov sp[3] = r4\n");
 }
 
 }  // namespace
