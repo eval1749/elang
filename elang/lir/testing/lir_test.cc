@@ -44,6 +44,15 @@ namespace testing {
 
 namespace {
 
+struct InstructionWithAllocation {
+  const RegisterAllocation* allocations;
+  Instruction* instruction;
+
+  InstructionWithAllocation(const RegisterAllocation* allocations,
+                            Instruction* instruction)
+      : allocations(allocations), instruction(instruction) {}
+};
+
 // TODO(eval1749) We should share |SortBasicBlocks()| with |TextFormatter|.
 std::vector<BasicBlock*> SortBasicBlocks(
     const ZoneUnorderedSet<BasicBlock*>& block_set) {
@@ -51,6 +60,52 @@ std::vector<BasicBlock*> SortBasicBlocks(
   std::sort(blocks.begin(), blocks.end(),
             [](BasicBlock* a, BasicBlock* b) { return a->id() < b->id(); });
   return blocks;
+}
+
+InstructionWithAllocation PrintWithAllocation(
+    const RegisterAllocation& allocations,
+    Instruction* instruction) {
+  return InstructionWithAllocation(&allocations, instruction);
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const InstructionWithAllocation& thing) {
+  auto const allocations = thing.allocations;
+  auto const instr = thing.instruction;
+  ostream << instr->opcode();
+  if (auto const phi = instr->as<PhiInstruction>()) {
+    auto const output = allocations->AllocationOf(phi, phi->output(0));
+    ostream << PrintAsGeneric(output) << " = ";
+    auto separator = "";
+    for (auto const phi_input : phi->phi_inputs()) {
+      auto const input = allocations->AllocationOf(phi, phi_input->value());
+      ostream << separator << *phi_input->basic_block() << " ";
+      ostream << PrintAsGeneric(input);
+      separator = ", ";
+    }
+    return ostream;
+  }
+
+  if (!instr->outputs().empty()) {
+    auto separator = " ";
+    for (auto const output : instr->outputs()) {
+      auto const allocation = allocations->AllocationOf(instr, output);
+      ostream << separator << PrintAsGeneric(allocation);
+      separator = ", ";
+    }
+    ostream << " =";
+  }
+  auto separator = " ";
+  for (auto const input : instr->inputs()) {
+    auto const allocation = allocations->AllocationOf(instr, input);
+    ostream << separator << PrintAsGeneric(allocation);
+    separator = ", ";
+  }
+  for (auto const block : instr->block_operands()) {
+    ostream << separator << *block;
+    separator = ", ";
+  }
+  return ostream;
 }
 }  // namespace
 
@@ -69,10 +124,10 @@ std::string LirTest::Allocate(Function* function) {
 
   Run<PreparePhiInversionPass>(&editor);
 
-  RegisterAllocation result;
+  RegisterAllocation allocations;
   RegisterUsageTracker usage_tracker(&editor);
   StackAllocator stack_allocator(8);
-  RegisterAllocator allocator(&editor, &result, editor.AnalyzeLiveness(),
+  RegisterAllocator allocator(&editor, &allocations, editor.AnalyzeLiveness(),
                               usage_tracker, &stack_allocator);
   allocator.Run();
 
@@ -89,41 +144,10 @@ std::string LirTest::Allocate(Function* function) {
     ostream << SortBasicBlocks(block->successors());
     ostream << std::endl;
 
-    for (auto const phi : block->phi_instructions()) {
-      auto const output = result.AllocationOf(phi, phi->output(0));
-      ostream << "  phi " << PrintAsGeneric(output) << " = ";
-      auto separator = "";
-      for (auto const phi_input : phi->phi_inputs()) {
-        auto const input = result.AllocationOf(phi, phi_input->value());
-        ostream << separator << *phi_input->basic_block() << " ";
-        ostream << PrintAsGeneric(input);
-        separator = ", ";
-      }
-      ostream << std::endl;
-    }
-    for (auto const instr : block->instructions()) {
-      ostream << "  " << instr->opcode();
-      if (!instr->outputs().empty()) {
-        auto separator = " ";
-        for (auto const output : instr->outputs()) {
-          auto const allocation = result.AllocationOf(instr, output);
-          ostream << separator << PrintAsGeneric(allocation);
-          separator = ", ";
-        }
-        ostream << " =";
-      }
-      auto separator = " ";
-      for (auto const input : instr->inputs()) {
-        auto const allocation = result.AllocationOf(instr, input);
-        ostream << separator << PrintAsGeneric(allocation);
-        separator = ", ";
-      }
-      for (auto const block : instr->block_operands()) {
-        ostream << separator << *block;
-        separator = ", ";
-      }
-      ostream << std::endl;
-    }
+    for (auto const phi : block->phi_instructions())
+      ostream << "  " << PrintWithAllocation(allocations, phi) << std::endl;
+    for (auto const instr : block->instructions())
+      ostream << "  " << PrintWithAllocation(allocations, instr) << std::endl;
   }
   return ostream.str();
 }
