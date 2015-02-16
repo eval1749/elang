@@ -42,7 +42,10 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::Condition:
       return ostream << "%b" << value.data;
     case Value::Kind::Immediate:
-      ostream << "#" << value.data << SizeSuffixOf(value);
+      ostream << "#" << value.data;
+      break;
+    case Value::Kind::Literal:
+      ostream << "literal@" << value.data;
       break;
     case Value::Kind::Parameter:
       ostream << "param[" << value.data << "]";
@@ -50,12 +53,14 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::PhysicalRegister:
       ostream << (value.type == Value::Type::Float ? "f" : "r") << value.data;
       break;
-    case Value::Kind::VirtualRegister:
-      ostream << (value.type == Value::Type::Float ? "%f" : "%r") << value.data;
-      break;
     case Value::Kind::StackSlot:
       ostream << "sp[" << value.data << "]";
       break;
+    case Value::Kind::VirtualRegister:
+      ostream << (value.type == Value::Type::Float ? "%f" : "%r") << value.data;
+      break;
+    case Value::Kind::Void:
+      return ostream << "void";
     default:
       ostream << "UNSUPPORTED(" << value << ")";
       return ostream;
