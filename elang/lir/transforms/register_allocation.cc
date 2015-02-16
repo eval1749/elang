@@ -24,6 +24,7 @@ RegisterAllocation::Actions::Actions(Zone* zone) : actions(zone) {
 RegisterAllocation::RegisterAllocation()
     : block_value_map_(zone()),
       before_action_map_(zone()),
+      empty_actions_(zone()),
       instruction_value_map_(zone()),
       stack_slot_map_(zone()) {
 }
@@ -50,8 +51,7 @@ Value RegisterAllocation::AllocationOf(Instruction* instr, Value value) const {
 const ZoneVector<Instruction*>& RegisterAllocation::BeforeActionOf(
     Instruction* instr) const {
   auto const it = before_action_map_.find(instr);
-  DCHECK(it != before_action_map_.end());
-  return it->second->actions;
+  return it == before_action_map_.end() ? empty_actions_ : it->second->actions;
 }
 
 void RegisterAllocation::InsertBefore(Instruction* new_instr,

@@ -79,6 +79,7 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
 
   ZoneUnorderedMap<BasicBlockValue, Value> block_value_map_;
   ZoneUnorderedMap<Instruction*, Actions*> before_action_map_;
+  ZoneVector<Instruction*> empty_actions_;
   ZoneUnorderedMap<InstructionValue, Value> instruction_value_map_;
 
   // Map virtual register to stack location.
