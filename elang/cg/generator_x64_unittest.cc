@@ -175,7 +175,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "  // In: {}\n"
       "  // Out: {block2}\n"
       "  entry\n"
-      "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8L, XMM3, %param[4]\n"
+      "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8B, XMM3, %param[4]\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
