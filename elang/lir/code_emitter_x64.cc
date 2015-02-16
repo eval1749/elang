@@ -11,9 +11,11 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
+#include "elang/lir/isa_x64.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_visitor.h"
 #include "elang/lir/opcodes_x64.h"
+#include "elang/lir/target_x64.h"
 #include "elang/lir/target.h"
 #include "elang/lir/value.h"
 
@@ -21,6 +23,22 @@ namespace elang {
 namespace lir {
 
 namespace {
+
+using isa::Mod;
+using isa::Register;
+using isa::Rm;
+using isa::Rex;
+using isa::Scale;
+using isa::Tttn;
+
+bool Is8Bit(int data) {
+  return (data & 255) == data;
+}
+
+bool Is32Bit(int64_t data) {
+  return (data & static_cast<uint32_t>(-1)) == data;
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlockData
@@ -248,11 +266,18 @@ class InstructionEmitter final : private InstructionVisitor {
   void Emit32(uint32_t value);
   void Emit64(uint64_t value);
   void Emit8(int value);
+  void EmitModRm(Mod mod, Register reg, Register rm);
+  void EmitModRm(Mod mod, Register reg, Rm rm);
+  void EmitModRm(Register reg, Value input);
+  void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
   void EmitOperand(Value value);
+  void EmitRexPrefix(Value output, Value input);
+  void EmitSib(Scale scale, Register index, Register base);
 
   // InstructionVisitor
   void VisitCall(CallInstruction* instr) final;
+  void VisitCopy(CopyInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
 
   CodeBuffer* const code_buffer_;
@@ -276,6 +301,50 @@ void InstructionEmitter::Emit64(uint64_t value) {
   code_buffer_->Emit64(value);
 }
 
+void InstructionEmitter::EmitModRm(Mod mod, Register reg, Register rm) {
+  Emit8(static_cast<int>(mod) | ((reg & 7) << 3) | (rm & 7));
+}
+
+void InstructionEmitter::EmitModRm(Mod mod, Register reg, Rm rm) {
+  EmitModRm(mod, reg, static_cast<Register>(rm));
+}
+
+void InstructionEmitter::EmitModRm(Register reg, Value memory) {
+  if (memory.is_stack_slot()) {
+    // mov reg, [rsp+n]
+    if (Is8Bit(memory.data)) {
+      EmitModRm(Mod::Disp8, reg, Rm::Sib);
+      EmitSib(Scale::One, isa::RSP, isa::RSP);
+      Emit8(memory.data);
+      return;
+    }
+    // mov reg, [rsp+n]
+    EmitModRm(Mod::Disp32, reg, Rm::Sib);
+    EmitSib(Scale::One, isa::RSP, isa::RSP);
+    Emit32(memory.data);
+    return;
+  }
+  NOTREACHED() << "EmitModRm " << reg << ", " << memory;
+}
+
+void InstructionEmitter::EmitModRm(Value output, Value input) {
+  if (output.is_physical()) {
+    auto const reg = static_cast<Register>(output.data);
+    if (input.is_physical()) {
+      // mov reg1, reg2
+      EmitModRm(Mod::Reg, reg, static_cast<Register>(input.data));
+      return;
+    }
+    EmitModRm(reg, input);
+    return;
+  }
+  if (input.is_physical()) {
+    EmitModRm(static_cast<Register>(input.data), output);
+    return;
+  }
+  NOTREACHED() << "EmitModRm " << output << ", " << input;
+}
+
 void InstructionEmitter::EmitOpcode(isa::Opcode opcode) {
   auto const value = static_cast<uint32_t>(opcode);
   DCHECK_LT(value, 1u << 24);
@@ -291,6 +360,23 @@ void InstructionEmitter::EmitOperand(Value value) {
   Emit32(0);
 }
 
+void InstructionEmitter::EmitRexPrefix(Value output, Value input) {
+  int rex = isa::REX;
+  if (output.size == ValueSize::Size64)
+    rex |= isa::REX_W;
+  if (output.is_physical() && output.data >= 8)
+    rex |= isa::REX_R;
+  if (input.is_physical() && input.data >= 8)
+    rex |= isa::REX_B;
+  if (rex == isa::REX)
+    return;
+  Emit8(rex);
+}
+
+void InstructionEmitter::EmitSib(Scale scale, Register index, Register base) {
+  Emit8(static_cast<int>(scale) | ((index & 7) << 3) | (base & 7));
+}
+
 void InstructionEmitter::Process(const Instruction* instr) {
   const_cast<Instruction*>(instr)->Accept(this);
 }
@@ -299,6 +385,33 @@ void InstructionEmitter::Process(const Instruction* instr) {
 void InstructionEmitter::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instr->input(0));
+}
+
+void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
+  auto const input = instr->input(0);
+  auto const output = instr->output(0);
+  DCHECK_EQ(input.size, output.size);
+  DCHECK_EQ(input.type, output.type);
+
+  EmitRexPrefix(output, input);
+
+  if (output.is_physical()) {
+    if (output.is_integer())
+      EmitOpcode(isa::Opcode::MOV_Gv_Ev);
+    else if (output.size == ValueSize::Size32)
+      EmitOpcode(isa::Opcode::MOVSS_Vss_Wss);
+    else
+      EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
+  } else {
+    if (output.is_integer())
+      EmitOpcode(isa::Opcode::MOV_Ev_Gv);
+    else if (output.size == ValueSize::Size32)
+      EmitOpcode(isa::Opcode::MOVSS_Wss_Vss);
+    else
+      EmitOpcode(isa::Opcode::MOVSD_Wsd_Vsd);
+  }
+
+  EmitModRm(output, input);
 }
 
 void InstructionEmitter::VisitRet(RetInstruction* instr) {

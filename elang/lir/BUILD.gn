@@ -82,6 +82,7 @@ component("lir") {
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
+      "isa_x64.h",
       "opcodes_x64.h",
       "target_x64.h",
       "target_x64.cc",

@@ -12,14 +12,20 @@ namespace lir {
 // V1 opcode mnemonic format
 // V2 opcode mnemonic format1 format2
 // V3 opcode mnemonic format1 format2 foramt3
+//
+//
+// 0F = 2-byte escape
+// 66 = Operand Size prefix
+// F2 = REPNE prefix
+// F3 = REP prefix
 #define FOR_EACH_X64_OPCODE(V0, V1, V2, V3)  \
   FOR_EACH_X64_OPCODE_00_FF(V0, V1, V2, V3)  \
   FOR_EACH_X64_OPCODE_0F10(V0, V1, V2, V3)   \
-  FOR_EACH_X64_OPCODE_660F10(V0, V1, V2, V3) \
-  FOR_EACH_X64_OPCODE_F30F10(V0, V1, V2, V3) \
-  FOR_EACH_X64_OPCODE_0F70(V0, V1, V2, V3)   \
   FOR_EACH_X64_OPCODE_0F38(V0, V1, V2, V3)   \
-  FOR_EACH_X64_OPCODE_0F80(V0, V1, V2, V3)
+  FOR_EACH_X64_OPCODE_0F70(V0, V1, V2, V3)   \
+  FOR_EACH_X64_OPCODE_0F80(V0, V1, V2, V3)   \
+  FOR_EACH_X64_OPCODE_660F10(V0, V1, V2, V3) \
+  FOR_EACH_X64_OPCODE_F30F10(V0, V1, V2, V3)
 
 #define FOR_EACH_X64_OPCODE_00_FF(V0, V1, V2, V3) \
   /* 0x00 */                                      \
@@ -779,7 +785,6 @@ enum class Opcode {
 };
 
 }  // namespace isa
-
 }  // namespace lir
 }  // namespace elang
 
