@@ -79,6 +79,8 @@ component("lir") {
   if (elang_target_arch == "x64") {
     sources += [
       "code_emitter_x64.cc",
+      "disasm_x64.h",
+      "disasm_x64.cc",
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
