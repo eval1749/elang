@@ -5,7 +5,15 @@
 #include "elang/lir/testing/lir_test.h"
 
 #include "elang/lir/editor.h"
+#include "elang/lir/factory.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/transforms/lowering_x64.h"
+#include "elang/lir/transforms/prepare_phi_inversion.h"
+#include "elang/lir/transforms/register_allocation.h"
+#include "elang/lir/transforms/register_allocator.h"
+#include "elang/lir/transforms/register_usage_tracker.h"
+#include "elang/lir/transforms/stack_allocator.h"
+#include "elang/lir/target.h"
 
 namespace elang {
 namespace lir {
@@ -23,6 +31,29 @@ class LirRegisterAllocatorX64Test : public testing::LirTest {
 };
 
 // Test cases...
+
+TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewPCopyInstruction(
+      {Target::GetArgumentAt(Value::Int32Type(), 0),
+       Target::GetArgumentAt(Value::Int64Type(), 1)},
+      {factory()->NewIntValue(ValueSize::Size32, 42),
+       factory()->NewIntValue(ValueSize::Size64, 39)}));
+  editor.Append(factory()->NewCallInstruction(
+      factory()->NewIntValue(ValueSize::Size64, 56)));
+  EXPECT_EQ("", Commit(&editor));
+
+  RegisterAllocation allocations;
+  RegisterUsageTracker usage_tracker(&editor);
+  StackAllocator stack_allocator(8);
+  RegisterAllocator allocator(&editor, &allocations, editor.AnalyzeLiveness(),
+                              usage_tracker, &stack_allocator);
+  allocator.Run();
+
+  EXPECT_EQ(2, stack_allocator.maximum_argc());
+}
 
 //  function1:
 //    block1:

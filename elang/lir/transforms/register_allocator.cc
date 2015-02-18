@@ -568,6 +568,11 @@ void RegisterAllocator::DoDefaultVisit(Instruction* instr) {
 
 // Save live physical registers allocated caller saved registers.
 void RegisterAllocator::VisitCall(CallInstruction* instr) {
+  // Track number of arguments
+  if (auto const previous = instr->previous()) {
+    if (previous->is<CopyInstruction>() || previous->is<PCopyInstruction>())
+      stack_allocator_->TrackNumberOfArguments(previous->CountInputs());
+  }
   std::vector<Instruction*> save_actions;
   for (auto const virtual_physical : allocation_tracker_->physical_map()) {
     auto const physical = virtual_physical.second;
