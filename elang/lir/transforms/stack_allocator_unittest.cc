@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "elang/lir/transforms/stack_allocator.h"
+#include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
 #include "gtest/gtest.h"
 
@@ -17,7 +18,8 @@ TEST(StackAllocatorTest, Alignment4) {
   auto const int64_type = Value(Value::Type::Integer, ValueSize::Size64);
   auto const int8_type = Value(Value::Type::Integer, ValueSize::Size8);
 
-  StackAllocator allocator(4);
+  StackAssignments assignments;
+  StackAllocator allocator(&assignments, 4);
 
   EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
   EXPECT_EQ(Value::StackSlot(int32_type, 4), allocator.Allocate(int32_type));
@@ -55,7 +57,8 @@ TEST(StackAllocatorTest, Alignment8) {
   auto const int64_type = Value(Value::Type::Integer, ValueSize::Size64);
   auto const int8_type = Value(Value::Type::Integer, ValueSize::Size8);
 
-  StackAllocator allocator(8);
+  StackAssignments assignments;
+  StackAllocator allocator(&assignments, 8);
 
   EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
   EXPECT_EQ(Value::StackSlot(int32_type, 4), allocator.Allocate(int32_type));
@@ -90,7 +93,8 @@ TEST(StackAllocatorTest, Alignment8) {
 TEST(StackAllocatorTest, AllocateAt) {
   auto const int32_type = Value(Value::Type::Integer, ValueSize::Size32);
 
-  StackAllocator allocator(4);
+  StackAssignments assignments;
+  StackAllocator allocator(&assignments, 4);
   allocator.Allocate(int32_type);
   auto const stack_slot1 = allocator.Allocate(int32_type);
   allocator.Allocate(int32_type);
@@ -99,17 +103,18 @@ TEST(StackAllocatorTest, AllocateAt) {
   allocator.AllocateAt(stack_slot1);
   EXPECT_EQ(Value::StackSlot(int32_type, 0), allocator.Allocate(int32_type));
 
-  EXPECT_EQ(8, allocator.current_size());
+  EXPECT_EQ(12, assignments.maximum_size());
   EXPECT_EQ(12, allocator.RequiredSize());
 }
 
 TEST(StackAllocatorTest, TrackNumberOfArguments) {
-  StackAllocator allocator(4);
+  StackAssignments assignments;
+  StackAllocator allocator(&assignments, 4);
   allocator.TrackNumberOfArguments(4);
   allocator.TrackNumberOfArguments(3);
   allocator.TrackNumberOfArguments(2);
   allocator.TrackNumberOfArguments(0);
-  EXPECT_EQ(4, allocator.maximum_argc());
+  EXPECT_EQ(4, assignments.maximum_argc());
 }
 
 }  // namespace

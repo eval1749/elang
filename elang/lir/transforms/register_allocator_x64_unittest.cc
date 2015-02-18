@@ -13,6 +13,7 @@
 #include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
+#include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/target.h"
 
 namespace elang {
@@ -47,12 +48,13 @@ TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
 
   RegisterAssignments assignments;
   RegisterUsageTracker usage_tracker(&editor);
-  StackAllocator stack_allocator(8);
+  StackAssignments stack_assignments;
+  StackAllocator stack_allocator(&stack_assignments, 8);
   RegisterAllocator allocator(&editor, &assignments, editor.AnalyzeLiveness(),
                               usage_tracker, &stack_allocator);
   allocator.Run();
 
-  EXPECT_EQ(2, stack_allocator.maximum_argc());
+  EXPECT_EQ(2, stack_assignments.maximum_argc());
 }
 
 //  function1:

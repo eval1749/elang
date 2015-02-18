@@ -13,6 +13,7 @@
 namespace elang {
 namespace lir {
 
+class StackAssignments;
 struct Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -21,11 +22,8 @@ struct Value;
 //
 class ELANG_LIR_EXPORT StackAllocator final {
  public:
-  explicit StackAllocator(int alignment);
+  StackAllocator(StackAssignments* assignments, int alignment);
   ~StackAllocator();
-
-  int current_size() const { return static_cast<int>(uses_.size()); }
-  int maximum_argc() const { return maximum_argc_; }
 
   void AllocateAt(Value stack_slot);
   Value Allocate(Value type);
@@ -35,11 +33,12 @@ class ELANG_LIR_EXPORT StackAllocator final {
   void TrackNumberOfArguments(int number_of_arguments);
 
  private:
+  int current_size() const { return static_cast<int>(uses_.size()); }
+
   int Allocate(int size);
 
   int const alignment_;
-  int maximum_argc_;
-  int maximum_size_;
+  StackAssignments* const assignments_;
   std::vector<bool> uses_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAllocator);

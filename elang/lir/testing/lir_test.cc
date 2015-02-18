@@ -21,6 +21,7 @@
 #include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
+#include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
 
 // TODO(eval1749) We should share |std::vector<BasicBlock*> with
@@ -125,8 +126,9 @@ std::string LirTest::Allocate(Function* function) {
   Run<PreparePhiInversionPass>(&editor);
 
   RegisterAssignments assignments;
+  StackAssignments stack_assignments;
   RegisterUsageTracker usage_tracker(&editor);
-  StackAllocator stack_allocator(8);
+  StackAllocator stack_allocator(&stack_assignments, 8);
   RegisterAllocator allocator(&editor, &assignments, editor.AnalyzeLiveness(),
                               usage_tracker, &stack_allocator);
   allocator.Run();

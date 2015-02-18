@@ -61,6 +61,8 @@ component("lir") {
     "transforms/register_usage_tracker.h",
     "transforms/stack_allocator.cc",
     "transforms/stack_allocator.h",
+    "transforms/stack_assignments.cc",
+    "transforms/stack_assignments.h",
     "value.h",
     "value.cc",
     "validator.h",
