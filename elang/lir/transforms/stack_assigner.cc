@@ -2,20 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/lir/transforms/stack_assignments.h"
+#include "elang/lir/transforms/stack_assigner.h"
 
 namespace elang {
 namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// StackAssignments
+// StackAssigner
 //
-StackAssignments::StackAssignments()
-    : maximum_argc_(0), maximum_size_(0), slot_count_(0) {
+StackAssigner::StackAssigner(RegisterAssignments* register_assignments,
+                             const StackAssignments& assignments)
+    : assignments_(assignments), register_assignments_(register_assignments) {
 }
 
-StackAssignments::~StackAssignments() {
+StackAssigner::~StackAssigner() {
 }
 
 }  // namespace lir
