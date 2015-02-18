@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 #include "elang/lir/lir_export.h"
+#include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
@@ -26,6 +27,11 @@ class ELANG_LIR_EXPORT StackAssignments final {
 
   int maximum_argc() const { return maximum_argc_; }
   int maximum_size() const { return maximum_size_; }
+  int number_of_calls() const { return number_of_calls_; }
+  int number_of_parameters() const { return number_of_parameters_; }
+  const std::vector<Value>& preserving_registers() const {
+    return preserving_registers_;
+  }
 
  private:
   friend class StackAllocator;
@@ -34,7 +40,12 @@ class ELANG_LIR_EXPORT StackAssignments final {
   std::vector<Instruction*> epilogue_instructions_;
   int maximum_argc_;
   int maximum_size_;
+  int number_of_calls_;
+  // Number of stack slots used for parameter passing.
+  int number_of_parameters_;
   std::vector<Instruction*> prologue_instructions_;
+  std::vector<Value> preserving_registers_;
+  int slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssignments);
 };

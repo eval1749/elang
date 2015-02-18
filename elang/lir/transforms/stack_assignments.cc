@@ -4,11 +4,6 @@
 
 #include "elang/lir/transforms/stack_assignments.h"
 
-#include <algorithm>
-
-#include "base/logging.h"
-#include "elang/lir/value.h"
-
 namespace elang {
 namespace lir {
 
@@ -16,7 +11,9 @@ namespace lir {
 //
 // StackAssignments
 //
-StackAssignments::StackAssignments() : maximum_argc_(0), maximum_size_(0) {
+StackAssignments::StackAssignments()
+    : maximum_argc_(0), maximum_size_(0), number_of_calls_(0),
+      number_of_parameters_(0), slot_count_(0) {
 }
 
 StackAssignments::~StackAssignments() {

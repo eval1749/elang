@@ -98,6 +98,7 @@ void StackAllocator::Reset() {
 void StackAllocator::TrackNumberOfArguments(int argc) {
   DCHECK_GE(argc, 0);
   assignments_->maximum_argc_ = std::max(assignments_->maximum_argc_, argc);
+  ++assignments_->number_of_calls_;
 }
 
 }  // namespace lir
