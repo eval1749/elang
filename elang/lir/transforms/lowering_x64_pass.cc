@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/lir/transforms/lowering_x64.h"
+#include "elang/lir/transforms/lowering_x64_pass.h"
 
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
@@ -14,30 +14,30 @@
 namespace elang {
 namespace lir {
 
-X64LoweringPass::X64LoweringPass(Editor* editor) : FunctionPass(editor) {
+LoweringX64Pass::LoweringX64Pass(Editor* editor) : FunctionPass(editor) {
 }
 
-X64LoweringPass::~X64LoweringPass() {
+LoweringX64Pass::~LoweringX64Pass() {
 }
 
-base::StringPiece X64LoweringPass::name() const {
+base::StringPiece LoweringX64Pass::name() const {
   return "lowering_x64";
 }
 
-Value X64LoweringPass::GetRAX(Value type) {
+Value LoweringX64Pass::GetRAX(Value type) {
   DCHECK_EQ(type.type, Value::Type::Integer);
   return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RAX
                                                             : isa::EAX);
 }
 
-Value X64LoweringPass::GetRDX(Value type) {
+Value LoweringX64Pass::GetRDX(Value type) {
   DCHECK_EQ(type.type, Value::Type::Integer);
   return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RDX
                                                             : isa::EDX);
 }
 
 // Rewrite count operand to use |CL| register.
-void X64LoweringPass::RewriteShiftInstruciton(Instruction* instr) {
+void LoweringX64Pass::RewriteShiftInstruciton(Instruction* instr) {
   auto const count_input = instr->input(1);
   if (!count_input.is_register())
     return;
@@ -53,7 +53,7 @@ void X64LoweringPass::RewriteShiftInstruciton(Instruction* instr) {
 //   assign %1 = %b
 //   add %2 = %1, %c
 //   copy %a = %2
-void X64LoweringPass::RewriteToTwoOperands(Instruction* instr) {
+void LoweringX64Pass::RewriteToTwoOperands(Instruction* instr) {
   // TODO(eval1749) If target supports VEX instruction, we don't need to rewrite
   // floating operation to two operands.
   auto const output = instr->output(0);
@@ -66,7 +66,7 @@ void X64LoweringPass::RewriteToTwoOperands(Instruction* instr) {
   editor()->InsertCopyBefore(output, new_output, instr->next());
 }
 
-void X64LoweringPass::RunOnFunction() {
+void LoweringX64Pass::RunOnFunction() {
   for (auto const block : function()->basic_blocks()) {
     editor()->Edit(block);
     auto instr = block->first_instruction();
@@ -81,19 +81,19 @@ void X64LoweringPass::RunOnFunction() {
 
 // InstructionVisitor
 
-void X64LoweringPass::VisitAdd(AddInstruction* instr) {
+void LoweringX64Pass::VisitAdd(AddInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
-void X64LoweringPass::VisitBitAnd(BitAndInstruction* instr) {
+void LoweringX64Pass::VisitBitAnd(BitAndInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
-void X64LoweringPass::VisitBitOr(BitOrInstruction* instr) {
+void LoweringX64Pass::VisitBitOr(BitOrInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
-void X64LoweringPass::VisitBitXor(BitXorInstruction* instr) {
+void LoweringX64Pass::VisitBitXor(BitXorInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
@@ -103,7 +103,7 @@ void X64LoweringPass::VisitBitXor(BitXorInstruction* instr) {
 //   xor RDX = RDX, RDX
 //   div RAX, RDX = RAX, RDX, %c
 //   copy %a = RAX
-void X64LoweringPass::VisitDiv(DivInstruction* instr) {
+void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   auto const output = instr->output(0);
   if (output.is_float()) {
     RewriteToTwoOperands(instr);
@@ -127,7 +127,7 @@ void X64LoweringPass::VisitDiv(DivInstruction* instr) {
 //   copy RAX = %b
 //   mul RAX, RDX = RAX, %c
 //   copy %a = %RAX
-void X64LoweringPass::VisitMul(MulInstruction* instr) {
+void LoweringX64Pass::VisitMul(MulInstruction* instr) {
   auto const output = instr->output(0);
   if (output.is_float()) {
     RewriteToTwoOperands(instr);
@@ -142,15 +142,15 @@ void X64LoweringPass::VisitMul(MulInstruction* instr) {
   editor()->Replace(NewCopyInstruction(output, mul_instr->output(0)), instr);
 }
 
-void X64LoweringPass::VisitShl(ShlInstruction* instr) {
+void LoweringX64Pass::VisitShl(ShlInstruction* instr) {
   RewriteShiftInstruciton(instr);
 }
 
-void X64LoweringPass::VisitShr(ShrInstruction* instr) {
+void LoweringX64Pass::VisitShr(ShrInstruction* instr) {
   RewriteShiftInstruciton(instr);
 }
 
-void X64LoweringPass::VisitSub(SubInstruction* instr) {
+void LoweringX64Pass::VisitSub(SubInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 

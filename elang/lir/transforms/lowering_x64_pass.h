@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_TRANSFORMS_LOWERING_X64_H_
-#define ELANG_LIR_TRANSFORMS_LOWERING_X64_H_
+#ifndef ELANG_LIR_TRANSFORMS_LOWERING_X64_PASS_H_
+#define ELANG_LIR_TRANSFORMS_LOWERING_X64_PASS_H_
 
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/instruction_visitor.h"
@@ -16,16 +16,16 @@ struct Value;
 
 //////////////////////////////////////////////////////////////////////
 //
-// X64LoweringPass does:
+// LoweringX64Pass does:
 //  - Transforms three operands instruction to two operands.
 //  - Transforms 'mul' to use 'RAX'
 //  - Transforms 'div' to use 'RAX'/'RDX'
 //
-class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
+class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
                                                public InstructionVisitor {
  public:
-  explicit X64LoweringPass(Editor* editor);
-  ~X64LoweringPass() final;
+  explicit LoweringX64Pass(Editor* editor);
+  ~LoweringX64Pass() final;
 
  private:
   // Pass
@@ -51,10 +51,10 @@ class ELANG_LIR_EXPORT X64LoweringPass final : public FunctionPass,
   void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
 
-  DISALLOW_COPY_AND_ASSIGN(X64LoweringPass);
+  DISALLOW_COPY_AND_ASSIGN(LoweringX64Pass);
 };
 
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_TRANSFORMS_LOWERING_X64_H_
+#endif  // ELANG_LIR_TRANSFORMS_LOWERING_X64_PASS_H_

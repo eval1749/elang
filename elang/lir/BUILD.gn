@@ -88,8 +88,8 @@ component("lir") {
       "opcodes_x64.h",
       "target_x64.h",
       "target_x64.cc",
-      "transforms/lowering_x64.cc",
-      "transforms/lowering_x64.h",
+      "transforms/lowering_x64_pass.cc",
+      "transforms/lowering_x64_pass.h",
     ]
   }
 }
@@ -133,7 +133,7 @@ source_set("lir_unittests") {
       "code_emitter_x64_unittest.cc",
       "instructions_x64_unittest.cc",
       "target_x64_unittest.cc",
-      "transforms/lowering_x64_unittest.cc",
+      "transforms/lowering_x64_pass_unittest.cc",
       "transforms/parallel_copy_expander_unittest.cc",
       "transforms/register_allocator_x64_unittest.cc",
     ]

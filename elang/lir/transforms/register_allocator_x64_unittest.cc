@@ -7,7 +7,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/literals.h"
-#include "elang/lir/transforms/lowering_x64.h"
+#include "elang/lir/transforms/lowering_x64_pass.h"
 #include "elang/lir/transforms/prepare_phi_inversion.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
@@ -74,7 +74,7 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
   auto const function = CreateFunctionSampleAdd();
   {
     Editor editor(factory(), function);
-    Run<X64LoweringPass>(&editor);
+    Run<LoweringX64Pass>(&editor);
   }
   EXPECT_EQ(
       "function1:\n"
@@ -130,7 +130,7 @@ TEST_F(LirRegisterAllocatorX64Test, WithCriticalEdge) {
   auto const function = CreateFunctionWithCriticalEdge();
   {
     Editor editor(factory(), function);
-    Run<X64LoweringPass>(&editor);
+    Run<LoweringX64Pass>(&editor);
   }
 
   EXPECT_EQ(
