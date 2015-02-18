@@ -69,6 +69,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
 
  private:
   friend class RegisterAllocationTracker;
+  friend class StackAssigner;
 
   // Inserts |new_instr| before |ref_instr|.
   void InsertBefore(Instruction* new_instr, Instruction* ref_instr);

@@ -61,6 +61,8 @@ component("lir") {
     "transforms/register_usage_tracker.h",
     "transforms/stack_allocator.cc",
     "transforms/stack_allocator.h",
+    "transforms/stack_assigner.cc",
+    "transforms/stack_assigner.h",
     "transforms/stack_assignments.cc",
     "transforms/stack_assignments.h",
     "value.h",
@@ -92,6 +94,7 @@ component("lir") {
       "target_x64.cc",
       "transforms/lowering_x64_pass.cc",
       "transforms/lowering_x64_pass.h",
+      "transforms/stack_assigner_x64.cc",
     ]
   }
 }
