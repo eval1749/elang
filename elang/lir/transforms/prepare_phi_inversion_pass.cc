@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "elang/lir/transforms/prepare_phi_inversion.h"
+#include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 
 #include "base/logging.h"
 #include "elang/lir/editor.h"

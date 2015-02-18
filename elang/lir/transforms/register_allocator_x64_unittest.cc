@@ -8,7 +8,7 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/lowering_x64_pass.h"
-#include "elang/lir/transforms/prepare_phi_inversion.h"
+#include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"

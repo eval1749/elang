@@ -8,7 +8,7 @@
 
 #include "elang/lir/factory.h"
 #include "elang/lir/editor.h"
-#include "elang/lir/transforms/prepare_phi_inversion.h"
+#include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 
 namespace elang {
 namespace lir {
