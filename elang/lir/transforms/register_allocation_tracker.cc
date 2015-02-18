@@ -10,7 +10,7 @@
 #include "elang/base/analysis/dominator_tree.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
-#include "elang/lir/transforms/register_allocation.h"
+#include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -30,7 +30,7 @@ bool EqualsIgnoringSize(Value physical1, Value physical2) {
 // RegisterAllocationTracker
 //
 RegisterAllocationTracker::RegisterAllocationTracker(
-    RegisterAllocation* allocations_map)
+    RegisterAssignments* allocations_map)
     : allocations_(allocations_map) {
 }
 

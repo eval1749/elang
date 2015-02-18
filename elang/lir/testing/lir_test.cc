@@ -17,8 +17,8 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/transforms/prepare_phi_inversion.h"
-#include "elang/lir/transforms/register_allocation.h"
 #include "elang/lir/transforms/register_allocator.h"
+#include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/value.h"
@@ -45,12 +45,12 @@ namespace testing {
 namespace {
 
 struct InstructionWithAllocation {
-  const RegisterAllocation* allocations;
+  const RegisterAssignments* assignments;
   Instruction* instruction;
 
-  InstructionWithAllocation(const RegisterAllocation* allocations,
+  InstructionWithAllocation(const RegisterAssignments* assignments,
                             Instruction* instruction)
-      : allocations(allocations), instruction(instruction) {}
+      : assignments(assignments), instruction(instruction) {}
 };
 
 // TODO(eval1749) We should share |SortBasicBlocks()| with |TextFormatter|.
@@ -63,22 +63,22 @@ std::vector<BasicBlock*> SortBasicBlocks(
 }
 
 InstructionWithAllocation PrintWithAllocation(
-    const RegisterAllocation& allocations,
+    const RegisterAssignments& assignments,
     Instruction* instruction) {
-  return InstructionWithAllocation(&allocations, instruction);
+  return InstructionWithAllocation(&assignments, instruction);
 }
 
 std::ostream& operator<<(std::ostream& ostream,
                          const InstructionWithAllocation& thing) {
-  auto const allocations = thing.allocations;
+  auto const assignments = thing.assignments;
   auto const instr = thing.instruction;
   ostream << instr->opcode();
   if (auto const phi = instr->as<PhiInstruction>()) {
-    auto const output = allocations->AllocationOf(phi, phi->output(0));
+    auto const output = assignments->AllocationOf(phi, phi->output(0));
     ostream << " " << PrintAsGeneric(output) << " = ";
     auto separator = "";
     for (auto const phi_input : phi->phi_inputs()) {
-      auto const input = allocations->AllocationOf(phi, phi_input->value());
+      auto const input = assignments->AllocationOf(phi, phi_input->value());
       ostream << separator << *phi_input->basic_block() << " ";
       ostream << PrintAsGeneric(input);
       separator = ", ";
@@ -89,7 +89,7 @@ std::ostream& operator<<(std::ostream& ostream,
   if (!instr->outputs().empty()) {
     auto separator = " ";
     for (auto const output : instr->outputs()) {
-      auto const allocation = allocations->AllocationOf(instr, output);
+      auto const allocation = assignments->AllocationOf(instr, output);
       ostream << separator << PrintAsGeneric(allocation);
       separator = ", ";
     }
@@ -97,7 +97,7 @@ std::ostream& operator<<(std::ostream& ostream,
   }
   auto separator = " ";
   for (auto const input : instr->inputs()) {
-    auto const allocation = allocations->AllocationOf(instr, input);
+    auto const allocation = assignments->AllocationOf(instr, input);
     ostream << separator << PrintAsGeneric(allocation);
     separator = ", ";
   }
@@ -124,10 +124,10 @@ std::string LirTest::Allocate(Function* function) {
 
   Run<PreparePhiInversionPass>(&editor);
 
-  RegisterAllocation allocations;
+  RegisterAssignments assignments;
   RegisterUsageTracker usage_tracker(&editor);
   StackAllocator stack_allocator(8);
-  RegisterAllocator allocator(&editor, &allocations, editor.AnalyzeLiveness(),
+  RegisterAllocator allocator(&editor, &assignments, editor.AnalyzeLiveness(),
                               usage_tracker, &stack_allocator);
   allocator.Run();
 
@@ -145,13 +145,13 @@ std::string LirTest::Allocate(Function* function) {
     ostream << std::endl;
 
     for (auto const phi : block->phi_instructions())
-      ostream << "  " << PrintWithAllocation(allocations, phi) << std::endl;
+      ostream << "  " << PrintWithAllocation(assignments, phi) << std::endl;
     for (auto const instr : block->instructions()) {
-      for (auto action : allocations.BeforeActionOf(instr)) {
-        ostream << "* " << PrintWithAllocation(allocations, action)
+      for (auto action : assignments.BeforeActionOf(instr)) {
+        ostream << "* " << PrintWithAllocation(assignments, action)
                 << std::endl;
       }
-      ostream << "  " << PrintWithAllocation(allocations, instr) << std::endl;
+      ostream << "  " << PrintWithAllocation(assignments, instr) << std::endl;
     }
   }
   return ostream.str();

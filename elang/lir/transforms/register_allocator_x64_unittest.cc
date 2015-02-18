@@ -9,8 +9,8 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/lowering_x64.h"
 #include "elang/lir/transforms/prepare_phi_inversion.h"
-#include "elang/lir/transforms/register_allocation.h"
 #include "elang/lir/transforms/register_allocator.h"
+#include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/target.h"
@@ -45,10 +45,10 @@ TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
       factory()->NewIntValue(ValueSize::Size64, 56)));
   EXPECT_EQ("", Commit(&editor));
 
-  RegisterAllocation allocations;
+  RegisterAssignments assignments;
   RegisterUsageTracker usage_tracker(&editor);
   StackAllocator stack_allocator(8);
-  RegisterAllocator allocator(&editor, &allocations, editor.AnalyzeLiveness(),
+  RegisterAllocator allocator(&editor, &assignments, editor.AnalyzeLiveness(),
                               usage_tracker, &stack_allocator);
   allocator.Run();
 

@@ -20,8 +20,8 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/transforms/parallel_copy_expander.h"
-#include "elang/lir/transforms/register_allocation.h"
 #include "elang/lir/transforms/register_allocation_tracker.h"
+#include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/value.h"
@@ -111,7 +111,7 @@ bool IsLeafFunction(const Function* function) {
 //
 RegisterAllocator::RegisterAllocator(
     const Editor* editor,
-    RegisterAllocation* register_allocation,
+    RegisterAssignments* register_allocation,
     const LivenessCollection<BasicBlock*, Value>& liveness,
     const RegisterUsageTracker& usage_tracker,
     StackAllocator* stack_allocator)

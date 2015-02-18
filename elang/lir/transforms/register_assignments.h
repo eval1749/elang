@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_H_
-#define ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_H_
+#ifndef ELANG_LIR_TRANSFORMS_REGISTER_ASSIGNMENTS_H_
+#define ELANG_LIR_TRANSFORMS_REGISTER_ASSIGNMENTS_H_
 
 #include <algorithm>
 #include <utility>
@@ -45,9 +45,9 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// RegisterAllocation
+// RegisterAssignments
 //
-class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
+class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
  public:
   struct Actions : ZoneAllocated {
     ZoneVector<Instruction*> actions;
@@ -55,8 +55,8 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
     explicit Actions(Zone* zone);
   };
 
-  RegisterAllocation();
-  ~RegisterAllocation();
+  RegisterAssignments();
+  ~RegisterAssignments();
 
   // Returns allocated value for |value| after last instruction.
   Value AllocationOf(BasicBlock* block, Value value) const;
@@ -85,10 +85,10 @@ class ELANG_LIR_EXPORT RegisterAllocation final : public ZoneOwner {
   // Map virtual register to stack location.
   ZoneUnorderedMap<Value, Value> stack_slot_map_;
 
-  DISALLOW_COPY_AND_ASSIGN(RegisterAllocation);
+  DISALLOW_COPY_AND_ASSIGN(RegisterAssignments);
 };
 
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_H_
+#endif  // ELANG_LIR_TRANSFORMS_REGISTER_ASSIGNMENTS_H_

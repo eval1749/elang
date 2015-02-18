@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/lir/transforms/register_allocation.h"
+#include "elang/lir/transforms/register_assignments.h"
 
 #include "base/logging.h"
 #include "elang/lir/value.h"
@@ -12,16 +12,16 @@ namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// RegisterAllocation::Actions
+// RegisterAssignments::Actions
 //
-RegisterAllocation::Actions::Actions(Zone* zone) : actions(zone) {
+RegisterAssignments::Actions::Actions(Zone* zone) : actions(zone) {
 }
 
 //////////////////////////////////////////////////////////////////////
 //
-// RegisterAllocation
+// RegisterAssignments
 //
-RegisterAllocation::RegisterAllocation()
+RegisterAssignments::RegisterAssignments()
     : block_value_map_(zone()),
       before_action_map_(zone()),
       empty_actions_(zone()),
@@ -29,10 +29,10 @@ RegisterAllocation::RegisterAllocation()
       stack_slot_map_(zone()) {
 }
 
-RegisterAllocation::~RegisterAllocation() {
+RegisterAssignments::~RegisterAssignments() {
 }
 
-Value RegisterAllocation::AllocationOf(BasicBlock* block, Value value) const {
+Value RegisterAssignments::AllocationOf(BasicBlock* block, Value value) const {
   if (!value.is_virtual())
     return value;
   auto const it = block_value_map_.find(std::make_pair(block, value));
@@ -40,7 +40,7 @@ Value RegisterAllocation::AllocationOf(BasicBlock* block, Value value) const {
   return it->second;
 }
 
-Value RegisterAllocation::AllocationOf(Instruction* instr, Value value) const {
+Value RegisterAssignments::AllocationOf(Instruction* instr, Value value) const {
   if (!value.is_virtual())
     return value;
   auto const it = instruction_value_map_.find(std::make_pair(instr, value));
@@ -48,13 +48,13 @@ Value RegisterAllocation::AllocationOf(Instruction* instr, Value value) const {
   return it->second;
 }
 
-const ZoneVector<Instruction*>& RegisterAllocation::BeforeActionOf(
+const ZoneVector<Instruction*>& RegisterAssignments::BeforeActionOf(
     Instruction* instr) const {
   auto const it = before_action_map_.find(instr);
   return it == before_action_map_.end() ? empty_actions_ : it->second->actions;
 }
 
-void RegisterAllocation::InsertBefore(Instruction* new_instr,
+void RegisterAssignments::InsertBefore(Instruction* new_instr,
                                       Instruction* ref_instr) {
   auto const it = before_action_map_.find(ref_instr);
   if (it == before_action_map_.end()) {
@@ -66,7 +66,7 @@ void RegisterAllocation::InsertBefore(Instruction* new_instr,
   it->second->actions.push_back(new_instr);
 }
 
-void RegisterAllocation::SetAllocation(Instruction* instr,
+void RegisterAssignments::SetAllocation(Instruction* instr,
                                        Value vreg,
                                        Value allocation) {
   DCHECK(vreg.is_virtual());
@@ -74,7 +74,7 @@ void RegisterAllocation::SetAllocation(Instruction* instr,
   instruction_value_map_[std::make_pair(instr, vreg)] = allocation;
 }
 
-void RegisterAllocation::SetPhysical(BasicBlock* block,
+void RegisterAssignments::SetPhysical(BasicBlock* block,
                                      Value vreg,
                                      Value physical) {
   DCHECK(vreg.is_virtual());
@@ -82,7 +82,7 @@ void RegisterAllocation::SetPhysical(BasicBlock* block,
   block_value_map_[std::make_pair(block, vreg)] = physical;
 }
 
-void RegisterAllocation::SetStackSlot(Value vreg, Value stack_slot) {
+void RegisterAssignments::SetStackSlot(Value vreg, Value stack_slot) {
   DCHECK(vreg.is_virtual());
   DCHECK(stack_slot.is_stack_slot());
   DCHECK(!stack_slot_map_.count(vreg));

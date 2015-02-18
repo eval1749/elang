@@ -29,7 +29,7 @@ class Factory;
 class Function;
 class Instruction;
 class LocalAllocation;
-class RegisterAllocation;
+class RegisterAssignments;
 class RegisterAllocationTracker;
 class RegisterUsageTracker;
 class StackAllocator;
@@ -44,7 +44,7 @@ struct Value;
 //    register or stack location.
 //  - mapping of instruction to instructions for spilling, reloading and
 //    saving callee saved registers.
-//  and store them in |RegisterAllocation| instance via
+//  and store them in |RegisterAssignments| instance via
 //  |RegisterAllocationTracker|.
 //
 // Prerequisite:
@@ -54,7 +54,7 @@ struct Value;
 class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
  public:
   RegisterAllocator(const Editor* editor,
-                    RegisterAllocation* register_allocation,
+                    RegisterAssignments* register_allocation,
                     const LivenessCollection<BasicBlock*, Value>& liveness,
                     const RegisterUsageTracker& usage_tracker,
                     StackAllocator* stack_allocator);
