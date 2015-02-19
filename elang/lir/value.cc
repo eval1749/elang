@@ -66,6 +66,10 @@ Value Value::SmallInt32(int data) {
   return Immediate(ValueSize::Size32, data);
 }
 
+Value Value::SpillSlot(Value type, int data) {
+  return Value(type.type, type.size, Kind::SpillSlot, data);
+}
+
 Value Value::StackSlot(Value type, int data) {
   return Value(type.type, type.size, Kind::StackSlot, data);
 }
@@ -80,6 +84,7 @@ bool Value::is_output() const {
     case Kind::Condition:
     case Kind::Parameter:
     case Kind::PhysicalRegister:
+    case Kind::SpillSlot:
     case Kind::StackSlot:
     case Kind::VirtualRegister:
       return true;

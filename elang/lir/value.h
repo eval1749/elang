@@ -33,7 +33,7 @@ enum class ValueSize : uint32_t {
   V(Condition) /* output of equality and relational instructions. */ \
   V(Argument)                                                        \
   V(StackSlot) /* stack location for spilled registers */            \
-  V(NotUsed9)                                                        \
+  V(SpillSlot)                                                       \
   V(NotUsed10)                                                       \
   V(NotUsed11)                                                       \
   V(NotUsed12)                                                       \
@@ -93,6 +93,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_parameter() const { return kind == Kind::Parameter; }
   bool is_physical() const { return kind == Kind::PhysicalRegister; }
   bool is_read_only() const { return is_immediate() || is_literal(); }
+  bool is_spill_slot() const { return kind == Kind::SpillSlot; }
   bool is_stack_slot() const { return kind == Kind::StackSlot; }
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
   bool is_void() const { return kind == Kind::Void; }
@@ -117,6 +118,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Int64Type();
   static Value Parameter(Type type, ValueSize size, int data);
   static Value Register(ValueSize size, int data);
+  static Value SpillSlot(Value type, int data);
   static Value StackSlot(Value type, int data);
   static Value SmallInt32(int data);
   static Value True();

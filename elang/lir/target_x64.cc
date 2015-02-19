@@ -154,6 +154,8 @@ std::ostream& operator<<(std::ostream& ostream,
       }
       NOTREACHED() << value.size;
       return ostream << "NOTREACHED(" << value.data << ")";
+    case Value::Kind::SpillSlot:
+      return ostream << "%spill[" << value.data << "]";
     case Value::Kind::StackSlot:
       return ostream << "%stack[" << value.data << "]";
     case Value::Kind::Void:

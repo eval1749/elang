@@ -18,6 +18,11 @@ base::StringPiece SizeSuffixOf(Value value) {
   static const char* const suffixes[] = {"b", "w", "", "l"};
   return suffixes[static_cast<int>(value.size)];
 }
+
+base::StringPiece TypeStringOf(Value value) {
+  static const char* const types[] = {"i", "f"};
+  return types[static_cast<int>(value.type)];
+}
 }  // namespace
 
 GenericPrintableInstruction PrintAsGeneric(const Instruction* instruction) {
@@ -52,6 +57,9 @@ std::ostream& operator<<(std::ostream& ostream,
       break;
     case Value::Kind::PhysicalRegister:
       ostream << (value.type == Value::Type::Float ? "f" : "r") << value.data;
+      break;
+    case Value::Kind::SpillSlot:
+      ostream << "$" << TypeStringOf(value) << value.data;
       break;
     case Value::Kind::StackSlot:
       ostream << "sp[" << value.data << "]";
