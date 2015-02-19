@@ -6,6 +6,7 @@
 #define ELANG_LIR_TRANSFORMS_REGISTER_ASSIGNMENTS_H_
 
 #include <algorithm>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -55,6 +56,36 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
     explicit Actions(Zone* zone);
   };
 
+  class ELANG_LIR_EXPORT Editor {
+   public:
+    explicit Editor(RegisterAssignments* assignments);
+    ~Editor();
+
+    const ZoneUnorderedMap<Value, Value>& stack_slot_map() const;
+    Zone* zone() const;
+
+    Value AllocationOf(BasicBlock* block, Value value) const;
+
+    // Returns allocated value for |value| at |instr|.
+    Value AllocationOf(Instruction* instr, Value value) const;
+
+    // Inserts |new_instr| before |ref_instr|.
+    void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
+
+    void SetAllocation(Instruction* instr, Value vreg, Value allocation);
+    void SetPhysical(BasicBlock* block, Value vreg, Value physical);
+    void SetStackSlot(Value vreg, Value stack_slot);
+
+    Value StackSlotFor(Value vreg) const;
+    void UpdateStackSlots(
+        const std::unordered_map<Value, Value>& new_assignments);
+
+   private:
+    RegisterAssignments* const assignments_;
+
+    DISALLOW_COPY_AND_ASSIGN(Editor);
+  };
+
   RegisterAssignments();
   ~RegisterAssignments();
 
@@ -68,15 +99,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
   const ZoneVector<Instruction*>& BeforeActionOf(Instruction* instr) const;
 
  private:
-  friend class RegisterAllocationTracker;
-  friend class StackAssigner;
-
-  // Inserts |new_instr| before |ref_instr|.
-  void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
-
-  void SetAllocation(Instruction* instr, Value vreg, Value allocation);
-  void SetPhysical(BasicBlock* block, Value vreg, Value physical);
-  void SetStackSlot(Value vreg, Value stack_slot);
+  Value StackSlotFor(Value vreg) const;
 
   ZoneUnorderedMap<BasicBlockValue, Value> block_value_map_;
   ZoneUnorderedMap<Instruction*, Actions*> before_action_map_;

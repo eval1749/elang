@@ -11,6 +11,7 @@
 #include "base/macros.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/lir/lir_export.h"
+#include "elang/lir/transforms/register_assignments.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -62,7 +63,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
 
  private:
   // Result of register allocation.
-  RegisterAssignments* const allocations_;
+  RegisterAssignments::Editor assignments_;
 
   // Map virtual register to physical register.
   std::unordered_map<Value, Value> physical_map_;

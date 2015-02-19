@@ -19,6 +19,89 @@ RegisterAssignments::Actions::Actions(Zone* zone) : actions(zone) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// RegisterAssignments::Editor
+//
+RegisterAssignments::Editor::Editor(RegisterAssignments* assignments)
+    : assignments_(assignments) {
+}
+
+RegisterAssignments::Editor::~Editor() {
+}
+
+const ZoneUnorderedMap<Value, Value>&
+RegisterAssignments::Editor::stack_slot_map() const {
+  return assignments_->stack_slot_map_;
+}
+
+Zone* RegisterAssignments::Editor::zone() const {
+  return assignments_->zone();
+}
+
+Value RegisterAssignments::Editor::AllocationOf(BasicBlock* block,
+                                                Value value) const {
+  return assignments_->AllocationOf(block, value);
+}
+
+Value RegisterAssignments::Editor::AllocationOf(Instruction* instr,
+                                                Value value) const {
+  return assignments_->AllocationOf(instr, value);
+}
+
+void RegisterAssignments::Editor::InsertBefore(Instruction* new_instr,
+                                               Instruction* ref_instr) {
+  auto const it = assignments_->before_action_map_.find(ref_instr);
+  if (it == assignments_->before_action_map_.end()) {
+    auto const actions = new (zone()) Actions(zone());
+    actions->actions.push_back(new_instr);
+    assignments_->before_action_map_[ref_instr] = actions;
+    return;
+  }
+  it->second->actions.push_back(new_instr);
+}
+
+void RegisterAssignments::Editor::SetAllocation(Instruction* instr,
+                                                Value vreg,
+                                                Value allocation) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(allocation.is_physical() || allocation.is_stack_slot());
+  assignments_->instruction_value_map_[std::make_pair(instr, vreg)] =
+      allocation;
+}
+
+void RegisterAssignments::Editor::SetPhysical(BasicBlock* block,
+                                              Value vreg,
+                                              Value physical) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(physical.is_physical());
+  assignments_->block_value_map_[std::make_pair(block, vreg)] = physical;
+}
+
+void RegisterAssignments::Editor::SetStackSlot(Value vreg, Value stack_slot) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(stack_slot.is_stack_slot());
+  DCHECK(!assignments_->stack_slot_map_.count(vreg));
+  assignments_->stack_slot_map_[vreg] = stack_slot;
+}
+
+Value RegisterAssignments::Editor::StackSlotFor(Value vreg) const {
+  DCHECK(vreg.is_virtual());
+  return assignments_->StackSlotFor(vreg);
+}
+
+void RegisterAssignments::Editor::UpdateStackSlots(
+    const std::unordered_map<Value, Value>& new_assignments) {
+  DCHECK_EQ(assignments_->stack_slot_map_.size(), new_assignments.size());
+#ifndef _NDEBUG
+  for (auto const pair : new_assignments)
+    DCHECK(assignments_->stack_slot_map_.count(pair.first));
+#endif
+  assignments_->stack_slot_map_.clear();
+  assignments_->stack_slot_map_.insert(new_assignments.begin(),
+                                       new_assignments.end());
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // RegisterAssignments
 //
 RegisterAssignments::RegisterAssignments()
@@ -54,39 +137,10 @@ const ZoneVector<Instruction*>& RegisterAssignments::BeforeActionOf(
   return it == before_action_map_.end() ? empty_actions_ : it->second->actions;
 }
 
-void RegisterAssignments::InsertBefore(Instruction* new_instr,
-                                      Instruction* ref_instr) {
-  auto const it = before_action_map_.find(ref_instr);
-  if (it == before_action_map_.end()) {
-    auto const actions = new (zone()) Actions(zone());
-    actions->actions.push_back(new_instr);
-    before_action_map_[ref_instr] = actions;
-    return;
-  }
-  it->second->actions.push_back(new_instr);
-}
-
-void RegisterAssignments::SetAllocation(Instruction* instr,
-                                       Value vreg,
-                                       Value allocation) {
+Value RegisterAssignments::StackSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  DCHECK(allocation.is_physical() || allocation.is_stack_slot());
-  instruction_value_map_[std::make_pair(instr, vreg)] = allocation;
-}
-
-void RegisterAssignments::SetPhysical(BasicBlock* block,
-                                     Value vreg,
-                                     Value physical) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(physical.is_physical());
-  block_value_map_[std::make_pair(block, vreg)] = physical;
-}
-
-void RegisterAssignments::SetStackSlot(Value vreg, Value stack_slot) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(stack_slot.is_stack_slot());
-  DCHECK(!stack_slot_map_.count(vreg));
-  stack_slot_map_[vreg] = stack_slot;
+  auto const it = stack_slot_map_.find(vreg);
+  return it == stack_slot_map_.end() ? Value() : it->second;
 }
 
 }  // namespace lir

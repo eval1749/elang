@@ -8,6 +8,7 @@
 #include "base/macros.h"
 #include "elang/lir/factory_user.h"
 #include "elang/lir/lir_export.h"
+#include "elang/lir/transforms/register_assignments.h"
 
 namespace elang {
 namespace lir {
@@ -32,8 +33,8 @@ class ELANG_LIR_EXPORT StackAssigner final : public FactoryUser {
   void RunForLeafFunction();
   void RunForNonLeafFunction();
 
-  StackAssignments* const assignments_;
-  RegisterAssignments* const register_assignments_;
+  RegisterAssignments::Editor register_assignments_;
+  StackAssignments* const stack_assignments_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssigner);
 };

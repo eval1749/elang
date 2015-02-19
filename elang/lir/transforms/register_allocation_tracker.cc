@@ -30,8 +30,8 @@ bool EqualsIgnoringSize(Value physical1, Value physical2) {
 // RegisterAllocationTracker
 //
 RegisterAllocationTracker::RegisterAllocationTracker(
-    RegisterAssignments* allocations_map)
-    : allocations_(allocations_map) {
+    RegisterAssignments* assignments)
+    : assignments_(assignments) {
 }
 
 RegisterAllocationTracker::~RegisterAllocationTracker() {
@@ -44,7 +44,7 @@ RegisterAllocationTracker::physical_map() const {
 
 Value RegisterAllocationTracker::AllocationOf(BasicBlock* block,
                                               Value value) const {
-  return allocations_->AllocationOf(block, value);
+  return assignments_.AllocationOf(block, value);
 }
 
 Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
@@ -60,7 +60,7 @@ void RegisterAllocationTracker::EndBlock(BasicBlock* block) {
     auto const physical = pair.second;
     if (!physical.is_physical())
       continue;
-    allocations_->SetPhysical(block, pair.first, physical);
+    assignments_.SetPhysical(block, pair.first, physical);
   }
 }
 
@@ -81,15 +81,11 @@ void RegisterAllocationTracker::FreeVirtual(Value vreg) {
   auto const physical_it = physical_map_.find(vreg);
   if (physical_it != physical_map_.end())
     physical_map_.erase(physical_it);
-
-  auto const stack_slot_it = allocations_->stack_slot_map_.find(vreg);
-  if (stack_slot_it != allocations_->stack_slot_map_.end())
-    allocations_->stack_slot_map_.erase(stack_slot_it);
 }
 
 void RegisterAllocationTracker::InsertBefore(Instruction* new_instr,
                                              Instruction* ref_instr) {
-  allocations_->InsertBefore(new_instr, ref_instr);
+  assignments_.InsertBefore(new_instr, ref_instr);
 }
 
 Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
@@ -100,8 +96,7 @@ Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
 
 Value RegisterAllocationTracker::StackSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = allocations_->stack_slot_map_.find(vreg);
-  return it == allocations_->stack_slot_map_.end() ? Value() : it->second;
+  return assignments_.StackSlotFor(vreg);
 }
 
 void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
@@ -115,7 +110,7 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
   DCHECK(vreg.is_virtual());
   DCHECK_EQ(vreg.type, allocation.type);
   DCHECK_EQ(vreg.size, allocation.size);
-  allocations_->SetAllocation(instr, vreg, allocation);
+  assignments_.SetAllocation(instr, vreg, allocation);
   if (allocation.is_physical()) {
     DCHECK_EQ(PhysicalFor(vreg), allocation);
     return;
@@ -134,7 +129,7 @@ void RegisterAllocationTracker::SetPhysical(BasicBlock* block,
   DCHECK(physical.is_physical());
   DCHECK_EQ(vreg.type, physical.type);
   DCHECK_EQ(vreg.size, physical.size);
-  allocations_->SetPhysical(block, vreg, physical);
+  assignments_.SetPhysical(block, vreg, physical);
 }
 
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
@@ -150,8 +145,7 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
 void RegisterAllocationTracker::TrackStackSlot(Value vreg, Value stack_slot) {
   DCHECK(vreg.is_virtual());
   DCHECK(stack_slot.is_stack_slot());
-  DCHECK(!allocations_->stack_slot_map_.count(stack_slot));
-  allocations_->stack_slot_map_[vreg] = stack_slot;
+  DCHECK_EQ(StackSlotFor(vreg), stack_slot);
 }
 
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,

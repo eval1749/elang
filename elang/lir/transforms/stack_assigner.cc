@@ -13,10 +13,10 @@ namespace lir {
 //
 StackAssigner::StackAssigner(Factory* factory,
                              RegisterAssignments* register_assignments,
-                             StackAssignments* assignments)
+                             StackAssignments* stack_assignments)
     : FactoryUser(factory),
-      assignments_(assignments),
-      register_assignments_(register_assignments) {
+      register_assignments_(register_assignments),
+      stack_assignments_(stack_assignments) {
 }
 
 StackAssigner::~StackAssigner() {

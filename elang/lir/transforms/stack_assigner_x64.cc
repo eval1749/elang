@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_map>
+
 #include "elang/lir/transforms/stack_assigner.h"
 
 #include "elang/lir/factory.h"
@@ -40,7 +42,7 @@ int StackOffset(int offset, int return_offset) {
 }  // namespace
 
 void StackAssigner::Run() {
-  if (!assignments_->number_of_calls()) {
+  if (!stack_assignments_->number_of_calls()) {
     RunForLeafFunction();
     return;
   }
@@ -72,40 +74,42 @@ void StackAssigner::Run() {
 void StackAssigner::RunForLeafFunction() {
   auto const kAlignment = 8;
   auto const using_size =
-    assignments_->maximum_size() +
-    static_cast<int>(assignments_->preserving_registers().size()) * kAlignment;
-  auto const pre_allocated_size = assignments_->number_of_parameters();
+      stack_assignments_->maximum_size() +
+      static_cast<int>(stack_assignments_->preserving_registers().size()) *
+          kAlignment;
+  auto const pre_allocated_size = stack_assignments_->number_of_parameters();
   auto const size = pre_allocated_size > using_size
-      ? 0 : RoundUp(using_size - pre_allocated_size, kAlignment);
+                        ? 0
+                        : RoundUp(using_size - pre_allocated_size, kAlignment);
   if (size) {
-    assignments_->prologue_instructions_.push_back(
+    stack_assignments_->prologue_instructions_.push_back(
         factory()->NewSubInstruction(
-            Target::GetRegister(isa::RSP),
-            Target::GetRegister(isa::RSP),
+            Target::GetRegister(isa::RSP), Target::GetRegister(isa::RSP),
             Value::Immediate(ValueSize::Size64, size)));
-    assignments_->epilogue_instructions_.push_back(
+    stack_assignments_->epilogue_instructions_.push_back(
         factory()->NewAddInstruction(
-            Target::GetRegister(isa::RSP),
-            Target::GetRegister(isa::RSP),
+            Target::GetRegister(isa::RSP), Target::GetRegister(isa::RSP),
             Value::Immediate(ValueSize::Size64, size)));
   }
 
   auto const return_offset = size;
   auto offset = 0;
-  for (auto& pair : register_assignments_->stack_slot_map_) {
+  std::unordered_map<Value, Value> new_assignments;
+  for (auto pair : register_assignments_.stack_slot_map()) {
     auto const stack_slot = pair.second;
-    pair.second = Value::Value(stack_slot.type, stack_slot.size,
-                               Value::Kind::StackSlot,
-                               StackOffset(stack_slot.data, return_offset));
+    new_assignments[pair.first] =
+        Value::Value(stack_slot.type, stack_slot.size, Value::Kind::StackSlot,
+                     StackOffset(stack_slot.data, return_offset));
     offset += kAlignment;
   }
+  register_assignments_.UpdateStackSlots(new_assignments);
 
-  for (auto const physical : assignments_->preserving_registers()) {
+  for (auto const physical : stack_assignments_->preserving_registers()) {
     auto const slot_offset = StackOffset(offset, return_offset);
-    auto const stack_slot = Value::Value(
-        physical.type, physical.size, Value::Kind::StackSlot,
-        StackOffset(slot_offset, return_offset));
-    assignments_->prologue_instructions_.push_back(
+    auto const stack_slot =
+        Value::Value(physical.type, physical.size, Value::Kind::StackSlot,
+                     StackOffset(slot_offset, return_offset));
+    stack_assignments_->prologue_instructions_.push_back(
         factory()->NewCopyInstruction(stack_slot, physical));
     offset += kAlignment;
   }
