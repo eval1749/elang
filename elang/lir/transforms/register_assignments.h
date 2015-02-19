@@ -98,9 +98,11 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
   // Returns |actions| executed before |instr|.
   const ZoneVector<Instruction*>& BeforeActionOf(Instruction* instr) const;
 
- private:
+  // Returns stack slot for |vreg| if |vreg| has spill slot or void if |vreg|
+  // doesn't have spill slot.
   Value StackSlotFor(Value vreg) const;
 
+ private:
   ZoneUnorderedMap<BasicBlockValue, Value> block_value_map_;
   ZoneUnorderedMap<Instruction*, Actions*> before_action_map_;
   ZoneVector<Instruction*> empty_actions_;

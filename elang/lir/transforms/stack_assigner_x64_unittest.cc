@@ -2,12 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <array>
+
 #include "elang/lir/testing/lir_test.h"
 
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/register_assignments.h"
+#include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assigner.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/target.h"
@@ -35,6 +38,31 @@ TEST_F(LirStackAssignerX64Test, Empty) {
   StackAssigner stack_assigner(factory(), &register_assignments,
                                &stack_assignments);
   stack_assigner.Run();
+}
+
+TEST_F(LirStackAssignerX64Test, LeafFunction) {
+  RegisterAssignments register_assignments;
+  StackAssignments stack_assignments;
+
+  RegisterAssignments::Editor editor(&register_assignments);
+  StackAllocator stack_allocator(&stack_assignments, 8);
+
+  std::array<Value, 5> vregs;
+  for (auto& vreg : vregs) {
+    vreg = factory()->NewRegister(ValueSize::Size64);
+    auto const slot = stack_allocator.Allocate(vreg);
+    editor.SetStackSlot(vreg, slot);
+  }
+  StackAssigner stack_assigner(factory(), &register_assignments,
+                               &stack_assignments);
+  stack_assigner.Run();
+  auto offset = 0;
+  for (auto vreg : vregs) {
+    EXPECT_EQ(Value::StackSlot(vreg, offset),
+              register_assignments.StackSlotFor(vreg))
+        << " stack slot for " << vreg;
+    offset += Value::ByteSize(vreg.size);
+  }
 }
 
 }  // namespace lir

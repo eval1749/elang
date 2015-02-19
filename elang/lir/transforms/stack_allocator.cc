@@ -56,6 +56,7 @@ int StackAllocator::Allocate(int size) {
   auto const offset = current_size();
   uses_.resize(offset + RoundUp(size, alignment_));
   std::fill(uses_.begin() + offset, uses_.begin() + offset + size, true);
+  assignments_->maximum_size_ = current_size();
   return offset;
 }
 

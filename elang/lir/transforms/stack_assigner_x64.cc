@@ -93,17 +93,16 @@ void StackAssigner::RunForLeafFunction() {
   }
 
   auto const return_offset = size;
-  auto offset = 0;
   std::unordered_map<Value, Value> new_assignments;
   for (auto pair : register_assignments_.stack_slot_map()) {
     auto const stack_slot = pair.second;
     new_assignments[pair.first] =
         Value::Value(stack_slot.type, stack_slot.size, Value::Kind::StackSlot,
                      StackOffset(stack_slot.data, return_offset));
-    offset += kAlignment;
   }
   register_assignments_.UpdateStackSlots(new_assignments);
 
+  auto offset = StackOffset(using_size, return_offset);
   for (auto const physical : stack_assignments_->preserving_registers()) {
     auto const slot_offset = StackOffset(offset, return_offset);
     auto const stack_slot =
