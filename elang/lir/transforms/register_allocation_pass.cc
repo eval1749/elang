@@ -53,7 +53,7 @@ void RegisterAssignmentsPass::RunOnFunction() {
     RegisterUsageTracker usage_tracker(editor());
     RegisterAllocator allocator(editor(), register_assignments_.get(),
                                 stack_assignments_.get(),
-                                editor()->AnalyzeLiveness(), usage_tracker);
+                                usage_tracker);
     allocator.Run();
   }
 

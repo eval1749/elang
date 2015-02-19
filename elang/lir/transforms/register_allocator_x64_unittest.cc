@@ -50,7 +50,7 @@ TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
   RegisterUsageTracker usage_tracker(&editor);
   StackAssignments stack_assignments;
   RegisterAllocator allocator(&editor, &assignments, &stack_assignments,
-                              editor.AnalyzeLiveness(), usage_tracker);
+                              usage_tracker);
   allocator.Run();
 
   EXPECT_EQ(2, stack_assignments.maximum_argc());

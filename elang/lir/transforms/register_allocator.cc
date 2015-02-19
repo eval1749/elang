@@ -113,12 +113,11 @@ RegisterAllocator::RegisterAllocator(
     const Editor* editor,
     RegisterAssignments* register_assignments,
     StackAssignments* stack_assignments,
-    const LivenessCollection<BasicBlock*, Value>& liveness,
     const RegisterUsageTracker& usage_tracker)
     : allocation_tracker_(new RegisterAllocationTracker(register_assignments)),
       editor_(editor),
       dominator_tree_(editor->BuildDominatorTree()),
-      liveness_(liveness),
+      liveness_(editor->AnalyzeLiveness()),
       stack_allocator_(new StackAllocator(stack_assignments,
                                           Target::PointerSizeInByte())),
       usage_tracker_(usage_tracker) {

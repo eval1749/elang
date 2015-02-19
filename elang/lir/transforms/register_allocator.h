@@ -57,7 +57,6 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   RegisterAllocator(const Editor* editor,
                     RegisterAssignments* register_assignments,
                     StackAssignments* stack_assignments,
-                    const LivenessCollection<BasicBlock*, Value>& liveness,
                     const RegisterUsageTracker& usage_tracker);
   ~RegisterAllocator();
 
