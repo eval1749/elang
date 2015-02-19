@@ -143,6 +143,7 @@ source_set("lir_unittests") {
       "transforms/lowering_x64_pass_unittest.cc",
       "transforms/parallel_copy_expander_unittest.cc",
       "transforms/register_allocator_x64_unittest.cc",
+      "transforms/stack_assigner_x64_unittest.cc",
     ]
   }
 }
