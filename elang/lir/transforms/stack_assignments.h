@@ -26,12 +26,18 @@ class ELANG_LIR_EXPORT StackAssignments final {
   StackAssignments();
   ~StackAssignments();
 
+  const std::vector<Instruction*> epilogue() const {
+    return epilogue_instructions_;
+  }
   int maximum_argc() const { return maximum_argc_; }
   int maximum_size() const { return maximum_size_; }
   int number_of_calls() const { return number_of_calls_; }
   int number_of_parameters() const { return number_of_parameters_; }
   const std::vector<Value>& preserving_registers() const {
     return preserving_registers_;
+  }
+  const std::vector<Instruction*> prologue() const {
+    return prologue_instructions_;
   }
 
   Value StackSlotOf(Value spill_slot) const;
