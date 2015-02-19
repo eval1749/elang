@@ -111,15 +111,16 @@ bool IsLeafFunction(const Function* function) {
 //
 RegisterAllocator::RegisterAllocator(
     const Editor* editor,
-    RegisterAssignments* register_allocation,
+    RegisterAssignments* register_assignments,
+    StackAssignments* stack_assignments,
     const LivenessCollection<BasicBlock*, Value>& liveness,
-    const RegisterUsageTracker& usage_tracker,
-    StackAllocator* stack_allocator)
-    : allocation_tracker_(new RegisterAllocationTracker(register_allocation)),
+    const RegisterUsageTracker& usage_tracker)
+    : allocation_tracker_(new RegisterAllocationTracker(register_assignments)),
       editor_(editor),
       dominator_tree_(editor->BuildDominatorTree()),
       liveness_(liveness),
-      stack_allocator_(stack_allocator),
+      stack_allocator_(new StackAllocator(stack_assignments,
+                                          Target::PointerSizeInByte())),
       usage_tracker_(usage_tracker) {
   SortAllocatableRegisters();
 }

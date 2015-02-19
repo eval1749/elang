@@ -51,11 +51,9 @@ Value RegisterAssignmentsPass::AssignmentOf(Instruction* instr,
 void RegisterAssignmentsPass::RunOnFunction() {
   {
     RegisterUsageTracker usage_tracker(editor());
-    StackAllocator stack_allocator(stack_assignments_.get(),
-                                   Target::PointerSizeInByte());
     RegisterAllocator allocator(editor(), register_assignments_.get(),
-                                editor()->AnalyzeLiveness(), usage_tracker,
-                                &stack_allocator);
+                                stack_assignments_.get(),
+                                editor()->AnalyzeLiveness(), usage_tracker);
     allocator.Run();
   }
 

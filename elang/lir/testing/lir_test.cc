@@ -128,9 +128,8 @@ std::string LirTest::Allocate(Function* function) {
   RegisterAssignments assignments;
   StackAssignments stack_assignments;
   RegisterUsageTracker usage_tracker(&editor);
-  StackAllocator stack_allocator(&stack_assignments, 8);
-  RegisterAllocator allocator(&editor, &assignments, editor.AnalyzeLiveness(),
-                              usage_tracker, &stack_allocator);
+  RegisterAllocator allocator(&editor, &assignments, &stack_assignments,
+                              editor.AnalyzeLiveness(), usage_tracker);
   allocator.Run();
 
   std::stringstream ostream;

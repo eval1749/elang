@@ -33,6 +33,7 @@ class RegisterAssignments;
 class RegisterAllocationTracker;
 class RegisterUsageTracker;
 class StackAllocator;
+class StackAssignments;
 struct Value;
 
 //////////////////////////////////////////////////////////////////////
@@ -54,10 +55,10 @@ struct Value;
 class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
  public:
   RegisterAllocator(const Editor* editor,
-                    RegisterAssignments* register_allocation,
+                    RegisterAssignments* register_assignments,
+                    StackAssignments* stack_assignments,
                     const LivenessCollection<BasicBlock*, Value>& liveness,
-                    const RegisterUsageTracker& usage_tracker,
-                    StackAllocator* stack_allocator);
+                    const RegisterUsageTracker& usage_tracker);
   ~RegisterAllocator();
 
   // The entry point
@@ -136,7 +137,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Local allocation map
   LocalAllocation* local_map_;
   const LivenessCollection<BasicBlock*, Value>& liveness_;
-  StackAllocator* const stack_allocator_;
+  const std::unique_ptr<StackAllocator> stack_allocator_;
 
   const RegisterUsageTracker& usage_tracker_;
 
