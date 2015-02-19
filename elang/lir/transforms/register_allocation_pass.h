@@ -5,7 +5,7 @@
 #ifndef ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_PASS_H_
 #define ELANG_LIR_TRANSFORMS_REGISTER_ALLOCATION_PASS_H_
 
-#include <vector>
+#include <memory>
 
 #include "base/macros.h"
 #include "elang/lir/pass.h"
@@ -14,6 +14,7 @@ namespace elang {
 namespace lir {
 
 class RegisterAssignments;
+class StackAssignments;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -28,11 +29,14 @@ class ELANG_LIR_EXPORT RegisterAssignmentsPass final : public FunctionPass {
   // Pass
   base::StringPiece name() const final;
 
+  Value AssignmentOf(Instruction* instr, Value operand) const;
   // Function
   void RunOnFunction() final;
 
-  void ProcessInstruction(const RegisterAssignments& allocations,
-                          Instruction* instr);
+  void ProcessInstruction(Instruction* instr);
+
+  std::unique_ptr<RegisterAssignments> register_assignments_;
+  std::unique_ptr<StackAssignments> stack_assignments_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAssignmentsPass);
 };

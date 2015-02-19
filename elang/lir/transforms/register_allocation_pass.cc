@@ -23,7 +23,9 @@ namespace lir {
 // RegisterAssignmentsPass
 //
 RegisterAssignmentsPass::RegisterAssignmentsPass(Editor* editor)
-    : FunctionPass(editor) {
+    : FunctionPass(editor),
+      register_assignments_(new RegisterAssignments()),
+      stack_assignments_(new StackAssignments()) {
 }
 
 RegisterAssignmentsPass::~RegisterAssignmentsPass() {
@@ -33,47 +35,74 @@ base::StringPiece RegisterAssignmentsPass::name() const {
   return "register_allocation";
 }
 
+Value RegisterAssignmentsPass::AssignmentOf(Instruction* instr,
+                                            Value operand) const {
+  if (!operand.is_virtual())
+    return operand;
+  auto const assignment = register_assignments_->AllocationOf(instr, operand);
+  if (assignment.is_physical())
+    return assignment;
+  if (assignment.is_spill_slot())
+    return stack_assignments_->StackSlotOf(operand);
+  NOTREACHED() << "unexpected assignment for " << operand << " " << assignment;
+  return Value();
+}
+
 void RegisterAssignmentsPass::RunOnFunction() {
-  RegisterAssignments register_assignments;
-  RegisterUsageTracker usage_tracker(editor());
-  StackAssignments stack_assignments;
-  StackAllocator stack_allocator(&stack_assignments,
-                                 Target::PointerSizeInByte());
-  RegisterAllocator allocator(editor(), &register_assignments,
-                              editor()->AnalyzeLiveness(), usage_tracker,
-                              &stack_allocator);
-  allocator.Run();
+  {
+    RegisterUsageTracker usage_tracker(editor());
+    StackAllocator stack_allocator(stack_assignments_.get(),
+                                   Target::PointerSizeInByte());
+    RegisterAllocator allocator(editor(), register_assignments_.get(),
+                                editor()->AnalyzeLiveness(), usage_tracker,
+                                &stack_allocator);
+    allocator.Run();
+  }
 
   {
-    StackAssigner stack_assigner(factory(), &register_assignments,
-                                 &stack_assignments);
+    StackAssigner stack_assigner(factory(), register_assignments_.get(),
+                                 stack_assignments_.get());
     stack_assigner.Run();
   }
 
+  // Insert prologue
+  {
+    auto const entry_block = editor()->entry_block();
+    auto const entry_instr = entry_block->first_instruction();
+    editor()->Edit(entry_block);
+    for (auto const instr : stack_assignments_->prologue())
+      editor()->InsertAfter(instr, entry_instr);
+    editor()->Commit();
+  }
+
   for (auto const block : function()->basic_blocks()) {
+    Editor::ScopedEdit scope(editor());
     editor()->Edit(block);
     for (auto const instr : block->instructions()) {
-      for (auto const action : register_assignments.BeforeActionOf(instr))
-        ProcessInstruction(register_assignments, action);
-      ProcessInstruction(register_assignments, instr);
+      for (auto const action : register_assignments_->BeforeActionOf(instr))
+        ProcessInstruction(action);
+      ProcessInstruction(instr);
     }
-    editor()->Commit();
+    auto const ret_instr = block->last_instruction()->as<RetInstruction>();
+    if (!ret_instr)
+      continue;
+    // Insert epilogue before 'ret' instruction.
+    for (auto const instr : stack_assignments_->epilogue())
+      editor()->InsertBefore(instr, ret_instr);
   }
 }
 
-void RegisterAssignmentsPass::ProcessInstruction(
-    const RegisterAssignments& register_assignments,
-    Instruction* instr) {
+void RegisterAssignmentsPass::ProcessInstruction(Instruction* instr) {
   auto output_position = 0;
   for (auto const output : instr->outputs()) {
-    auto const allocation = register_assignments.AllocationOf(instr, output);
-    editor()->SetOutput(instr, output_position, allocation);
+    auto const assignment = AssignmentOf(instr, output);
+    editor()->SetOutput(instr, output_position, assignment);
     ++output_position;
   }
   auto input_position = 0;
   for (auto const input : instr->inputs()) {
-    auto const allocation = register_assignments.AllocationOf(instr, input);
-    editor()->SetInput(instr, input_position, allocation);
+    auto const assignment = AssignmentOf(instr, input);
+    editor()->SetInput(instr, input_position, assignment);
     ++input_position;
   }
 }
