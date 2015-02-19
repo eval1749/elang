@@ -61,7 +61,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
     explicit Editor(RegisterAssignments* assignments);
     ~Editor();
 
-    const ZoneUnorderedMap<Value, Value>& stack_slot_map() const;
+    const ZoneUnorderedMap<Value, Value>& spill_slot_map() const;
     Zone* zone() const;
 
     Value AllocationOf(BasicBlock* block, Value value) const;
@@ -74,11 +74,8 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
 
     void SetAllocation(Instruction* instr, Value vreg, Value allocation);
     void SetPhysical(BasicBlock* block, Value vreg, Value physical);
-    void SetStackSlot(Value vreg, Value stack_slot);
-
-    Value StackSlotFor(Value vreg) const;
-    void UpdateStackSlots(
-        const std::unordered_map<Value, Value>& new_assignments);
+    void SetSpillSlot(Value vreg, Value spill_slot);
+    Value SpillSlotFor(Value vreg) const;
 
    private:
     RegisterAssignments* const assignments_;
@@ -100,7 +97,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
 
   // Returns stack slot for |vreg| if |vreg| has spill slot or void if |vreg|
   // doesn't have spill slot.
-  Value StackSlotFor(Value vreg) const;
+  Value SpillSlotFor(Value vreg) const;
 
  private:
   ZoneUnorderedMap<BasicBlockValue, Value> block_value_map_;
@@ -109,7 +106,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
   ZoneUnorderedMap<InstructionValue, Value> instruction_value_map_;
 
   // Map virtual register to stack location.
-  ZoneUnorderedMap<Value, Value> stack_slot_map_;
+  ZoneUnorderedMap<Value, Value> spill_slot_map_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAssignments);
 };

@@ -50,17 +50,18 @@ TEST_F(LirStackAssignerX64Test, LeafFunction) {
   std::array<Value, 5> vregs;
   for (auto& vreg : vregs) {
     vreg = factory()->NewRegister(ValueSize::Size64);
-    auto const slot = stack_allocator.Allocate(vreg);
-    editor.SetStackSlot(vreg, slot);
+    auto const spill_slot = stack_allocator.Allocate(vreg);
+    editor.SetSpillSlot(vreg, spill_slot);
   }
   StackAssigner stack_assigner(factory(), &register_assignments,
                                &stack_assignments);
   stack_assigner.Run();
   auto offset = 0;
   for (auto vreg : vregs) {
+    auto const spill_slot = register_assignments.SpillSlotFor(vreg);
     EXPECT_EQ(Value::StackSlot(vreg, offset),
-              register_assignments.StackSlotFor(vreg))
-        << " stack slot for " << vreg;
+              stack_assignments.StackSlotOf(spill_slot))
+        << " stack slot for " << vreg << " " << spill_slot;
     offset += Value::ByteSize(vreg.size);
   }
 }

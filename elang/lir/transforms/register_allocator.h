@@ -72,7 +72,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Returns list of all allocatable natural registers for |type|. Returned list
   // contains both allocated and free registers.
   const std::vector<Value>& AllocatableRegistersFor(Value type) const;
-  Value EnsureStackSlot(Value vreg);
+  Value EnsureSpillSlot(Value vreg);
   void ExpandParallelCopy(const std::vector<ValuePair>& pairs,
                           Instruction* ref_instr);
   void FreeInputOperandsIfNotUsed(Instruction* instruction);
@@ -99,8 +99,8 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Spill physical register allocated to virtual register |victim| before
   // |instruction|.
   Value Spill(Instruction* instruction, Value victim);
-  Instruction* NewReload(Value physical, Value stack_slot);
-  Instruction* NewSpill(Value stack_slot, Value physical);
+  Instruction* NewReload(Value physical, Value spill_slot);
+  Instruction* NewSpill(Value spill_slot, Value physical);
 
   ////////////////////////////////////////////////////////////
   //
@@ -117,7 +117,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
 
   // Returns allocated stack slot for |virtual_register|, or void if not
   // allocated.
-  Value StackSlotFor(Value virtual_register) const;
+  Value SpillSlotFor(Value virtual_register) const;
 
   // InstructionVisitor
   void DoDefaultVisit(Instruction* instruction);

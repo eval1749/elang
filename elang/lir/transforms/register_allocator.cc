@@ -161,7 +161,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
       victim.next_use = next_use->index();
       victim.vreg = candidate;
     }
-    if (StackSlotFor(candidate).is_stack_slot() &&
+    if (SpillSlotFor(candidate).is_spill_slot() &&
         spilled_victim.next_use < next_use->index()) {
       spilled_victim.next_use = next_use->index();
       spilled_victim.vreg = candidate;
@@ -172,10 +172,10 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
   return victim.vreg;
 }
 
-Value RegisterAllocator::EnsureStackSlot(Value vreg) {
+Value RegisterAllocator::EnsureSpillSlot(Value vreg) {
   DCHECK(vreg.is_virtual());
-  auto const present = StackSlotFor(vreg);
-  return present.is_stack_slot() ? present : stack_allocator_->Allocate(vreg);
+  auto const present = SpillSlotFor(vreg);
+  return present.is_spill_slot() ? present : stack_allocator_->Allocate(vreg);
 }
 
 void RegisterAllocator::ExpandParallelCopy(const std::vector<ValuePair>& pairs,
@@ -246,16 +246,16 @@ void RegisterAllocator::MustAllocate(Instruction* instr,
                     << output;
 }
 
-Instruction* RegisterAllocator::NewReload(Value physical, Value stack_slot) {
+Instruction* RegisterAllocator::NewReload(Value physical, Value spill_slot) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_slot.is_stack_slot());
-  return factory()->NewCopyInstruction(physical, stack_slot);
+  DCHECK(spill_slot.is_spill_slot());
+  return factory()->NewCopyInstruction(physical, spill_slot);
 }
 
-Instruction* RegisterAllocator::NewSpill(Value stack_slot, Value physical) {
+Instruction* RegisterAllocator::NewSpill(Value spill_slot, Value physical) {
   DCHECK(physical.is_physical());
-  DCHECK(stack_slot.is_stack_slot());
-  return factory()->NewCopyInstruction(stack_slot, physical);
+  DCHECK(spill_slot.is_spill_slot());
+  return factory()->NewCopyInstruction(spill_slot, physical);
 }
 
 Value RegisterAllocator::PhysicalFor(Value value) const {
@@ -271,11 +271,11 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
   for (auto const number : liveness_.LivenessOf(block).in()) {
     auto const input = liveness_.VariableOf(number);
     // Stack location
-    auto const stack_slot = StackSlotFor(input);
-    if (!stack_slot.is_stack_slot())
+    auto const spill_slot = SpillSlotFor(input);
+    if (!spill_slot.is_spill_slot())
       continue;
-    allocation_tracker_->TrackStackSlot(input, stack_slot);
-    stack_allocator_->AllocateAt(stack_slot);
+    allocation_tracker_->TrackSpillSlot(input, spill_slot);
+    stack_allocator_->AllocateAt(spill_slot);
   }
 
   auto const& rpo_list = editor_->ReversePostOrderList();
@@ -348,7 +348,7 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
   auto const victim = ChooseRegisterToSpill(instr, input);
   DCHECK_NE(victim, input);
   auto const physical = Spill(instr, victim);
-  allocation_tracker_->InsertBefore(NewReload(physical, StackSlotFor(input)),
+  allocation_tracker_->InsertBefore(NewReload(physical, SpillSlotFor(input)),
                                     instr);
   allocation_tracker_->SetAllocation(instr, input, physical);
 }
@@ -493,10 +493,10 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
     if (allocated)
       continue;
 
-    auto const stack_slot = stack_allocator_->Allocate(output);
-    DCHECK(stack_slot.is_stack_slot());
-    allocation_tracker_->TrackStackSlot(output, stack_slot);
-    allocation_tracker_->SetAllocation(phi, output, stack_slot);
+    auto const spill_slot = stack_allocator_->Allocate(output);
+    DCHECK(spill_slot.is_spill_slot());
+    allocation_tracker_->TrackSpillSlot(output, spill_slot);
+    allocation_tracker_->SetAllocation(phi, output, spill_slot);
   }
 }
 
@@ -528,15 +528,15 @@ Value RegisterAllocator::Spill(Instruction* instr, Value victim) {
   DCHECK(victim.is_virtual());
   auto const physical = PhysicalFor(victim);
   DCHECK(physical.is_physical());
-  auto const spill_slot = EnsureStackSlot(victim);
+  auto const spill_slot = EnsureSpillSlot(victim);
   allocation_tracker_->FreePhysical(physical);
-  allocation_tracker_->TrackStackSlot(victim, spill_slot);
+  allocation_tracker_->TrackSpillSlot(victim, spill_slot);
   allocation_tracker_->InsertBefore(NewSpill(spill_slot, physical), instr);
   return physical;
 }
 
-Value RegisterAllocator::StackSlotFor(Value vreg) const {
-  return allocation_tracker_->StackSlotFor(vreg);
+Value RegisterAllocator::SpillSlotFor(Value vreg) const {
+  return allocation_tracker_->SpillSlotFor(vreg);
 }
 
 bool RegisterAllocator::TryAllocate(Instruction* instr,
@@ -579,9 +579,9 @@ void RegisterAllocator::VisitCall(CallInstruction* instr) {
     if (!Target::IsCallerSavedRegister(physical))
       continue;
     auto const vreg = virtual_physical.first;
-    auto const stack_slot = EnsureStackSlot(vreg);
-    allocation_tracker_->TrackStackSlot(vreg, stack_slot);
-    save_actions.push_back(NewSpill(stack_slot, physical));
+    auto const spill_slot = EnsureSpillSlot(vreg);
+    allocation_tracker_->TrackSpillSlot(vreg, spill_slot);
+    save_actions.push_back(NewSpill(spill_slot, physical));
   }
   for (auto const save_action : save_actions) {
     allocation_tracker_->FreePhysical(save_action->input(0));

@@ -61,15 +61,15 @@ int StackAllocator::Allocate(int size) {
 }
 
 Value StackAllocator::Allocate(Value type) {
-  return Value::StackSlot(type, Allocate(Value::ByteSize(type.size)));
+  return Value::SpillSlot(type, Allocate(Value::ByteSize(type.size)));
 }
 
-// Allocate stack by offset and size specified by |stack_slot|. This function
+// Allocate stack by offset and size specified by |spill_slot|. This function
 // may be called after |Reset()|.
-void StackAllocator::AllocateAt(Value stack_slot) {
-  DCHECK(stack_slot.is_stack_slot());
-  auto const offset = stack_slot.data;
-  auto const size = Value::ByteSize(stack_slot.size);
+void StackAllocator::AllocateAt(Value spill_slot) {
+  DCHECK(spill_slot.is_spill_slot());
+  auto const offset = spill_slot.data;
+  auto const size = Value::ByteSize(spill_slot.size);
   if (offset + size > current_size())
     uses_.resize(offset + size);
 #ifndef _NDEBUG
@@ -80,7 +80,7 @@ void StackAllocator::AllocateAt(Value stack_slot) {
 }
 
 void StackAllocator::Free(Value location) {
-  DCHECK(location.is_stack_slot()) << location;
+  DCHECK(location.is_spill_slot()) << location;
   std::fill(uses_.begin() + location.data,
             uses_.begin() + location.data + Value::ByteSize(location.size),
             false);

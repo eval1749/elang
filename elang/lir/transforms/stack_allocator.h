@@ -25,7 +25,7 @@ class ELANG_LIR_EXPORT StackAllocator final {
   StackAllocator(StackAssignments* assignments, int alignment);
   ~StackAllocator();
 
-  void AllocateAt(Value stack_slot);
+  void AllocateAt(Value spill_slot);
   Value Allocate(Value type);
   void Free(Value location);
   int RequiredSize() const;

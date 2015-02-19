@@ -32,6 +32,7 @@ class ELANG_LIR_EXPORT StackAssigner final : public FactoryUser {
  private:
   void RunForLeafFunction();
   void RunForNonLeafFunction();
+  void SetStackSlot(Value spill_slot, Value stack_slot);
 
   RegisterAssignments::Editor register_assignments_;
   StackAssignments* const stack_assignments_;

@@ -29,8 +29,8 @@ RegisterAssignments::Editor::~Editor() {
 }
 
 const ZoneUnorderedMap<Value, Value>&
-RegisterAssignments::Editor::stack_slot_map() const {
-  return assignments_->stack_slot_map_;
+RegisterAssignments::Editor::spill_slot_map() const {
+  return assignments_->spill_slot_map_;
 }
 
 Zone* RegisterAssignments::Editor::zone() const {
@@ -63,7 +63,7 @@ void RegisterAssignments::Editor::SetAllocation(Instruction* instr,
                                                 Value vreg,
                                                 Value allocation) {
   DCHECK(vreg.is_virtual());
-  DCHECK(allocation.is_physical() || allocation.is_stack_slot());
+  DCHECK(allocation.is_physical() || allocation.is_spill_slot());
   assignments_->instruction_value_map_[std::make_pair(instr, vreg)] =
       allocation;
 }
@@ -76,28 +76,16 @@ void RegisterAssignments::Editor::SetPhysical(BasicBlock* block,
   assignments_->block_value_map_[std::make_pair(block, vreg)] = physical;
 }
 
-void RegisterAssignments::Editor::SetStackSlot(Value vreg, Value stack_slot) {
+void RegisterAssignments::Editor::SetSpillSlot(Value vreg, Value spill_slot) {
   DCHECK(vreg.is_virtual());
-  DCHECK(stack_slot.is_stack_slot());
-  DCHECK(!assignments_->stack_slot_map_.count(vreg));
-  assignments_->stack_slot_map_[vreg] = stack_slot;
+  DCHECK(spill_slot.is_spill_slot());
+  DCHECK(!assignments_->spill_slot_map_.count(vreg));
+  assignments_->spill_slot_map_[vreg] = spill_slot;
 }
 
-Value RegisterAssignments::Editor::StackSlotFor(Value vreg) const {
+Value RegisterAssignments::Editor::SpillSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  return assignments_->StackSlotFor(vreg);
-}
-
-void RegisterAssignments::Editor::UpdateStackSlots(
-    const std::unordered_map<Value, Value>& new_assignments) {
-  DCHECK_EQ(assignments_->stack_slot_map_.size(), new_assignments.size());
-#ifndef _NDEBUG
-  for (auto const pair : new_assignments)
-    DCHECK(assignments_->stack_slot_map_.count(pair.first));
-#endif
-  assignments_->stack_slot_map_.clear();
-  assignments_->stack_slot_map_.insert(new_assignments.begin(),
-                                       new_assignments.end());
+  return assignments_->SpillSlotFor(vreg);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -109,7 +97,7 @@ RegisterAssignments::RegisterAssignments()
       before_action_map_(zone()),
       empty_actions_(zone()),
       instruction_value_map_(zone()),
-      stack_slot_map_(zone()) {
+      spill_slot_map_(zone()) {
 }
 
 RegisterAssignments::~RegisterAssignments() {
@@ -137,10 +125,10 @@ const ZoneVector<Instruction*>& RegisterAssignments::BeforeActionOf(
   return it == before_action_map_.end() ? empty_actions_ : it->second->actions;
 }
 
-Value RegisterAssignments::StackSlotFor(Value vreg) const {
+Value RegisterAssignments::SpillSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = stack_slot_map_.find(vreg);
-  return it == stack_slot_map_.end() ? Value() : it->second;
+  auto const it = spill_slot_map_.find(vreg);
+  return it == spill_slot_map_.end() ? Value() : it->second;
 }
 
 }  // namespace lir

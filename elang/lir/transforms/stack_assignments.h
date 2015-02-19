@@ -5,6 +5,7 @@
 #ifndef ELANG_LIR_TRANSFORMS_STACK_ASSIGNMENTS_H_
 #define ELANG_LIR_TRANSFORMS_STACK_ASSIGNMENTS_H_
 
+#include <unordered_map>
 #include <vector>
 
 #include "base/macros.h"
@@ -33,6 +34,8 @@ class ELANG_LIR_EXPORT StackAssignments final {
     return preserving_registers_;
   }
 
+  Value StackSlotOf(Value spill_slot) const;
+
  private:
   friend class StackAllocator;
   friend class StackAssigner;
@@ -46,6 +49,9 @@ class ELANG_LIR_EXPORT StackAssignments final {
   std::vector<Instruction*> prologue_instructions_;
   std::vector<Value> preserving_registers_;
   int slot_count_;
+
+  // Mapping from spill slot to stack slot.
+  std::unordered_map<Value, Value> stack_map_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssignments);
 };

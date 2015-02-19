@@ -51,7 +51,7 @@ Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
   auto const physical = PhysicalFor(virtual_register);
   if (physical.is_physical())
     return physical;
-  return StackSlotFor(virtual_register);
+  return SpillSlotFor(virtual_register);
 }
 
 void RegisterAllocationTracker::EndBlock(BasicBlock* block) {
@@ -77,7 +77,7 @@ void RegisterAllocationTracker::FreePhysical(Value physical) {
 
 void RegisterAllocationTracker::FreeVirtual(Value vreg) {
   DCHECK(vreg.is_virtual());
-  DCHECK(PhysicalFor(vreg).is_physical() || StackSlotFor(vreg).is_stack_slot());
+  DCHECK(PhysicalFor(vreg).is_physical() || SpillSlotFor(vreg).is_spill_slot());
   auto const physical_it = physical_map_.find(vreg);
   if (physical_it != physical_map_.end())
     physical_map_.erase(physical_it);
@@ -94,9 +94,9 @@ Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
   return it == physical_map_.end() ? Value() : it->second;
 }
 
-Value RegisterAllocationTracker::StackSlotFor(Value vreg) const {
+Value RegisterAllocationTracker::SpillSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  return assignments_.StackSlotFor(vreg);
+  return assignments_.SpillSlotFor(vreg);
 }
 
 void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
@@ -115,8 +115,8 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
     DCHECK_EQ(PhysicalFor(vreg), allocation);
     return;
   }
-  if (allocation.is_stack_slot()) {
-    DCHECK_EQ(StackSlotFor(vreg), allocation);
+  if (allocation.is_spill_slot()) {
+    DCHECK_EQ(SpillSlotFor(vreg), allocation);
     return;
   }
   NOTREACHED() << "Unexpected allocation: " << allocation;
@@ -142,10 +142,10 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   physical_map_[vreg] = physical;
 }
 
-void RegisterAllocationTracker::TrackStackSlot(Value vreg, Value stack_slot) {
+void RegisterAllocationTracker::TrackSpillSlot(Value vreg, Value spill_slot) {
   DCHECK(vreg.is_virtual());
-  DCHECK(stack_slot.is_stack_slot());
-  DCHECK_EQ(StackSlotFor(vreg), stack_slot);
+  DCHECK(spill_slot.is_spill_slot());
+  DCHECK_EQ(SpillSlotFor(vreg), spill_slot);
 }
 
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,

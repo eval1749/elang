@@ -42,7 +42,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   // Query current mapping
   Value AllocationOf(Value virtual_register) const;
   Value PhysicalFor(Value virtual_register) const;
-  Value StackSlotFor(Value virtual_register) const;
+  Value SpillSlotFor(Value virtual_register) const;
 
   // Expose for testing purpose.
   Value VirtualFor(Value physical) const;
@@ -51,7 +51,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   void FreeVirtual(Value virtual_register);
   void FreePhysical(Value physical);
   void TrackPhysical(Value virtual_register, Value physical);
-  void TrackStackSlot(Value virtual_register, Value stack_slot);
+  void TrackSpillSlot(Value virtual_register, Value stack_slot);
 
   // Returns true if |output| is allocated to |physical|, otherwise returns
   // false.

@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <unordered_map>
-
 #include "elang/lir/transforms/stack_assigner.h"
 
 #include "elang/lir/factory.h"
@@ -93,21 +91,21 @@ void StackAssigner::RunForLeafFunction() {
   }
 
   auto const return_offset = size;
-  std::unordered_map<Value, Value> new_assignments;
-  for (auto pair : register_assignments_.stack_slot_map()) {
-    auto const stack_slot = pair.second;
-    new_assignments[pair.first] =
-        Value::Value(stack_slot.type, stack_slot.size, Value::Kind::StackSlot,
-                     StackOffset(stack_slot.data, return_offset));
-  }
-  register_assignments_.UpdateStackSlots(new_assignments);
 
+  // Allocate spill slot to stack
+  for (auto pair : register_assignments_.spill_slot_map()) {
+    auto const spill_slot = pair.second;
+    SetStackSlot(spill_slot,
+                 Value::StackSlot(spill_slot,
+                                  StackOffset(spill_slot.data, return_offset)));
+  }
+
+  // Restore preserving registers
   auto offset = StackOffset(using_size, return_offset);
   for (auto const physical : stack_assignments_->preserving_registers()) {
     auto const slot_offset = StackOffset(offset, return_offset);
     auto const stack_slot =
-        Value::Value(physical.type, physical.size, Value::Kind::StackSlot,
-                     StackOffset(slot_offset, return_offset));
+        Value::StackSlot(physical, StackOffset(slot_offset, return_offset));
     stack_assignments_->prologue_instructions_.push_back(
         factory()->NewCopyInstruction(stack_slot, physical));
     offset += kAlignment;
