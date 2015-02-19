@@ -112,15 +112,14 @@ bool IsLeafFunction(const Function* function) {
 RegisterAllocator::RegisterAllocator(
     const Editor* editor,
     RegisterAssignments* register_assignments,
-    StackAssignments* stack_assignments,
-    const RegisterUsageTracker& usage_tracker)
+    StackAssignments* stack_assignments)
     : allocation_tracker_(new RegisterAllocationTracker(register_assignments)),
       editor_(editor),
       dominator_tree_(editor->BuildDominatorTree()),
       liveness_(editor->AnalyzeLiveness()),
       stack_allocator_(new StackAllocator(stack_assignments,
                                           Target::PointerSizeInByte())),
-      usage_tracker_(usage_tracker) {
+      usage_tracker_(new RegisterUsageTracker(editor)) {
   SortAllocatableRegisters();
 }
 
@@ -155,7 +154,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
     if (physical.type != type.type)
       continue;
     auto const candidate = it.first;
-    auto const next_use = usage_tracker_.NextUseAfter(candidate, instr);
+    auto const next_use = usage_tracker_->NextUseAfter(candidate, instr);
     DCHECK(next_use);
     if (victim.next_use < next_use->index()) {
       victim.next_use = next_use->index();
@@ -229,7 +228,7 @@ void RegisterAllocator::FreeInputOperandsIfNotUsed(Instruction* instr) {
   for (auto const input : instr->inputs()) {
     if (!input.is_virtual())
       continue;
-    if (usage_tracker_.IsUsedAfter(input, instr))
+    if (usage_tracker_->IsUsedAfter(input, instr))
       continue;
     allocation_tracker_->FreeVirtual(input);
   }
@@ -373,7 +372,7 @@ void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
   //    copy ECX = %1
   //    assign %4 = %2
   //    shl %5 = %4, ECX
-  auto const user = usage_tracker_.NextUseAfter(output, instr);
+  auto const user = usage_tracker_->NextUseAfter(output, instr);
   DCHECK(user) << "The result of " << output << " of " << *instr
                << " isn't used.";
   if (user->is<CopyInstruction>() || user->is<PCopyInstruction>()) {

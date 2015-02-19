@@ -9,7 +9,6 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
-#include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assigner.h"
 #include "elang/lir/transforms/stack_assignments.h"
@@ -50,10 +49,8 @@ Value RegisterAssignmentsPass::AssignmentOf(Instruction* instr,
 
 void RegisterAssignmentsPass::RunOnFunction() {
   {
-    RegisterUsageTracker usage_tracker(editor());
     RegisterAllocator allocator(editor(), register_assignments_.get(),
-                                stack_assignments_.get(),
-                                usage_tracker);
+                                stack_assignments_.get());
     allocator.Run();
   }
 

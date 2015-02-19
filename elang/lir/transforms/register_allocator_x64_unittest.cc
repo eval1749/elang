@@ -11,7 +11,6 @@
 #include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
-#include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/target.h"
@@ -47,10 +46,8 @@ TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
   EXPECT_EQ("", Commit(&editor));
 
   RegisterAssignments assignments;
-  RegisterUsageTracker usage_tracker(&editor);
   StackAssignments stack_assignments;
-  RegisterAllocator allocator(&editor, &assignments, &stack_assignments,
-                              usage_tracker);
+  RegisterAllocator allocator(&editor, &assignments, &stack_assignments);
   allocator.Run();
 
   EXPECT_EQ(2, stack_assignments.maximum_argc());

@@ -19,7 +19,6 @@
 #include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
-#include "elang/lir/transforms/register_usage_tracker.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
@@ -127,10 +126,11 @@ std::string LirTest::Allocate(Function* function) {
 
   RegisterAssignments assignments;
   StackAssignments stack_assignments;
-  RegisterUsageTracker usage_tracker(&editor);
-  RegisterAllocator allocator(&editor, &assignments, &stack_assignments,
-                              usage_tracker);
-  allocator.Run();
+
+  {
+    RegisterAllocator allocator(&editor, &assignments, &stack_assignments);
+    allocator.Run();
+  }
 
   std::stringstream ostream;
   ostream << *function << ":" << std::endl;
