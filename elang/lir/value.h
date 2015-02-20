@@ -14,8 +14,8 @@
 namespace elang {
 namespace lir {
 
-// If you change definition of |ValueSize|, please change |Log2(ValueSize)| and
-// |BitSize(size)| appropriately.
+// If you change definition of |ValueSize|, please change |Log2Of(ValueSize)|
+// and |BitSizeOf(size)| appropriately.
 enum class ValueSize : uint32_t {
   Size8,
   Size16,
@@ -100,9 +100,9 @@ struct ELANG_LIR_EXPORT Value {
   static bool CanBeImmediate(int64_t value);
 
   // |ValueSize| properties
-  static int BitSize(ValueSize size) { return ByteSize(size) * 8; }
-  static int ByteSize(ValueSize size) { return 1 << Log2(size); }
-  static int Log2(ValueSize size) { return static_cast<int>(size); }
+  static int BitSizeOf(ValueSize size) { return ByteSizeOf(size) * 8; }
+  static int ByteSizeOf(ValueSize size) { return 1 << Log2Of(size); }
+  static int Log2Of(ValueSize size) { return static_cast<int>(size); }
 
   static Value Argument(Type type, ValueSize size, int data);
   static Value False();
