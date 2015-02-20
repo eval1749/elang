@@ -13,7 +13,6 @@
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
 
-
 namespace elang {
 
 class BitSet;
@@ -35,6 +34,9 @@ class LivenessCollection final : public ZoneOwner {
  public:
   ~LivenessCollection() = default;
 
+  const ZoneVector<Variable>& variables() const { return variables_; }
+  BitSet* work() const { return work_; }
+
   const Liveness& LivenessOf(Node node) const {
     auto const it = node_map_.find(node);
     DCHECK(it != node_map_.end());
@@ -46,19 +48,17 @@ class LivenessCollection final : public ZoneOwner {
     return it == variable_map_.end() ? -1 : it->second;
   }
 
-  Variable VariableOf(int number) const {
-    return variables_[number];
-  }
+  Variable VariableOf(int number) const { return variables_[number]; }
 
  private:
   friend class LivenessBuilder<Node, Variable>;
   friend class LivenessEditor<Node, Variable>;
 
   LivenessCollection()
-      : node_map_(zone()), variable_map_(zone()), variables_(zone()),
+      : node_map_(zone()),
+        variable_map_(zone()),
+        variables_(zone()),
         work_(nullptr) {}
-
-  BitSet* work() const { return work_; }
 
   Liveness* EditableLivenessOf(Node node) const {
     auto const it = node_map_.find(node);

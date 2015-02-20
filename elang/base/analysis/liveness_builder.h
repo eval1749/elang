@@ -33,7 +33,7 @@ class LivenessBuilder : public LivenessEditor<Node, Variable> {
     collection_->node_map_[node] = NewLiveness(zone(), bit_set_size());
   }
 
-  // To support non-SSA varaible, it is OK to call |AddVaraible()| for same
+  // To support non-SSA variable, it is OK to call |AddVaraible()| for same
   // variable.
   void AddVariable(Variable variable) {
     if (collection_->variable_map_.count(variable))
