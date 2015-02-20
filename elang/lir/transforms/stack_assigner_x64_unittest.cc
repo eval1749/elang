@@ -62,7 +62,7 @@ TEST_F(LirStackAssignerX64Test, LeafFunction) {
     EXPECT_EQ(Value::StackSlot(vreg, offset),
               stack_assignments.StackSlotOf(spill_slot))
         << " stack slot for " << vreg << " " << spill_slot;
-    offset += Value::ByteSizeOf(vreg.size);
+    offset += Value::ByteSizeOf(vreg);
   }
 }
 

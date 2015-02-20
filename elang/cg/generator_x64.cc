@@ -65,7 +65,7 @@ void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
 }
 
 lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
-  shift_count &= lir::Value::BitSizeOf(input.size) - 1;
+  shift_count &= lir::Value::BitSizeOf(input) - 1;
   DCHECK_GE(shift_count, 0);
   if (!shift_count)
     return input;
@@ -188,14 +188,14 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   auto const array_ptr = MapInput(instr->input(0));
   auto const element_start = factory()->NewRegister(Target::IntPtrType());
   auto const size_of_array_header =
-      lir::Value::ByteSizeOf(element_start.size) * 2;
+      lir::Value::ByteSizeOf(element_start) * 2;
   Emit(factory()->NewAddInstruction(
       element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
   auto const output = MapOutput(instr);
   auto const element =
       MapType(instr->type()->as<hir::PointerType>()->pointee());
   auto const scaled_index =
-      GenerateShl(MapInput(instr->input(1)), lir::Value::Log2Of(element.size));
+      GenerateShl(MapInput(instr->input(1)), lir::Value::Log2Of(element));
   Emit(factory()->NewAddInstruction(output, element_start, scaled_index));
 }
 
