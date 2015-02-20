@@ -48,12 +48,12 @@ class ELANG_LIR_EXPORT UseDefList final : public ZoneOwner {
   };
 
   UseDefList(const UseDefList& other) = delete;
-  UseDefList(UseDefList&&);
+  UseDefList(UseDefList&& other);
   UseDefList();
   ~UseDefList();
 
   UseDefList& operator=(const UseDefList& other) = delete;
-  UseDefList& operator=(UseDefList&&);
+  UseDefList& operator=(UseDefList&& other);
 
   const Users& UsersOf(Value value) const;
 
