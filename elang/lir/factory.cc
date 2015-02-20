@@ -137,7 +137,7 @@ Value Factory::NewRegister(Value type) {
 }
 
 Value Factory::NewRegister() {
-  return NewRegister(Target::PointerSize());
+  return NewRegister(Target::IntPtrType());
 }
 
 Value Factory::NewIntValue(ValueSize size, int64_t data) {
@@ -172,7 +172,8 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
     return it->second;
-  Value model(Value::Type::Integer, Target::PointerSize(),
+  // TODO(eval1749) We should |Value(type, kind)| constructor.
+  Value model(Value::Type::Integer, Target::IntPtrType().size,
               Value::Kind::Literal);
   auto const value = literal_map_->next_literal_value(model);
   auto const literal = new (zone()) StringLiteral(NewString(data));

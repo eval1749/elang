@@ -269,7 +269,7 @@ TEST(LirTargetX64Test, IsCallerSavedRegister) {
 }
 
 TEST(LirTargetX64Test, PointerSize) {
-  EXPECT_EQ(ValueSize::Size64, Target::PointerSize());
+  EXPECT_EQ(Value::Int64Type(), Target::IntPtrType());
 }
 
 TEST(LirTargetX64Test, PointerSizeInByte) {

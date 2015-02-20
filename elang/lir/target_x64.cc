@@ -266,6 +266,10 @@ bool Target::HasXorInstruction(Value value) {
   return true;
 }
 
+Value Target::IntPtrType() {
+  return Value::Int64Type();
+}
+
 bool Target::IsCalleeSavedRegister(Value value) {
   DCHECK(value.is_physical());
   auto const mask = 1 << (value.data & 15);
@@ -288,10 +292,6 @@ bool Target::IsParameterRegister(Value value) {
   if (value.type == Value::Type::Float)
     return (isa::kFloatParameterRegisters & mask) != 0;
   return (isa::kGeneralParameterRegisters & mask) != 0;
-}
-
-ValueSize Target::PointerSize() {
-  return ValueSize::Size64;
 }
 
 int Target::PointerSizeInByte() {

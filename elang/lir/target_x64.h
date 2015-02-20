@@ -245,6 +245,9 @@ class ELANG_LIR_EXPORT Target {
   // registers.
   static bool HasXorInstruction(Value value);
 
+  // Returns an integer type which can hold pointer.
+  static Value IntPtrType();
+
   // Returns true if |physical| is callee save register.
   static bool IsCalleeSavedRegister(Value physical);
 
@@ -253,9 +256,6 @@ class ELANG_LIR_EXPORT Target {
 
   // Returns true if |physical| is register parameter
   static bool IsParameterRegister(Value physical);
-
-  // Returns bit size of pointer.
-  static ValueSize PointerSize();
 
   // Returns byte size of pointer.
   static int PointerSizeInByte();
