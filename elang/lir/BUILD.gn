@@ -7,6 +7,10 @@ import("//elang/build/elang_target_arch.gni")
 component("lir") {
   output_name = "elang_lir"
   sources = [
+    "analysis/conflict_map.cc",
+    "analysis/conflict_map.h",
+    "analysis/conflict_map_builder.cc",
+    "analysis/conflict_map_builder.h",
     "analysis/liveness_analyzer.cc",
     "analysis/liveness_analyzer.h",
     "analysis/use_def_list.cc",
@@ -124,6 +128,7 @@ source_set("test_support") {
 source_set("lir_unittests") {
   testonly = true
   sources = [
+    "analysis/conflict_map_unittest.cc",
     "analysis/use_def_list_unittest.cc",
     "editor_unittest.cc",
     "instructions_unittest.cc",
