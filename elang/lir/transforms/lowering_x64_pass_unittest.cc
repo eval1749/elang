@@ -37,7 +37,7 @@ class LirLoweringX64Test : public testing::LirTest {
     auto const entry_block = function->entry_block();                   \
     Editor editor(factory(), function);                                 \
     editor.Edit(entry_block);                                           \
-    auto const type = Value(Value::Type::Float, ValueSize::Size64);     \
+    auto const type = Value::Float64Type();                             \
     auto const parameters = EmitCopyParameters(&editor, type, 2);       \
     auto output = NewRegister(type);                                    \
     editor.Append(                                                      \
@@ -47,7 +47,7 @@ class LirLoweringX64Test : public testing::LirTest {
     EXPECT_EQ("", Commit(&editor));                                     \
     ASSERT_EQ("", Validate(&editor));                                   \
                                                                         \
-    LoweringX64Pass(&editor).Run();                         \
+    LoweringX64Pass(&editor).Run();                                     \
     EXPECT_EQ(                                                          \
         "function1:\n"                                                  \
         "block1:\n"                                                     \
@@ -77,7 +77,7 @@ class LirLoweringX64Test : public testing::LirTest {
     auto const entry_block = function->entry_block();                   \
     Editor editor(factory(), function);                                 \
     editor.Edit(entry_block);                                           \
-    auto const type = Value(Value::Type::Integer, ValueSize::Size32);   \
+    auto const type = Value::Int32Type();                               \
     auto const parameters = EmitCopyParameters(&editor, type, 2);       \
     auto output = NewRegister(type);                                    \
     editor.Append(                                                      \
@@ -87,7 +87,7 @@ class LirLoweringX64Test : public testing::LirTest {
     EXPECT_EQ("", Commit(&editor));                                     \
     ASSERT_EQ("", Validate(&editor));                                   \
                                                                         \
-    LoweringX64Pass(&editor).Run();                         \
+    LoweringX64Pass(&editor).Run();                                     \
     EXPECT_EQ(                                                          \
         "function1:\n"                                                  \
         "block1:\n"                                                     \
@@ -129,7 +129,7 @@ TEST_F(LirLoweringX64Test, DivInt) {
   auto const entry_block = function->entry_block();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const type = Value(Value::Type::Integer, ValueSize::Size32);
+  auto const type = Value::Int32Type();
   auto const parameters = EmitCopyParameters(&editor, type, 2);
   auto output = NewRegister(type);
   editor.Append(NewDivInstruction(output, parameters[0], parameters[1]));
@@ -167,7 +167,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
   auto const entry_block = function->entry_block();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const type = Value(Value::Type::Integer, ValueSize::Size32);
+  auto const type = Value::Int32Type();
   auto const parameters = EmitCopyParameters(&editor, type, 2);
   auto output = NewRegister(type);
   editor.Append(NewMulInstruction(output, parameters[0], parameters[1]));
@@ -206,7 +206,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
     auto const entry_block = function->entry_block();                          \
     Editor editor(factory(), function);                                        \
     editor.Edit(entry_block);                                                  \
-    auto const type = Value(Value::Type::Integer, ValueSize::Size32);          \
+    auto const type = Value::Int32Type();                                      \
     auto const parameters = EmitCopyParameters(&editor, type, 2);              \
     auto output = NewRegister(type);                                           \
     auto output2 = NewRegister(type);                                          \
@@ -218,7 +218,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
     EXPECT_EQ("", Commit(&editor));                                            \
     ASSERT_EQ("", Validate(&editor));                                          \
                                                                                \
-    LoweringX64Pass(&editor).Run();                                \
+    LoweringX64Pass(&editor).Run();                                            \
     EXPECT_EQ(                                                                 \
         "function1:\n"                                                         \
         "block1:\n"                                                            \

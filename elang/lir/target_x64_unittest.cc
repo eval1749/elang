@@ -17,10 +17,10 @@ namespace lir {
 using namespace isa;  // NOLINT [build/namespaces]
 
 TEST(LirTargetX64Test, GetArgumentAt) {
-  Value float32_type(Value::Type::Float, ValueSize::Size32);
-  Value float64_type(Value::Type::Float, ValueSize::Size64);
-  Value int32_type(Value::Type::Integer, ValueSize::Size32);
-  Value int64_type(Value::Type::Integer, ValueSize::Size64);
+  auto const float32_type = Value::Float32Type();
+  auto const float64_type = Value::Float32Type();
+  auto const int32_type = Value::Int32Type();
+  auto const int64_type = Value::Int64Type();
 
   EXPECT_EQ(Target::GetRegister(ECX), Target::GetArgumentAt(int32_type, 0));
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetArgumentAt(int32_type, 1));
@@ -38,10 +38,10 @@ TEST(LirTargetX64Test, GetArgumentAt) {
 }
 
 TEST(LirTargetX64Test, GetParameterAt) {
-  Value float32_type(Value::Type::Float, ValueSize::Size32);
-  Value float64_type(Value::Type::Float, ValueSize::Size64);
-  Value int32_type(Value::Type::Integer, ValueSize::Size32);
-  Value int64_type(Value::Type::Integer, ValueSize::Size64);
+  auto const float32_type = Value::Float32Type();
+  auto const float64_type = Value::Float32Type();
+  auto const int32_type = Value::Int32Type();
+  auto const int64_type = Value::Int64Type();
 
   EXPECT_EQ(Target::GetRegister(ECX), Target::GetParameterAt(int32_type, 0));
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetParameterAt(int32_type, 1));
@@ -61,26 +61,21 @@ TEST(LirTargetX64Test, GetParameterAt) {
 }
 
 TEST(LirTargetX64Test, GetReturn) {
-  Value float32_type(Value::Type::Float, ValueSize::Size32);
-  Value float64_type(Value::Type::Float, ValueSize::Size64);
-  Value int32_type(Value::Type::Integer, ValueSize::Size32);
-  Value int64_type(Value::Type::Integer, ValueSize::Size64);
-
   EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, EAX & 15),
-            Target::GetReturn(int32_type));
+            Target::GetReturn(Value::Int32Type()));
 
   EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, RAX & 15),
-            Target::GetReturn(int64_type));
+            Target::GetReturn(Value::Int64Type()));
 
   EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, XMM0S & 15),
-            Target::GetReturn(float32_type));
+            Target::GetReturn(Value::Float32Type()));
 
   EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, XMM0D & 15),
-            Target::GetReturn(float64_type));
+            Target::GetReturn(Value::Float64Type()));
 }
 
 TEST(LirTargetX64Test, GetRegister) {

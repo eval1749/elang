@@ -27,24 +27,24 @@ namespace {
 lir::Value MapType(hir::Type* type) {
   auto const primitive_type = type->as<hir::PrimitiveType>();
   if (!primitive_type)
-    return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size64);
+    return lir::Value::Int64Type();
   if (primitive_type->is<hir::Float32Type>())
-    return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size32);
+    return lir::Value::Float32Type();
   if (primitive_type->is<hir::Float64Type>())
-    return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size64);
+    return lir::Value::Float64Type();
   switch (primitive_type->bit_size()) {
     case 1:
     case 8:
-      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size8);
+      return lir::Value::Int8Type();
     case 16:
-      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size16);
+      return lir::Value::Int16Type();
     case 32:
-      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size32);
+      return lir::Value::Int32Type();
     case 64:
-      return lir::Value(lir::Value::Type::Integer, lir::ValueSize::Size64);
+      return lir::Value::Int64Type();
   }
   NOTREACHED() << "unsupported bit size: " << *primitive_type;
-  return lir::Value(lir::Value::Type::Float, lir::ValueSize::Size64);
+  return lir::Value::Float64Type();
 }
 
 }  // namespace

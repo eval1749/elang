@@ -337,7 +337,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
 
   Editor editor(factory(), function);
 
-  Value type(Value::Type::Integer, ValueSize::Size32);
+  auto const type = Value::Int32Type();
   auto const start_block = editor.NewBasicBlock(exit_block);
   auto const sample_block = editor.NewBasicBlock(exit_block);
   auto const sample2_block = editor.NewBasicBlock(exit_block);

@@ -44,7 +44,7 @@ TEST_F(UseDefListTest, Basic) {
   auto const function = CreateFunctionEmptySample();
   auto const entry_block = function->entry_block();
 
-  Value type(Value::Type::Integer, ValueSize::Size32);
+  auto const type = Value::Int32Type();
 
   Editor editor(factory(), function);
   editor.Edit(entry_block);

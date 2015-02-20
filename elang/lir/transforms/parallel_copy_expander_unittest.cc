@@ -28,10 +28,6 @@ class LirParallelCopyExpanderTest : public testing::LirTest {
   LirParallelCopyExpanderTest() = default;
   ~LirParallelCopyExpanderTest() = default;
 
-  static Value int32_type() {
-    return Value(Value::Type::Integer, ValueSize::Size32);
-  }
-
   static Value physical(int data) {
     return Value(Value::Type::Integer, ValueSize::Size32,
                  Value::Kind::PhysicalRegister, data);
@@ -77,7 +73,7 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
   for (auto index = 0u; index < indexes.size(); ++index)
     indexes[index] = index;
   do {
-    ParallelCopyExpander expander(factory(), int32_type());
+    ParallelCopyExpander expander(factory(), Value::Int32Type());
     std::vector<Task> tasks(indexes.size());
     tasks.resize(0);
     for (auto const index : indexes)

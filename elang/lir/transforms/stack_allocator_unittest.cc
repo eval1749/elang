@@ -13,10 +13,10 @@ namespace {
 
 // Test cases...
 TEST(StackAllocatorTest, Alignment4) {
-  auto const int16_type = Value(Value::Type::Integer, ValueSize::Size16);
-  auto const int32_type = Value(Value::Type::Integer, ValueSize::Size32);
-  auto const int64_type = Value(Value::Type::Integer, ValueSize::Size64);
-  auto const int8_type = Value(Value::Type::Integer, ValueSize::Size8);
+  auto const int16_type = Value::Int16Type();
+  auto const int32_type = Value::Int32Type();
+  auto const int64_type = Value::Int64Type();
+  auto const int8_type = Value::Int8Type();
 
   StackAssignments assignments;
   StackAllocator allocator(&assignments, 4);
@@ -52,10 +52,10 @@ TEST(StackAllocatorTest, Alignment4) {
 }
 
 TEST(StackAllocatorTest, Alignment8) {
-  auto const int16_type = Value(Value::Type::Integer, ValueSize::Size16);
-  auto const int32_type = Value(Value::Type::Integer, ValueSize::Size32);
-  auto const int64_type = Value(Value::Type::Integer, ValueSize::Size64);
-  auto const int8_type = Value(Value::Type::Integer, ValueSize::Size8);
+  auto const int16_type = Value::Int16Type();
+  auto const int32_type = Value::Int32Type();
+  auto const int64_type = Value::Int64Type();
+  auto const int8_type = Value::Int8Type();
 
   StackAssignments assignments;
   StackAllocator allocator(&assignments, 8);

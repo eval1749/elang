@@ -46,12 +46,20 @@ Value Value::Immediate(ValueSize size, int data) {
   return Value(Type::Integer, size, Kind::Immediate, data);
 }
 
+Value Value::Int16Type() {
+  return Value(Type::Integer, ValueSize::Size16, Kind::Void);
+}
+
 Value Value::Int32Type() {
   return Value(Type::Integer, ValueSize::Size32, Kind::Void);
 }
 
 Value Value::Int64Type() {
   return Value(Type::Integer, ValueSize::Size64, Kind::Void);
+}
+
+Value Value::Int8Type() {
+  return Value(Type::Integer, ValueSize::Size8, Kind::Void);
 }
 
 Value Value::Parameter(Type type, ValueSize size, int data) {
