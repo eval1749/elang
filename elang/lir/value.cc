@@ -22,11 +22,11 @@ Value Value::False() {
 }
 
 Value Value::Float32Literal() {
-  return Value(Type::Float, ValueSize::Size32, Kind::Literal);
+  return Value(Float32Type(), Kind::Literal);
 }
 
 Value Value::Float64Literal() {
-  return Value(Type::Float, ValueSize::Size64, Kind::Literal);
+  return Value(Float64Type(), Kind::Literal);
 }
 
 Value Value::FloatRegister(ValueSize size, int data) {
@@ -34,11 +34,11 @@ Value Value::FloatRegister(ValueSize size, int data) {
 }
 
 Value Value::Float32Type() {
-  return Value(Type::Float, ValueSize::Size32, Kind::Void);
+  return Value(Type::Float, ValueSize::Size32, Kind::Void, 0);
 }
 
 Value Value::Float64Type() {
-  return Value(Type::Float, ValueSize::Size64, Kind::Void);
+  return Value(Type::Float, ValueSize::Size64, Kind::Void, 0);
 }
 
 Value Value::Immediate(ValueSize size, int data) {
@@ -47,19 +47,19 @@ Value Value::Immediate(ValueSize size, int data) {
 }
 
 Value Value::Int16Type() {
-  return Value(Type::Integer, ValueSize::Size16, Kind::Void);
+  return Value(Type::Integer, ValueSize::Size16, Kind::Void, 0);
 }
 
 Value Value::Int32Type() {
-  return Value(Type::Integer, ValueSize::Size32, Kind::Void);
+  return Value(Type::Integer, ValueSize::Size32, Kind::Void, 0);
 }
 
 Value Value::Int64Type() {
-  return Value(Type::Integer, ValueSize::Size64, Kind::Void);
+  return Value(Type::Integer, ValueSize::Size64, Kind::Void, 0);
 }
 
 Value Value::Int8Type() {
-  return Value(Type::Integer, ValueSize::Size8, Kind::Void);
+  return Value(Type::Integer, ValueSize::Size8, Kind::Void, 0);
 }
 
 Value Value::Parameter(Type type, ValueSize size, int data) {

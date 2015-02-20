@@ -74,7 +74,7 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, ValueSize size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
-  Value(Type type, ValueSize size, Kind kind) : Value(type, size, kind, 0) {}
+  Value(Value type, Kind kind) : Value(type.type, type.size, kind, 0) {}
 
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
