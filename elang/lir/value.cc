@@ -62,6 +62,10 @@ Value Value::Int8Type() {
   return Value(Type::Integer, ValueSize::Size8, Kind::Void, 0);
 }
 
+Value Value::Literal(Value type) {
+  return Value(type, Kind::Literal);
+}
+
 Value Value::Parameter(Type type, ValueSize size, int data) {
   return Value(type, size, Kind::Parameter, data);
 }

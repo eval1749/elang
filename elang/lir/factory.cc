@@ -42,7 +42,7 @@ Literal* Factory::GetLiteral(Value value) const {
 }
 
 BasicBlock* Factory::NewBasicBlock() {
-  Value model(Value::Int8Type(), Value::Kind::Literal);
+  auto const model = Value::Literal(Value::Int8Type());
   auto const block =
       new (zone()) BasicBlock(zone(), literal_map_->next_literal_value(model));
   RegisterLiteral(block);
@@ -55,7 +55,7 @@ Value Factory::NewCondition() {
 }
 
 Function* Factory::NewFunction() {
-  Value model(Value::Int8Type(), Value::Kind::Literal);
+  auto const model = Value::Literal(Value::Int8Type());
   auto const function =
       new (zone()) Function(literal_map_->next_literal_value(model));
   RegisterLiteral(function);
@@ -151,7 +151,7 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
     if (it != int32_map_.end())
       return it->second;
     auto const value = literal_map_->next_literal_value(
-        Value(Value::Int32Type(), Value::Kind::Literal));
+        Value::Literal(Value::Int32Type()));
     RegisterLiteral(new (zone()) Int32Literal(data));
     int32_map_[data] = value;
     return value;
@@ -162,7 +162,7 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
   if (it != int64_map_.end())
     return it->second;
   auto const value = literal_map_->next_literal_value(
-      Value(Value::Int64Type(), Value::Kind::Literal));
+      Value::Literal(Value::Int64Type()));
   RegisterLiteral(new (zone()) Int64Literal(data));
   int64_map_[data] = value;
   return value;
@@ -172,7 +172,7 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
     return it->second;
-  Value model(Target::IntPtrType(), Value::Kind::Literal);
+  auto const model = Value::Literal(Target::IntPtrType());
   auto const value = literal_map_->next_literal_value(model);
   auto const literal = new (zone()) StringLiteral(NewString(data));
   RegisterLiteral(literal);

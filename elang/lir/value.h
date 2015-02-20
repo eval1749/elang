@@ -74,8 +74,6 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, ValueSize size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
-  Value(Value type, Kind kind) : Value(type.type, type.size, kind, 0) {}
-
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
   bool is_integer() const { return type == Type::Integer; }
@@ -116,6 +114,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Int32Type();
   static Value Int64Type();
   static Value Int8Type();
+  static Value Literal(Value type);
   static Value Parameter(Type type, ValueSize size, int data);
   static Value Register(ValueSize size, int data);
   static Value SpillSlot(Value type, int data);
@@ -124,6 +123,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value True();
 
  private:
+  Value(Value type, Kind kind) : Value(type.type, type.size, kind, 0) {}
   Value(Type type, ValueSize size) : Value(type, size, Kind::Void, 0) {}
 };
 
