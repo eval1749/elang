@@ -33,11 +33,14 @@ class LivenessBuilder : public LivenessEditor<Node, Variable> {
     collection_->node_map_[node] = NewLiveness(zone(), bit_set_size());
   }
 
-  void AddVariable(Variable value) {
-    DCHECK(!collection_->variable_map_.count(value));
+  // To support non-SSA varaible, it is OK to call |AddVaraible()| for same
+  // variable.
+  void AddVariable(Variable variable) {
+    if (collection_->variable_map_.count(variable))
+      return;
     auto const number = static_cast<int>(collection_->variables_.size());
-    collection_->variables_.push_back(value);
-    collection_->variable_map_[value] = number;
+    collection_->variables_.push_back(variable);
+    collection_->variable_map_[variable] = number;
   }
 
   // Returns newly created liveness collection based on given information so
