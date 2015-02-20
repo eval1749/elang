@@ -28,8 +28,6 @@ class ELANG_LIR_EXPORT UseDefListBuilder final {
   UseDefList Build();
 
  private:
-  friend class UseDefListBuilderBuilder;
-
   void AddUser(UseDefList* use_def_list, Value value, Instruction* instruction);
   void Assign(UseDefList* use_def_list, Value value);
 
