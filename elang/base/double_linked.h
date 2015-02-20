@@ -127,7 +127,7 @@ class DoubleLinked final {
   //    }
   class Reversed final {
    public:
-    explicit Reversed(DoubleLinked<Derived, AnchorType>* anchor)
+    explicit Reversed(const DoubleLinked<Derived, AnchorType>* anchor)
         : anchor_(anchor) {}
     ~Reversed() = default;
 
@@ -135,7 +135,7 @@ class DoubleLinked final {
     ReverseIterator end() const { return anchor_->rend(); }
 
    private:
-    DoubleLinked* anchor_;
+    const DoubleLinked* anchor_;
   };
 
   DoubleLinked() : first_(nullptr), last_(nullptr) {}
@@ -146,9 +146,9 @@ class DoubleLinked final {
   Iterator end() const { return Iterator(nullptr); }
   Derived* first_node() const { return first_; }
   Derived* last_node() const { return last_; }
-  ReverseIterator rbegin() { return ReverseIterator(last_); }
-  ReverseIterator rend() { return ReverseIterator(nullptr); }
-  Reversed reversed() { return Reversed(this); }
+  ReverseIterator rbegin() const { return ReverseIterator(last_); }
+  ReverseIterator rend() const { return ReverseIterator(nullptr); }
+  Reversed reversed() const { return Reversed(this); }
 
   // Inserts |new_derived| at the end of this list. |new_derived| must not be
   // in this list.
