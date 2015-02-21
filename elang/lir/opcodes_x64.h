@@ -375,7 +375,7 @@ namespace lir {
   V2(0x0F4C, CMOVL, Gv, Ev)  /* CMOVNGE */        \
   V2(0x0F4D, CMOVGE, Gv, Ev) /* CMOVNL */         \
   V2(0x0F4E, CMOVLE, Gv, Ev) /* CMOVNG */         \
-  V2(0x0F4F, CMOVG, Gv, Ev)  /* CMOVNLE */        \
+  V2(0x0F4F, CMOVG, Gv, Ev)  /* CMOVNLE */         \
                                                   \
   /* 0x0F50 */                                    \
   V2(0x0F50, MOVMSKPS, Gd, Ups)                   \
@@ -524,7 +524,7 @@ namespace lir {
   V1(0x0F8C, JL, Jv)  /* JNGE */                 \
   V1(0x0F8D, JGE, Jv) /* JNL */                  \
   V1(0x0F8E, JLE, Jv) /* JNG */                  \
-  V1(0x0F8F, JG, Jv)  /* JNLE */                 \
+  V1(0x0F8F, JG, Jv)  /* JNLE */                  \
                                                  \
   /* 0x0FA2 */                                   \
   V0(0x0FA2, CPUID)                              \
@@ -782,6 +782,23 @@ enum class Opcode {
 #undef V1
 #undef V2
 #undef V3
+
+#define VX1(opcode, opext, mnemonic, format) mnemonic##_##format = opcode,
+#define VX2(opcode, opext, mnemonic, format1, format2) \
+  mnemonic##_##format1##_##format2 = opcode,
+      FOR_EACH_X64_OPEXT(VX1, VX2)
+#undef VX1
+#undef VX2
+};
+
+// OpcodeExt is used in r/m field of ModRm.
+enum class OpcodeExt {
+#define VX1(opcode, opext, mnemonic, format) mnemonic##_##format = opext,
+#define VX2(opcode, opext, mnemonic, format1, format2) \
+  mnemonic##_##format1##_##format2 = opext,
+  FOR_EACH_X64_OPEXT(VX1, VX2)
+#undef VX1
+#undef VX2
 };
 
 }  // namespace isa
