@@ -18,14 +18,17 @@ const int kShiftCount = sizeof(BitSet::Pack) == 8 ? 6 : 5;
 const int kShiftMask = (1 << kShiftCount) - 1;
 
 int PackIndexOf(int index) {
+  DCHECK_GE(index, 0);
   return index >> kShiftCount;
 }
 
 int ShiftCountOf(int index) {
+  DCHECK_GE(index, 0);
   return index & kShiftMask;
 }
 
 BitSet::Pack BitMaskOf(int index) {
+  DCHECK_GE(index, 0);
   return kOne << ShiftCountOf(index);
 }
 
