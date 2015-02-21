@@ -178,7 +178,7 @@ TEST_F(LirEditorTest, InsertAfter) {
 
   editor.Edit(function->entry_block());
   auto const ref_instr = factory()->NewLiteralInstruction(
-      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+      NewIntPtrRegister(), Value::SmallInt64(42));
   editor.Append(ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
@@ -222,7 +222,7 @@ TEST_F(LirEditorTest, LiteralInstruction) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewLiteralInstruction(
-      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
+      NewIntPtrRegister(), Value::SmallInt64(42)));
   editor.Append(factory()->NewLiteralInstruction(
       NewIntPtrRegister(), factory()->NewStringValue(L"foo")));
   EXPECT_EQ("", Commit(&editor));
@@ -319,7 +319,7 @@ TEST_F(LirEditorTest, Replace) {
   auto const entry_block = function->entry_block();
   editor.Edit(entry_block);
   auto const ref_instr = factory()->NewLiteralInstruction(
-      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+      NewIntPtrRegister(), Value::SmallInt64(42));
   editor.Append(ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
