@@ -34,14 +34,16 @@ class ELANG_LIR_EXPORT StackAllocator final : public ZoneOwner {
 
   Value AllocationFor(Value vreg) const;
   Value Allocate(Value vreg);
-  void Assign(Value vreg, Value spill_slot);
+  void AllocateForPreserving(Value physical);
+  void Assign(Value vreg, Value proxy);
   void Free(Value vreg);
+  void Reallocate(Value vreg, Value proxy);
   void Reset();
   void TrackNumberOfArguments(int number_of_arguments);
 
  private:
   struct Slot : ZoneAllocated {
-    Value spill_slot;
+    Value proxy;
     ZoneVector<Value> users;
 
     explicit Slot(Zone* zone) : users(zone) {}
@@ -49,10 +51,11 @@ class ELANG_LIR_EXPORT StackAllocator final : public ZoneOwner {
 
   struct SlotLess {
     bool operator()(const Slot* a, const Slot* b) const {
-      return a->spill_slot.data < b->spill_slot.data;
+      return a->proxy.data < b->proxy.data;
     }
   };
 
+  Slot* NewSlot(Value type);
   bool IsConflict(const Slot* slot, Value vreg) const;
 
   int const alignment_;
@@ -61,6 +64,8 @@ class ELANG_LIR_EXPORT StackAllocator final : public ZoneOwner {
   std::set<Slot*, SlotLess> free_slots_;
   std::set<Slot*, SlotLess> live_slots_;
   int size_;
+
+  // Map virtual register to memory proxy.
   std::unordered_map<Value, Slot*> slot_map_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAllocator);

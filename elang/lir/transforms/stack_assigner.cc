@@ -19,19 +19,28 @@ StackAssigner::StackAssigner(Factory* factory,
                              StackAssignments* stack_assignments)
     : FactoryUser(factory),
       register_assignments_(register_assignments),
+      return_address_offset_(-1),
       stack_assignments_(stack_assignments) {
 }
 
 StackAssigner::~StackAssigner() {
 }
 
-void StackAssigner::SetStackSlot(Value spill_slot, Value stack_slot) {
-  DCHECK(spill_slot.is_spill_slot());
+void StackAssigner::Run() {
+  if (!stack_assignments_->number_of_calls()) {
+    RunForLeafFunction();
+    return;
+  }
+  RunForNonLeafFunction();
+}
+
+void StackAssigner::SetStackSlot(Value proxy, Value stack_slot) {
+  DCHECK(proxy.is_memory_proxy());
   DCHECK(stack_slot.is_stack_slot());
-  DCHECK_EQ(spill_slot.type, stack_slot.type);
-  DCHECK_EQ(spill_slot.size, stack_slot.size);
-  DCHECK(!stack_assignments_->stack_map_.count(spill_slot));
-  stack_assignments_->stack_map_[spill_slot] = stack_slot;
+  DCHECK_EQ(proxy.type, stack_slot.type);
+  DCHECK_EQ(proxy.size, stack_slot.size);
+  DCHECK(!stack_assignments_->stack_map_.count(proxy));
+  stack_assignments_->stack_map_[proxy] = stack_slot;
 }
 
 }  // namespace lir

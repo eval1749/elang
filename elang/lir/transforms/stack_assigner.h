@@ -30,12 +30,14 @@ class ELANG_LIR_EXPORT StackAssigner final : public FactoryUser {
   void Run();
 
  private:
+  Value MapToStackSlot(Value memory_slot);
   void RunForLeafFunction();
   void RunForNonLeafFunction();
-  void SetStackSlot(Value spill_slot, Value stack_slot);
+  void SetStackSlot(Value proxy, Value stack_slot);
 
   RegisterAssignments::Editor register_assignments_;
   StackAssignments* const stack_assignments_;
+  int return_address_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssigner);
 };

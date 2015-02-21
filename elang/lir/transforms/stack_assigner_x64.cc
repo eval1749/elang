@@ -33,21 +33,22 @@ int RoundUp(int value, int alignment) {
   return (value + alignment - 1) / alignment * alignment;
 }
 
-int StackOffset(int offset, int return_offset) {
-  return offset >= return_offset ? offset + 8 : offset;
-}
-
 }  // namespace
 
-void StackAssigner::Run() {
-  if (!stack_assignments_->number_of_calls()) {
-    RunForLeafFunction();
-    return;
+Value StackAssigner::MapToStackSlot(Value proxy) {
+  DCHECK_NE(return_address_offset_, -1);
+  auto const kAlignment = 8;
+  if (proxy.is_parameter()) {
+    return Value::StackSlot(
+        proxy, return_address_offset_ + kAlignment * (proxy.data + 1));
   }
-  RunForNonLeafFunction();
+  if (proxy.is_spill_slot())
+    return Value::StackSlot(proxy, proxy.data);
+  NOTREACHED() << proxy << " isn't memory proxy.";
+  return Value();
 }
 
-// Stack layout of leaf function; not use RBP.
+// Stack layout of leaf function; not use RBP for accessing local variable.
 //
 //          +----------------+
 // RSP ---->| local[0]       |
@@ -58,58 +59,60 @@ void StackAssigner::Run() {
 //          +----------------+
 // RSP+24   | return address |
 //          +----------------+
-// RSP+32   | RCX home       |
+// RSP+32   | param[0]       | RCX home
 //          +----------------+
-// RSP+48   | RDX home       |
+// RSP+48   | param[1]       | RDX home
 //          +----------------+
-// RSP+56   | R8 home        |
+// RSP+56   | param[2]       | R8 home
 //          +----------------+
-// RSP+64   | R9 home        |
+// RSP+64   | param[3]       | R9 home
 //          +----------------+
-// RSP+72   | arg[4]         |
+// RSP+72   | param[4]       |
 //          +----------------+
 //
 void StackAssigner::RunForLeafFunction() {
+  DCHECK_EQ(return_address_offset_, -1);
+
   auto const kAlignment = 8;
-  auto const using_size =
+  auto const size =
       stack_assignments_->maximum_size() +
       static_cast<int>(stack_assignments_->preserving_registers().size()) *
           kAlignment;
-  auto const pre_allocated_size = stack_assignments_->number_of_parameters();
-  auto const size = pre_allocated_size > using_size
-                        ? 0
-                        : RoundUp(using_size - pre_allocated_size, kAlignment);
   if (size) {
+    // Allocate slots for local variable on stack.
+    auto const rsp = Target::GetRegister(isa::RSP);
+    auto const size64 = Value::Immediate(ValueSize::Size64, size);
     stack_assignments_->prologue_instructions_.push_back(
-        factory()->NewSubInstruction(
-            Target::GetRegister(isa::RSP), Target::GetRegister(isa::RSP),
-            Value::Immediate(ValueSize::Size64, size)));
-    stack_assignments_->epilogue_instructions_.push_back(
-        factory()->NewAddInstruction(
-            Target::GetRegister(isa::RSP), Target::GetRegister(isa::RSP),
-            Value::Immediate(ValueSize::Size64, size)));
+        factory()->NewSubInstruction(rsp, rsp, size64));
   }
 
-  auto const return_offset = size;
+  return_address_offset_ = size;
 
   // Allocate spill slot to stack
-  for (auto pair : register_assignments_.spill_slot_map()) {
-    auto const spill_slot = pair.second;
-    SetStackSlot(spill_slot,
-                 Value::StackSlot(spill_slot,
-                                  StackOffset(spill_slot.data, return_offset)));
+  for (auto pair : register_assignments_.proxy_map()) {
+    auto const proxy = pair.second;
+    SetStackSlot(proxy, MapToStackSlot(proxy));
   }
 
-  // Restore preserving registers
-  auto offset = StackOffset(using_size, return_offset);
-  for (auto const physical : stack_assignments_->preserving_registers()) {
-    auto const slot_offset = StackOffset(offset, return_offset);
-    auto const stack_slot =
-        Value::StackSlot(physical, StackOffset(slot_offset, return_offset));
+  // Save/restore preserving registers
+  for (auto const pair : stack_assignments_->preserving_registers()) {
+    auto const physical = pair.first;
+    auto const slot_proxy = pair.second;
+    auto const stack_slot = MapToStackSlot(slot_proxy);
     stack_assignments_->prologue_instructions_.push_back(
         factory()->NewCopyInstruction(stack_slot, physical));
-    offset += kAlignment;
+    stack_assignments_->epilogue_instructions_.push_back(
+        factory()->NewCopyInstruction(physical, stack_slot));
   }
+
+  if (!size)
+    return;
+
+  // Deallocate slots for local variable on stack.
+  auto const rsp = Target::GetRegister(isa::RSP);
+  auto const size64 = Value::Immediate(ValueSize::Size64, size);
+  stack_assignments_->epilogue_instructions_.push_back(
+      factory()->NewAddInstruction(rsp, rsp, size64));
 }
 
 void StackAssigner::RunForNonLeafFunction() {

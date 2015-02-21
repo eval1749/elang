@@ -17,16 +17,15 @@ StackAssignments::StackAssignments()
     : maximum_argc_(0),
       maximum_size_(0),
       number_of_calls_(0),
-      number_of_parameters_(0),
-      slot_count_(0) {
+      number_of_parameters_(0) {
 }
 
 StackAssignments::~StackAssignments() {
 }
 
-Value StackAssignments::StackSlotOf(Value spill_slot) const {
-  DCHECK(spill_slot.is_spill_slot());
-  auto const it = stack_map_.find(spill_slot);
+Value StackAssignments::StackSlotOf(Value proxy) const {
+  DCHECK(proxy.is_memory_proxy());
+  auto const it = stack_map_.find(proxy);
   DCHECK(it != stack_map_.end());
   return it->second;
 }

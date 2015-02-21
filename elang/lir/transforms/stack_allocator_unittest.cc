@@ -36,11 +36,11 @@ class LirStackAllocatorTest : public testing::LirTest {
 // Test cases...
 TEST_F(LirStackAllocatorTest, Alignment) {
   std::array<Value, 5> vregs{
-        factory()->NewRegister(Value::Int8Type()),
-        factory()->NewRegister(Value::Int16Type()),
-        factory()->NewRegister(Value::Int32Type()),
-        factory()->NewRegister(Value::Int64Type()),
-        factory()->NewRegister(Value::Int64Type()),
+      factory()->NewRegister(Value::Int8Type()),
+      factory()->NewRegister(Value::Int16Type()),
+      factory()->NewRegister(Value::Int32Type()),
+      factory()->NewRegister(Value::Int64Type()),
+      factory()->NewRegister(Value::Int64Type()),
   };
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
@@ -56,6 +56,28 @@ TEST_F(LirStackAllocatorTest, Alignment) {
   EXPECT_EQ(24u, assignments.maximum_size());
 }
 
+TEST_F(LirStackAllocatorTest, Parameters) {
+  std::array<Value, 10> vregs;
+  std::vector<Value> parameters(vregs.size());
+  for (auto position = 0; position < vregs.size(); ++position) {
+    vregs[position] = factory()->NewRegister(Value::Int32Type());
+    parameters[position] = Target::GetParameterAt(vregs[position], position);
+  }
+
+  auto const function = CreateFunctionEmptySample(parameters);
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewCopyInstruction(vregs[0], parameters[9]));
+  ASSERT_EQ("", Commit(&editor));
+
+  StackAssignments assignments;
+  StackAllocator allocator(&editor, &assignments);
+  allocator.Assign(vregs[0], parameters[9]);
+
+  EXPECT_EQ(parameters[9], allocator.AllocationFor(vregs[0]));
+  EXPECT_EQ(0u, assignments.maximum_size());
+}
+
 TEST_F(LirStackAllocatorTest, Reuse) {
   std::array<Value, 2> vregs{
       factory()->NewRegister(Value::Int32Type()),
@@ -66,8 +88,7 @@ TEST_F(LirStackAllocatorTest, Reuse) {
   auto const function = CreateFunctionEmptySample(parameters);
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(
-      factory()->NewCopyInstruction(vregs[0], function->parameters()[0]));
+  editor.Append(factory()->NewCopyInstruction(vregs[0], parameters[0]));
   editor.Append(
       factory()->NewAddInstruction(vregs[1], vregs[0], Value::SmallInt32(42)));
   ASSERT_EQ("", Commit(&editor));

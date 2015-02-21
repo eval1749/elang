@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/lir/analysis/conflict_map.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
@@ -33,6 +34,16 @@ StackAllocator::StackAllocator(const Editor* editor,
       conflict_map_(editor->AnalyzeConflicts()),
       size_(0) {
   DCHECK(alignment_ == 4 || alignment_ == 8 || alignment_ == 16);
+
+  // Put parameters into free slot list for assigning them as spill slot in
+  // 'copy' and 'pcopy' after 'entry' instruction.
+  for (auto const parameter : editor->function()->parameters()) {
+    if (!parameter.is_parameter())
+      continue;
+    auto const slot = new (zone()) Slot(zone());
+    slot->proxy = parameter;
+    free_slots_.insert(slot);
+  }
 }
 
 StackAllocator::~StackAllocator() {
@@ -41,7 +52,7 @@ StackAllocator::~StackAllocator() {
 Value StackAllocator::AllocationFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
   auto const it = slot_map_.find(vreg);
-  return it == slot_map_.end() ? Value() : it->second->spill_slot;
+  return it == slot_map_.end() ? Value() : it->second->proxy;
 }
 
 Value StackAllocator::Allocate(Value vreg) {
@@ -50,44 +61,67 @@ Value StackAllocator::Allocate(Value vreg) {
 
   // Find reusable free slot for |vreg|.
   for (auto const slot : free_slots_) {
-    if (slot->spill_slot.size == vreg.size) {
+    if (slot->proxy.size == vreg.size) {
       if (!IsConflict(slot, vreg)) {
         free_slots_.erase(slot);
         live_slots_.insert(slot);
         slot_map_[vreg] = slot;
         slot->users.push_back(vreg);
-        return slot->spill_slot;
+        return slot->proxy;
       }
     }
   }
 
-  // There are no reusable free slots, we allocate new slot for |vreg|.
-  auto const offset = Align(size_, Value::ByteSizeOf(vreg));
-  size_ += Value::ByteSizeOf(vreg);
-  assignments_->maximum_size_ = std::max(assignments_->maximum_size_,
-                                         Align(size_, alignment_));
-  auto const slot = new (zone()) Slot(zone());
-  live_slots_.insert(slot);
-  slot->spill_slot = Value::SpillSlot(vreg, offset);
+  // There are no reusable free slots, we use new slot for |vreg|.
+  auto const slot = NewSlot(vreg);
   slot->users.push_back(vreg);
   slot_map_[vreg] = slot;
-  return slot->spill_slot;
+  return slot->proxy;
 }
 
-// Allocate stack by offset and size specified by |spill_slot|. This function
+void StackAllocator::AllocateForPreserving(Value physical) {
+  DCHECK(physical.is_physical());
+  auto const natural = Target::NaturalRegisterOf(physical);
+  if (assignments_->preserving_registers_.count(natural)) {
+    // We've already have slot for preserving register.
+    return;
+  }
+
+  for (auto const slot : free_slots_) {
+    if (slot->proxy.size == natural.size) {
+      free_slots_.erase(slot);
+      assignments_->preserving_registers_[natural] = slot->proxy;
+      live_slots_.insert(slot);
+      return;
+    }
+  }
+
+  // There are no reusable free slots, we use new slot for |natural|.
+  auto const slot = NewSlot(natural);
+  assignments_->preserving_registers_[natural] = slot->proxy;
+  live_slots_.insert(slot);
+}
+
+// Allocate stack by offset and size specified by |proxy|. This function
 // may be called after |Reset()|.
-void StackAllocator::Assign(Value vreg, Value spill_slot) {
+void StackAllocator::Assign(Value vreg, Value proxy) {
   DCHECK(vreg.is_virtual());
-  DCHECK(spill_slot.is_spill_slot());
+  DCHECK(proxy.is_memory_proxy());
   DCHECK(vreg.is_virtual());
-  auto const it = slot_map_.find(vreg);
-  DCHECK(it != slot_map_.end());
-  auto const slot = it->second;
-  DCHECK(free_slots_.count(slot)) << spill_slot << " for " << vreg
-                                  << " is already used.";
+  DCHECK(!slot_map_.count(vreg));
+  Slot* slot = nullptr;
+  for (auto const present : free_slots_) {
+    if (present->proxy == proxy) {
+      slot = present;
+      break;
+    }
+  }
+  DCHECK(slot) << proxy << " for " << vreg << " is already used.";
   DCHECK(!live_slots_.count(slot));
   free_slots_.erase(slot);
   live_slots_.insert(slot);
+  slot_map_[vreg] = slot;
+  slot->users.push_back(vreg);
 }
 
 void StackAllocator::Free(Value vreg) {
@@ -107,6 +141,32 @@ bool StackAllocator::IsConflict(const Slot* slot, Value vreg) const {
       return true;
   }
   return false;
+}
+
+StackAllocator::Slot* StackAllocator::NewSlot(Value type) {
+  auto const offset = Align(size_, Value::ByteSizeOf(type));
+  size_ += Value::ByteSizeOf(type);
+  assignments_->maximum_size_ = Align(size_, alignment_);
+  auto const slot = new (zone()) Slot(zone());
+  live_slots_.insert(slot);
+  slot->proxy = Value::SpillSlot(type, offset);
+  return slot;
+}
+
+// Allocate stack by offset and size specified by |proxy|. This function
+// may be called after |Reset()|.
+void StackAllocator::Reallocate(Value vreg, Value proxy) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(proxy.is_memory_proxy());
+  DCHECK(vreg.is_virtual());
+  auto const it = slot_map_.find(vreg);
+  DCHECK(it != slot_map_.end());
+  auto const slot = it->second;
+  DCHECK(free_slots_.count(slot)) << proxy << " for " << vreg
+                                  << " is already used.";
+  DCHECK(!live_slots_.count(slot));
+  free_slots_.erase(slot);
+  live_slots_.insert(slot);
 }
 
 void StackAllocator::Reset() {

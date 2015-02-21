@@ -33,14 +33,14 @@ class ELANG_LIR_EXPORT StackAssignments final {
   int maximum_size() const { return maximum_size_; }
   int number_of_calls() const { return number_of_calls_; }
   int number_of_parameters() const { return number_of_parameters_; }
-  const std::vector<Value>& preserving_registers() const {
+  const std::unordered_map<Value, Value>& preserving_registers() const {
     return preserving_registers_;
   }
   const std::vector<Instruction*> prologue() const {
     return prologue_instructions_;
   }
 
-  Value StackSlotOf(Value spill_slot) const;
+  Value StackSlotOf(Value proxy) const;
 
  private:
   friend class StackAllocator;
@@ -53,10 +53,11 @@ class ELANG_LIR_EXPORT StackAssignments final {
   // Number of stack slots used for parameter passing.
   int number_of_parameters_;
   std::vector<Instruction*> prologue_instructions_;
-  std::vector<Value> preserving_registers_;
-  int slot_count_;
 
-  // Mapping from spill slot to stack slot.
+  // Mapping from physical register to proxy slot.
+  std::unordered_map<Value, Value> preserving_registers_;
+
+  // Mapping from memory proxy to stack slot.
   std::unordered_map<Value, Value> stack_map_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssignments);

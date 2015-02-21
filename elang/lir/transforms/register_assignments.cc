@@ -29,8 +29,8 @@ RegisterAssignments::Editor::~Editor() {
 }
 
 const ZoneUnorderedMap<Value, Value>&
-RegisterAssignments::Editor::spill_slot_map() const {
-  return assignments_->spill_slot_map_;
+RegisterAssignments::Editor::proxy_map() const {
+  return assignments_->proxy_map_;
 }
 
 Zone* RegisterAssignments::Editor::zone() const {
@@ -63,7 +63,7 @@ void RegisterAssignments::Editor::SetAllocation(Instruction* instr,
                                                 Value vreg,
                                                 Value allocation) {
   DCHECK(vreg.is_virtual());
-  DCHECK(allocation.is_physical() || allocation.is_spill_slot());
+  DCHECK(allocation.is_physical() || allocation.is_memory_proxy());
   assignments_->instruction_value_map_[std::make_pair(instr, vreg)] =
       allocation;
 }
@@ -76,11 +76,11 @@ void RegisterAssignments::Editor::SetPhysical(BasicBlock* block,
   assignments_->block_value_map_[std::make_pair(block, vreg)] = physical;
 }
 
-void RegisterAssignments::Editor::SetSpillSlot(Value vreg, Value spill_slot) {
+void RegisterAssignments::Editor::SetSpillSlot(Value vreg, Value proxy) {
   DCHECK(vreg.is_virtual());
-  DCHECK(spill_slot.is_spill_slot());
-  DCHECK(!assignments_->spill_slot_map_.count(vreg));
-  assignments_->spill_slot_map_[vreg] = spill_slot;
+  DCHECK(proxy.is_memory_proxy());
+  DCHECK(!assignments_->proxy_map_.count(vreg));
+  assignments_->proxy_map_[vreg] = proxy;
 }
 
 Value RegisterAssignments::Editor::SpillSlotFor(Value vreg) const {
@@ -97,7 +97,7 @@ RegisterAssignments::RegisterAssignments()
       before_action_map_(zone()),
       empty_actions_(zone()),
       instruction_value_map_(zone()),
-      spill_slot_map_(zone()) {
+      proxy_map_(zone()) {
 }
 
 RegisterAssignments::~RegisterAssignments() {
@@ -127,8 +127,8 @@ const ZoneVector<Instruction*>& RegisterAssignments::BeforeActionOf(
 
 Value RegisterAssignments::SpillSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
-  auto const it = spill_slot_map_.find(vreg);
-  return it == spill_slot_map_.end() ? Value() : it->second;
+  auto const it = proxy_map_.find(vreg);
+  return it == proxy_map_.end() ? Value() : it->second;
 }
 
 }  // namespace lir

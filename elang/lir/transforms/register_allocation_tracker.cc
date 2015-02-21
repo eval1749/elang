@@ -77,7 +77,8 @@ void RegisterAllocationTracker::FreePhysical(Value physical) {
 
 void RegisterAllocationTracker::FreeVirtual(Value vreg) {
   DCHECK(vreg.is_virtual());
-  DCHECK(PhysicalFor(vreg).is_physical() || SpillSlotFor(vreg).is_spill_slot());
+  DCHECK(PhysicalFor(vreg).is_physical() ||
+         SpillSlotFor(vreg).is_memory_proxy());
   auto const physical_it = physical_map_.find(vreg);
   if (physical_it != physical_map_.end())
     physical_map_.erase(physical_it);
@@ -115,7 +116,7 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
     DCHECK_EQ(PhysicalFor(vreg), allocation);
     return;
   }
-  if (allocation.is_spill_slot()) {
+  if (allocation.is_memory_proxy()) {
     DCHECK_EQ(SpillSlotFor(vreg), allocation);
     return;
   }
@@ -144,7 +145,7 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
 
 void RegisterAllocationTracker::TrackSpillSlot(Value vreg, Value spill_slot) {
   DCHECK(vreg.is_virtual());
-  DCHECK(spill_slot.is_spill_slot());
+  DCHECK(spill_slot.is_memory_proxy());
   DCHECK_EQ(SpillSlotFor(vreg), spill_slot);
 }
 

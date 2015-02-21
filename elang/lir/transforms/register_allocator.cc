@@ -159,7 +159,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
       victim.next_use = next_use->index();
       victim.vreg = candidate;
     }
-    if (SpillSlotFor(candidate).is_spill_slot() &&
+    if (SpillSlotFor(candidate).is_memory_slot() &&
         spilled_victim.next_use < next_use->index()) {
       spilled_victim.next_use = next_use->index();
       spilled_victim.vreg = candidate;
@@ -173,7 +173,7 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
 Value RegisterAllocator::EnsureSpillSlot(Value vreg) {
   DCHECK(vreg.is_virtual());
   auto const present = SpillSlotFor(vreg);
-  return present.is_spill_slot() ? present : stack_allocator_->Allocate(vreg);
+  return present.is_memory_slot() ? present : stack_allocator_->Allocate(vreg);
 }
 
 void RegisterAllocator::ExpandParallelCopy(const std::vector<ValuePair>& pairs,
@@ -250,13 +250,13 @@ void RegisterAllocator::MustAllocate(Instruction* instr,
 
 Instruction* RegisterAllocator::NewReload(Value physical, Value spill_slot) {
   DCHECK(physical.is_physical());
-  DCHECK(spill_slot.is_spill_slot());
+  DCHECK(spill_slot.is_memory_slot());
   return factory()->NewCopyInstruction(physical, spill_slot);
 }
 
 Instruction* RegisterAllocator::NewSpill(Value spill_slot, Value physical) {
   DCHECK(physical.is_physical());
-  DCHECK(spill_slot.is_spill_slot());
+  DCHECK(spill_slot.is_memory_slot());
   return factory()->NewCopyInstruction(spill_slot, physical);
 }
 
@@ -274,10 +274,10 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
     auto const input = liveness_.VariableOf(number);
     // Stack location
     auto const spill_slot = SpillSlotFor(input);
-    if (!spill_slot.is_spill_slot())
+    if (!spill_slot.is_memory_slot())
       continue;
     allocation_tracker_->TrackSpillSlot(input, spill_slot);
-    stack_allocator_->Assign(input, spill_slot);
+    stack_allocator_->Reallocate(input, spill_slot);
   }
 
   auto const& rpo_list = editor_->ReversePostOrderList();
@@ -496,7 +496,7 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
       continue;
 
     auto const spill_slot = stack_allocator_->Allocate(output);
-    DCHECK(spill_slot.is_spill_slot());
+    DCHECK(spill_slot.is_memory_slot());
     allocation_tracker_->TrackSpillSlot(output, spill_slot);
     allocation_tracker_->SetAllocation(phi, output, spill_slot);
   }
@@ -546,7 +546,12 @@ bool RegisterAllocator::TryAllocate(Instruction* instr,
                                     Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
-  return allocation_tracker_->TryAllocate(instr, vreg, physical);
+  if (!allocation_tracker_->TryAllocate(instr, vreg, physical))
+    return false;
+  if (!Target::IsCalleeSavedRegister(physical))
+    return true;
+  stack_allocator_->AllocateForPreserving(physical);
+  return true;
 }
 
 // InstructionVisitor
@@ -593,14 +598,20 @@ void RegisterAllocator::VisitCall(CallInstruction* instr) {
 
 // Allocate output and input to same physical register if possible.
 void RegisterAllocator::VisitCopy(CopyInstruction* instr) {
-  auto const physical = PhysicalFor(instr->input(0));
+  auto const input = instr->input(0);
+  auto const physical = PhysicalFor(input);
   FreeInputOperandsIfNotUsed(instr);
   auto const output = instr->output(0);
   if (output.is_physical())
     return;
+  DCHECK(output.is_virtual());
   if (physical.is_physical()) {
     MustAllocate(instr, output, physical);
     return;
+  }
+  if (input.is_parameter()) {
+    stack_allocator_->Assign(output, input);
+    allocation_tracker_->TrackSpillSlot(output, input);
   }
   ProcessOutputOperand(instr, output);
 }
@@ -609,7 +620,7 @@ void RegisterAllocator::VisitPCopy(PCopyInstruction* instr) {
   FreeInputOperandsIfNotUsed(instr);
   ProcessOutputOperands(instr);
   // TODO(eval1749) We should use free output registers in different size, e.g.
-  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register durign
+  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register during
   // expanding float 32.
   for (auto const type : IntegerTypesAndFloatTypes()) {
     std::vector<ValuePair> pairs;
@@ -621,6 +632,10 @@ void RegisterAllocator::VisitPCopy(PCopyInstruction* instr) {
         continue;
       DCHECK_EQ(output.size, input.size);
       DCHECK_EQ(output.type, input.type);
+      if (input.is_parameter()) {
+        stack_allocator_->Assign(output, input);
+        allocation_tracker_->TrackSpillSlot(output, input);
+      }
       pairs.push_back(std::make_pair(output, input));
     }
     ExpandParallelCopy(pairs, instr);

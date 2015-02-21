@@ -61,7 +61,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
     explicit Editor(RegisterAssignments* assignments);
     ~Editor();
 
-    const ZoneUnorderedMap<Value, Value>& spill_slot_map() const;
+    const ZoneUnorderedMap<Value, Value>& proxy_map() const;
     Zone* zone() const;
 
     Value AllocationOf(BasicBlock* block, Value value) const;
@@ -74,7 +74,7 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
 
     void SetAllocation(Instruction* instr, Value vreg, Value allocation);
     void SetPhysical(BasicBlock* block, Value vreg, Value physical);
-    void SetSpillSlot(Value vreg, Value spill_slot);
+    void SetSpillSlot(Value vreg, Value proxy);
     Value SpillSlotFor(Value vreg) const;
 
    private:
@@ -105,8 +105,8 @@ class ELANG_LIR_EXPORT RegisterAssignments final : public ZoneOwner {
   ZoneVector<Instruction*> empty_actions_;
   ZoneUnorderedMap<InstructionValue, Value> instruction_value_map_;
 
-  // Map virtual register to stack location.
-  ZoneUnorderedMap<Value, Value> spill_slot_map_;
+  // Map virtual register to memory proxy.
+  ZoneUnorderedMap<Value, Value> proxy_map_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAssignments);
 };
