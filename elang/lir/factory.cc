@@ -128,10 +128,6 @@ Value Factory::NewRegister(Value type) {
   return Value::Register(type.size, ++last_general_register_id_);
 }
 
-Value Factory::NewRegister() {
-  return NewRegister(Target::IntPtrType());
-}
-
 Value Factory::NewIntValue(ValueSize size, int64_t data) {
   if (size == ValueSize::Size8 || size == ValueSize::Size16 ||
       Value::CanBeImmediate(data)) {

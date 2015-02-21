@@ -91,8 +91,8 @@ TEST_F(LirEditorTest, AssignIndex) {
   auto const last_instruction = entry_block->last_instruction();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const register1 = factory()->NewRegister();
-  auto const register2 = factory()->NewRegister();
+  auto const register1 = NewIntPtrRegister();
+  auto const register2 = NewIntPtrRegister();
   editor.InsertCopyBefore(register1, register2, last_instruction);
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ(
@@ -178,13 +178,13 @@ TEST_F(LirEditorTest, InsertAfter) {
 
   editor.Edit(function->entry_block());
   auto const ref_instr = factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
   editor.Append(ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(function->entry_block());
-  auto const new_instr = factory()->NewCopyInstruction(factory()->NewRegister(),
-                                                       ref_instr->output(0));
+  auto const new_instr =
+      factory()->NewCopyInstruction(NewIntPtrRegister(), ref_instr->output(0));
   editor.InsertAfter(new_instr, ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
@@ -198,8 +198,8 @@ TEST_F(LirEditorTest, InsertCopyBefore) {
   auto const last_instruction = entry_block->last_instruction();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const register1 = factory()->NewRegister();
-  auto const register2 = factory()->NewRegister();
+  auto const register1 = NewIntPtrRegister();
+  auto const register2 = NewIntPtrRegister();
   editor.InsertCopyBefore(register1, register2, last_instruction);
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
@@ -222,9 +222,9 @@ TEST_F(LirEditorTest, LiteralInstruction) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
+      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42)));
   editor.Append(factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewStringValue(L"foo")));
+      NewIntPtrRegister(), factory()->NewStringValue(L"foo")));
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
@@ -319,13 +319,13 @@ TEST_F(LirEditorTest, Replace) {
   auto const entry_block = function->entry_block();
   editor.Edit(entry_block);
   auto const ref_instr = factory()->NewLiteralInstruction(
-      factory()->NewRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
+      NewIntPtrRegister(), factory()->NewIntValue(ValueSize::Size64, 42));
   editor.Append(ref_instr);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(entry_block);
-  auto const new_instr = factory()->NewCopyInstruction(factory()->NewRegister(),
-                                                       ref_instr->output(0));
+  auto const new_instr =
+      factory()->NewCopyInstruction(NewIntPtrRegister(), ref_instr->output(0));
   editor.Replace(new_instr, ref_instr);
   EXPECT_EQ("", Commit(&editor));
 

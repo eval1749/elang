@@ -301,9 +301,9 @@ Function* LirTest::CreateFunctionSample2() {
 //    // Out: {}
 //    exit
 Function* LirTest::CreateFunctionSampleAdd() {
-  auto const var0 = factory()->NewRegister();
-  auto const var1 = factory()->NewRegister();
-  auto const var2 = factory()->NewRegister();
+  auto const var0 = NewIntPtrRegister();
+  auto const var1 = NewIntPtrRegister();
+  auto const var2 = NewIntPtrRegister();
   std::vector<Value> parameters{
       Target::GetParameterAt(var0, 0), Target::GetParameterAt(var1, 1),
   };
@@ -399,6 +399,10 @@ Value LirTest::NewFloat64Value(float64_t data) {
 
 Value LirTest::NewIntValue(ValueSize size, int64_t data) {
   return factory()->NewIntValue(size, data);
+}
+
+Value LirTest::NewIntPtrRegister() {
+  return NewRegister(Target::IntPtrType());
 }
 
 Value LirTest::NewStringValue(base::StringPiece16 data) {

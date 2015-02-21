@@ -24,6 +24,7 @@ class LirInstructionTest : public ::testing::Test {
   LirInstructionTest();
 
   Factory* factory() { return factory_.get(); }
+  Value NewIntPtrRegister();
 
  private:
   const std::unique_ptr<Factory> factory_;
@@ -32,12 +33,16 @@ class LirInstructionTest : public ::testing::Test {
 LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
 }
 
+Value LirInstructionTest::NewIntPtrRegister() {
+  return factory()->NewRegister(Target::IntPtrType());
+}
+
 // Test cases...
 
 // AssignInstruction
 TEST_F(LirInstructionTest, AssignInstruction) {
-  auto const instr = factory()->NewAssignInstruction(factory()->NewRegister(),
-                                                     factory()->NewRegister());
+  auto const instr =
+      factory()->NewAssignInstruction(NewIntPtrRegister(), NewIntPtrRegister());
   EXPECT_TRUE(instr->is<AssignInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
@@ -75,8 +80,8 @@ TEST_F(LirInstructionTest, CallInstruction) {
 
 // CopyInstruction
 TEST_F(LirInstructionTest, CopyInstruction) {
-  auto const instr = factory()->NewCopyInstruction(factory()->NewRegister(),
-                                                   factory()->NewRegister());
+  auto const instr =
+      factory()->NewCopyInstruction(NewIntPtrRegister(), NewIntPtrRegister());
   EXPECT_TRUE(instr->is<CopyInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
@@ -132,7 +137,7 @@ TEST_F(LirInstructionTest, JumpInstruction) {
 
 // LoadInstruction
 TEST_F(LirInstructionTest, LoadInstruction) {
-  auto const destination = factory()->NewRegister();
+  auto const destination = NewIntPtrRegister();
   auto const instr = factory()->NewLoadInstruction(
       destination, Value::Parameter(destination, 0));
   EXPECT_TRUE(instr->is<LoadInstruction>());
@@ -145,11 +150,10 @@ TEST_F(LirInstructionTest, LoadInstruction) {
 // PCopyInstruction
 TEST_F(LirInstructionTest, PCopyInstruction) {
   std::vector<Value> outputs{
-      factory()->NewRegister(), factory()->NewRegister(),
+      NewIntPtrRegister(), NewIntPtrRegister(),
   };
   std::vector<Value> inputs{
-      factory()->NewIntValue(outputs.front().size, 42),
-      factory()->NewRegister(),
+      factory()->NewIntValue(outputs.front().size, 42), NewIntPtrRegister(),
   };
   auto const instr = factory()->NewPCopyInstruction(outputs, inputs);
   EXPECT_TRUE(instr->is<PCopyInstruction>());
@@ -170,10 +174,11 @@ TEST_F(LirInstructionTest, RetInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
+// StoreInstruction
 TEST_F(LirInstructionTest, StoreInstruction) {
-  auto const source = factory()->NewRegister();
-  auto const instr = factory()->NewStoreInstruction(
-      Value::Argument(source, 0), source);
+  auto const source = NewIntPtrRegister();
+  auto const instr =
+      factory()->NewStoreInstruction(Value::Argument(source, 0), source);
   EXPECT_TRUE(instr->is<StoreInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
