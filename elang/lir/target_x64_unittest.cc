@@ -47,9 +47,7 @@ TEST(LirTargetX64Test, GetParameterAt) {
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetParameterAt(int32_type, 1));
   EXPECT_EQ(Target::GetRegister(R8D), Target::GetParameterAt(int32_type, 2));
   EXPECT_EQ(Target::GetRegister(R9D), Target::GetParameterAt(int32_type, 3));
-  // TODO(eval1749) We should use |Size32| for parameter if 32-bit value is
-  // requested.
-  EXPECT_EQ(Value::Parameter(Value::Type::Integer, ValueSize::Size64, 4),
+  EXPECT_EQ(Value::Parameter(Value::Type::Integer, ValueSize::Size32, 4),
             Target::GetParameterAt(int32_type, 4));
 
   EXPECT_EQ(Target::GetRegister(RCX), Target::GetParameterAt(int64_type, 0));

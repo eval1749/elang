@@ -220,8 +220,7 @@ Value Target::GetParameterAt(Value output, int position) {
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
                  number & 15);
   }
-  return Value(output.type, ValueSize::Size64, Value::Kind::Parameter,
-               position);
+  return Value::Parameter(output.type, output.size, position);
 }
 
 Value Target::GetRegister(isa::Register name) {
