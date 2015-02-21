@@ -209,7 +209,7 @@ Value Target::GetArgumentAt(Value output, int position) {
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
                  number & 15);
   }
-  return Value::Argument(output.type, output.size, position);
+  return Value::Argument(output, position);
 }
 
 Value Target::GetParameterAt(Value output, int position) {

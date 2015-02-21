@@ -26,14 +26,14 @@ TEST(LirTargetX64Test, GetArgumentAt) {
   EXPECT_EQ(Target::GetRegister(EDX), Target::GetArgumentAt(int32_type, 1));
   EXPECT_EQ(Target::GetRegister(R8D), Target::GetArgumentAt(int32_type, 2));
   EXPECT_EQ(Target::GetRegister(R9D), Target::GetArgumentAt(int32_type, 3));
-  EXPECT_EQ(Value::Argument(Value::Type::Integer, ValueSize::Size32, 4),
+  EXPECT_EQ(Value::Argument(int32_type, 4),
             Target::GetArgumentAt(int32_type, 4));
 
   EXPECT_EQ(Target::GetRegister(RCX), Target::GetArgumentAt(int64_type, 0));
   EXPECT_EQ(Target::GetRegister(RDX), Target::GetArgumentAt(int64_type, 1));
   EXPECT_EQ(Target::GetRegister(R8), Target::GetArgumentAt(int64_type, 2));
   EXPECT_EQ(Target::GetRegister(R9), Target::GetArgumentAt(int64_type, 3));
-  EXPECT_EQ(Value::Argument(Value::Type::Integer, ValueSize::Size64, 4),
+  EXPECT_EQ(Value::Argument(int64_type, 4),
             Target::GetArgumentAt(int64_type, 4));
 }
 

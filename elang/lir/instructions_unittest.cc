@@ -173,7 +173,7 @@ TEST_F(LirInstructionTest, RetInstruction) {
 TEST_F(LirInstructionTest, StoreInstruction) {
   auto const source = factory()->NewRegister();
   auto const instr = factory()->NewStoreInstruction(
-      Value::Argument(source.type, source.size, 0), source);
+      Value::Argument(source, 0), source);
   EXPECT_TRUE(instr->is<StoreInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());

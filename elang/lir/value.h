@@ -104,7 +104,7 @@ struct ELANG_LIR_EXPORT Value {
   static int ByteSizeOf(Value value) { return 1 << Log2Of(value); }
   static int Log2Of(Value value) { return static_cast<int>(value.size); }
 
-  static Value Argument(Type type, ValueSize size, int data);
+  static Value Argument(Value type, int data);
   static Value False();
   static Value Float32Literal();
   static Value Float64Literal();

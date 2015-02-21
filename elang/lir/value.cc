@@ -13,8 +13,8 @@ bool Value::is_memory_slot() const {
   return is_parameter() || is_argument() || is_stack_slot() || is_spill_slot();
 }
 
-Value Value::Argument(Type type, ValueSize size, int data) {
-  return Value(type, size, Kind::Argument, data);
+Value Value::Argument(Value type, int data) {
+  return Value(type.type, type.size, Kind::Argument, data);
 }
 
 bool Value::CanBeImmediate(int64_t value) {
