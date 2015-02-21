@@ -24,19 +24,37 @@ namespace isa {
 //   |mod | reg  |  r/m | |SS | idx | base | |  disp8/disp32  |
 //   +----+------+------+ +----------------+ +----------------+
 //
-//   mod=00 r/m=100 SIB
-//   mod=01 r/m=100 SIB + disp8
-//   mod=10 r/m=100 SIB + disp32
+//   When using RSP as base register, r/m=4 means SIB, and idx=4 means no index:
+//     mov reg, [RSP] => 89 ModRm(00, reg, 4) SIB(0, 4, 4)
+//     mov reg, [RSP+disp8] => 89 ModRm(01, reg, 4) SIB(0, 4, 4) disp8
+//     mov reg, [RSP+disp32] => 89 ModRm(10, reg, 4) SIB(0, 4, 4) disp32
 //
-//   mod=00 r/m=100 base=101 idx + disp32
-//   mod=01 r/m=100 base=101 idx + disp8 + EBP
-//   mod=10 r/m=100 base=101 idx + disp32 + EBP
+//   When using RBP as base register, there is no Disp0:
+//     mov reg, [RBP+disp8] => 89 ModRm(01, reg, 5) disp8
+//     mov reg, [RBP+disp32] => 89 ModRm(01, reg, 5) disp32
+//   Disp0 means RIP relative
+//     mov reg, [RIP+disp32] => 89 ModRm(00, reg, 5) disp32
 //
-//   mod=00 r/m=101 disp32
-//
-//   idx=100 non index
-//
-//
+enum class Mod {
+  Disp0 = 0x00,
+  Disp8 = 0x40,
+  Disp32 = 0x80,
+  Reg = 0xC0,
+};
+
+enum class Rm {
+  Sib = 4,
+  Disp32 = 5,
+};
+
+enum class Scale {
+  None = 1,
+  One = 0x00,
+  Two = 0x20,
+  Four = 0x40,
+  RIght = 0xC0,
+};
+
 // VEX instruction format
 //              76543210   76543210   76543210
 //             +--------+ +--------+ +--------+
@@ -65,25 +83,6 @@ namespace isa {
 //  mmmmm=00100 reserved
 //  ...
 //  mmmmm=11111 reserved
-enum class Mod {
-  Disp0 = 0x00,
-  Disp8 = 0x40,
-  Disp32 = 0x80,
-  Reg = 0xC0,
-};
-
-enum class Rm {
-  Sib = 4,
-  Disp32 = 5,
-};
-
-enum class Scale {
-  None = 1,
-  One = 0x00,
-  Two = 0x20,
-  Four = 0x40,
-  RIght = 0xC0,
-};
 
 // Rex prefix:
 //  Field   Bits    Definition
@@ -93,22 +92,22 @@ enum class Scale {
 //  X       1       Extension of the Mod/Rm SIB index field
 //  B       0       Extension of the Mod/Rm r/m, SIB base or Opcode reg field
 enum Rex {
-  REX_WRX     = 0x4E,
-  REX_WRXB    = 0x4F,
-  REX_WRB     = 0x4D,
-  REX_WR      = 0x4C,
-  REX_WXB     = 0x4B,
-  REX_WX      = 0x4A,
-  REX_WB      = 0x49,
-  REX_W       = 0x48,
-  REX_RXB     = 0x47,
-  REX_RX      = 0x46,
-  REX_RB      = 0x45,
-  REX_R       = 0x44,
-  REX_X       = 0x42,
-  REX_XB      = 0x43,
-  REX_B       = 0x41,
-  REX         = 0x40,
+  REX_WRX = 0x4E,
+  REX_WRXB = 0x4F,
+  REX_WRB = 0x4D,
+  REX_WR = 0x4C,
+  REX_WXB = 0x4B,
+  REX_WX = 0x4A,
+  REX_WB = 0x49,
+  REX_W = 0x48,
+  REX_RXB = 0x47,
+  REX_RX = 0x46,
+  REX_RB = 0x45,
+  REX_R = 0x44,
+  REX_X = 0x42,
+  REX_XB = 0x43,
+  REX_B = 0x41,
+  REX = 0x40,
 };
 
 enum class Tttn {

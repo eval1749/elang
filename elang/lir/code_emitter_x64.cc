@@ -310,9 +310,31 @@ void InstructionEmitter::EmitModRm(Mod mod, Register reg, Rm rm) {
 }
 
 void InstructionEmitter::EmitModRm(Register reg, Value memory) {
-  if (memory.is_stack_slot()) {
-    // mov reg, [rsp+n]
+  if (memory.is_frame_slot()) {
+    if (!memory.data) {
+      // mov reg, [rbp]
+      EmitModRm(Mod::Disp0, reg, isa::RBP);
+      return;
+    }
+    // mov reg, [rbp+n]
     if (Is8Bit(memory.data)) {
+      EmitModRm(Mod::Disp8, reg, isa::RBP);
+      Emit8(memory.data);
+      return;
+    }
+    // mov reg, [rbp+n]
+    EmitModRm(Mod::Disp32, reg, isa::RBP);
+    Emit32(memory.data);
+    return;
+  }
+  if (memory.is_stack_slot()) {
+    if (!memory.data) {
+      EmitModRm(Mod::Disp0, reg, Rm::Sib);
+      EmitSib(Scale::One, isa::RSP, isa::RSP);
+      return;
+    }
+    if (Is8Bit(memory.data)) {
+      // mov reg, [rsp+disp8]
       EmitModRm(Mod::Disp8, reg, Rm::Sib);
       EmitSib(Scale::One, isa::RSP, isa::RSP);
       Emit8(memory.data);
