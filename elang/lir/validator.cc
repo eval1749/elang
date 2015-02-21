@@ -148,6 +148,10 @@ bool Validator::Validate(BasicBlock* block) {
     }
   }
 
+  // Check phi instructions
+  for (auto const instruction : block->phi_instructions())
+    Validate(instruction);
+
   // Check instructions
   auto found_terminator = false;
   for (auto const instruction : block->instructions()) {
@@ -268,6 +272,25 @@ void Validator::VisitExtend(ExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::ByteSizeOf(output) <= Value::ByteSizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
+void Validator::VisitPhi(PhiInstruction* instr) {
+  auto const output = instr->output(0);
+  if (!output.is_virtual()) {
+    // Output of 'phi' instruction must be virtual register.
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  }
+  auto position = 0;
+  for (auto const phi_input : instr->phi_inputs()) {
+    auto const input = phi_input->value();
+    if (input.is_physical())
+      Error(ErrorCode::ValidateInstructionInput, instr, position);
+    if (input.size != output.size)
+      Error(ErrorCode::ValidateInstructionInputSize, instr, position);
+    if (input.type != output.type)
+      Error(ErrorCode::ValidateInstructionInputType, instr, position);
+    ++position;
+  }
 }
 
 void Validator::VisitRet(RetInstruction* instr) {

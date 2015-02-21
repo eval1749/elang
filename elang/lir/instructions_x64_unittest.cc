@@ -46,9 +46,9 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(merge_block);
-  auto const phi = editor.NewPhi(factory()->NewRegister());
-  editor.SetPhiInput(phi, true_block, Target::GetRegister(isa::EAX));
-  editor.SetPhiInput(phi, false_block, Target::GetRegister(isa::EBX));
+  auto const phi = editor.NewPhi(factory()->NewRegister(Value::Int32Type()));
+  editor.SetPhiInput(phi, true_block, Value::SmallInt32(42));
+  editor.SetPhiInput(phi, false_block, Value::SmallInt32(39));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
@@ -70,7 +70,7 @@ TEST_F(LirInstructionsTestX64, BranchInstruction) {
       "block5:\n"
       "  // In: {block3, block4}\n"
       "  // Out: {block2}\n"
-      "  phi %r1l = block3 EAX, block4 EBX\n"
+      "  phi %r1 = block3 42, block4 39\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block5}\n"
