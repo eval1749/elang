@@ -12,10 +12,19 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 #include "elang/lir/value.h"
 
 namespace elang {
 namespace lir {
+
+namespace {
+Value Normalize(Value value) {
+  if (value.is_physical())
+    return Target::NaturalRegisterOf(value);
+  return value;
+}
+}  // namespace
 
 ConflictMapBuilder::ConflictMapBuilder(const Editor* editor)
     : editor_(editor), liveness_map_(editor->AnalyzeLiveness()) {
@@ -39,16 +48,16 @@ ConflictMap ConflictMapBuilder::Build() {
 
     for (auto const instr : block->instructions().reversed()) {
       for (auto const output : instr->outputs())
-        live_registers->Remove(liveness_map_.NumberOf(output));
+        live_registers->Remove(liveness_map_.NumberOf(Normalize(output)));
 
       for (auto const input : instr->inputs()) {
         if (!input.is_register())
           continue;
         for (auto const number : *live_registers) {
           auto const live = liveness_map_.VariableOf(number);
-          conflict_map.sets_.Union(input, live);
+          conflict_map.sets_.Union(Normalize(input), live);
         }
-        auto const number = liveness_map_.NumberOf(input);
+        auto const number = liveness_map_.NumberOf(Normalize(input));
         DCHECK_GE(number, 0) << input << " doesn't have liveness!";
         live_registers->Add(number);
       }
@@ -60,6 +69,7 @@ ConflictMap ConflictMapBuilder::Build() {
     // Phi outputs conflict with Live-In and other phi outputs.
     for (auto const phi : block->phi_instructions()) {
       auto const output = phi->output(0);
+      DCHECK(!output.is_physical());
       for (auto const number : *live_registers) {
         auto const live = liveness_map_.VariableOf(number);
         conflict_map.sets_.Union(output, live);

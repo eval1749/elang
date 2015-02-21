@@ -9,9 +9,18 @@
 #include "elang/base/analysis/liveness_builder.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 
 namespace elang {
 namespace lir {
+
+namespace {
+Value Normalize(Value value) {
+  if (value.is_physical())
+    return Target::NaturalRegisterOf(value);
+  return value;
+}
+}  // namespace
 
 std::unique_ptr<LivenessCollection<BasicBlock*, Value>> AnalyzeLiveness(
     Function* function) {
@@ -23,7 +32,7 @@ std::unique_ptr<LivenessCollection<BasicBlock*, Value>> AnalyzeLiveness(
       builder.AddVariable(phi_instruction->output(0));
     for (auto const instruction : block->instructions()) {
       for (auto output : instruction->outputs())
-        builder.AddVariable(output);
+        builder.AddVariable(Normalize(output));
     }
   }
 
@@ -38,15 +47,15 @@ std::unique_ptr<LivenessCollection<BasicBlock*, Value>> AnalyzeLiveness(
       builder.MarkKill(liveness, phi_instruction->output(0));
     for (auto const instruction : block->instructions()) {
       for (auto const input : instruction->inputs())
-        builder.MarkUse(liveness, input);
+        builder.MarkUse(liveness, Normalize(input));
       for (auto output : instruction->outputs())
-        builder.MarkKill(liveness, output);
+        builder.MarkKill(liveness, Normalize(output));
     }
     // Mark use phi input in successor block.
     for (auto const successor : block->successors()) {
       for (auto const phi_instruction : successor->phi_instructions()) {
         auto const phi_input = phi_instruction->FindPhiInputFor(block);
-        builder.MarkUse(liveness, phi_input->value());
+        builder.MarkUse(liveness, Normalize(phi_input->value()));
       }
     }
   }
