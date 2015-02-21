@@ -5,6 +5,8 @@
 #ifndef ELANG_LIR_LITERALS_H_
 #define ELANG_LIR_LITERALS_H_
 
+#include <vector>
+
 #include "base/basictypes.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/castable.h"
@@ -13,6 +15,7 @@
 #include "elang/base/graphs/graph.h"
 #include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/base/zone_vector.h"
 #include "elang/lir/literals_forward.h"
 #include "elang/lir/value.h"
 
@@ -132,13 +135,15 @@ class ELANG_LIR_EXPORT Function : public Literal,
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   int id() const;
+  const ZoneVector<Value>& parameters() const { return parameters_; }
   Value value() const { return value_; }
 
  private:
   friend class Editor;
 
-  explicit Function(Value value);
+  Function(Zone* zone, Value value, const std::vector<Value>& parameters);
 
+  ZoneVector<Value> parameters_;
   Value const value_;
 };
 

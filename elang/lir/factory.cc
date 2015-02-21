@@ -54,10 +54,10 @@ Value Factory::NewCondition() {
                ++last_condition_id_);
 }
 
-Function* Factory::NewFunction() {
+Function* Factory::NewFunction(const std::vector<Value> parameters) {
   auto const model = Value::Literal(Value::Int8Type());
-  auto const function =
-      new (zone()) Function(literal_map_->next_literal_value(model));
+  auto const function = new (zone())
+      Function(zone(), literal_map_->next_literal_value(model), parameters);
   RegisterLiteral(function);
 
   // Since |Editor| uses entry and exit blocks, we can't use editing
@@ -150,8 +150,8 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
     auto const it = int32_map_.find(data);
     if (it != int32_map_.end())
       return it->second;
-    auto const value = literal_map_->next_literal_value(
-        Value::Literal(Value::Int32Type()));
+    auto const value =
+        literal_map_->next_literal_value(Value::Literal(Value::Int32Type()));
     RegisterLiteral(new (zone()) Int32Literal(data));
     int32_map_[data] = value;
     return value;
@@ -161,8 +161,8 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
   auto const it = int64_map_.find(data);
   if (it != int64_map_.end())
     return it->second;
-  auto const value = literal_map_->next_literal_value(
-      Value::Literal(Value::Int64Type()));
+  auto const value =
+      literal_map_->next_literal_value(Value::Literal(Value::Int64Type()));
   RegisterLiteral(new (zone()) Int64Literal(data));
   int64_map_[data] = value;
   return value;

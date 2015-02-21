@@ -49,7 +49,10 @@ PhiInstructionList BasicBlock::phi_instructions() const {
 //
 // Function
 //
-Function::Function(Value value) : value_(value) {
+Function::Function(Zone* zone,
+                   Value value,
+                   const std::vector<Value>& parameters)
+    : parameters_(zone, parameters), value_(value) {
 }
 
 BasicBlock* Function::entry_block() const {
