@@ -134,7 +134,7 @@ TEST_F(LirInstructionTest, JumpInstruction) {
 TEST_F(LirInstructionTest, LoadInstruction) {
   auto const destination = factory()->NewRegister();
   auto const instr = factory()->NewLoadInstruction(
-      destination, Value::Parameter(destination.type, destination.size, 0));
+      destination, Value::Parameter(destination, 0));
   EXPECT_TRUE(instr->is<LoadInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());

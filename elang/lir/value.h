@@ -117,7 +117,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Int64Type();
   static Value Int8Type();
   static Value Literal(Value type);
-  static Value Parameter(Type type, ValueSize size, int data);
+  static Value Parameter(Value type, int data);
   static Value Register(ValueSize size, int data);
   static Value SpillSlot(Value type, int data);
   static Value StackSlot(Value type, int data);

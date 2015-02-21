@@ -107,7 +107,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
   editor.Edit(function->entry_block());
   auto const destination = factory()->NewRegister();
   editor.Append(factory()->NewLoadInstruction(
-      destination, Value::Parameter(destination.type, destination.size, 4)));
+      destination, Value::Parameter(destination, 4)));
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"

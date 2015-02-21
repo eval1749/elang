@@ -70,8 +70,8 @@ Value Value::Literal(Value type) {
   return Value(type, Kind::Literal);
 }
 
-Value Value::Parameter(Type type, ValueSize size, int data) {
-  return Value(type, size, Kind::Parameter, data);
+Value Value::Parameter(Value type, int data) {
+  return Value(type.type, type.size, Kind::Parameter, data);
 }
 
 Value Value::Register(ValueSize size, int data) {
