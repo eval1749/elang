@@ -301,9 +301,5 @@ Value Target::NaturalRegisterOf(Value physical) {
                physical.data);
 }
 
-int Target::PointerSizeInByte() {
-  return 8;
-}
-
 }  // namespace lir
 }  // namespace elang

@@ -281,12 +281,9 @@ TEST(LirTargetX64Test, NaturalRegisterOf) {
             Target::NaturalRegisterOf(Target::GetRegister(isa::XMM0S)));
 }
 
-TEST(LirTargetX64Test, PointerSize) {
+TEST(LirTargetX64Test, IntPtrType) {
   EXPECT_EQ(Value::Int64Type(), Target::IntPtrType());
-}
-
-TEST(LirTargetX64Test, PointerSizeInByte) {
-  EXPECT_EQ(8, Target::PointerSizeInByte());
+  EXPECT_EQ(8, Value::ByteSizeOf(Target::IntPtrType()));
 }
 
 }  // namespace lir

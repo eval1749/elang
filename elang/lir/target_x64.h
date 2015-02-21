@@ -258,9 +258,6 @@ class ELANG_LIR_EXPORT Target {
   static bool IsParameterRegister(Value physical);
 
   static Value NaturalRegisterOf(Value physical);
-
-  // Returns byte size of pointer.
-  static int PointerSizeInByte();
 };
 
 }  // namespace lir
