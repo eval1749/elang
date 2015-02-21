@@ -39,7 +39,7 @@ TEST_F(LirRegisterAllocatorX64Test, NumberOfArguments) {
   editor.Append(factory()->NewPCopyInstruction(
       {Target::GetArgumentAt(Value::Int32Type(), 0),
        Target::GetArgumentAt(Value::Int64Type(), 1)},
-      {factory()->NewIntValue(ValueSize::Size32, 42),
+      {Value::SmallInt32(42),
        Value::SmallInt64(39)}));
   editor.Append(factory()->NewCallInstruction(Value::SmallInt64(56)));
   EXPECT_EQ("", Commit(&editor));

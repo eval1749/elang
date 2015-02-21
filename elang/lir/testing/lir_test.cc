@@ -259,7 +259,7 @@ Function* LirTest::CreateFunctionSample2() {
       factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
   auto const cond1 = factory()->NewCondition();
   editor.Append(factory()->NewEqInstruction(
-      cond1, values[0], factory()->NewIntValue(ValueSize::Size32, 0)));
+      cond1, values[0], Value::SmallInt32(0)));
   editor.SetBranch(cond1, true_block, false_block);
   EXPECT_EQ("", Commit(&editor));
 
@@ -277,8 +277,7 @@ Function* LirTest::CreateFunctionSample2() {
   editor.Edit(merge_block);
   auto const merge_phi = editor.NewPhi(values[2]);
   editor.SetPhiInput(merge_phi, true_block, values[1]);
-  editor.SetPhiInput(merge_phi, false_block,
-                     factory()->NewIntValue(ValueSize::Size32, 42));
+  editor.SetPhiInput(merge_phi, false_block, Value::SmallInt32(42));
   editor.Append(
       factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
   editor.SetReturn();
