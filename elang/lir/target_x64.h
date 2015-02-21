@@ -257,6 +257,8 @@ class ELANG_LIR_EXPORT Target {
   // Returns true if |physical| is register parameter
   static bool IsParameterRegister(Value physical);
 
+  static Value NaturalRegisterOf(Value physical);
+
   // Returns byte size of pointer.
   static int PointerSizeInByte();
 };

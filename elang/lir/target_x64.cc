@@ -293,6 +293,12 @@ bool Target::IsParameterRegister(Value value) {
   return (isa::kGeneralParameterRegisters & mask) != 0;
 }
 
+Value Target::NaturalRegisterOf(Value physical) {
+  DCHECK(physical.is_physical());
+  return Value(physical.type, ValueSize::Size64, Value::Kind::PhysicalRegister,
+               physical.data);
+}
+
 int Target::PointerSizeInByte() {
   return 8;
 }

@@ -266,6 +266,21 @@ TEST(LirTargetX64Test, IsCallerSavedRegister) {
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(R15)));
 }
 
+TEST(LirTargetX64Test, NaturalRegisterOf) {
+  EXPECT_EQ(Target::GetRegister(isa::RAX),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::RAX)));
+  EXPECT_EQ(Target::GetRegister(isa::RAX),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::EAX)));
+  EXPECT_EQ(Target::GetRegister(isa::RBX),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::BX)));
+  EXPECT_EQ(Target::GetRegister(isa::RCX),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::CL)));
+  EXPECT_EQ(Target::GetRegister(isa::XMM0D),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::XMM0D)));
+  EXPECT_EQ(Target::GetRegister(isa::XMM0D),
+            Target::NaturalRegisterOf(Target::GetRegister(isa::XMM0S)));
+}
+
 TEST(LirTargetX64Test, PointerSize) {
   EXPECT_EQ(Value::Int64Type(), Target::IntPtrType());
 }
