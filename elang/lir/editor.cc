@@ -7,6 +7,8 @@
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
+#include "elang/lir/analysis/conflict_map.h"
+#include "elang/lir/analysis/conflict_map_builder.h"
 #include "elang/base/analysis/dominator_tree_builder.h"
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/base/graphs/graph_sorter.h"
@@ -67,6 +69,13 @@ const Editor::LivenessData& Editor::AnalyzeLiveness() const {
     return *liveness_data_;
   liveness_data_ = std::move(::elang::lir::AnalyzeLiveness(function()));
   return *liveness_data_;
+}
+
+const ConflictMap& Editor::AnalyzeConflicts() const {
+  if (conflict_map_)
+    return *conflict_map_;
+  conflict_map_.reset(new ConflictMap(ConflictMapBuilder(this).Build()));
+  return *conflict_map_;
 }
 
 Editor::Counters Editor::AssignIndex() {

@@ -23,6 +23,7 @@ class DominatorTree;
 
 namespace lir {
 
+class ConflictMap;
 enum class ErrorCode;
 class ErrorData;
 class Factory;
@@ -70,6 +71,7 @@ class ELANG_LIR_EXPORT Editor final {
   // Analysis
   const LivenessData& AnalyzeLiveness() const;
   Counters AssignIndex();
+  const ConflictMap& AnalyzeConflicts() const;
 
   // Dominator tree
   const DominatorTree<Function>& BuildDominatorTree() const;
@@ -166,6 +168,7 @@ class ELANG_LIR_EXPORT Editor final {
   mutable std::unique_ptr<OrderedBlockList> reverse_post_order_list_;
 
   // Cached liveness
+  mutable std::unique_ptr<ConflictMap> conflict_map_;
   mutable std::unique_ptr<LivenessData> liveness_data_;
 
   GraphEditor<Function, BasicBlock> graph_editor_;
