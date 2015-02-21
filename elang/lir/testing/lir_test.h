@@ -65,13 +65,9 @@ class LirTest : public ::testing::Test, public FactoryUser {
   Function* CreateFunctionWithCriticalEdge();
 
   std::string FormatFunction(Editor* editor);
-  Literal* GetLiteral(Value value);
-  Value NewFloat32Value(float32_t data);
-  Value NewFloat64Value(float64_t data);
   // Returns newly allocated virtual integer register which can hold pointer.
   Value NewIntPtrRegister();
-  Value NewStringValue(base::StringPiece16 data);
-  Value NewStringValue(base::StringPiece data);
+  Value NewStringValue8(base::StringPiece data);
 
   // Validates function associated to |editor| and returns validation errors.
   // If function is well-formed, this function returns empty string.

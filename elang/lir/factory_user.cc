@@ -21,12 +21,28 @@ FactoryUser::FactoryUser(Factory* factory) : factory_(factory) {
 FactoryUser::~FactoryUser() {
 }
 
+Literal* FactoryUser::GetLiteral(Value value) {
+  return factory()->GetLiteral(value);
+}
+
+Value FactoryUser::NewFloat32Value(float32_t data) {
+  return factory()->NewFloat32Value(data);
+}
+
+Value FactoryUser::NewFloat64Value(float64_t data) {
+  return factory()->NewFloat64Value(data);
+}
+
 Value FactoryUser::NewIntValue(Value type, int64_t value) {
   return factory()->NewIntValue(type, value);
 }
 
 Value FactoryUser::NewRegister(Value type) {
   return factory()->NewRegister(type);
+}
+
+Value FactoryUser::NewStringValue(base::StringPiece16 data) {
+  return factory()->NewStringValue(data);
 }
 
 // Creating instructions

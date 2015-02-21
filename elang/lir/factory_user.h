@@ -24,8 +24,12 @@ class ELANG_LIR_EXPORT FactoryUser {
 
   Factory* factory() const { return factory_; }
 
+  Literal* GetLiteral(Value value);
+  Value NewFloat32Value(float32_t data);
+  Value NewFloat64Value(float64_t data);
   Value NewIntValue(Value type, int64_t value);
   Value NewRegister(Value type);
+  Value NewStringValue(base::StringPiece16 data);
 
 // New instructions
 #define V(Name, ...) Instruction* New##Name##Instruction();

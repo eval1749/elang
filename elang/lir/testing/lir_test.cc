@@ -201,7 +201,7 @@ Function* LirTest::CreateFunctionSample1() {
   {
     Editor::ScopedEdit scope(&editor);
     editor.Edit(entry_block);
-    auto const call = factory()->NewCallInstruction(NewStringValue("Foo"));
+    auto const call = factory()->NewCallInstruction(NewStringValue8("Foo"));
     editor.InsertBefore(call, entry_block->last_instruction());
   }
   return function;
@@ -384,26 +384,11 @@ std::string LirTest::FormatFunction(Editor* editor) {
   return ostream.str();
 }
 
-Literal* LirTest::GetLiteral(Value value) {
-  return factory()->GetLiteral(value);
-}
-
-Value LirTest::NewFloat32Value(float32_t data) {
-  return factory()->NewFloat32Value(data);
-}
-
-Value LirTest::NewFloat64Value(float64_t data) {
-  return factory()->NewFloat64Value(data);
-}
-
 Value LirTest::NewIntPtrRegister() {
   return NewRegister(Target::IntPtrType());
 }
 
-Value LirTest::NewStringValue(base::StringPiece16 data) {
-  return factory()->NewStringValue(data);
-}
-Value LirTest::NewStringValue(base::StringPiece data) {
+Value LirTest::NewStringValue8(base::StringPiece data) {
   return factory()->NewStringValue(base::UTF8ToUTF16(data));
 }
 
