@@ -80,7 +80,7 @@ Function* Factory::NewFunction(const std::vector<Value> parameters) {
   exit_block->function_ = function;
   exit_block->id_ = NextBasicBlockId();
 
-  auto const entry_instr = NewEntryInstruction();
+  auto const entry_instr = NewEntryInstruction(parameters);
   entry_block->instructions_.AppendNode(entry_instr);
   entry_instr->id_ = NextInstructionId();
   entry_instr->basic_block_ = entry_block;
@@ -246,6 +246,10 @@ Instruction* Factory::NewBranchInstruction(Value condition,
   DCHECK(false_block->id());
   DCHECK(true_block->id());
   return new (zone()) BranchInstruction(condition, true_block, false_block);
+}
+
+Instruction* Factory::NewEntryInstruction(const std::vector<Value>& outputs) {
+  return new (zone()) EntryInstruction(zone(), outputs);
 }
 
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {

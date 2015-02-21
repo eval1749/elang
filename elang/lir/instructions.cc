@@ -283,6 +283,29 @@ BranchInstruction::BranchInstruction(Value condition,
   InitBlockOperand(1, false_block);
 }
 
+// EntryInstruction
+EntryInstruction::EntryInstruction(Zone* zone,
+                                   const std::vector<Value>& outputs)
+    : outputs_(zone, outputs) {
+}
+
+// EntryInstruction Instruction operand protocol
+int EntryInstruction::CountInputs() const {
+  return 0;
+}
+
+int EntryInstruction::CountOutputs() const {
+  return static_cast<int>(outputs_.size());
+}
+
+Value* EntryInstruction::InputValues() const {
+  return nullptr;
+}
+
+Value* EntryInstruction::OutputValues() const {
+  return const_cast<EntryInstruction*>(this)->outputs_.data();
+}
+
 // JumpInstruction
 JumpInstruction::JumpInstruction(BasicBlock* target_block) {
   InitBlockOperand(0, target_block);

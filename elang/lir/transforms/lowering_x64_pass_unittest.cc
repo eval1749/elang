@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/lir/testing/lir_test_x64.h"
 
 #include "elang/lir/editor.h"
@@ -21,10 +23,33 @@ namespace lir {
 class LirLoweringX64Test : public testing::LirTest {
  protected:
   LirLoweringX64Test() = default;
+  ~LirLoweringX64Test() = default;
+
+  Function* CreateSampleFunction(Value type, int count);
+  std::vector<Value> EmitCopyParameters(Editor* editor);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LirLoweringX64Test);
 };
+
+Function* LirLoweringX64Test::CreateSampleFunction(Value type, int count) {
+  std::vector<Value> parameters;
+  for (auto position = 0; position < count; ++position) {
+    parameters.push_back(Target::GetParameterAt(type, position));
+  }
+  return factory()->NewFunction(parameters);
+}
+
+std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
+  std::vector<Value> parameters;
+  std::vector<Value> registers;
+  for (auto const parameter : editor->function()->parameters()) {
+    parameters.push_back(parameter);
+    registers.push_back(factory()->NewRegister(parameter));
+  }
+  editor->Append(factory()->NewPCopyInstruction(registers, parameters));
+  return registers;
+}
 
 // Test cases...
 
@@ -33,12 +58,12 @@ class LirLoweringX64Test : public testing::LirTest {
 // }
 #define DEFINE_FLOAT64_BINARY_OPERATION_TEST(Name, mnemonic)            \
   TEST_F(LirLoweringX64Test, Name##Float) {                             \
-    auto const function = CreateFunctionEmptySample();                  \
+    auto const type = Value::Float64Type();                             \
+    auto const function = CreateSampleFunction(type, 2);                \
     auto const entry_block = function->entry_block();                   \
     Editor editor(factory(), function);                                 \
     editor.Edit(entry_block);                                           \
-    auto const type = Value::Float64Type();                             \
-    auto const parameters = EmitCopyParameters(&editor, type, 2);       \
+    auto const parameters = EmitCopyParameters(&editor);                \
     auto output = NewRegister(type);                                    \
     editor.Append(                                                      \
         New##Name##Instruction(output, parameters[0], parameters[1]));  \
@@ -53,7 +78,7 @@ class LirLoweringX64Test : public testing::LirTest {
         "block1:\n"                                                     \
         "  // In: {}\n"                                                 \
         "  // Out: {block2}\n"                                          \
-        "  entry\n"                                                     \
+        "  entry XMM0, XMM1 =\n"                                        \
         "  pcopy %f1d, %f2d = XMM0, XMM1\n"                             \
         "  assign %f4d = %f1d\n"                                        \
         "  " mnemonic                                                   \
@@ -73,12 +98,12 @@ class LirLoweringX64Test : public testing::LirTest {
 // }
 #define DEFINE_INTEGER_BINARY_OPERATION_TEST(Name, mnemonic)            \
   TEST_F(LirLoweringX64Test, Name##Int) {                               \
-    auto const function = CreateFunctionEmptySample();                  \
+    auto const type = Value::Int32Type();                               \
+    auto const function = CreateSampleFunction(type, 2);                \
     auto const entry_block = function->entry_block();                   \
     Editor editor(factory(), function);                                 \
     editor.Edit(entry_block);                                           \
-    auto const type = Value::Int32Type();                               \
-    auto const parameters = EmitCopyParameters(&editor, type, 2);       \
+    auto const parameters = EmitCopyParameters(&editor);                \
     auto output = NewRegister(type);                                    \
     editor.Append(                                                      \
         New##Name##Instruction(output, parameters[0], parameters[1]));  \
@@ -93,7 +118,7 @@ class LirLoweringX64Test : public testing::LirTest {
         "block1:\n"                                                     \
         "  // In: {}\n"                                                 \
         "  // Out: {block2}\n"                                          \
-        "  entry\n"                                                     \
+        "  entry ECX, EDX =\n"                                          \
         "  pcopy %r1, %r2 = ECX, EDX\n"                                 \
         "  assign %r4 = %r1\n"                                          \
         "  " mnemonic                                                   \
@@ -125,12 +150,12 @@ DEFINE_FLOAT64_BINARY_OPERATION_TEST(Mul, "mul")
 //   return x / y;
 // }
 TEST_F(LirLoweringX64Test, DivInt) {
-  auto const function = CreateFunctionEmptySample();
+  auto const type = Value::Int32Type();
+  auto const function = CreateSampleFunction(type, 2);
   auto const entry_block = function->entry_block();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const type = Value::Int32Type();
-  auto const parameters = EmitCopyParameters(&editor, type, 2);
+  auto const parameters = EmitCopyParameters(&editor);
   auto output = NewRegister(type);
   editor.Append(NewDivInstruction(output, parameters[0], parameters[1]));
   editor.Append(NewCopyInstruction(Target::GetReturn(type), output));
@@ -144,7 +169,7 @@ TEST_F(LirLoweringX64Test, DivInt) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry\n"
+      "  entry ECX, EDX =\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
       "  xor EDX = EDX, EDX\n"
@@ -163,12 +188,12 @@ TEST_F(LirLoweringX64Test, DivInt) {
 //   return x * y;
 // }
 TEST_F(LirLoweringX64Test, MulInt) {
-  auto const function = CreateFunctionEmptySample();
+  auto const type = Value::Int32Type();
+  auto const function = CreateSampleFunction(type, 2);
   auto const entry_block = function->entry_block();
   Editor editor(factory(), function);
   editor.Edit(entry_block);
-  auto const type = Value::Int32Type();
-  auto const parameters = EmitCopyParameters(&editor, type, 2);
+  auto const parameters = EmitCopyParameters(&editor);
   auto output = NewRegister(type);
   editor.Append(NewMulInstruction(output, parameters[0], parameters[1]));
   editor.Append(NewCopyInstruction(Target::GetReturn(type), output));
@@ -182,7 +207,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry\n"
+      "  entry ECX, EDX =\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
       "  x64.mul EAX, EDX = EAX, %r2\n"
@@ -202,12 +227,12 @@ TEST_F(LirLoweringX64Test, MulInt) {
 // }
 #define DEFINE_SHIFT_OPERATION_TEST(Name, mnemonic)                            \
   TEST_F(LirLoweringX64Test, Name) {                                           \
-    auto const function = CreateFunctionEmptySample();                         \
+    auto const type = Value::Int32Type();                                      \
+    auto const function = CreateSampleFunction(type, 2);                       \
     auto const entry_block = function->entry_block();                          \
     Editor editor(factory(), function);                                        \
     editor.Edit(entry_block);                                                  \
-    auto const type = Value::Int32Type();                                      \
-    auto const parameters = EmitCopyParameters(&editor, type, 2);              \
+    auto const parameters = EmitCopyParameters(&editor);                       \
     auto output = NewRegister(type);                                           \
     auto output2 = NewRegister(type);                                          \
     editor.Append(                                                             \
@@ -224,7 +249,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
         "block1:\n"                                                            \
         "  // In: {}\n"                                                        \
         "  // Out: {block2}\n"                                                 \
-        "  entry\n"                                                            \
+        "  entry ECX, EDX =\n"                                                 \
         "  pcopy %r1, %r2 = ECX, EDX\n"                                        \
         "  " mnemonic                                                          \
         " %r4 = %r1, 5\n"                                                      \

@@ -9,6 +9,7 @@
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 #include "gtest/gtest.h"
 
 namespace elang {
@@ -85,12 +86,25 @@ TEST_F(LirInstructionTest, CopyInstruction) {
 
 // EntryInstruction
 TEST_F(LirInstructionTest, EntryInstruction) {
-  auto const instr = factory()->NewEntryInstruction();
+  auto const instr = factory()->NewEntryInstruction({});
   EXPECT_TRUE(instr->is<EntryInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(0, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
+}
+
+TEST_F(LirInstructionTest, EntryInstruction2) {
+  std::vector<Value> parameters{
+    Target::GetParameterAt(Value::Int32Type(), 0),
+    Target::GetParameterAt(Value::Int64Type(), 1),
+  };
+  auto const instr = factory()->NewEntryInstruction(parameters);
+  EXPECT_TRUE(instr->is<EntryInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(0, instr->inputs().size());
+  EXPECT_EQ(2, instr->outputs().size());
 }
 
 // ExitInstruction

@@ -274,12 +274,19 @@ class ELANG_LIR_EXPORT BranchInstruction final
 };
 
 // EntryInstruction
-class ELANG_LIR_EXPORT EntryInstruction final
-    : public InstructionTemplate<0, 0> {
+class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Entry);
 
  private:
-  EntryInstruction();
+  EntryInstruction(Zone* zone, const std::vector<Value>& outputs);
+
+  // Instruction operand protocol
+  int CountInputs() const final;
+  int CountOutputs() const final;
+  Value* InputValues() const final;
+  Value* OutputValues() const final;
+
+  ZoneVector<Value> outputs_;
 };
 
 // ExitInstruction

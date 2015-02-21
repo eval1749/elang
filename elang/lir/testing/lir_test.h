@@ -53,15 +53,16 @@ class LirTest : public ::testing::Test, public FactoryUser {
   }
 
   // Samples
-  Function* CreateFunctionEmptySample();
+  Function* CreateFunctionEmptySample(const std::vector<Value>& parameters);
+  // TODO(eval1749) We should get rid of parameter less
+  // |CreateFunctionEmptySample()|.
+  Function* CreateFunctionEmptySample() {
+    return CreateFunctionEmptySample({});
+  }
   Function* CreateFunctionSample1();
   Function* CreateFunctionSample2();
   Function* CreateFunctionSampleAdd();
   Function* CreateFunctionWithCriticalEdge();
-
-  // Emit instructions to copy parameters to virtual registers and returns
-  // list of registers holding parameters.
-  std::vector<Value> EmitCopyParameters(Editor* editor, Value type, int count);
 
   std::string FormatFunction(Editor* editor);
   Literal* GetLiteral(Value value);

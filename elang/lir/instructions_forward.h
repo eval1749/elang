@@ -15,7 +15,6 @@ namespace elang {
 namespace lir {
 
 #define FOR_EACH_LIR_INSTRUCTION_0_0(V) \
-  V(Entry, "entry")                     \
   V(Exit, "exit")
 
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Call, "call")
@@ -55,6 +54,7 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
+  V(Entry, "entry", (const std::vector<Value>& outputs))                   \
   V(Jump, "jmp", (BasicBlock * target_block))                              \
   V(PCopy, "pcopy",                                                        \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \

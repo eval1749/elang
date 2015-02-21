@@ -187,8 +187,9 @@ std::vector<Value> LirTest::CollectRegisters(const Function* function) {
   return registers;
 }
 
-Function* LirTest::CreateFunctionEmptySample() {
-  auto const function = factory()->NewFunction();
+Function* LirTest::CreateFunctionEmptySample(
+    const std::vector<Value>& parameters) {
+  auto const function = factory()->NewFunction(parameters);
   Editor editor(factory(), function);
   return function;
 }
@@ -234,24 +235,28 @@ Function* LirTest::CreateFunctionSample1() {
 //      // Out: {}
 //      exit
 Function* LirTest::CreateFunctionSample2() {
-  auto const function = CreateFunctionEmptySample();
-  auto const exit_block = function->exit_block();
-  Editor editor(factory(), function);
-  auto const true_block = editor.NewBasicBlock(exit_block);
-  auto const false_block = editor.NewBasicBlock(exit_block);
-  auto const merge_block = editor.NewBasicBlock(exit_block);
-
   std::vector<Value> values{
       factory()->NewRegister(ValueSize::Size32),
       factory()->NewRegister(ValueSize::Size32),
       factory()->NewRegister(ValueSize::Size32),
   };
 
+  std::vector<Value> parameters{
+      Target::GetParameterAt(values[0], 0),
+      Target::GetParameterAt(values[1], 1),
+  };
+
+  auto const function = CreateFunctionEmptySample(parameters);
+  auto const exit_block = function->exit_block();
+  Editor editor(factory(), function);
+  auto const true_block = editor.NewBasicBlock(exit_block);
+  auto const false_block = editor.NewBasicBlock(exit_block);
+  auto const merge_block = editor.NewBasicBlock(exit_block);
+
   // entry block
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewPCopyInstruction(
-      {values[0], values[1]}, {Target::GetParameterAt(values[0], 0),
-                               Target::GetParameterAt(values[1], 1)}));
+  editor.Append(
+      factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
   auto const cond1 = factory()->NewCondition();
   editor.Append(factory()->NewEqInstruction(
       cond1, values[0], factory()->NewIntValue(ValueSize::Size32, 0)));
@@ -296,21 +301,20 @@ Function* LirTest::CreateFunctionSample2() {
 //    // Out: {}
 //    exit
 Function* LirTest::CreateFunctionSampleAdd() {
-  auto const function = CreateFunctionEmptySample();
-  std::vector<Instruction*> instructions;
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
   auto const var0 = factory()->NewRegister();
   auto const var1 = factory()->NewRegister();
   auto const var2 = factory()->NewRegister();
-  instructions.push_back(factory()->NewPCopyInstruction(
-      {var0, var1},
-      {Target::GetParameterAt(var0, 0), Target::GetParameterAt(var1, 1)}));
-  instructions.push_back(factory()->NewAddInstruction(var2, var0, var1));
-  instructions.push_back(
+  std::vector<Value> parameters{
+      Target::GetParameterAt(var0, 0), Target::GetParameterAt(var1, 1),
+  };
+  auto const function = CreateFunctionEmptySample(parameters);
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(factory()->NewPCopyInstruction({var0, var1},
+                                                         parameters));
+  editor.Append(factory()->NewAddInstruction(var2, var0, var1));
+  editor.Append(
       factory()->NewCopyInstruction(Target::GetReturn(var2), var2));
-  for (auto const instr : instructions)
-    editor.Append(instr);
   EXPECT_EQ("", Commit(&editor));
   return function;
 }
@@ -331,7 +335,7 @@ Function* LirTest::CreateFunctionSampleAdd() {
 // An edge sample => merge is a critical edge.
 //
 Function* LirTest::CreateFunctionWithCriticalEdge() {
-  auto const function = CreateFunctionEmptySample();
+  auto const function = CreateFunctionEmptySample({});
   auto const entry_block = function->entry_block();
   auto const exit_block = function->exit_block();
 
@@ -371,19 +375,6 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   EXPECT_EQ("", Validate(&editor));
 
   return function;
-}
-
-std::vector<Value> LirTest::EmitCopyParameters(Editor* editor,
-                                               Value type,
-                                               int count) {
-  std::vector<Value> registers;
-  std::vector<Value> parameters;
-  for (auto position = 0; position < count; ++position) {
-    registers.push_back(factory()->NewRegister(type));
-    parameters.push_back(Target::GetParameterAt(type, position));
-  }
-  editor->Append(factory()->NewPCopyInstruction(registers, parameters));
-  return registers;
 }
 
 std::string LirTest::FormatFunction(Editor* editor) {
