@@ -55,10 +55,6 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(AtomicString* atomic_string);
 
-  // Virtual register
-  // Returns newly allocated virtual floating-point number register.
-  Value NewFloatRegister(ValueSize size);
-
   // Returns newly allocated virtual integer register which bit size is |size|.
   Value NewRegister(ValueSize size);
 
