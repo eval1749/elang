@@ -122,14 +122,10 @@ Value Factory::NewFloat64Value(float64_t data) {
   return value;
 }
 
-Value Factory::NewRegister(ValueSize size) {
-  return Value::Register(size, ++last_general_register_id_);
-}
-
 Value Factory::NewRegister(Value type) {
   if (type.type == Value::Type::Float)
     return Value::FloatRegister(type.size, ++last_float_register_id_);
-  return NewRegister(type.size);
+  return Value::Register(type.size, ++last_general_register_id_);
 }
 
 Value Factory::NewRegister() {

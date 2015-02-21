@@ -42,7 +42,7 @@ lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
   DCHECK_GE(shift_count, 0);
   if (!shift_count)
     return input;
-  auto const output = factory()->NewRegister(input.size);
+  auto const output = factory()->NewRegister(input);
   Emit(factory()->NewShlInstruction(output, input,
                                     lir::Value::SmallInt32(shift_count)));
   return output;

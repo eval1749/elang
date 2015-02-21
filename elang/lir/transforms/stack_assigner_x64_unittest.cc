@@ -53,7 +53,7 @@ TEST_F(LirStackAssignerX64Test, LeafFunction) {
   RegisterAssignments::Editor assignments_editor(&register_assignments);
   std::array<Value, 5> vregs;
   for (auto& vreg : vregs) {
-    vreg = factory()->NewRegister(ValueSize::Size64);
+    vreg = factory()->NewRegister(Value::Int64Type());
     auto const spill_slot = stack_allocator.Allocate(vreg);
     assignments_editor.SetSpillSlot(vreg, spill_slot);
   }

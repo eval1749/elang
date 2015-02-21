@@ -236,9 +236,9 @@ Function* LirTest::CreateFunctionSample1() {
 //      exit
 Function* LirTest::CreateFunctionSample2() {
   std::vector<Value> values{
-      factory()->NewRegister(ValueSize::Size32),
-      factory()->NewRegister(ValueSize::Size32),
-      factory()->NewRegister(ValueSize::Size32),
+      factory()->NewRegister(Value::Int32Type()),
+      factory()->NewRegister(Value::Int32Type()),
+      factory()->NewRegister(Value::Int32Type()),
   };
 
   std::vector<Value> parameters{
