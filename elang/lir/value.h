@@ -121,8 +121,10 @@ struct ELANG_LIR_EXPORT Value {
   static Value Register(Value type, int data);
   static Value SpillSlot(Value type, int data);
   static Value StackSlot(Value type, int data);
+  static Value SmallInt16(int data);
   static Value SmallInt32(int data);
   static Value SmallInt64(int data);
+  static Value SmallInt8(int data);
   static Value True();
 
  private:

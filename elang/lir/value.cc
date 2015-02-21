@@ -78,12 +78,22 @@ Value Value::Register(Value type, int data) {
   return Value(type.type, type.size, Kind::VirtualRegister, data);
 }
 
+Value Value::SmallInt16(int data) {
+  DCHECK_LT(static_cast<uint32_t>(data), 1u << 16);
+  return Immediate(ValueSize::Size16, data);
+}
+
 Value Value::SmallInt32(int data) {
   return Immediate(ValueSize::Size32, data);
 }
 
 Value Value::SmallInt64(int data) {
   return Immediate(ValueSize::Size64, data);
+}
+
+Value Value::SmallInt8(int data) {
+  DCHECK_LT(static_cast<uint32_t>(data), 1u << 8);
+  return Immediate(ValueSize::Size8, data);
 }
 
 Value Value::SpillSlot(Value type, int data) {
