@@ -33,10 +33,6 @@ Value Value::Float64Literal() {
   return Value(Float64Type(), Kind::Literal);
 }
 
-Value Value::FloatRegister(ValueSize size, int data) {
-  return Value(Type::Float, size, Kind::VirtualRegister, data);
-}
-
 Value Value::Float32Type() {
   return Value(Type::Float, ValueSize::Size32, Kind::Void, 0);
 }
@@ -74,8 +70,8 @@ Value Value::Parameter(Value type, int data) {
   return Value(type.type, type.size, Kind::Parameter, data);
 }
 
-Value Value::Register(ValueSize size, int data) {
-  return Value(Type::Integer, size, Kind::VirtualRegister, data);
+Value Value::Register(Value type, int data) {
+  return Value(type.type, type.size, Kind::VirtualRegister, data);
 }
 
 Value Value::SmallInt32(int data) {

@@ -124,8 +124,8 @@ Value Factory::NewFloat64Value(float64_t data) {
 
 Value Factory::NewRegister(Value type) {
   if (type.type == Value::Type::Float)
-    return Value::FloatRegister(type.size, ++last_float_register_id_);
-  return Value::Register(type.size, ++last_general_register_id_);
+    return Value::Register(type, ++last_float_register_id_);
+  return Value::Register(type, ++last_general_register_id_);
 }
 
 Value Factory::NewIntValue(ValueSize size, int64_t data) {
