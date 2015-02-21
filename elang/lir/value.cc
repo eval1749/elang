@@ -78,6 +78,10 @@ Value Value::SmallInt32(int data) {
   return Immediate(ValueSize::Size32, data);
 }
 
+Value Value::SmallInt64(int data) {
+  return Immediate(ValueSize::Size64, data);
+}
+
 Value Value::SpillSlot(Value type, int data) {
   return Value(type.type, type.size, Kind::SpillSlot, data);
 }
