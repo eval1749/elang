@@ -41,6 +41,10 @@ Value Value::Float64Type() {
   return Value(Type::Float, ValueSize::Size64, Kind::Void, 0);
 }
 
+Value Value::FrameSlot(Value type, int data) {
+  return Value(type.type, type.size, Kind::FrameSlot, data);
+}
+
 Value Value::Immediate(ValueSize size, int data) {
   DCHECK(CanBeImmediate(data));
   return Value(Type::Integer, size, Kind::Immediate, data);
@@ -98,6 +102,7 @@ bool Value::is_output() const {
   switch (kind) {
     case Kind::Argument:
     case Kind::Condition:
+    case Kind::FrameSlot:
     case Kind::Parameter:
     case Kind::PhysicalRegister:
     case Kind::SpillSlot:

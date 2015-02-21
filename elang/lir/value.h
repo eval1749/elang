@@ -34,7 +34,7 @@ enum class ValueSize : uint32_t {
   V(Argument)                                                        \
   V(StackSlot) /* stack location for spilled registers */            \
   V(SpillSlot)                                                       \
-  V(NotUsed10)                                                       \
+  V(FrameSlot)                                                       \
   V(NotUsed11)                                                       \
   V(NotUsed12)                                                       \
   V(NotUsed13)                                                       \
@@ -81,6 +81,7 @@ struct ELANG_LIR_EXPORT Value {
   // predicates for |Kind|
   bool is_argument() const { return kind == Kind::Argument; }
   bool is_condition() const { return kind == Kind::Condition; }
+  bool is_frame_slot() const { return kind == Kind::FrameSlot; }
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }
   bool is_literal() const { return kind == Kind::Literal; }
@@ -110,6 +111,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Float64Literal();
   static Value Float32Type();
   static Value Float64Type();
+  static Value FrameSlot(Value type, int data);
   static Value Int16Type();
   static Value Int32Type();
   static Value Int64Type();

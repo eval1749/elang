@@ -46,6 +46,9 @@ std::ostream& operator<<(std::ostream& ostream,
       break;
     case Value::Kind::Condition:
       return ostream << "%b" << value.data;
+    case Value::Kind::FrameSlot:
+      ostream << "@" << TypeStringOf(value) << value.data;
+      break;
     case Value::Kind::Immediate:
       ostream << "#" << value.data;
       break;

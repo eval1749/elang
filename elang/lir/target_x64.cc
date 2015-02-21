@@ -105,6 +105,8 @@ std::ostream& operator<<(std::ostream& ostream,
       if (value.data == 1)
         return ostream << "false";
       return ostream << "%b" << value.data;
+    case Value::Kind::FrameSlot:
+      return ostream << "[rbp+" << value.data << "]";
     case Value::Kind::Immediate:
       if (value.size == ValueSize::Size64)
         return ostream << value.data << "l";

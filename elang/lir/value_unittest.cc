@@ -47,6 +47,13 @@ TEST_F(LirValueTest, Basic) {
   EXPECT_NE(value1, value3);
 }
 
+TEST_F(LirValueTest, FrameSlot) {
+  EXPECT_EQ("@i42", ToString(Value::FrameSlot(Value::Int32Type(), 42)));
+  EXPECT_EQ("@i39l", ToString(Value::FrameSlot(Value::Int64Type(), 39)));
+  EXPECT_EQ("@f42", ToString(Value::FrameSlot(Value::Float32Type(), 42)));
+  EXPECT_EQ("@f39l", ToString(Value::FrameSlot(Value::Float64Type(), 39)));
+}
+
 TEST_F(LirValueTest, SpillSlot) {
   EXPECT_EQ("$i42", ToString(Value::SpillSlot(Value::Int32Type(), 42)));
   EXPECT_EQ("$i39l", ToString(Value::SpillSlot(Value::Int64Type(), 39)));
