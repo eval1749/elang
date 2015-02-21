@@ -14,7 +14,6 @@
 
 namespace elang {
 namespace lir {
-
 namespace {
 
 //////////////////////////////////////////////////////////////////////
@@ -34,10 +33,10 @@ class CodeEmitterX64Test : public ::testing::Test {
   DISALLOW_COPY_AND_ASSIGN(CodeEmitterX64Test);
 };
 
-}  // namespace
+// Test cases...
 
 TEST_F(CodeEmitterX64Test, Basic) {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   TestMachineCodeBuilder builder;
   CodeEmitter emitter(factory(), &builder);
   emitter.Process(function);
@@ -45,7 +44,7 @@ TEST_F(CodeEmitterX64Test, Basic) {
 }
 
 TEST_F(CodeEmitterX64Test, Call) {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   auto const entry_block = function->entry_block();
   {
@@ -64,5 +63,6 @@ TEST_F(CodeEmitterX64Test, Call) {
       builder.GetResult());
 }
 
+}  // namespace
 }  // namespace lir
 }  // namespace elang

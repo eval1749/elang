@@ -16,6 +16,7 @@ namespace hir {
 class BasicBlock;
 class Function;
 class Literal;
+class Type;
 class Value;
 }
 namespace lir {
@@ -52,6 +53,13 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   lir::Value MapInput(hir::Value* instr);
   lir::Value MapOutput(hir::Instruction* instr);
   lir::Value MapRegister(hir::Value* value);
+
+  // Returns type template |lir::Value| based on |hir_type|.
+  static lir::Value MapType(hir::Type* hir_type);
+
+  // Returns newly created |lir::Function| based on |hir_function|.
+  static lir::Function* NewFunction(lir::Factory* factor,
+                                    hir::Function* hir_function);
 
   // hir::InstructionVisitor
   void VisitElement(hir::ElementInstruction* instr) final;

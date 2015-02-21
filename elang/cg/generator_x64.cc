@@ -22,33 +22,6 @@ namespace cg {
 
 using lir::Target;
 
-namespace {
-
-lir::Value MapType(hir::Type* type) {
-  auto const primitive_type = type->as<hir::PrimitiveType>();
-  if (!primitive_type)
-    return lir::Value::Int64Type();
-  if (primitive_type->is<hir::Float32Type>())
-    return lir::Value::Float32Type();
-  if (primitive_type->is<hir::Float64Type>())
-    return lir::Value::Float64Type();
-  switch (primitive_type->bit_size()) {
-    case 1:
-    case 8:
-      return lir::Value::Int8Type();
-    case 16:
-      return lir::Value::Int16Type();
-    case 32:
-      return lir::Value::Int32Type();
-    case 64:
-      return lir::Value::Int64Type();
-  }
-  NOTREACHED() << "unsupported bit size: " << *primitive_type;
-  return lir::Value::Float64Type();
-}
-
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // Generator
@@ -128,6 +101,29 @@ lir::Value Generator::MapRegister(hir::Value* value) {
   return new_register;
 }
 
+lir::Value Generator::MapType(hir::Type* type) {
+  auto const primitive_type = type->as<hir::PrimitiveType>();
+  if (!primitive_type)
+    return lir::Value::Int64Type();
+  if (primitive_type->is<hir::Float32Type>())
+    return lir::Value::Float32Type();
+  if (primitive_type->is<hir::Float64Type>())
+    return lir::Value::Float64Type();
+  switch (primitive_type->bit_size()) {
+    case 1:
+    case 8:
+      return lir::Value::Int8Type();
+    case 16:
+      return lir::Value::Int16Type();
+    case 32:
+      return lir::Value::Int32Type();
+    case 64:
+      return lir::Value::Int64Type();
+  }
+  NOTREACHED() << "unsupported bit size: " << *primitive_type;
+  return lir::Value::Float64Type();
+}
+
 // hir::InstructionVisitor
 
 void Generator::VisitCall(hir::CallInstruction* instr) {
@@ -187,8 +183,7 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   }
   auto const array_ptr = MapInput(instr->input(0));
   auto const element_start = factory()->NewRegister(Target::IntPtrType());
-  auto const size_of_array_header =
-      lir::Value::ByteSizeOf(element_start) * 2;
+  auto const size_of_array_header = lir::Value::ByteSizeOf(element_start) * 2;
   Emit(factory()->NewAddInstruction(
       element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
   auto const output = MapOutput(instr);

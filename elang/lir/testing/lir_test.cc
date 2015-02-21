@@ -195,7 +195,7 @@ Function* LirTest::CreateFunctionEmptySample(
 }
 
 Function* LirTest::CreateFunctionSample1() {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   auto const entry_block = function->entry_block();
   {
@@ -310,11 +310,9 @@ Function* LirTest::CreateFunctionSampleAdd() {
   auto const function = CreateFunctionEmptySample(parameters);
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewPCopyInstruction({var0, var1},
-                                                         parameters));
+  editor.Append(factory()->NewPCopyInstruction({var0, var1}, parameters));
   editor.Append(factory()->NewAddInstruction(var2, var0, var1));
-  editor.Append(
-      factory()->NewCopyInstruction(Target::GetReturn(var2), var2));
+  editor.Append(factory()->NewCopyInstruction(Target::GetReturn(var2), var2));
   EXPECT_EQ("", Commit(&editor));
   return function;
 }

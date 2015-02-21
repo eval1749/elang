@@ -47,7 +47,7 @@ TEST_F(LirInstructionTest, AssignInstruction) {
 
 // BranchInstruction
 TEST_F(LirInstructionTest, BranchInstruction) {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   auto const entry_block = function->entry_block();
   auto const exit_block = function->exit_block();
   auto const instr =
@@ -96,8 +96,8 @@ TEST_F(LirInstructionTest, EntryInstruction) {
 
 TEST_F(LirInstructionTest, EntryInstruction2) {
   std::vector<Value> parameters{
-    Target::GetParameterAt(Value::Int32Type(), 0),
-    Target::GetParameterAt(Value::Int64Type(), 1),
+      Target::GetParameterAt(Value::Int32Type(), 0),
+      Target::GetParameterAt(Value::Int64Type(), 1),
   };
   auto const instr = factory()->NewEntryInstruction(parameters);
   EXPECT_TRUE(instr->is<EntryInstruction>());
@@ -119,7 +119,7 @@ TEST_F(LirInstructionTest, ExitInstruction) {
 
 // JumpInstruction
 TEST_F(LirInstructionTest, JumpInstruction) {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   auto const exit_block = function->exit_block();
   auto const instr = factory()->NewJumpInstruction(exit_block);
   EXPECT_TRUE(instr->is<JumpInstruction>());
@@ -161,7 +161,7 @@ TEST_F(LirInstructionTest, PCopyInstruction) {
 
 // RetInstruction
 TEST_F(LirInstructionTest, RetInstruction) {
-  auto const function = factory()->NewFunction();
+  auto const function = factory()->NewFunction({});
   auto const instr = function->entry_block()->last_instruction();
   EXPECT_TRUE(instr->is<RetInstruction>());
   EXPECT_TRUE(instr->IsTerminator());

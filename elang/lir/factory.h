@@ -47,8 +47,6 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
   // Returns newly created |Function|.
   Function* NewFunction(const std::vector<Value> parameters);
-  // TODO(eval1749) We should remove parameter less |NewFunction()|.
-  Function* NewFunction() { return NewFunction({}); }
 
   // Returns |Literal| object.
   Value NewFloat32Value(float32_t value);
