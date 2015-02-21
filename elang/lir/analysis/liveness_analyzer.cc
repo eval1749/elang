@@ -13,8 +13,8 @@
 namespace elang {
 namespace lir {
 
-std::unique_ptr<LivenessCollection<BasicBlock*, Value>>
-AnalyzeLiveness(Function* function) {
+std::unique_ptr<LivenessCollection<BasicBlock*, Value>> AnalyzeLiveness(
+    Function* function) {
   LivenessBuilder<BasicBlock*, Value> builder;
 
   // List up registers
