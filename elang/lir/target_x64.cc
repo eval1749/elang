@@ -253,7 +253,7 @@ bool Target::HasCopyImmediateToMemory(Value value) {
     return false;
   // TODO(eval1749) We should check literal map whether value is 32-bit integer
   // or not.
-  return value.is_immediate() || Value::ByteSizeOf(value) <= 4;
+  return value.is_immediate() || Value::SizeOf(value) <= 4;
 }
 
 // For integer, we can use |XCHG r, r/m| instruction.

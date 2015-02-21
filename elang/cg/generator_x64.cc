@@ -183,7 +183,7 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   }
   auto const array_ptr = MapInput(instr->input(0));
   auto const element_start = factory()->NewRegister(Target::IntPtrType());
-  auto const size_of_array_header = lir::Value::ByteSizeOf(element_start) * 2;
+  auto const size_of_array_header = lir::Value::SizeOf(element_start) * 2;
   Emit(factory()->NewAddInstruction(
       element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
   auto const output = MapOutput(instr);

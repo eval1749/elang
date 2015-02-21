@@ -101,8 +101,8 @@ struct ELANG_LIR_EXPORT Value {
   static bool CanBeImmediate(int64_t value);
 
   // |ValueSize| properties
-  static int BitSizeOf(Value value) { return ByteSizeOf(value) * 8; }
-  static int ByteSizeOf(Value value) { return 1 << Log2Of(value); }
+  static int BitSizeOf(Value value) { return SizeOf(value) * 8; }
+  static int SizeOf(Value value) { return 1 << Log2Of(value); }
   static int Log2Of(Value value) { return static_cast<int>(value.size); }
 
   static Value Argument(Value type, int data);

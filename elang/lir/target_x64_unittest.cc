@@ -283,7 +283,7 @@ TEST(LirTargetX64Test, NaturalRegisterOf) {
 
 TEST(LirTargetX64Test, IntPtrType) {
   EXPECT_EQ(Value::Int64Type(), Target::IntPtrType());
-  EXPECT_EQ(8, Value::ByteSizeOf(Target::IntPtrType()));
+  EXPECT_EQ(8, Value::SizeOf(Target::IntPtrType()));
 }
 
 }  // namespace lir

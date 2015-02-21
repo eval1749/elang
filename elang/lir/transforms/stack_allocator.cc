@@ -30,7 +30,7 @@ int Align(int value, int alignment) {
 //
 StackAllocator::StackAllocator(const Editor* editor,
                                StackAssignments* assignments)
-    : alignment_(Value::ByteSizeOf(Target::IntPtrType())),
+    : alignment_(Value::SizeOf(Target::IntPtrType())),
       assignments_(assignments),
       conflict_map_(editor->AnalyzeConflicts()),
       size_(0) {
@@ -152,8 +152,8 @@ bool StackAllocator::IsConflict(const Slot* slot, Value vreg) const {
 }
 
 StackAllocator::Slot* StackAllocator::NewSlot(Value type) {
-  auto const offset = Align(size_, Value::ByteSizeOf(type));
-  size_ += Value::ByteSizeOf(type);
+  auto const offset = Align(size_, Value::SizeOf(type));
+  size_ += Value::SizeOf(type);
   assignments_->maximum_variables_size_ = Align(size_, alignment_);
   auto const slot = new (zone()) Slot(zone());
   live_slots_.insert(slot);
@@ -190,7 +190,7 @@ void StackAllocator::TrackArgument(Value argument) {
   assignments_->arguments_.insert(argument);
   assignments_->maximum_arguments_size_ =
       std::max(assignments_->maximum_arguments_size_,
-               (argument.data + 1) * Value::ByteSizeOf(Target::IntPtrType()));
+               (argument.data + 1) * Value::SizeOf(Target::IntPtrType()));
 }
 
 void StackAllocator::TrackCall(Instruction* instr) {

@@ -269,7 +269,7 @@ void Validator::VisitExtend(ExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
   if (input.type != Value::Type::Float)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
-  if (Value::ByteSizeOf(output) <= Value::ByteSizeOf(input))
+  if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
@@ -311,7 +311,7 @@ void Validator::VisitSignExtend(SignExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
   if (input.type != Value::Type::Integer)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
-  if (Value::ByteSizeOf(output) <= Value::ByteSizeOf(input))
+  if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
@@ -320,7 +320,7 @@ void Validator::VisitTruncate(TruncateInstruction* instr) {
   auto const input = instr->input(0);
   if (output.type != input.type)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
-  if (Value::ByteSizeOf(output) >= Value::ByteSizeOf(input))
+  if (Value::SizeOf(output) >= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
@@ -338,7 +338,7 @@ void Validator::VisitZeroExtend(ZeroExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
   if (input.type != Value::Type::Integer)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
-  if (Value::ByteSizeOf(output) <= Value::ByteSizeOf(input))
+  if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
