@@ -110,7 +110,6 @@ struct ELANG_LIR_EXPORT Value {
   static Value Float64Literal();
   static Value Float32Type();
   static Value Float64Type();
-  static Value Immediate(ValueSize size, int data);
   static Value Int16Type();
   static Value Int32Type();
   static Value Int64Type();
@@ -125,8 +124,11 @@ struct ELANG_LIR_EXPORT Value {
   static Value True();
 
  private:
+  friend class Factory;
+
   Value(Value type, Kind kind) : Value(type.type, type.size, kind, 0) {}
   Value(Type type, ValueSize size) : Value(type, size, Kind::Void, 0) {}
+  static Value Immediate(ValueSize size, int data);
 };
 
 static_assert(sizeof(Value) == sizeof(int),

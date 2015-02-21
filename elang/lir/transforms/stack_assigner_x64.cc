@@ -81,7 +81,7 @@ void StackAssigner::RunForLeafFunction() {
   if (size) {
     // Allocate slots for local variable on stack.
     auto const rsp = Target::GetRegister(isa::RSP);
-    auto const size64 = Value::Immediate(ValueSize::Size64, size);
+    auto const size64 = Value::SmallInt64(size);
     stack_assignments_->prologue_instructions_.push_back(
         factory()->NewSubInstruction(rsp, rsp, size64));
   }
@@ -110,7 +110,7 @@ void StackAssigner::RunForLeafFunction() {
 
   // Deallocate slots for local variable on stack.
   auto const rsp = Target::GetRegister(isa::RSP);
-  auto const size64 = Value::Immediate(ValueSize::Size64, size);
+  auto const size64 = Value::SmallInt64(size);
   stack_assignments_->epilogue_instructions_.push_back(
       factory()->NewAddInstruction(rsp, rsp, size64));
 }
