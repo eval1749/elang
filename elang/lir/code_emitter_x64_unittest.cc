@@ -74,6 +74,66 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   EXPECT_EQ("0000 48 8B 05 89 55 08 C3\n", Emit(function));
 }
 
+TEST_F(CodeEmitterX64Test, Int8) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::CL),
+                                      Value::SmallInt8(42)));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ("0000 C6 C8 2A C3\n", Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, Int16) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::AX),
+                                      Value::SmallInt16(42)));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ("0000 66 C7 C0 2A 00 C3\n", Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, Int32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::EAX),
+                                      Value::SmallInt32(42)));
+  editor.Append(NewLiteralInstruction(
+      Target::GetRegister(isa::EAX), NewIntValue(Value::Int32Type(), 1 << 30)));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ("0000 C7 C0 2A 00 00 00 C7 C0 00 00 00 40 C3\n", Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, Int64) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::RAX),
+                                      Value::SmallInt64(42)));
+  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::RAX),
+                                      Value::SmallInt64(-42)));
+  editor.Append(NewLiteralInstruction(
+      Target::GetRegister(isa::RAX), NewIntValue(Value::Int64Type(), 1 << 30)));
+  editor.Append(
+      NewLiteralInstruction(Target::GetRegister(isa::RAX),
+                            NewIntValue(Value::Int64Type(), -1 << 30)));
+  editor.Append(NewLiteralInstruction(
+      Target::GetRegister(isa::RAX),
+      NewIntValue(Value::Int64Type(), static_cast<int64_t>(1) << 42)));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 C7 2A 00 00 00 48 C7 C0 D6 FF FF FF C7 00 00 00\n"
+      "0010 40 48 C7 C0 00 00 00 C0 FF FF FF FF 48 C7 C0 00\n"
+      "0020 00 00 00 00 04 00 00 C3\n",
+      Emit(function));
+}
+
 TEST_F(CodeEmitterX64Test, StackSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);

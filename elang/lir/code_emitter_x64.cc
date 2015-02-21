@@ -39,6 +39,35 @@ bool Is32Bit(int64_t data) {
   return (data & static_cast<uint32_t>(-1)) == data;
 }
 
+Value To32bitRegister(Value reg) {
+  DCHECK(reg.is_physical());
+  DCHECK_EQ(ValueSize::Size64, reg.size);
+  return Value(reg.is_integer() ? Value::Type::Integer : Value::Type::Float,
+               ValueSize::Size32, Value::Kind::PhysicalRegister, reg.data & 15);
+}
+
+isa::Register ToRegister(Value reg) {
+  DCHECK(reg.is_physical());
+  if (reg.is_float()) {
+    if (reg.size == ValueSize::Size32)
+      return static_cast<Register>(isa::XMM0S + (reg.data & 15));
+    DCHECK_EQ(ValueSize::Size64, reg.size);
+    return static_cast<Register>(isa::XMM0D + (reg.data & 15));
+  }
+  switch (reg.size) {
+    case ValueSize::Size8:
+      return static_cast<Register>(isa::AL + (reg.data & 15));
+    case ValueSize::Size16:
+      return static_cast<Register>(isa::AX + (reg.data & 15));
+    case ValueSize::Size32:
+      return static_cast<Register>(isa::EAX + (reg.data & 15));
+    case ValueSize::Size64:
+      return static_cast<Register>(isa::RAX + (reg.data & 15));
+  }
+  NOTREACHED() << "Unknown size: " << reg.size;
+  return static_cast<Register>(0);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlockData
@@ -163,9 +192,10 @@ class CodeBuffer final {
   void Finish(Factory* factory,
               const Function* function,
               api::MachineCodeBuilder* builder);
-  void Emit8(int value);
+  void Emit16(int value);
   void Emit32(uint32_t value);
   void Emit64(uint64_t value);
+  void Emit8(int value);
   void EndBasicBlock();
   void StartBasicBlock(const BasicBlock* basic_block);
 
@@ -216,9 +246,10 @@ void CodeBuffer::Finish(Factory* factory,
   builder->FinishCode();
 }
 
-void CodeBuffer::Emit8(int value) {
+void CodeBuffer::Emit16(int value) {
   DCHECK(current_block_data_);
   bytes_.push_back(static_cast<uint8_t>(value));
+  bytes_.push_back(static_cast<uint8_t>(value >> 8));
 }
 
 // Emit |value| in little endian, LSB to MSB
@@ -234,6 +265,11 @@ void CodeBuffer::Emit64(uint64_t value) {
   DCHECK(current_block_data_);
   Emit32(static_cast<int32_t>(value));
   Emit32(static_cast<int32_t>(value >> 32));
+}
+
+void CodeBuffer::Emit8(int value) {
+  DCHECK(current_block_data_);
+  bytes_.push_back(static_cast<uint8_t>(value));
 }
 
 void CodeBuffer::EndBasicBlock() {
@@ -257,40 +293,49 @@ void CodeBuffer::StartBasicBlock(const BasicBlock* basic_block) {
 //
 class InstructionEmitter final : private InstructionVisitor {
  public:
-  explicit InstructionEmitter(CodeBuffer* code_buffer);
+  InstructionEmitter(const Factory* factory, CodeBuffer* code_buffer);
   ~InstructionEmitter() final = default;
 
   void Process(const Instruction* instruction);
 
  private:
+  void Emit16(int value);
   void Emit32(uint32_t value);
   void Emit64(uint64_t value);
   void Emit8(int value);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
+  void EmitModRm(Value output, isa::OpcodeExt opext);
   void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
+  void EmitOpcode(isa::Opcode opcode, Register reg);
   void EmitOperand(Value value);
   void EmitRexPrefix(Value output, Value input);
   void EmitSib(Scale scale, Register index, Register base);
 
+  int32_t Int32ValueOf(Value literal) const;
+  bool Is32BitLiteral(Value literal) const;
+
   // InstructionVisitor
   void VisitCall(CallInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
+  void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
 
   CodeBuffer* const code_buffer_;
+  const Factory* const factory_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionEmitter);
 };
 
-InstructionEmitter::InstructionEmitter(CodeBuffer* code_buffer)
-    : code_buffer_(code_buffer) {
+InstructionEmitter::InstructionEmitter(const Factory* factory,
+                                       CodeBuffer* code_buffer)
+    : code_buffer_(code_buffer), factory_(factory) {
 }
 
-void InstructionEmitter::Emit8(int value) {
-  code_buffer_->Emit8(value);
+void InstructionEmitter::Emit16(int value) {
+  code_buffer_->Emit16(value);
 }
 
 void InstructionEmitter::Emit32(uint32_t value) {
@@ -299,6 +344,10 @@ void InstructionEmitter::Emit32(uint32_t value) {
 
 void InstructionEmitter::Emit64(uint64_t value) {
   code_buffer_->Emit64(value);
+}
+
+void InstructionEmitter::Emit8(int value) {
+  code_buffer_->Emit8(value);
 }
 
 void InstructionEmitter::EmitModRm(Mod mod, Register reg, Register rm) {
@@ -349,6 +398,10 @@ void InstructionEmitter::EmitModRm(Register reg, Value memory) {
   NOTREACHED() << "EmitModRm " << reg << ", " << memory;
 }
 
+void InstructionEmitter::EmitModRm(Value output, isa::OpcodeExt opext) {
+  EmitModRm(output, Target::GetRegister(static_cast<Register>(opext)));
+}
+
 void InstructionEmitter::EmitModRm(Value output, Value input) {
   if (output.is_physical()) {
     auto const reg = static_cast<Register>(output.data);
@@ -377,12 +430,43 @@ void InstructionEmitter::EmitOpcode(isa::Opcode opcode) {
   Emit8(value);
 }
 
+void InstructionEmitter::EmitOpcode(isa::Opcode opcode, Register reg) {
+  EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + (reg & 7)));
+}
+
 void InstructionEmitter::EmitOperand(Value value) {
+  if (value.is_immediate()) {
+    switch (value.size) {
+      case ValueSize::Size8:
+        Emit8(value.data);
+        return;
+      case ValueSize::Size16:
+        Emit16(value.data);
+        return;
+      case ValueSize::Size32:
+        Emit32(value.data);
+        return;
+      case ValueSize::Size64:
+        Emit64(value.data);
+        return;
+    }
+  }
+  if (value.is_literal()) {
+    auto const literal = factory_->GetLiteral(value);
+    if (auto const i32 = literal->as<Int32Literal>())
+      return Emit32(i32->data());
+    if (auto const i64 = literal->as<Int64Literal>())
+      return Emit64(i64->data());
+  }
   code_buffer_->AssociateValue(value);
   Emit32(0);
 }
 
 void InstructionEmitter::EmitRexPrefix(Value output, Value input) {
+  if (output.size == ValueSize::Size16) {
+    EmitOpcode(isa::Opcode::OPDSIZ);
+    return;
+  }
   int rex = isa::REX;
   if (output.size == ValueSize::Size64)
     rex |= isa::REX_W;
@@ -397,6 +481,32 @@ void InstructionEmitter::EmitRexPrefix(Value output, Value input) {
 
 void InstructionEmitter::EmitSib(Scale scale, Register index, Register base) {
   Emit8(static_cast<int>(scale) | ((index & 7) << 3) | (base & 7));
+}
+
+int32_t InstructionEmitter::Int32ValueOf(Value value) const {
+  if (value.is_immediate())
+    return value.data;
+  DCHECK(value.is_literal());
+  auto const literal = factory_->GetLiteral(value);
+  if (auto const i32 = literal->as<Int32Literal>())
+    return i32->data();
+  if (auto const i64 = literal->as<Int64Literal>())
+    return static_cast<int32_t>(i64->data());
+  NOTREACHED() << value << " isn't 32-bit literal";
+  return 0;
+}
+
+bool InstructionEmitter::Is32BitLiteral(Value value) const {
+  if (value.is_immediate())
+    return true;
+  if (!value.is_literal())
+    return false;
+  auto const literal = factory_->GetLiteral(value);
+  if (auto const i32 = literal->is<Int32Literal>())
+    return true;
+  if (auto const i64 = literal->as<Int64Literal>())
+    return Is32Bit(i64->data());
+  return false;
 }
 
 void InstructionEmitter::Process(const Instruction* instr) {
@@ -436,6 +546,42 @@ void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
   EmitModRm(output, input);
 }
 
+void InstructionEmitter::VisitLiteral(LiteralInstruction* instr) {
+  auto const input = instr->input(0);
+  auto const output = instr->output(0);
+  DCHECK_EQ(input.size, output.size);
+  DCHECK_EQ(input.type, output.type);
+  DCHECK(output.is_integer()) << "NYI: float " << *instr;
+
+  if (output.is_physical() && output.size == ValueSize::Size64 &&
+      Is32BitLiteral(input)) {
+    auto const imm32 = Int32ValueOf(input);
+    if (imm32 >= 0) {
+      // 8B/r mov r32, imm32 : 8B/r imm32
+      auto const reg32 = To32bitRegister(output);
+      EmitRexPrefix(reg32, input);
+      EmitOpcode(isa::Opcode::MOV_Ev_Iz, ToRegister(reg32));
+      Emit32(imm32);
+      return;
+    }
+    // sign extended to 64 bits to r/m64
+    // C7/0 mov r/m64, imm32 : REX.W+C7 /0 imm32
+    EmitRexPrefix(output, input);
+    EmitOpcode(isa::Opcode::MOV_Ev_Iz);
+    EmitModRm(output, isa::OpcodeExt::MOV_Ev_Iz);
+    Emit32(imm32);
+    return;
+  }
+
+  EmitRexPrefix(output, input);
+  if (output.size == ValueSize::Size8)
+    EmitOpcode(isa::Opcode::MOV_Eb_Ib);
+  else
+    EmitOpcode(isa::Opcode::MOV_Ev_Iz);
+  EmitModRm(output, isa::OpcodeExt::MOV_Ev_Iz);
+  EmitOperand(input);
+}
+
 void InstructionEmitter::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
 }
@@ -447,7 +593,7 @@ void CodeEmitter::Process(const Function* function) {
   CodeBuffer code_buffer(&zone);
   // Generate codes
   {
-    InstructionEmitter emitter(&code_buffer);
+    InstructionEmitter emitter(factory_, &code_buffer);
     for (auto const block : function->basic_blocks()) {
       code_buffer.StartBasicBlock(block);
       for (auto const instruction : block->instructions())
