@@ -89,7 +89,7 @@ BitSet::BitSet(Zone* zone, int size)
     : pack_size_((size + kPackSize - 1) / kPackSize),
       capacity_(size),
       packs_(zone->AllocateObjects<Pack>(pack_size_)) {
-  DCHECK_GT(capacity_, 0);
+  DCHECK_GE(capacity_, 0);
   Clear();
 }
 
@@ -98,7 +98,8 @@ BitSet::Iterator BitSet::begin() const {
 }
 
 BitSet::Iterator BitSet::end() const {
-  DCHECK_GT(capacity_, 0);
+  if (!capacity_)
+    return Iterator(this, 0);
   return Iterator(this, LastIndexOf(capacity_ - 1));
 }
 
