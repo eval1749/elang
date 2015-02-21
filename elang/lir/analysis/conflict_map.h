@@ -27,7 +27,8 @@ class ELANG_LIR_EXPORT ConflictMap final {
   ConflictMap& operator=(const ConflictMap& other) = delete;
   ConflictMap& operator=(ConflictMap&&);
 
-  bool IsConflict(Value value1, Value value2) const;
+  // Returns true if |register1| and |register2| live together.
+  bool IsConflict(Value register1, Value register2) const;
 
  private:
   friend class ConflictMapBuilder;

@@ -27,8 +27,10 @@ ConflictMap& ConflictMap::operator=(ConflictMap&& other) {
   return *this;
 }
 
-bool ConflictMap::IsConflict(Value value1, Value value2) const {
-  return sets_.InSameSet(value1, value2);
+bool ConflictMap::IsConflict(Value register1, Value register2) const {
+  DCHECK(register1.is_register());
+  DCHECK(register2.is_register());
+  return sets_.InSameSet(register1, register2);
 }
 
 }  // namespace lir
