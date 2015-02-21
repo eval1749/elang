@@ -24,6 +24,7 @@ class ELANG_LIR_EXPORT FactoryUser {
 
   Factory* factory() const { return factory_; }
 
+  Value NewIntValue(Value type, int64_t value);
   Value NewRegister(Value type);
 
 // New instructions

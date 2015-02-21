@@ -153,7 +153,7 @@ TEST_F(LirInstructionTest, PCopyInstruction) {
       NewIntPtrRegister(), NewIntPtrRegister(),
   };
   std::vector<Value> inputs{
-      factory()->NewIntValue(outputs.front().size, 42), NewIntPtrRegister(),
+      factory()->NewIntValue(outputs.front(), 42), NewIntPtrRegister(),
   };
   auto const instr = factory()->NewPCopyInstruction(outputs, inputs);
   EXPECT_TRUE(instr->is<PCopyInstruction>());

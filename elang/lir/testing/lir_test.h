@@ -70,7 +70,6 @@ class LirTest : public ::testing::Test, public FactoryUser {
   Value NewFloat64Value(float64_t data);
   // Returns newly allocated virtual integer register which can hold pointer.
   Value NewIntPtrRegister();
-  Value NewIntValue(ValueSize size, int64_t data);
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(base::StringPiece data);
 

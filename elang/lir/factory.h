@@ -51,7 +51,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Returns |Literal| object.
   Value NewFloat32Value(float32_t value);
   Value NewFloat64Value(float64_t value);
-  Value NewIntValue(ValueSize size, int64_t value);
+  Value NewIntValue(Value type, int64_t value);
   Value NewStringValue(base::StringPiece16 data);
   Value NewStringValue(AtomicString* atomic_string);
 

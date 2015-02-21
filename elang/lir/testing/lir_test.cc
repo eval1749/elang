@@ -258,8 +258,8 @@ Function* LirTest::CreateFunctionSample2() {
   editor.Append(
       factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
   auto const cond1 = factory()->NewCondition();
-  editor.Append(factory()->NewEqInstruction(
-      cond1, values[0], Value::SmallInt32(0)));
+  editor.Append(
+      factory()->NewEqInstruction(cond1, values[0], Value::SmallInt32(0)));
   editor.SetBranch(cond1, true_block, false_block);
   EXPECT_EQ("", Commit(&editor));
 
@@ -394,10 +394,6 @@ Value LirTest::NewFloat32Value(float32_t data) {
 
 Value LirTest::NewFloat64Value(float64_t data) {
   return factory()->NewFloat64Value(data);
-}
-
-Value LirTest::NewIntValue(ValueSize size, int64_t data) {
-  return factory()->NewIntValue(size, data);
 }
 
 Value LirTest::NewIntPtrRegister() {

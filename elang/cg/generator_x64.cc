@@ -56,33 +56,33 @@ lir::Value Generator::MapInput(hir::Value* value) {
   }
 
   if (auto const literal = value->as<hir::BoolLiteral>())
-    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
+    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::Float32Literal>())
     return factory()->NewFloat32Value(literal->data());
   if (auto const literal = value->as<hir::Float64Literal>())
     return factory()->NewFloat64Value(literal->data());
   if (auto const literal = value->as<hir::Int8Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
+    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::Int16Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size16, literal->data());
+    return factory()->NewIntValue(lir::Value::Int16Type(), literal->data());
   if (auto const literal = value->as<hir::Int32Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size32, literal->data());
+    return factory()->NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::Int64Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size64, literal->data());
+    return factory()->NewIntValue(lir::Value::Int64Type(), literal->data());
   if (auto const literal = value->as<hir::UInt8Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size8, literal->data());
+    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::UInt16Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size16, literal->data());
+    return factory()->NewIntValue(lir::Value::Int16Type(), literal->data());
   if (auto const literal = value->as<hir::UInt32Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size32, literal->data());
+    return factory()->NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::UInt64Literal>())
-    return factory()->NewIntValue(lir::ValueSize::Size64, literal->data());
+    return factory()->NewIntValue(lir::Value::Int64Type(), literal->data());
 
   if (auto const reference = value->as<hir::Reference>())
     return factory()->NewStringValue(reference->name());
 
   NOTREACHED() << "unsupported hir::Literal: " << *value;
-  return factory()->NewIntValue(lir::ValueSize::Size8, 0);
+  return factory()->NewIntValue(lir::Value::Int8Type(), 0);
 }
 
 // Get output register for instruction except for 'load'.

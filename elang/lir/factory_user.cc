@@ -21,6 +21,10 @@ FactoryUser::FactoryUser(Factory* factory) : factory_(factory) {
 FactoryUser::~FactoryUser() {
 }
 
+Value FactoryUser::NewIntValue(Value type, int64_t value) {
+  return factory()->NewIntValue(type, value);
+}
+
 Value FactoryUser::NewRegister(Value type) {
   return factory()->NewRegister(type);
 }

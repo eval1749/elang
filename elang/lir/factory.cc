@@ -128,7 +128,9 @@ Value Factory::NewRegister(Value type) {
   return Value::Register(type, ++last_general_register_id_);
 }
 
-Value Factory::NewIntValue(ValueSize size, int64_t data) {
+Value Factory::NewIntValue(Value type, int64_t data) {
+  DCHECK_EQ(Value::Type::Integer, type.type);
+  auto const size = type.size;
   if (size == ValueSize::Size8 || size == ValueSize::Size16 ||
       Value::CanBeImmediate(data)) {
     return Value::Immediate(size, data);
@@ -138,8 +140,7 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
     auto const it = int32_map_.find(data);
     if (it != int32_map_.end())
       return it->second;
-    auto const value =
-        literal_map_->next_literal_value(Value::Literal(Value::Int32Type()));
+    auto const value = literal_map_->next_literal_value(Value::Literal(type));
     RegisterLiteral(new (zone()) Int32Literal(data));
     int32_map_[data] = value;
     return value;
@@ -149,8 +150,7 @@ Value Factory::NewIntValue(ValueSize size, int64_t data) {
   auto const it = int64_map_.find(data);
   if (it != int64_map_.end())
     return it->second;
-  auto const value =
-      literal_map_->next_literal_value(Value::Literal(Value::Int64Type()));
+  auto const value = literal_map_->next_literal_value(Value::Literal(type));
   RegisterLiteral(new (zone()) Int64Literal(data));
   int64_map_[data] = value;
   return value;
