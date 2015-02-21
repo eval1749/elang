@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <vector>
+
 #include "elang/lir/factory_user.h"
 
 #include "elang/lir/factory.h"
@@ -46,6 +48,12 @@ Value FactoryUser::NewStringValue(base::StringPiece16 data) {
 }
 
 // Creating instructions
+Instruction* FactoryUser::NewPCopyInstruction(
+    const std::vector<Value>& outputs,
+    const std::vector<Value>& inputs) {
+  return factory()->NewPCopyInstruction(outputs, inputs);
+}
+
 #define V(Name, ...)                                   \
   Instruction* FactoryUser::New##Name##Instruction() { \
     return factory()->New##Name##Instruction();        \
