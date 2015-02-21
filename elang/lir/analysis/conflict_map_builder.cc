@@ -30,13 +30,13 @@ ConflictMap ConflictMapBuilder::Build() {
   for (auto const variable : liveness_map_.variables())
     conflict_map.sets_.MakeSet(variable);
 
+  auto const live_registers = liveness_map_.work();
   for (auto const block : editor_->function()->basic_blocks()) {
     auto& liveness = liveness_map_.LivenessOf(block);
 
     // Members in Live-Out conflict to other members.
     UpdateConflictMapFromLiveness(&conflict_map, liveness.out());
 
-    auto const live_registers = liveness_map_.work();
     for (auto const instr : block->instructions().reversed()) {
       for (auto const output : instr->outputs())
         live_registers->Remove(liveness_map_.NumberOf(output));
@@ -48,7 +48,9 @@ ConflictMap ConflictMapBuilder::Build() {
           auto const live = liveness_map_.VariableOf(number);
           conflict_map.sets_.Union(input, live);
         }
-        live_registers->Add(liveness_map_.NumberOf(input));
+        auto const number = liveness_map_.NumberOf(input);
+        DCHECK_GE(number, 0) << input << " doesn't have liveness!";
+        live_registers->Add(number);
       }
     }
 
