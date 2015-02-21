@@ -84,6 +84,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }
   bool is_literal() const { return kind == Kind::Literal; }
+  bool is_memory_slot() const;
   bool is_output() const;
   bool is_register() const { return is_physical() || is_virtual(); }
   bool is_parameter() const { return kind == Kind::Parameter; }

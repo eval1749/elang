@@ -9,6 +9,10 @@
 namespace elang {
 namespace lir {
 
+bool Value::is_memory_slot() const {
+  return is_parameter() || is_argument() || is_stack_slot() || is_spill_slot();
+}
+
 Value Value::Argument(Type type, ValueSize size, int data) {
   return Value(type, size, Kind::Argument, data);
 }
