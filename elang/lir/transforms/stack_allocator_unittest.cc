@@ -53,7 +53,7 @@ TEST_F(LirStackAllocatorTest, Alignment) {
   EXPECT_EQ(Value::SpillSlot(vregs[2], 4), allocator.Allocate(vregs[2]));
   EXPECT_EQ(Value::SpillSlot(vregs[3], 8), allocator.Allocate(vregs[3]));
   EXPECT_EQ(Value::SpillSlot(vregs[4], 16), allocator.Allocate(vregs[4]));
-  EXPECT_EQ(24u, assignments.maximum_size());
+  EXPECT_EQ(24u, assignments.maximum_variables_size());
 }
 
 TEST_F(LirStackAllocatorTest, Parameters) {
@@ -75,7 +75,7 @@ TEST_F(LirStackAllocatorTest, Parameters) {
   allocator.Assign(vregs[0], parameters[9]);
 
   EXPECT_EQ(parameters[9], allocator.AllocationFor(vregs[0]));
-  EXPECT_EQ(0u, assignments.maximum_size());
+  EXPECT_EQ(0u, assignments.maximum_variables_size());
 }
 
 TEST_F(LirStackAllocatorTest, Reuse) {
@@ -99,21 +99,32 @@ TEST_F(LirStackAllocatorTest, Reuse) {
   EXPECT_EQ(Value::SpillSlot(vregs[0], 0), allocator.Allocate(vregs[0]));
   allocator.Free(vregs[0]);
   EXPECT_EQ(Value::SpillSlot(vregs[1], 0), allocator.Allocate(vregs[1]));
-  EXPECT_EQ(8u, assignments.maximum_size());
+  EXPECT_EQ(8u, assignments.maximum_variables_size());
 }
 
-TEST_F(LirStackAllocatorTest, TrackNumberOfArguments) {
+TEST_F(LirStackAllocatorTest, TrackCall) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  std::vector<Value> args{
+      Target::GetArgumentAt(Value::Int64Type(), 0),
+      Target::GetArgumentAt(Value::Int32Type(), 1),
+      Target::GetArgumentAt(Value::Int32Type(), 2),
+      Target::GetArgumentAt(Value::Int64Type(), 3),
+      Target::GetArgumentAt(Value::Int64Type(), 4),
+  };
+  std::vector<Value> values;
+  for (auto const arg : args)
+    values.push_back(NewIntValue(arg, static_cast<int>(values.size())));
+  editor.Append(NewPCopyInstruction(args, values));
+  auto const call_instr = NewCallInstruction(NewStringValue8("foo"));
+  editor.Append(call_instr);
+  ASSERT_EQ("", Commit(&editor));
 
   StackAssignments assignments;
   StackAllocator allocator(&editor, &assignments);
-
-  allocator.TrackNumberOfArguments(4);
-  allocator.TrackNumberOfArguments(3);
-  allocator.TrackNumberOfArguments(2);
-  allocator.TrackNumberOfArguments(0);
-  EXPECT_EQ(4, assignments.maximum_argc());
+  allocator.TrackCall(call_instr);
+  EXPECT_EQ(args.size() * 8, assignments.maximum_arguments_size());
 }
 
 }  // namespace

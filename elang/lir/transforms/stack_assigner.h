@@ -13,6 +13,7 @@
 namespace elang {
 namespace lir {
 
+class Instruction;
 class RegisterAssignments;
 class StackAssignments;
 
@@ -30,14 +31,14 @@ class ELANG_LIR_EXPORT StackAssigner final : public FactoryUser {
   void Run();
 
  private:
-  Value MapToStackSlot(Value memory_slot);
+  void AddEpilogue(Instruction* instruction);
+  void AddPrologue(Instruction* instruction);
   void RunForLeafFunction();
   void RunForNonLeafFunction();
   void SetStackSlot(Value proxy, Value stack_slot);
 
   RegisterAssignments::Editor register_assignments_;
   StackAssignments* const stack_assignments_;
-  int return_address_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(StackAssigner);
 };

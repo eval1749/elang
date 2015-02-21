@@ -19,11 +19,18 @@ StackAssigner::StackAssigner(Factory* factory,
                              StackAssignments* stack_assignments)
     : FactoryUser(factory),
       register_assignments_(register_assignments),
-      return_address_offset_(-1),
       stack_assignments_(stack_assignments) {
 }
 
 StackAssigner::~StackAssigner() {
+}
+
+void StackAssigner::AddEpilogue(Instruction* instruction) {
+  stack_assignments_->epilogue_instructions_.push_back(instruction);
+}
+
+void StackAssigner::AddPrologue(Instruction* instruction) {
+  stack_assignments_->prologue_instructions_.push_back(instruction);
 }
 
 void StackAssigner::Run() {
@@ -36,7 +43,7 @@ void StackAssigner::Run() {
 
 void StackAssigner::SetStackSlot(Value proxy, Value stack_slot) {
   DCHECK(proxy.is_memory_proxy());
-  DCHECK(stack_slot.is_stack_slot());
+  DCHECK(stack_slot.is_stack_slot() || stack_slot.is_frame_slot());
   DCHECK_EQ(proxy.type, stack_slot.type);
   DCHECK_EQ(proxy.size, stack_slot.size);
   DCHECK(!stack_assignments_->stack_map_.count(proxy));

@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/lir/analysis/conflict_map.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/transforms/stack_assignments.h"
@@ -60,16 +61,12 @@ Value StackAllocator::Allocate(Value vreg) {
   DCHECK(!slot_map_.count(vreg));
 
   // Find reusable free slot for |vreg|.
-  for (auto const slot : free_slots_) {
-    if (slot->proxy.size == vreg.size) {
-      if (!IsConflict(slot, vreg)) {
-        free_slots_.erase(slot);
-        live_slots_.insert(slot);
-        slot_map_[vreg] = slot;
-        slot->users.push_back(vreg);
-        return slot->proxy;
-      }
-    }
+  if (auto const slot = FreeSlotFor(vreg)) {
+    free_slots_.erase(slot);
+    live_slots_.insert(slot);
+    slot_map_[vreg] = slot;
+    slot->users.push_back(vreg);
+    return slot->proxy;
   }
 
   // There are no reusable free slots, we use new slot for |vreg|.
@@ -134,6 +131,17 @@ void StackAllocator::Free(Value vreg) {
   free_slots_.insert(slot);
 }
 
+StackAllocator::Slot* StackAllocator::FreeSlotFor(Value vreg) const {
+  DCHECK(vreg.is_virtual());
+  for (auto const slot : free_slots_) {
+    if (slot->proxy.size == vreg.size) {
+      if (!IsConflict(slot, vreg))
+        return slot;
+    }
+  }
+  return nullptr;
+}
+
 bool StackAllocator::IsConflict(const Slot* slot, Value vreg) const {
   DCHECK(vreg.is_virtual());
   for (auto const user : slot->users) {
@@ -146,7 +154,7 @@ bool StackAllocator::IsConflict(const Slot* slot, Value vreg) const {
 StackAllocator::Slot* StackAllocator::NewSlot(Value type) {
   auto const offset = Align(size_, Value::ByteSizeOf(type));
   size_ += Value::ByteSizeOf(type);
-  assignments_->maximum_size_ = Align(size_, alignment_);
+  assignments_->maximum_variables_size_ = Align(size_, alignment_);
   auto const slot = new (zone()) Slot(zone());
   live_slots_.insert(slot);
   slot->proxy = Value::SpillSlot(type, offset);
@@ -177,9 +185,28 @@ void StackAllocator::Reset() {
   }
 }
 
-void StackAllocator::TrackNumberOfArguments(int argc) {
-  DCHECK_GE(argc, 0);
-  assignments_->maximum_argc_ = std::max(assignments_->maximum_argc_, argc);
+void StackAllocator::TrackArgument(Value argument) {
+  DCHECK(argument.is_argument());
+  assignments_->arguments_.insert(argument);
+  assignments_->maximum_arguments_size_ =
+      std::max(assignments_->maximum_arguments_size_,
+               (argument.data + 1) * Value::ByteSizeOf(Target::IntPtrType()));
+}
+
+void StackAllocator::TrackCall(Instruction* instr) {
+  DCHECK(instr->is<CallInstruction>());
+
+  // Track arguments
+  if (auto const previous = instr->previous()) {
+    if (previous->is<CopyInstruction>() || previous->is<PCopyInstruction>()) {
+      auto position = 0;
+      for (auto const input : previous->inputs()) {
+        TrackArgument(Value::Argument(input, position));
+        ++position;
+      }
+    }
+  }
+
   ++assignments_->number_of_calls_;
 }
 

@@ -6,6 +6,7 @@
 #define ELANG_LIR_TRANSFORMS_STACK_ASSIGNMENTS_H_
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "base/macros.h"
@@ -26,11 +27,12 @@ class ELANG_LIR_EXPORT StackAssignments final {
   StackAssignments();
   ~StackAssignments();
 
+  const std::unordered_set<Value>& arguments() const { return arguments_; }
   const std::vector<Instruction*> epilogue() const {
     return epilogue_instructions_;
   }
-  int maximum_argc() const { return maximum_argc_; }
-  int maximum_size() const { return maximum_size_; }
+  int maximum_arguments_size() const { return maximum_arguments_size_; }
+  int maximum_variables_size() const { return maximum_variables_size_; }
   int number_of_calls() const { return number_of_calls_; }
   int number_of_parameters() const { return number_of_parameters_; }
   const std::unordered_map<Value, Value>& preserving_registers() const {
@@ -46,9 +48,10 @@ class ELANG_LIR_EXPORT StackAssignments final {
   friend class StackAllocator;
   friend class StackAssigner;
 
+  std::unordered_set<Value> arguments_;
   std::vector<Instruction*> epilogue_instructions_;
-  int maximum_argc_;
-  int maximum_size_;
+  int maximum_arguments_size_;
+  int maximum_variables_size_;
   int number_of_calls_;
   // Number of stack slots used for parameter passing.
   int number_of_parameters_;

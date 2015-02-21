@@ -21,6 +21,7 @@ namespace lir {
 
 class Editor;
 class ConflictMap;
+class Instruction;
 class StackAssignments;
 
 //////////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ class ELANG_LIR_EXPORT StackAllocator final : public ZoneOwner {
   void Free(Value vreg);
   void Reallocate(Value vreg, Value proxy);
   void Reset();
-  void TrackNumberOfArguments(int number_of_arguments);
+  void TrackCall(Instruction* instruction);
 
  private:
   struct Slot : ZoneAllocated {
@@ -55,8 +56,15 @@ class ELANG_LIR_EXPORT StackAllocator final : public ZoneOwner {
     }
   };
 
-  Slot* NewSlot(Value type);
+  // Returns |Slot| for |vreg| or null if unavailable.
+  Slot* FreeSlotFor(Value vreg) const;
+
+  // Returns true if users of |slot| are conflicted to |vreg|.
   bool IsConflict(const Slot* slot, Value vreg) const;
+
+  // Returns newly allocated spill slot which can hold value of |type|.
+  Slot* NewSlot(Value type);
+  void TrackArgument(Value proxy);
 
   int const alignment_;
   StackAssignments* const assignments_;

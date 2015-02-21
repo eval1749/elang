@@ -14,8 +14,8 @@ namespace lir {
 // StackAssignments
 //
 StackAssignments::StackAssignments()
-    : maximum_argc_(0),
-      maximum_size_(0),
+    : maximum_arguments_size_(0),
+      maximum_variables_size_(0),
       number_of_calls_(0),
       number_of_parameters_(0) {
 }
