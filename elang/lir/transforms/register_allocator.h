@@ -24,6 +24,7 @@ class LivenessCollection;
 namespace lir {
 
 class BasicBlock;
+class ConflictMap;
 class Editor;
 class Factory;
 class Function;
@@ -125,8 +126,9 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   void VisitPCopy(PCopyInstruction* instr);
 
   std::unique_ptr<RegisterAllocationTracker> allocation_tracker_;
-  const Editor* const editor_;
+  const std::unique_ptr<ConflictMap> conflit_map_;
   const DominatorTree<Function>& dominator_tree_;
+  const Editor* const editor_;
 
   // Allocatable registers ordered by less spilling heuristics.
   std::vector<Value> float_registers_;

@@ -79,7 +79,7 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry\n"
+      "  entry r1l, r2l =\n"
       // TODO(eval1749) we should allocate |R1|, |R2| instead of |R10|, |R11|.
       "* mov r10l = r1l\n"
       "* mov r11l = r2l\n"

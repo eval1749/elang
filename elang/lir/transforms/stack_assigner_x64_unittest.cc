@@ -25,6 +25,7 @@ namespace lir {
 class LirStackAssignerX64Test : public testing::LirTest {
  protected:
   LirStackAssignerX64Test() = default;
+  ~LirStackAssignerX64Test() = default;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LirStackAssignerX64Test);
@@ -44,14 +45,17 @@ TEST_F(LirStackAssignerX64Test, LeafFunction) {
   RegisterAssignments register_assignments;
   StackAssignments stack_assignments;
 
-  RegisterAssignments::Editor editor(&register_assignments);
-  StackAllocator stack_allocator(&stack_assignments, 8);
+  auto const function = CreateFunctionEmptySample({});
+  Editor editor(factory(), function);
 
+  StackAllocator stack_allocator(&editor, &stack_assignments);
+
+  RegisterAssignments::Editor assignments_editor(&register_assignments);
   std::array<Value, 5> vregs;
   for (auto& vreg : vregs) {
     vreg = factory()->NewRegister(ValueSize::Size64);
     auto const spill_slot = stack_allocator.Allocate(vreg);
-    editor.SetSpillSlot(vreg, spill_slot);
+    assignments_editor.SetSpillSlot(vreg, spill_slot);
   }
   StackAssigner stack_assigner(factory(), &register_assignments,
                                &stack_assignments);

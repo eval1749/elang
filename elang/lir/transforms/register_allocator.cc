@@ -13,6 +13,7 @@
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/base/ordered_list.h"
+#include "elang/lir/analysis/conflict_map.h"
 #include "elang/lir/analysis/use_def_list.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/editor.h"
@@ -109,16 +110,14 @@ bool IsLeafFunction(const Function* function) {
 //
 // RegisterAllocator
 //
-RegisterAllocator::RegisterAllocator(
-    const Editor* editor,
-    RegisterAssignments* register_assignments,
-    StackAssignments* stack_assignments)
+RegisterAllocator::RegisterAllocator(const Editor* editor,
+                                     RegisterAssignments* register_assignments,
+                                     StackAssignments* stack_assignments)
     : allocation_tracker_(new RegisterAllocationTracker(register_assignments)),
-      editor_(editor),
       dominator_tree_(editor->BuildDominatorTree()),
+      editor_(editor),
       liveness_(editor->AnalyzeLiveness()),
-      stack_allocator_(new StackAllocator(stack_assignments,
-                                          Target::PointerSizeInByte())),
+      stack_allocator_(new StackAllocator(editor, stack_assignments)),
       usage_tracker_(new RegisterUsageTracker(editor)) {
   SortAllocatableRegisters();
 }
@@ -231,6 +230,10 @@ void RegisterAllocator::FreeInputOperandsIfNotUsed(Instruction* instr) {
     if (usage_tracker_->IsUsedAfter(input, instr))
       continue;
     allocation_tracker_->FreeVirtual(input);
+    auto const spill_slot = SpillSlotFor(input);
+    if (spill_slot.is_void())
+      continue;
+    stack_allocator_->Free(input);
   }
 }
 
@@ -274,7 +277,7 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
     if (!spill_slot.is_spill_slot())
       continue;
     allocation_tracker_->TrackSpillSlot(input, spill_slot);
-    stack_allocator_->AllocateAt(spill_slot);
+    stack_allocator_->Assign(input, spill_slot);
   }
 
   auto const& rpo_list = editor_->ReversePostOrderList();

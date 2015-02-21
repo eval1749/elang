@@ -2,6 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <array>
+#include <vector>
+
+#include "elang/lir/testing/lir_test.h"
+
+#include "elang/lir/editor.h"
+#include "elang/lir/factory.h"
+#include "elang/lir/literals.h"
+#include "elang/lir/target.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
@@ -11,104 +20,74 @@ namespace elang {
 namespace lir {
 namespace {
 
+//////////////////////////////////////////////////////////////////////
+//
+// LirStackAllocatorTest
+//
+class LirStackAllocatorTest : public testing::LirTest {
+ protected:
+  LirStackAllocatorTest() = default;
+  ~LirStackAllocatorTest() = default;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LirStackAllocatorTest);
+};
+
 // Test cases...
-TEST(StackAllocatorTest, Alignment4) {
-  auto const int16_type = Value::Int16Type();
-  auto const int32_type = Value::Int32Type();
-  auto const int64_type = Value::Int64Type();
-  auto const int8_type = Value::Int8Type();
+TEST_F(LirStackAllocatorTest, Alignment) {
+  std::array<Value, 5> vregs{
+        factory()->NewRegister(Value::Int8Type()),
+        factory()->NewRegister(Value::Int16Type()),
+        factory()->NewRegister(Value::Int32Type()),
+        factory()->NewRegister(Value::Int64Type()),
+        factory()->NewRegister(Value::Int64Type()),
+  };
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
 
   StackAssignments assignments;
-  StackAllocator allocator(&assignments, 4);
+  StackAllocator allocator(&editor, &assignments);
 
-  EXPECT_EQ(Value::SpillSlot(int32_type, 0), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::SpillSlot(int32_type, 4), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::SpillSlot(int16_type, 8), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::SpillSlot(int16_type, 10), allocator.Allocate(int16_type));
-  EXPECT_EQ(12, allocator.RequiredSize()) << "stack is align 4 byte";
-
-  EXPECT_EQ(Value::SpillSlot(int32_type, 12), allocator.Allocate(int32_type));
-  ASSERT_EQ(16, allocator.RequiredSize()) << "stack is aligned 4 byte";
-
-  EXPECT_EQ(Value::SpillSlot(int64_type, 16), allocator.Allocate(int64_type));
-  ASSERT_EQ(24, allocator.RequiredSize()) << "stack is aligned 8 byte";
-
-  EXPECT_EQ(Value::SpillSlot(int32_type, 24), allocator.Allocate(int32_type));
-  auto const max_stack_size = 28;
-  EXPECT_EQ(max_stack_size, allocator.RequiredSize())
-      << "size of stack isn't changed";
-
-  // Reuse free slots
-  allocator.Free(Value::SpillSlot(int32_type, 0));
-  EXPECT_EQ(Value::SpillSlot(int8_type, 0), allocator.Allocate(int8_type));
-  EXPECT_EQ(Value::SpillSlot(int16_type, 2), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::SpillSlot(int8_type, 1), allocator.Allocate(int8_type));
-  allocator.Free(Value::SpillSlot(int16_type, 8));
-  allocator.Free(Value::SpillSlot(int16_type, 10));
-  EXPECT_EQ(Value::SpillSlot(int32_type, 8), allocator.Allocate(int32_type));
-
-  EXPECT_EQ(max_stack_size, allocator.RequiredSize())
-      << "size of stack isn't changed";
+  EXPECT_EQ(Value::SpillSlot(vregs[0], 0), allocator.Allocate(vregs[0]));
+  EXPECT_EQ(Value::SpillSlot(vregs[1], 2), allocator.Allocate(vregs[1]));
+  EXPECT_EQ(Value::SpillSlot(vregs[2], 4), allocator.Allocate(vregs[2]));
+  EXPECT_EQ(Value::SpillSlot(vregs[3], 8), allocator.Allocate(vregs[3]));
+  EXPECT_EQ(Value::SpillSlot(vregs[4], 16), allocator.Allocate(vregs[4]));
+  EXPECT_EQ(24u, assignments.maximum_size());
 }
 
-TEST(StackAllocatorTest, Alignment8) {
-  auto const int16_type = Value::Int16Type();
-  auto const int32_type = Value::Int32Type();
-  auto const int64_type = Value::Int64Type();
-  auto const int8_type = Value::Int8Type();
+TEST_F(LirStackAllocatorTest, Reuse) {
+  std::array<Value, 2> vregs{
+      factory()->NewRegister(Value::Int32Type()),
+      factory()->NewRegister(Value::Int32Type()),
+  };
+
+  std::vector<Value> parameters{Target::GetParameterAt(vregs[0], 0)};
+  auto const function = CreateFunctionEmptySample(parameters);
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(
+      factory()->NewCopyInstruction(vregs[0], function->parameters()[0]));
+  editor.Append(
+      factory()->NewAddInstruction(vregs[1], vregs[0], Value::SmallInt32(42)));
+  ASSERT_EQ("", Commit(&editor));
 
   StackAssignments assignments;
-  StackAllocator allocator(&assignments, 8);
+  StackAllocator allocator(&editor, &assignments);
 
-  EXPECT_EQ(Value::SpillSlot(int32_type, 0), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::SpillSlot(int32_type, 4), allocator.Allocate(int32_type));
-  EXPECT_EQ(Value::SpillSlot(int16_type, 8), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::SpillSlot(int32_type, 12), allocator.Allocate(int32_type));
-  EXPECT_EQ(16, allocator.RequiredSize());
-
-  EXPECT_EQ(Value::SpillSlot(int32_type, 16), allocator.Allocate(int32_type));
-  ASSERT_EQ(24, allocator.RequiredSize()) << "stack is aligned 8 byte";
-
-  EXPECT_EQ(Value::SpillSlot(int64_type, 24), allocator.Allocate(int64_type));
-  auto const max_stack_size = 32;
-  ASSERT_EQ(max_stack_size, allocator.RequiredSize())
-      << "stack is aligned 8 byte";
-
-  EXPECT_EQ(Value::SpillSlot(int32_type, 20), allocator.Allocate(int32_type));
-  EXPECT_EQ(max_stack_size, allocator.RequiredSize())
-      << "size of stack isn't changed";
-
-  // Reuse free slots
-  allocator.Free(Value::SpillSlot(int32_type, 0));
-  EXPECT_EQ(Value::SpillSlot(int8_type, 0), allocator.Allocate(int8_type));
-  EXPECT_EQ(Value::SpillSlot(int16_type, 2), allocator.Allocate(int16_type));
-  EXPECT_EQ(Value::SpillSlot(int8_type, 1), allocator.Allocate(int8_type));
-  allocator.Free(Value::SpillSlot(int16_type, 8));
-  EXPECT_EQ(Value::SpillSlot(int32_type, 8), allocator.Allocate(int32_type));
-
-  EXPECT_EQ(max_stack_size, allocator.RequiredSize())
-      << "size of stack isn't changed";
+  EXPECT_EQ(Value::SpillSlot(vregs[0], 0), allocator.Allocate(vregs[0]));
+  allocator.Free(vregs[0]);
+  EXPECT_EQ(Value::SpillSlot(vregs[1], 0), allocator.Allocate(vregs[1]));
+  EXPECT_EQ(8u, assignments.maximum_size());
 }
 
-TEST(StackAllocatorTest, AllocateAt) {
+TEST_F(LirStackAllocatorTest, TrackNumberOfArguments) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+
   StackAssignments assignments;
-  StackAllocator allocator(&assignments, 4);
-  allocator.Allocate(Value::Int32Type());
-  auto const spill_slot1 = allocator.Allocate(Value::Int32Type());
-  allocator.Allocate(Value::Int32Type());
+  StackAllocator allocator(&editor, &assignments);
 
-  allocator.Reset();
-  allocator.AllocateAt(spill_slot1);
-  EXPECT_EQ(Value::SpillSlot(Value::Int32Type(), 0),
-            allocator.Allocate(Value::Int32Type()));
-
-  EXPECT_EQ(12, assignments.maximum_size());
-  EXPECT_EQ(12, allocator.RequiredSize());
-}
-
-TEST(StackAllocatorTest, TrackNumberOfArguments) {
-  StackAssignments assignments;
-  StackAllocator allocator(&assignments, 4);
   allocator.TrackNumberOfArguments(4);
   allocator.TrackNumberOfArguments(3);
   allocator.TrackNumberOfArguments(2);

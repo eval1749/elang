@@ -7,6 +7,9 @@
 #include <algorithm>
 
 #include "base/logging.h"
+#include "elang/lir/analysis/conflict_map.h"
+#include "elang/lir/editor.h"
+#include "elang/lir/target.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
 
@@ -14,7 +17,7 @@ namespace elang {
 namespace lir {
 
 namespace {
-int RoundUp(int value, int alignment) {
+int Align(int value, int alignment) {
   return (value + alignment - 1) / alignment * alignment;
 }
 }  // namespace
@@ -23,77 +26,95 @@ int RoundUp(int value, int alignment) {
 //
 // StackAllocator
 //
-StackAllocator::StackAllocator(StackAssignments* assignments, int alignment)
-    : alignment_(alignment), assignments_(assignments) {
+StackAllocator::StackAllocator(const Editor* editor,
+                               StackAssignments* assignments)
+    : alignment_(Value::ByteSizeOf(Target::IntPtrType())),
+      assignments_(assignments),
+      conflict_map_(editor->AnalyzeConflicts()),
+      size_(0) {
   DCHECK(alignment_ == 4 || alignment_ == 8 || alignment_ == 16);
-  // Reserve spaces to reduce number of dynamic expansion.
-  uses_.reserve(alignment_ * 32);
 }
 
 StackAllocator::~StackAllocator() {
 }
 
-int StackAllocator::Allocate(int size) {
-  auto const end = uses_.end();
-  auto runner = uses_.begin();
-  while (runner != end) {
-    auto const candidate = std::find(runner, end, false);
-    if (candidate == end)
-      break;
-    auto const offset = static_cast<int>(candidate - uses_.begin());
-    if (offset % size) {
-      ++runner;
-      continue;
-    }
-    auto const next_use = std::find(candidate + 1, end, true);
-    if (next_use - candidate >= size) {
-      std::fill(candidate, candidate + size, true);
-      return offset;
-    }
-    runner = next_use;
-  }
-  // We expand allocation map since there are no free slots for |size|.
-  auto const offset = current_size();
-  uses_.resize(offset + RoundUp(size, alignment_));
-  std::fill(uses_.begin() + offset, uses_.begin() + offset + size, true);
-  assignments_->maximum_size_ = current_size();
-  return offset;
+Value StackAllocator::AllocationFor(Value vreg) const {
+  DCHECK(vreg.is_virtual());
+  auto const it = slot_map_.find(vreg);
+  return it == slot_map_.end() ? Value() : it->second->spill_slot;
 }
 
-Value StackAllocator::Allocate(Value type) {
-  return Value::SpillSlot(type, Allocate(Value::ByteSizeOf(type)));
+Value StackAllocator::Allocate(Value vreg) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(!slot_map_.count(vreg));
+
+  // Find reusable free slot for |vreg|.
+  for (auto const slot : free_slots_) {
+    if (slot->spill_slot.size == vreg.size) {
+      if (!IsConflict(slot, vreg)) {
+        free_slots_.erase(slot);
+        live_slots_.insert(slot);
+        slot_map_[vreg] = slot;
+        slot->users.push_back(vreg);
+        return slot->spill_slot;
+      }
+    }
+  }
+
+  // There are no reusable free slots, we allocate new slot for |vreg|.
+  auto const offset = Align(size_, Value::ByteSizeOf(vreg));
+  size_ += Value::ByteSizeOf(vreg);
+  assignments_->maximum_size_ = std::max(assignments_->maximum_size_,
+                                         Align(size_, alignment_));
+  auto const slot = new (zone()) Slot(zone());
+  live_slots_.insert(slot);
+  slot->spill_slot = Value::SpillSlot(vreg, offset);
+  slot->users.push_back(vreg);
+  slot_map_[vreg] = slot;
+  return slot->spill_slot;
 }
 
 // Allocate stack by offset and size specified by |spill_slot|. This function
 // may be called after |Reset()|.
-void StackAllocator::AllocateAt(Value spill_slot) {
+void StackAllocator::Assign(Value vreg, Value spill_slot) {
+  DCHECK(vreg.is_virtual());
   DCHECK(spill_slot.is_spill_slot());
-  auto const offset = spill_slot.data;
-  auto const size = Value::ByteSizeOf(spill_slot);
-  if (offset + size > current_size())
-    uses_.resize(offset + size);
-#ifndef _NDEBUG
-  for (auto index = offset; index < offset + size; ++index)
-    DCHECK(!uses_[index]);
-#endif
-  std::fill(uses_.begin() + offset, uses_.begin() + offset + size, true);
+  DCHECK(vreg.is_virtual());
+  auto const it = slot_map_.find(vreg);
+  DCHECK(it != slot_map_.end());
+  auto const slot = it->second;
+  DCHECK(free_slots_.count(slot)) << spill_slot << " for " << vreg
+                                  << " is already used.";
+  DCHECK(!live_slots_.count(slot));
+  free_slots_.erase(slot);
+  live_slots_.insert(slot);
 }
 
-void StackAllocator::Free(Value location) {
-  DCHECK(location.is_spill_slot()) << location;
-  std::fill(uses_.begin() + location.data,
-            uses_.begin() + location.data + Value::ByteSizeOf(location),
-            false);
+void StackAllocator::Free(Value vreg) {
+  DCHECK(vreg.is_virtual());
+  auto const it = slot_map_.find(vreg);
+  DCHECK(it != slot_map_.end());
+  auto const slot = it->second;
+  DCHECK(live_slots_.count(slot));
+  live_slots_.erase(slot);
+  free_slots_.insert(slot);
 }
 
-int StackAllocator::RequiredSize() const {
-  return std::max(assignments_->maximum_size_, current_size());
+bool StackAllocator::IsConflict(const Slot* slot, Value vreg) const {
+  DCHECK(vreg.is_virtual());
+  for (auto const user : slot->users) {
+    if (conflict_map_.IsConflict(user, vreg))
+      return true;
+  }
+  return false;
 }
 
 void StackAllocator::Reset() {
-  assignments_->maximum_size_ =
-      std::max(assignments_->maximum_size_, current_size());
-  uses_.resize(0);
+  while (!live_slots_.empty()) {
+    auto const slot = *live_slots_.begin();
+    live_slots_.erase(slot);
+    free_slots_.insert(slot);
+  }
 }
 
 void StackAllocator::TrackNumberOfArguments(int argc) {
