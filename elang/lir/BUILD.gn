@@ -19,6 +19,8 @@ component("lir") {
     "analysis/use_def_list_builder.h",
     "emitters/code_buffer.cc",
     "emitters/code_buffer.h",
+    "emitters/code_buffer_user.cc",
+    "emitters/code_buffer_user.h",
     "emitters/code_emitter.cc",
     "emitters/code_emitter.h",
     "emitters/value_emitter.cc",

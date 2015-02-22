@@ -4,6 +4,7 @@
 
 #include "base/macros.h"
 #include "elang/lir/emitters/code_buffer.h"
+#include "elang/lir/emitters/code_buffer_user.h"
 #include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -68,7 +69,8 @@ isa::Register ToRegister(Value reg) {
 //
 // InstructionEmitter
 //
-class InstructionEmitter final : private InstructionVisitor {
+class InstructionEmitter final : public CodeBufferUser,
+                                 private InstructionVisitor {
  public:
   InstructionEmitter(const Factory* factory, CodeBuffer* code_buffer);
   ~InstructionEmitter() final = default;
@@ -76,10 +78,6 @@ class InstructionEmitter final : private InstructionVisitor {
   void Process(const Instruction* instruction);
 
  private:
-  void Emit16(int value);
-  void Emit32(uint32_t value);
-  void Emit64(uint64_t value);
-  void Emit8(int value);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
@@ -100,7 +98,6 @@ class InstructionEmitter final : private InstructionVisitor {
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
 
-  CodeBuffer* const code_buffer_;
   const Factory* const factory_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionEmitter);
@@ -108,23 +105,7 @@ class InstructionEmitter final : private InstructionVisitor {
 
 InstructionEmitter::InstructionEmitter(const Factory* factory,
                                        CodeBuffer* code_buffer)
-    : code_buffer_(code_buffer), factory_(factory) {
-}
-
-void InstructionEmitter::Emit16(int value) {
-  code_buffer_->Emit16(value);
-}
-
-void InstructionEmitter::Emit32(uint32_t value) {
-  code_buffer_->Emit32(value);
-}
-
-void InstructionEmitter::Emit64(uint64_t value) {
-  code_buffer_->Emit64(value);
-}
-
-void InstructionEmitter::Emit8(int value) {
-  code_buffer_->Emit8(value);
+    : CodeBufferUser(code_buffer), factory_(factory) {
 }
 
 void InstructionEmitter::EmitModRm(Mod mod, Register reg, Register rm) {
@@ -235,7 +216,7 @@ void InstructionEmitter::EmitOperand(Value value) {
     if (auto const i64 = literal->as<Int64Literal>())
       return Emit64(i64->data());
   }
-  code_buffer_->AssociateValue(value);
+  AssociateValue(value);
   Emit32(0);
 }
 
