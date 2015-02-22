@@ -216,8 +216,8 @@ BasicBlockOperands Instruction::block_operands() const {
 }
 
 Value Instruction::input(int index) const {
-  DCHECK_GE(index, 0);
-  DCHECK_LE(index, CountInputs());
+  DCHECK_GE(index, 0) << *this;
+  DCHECK_LT(index, CountInputs()) << *this;
   return InputValues()[index];
 }
 
@@ -231,8 +231,8 @@ base::StringPiece Instruction::mnemonic() const {
 }
 
 Value Instruction::output(int index) const {
-  DCHECK_GE(index, 0);
-  DCHECK_LE(index, CountOutputs());
+  DCHECK_GE(index, 0) << *this;
+  DCHECK_LT(index, CountOutputs()) << *this;
   return OutputValues()[index];
 }
 
