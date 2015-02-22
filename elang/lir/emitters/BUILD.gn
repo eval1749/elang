@@ -28,6 +28,7 @@ source_set("emitters") {
       "disasm_x64.h",
       "disasm_x64.cc",
       "isa_x64.h",
+      "opcodes_x64.h",
     ]
   }
 }
