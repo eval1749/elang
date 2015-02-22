@@ -83,7 +83,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   ~InstructionHandlerX64() final = default;
 
  private:
-  void EmitImm(Value output, int imm);
+  void EmitIz(Value output, int imm);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
@@ -123,7 +123,7 @@ InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
     : CodeBufferUser(code_buffer), factory_(factory) {
 }
 
-void InstructionHandlerX64::EmitImm(Value output, int imm) {
+void InstructionHandlerX64::EmitIz(Value output, int imm) {
   if (output.is_8bit()) {
     Emit8(imm);
     return;
@@ -282,44 +282,76 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   DCHECK_EQ(output.size, input.size);
   DCHECK_EQ(output.type, input.type);
 
-  if (input.is_physical()) {
-    EmitRexPrefix(input, output);
-    if (output.is_8bit())
+  if (output.is_8bit()) {
+    if (input.is_physical()) {
+      // 00 /r: ADD r/m8, r8
+      EmitRexPrefix(input, output);
       EmitOpcode(op_eb_gb);
-    else
-      EmitOpcodePlus(op_eb_gb, 1);
+      EmitModRm(input, output);
+      return;
+    }
+    if (input.is_memory_slot()) {
+      //  02 /r: ADD r8, r/m8
+      EmitRexPrefix(output, input);
+      EmitOpcodePlus(op_eb_gb, 2);
+      EmitModRm(output, input);
+      return;
+    }
+
+    EmitRexPrefix(input, output);
+    auto const imm8 = Int32ValueOf(input);
+    if (output.is_physical() && (output.data & 15) == 0) {
+      //  04 ib: ADD AL, imm8
+      EmitOpcodePlus(op_eb_gb, 4);
+      Emit8(imm8);
+      return;
+    }
+
+    // 80 /0 ib: ADD r/m8, imm8
+    EmitOpcode(isa::Opcode::ADD_Eb_Ib);
+    EmitOpcodeExt(opext, output);
+    Emit8(imm8);
+    return;
+  }
+
+  // 16bit, 32bit, 64bit
+  if (input.is_physical()) {
+    // 01 /r: ADD r/m32, r32
+    EmitRexPrefix(input, output);
+    EmitOpcodePlus(op_eb_gb, 1);
     EmitModRm(input, output);
     return;
   }
+
   if (input.is_memory_slot()) {
+    // 03 /r: ADD r32, r/m32
     EmitRexPrefix(output, input);
-    if (output.is_8bit())
-      EmitOpcodePlus(op_eb_gb, 2);
-    else
-      EmitOpcodePlus(op_eb_gb, 3);
+    EmitOpcodePlus(op_eb_gb, 3);
     EmitModRm(output, input);
     return;
   }
 
   EmitRexPrefix(input, output);
-  auto const imm = Int32ValueOf(input);
+  auto const imm32 = Int32ValueOf(input);
   if (output.is_physical() && (output.data & 15) == 0) {
-    EmitOpcodePlus(op_eb_gb, output.is_8bit() ? 4 : 5);
-    EmitImm(output, imm);
+    // 05 id: ADD EAX, imm32
+    EmitOpcodePlus(op_eb_gb, 5);
+    EmitIz(output, imm32);
     return;
   }
 
-  if (!output.is_8bit() && Is8Bit(imm)) {
+  if (Is8Bit(imm32)) {
+    // 83 /0 ib: ADD r/m32, imm8
     EmitOpcode(isa::Opcode::ADD_Ev_Ib);
     EmitOpcodeExt(opext, output);
-    Emit8(imm);
+    Emit8(imm32);
     return;
   }
 
-  EmitOpcode(output.is_8bit() ? isa::Opcode::ADD_Eb_Ib
-                              : isa::Opcode::ADD_Ev_Iz);
+  // 81 /0 id: ADD r/m32, imm32
+  EmitOpcode(isa::Opcode::ADD_Ev_Iz);
   EmitOpcodeExt(opext, output);
-  EmitImm(output, imm);
+  EmitIz(output, imm32);
 }
 
 int32_t InstructionHandlerX64::Int32ValueOf(Value value) const {
