@@ -108,7 +108,7 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::FrameSlot:
       return ostream << "[rbp+" << value.data << "]";
     case Value::Kind::Immediate:
-      if (value.size == ValueSize::Size64)
+      if (value.is_64bit())
         return ostream << value.data << "l";
       return ostream << value.data;
     case Value::Kind::Instruction:
@@ -241,10 +241,9 @@ Value Target::GetRegister(isa::Register name) {
 
 Value Target::GetReturn(Value type) {
   if (type.type == Value::Type::Float) {
-    return GetRegister(type.size == ValueSize::Size32 ? isa::XMM0S
-                                                      : isa::XMM0D);
+    return GetRegister(type.is_32bit() ? isa::XMM0S : isa::XMM0D);
   }
-  return GetRegister(type.size == ValueSize::Size64 ? isa::RAX : isa::EAX);
+  return GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
 }
 
 // We can use |MOV r/m, imm32| instruction.

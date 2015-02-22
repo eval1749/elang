@@ -86,14 +86,14 @@ TEST(LirTargetX64Test, GetRegister) {
       BPL,
       SIL,
       DIL,
-      R8L,
-      R9L,
-      R10L,
-      R11L,
-      R12L,
-      R13L,
-      R14L,
-      R15L,
+      R8B,
+      R9B,
+      R10B,
+      R11B,
+      R12B,
+      R13B,
+      R14B,
+      R15B,
   };
 
   std::array<Register, 16> int16_regs{
