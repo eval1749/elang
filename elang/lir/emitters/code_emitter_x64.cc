@@ -78,25 +78,36 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   ~InstructionHandlerX64() final = default;
 
  private:
+  void EmitImm(Value output, int imm);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
+  void EmitOpcode(isa::Opcode opcode, int delta);
   void EmitOpcode(isa::Opcode opcode, Register reg);
   void EmitOpcodeExt(isa::OpcodeExt opext, Value input);
   void EmitOperand(Value value);
   void EmitRexPrefix(Value output, Value input);
   void EmitSib(Scale scale, Register index, Register base);
 
+  void HandleIntegerArithmetic(Instruction* instr,
+                               isa::Opcode op_eb_gb,
+                               isa::OpcodeExt opext);
+
   int32_t Int32ValueOf(Value literal) const;
   bool Is32BitLiteral(Value literal) const;
 
   // InstructionVisitor
+  void VisitAdd(AddInstruction* instr) final;
+  void VisitBitAnd(BitAndInstruction* instr) final;
+  void VisitBitOr(BitOrInstruction* instr) final;
+  void VisitBitXor(BitXorInstruction* instr) final;
   void VisitCall(CallInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
+  void VisitSub(SubInstruction* instr) final;
 
   const Factory* const factory_;
 
@@ -106,6 +117,18 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
                                              CodeBuffer* code_buffer)
     : CodeBufferUser(code_buffer), factory_(factory) {
+}
+
+void InstructionHandlerX64::EmitImm(Value output, int imm) {
+  if (output.is_8bit()) {
+    Emit8(imm);
+    return;
+  }
+  if (output.is_16bit()) {
+    Emit16(imm);
+    return;
+  }
+  Emit32(imm);
 }
 
 void InstructionHandlerX64::EmitModRm(Mod mod, Register reg, Register rm) {
@@ -188,8 +211,12 @@ void InstructionHandlerX64::EmitOpcodeExt(isa::OpcodeExt opext, Value input) {
   EmitModRm(Target::GetRegister(static_cast<Register>(opext)), input);
 }
 
+void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, int delta) {
+  EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + delta));
+}
+
 void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, Register reg) {
-  EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + (reg & 7)));
+  EmitOpcode(opcode, reg & 7);
 }
 
 void InstructionHandlerX64::EmitOperand(Value value) {
@@ -220,21 +247,25 @@ void InstructionHandlerX64::EmitOperand(Value value) {
   Emit32(0);
 }
 
-void InstructionHandlerX64::EmitRexPrefix(Value output, Value input) {
-  if (output.is_16bit()) {
+void InstructionHandlerX64::EmitRexPrefix(Value reg, Value rm) {
+  if (reg.is_16bit())
     EmitOpcode(isa::Opcode::OPDSIZ);
-    return;
-  }
-  int rex = isa::REX;
-  if (output.is_64bit())
+  auto rex = 0;
+  if (reg.is_64bit())
     rex |= isa::REX_W;
-  if (output.is_physical() && output.data >= 8)
+  if (reg.is_physical() && reg.data >= 8)
     rex |= isa::REX_R;
-  if (input.is_physical() && input.data >= 8)
+  if (rm.is_physical() && rm.data >= 8)
     rex |= isa::REX_B;
-  if (rex == isa::REX)
+  // For access lower 8-bit part of SI, DI, SP, BP
+  if (reg.is_8bit() && reg.is_physical() && reg.data >= 4)
+    rex |= isa::REX;
+  // For access lower 8-bit part of SI, DI, SP, BP
+  if (rm.is_8bit() && rm.is_physical() && rm.data >= 4)
+    rex |= isa::REX;
+  if (!rex)
     return;
-  Emit8(rex);
+  Emit8(isa::REX | rex);
 }
 
 void InstructionHandlerX64::EmitSib(Scale scale,
@@ -243,10 +274,58 @@ void InstructionHandlerX64::EmitSib(Scale scale,
   Emit8(static_cast<int>(scale) | ((index & 7) << 3) | (base & 7));
 }
 
+void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
+                                                    isa::Opcode op_eb_gb,
+                                                    isa::OpcodeExt opext) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(1);
+  DCHECK_EQ(output.size, input.size);
+  DCHECK_EQ(output.type, input.type);
+
+  if (input.is_physical()) {
+    EmitRexPrefix(input, output);
+    if (output.is_8bit())
+      EmitOpcode(op_eb_gb);
+    else
+      EmitOpcode(op_eb_gb, 1);
+    EmitModRm(input, output);
+    return;
+  }
+  if (input.is_memory_slot()) {
+    EmitRexPrefix(output, input);
+    if (output.is_8bit())
+      EmitOpcode(op_eb_gb, 2);
+    else
+      EmitOpcode(op_eb_gb, 3);
+    EmitModRm(output, input);
+    return;
+  }
+
+  EmitRexPrefix(input, output);
+  auto const imm = Int32ValueOf(input);
+  if (output.is_physical() && (output.data & 15) == 0) {
+    EmitOpcode(op_eb_gb, output.is_8bit() ? 4 : 5);
+    EmitImm(output, imm);
+    return;
+  }
+
+  if (!output.is_8bit() && Is8Bit(imm)) {
+    EmitOpcode(isa::Opcode::ADD_Ev_Ib);
+    EmitOpcodeExt(opext, output);
+    Emit8(imm);
+    return;
+  }
+
+  EmitOpcode(output.is_8bit() ? isa::Opcode::ADD_Eb_Ib
+                              : isa::Opcode::ADD_Ev_Iz);
+  EmitOpcodeExt(opext, output);
+  EmitImm(output, imm);
+}
+
 int32_t InstructionHandlerX64::Int32ValueOf(Value value) const {
   if (value.is_immediate())
     return value.data;
-  DCHECK(value.is_literal());
+  DCHECK(value.is_literal()) << value;
   auto const literal = factory_->GetLiteral(value);
   if (auto const i32 = literal->as<Int32Literal>())
     return i32->data();
@@ -270,6 +349,84 @@ bool InstructionHandlerX64::Is32BitLiteral(Value value) const {
 }
 
 // InstructionVisitor
+
+// int8:
+//  04 ib           ADD AL, imm8
+//  80 /0 ib        ADD r/m8, imm8
+//  00 /r           ADD r/m8, r8
+//  02 /r           ADD r8, r/m8
+//
+// int16:
+//  66 05 iw        ADD AX, imm16
+//  66 81 /0 iw     ADD r/m16, imm16
+//  66 83 /0 ib     ADD r/m8, imm8
+//  66 01 /r        ADD r/m16, r16
+//  66 03 /r        ADD r16, r/m16
+//
+// int32:
+//  05 id           ADD EAX, imm32
+//  81 /0 id        ADD r/m32, imm32
+//  83 /0 ib        ADD r/m32, imm8
+//  01 /r           ADD r/m32, r32
+//  03 /r           ADD r32, r/m32
+//
+// int64:
+//  REX.W 05 id     ADD RAX, imm32
+//  REX.W 81 /0 id  ADD r/m64, imm32
+//  REX.W 83 /0 ib  ADD r/m64, imm8
+//  REX.W 01 /r     ADD r/m64, r64
+//  REX.W 03 /r     ADD r64, r/m64
+//
+void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  if (output.is_integer()) {
+    HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
+                            isa::OpcodeExt::ADD_Eb_Ib);
+    return;
+  }
+  NOTREACHED() << "NYI: float add: " << *instr;
+}
+
+// Instruction formats are as same as ADD.
+// Base opcode = 0x20, opext = 4
+void InstructionHandlerX64::VisitBitAnd(BitAndInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  if (output.is_integer()) {
+    HandleIntegerArithmetic(instr, isa::Opcode::AND_Eb_Gb,
+                            isa::OpcodeExt::AND_Eb_Ib);
+    return;
+  }
+  NOTREACHED() << "float bitand: " << *instr;
+}
+
+// Instruction formats are as same as ADD.
+// Base opcode = 0x08, opext = 1
+void InstructionHandlerX64::VisitBitOr(BitOrInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  if (output.is_integer()) {
+    HandleIntegerArithmetic(instr, isa::Opcode::OR_Eb_Gb,
+                            isa::OpcodeExt::OR_Eb_Ib);
+    return;
+  }
+  NOTREACHED() << "float bitor: " << *instr;
+}
+
+// Instruction formats are as same as ADD.
+// Base opcode = 0x30, opext = 6
+void InstructionHandlerX64::VisitBitXor(BitXorInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  if (output.is_integer()) {
+    HandleIntegerArithmetic(instr, isa::Opcode::XOR_Eb_Gb,
+                            isa::OpcodeExt::XOR_Eb_Ib);
+    return;
+  }
+  NOTREACHED() << "float bitxor: " << *instr;
+}
+
 void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instr->input(0));
@@ -412,6 +569,19 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
 
 void InstructionHandlerX64::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
+}
+
+// Instruction formats are as same as ADD.
+// Base opcode = 0x28, opext = 5
+void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  if (output.is_integer()) {
+    HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
+                            isa::OpcodeExt::SUB_Eb_Ib);
+    return;
+  }
+  NOTREACHED() << "NYI: float sub: " << *instr;
 }
 
 }  // namespace
