@@ -22,7 +22,7 @@ namespace lir {
 //
 class ValueEmitter : private LiteralVisitor {
  public:
-  ValueEmitter(Factory* factory, api::MachineCodeBuilder* builder);
+  ValueEmitter(const Factory* factory, api::MachineCodeBuilder* builder);
   ~ValueEmitter() = default;
 
   void Emit(int offset, Value value);
@@ -34,7 +34,7 @@ class ValueEmitter : private LiteralVisitor {
 #undef V
 
   api::MachineCodeBuilder* const builder_;
-  Factory* factory_;
+  const Factory* const factory_;
   int code_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(ValueEmitter);

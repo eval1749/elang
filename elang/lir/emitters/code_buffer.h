@@ -46,7 +46,7 @@ class CodeBuffer final {
   ~CodeBuffer() = default;
 
   void AssociateValue(Value value);
-  void Finish(Factory* factory,
+  void Finish(const Factory* factory,
               const Function* function,
               api::MachineCodeBuilder* builder);
   void Emit16(int value);

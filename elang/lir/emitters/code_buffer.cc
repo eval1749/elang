@@ -52,7 +52,7 @@ void CodeBuffer::AssociateValue(Value value) {
   code_values_.push_back(CodeValue(buffer_size(), value));
 }
 
-void CodeBuffer::Finish(Factory* factory,
+void CodeBuffer::Finish(const Factory* factory,
                         const Function* function,
                         api::MachineCodeBuilder* builder) {
   // TODO(eval1749) Fix code references, e.g. branches, indirect jumps, etc.

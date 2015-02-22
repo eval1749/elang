@@ -23,10 +23,11 @@ class InstructionVisitor {
 #define V(Name, ...) virtual void Visit##Name(Name##Instruction* instruction);
   FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
+ public:
+  virtual ~InstructionVisitor();
 
  protected:
   InstructionVisitor();
-  virtual ~InstructionVisitor();
 
   virtual void DoDefaultVisit(Instruction* instruction);
 

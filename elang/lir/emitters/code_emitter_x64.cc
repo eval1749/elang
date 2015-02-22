@@ -67,15 +67,13 @@ isa::Register ToRegister(Value reg) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// InstructionEmitter
+// InstructionHandlerX64
 //
-class InstructionEmitter final : public CodeBufferUser,
-                                 private InstructionVisitor {
+class InstructionHandlerX64 final : public CodeBufferUser,
+                                    public InstructionVisitor {
  public:
-  InstructionEmitter(const Factory* factory, CodeBuffer* code_buffer);
-  ~InstructionEmitter() final = default;
-
-  void Process(const Instruction* instruction);
+  InstructionHandlerX64(const Factory* factory, CodeBuffer* code_buffer);
+  ~InstructionHandlerX64() final = default;
 
  private:
   void EmitModRm(Mod mod, Register reg, Register rm);
@@ -100,23 +98,23 @@ class InstructionEmitter final : public CodeBufferUser,
 
   const Factory* const factory_;
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionEmitter);
+  DISALLOW_COPY_AND_ASSIGN(InstructionHandlerX64);
 };
 
-InstructionEmitter::InstructionEmitter(const Factory* factory,
-                                       CodeBuffer* code_buffer)
+InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
+                                             CodeBuffer* code_buffer)
     : CodeBufferUser(code_buffer), factory_(factory) {
 }
 
-void InstructionEmitter::EmitModRm(Mod mod, Register reg, Register rm) {
+void InstructionHandlerX64::EmitModRm(Mod mod, Register reg, Register rm) {
   Emit8(static_cast<int>(mod) | ((reg & 7) << 3) | (rm & 7));
 }
 
-void InstructionEmitter::EmitModRm(Mod mod, Register reg, Rm rm) {
+void InstructionHandlerX64::EmitModRm(Mod mod, Register reg, Rm rm) {
   EmitModRm(mod, reg, static_cast<Register>(rm));
 }
 
-void InstructionEmitter::EmitModRm(Register reg, Value memory) {
+void InstructionHandlerX64::EmitModRm(Register reg, Value memory) {
   if (memory.is_frame_slot()) {
     if (!memory.data) {
       // mov reg, [rbp]
@@ -156,11 +154,11 @@ void InstructionEmitter::EmitModRm(Register reg, Value memory) {
   NOTREACHED() << "EmitModRm " << reg << ", " << memory;
 }
 
-void InstructionEmitter::EmitModRm(Value output, isa::OpcodeExt opext) {
+void InstructionHandlerX64::EmitModRm(Value output, isa::OpcodeExt opext) {
   EmitModRm(output, Target::GetRegister(static_cast<Register>(opext)));
 }
 
-void InstructionEmitter::EmitModRm(Value output, Value input) {
+void InstructionHandlerX64::EmitModRm(Value output, Value input) {
   if (output.is_physical()) {
     auto const reg = static_cast<Register>(output.data);
     if (input.is_physical()) {
@@ -178,7 +176,7 @@ void InstructionEmitter::EmitModRm(Value output, Value input) {
   NOTREACHED() << "EmitModRm " << output << ", " << input;
 }
 
-void InstructionEmitter::EmitOpcode(isa::Opcode opcode) {
+void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode) {
   auto const value = static_cast<uint32_t>(opcode);
   DCHECK_LT(value, 1u << 24);
   if (value > 0xFFFF)
@@ -188,11 +186,11 @@ void InstructionEmitter::EmitOpcode(isa::Opcode opcode) {
   Emit8(value);
 }
 
-void InstructionEmitter::EmitOpcode(isa::Opcode opcode, Register reg) {
+void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, Register reg) {
   EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + (reg & 7)));
 }
 
-void InstructionEmitter::EmitOperand(Value value) {
+void InstructionHandlerX64::EmitOperand(Value value) {
   if (value.is_immediate()) {
     switch (value.size) {
       case ValueSize::Size8:
@@ -220,7 +218,7 @@ void InstructionEmitter::EmitOperand(Value value) {
   Emit32(0);
 }
 
-void InstructionEmitter::EmitRexPrefix(Value output, Value input) {
+void InstructionHandlerX64::EmitRexPrefix(Value output, Value input) {
   if (output.size == ValueSize::Size16) {
     EmitOpcode(isa::Opcode::OPDSIZ);
     return;
@@ -237,11 +235,13 @@ void InstructionEmitter::EmitRexPrefix(Value output, Value input) {
   Emit8(rex);
 }
 
-void InstructionEmitter::EmitSib(Scale scale, Register index, Register base) {
+void InstructionHandlerX64::EmitSib(Scale scale,
+                                    Register index,
+                                    Register base) {
   Emit8(static_cast<int>(scale) | ((index & 7) << 3) | (base & 7));
 }
 
-int32_t InstructionEmitter::Int32ValueOf(Value value) const {
+int32_t InstructionHandlerX64::Int32ValueOf(Value value) const {
   if (value.is_immediate())
     return value.data;
   DCHECK(value.is_literal());
@@ -254,7 +254,7 @@ int32_t InstructionEmitter::Int32ValueOf(Value value) const {
   return 0;
 }
 
-bool InstructionEmitter::Is32BitLiteral(Value value) const {
+bool InstructionHandlerX64::Is32BitLiteral(Value value) const {
   if (value.is_immediate())
     return true;
   if (!value.is_literal())
@@ -267,17 +267,13 @@ bool InstructionEmitter::Is32BitLiteral(Value value) const {
   return false;
 }
 
-void InstructionEmitter::Process(const Instruction* instr) {
-  const_cast<Instruction*>(instr)->Accept(this);
-}
-
 // InstructionVisitor
-void InstructionEmitter::VisitCall(CallInstruction* instr) {
+void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instr->input(0));
 }
 
-void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
+void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
   auto const input = instr->input(0);
   auto const output = instr->output(0);
   DCHECK_EQ(input.size, output.size);
@@ -304,7 +300,7 @@ void InstructionEmitter::VisitCopy(CopyInstruction* instr) {
   EmitModRm(output, input);
 }
 
-void InstructionEmitter::VisitLiteral(LiteralInstruction* instr) {
+void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
   auto const input = instr->input(0);
   auto const output = instr->output(0);
   DCHECK_EQ(input.size, output.size);
@@ -340,26 +336,15 @@ void InstructionEmitter::VisitLiteral(LiteralInstruction* instr) {
   EmitOperand(input);
 }
 
-void InstructionEmitter::VisitRet(RetInstruction* instr) {
+void InstructionHandlerX64::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
 }
 
 }  // namespace
 
-void CodeEmitter::Process(const Function* function) {
-  Zone zone;
-  CodeBuffer code_buffer(&zone);
-  // Generate codes
-  {
-    InstructionEmitter emitter(factory_, &code_buffer);
-    for (auto const block : function->basic_blocks()) {
-      code_buffer.StartBasicBlock(block);
-      for (auto const instruction : block->instructions())
-        emitter.Process(instruction);
-      code_buffer.EndBasicBlock();
-    }
-  }
-  code_buffer.Finish(factory_, function, builder_);
+std::unique_ptr<InstructionVisitor> CodeEmitter::NewInstructionHandler(
+    CodeBuffer* code_buffer) {
+  return std::make_unique<InstructionHandlerX64>(factory_, code_buffer);
 }
 
 }  // namespace lir
