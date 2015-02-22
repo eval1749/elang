@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/lir/code_emitter.h"
+#include "elang/lir/emitters/code_emitter.h"
 
 namespace elang {
 namespace lir {

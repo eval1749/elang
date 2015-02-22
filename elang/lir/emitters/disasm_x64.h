@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_DISASM_X64_H_
-#define ELANG_LIR_DISASM_X64_H_
+#ifndef ELANG_LIR_EMITTERS_DISASM_X64_H_
+#define ELANG_LIR_EMITTERS_DISASM_X64_H_
 
 #include <iterator>
 #include <ostream>
@@ -125,4 +125,4 @@ std::ostream& operator<<(std::ostream& ostream,
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_DISASM_X64_H_
+#endif  // ELANG_LIR_EMITTERS_DISASM_X64_H_

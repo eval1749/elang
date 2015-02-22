@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_CODE_EMITTER_H_
-#define ELANG_LIR_CODE_EMITTER_H_
+#ifndef ELANG_LIR_EMITTERS_CODE_EMITTER_H_
+#define ELANG_LIR_EMITTERS_CODE_EMITTER_H_
 
 #include "base/macros.h"
 #include "elang/lir/lir_export.h"
@@ -40,4 +40,4 @@ class ELANG_LIR_EXPORT CodeEmitter final {
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_CODE_EMITTER_H_
+#endif  // ELANG_LIR_EMITTERS_CODE_EMITTER_H_

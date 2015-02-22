@@ -17,8 +17,8 @@ component("lir") {
     "analysis/use_def_list.h",
     "analysis/use_def_list_builder.cc",
     "analysis/use_def_list_builder.h",
-    "code_emitter.cc",
-    "code_emitter.h",
+    "emitters/code_emitter.cc",
+    "emitters/code_emitter.h",
     "editor.cc",
     "editor.h",
     "editor_owner.cc",
@@ -88,9 +88,9 @@ component("lir") {
 
   if (elang_target_arch == "x64") {
     sources += [
-      "code_emitter_x64.cc",
-      "disasm_x64.h",
-      "disasm_x64.cc",
+      "emitters/code_emitter_x64.cc",
+      "emitters/disasm_x64.h",
+      "emitters/disasm_x64.cc",
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
@@ -142,7 +142,7 @@ source_set("lir_unittests") {
   ]
   if (elang_target_arch == "x64") {
     sources += [
-      "code_emitter_x64_unittest.cc",
+      "emitters/code_emitter_x64_unittest.cc",
       "instructions_x64_unittest.cc",
       "target_x64_unittest.cc",
       "transforms/lowering_x64_pass_unittest.cc",

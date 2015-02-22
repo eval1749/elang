@@ -7,7 +7,7 @@
 #include "elang/base/zone.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_vector.h"
-#include "elang/lir/code_emitter.h"
+#include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"

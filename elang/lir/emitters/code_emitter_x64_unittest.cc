@@ -6,8 +6,8 @@
 
 #include "elang/lir/testing/lir_test.h"
 
-#include "elang/lir/code_emitter.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"

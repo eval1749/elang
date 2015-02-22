@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "elang/lir/disasm_x64.h"
+#include "elang/lir/emitters/disasm_x64.h"
 
 #include "base/logging.h"
 
