@@ -28,21 +28,25 @@ using isa::Rex;
 using isa::Scale;
 using isa::Tttn;
 
+int64_t MinusOne64 = static_cast<int64_t>(-1);
+int64_t One64 = static_cast<int64_t>(1);
+
 bool Is8Bit(int data) {
   return (data & 255) == data;
 }
 
 bool Is32Bit(int64_t data) {
-  return (data & static_cast<uint32_t>(-1)) == data;
+  if (data >= 0)
+    return data < (One64 << 32);
+  return data > (MinusOne64 << 32);
 }
 
-Value To32bitRegister(Value reg) {
-  DCHECK(reg.is_physical()) << reg;
-  DCHECK(reg.is_64bit()) << reg;
-  return Value(reg.is_integer() ? Value::Type::Integer : Value::Type::Float,
-               ValueSize::Size32, Value::Kind::PhysicalRegister, reg.data & 15);
+Value To32bitValue(Value value) {
+  DCHECK(value.is_64bit()) << value;
+  return Value(value.type, ValueSize::Size32, value.kind, value.data);
 }
 
+#if 0
 isa::Register ToRegister(Value reg) {
   DCHECK(reg.is_physical());
   if (reg.is_float()) {
@@ -66,6 +70,7 @@ isa::Register ToRegister(Value reg) {
   NOTREACHED() << "Unknown size: " << reg;
   return static_cast<Register>(0);
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -84,9 +89,8 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
-  void EmitOpcode(isa::Opcode opcode, int delta);
-  void EmitOpcode(isa::Opcode opcode, Register reg);
   void EmitOpcodeExt(isa::OpcodeExt opext, Value input);
+  void EmitOpcodePlus(isa::Opcode opcode, int delta);
   void EmitOperand(Value value);
   void EmitRexPrefix(Value output, Value input);
   void EmitSib(Scale scale, Register index, Register base);
@@ -96,7 +100,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
                                isa::OpcodeExt opext);
 
   int32_t Int32ValueOf(Value literal) const;
-  bool Is32BitLiteral(Value literal) const;
+  int64_t Int64ValueOf(Value literal) const;
 
   // InstructionVisitor
   void VisitAdd(AddInstruction* instr) final;
@@ -211,12 +215,8 @@ void InstructionHandlerX64::EmitOpcodeExt(isa::OpcodeExt opext, Value input) {
   EmitModRm(Target::GetRegister(static_cast<Register>(opext)), input);
 }
 
-void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, int delta) {
-  EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + delta));
-}
-
-void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, Register reg) {
-  EmitOpcode(opcode, reg & 7);
+void InstructionHandlerX64::EmitOpcodePlus(isa::Opcode opcode, int delta) {
+  EmitOpcode(static_cast<isa::Opcode>(static_cast<int>(opcode) + (delta & 7)));
 }
 
 void InstructionHandlerX64::EmitOperand(Value value) {
@@ -228,11 +228,9 @@ void InstructionHandlerX64::EmitOperand(Value value) {
       case ValueSize::Size16:
         Emit16(value.data);
         return;
+      case ValueSize::Size64:
       case ValueSize::Size32:
         Emit32(value.data);
-        return;
-      case ValueSize::Size64:
-        Emit64(value.data);
         return;
     }
   }
@@ -240,8 +238,10 @@ void InstructionHandlerX64::EmitOperand(Value value) {
     auto const literal = factory_->GetLiteral(value);
     if (auto const i32 = literal->as<Int32Literal>())
       return Emit32(i32->data());
-    if (auto const i64 = literal->as<Int64Literal>())
-      return Emit64(i64->data());
+    if (auto const i64 = literal->as<Int64Literal>()) {
+      DCHECK(Is32Bit(i64->data()));
+      return Emit32(i64->data());
+    }
   }
   AssociateValue(value);
   Emit32(0);
@@ -287,16 +287,16 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
     if (output.is_8bit())
       EmitOpcode(op_eb_gb);
     else
-      EmitOpcode(op_eb_gb, 1);
+      EmitOpcodePlus(op_eb_gb, 1);
     EmitModRm(input, output);
     return;
   }
   if (input.is_memory_slot()) {
     EmitRexPrefix(output, input);
     if (output.is_8bit())
-      EmitOpcode(op_eb_gb, 2);
+      EmitOpcodePlus(op_eb_gb, 2);
     else
-      EmitOpcode(op_eb_gb, 3);
+      EmitOpcodePlus(op_eb_gb, 3);
     EmitModRm(output, input);
     return;
   }
@@ -304,7 +304,7 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   EmitRexPrefix(input, output);
   auto const imm = Int32ValueOf(input);
   if (output.is_physical() && (output.data & 15) == 0) {
-    EmitOpcode(op_eb_gb, output.is_8bit() ? 4 : 5);
+    EmitOpcodePlus(op_eb_gb, output.is_8bit() ? 4 : 5);
     EmitImm(output, imm);
     return;
   }
@@ -329,23 +329,25 @@ int32_t InstructionHandlerX64::Int32ValueOf(Value value) const {
   auto const literal = factory_->GetLiteral(value);
   if (auto const i32 = literal->as<Int32Literal>())
     return i32->data();
-  if (auto const i64 = literal->as<Int64Literal>())
+  if (auto const i64 = literal->as<Int64Literal>()) {
+    DCHECK(Is32Bit(i64->data()));
     return static_cast<int32_t>(i64->data());
+  }
   NOTREACHED() << value << " isn't 32-bit literal";
   return 0;
 }
 
-bool InstructionHandlerX64::Is32BitLiteral(Value value) const {
+int64_t InstructionHandlerX64::Int64ValueOf(Value value) const {
   if (value.is_immediate())
-    return true;
-  if (!value.is_literal())
-    return false;
+    return value.data;
+  DCHECK(value.is_literal()) << value;
   auto const literal = factory_->GetLiteral(value);
-  if (auto const i32 = literal->is<Int32Literal>())
-    return true;
+  if (auto const i32 = literal->as<Int32Literal>())
+    return i32->data();
   if (auto const i64 = literal->as<Int64Literal>())
-    return Is32Bit(i64->data());
-  return false;
+    return i64->data();
+  NOTREACHED() << value << " isn't 32-bit literal";
+  return 0;
 }
 
 // InstructionVisitor
@@ -497,8 +499,8 @@ void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
 //  C6 /r imm8  MOV r/m8, imm8
 //
 // int16:
-//  66 B8+r imm8   MOV r16, imm8
-//  66 C7 /r imm8  MOV r/m16, imm8
+//  66 B8+r imm8   MOV r16, imm16
+//  66 C7 /r imm8  MOV r/m16, imm16
 //
 // int32:
 //  B8+r imm32   MOV r32, imm32
@@ -507,8 +509,7 @@ void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
 // int64:
 //  B8+r imm32          MOV r32, imm32; imm32 >= 0
 //  REX.W B8+r imm64    MOV r64, imm64
-//  REX.W B8+r imm32    MOV r64, imm32; imm32 < 0
-//  REX.W C7 0/r imm32  MOV r/m64, imm32; imm32
+//  REX.W C7 0/r imm32  MOV r/m64, imm32; imm32 < 0
 //
 // Note: imm64 to m64 isn't supported.
 // Note: float literal should be lowered to integer literal and 'bitcast'.
@@ -520,49 +521,61 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
   DCHECK_EQ(input.type, output.type);
   DCHECK(output.is_integer()) << "Float literal should be lowered " << *instr;
 
-  if (output.is_physical() && output.is_64bit() && Is32BitLiteral(input)) {
-    auto const imm32 = Int32ValueOf(input);
-    if (imm32 >= 0) {
-      // B8+r imm32: mov r32, imm32
-      auto const reg32 = To32bitRegister(output);
-      EmitRexPrefix(reg32, input);
-      EmitOpcode(isa::Opcode::MOV_eAX_Iv, ToRegister(reg32));
+  if (output.is_64bit()) {
+    auto const imm64 = Int64ValueOf(input);
+    if (Is32Bit(imm64)) {
+      auto const value32 = To32bitValue(output);
+      auto const imm32 = static_cast<int32_t>(imm64);
+      EmitRexPrefix(Target::GetRegister(isa::EAX), value32);
+      if (imm32 >= 0 && output.is_physical()) {
+        // B8+r imm32: mov r32, imm32
+        EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, value32.data);
+        Emit32(imm32);
+        return;
+      }
+
+      // sign extended to 64 bits to r/m64
+      // REX.W C7 /0 imm32: mov r/m64, imm32
+      EmitOpcode(isa::Opcode::MOV_Ev_Iz);
+      EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
       Emit32(imm32);
       return;
     }
-    // sign extended to 64 bits to r/m64
-    // REX.W C7 /0 imm32: mov r/m64, imm32
-    EmitRexPrefix(output, input);
-    EmitOpcode(isa::Opcode::MOV_Ev_Iz);
-    EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
-    Emit32(imm32);
+    // REX.W B8+r imm64: MOV r64, imm64
+    DCHECK(output.is_physical());
+    EmitRexPrefix(input, output);
+    EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, output.data);
+    Emit64(imm64);
     return;
   }
 
-  EmitRexPrefix(output, input);
-  if (output.is_physical()) {
-    if (output.is_8bit()) {
+  EmitRexPrefix(input, output);
+
+  if (output.is_8bit()) {
+    if (output.is_physical()) {
       // B0+rb ib: MOV r8, imm8
-      EmitOpcode(isa::Opcode::MOV_AL_Ib, ToRegister(output));
-    } else {
-      // B8+r imm32: mov r32, imm32
-      EmitOpcode(isa::Opcode::MOV_eAX_Iv, ToRegister(output));
+      EmitOpcodePlus(isa::Opcode::MOV_AL_Ib, output.data);
+      EmitOperand(input);
+      return;
     }
+
+    // C6/0 Ib: MOV r/m8, imm32
+    EmitOpcode(isa::Opcode::MOV_Eb_Ib);
+    EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
     EmitOperand(input);
     return;
   }
 
-  // Note: imm64 to m64 isn't supported.
-  DCHECK(!output.is_64bit());
-
-  if (output.is_8bit()) {
-    // C6/0 Ib: MOV r/m8, imm32
-    EmitOpcode(isa::Opcode::MOV_Eb_Ib);
-  } else {
-    // 66 C7 /0 Iz: MOV r/m16, imm16
-    // C7 /0 Iz: MOV r/m32, imm32
-    EmitOpcode(isa::Opcode::MOV_Ev_Iz);
+  if (output.is_physical()) {
+    // B8+r imm32: mov r32, imm32
+    EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, output.data);
+    EmitOperand(input);
+    return;
   }
+
+  // 66 C7 /0 Iz: MOV r/m16, imm16
+  // C7 /0 Iz: MOV r/m32, imm32
+  EmitOpcode(isa::Opcode::MOV_Ev_Iz);
   EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
   EmitOperand(input);
 }

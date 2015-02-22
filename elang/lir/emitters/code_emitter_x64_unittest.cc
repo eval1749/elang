@@ -231,64 +231,142 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   EXPECT_EQ("0000 48 8B 05 89 55 08 C3\n", Emit(function));
 }
 
-TEST_F(CodeEmitterX64Test, Int8) {
+TEST_F(CodeEmitterX64Test, LiteralInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::CL),
-                                      Value::SmallInt8(42)));
-  ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 B1 2A C3\n", Emit(function));
-}
-
-TEST_F(CodeEmitterX64Test, Int16) {
-  auto const function = factory()->NewFunction({});
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
-  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::AX),
-                                      Value::SmallInt16(42)));
-  ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 66 B8 2A 00 C3\n", Emit(function));
-}
-
-TEST_F(CodeEmitterX64Test, Int32) {
-  auto const function = factory()->NewFunction({});
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
-  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::EAX),
-                                      Value::SmallInt32(42)));
-  editor.Append(NewLiteralInstruction(
-      Target::GetRegister(isa::EAX), NewIntValue(Value::Int32Type(), 1 << 30)));
-  ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 B8 2A 00 00 00 B8 00 00 00 40 C3\n", Emit(function));
-}
-
-TEST_F(CodeEmitterX64Test, Int64) {
-  auto const function = factory()->NewFunction({});
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
-  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::RAX),
-                                      Value::SmallInt64(42)));
-  editor.Append(NewLiteralInstruction(Target::GetRegister(isa::RAX),
-                                      Value::SmallInt64(-42)));
-  editor.Append(NewLiteralInstruction(
-      Target::GetRegister(isa::RAX), NewIntValue(Value::Int64Type(), 1 << 30)));
-  editor.Append(
-      NewLiteralInstruction(Target::GetRegister(isa::RAX),
-                            NewIntValue(Value::Int64Type(), -1 << 30)));
-  editor.Append(NewLiteralInstruction(
-      Target::GetRegister(isa::RAX),
-      NewIntValue(Value::Int64Type(), static_cast<int64_t>(1) << 42)));
+  auto const ax = Target::GetRegister(isa::AX);
+  auto const bx = Target::GetRegister(isa::BX);
+  auto const di = Target::GetRegister(isa::DI);
+  auto const imm16 = Value::SmallInt16(42);
+  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
+  editor.Append(NewLiteralInstruction(ax, imm16));
+  editor.Append(NewLiteralInstruction(bx, imm16));
+  editor.Append(NewLiteralInstruction(di, imm16));
+  editor.Append(NewLiteralInstruction(r9w, imm16));
+  editor.Append(NewLiteralInstruction(var33, imm16));
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
-      "0000 B8 2A 00 00 00 48 C7 C0 D6 FF FF FF B8 00 00 00\n"
-      "0010 40 48 B8 00 00 00 C0 FF FF FF FF 48 B8 00 00 00\n"
-      "0020 00 00 04 00 00 C3\n",
+      "0000 66 B8 2A 00 66 BB 2A 00 66 BF 2A 00 66 41 B9 2A\n"
+      "0010 00 66 C7 45 21 2A 00 C3\n",
       Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, LiteralInt32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const edi = Target::GetRegister(isa::EDI);
+  auto const imm32 = Value::SmallInt32(42);
+  auto const imm32x = NewIntValue(Value::Int32Type(), 0x77665544);
+  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+  editor.Append(NewLiteralInstruction(eax, imm32));
+  editor.Append(NewLiteralInstruction(eax, imm32x));
+
+  editor.Append(NewLiteralInstruction(ebx, imm32));
+  editor.Append(NewLiteralInstruction(ebx, imm32x));
+
+  editor.Append(NewLiteralInstruction(edi, imm32));
+  editor.Append(NewLiteralInstruction(edi, imm32x));
+
+  editor.Append(NewLiteralInstruction(r9d, imm32));
+  editor.Append(NewLiteralInstruction(r9d, imm32x));
+
+  editor.Append(NewLiteralInstruction(var33, imm32));
+  editor.Append(NewLiteralInstruction(var33, imm32x));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 B8 2A 00 00 00 B8 44 55 66 77 BB 2A 00 00 00 BB\n"
+      "0010 44 55 66 77 BF 2A 00 00 00 BF 44 55 66 77 41 B9\n"
+      "0020 2A 00 00 00 41 B9 44 55 66 77 C7 45 21 2A 00 00\n"
+      "0030 00 C7 45 21 44 55 66 77 C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, LiteralInt64) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const rax = Target::GetRegister(isa::RAX);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const rdi = Target::GetRegister(isa::RDI);
+  auto const imm32 = Value::SmallInt64(42);
+  auto const imm32x = NewIntValue(Value::Int64Type(), 0x77665544);
+  auto const imm64 = Value::SmallInt64(42);
+  auto const imm64x = NewIntValue(Value::Int64Type(), 0x7766554433221100ll);
+  auto const minus64 = Value::SmallInt64(-42);
+  auto const minus64x = NewIntValue(Value::Int64Type(), -0x7766554433221100ll);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
+
+  editor.Append(NewLiteralInstruction(rax, imm32));
+  editor.Append(NewLiteralInstruction(rax, imm32x));
+  editor.Append(NewLiteralInstruction(rax, imm64));
+  editor.Append(NewLiteralInstruction(rax, imm64x));
+  editor.Append(NewLiteralInstruction(rax, minus64));
+  editor.Append(NewLiteralInstruction(rax, minus64x));
+
+  editor.Append(NewLiteralInstruction(rbx, imm32));
+  editor.Append(NewLiteralInstruction(rbx, imm32x));
+  editor.Append(NewLiteralInstruction(rbx, imm64));
+  editor.Append(NewLiteralInstruction(rbx, imm64x));
+  editor.Append(NewLiteralInstruction(rbx, minus64));
+  editor.Append(NewLiteralInstruction(rbx, minus64x));
+
+  editor.Append(NewLiteralInstruction(r9, imm32));
+  editor.Append(NewLiteralInstruction(r9, imm32x));
+  editor.Append(NewLiteralInstruction(r9, imm64));
+  editor.Append(NewLiteralInstruction(r9, imm64x));
+  editor.Append(NewLiteralInstruction(r9, minus64));
+  editor.Append(NewLiteralInstruction(r9, minus64x));
+
+  editor.Append(NewLiteralInstruction(var33, imm32));
+  editor.Append(NewLiteralInstruction(var33, imm32x));
+  editor.Append(NewLiteralInstruction(var33, imm64));
+  editor.Append(NewLiteralInstruction(var33, minus64));
+  // Note: There are no instruction to store 64-bit integer to 64-bit memory.
+  // So, we can't use |LiteralInstruction| with |var33| and |imm64x|.
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 B8 2A 00 00 00 B8 44 55 66 77 B8 2A 00 00 00 48\n"
+      "0010 B8 00 11 22 33 44 55 66 77 C7 C0 D6 FF FF FF 48\n"
+      "0020 B8 00 EF DD CC BB AA 99 88 BB 2A 00 00 00 BB 44\n"
+      "0030 55 66 77 BB 2A 00 00 00 48 BB 00 11 22 33 44 55\n"
+      "0040 66 77 C7 C3 D6 FF FF FF 48 BB 00 EF DD CC BB AA\n"
+      "0050 99 88 41 B9 2A 00 00 00 41 B9 44 55 66 77 41 B9\n"
+      "0060 2A 00 00 00 49 B9 00 11 22 33 44 55 66 77 41 C7\n"
+      "0070 C1 D6 FF FF FF 49 B9 00 EF DD CC BB AA 99 88 C7\n"
+      "0080 45 21 2A 00 00 00 C7 45 21 44 55 66 77 C7 45 21\n"
+      "0090 2A 00 00 00 C7 45 21 D6 FF FF FF C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, LiteralInt8) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const al = Target::GetRegister(isa::AL);
+  auto const bl = Target::GetRegister(isa::BL);
+  auto const dil = Target::GetRegister(isa::DIL);
+  auto const imm8 = Value::SmallInt8(42);
+  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
+  editor.Append(NewLiteralInstruction(al, imm8));
+  editor.Append(NewLiteralInstruction(bl, imm8));
+  editor.Append(NewLiteralInstruction(dil, imm8));
+  editor.Append(NewLiteralInstruction(r9b, imm8));
+  editor.Append(NewLiteralInstruction(var33, imm8));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ("0000 B0 2A B3 2A 40 B7 2A 41 B1 2A C6 45 21 2A C3\n",
+            Emit(function));
 }
 
 TEST_F(CodeEmitterX64Test, StackSlot) {
