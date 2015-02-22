@@ -26,14 +26,12 @@ base::StringPiece LoweringX64Pass::name() const {
 
 Value LoweringX64Pass::GetRAX(Value type) {
   DCHECK_EQ(type.type, Value::Type::Integer);
-  return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RAX
-                                                            : isa::EAX);
+  return Target::GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
 }
 
 Value LoweringX64Pass::GetRDX(Value type) {
   DCHECK_EQ(type.type, Value::Type::Integer);
-  return Target::GetRegister(type.size == ValueSize::Size64 ? isa::RDX
-                                                            : isa::EDX);
+  return Target::GetRegister(type.is_64bit() ? isa::RDX : isa::EDX);
 }
 
 // Rewrite count operand to use |CL| register.
@@ -41,8 +39,8 @@ void LoweringX64Pass::RewriteShiftInstruciton(Instruction* instr) {
   auto const count_input = instr->input(1);
   if (!count_input.is_register())
     return;
-  auto const count_register = Target::GetRegister(
-      count_input.size == ValueSize::Size64 ? isa::RCX : isa::ECX);
+  auto const count_register =
+      Target::GetRegister(count_input.is_64bit() ? isa::RCX : isa::ECX);
   editor()->InsertCopyBefore(count_register, count_input, instr);
   editor()->SetInput(instr, 1, count_register);
 }
