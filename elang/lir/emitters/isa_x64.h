@@ -22,6 +22,7 @@ namespace isa {
 //    7 6  5 4 3  2 1 0    7 6 5 4 3 2 1 0
 //   +----+------+------+ +---+-----+------+ +----------------+
 //   |mod | reg  |  r/m | |SS | idx | base | |  disp8/disp32  |
+//   |    | opext|      | |   |     |      | |                |
 //   +----+------+------+ +----------------+ +----------------+
 //
 //   When using RSP as base register, r/m=4 means SIB, and idx=4 means no index:

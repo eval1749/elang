@@ -79,10 +79,10 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
-  void EmitModRm(Value output, isa::OpcodeExt opext);
   void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
   void EmitOpcode(isa::Opcode opcode, Register reg);
+  void EmitOpcodeExt(isa::OpcodeExt opext, Value input);
   void EmitOperand(Value value);
   void EmitRexPrefix(Value output, Value input);
   void EmitSib(Scale scale, Register index, Register base);
@@ -154,10 +154,6 @@ void InstructionHandlerX64::EmitModRm(Register reg, Value memory) {
   NOTREACHED() << "EmitModRm " << reg << ", " << memory;
 }
 
-void InstructionHandlerX64::EmitModRm(Value output, isa::OpcodeExt opext) {
-  EmitModRm(output, Target::GetRegister(static_cast<Register>(opext)));
-}
-
 void InstructionHandlerX64::EmitModRm(Value output, Value input) {
   if (output.is_physical()) {
     auto const reg = static_cast<Register>(output.data);
@@ -184,6 +180,10 @@ void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode) {
   if (value > 0xFF)
     Emit8(value >> 8);
   Emit8(value);
+}
+
+void InstructionHandlerX64::EmitOpcodeExt(isa::OpcodeExt opext, Value input) {
+  EmitModRm(Target::GetRegister(static_cast<Register>(opext)), input);
 }
 
 void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode, Register reg) {
@@ -311,28 +311,44 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
       Is32BitLiteral(input)) {
     auto const imm32 = Int32ValueOf(input);
     if (imm32 >= 0) {
-      // 8B/r mov r32, imm32 : 8B/r imm32
+      // B8+r imm32: mov r32, imm32
       auto const reg32 = To32bitRegister(output);
       EmitRexPrefix(reg32, input);
-      EmitOpcode(isa::Opcode::MOV_Ev_Iz, ToRegister(reg32));
+      EmitOpcode(isa::Opcode::MOV_eAX_Iv, ToRegister(reg32));
       Emit32(imm32);
       return;
     }
     // sign extended to 64 bits to r/m64
-    // C7/0 mov r/m64, imm32 : REX.W+C7 /0 imm32
+    // REX.W C7 /0 imm32: mov r/m64, imm32
     EmitRexPrefix(output, input);
     EmitOpcode(isa::Opcode::MOV_Ev_Iz);
-    EmitModRm(output, isa::OpcodeExt::MOV_Ev_Iz);
+    EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
     Emit32(imm32);
     return;
   }
 
   EmitRexPrefix(output, input);
-  if (output.size == ValueSize::Size8)
+  if (output.is_physical()) {
+    if (output.size == ValueSize::Size8) {
+      // B0+rb ib: MOV r8, imm8
+      EmitOpcode(isa::Opcode::MOV_AL_Ib, ToRegister(output));
+    } else {
+      // B8+r imm32: mov r32, imm32
+      EmitOpcode(isa::Opcode::MOV_eAX_Iv, ToRegister(output));
+    }
+    EmitOperand(input);
+    return;
+  }
+
+  if (output.size == ValueSize::Size8) {
+    // C6/0 Ib: MOV r/m8, imm32
     EmitOpcode(isa::Opcode::MOV_Eb_Ib);
-  else
+  } else {
+    // 66 C7 /0 Iz: MOV r/m16, imm16
+    // C7 /0 Iz: MOV r/m32, imm32
     EmitOpcode(isa::Opcode::MOV_Ev_Iz);
-  EmitModRm(output, isa::OpcodeExt::MOV_Ev_Iz);
+  }
+  EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
   EmitOperand(input);
 }
 

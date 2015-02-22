@@ -82,7 +82,7 @@ TEST_F(CodeEmitterX64Test, Int8) {
                                       Value::SmallInt8(42)));
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 C6 C8 2A C3\n", Emit(function));
+  EXPECT_EQ("0000 B1 2A C3\n", Emit(function));
 }
 
 TEST_F(CodeEmitterX64Test, Int16) {
@@ -93,7 +93,7 @@ TEST_F(CodeEmitterX64Test, Int16) {
                                       Value::SmallInt16(42)));
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 66 C7 C0 2A 00 C3\n", Emit(function));
+  EXPECT_EQ("0000 66 B8 2A 00 C3\n", Emit(function));
 }
 
 TEST_F(CodeEmitterX64Test, Int32) {
@@ -106,7 +106,7 @@ TEST_F(CodeEmitterX64Test, Int32) {
       Target::GetRegister(isa::EAX), NewIntValue(Value::Int32Type(), 1 << 30)));
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 C7 C0 2A 00 00 00 C7 C0 00 00 00 40 C3\n", Emit(function));
+  EXPECT_EQ("0000 B8 2A 00 00 00 B8 00 00 00 40 C3\n", Emit(function));
 }
 
 TEST_F(CodeEmitterX64Test, Int64) {
@@ -128,9 +128,9 @@ TEST_F(CodeEmitterX64Test, Int64) {
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ(
-      "0000 C7 2A 00 00 00 48 C7 C0 D6 FF FF FF C7 00 00 00\n"
-      "0010 40 48 C7 C0 00 00 00 C0 FF FF FF FF 48 C7 C0 00\n"
-      "0020 00 00 00 00 04 00 00 C3\n",
+      "0000 B8 2A 00 00 00 48 C7 C0 D6 FF FF FF B8 00 00 00\n"
+      "0010 40 48 B8 00 00 00 C0 FF FF FF FF 48 B8 00 00 00\n"
+      "0020 00 00 04 00 00 C3\n",
       Emit(function));
 }
 
