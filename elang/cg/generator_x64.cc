@@ -166,8 +166,9 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
 // pcopy RCX, RDX, ... = %array_ptr%, %index...
 // call `CalculateRowMajorIndex` // for multiple dimension array
 // copy %row_major_index, EAX
+// sext %row_major_index64, %row_major_index
 // add %element_start = %element_base, sizeof(ArrayHeader)
-// add %ptr = %element_start, %row_major_index
+// add %ptr = %element_start, %row_major_index64
 //
 // Vector:
 //  +0 object header
@@ -185,13 +186,15 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   auto const element_start = factory()->NewRegister(Target::IntPtrType());
   auto const size_of_array_header = lir::Value::SizeOf(element_start) * 2;
   Emit(factory()->NewAddInstruction(
-      element_start, array_ptr, lir::Value::SmallInt32(size_of_array_header)));
+      element_start, array_ptr, lir::Value::SmallInt64(size_of_array_header)));
   auto const output = MapOutput(instr);
   auto const element =
       MapType(instr->type()->as<hir::PointerType>()->pointee());
   auto const scaled_index =
       GenerateShl(MapInput(instr->input(1)), lir::Value::Log2Of(element));
-  Emit(factory()->NewAddInstruction(output, element_start, scaled_index));
+  auto const scaled_index64 = factory()->NewRegister(Target::IntPtrType());
+  Emit(factory()->NewSignExtendInstruction(scaled_index64, scaled_index));
+  Emit(factory()->NewAddInstruction(output, element_start, scaled_index64));
 }
 
 // Load parameters from registers and stack
