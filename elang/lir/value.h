@@ -74,8 +74,20 @@ struct ELANG_LIR_EXPORT Value {
   Value(Type type, ValueSize size, Kind kind, int data)
       : type(type), size(size), kind(kind), data(data) {}
 
+  // predicates for |ValueSize|
+  bool is_8bit() const { return size == ValueSize::Size8; }
+  bool is_16bit() const { return size == ValueSize::Size16; }
+  bool is_32bit() const { return size == ValueSize::Size32; }
+  bool is_64bit() const { return size == ValueSize::Size64; }
+
   // predicates for |Type|
   bool is_float() const { return type == Type::Float; }
+  bool is_float32() const { return is_float() && is_32bit(); }
+  bool is_float64() const { return is_float() && is_64bit(); }
+  bool is_int8() const { return is_integer() && is_8bit(); }
+  bool is_int16() const { return is_integer() && is_16bit(); }
+  bool is_int32() const { return is_integer() && is_32bit(); }
+  bool is_int64() const { return is_integer() && is_64bit(); }
   bool is_integer() const { return type == Type::Integer; }
 
   // predicates for |Kind|
