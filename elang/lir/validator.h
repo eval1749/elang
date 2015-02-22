@@ -59,14 +59,23 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
 
   Literal* GetLiteral(Value value);
 
+  void ValidateArithmeticInstruction(Instruction* instr);
+
   // InstructionVisitor
+  void VisitAdd(AddInstruction* instruction) final;
+  void VisitBitAnd(BitAndInstruction* instruction) final;
+  void VisitBitOr(BitOrInstruction* instruction) final;
+  void VisitBitXor(BitXorInstruction* instruction) final;
   void VisitBranch(BranchInstruction* instruction) final;
   void VisitCopy(CopyInstruction* instruction) final;
+  void VisitDiv(DivInstruction* instruction) final;
   void VisitExtend(ExtendInstruction* instruction) final;
+  void VisitMul(MulInstruction* instruction) final;
   void VisitPhi(PhiInstruction* instruction) final;
   void VisitRet(RetInstruction* instruction) final;
   void VisitSignedConvert(SignedConvertInstruction* instruction) final;
   void VisitSignExtend(SignExtendInstruction* instruction) final;
+  void VisitSub(SubInstruction* instruction) final;
   void VisitTruncate(TruncateInstruction* instruction) final;
   void VisitUnsignedConvert(UnsignedConvertInstruction* instruction) final;
   void VisitZeroExtend(ZeroExtendInstruction* instruction) final;

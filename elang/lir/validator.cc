@@ -248,7 +248,39 @@ bool Validator::Validate(Instruction* instruction) {
   return editor()->errors().empty();
 }
 
+void Validator::ValidateArithmeticInstruction(Instruction* instr) {
+  DCHECK_EQ(1, instr->CountOutputs());
+  DCHECK_EQ(2, instr->CountInputs());
+  auto const output = instr->output(0);
+  auto const input0 = instr->input(0);
+  auto const input1 = instr->input(1);
+  if (output.type != input0.type)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (output.size != input0.size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+  if (output.type != input1.type)
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  if (output.size != input1.size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
 // InstructionVisitor
+
+void Validator::VisitAdd(AddInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
+
+void Validator::VisitBitAnd(BitAndInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
+
+void Validator::VisitBitOr(BitOrInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
+
+void Validator::VisitBitXor(BitXorInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
 
 void Validator::VisitBranch(BranchInstruction* instr) {
   if (!instr->input(0).is_condition())
@@ -262,6 +294,10 @@ void Validator::VisitCopy(CopyInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
 }
 
+void Validator::VisitDiv(DivInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
+
 void Validator::VisitExtend(ExtendInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
@@ -271,6 +307,10 @@ void Validator::VisitExtend(ExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
+void Validator::VisitMul(MulInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
 }
 
 void Validator::VisitPhi(PhiInstruction* instr) {
@@ -313,6 +353,10 @@ void Validator::VisitSignExtend(SignExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+}
+
+void Validator::VisitSub(SubInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
 }
 
 void Validator::VisitTruncate(TruncateInstruction* instr) {
