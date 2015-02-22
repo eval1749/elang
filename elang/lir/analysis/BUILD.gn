@@ -1,0 +1,37 @@
+# Copyright 2014-2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+
+source_set("analysis") {
+  sources = [
+    "conflict_map.cc",
+    "conflict_map.h",
+    "conflict_map_builder.cc",
+    "conflict_map_builder.h",
+    "liveness_analyzer.cc",
+    "liveness_analyzer.h",
+    "use_def_list.cc",
+    "use_def_list.h",
+    "use_def_list_builder.cc",
+    "use_def_list_builder.h",
+  ]
+
+  defines = [ "LIR_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//elang/lir:core",
+  ]
+}
+
+source_set("tests") {
+  testonly = true
+  sources = [
+    "conflict_map_unittest.cc",
+    "use_def_list_unittest.cc",
+  ]
+  public_deps = [
+    "//elang/lir:test_support",
+  ]
+}

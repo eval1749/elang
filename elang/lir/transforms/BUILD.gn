@@ -1,0 +1,62 @@
+# Copyright 2014-2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+
+source_set("transforms") {
+  sources = [
+    "parallel_copy_expander.cc",
+    "parallel_copy_expander.h",
+    "prepare_phi_inversion_pass.cc",
+    "prepare_phi_inversion_pass.h",
+    "register_allocation_pass.cc",
+    "register_allocation_pass.h",
+    "register_allocation_tracker.cc",
+    "register_allocation_tracker.h",
+    "register_allocator.cc",
+    "register_allocator.h",
+    "register_assignments.cc",
+    "register_assignments.h",
+    "register_usage_tracker.cc",
+    "register_usage_tracker.h",
+    "stack_allocator.cc",
+    "stack_allocator.h",
+    "stack_assigner.cc",
+    "stack_assigner.h",
+    "stack_assignments.cc",
+    "stack_assignments.h",
+  ]
+
+  defines = [ "LIR_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//elang/lir:core",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "lowering_x64_pass.cc",
+      "lowering_x64_pass.h",
+      "stack_assigner_x64.cc",
+    ]
+  }
+}
+source_set("tests") {
+  testonly = true
+  sources = [
+    "prepare_phi_inversion_pass_unittest.cc",
+    "stack_allocator_unittest.cc",
+  ]
+  public_deps = [
+    "//elang/lir:test_support",
+  ]
+  if (elang_target_arch == "x64") {
+    sources += [
+      "lowering_x64_pass_unittest.cc",
+      "parallel_copy_expander_unittest.cc",
+      "register_allocator_x64_unittest.cc",
+      "stack_assigner_x64_unittest.cc",
+    ]
+  }
+}

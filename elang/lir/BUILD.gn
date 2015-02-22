@@ -6,25 +6,18 @@ import("//elang/build/elang_target_arch.gni")
 
 component("lir") {
   output_name = "elang_lir"
+  defines = [ "LIR_IMPLEMENTATION" ]
+
+  public_deps = [
+    ":core",
+    "analysis:analysis",
+    "emitters:emitters",
+    "transforms:transforms",
+  ]
+}
+
+source_set("core") {
   sources = [
-    "analysis/conflict_map.cc",
-    "analysis/conflict_map.h",
-    "analysis/conflict_map_builder.cc",
-    "analysis/conflict_map_builder.h",
-    "analysis/liveness_analyzer.cc",
-    "analysis/liveness_analyzer.h",
-    "analysis/use_def_list.cc",
-    "analysis/use_def_list.h",
-    "analysis/use_def_list_builder.cc",
-    "analysis/use_def_list_builder.h",
-    "emitters/code_buffer.cc",
-    "emitters/code_buffer.h",
-    "emitters/code_buffer_user.cc",
-    "emitters/code_buffer_user.h",
-    "emitters/code_emitter.cc",
-    "emitters/code_emitter.h",
-    "emitters/value_emitter.cc",
-    "emitters/value_emitter.h",
     "editor.cc",
     "editor.h",
     "editor_owner.cc",
@@ -57,26 +50,6 @@ component("lir") {
     "printer_generic.h",
     "printer_generic.cc",
     "target.h",
-    "transforms/parallel_copy_expander.cc",
-    "transforms/parallel_copy_expander.h",
-    "transforms/prepare_phi_inversion_pass.cc",
-    "transforms/prepare_phi_inversion_pass.h",
-    "transforms/register_allocation_pass.cc",
-    "transforms/register_allocation_pass.h",
-    "transforms/register_allocation_tracker.cc",
-    "transforms/register_allocation_tracker.h",
-    "transforms/register_allocator.cc",
-    "transforms/register_allocator.h",
-    "transforms/register_assignments.cc",
-    "transforms/register_assignments.h",
-    "transforms/register_usage_tracker.cc",
-    "transforms/register_usage_tracker.h",
-    "transforms/stack_allocator.cc",
-    "transforms/stack_allocator.h",
-    "transforms/stack_assigner.cc",
-    "transforms/stack_assigner.h",
-    "transforms/stack_assignments.cc",
-    "transforms/stack_assignments.h",
     "value.h",
     "value.cc",
     "validator.h",
@@ -87,16 +60,13 @@ component("lir") {
 
   public_deps = [
     "//base",
+    "//elang:elang_target_arch",
     "//elang/api",
     "//elang/base",
-    "//elang:elang_target_arch",
   ]
 
   if (elang_target_arch == "x64") {
     sources += [
-      "emitters/code_emitter_x64.cc",
-      "emitters/disasm_x64.h",
-      "emitters/disasm_x64.cc",
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
@@ -104,9 +74,24 @@ component("lir") {
       "opcodes_x64.h",
       "target_x64.h",
       "target_x64.cc",
-      "transforms/lowering_x64_pass.cc",
-      "transforms/lowering_x64_pass.h",
-      "transforms/stack_assigner_x64.cc",
+    ]
+  }
+}
+
+source_set("core_tests") {
+  testonly = true
+  sources = [
+    "instructions_unittest.cc",
+    "literals_unittest.cc",
+    "value_unittest.cc",
+  ]
+  public_deps = [
+    ":test_support",
+  ]
+  if (elang_target_arch == "x64") {
+    sources += [
+      "instructions_x64_unittest.cc",
+      "target_x64_unittest.cc",
     ]
   }
 }
@@ -133,30 +118,12 @@ source_set("test_support") {
 
 source_set("lir_unittests") {
   testonly = true
-  sources = [
-    "analysis/conflict_map_unittest.cc",
-    "analysis/use_def_list_unittest.cc",
-    "editor_unittest.cc",
-    "instructions_unittest.cc",
-    "literals_unittest.cc",
-    "transforms/prepare_phi_inversion_pass_unittest.cc",
-    "transforms/stack_allocator_unittest.cc",
-    "value_unittest.cc",
+  deps = [
+    ":core_tests",
+    "analysis:tests",
+    "emitters:tests",
+    "transforms:tests",
   ]
-  public_deps = [
-    ":test_support",
-  ]
-  if (elang_target_arch == "x64") {
-    sources += [
-      "emitters/code_emitter_x64_unittest.cc",
-      "instructions_x64_unittest.cc",
-      "target_x64_unittest.cc",
-      "transforms/lowering_x64_pass_unittest.cc",
-      "transforms/parallel_copy_expander_unittest.cc",
-      "transforms/register_allocator_x64_unittest.cc",
-      "transforms/stack_assigner_x64_unittest.cc",
-    ]
-  }
 }
 
 test("elang_lir_unittests") {

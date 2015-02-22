@@ -1,0 +1,45 @@
+# Copyright 2014-2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+
+source_set("emitters") {
+  sources = [
+    "code_buffer.cc",
+    "code_buffer.h",
+    "code_buffer_user.cc",
+    "code_buffer_user.h",
+    "code_emitter.cc",
+    "code_emitter.h",
+    "value_emitter.cc",
+    "value_emitter.h",
+  ]
+
+  defines = [ "LIR_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//elang/lir:core",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "code_emitter_x64.cc",
+      "disasm_x64.h",
+      "disasm_x64.cc",
+    ]
+  }
+}
+
+source_set("tests") {
+  testonly = true
+  sources = []
+  public_deps = [
+    "//elang/lir:test_support",
+  ]
+  if (elang_target_arch == "x64") {
+    sources += [
+      "code_emitter_x64_unittest.cc",
+    ]
+  }
+}
