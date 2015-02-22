@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_LIR_ISA_X64_H_
-#define ELANG_LIR_ISA_X64_H_
+#ifndef ELANG_LIR_EMITTERS_ISA_X64_H_
+#define ELANG_LIR_EMITTERS_ISA_X64_H_
 
 namespace elang {
 namespace lir {
@@ -133,4 +133,4 @@ enum class Tttn {
 }  // namespace lir
 }  // namespace elang
 
-#endif  // ELANG_LIR_ISA_X64_H_
+#endif  // ELANG_LIR_EMITTERS_ISA_X64_H_

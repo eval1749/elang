@@ -27,6 +27,7 @@ source_set("emitters") {
       "code_emitter_x64.cc",
       "disasm_x64.h",
       "disasm_x64.cc",
+      "isa_x64.h",
     ]
   }
 }
