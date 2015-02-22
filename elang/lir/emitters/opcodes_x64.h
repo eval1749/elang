@@ -695,14 +695,17 @@ namespace lir {
   VX2(0xC1, 4, SHL, Ev, Ib)                             \
   VX2(0xC1, 5, SHR, Ev, Ib)                             \
   VX2(0xC1, 7, SAR, Ev, Ib)                             \
+                                                        \
   VX2(0xC6, 0, MOV, Eb, Ib)                             \
   VX2(0xC7, 0, MOV, Ev, Iz)                             \
+                                                        \
   VX2(0xD0, 0, ROL, Eb, 1)                              \
   VX2(0xD0, 1, ROR, Eb, 1)                              \
   VX2(0xD0, 2, RCL, Eb, 1)                              \
   VX2(0xD0, 3, RCR, Eb, 1)                              \
   VX2(0xD0, 4, SHL, Eb, 1)                              \
   VX2(0xD0, 5, SHR, Eb, 1)                              \
+                                                        \
   VX2(0xD0, 6, SAR, Eb, 1)                              \
   VX2(0xD1, 0, ROL, Ev, 1)                              \
   VX2(0xD1, 1, ROR, Ev, 1)                              \
@@ -711,6 +714,7 @@ namespace lir {
   VX2(0xD1, 4, SHL, Ev, 1)                              \
   VX2(0xD1, 5, SHR, Ev, 1)                              \
   VX2(0xD1, 7, SAR, Ev, 1)                              \
+                                                        \
   VX2(0xD2, 0, ROL, Eb, CL)                             \
   VX2(0xD2, 1, ROR, Eb, CL)                             \
   VX2(0xD2, 2, RCL, Eb, CL)                             \
@@ -718,6 +722,7 @@ namespace lir {
   VX2(0xD2, 4, SHL, Eb, CL)                             \
   VX2(0xD2, 5, SHR, Eb, CL)                             \
   VX2(0xD2, 7, SAR, Eb, CL)                             \
+                                                        \
   VX2(0xD3, 0, ROL, Ev, CL)                             \
   VX2(0xD3, 1, ROR, Ev, CL)                             \
   VX2(0xD3, 2, RCL, Ev, CL)                             \
