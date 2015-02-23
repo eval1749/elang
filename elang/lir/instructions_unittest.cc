@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
+#include <string>
 #include <vector>
 
 #include "elang/lir/testing/lir_test.h"
@@ -25,10 +27,17 @@ class LirInstructionTest : public testing::LirTest {
   ~LirInstructionTest() = default;
 
   Value NewIntPtrRegister();
+  static std::string ToString(const Instruction& instr);
 };
 
 Value LirInstructionTest::NewIntPtrRegister() {
   return NewRegister(Target::IntPtrType());
+}
+
+std::string LirInstructionTest::ToString(const Instruction& instr) {
+  std::stringstream ostream;
+  ostream << instr;
+  return ostream.str();
 }
 
 // Test cases...
@@ -82,6 +91,7 @@ TEST_F(LirInstructionTest, CmpInstruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:cmp_ne %b2 = %r2, %r1", ToString(*instr));
 }
 
 // CopyInstruction

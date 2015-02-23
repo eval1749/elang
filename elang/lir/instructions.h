@@ -164,7 +164,7 @@ class ELANG_LIR_EXPORT Instruction
 
   // ISA independent mnemonic for printing and debugging, see also
   // |MnemonicOf(Opcode) -> base::StringPiece|.
-  base::StringPiece mnemonic() const;
+  virtual base::StringPiece mnemonic() const;
 
   // Operation code of this instruction.
   virtual Opcode opcode() const = 0;
@@ -307,6 +307,8 @@ class ELANG_LIR_EXPORT CmpInstruction final : public InstructionTemplate<1, 2> {
                  IntegerCondition condition,
                  Value left,
                  Value right);
+
+  base::StringPiece mnemonic() const final;
 
   void set_condition(IntegerCondition new_condition) {
     condition_ = new_condition;

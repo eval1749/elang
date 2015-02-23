@@ -96,9 +96,6 @@ std::ostream& operator<<(std::ostream& ostream,
     ostream << " =";
   }
 
-  if (auto const cmp_instr = instr->as<CmpInstruction>())
-    ostream << " " << cmp_instr->condition() << ",";
-
   auto separator = " ";
   for (auto const input : instr->inputs()) {
     auto const allocation = assignments->AllocationOf(instr, input);

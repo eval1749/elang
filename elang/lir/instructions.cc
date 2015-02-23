@@ -298,6 +298,17 @@ CmpInstruction::CmpInstruction(Value output,
   InitInput(1, right);
 }
 
+base::StringPiece CmpInstruction::mnemonic() const {
+  static const char* const mnemonics[] = {
+#define V(Name, mnemonic) "cmp_" mnemonic,
+    FOR_EACH_INTEGER_CONDITION(V)
+#undef V
+    "cmp_invalid",
+  };
+  return mnemonics[std::min(static_cast<size_t>(condition()),
+                            arraysize(mnemonics) - 1)];
+}
+
 // EntryInstruction
 EntryInstruction::EntryInstruction(Zone* zone,
                                    const std::vector<Value>& outputs)

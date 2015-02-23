@@ -102,9 +102,6 @@ std::ostream& operator<<(std::ostream& ostream,
   }
   ostream << " =";
 
-  if (auto const cmp_instr = instr->as<CmpInstruction>())
-    ostream << " " << cmp_instr->condition() << ",";
-
   separator = " ";
   for (auto const input : instr->inputs()) {
     ostream << separator << PrintAsGeneric(input);

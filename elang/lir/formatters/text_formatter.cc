@@ -176,9 +176,6 @@ std::ostream& operator<<(std::ostream& ostream,
     return ostream;
   }
 
-  if (auto const cmp_instr = instruction.as<CmpInstruction>())
-    ostream << " " << cmp_instr->condition() << ",";
-
   auto separator = " ";
   for (auto const input : instruction.inputs()) {
     ostream << separator << input;
