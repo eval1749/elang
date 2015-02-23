@@ -36,7 +36,7 @@ class LirTest : public ::testing::Test, public FactoryUser {
   ~LirTest() override;
 
   // Returns instruction dump with register allocation results for |function|.
-  std::string LirTest::Allocate(Function* function);
+  std::string Allocate(Function* function);
 
   // Returns validation results as string after calling |Editor::Commit()|.
   std::string Commit(Editor* editor);
