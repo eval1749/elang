@@ -283,6 +283,21 @@ BranchInstruction::BranchInstruction(Value condition,
   InitBlockOperand(1, false_block);
 }
 
+// CmpInstruction
+CmpInstruction::CmpInstruction(Value output,
+                               IntegerCondition condition,
+                               Value left,
+                               Value right)
+    : condition_(condition) {
+  DCHECK(output.is_condition());
+  DCHECK(left.is_integer());
+  DCHECK(right.is_integer());
+  DCHECK_EQ(left.size, right.size);
+  InitOutput(0, output);
+  InitInput(0, left);
+  InitInput(1, right);
+}
+
 // EntryInstruction
 EntryInstruction::EntryInstruction(Zone* zone,
                                    const std::vector<Value>& outputs)

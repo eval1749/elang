@@ -31,6 +31,28 @@ class Factory;
 
 //////////////////////////////////////////////////////////////////////
 //
+// IntegerCondition
+//
+#define FOR_EACH_INTEGER_CONDITION(V)  \
+  V(Equal, "eq")                       \
+  V(NotEqual, "ne")                    \
+  V(SignedGreaterThanOrEqual, "ge")    \
+  V(SignedGreaterThan, "gt")           \
+  V(SignedLessThanOrEqual, "le")       \
+  V(SignedLessThan, "lt")              \
+  V(UnsignedGreaterThanOrEqual, "uge") \
+  V(UnsignedGreaterThan, "ugt")        \
+  V(UnsignedLessThanOrEqual, "ule")    \
+  V(UnsignedLessThan, "le")
+
+enum class IntegerCondition {
+#define V(Name, mnemonic) Name,
+  FOR_EACH_INTEGER_CONDITION(V)
+#undef V
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Opcode
 //
 enum class Opcode {
@@ -271,6 +293,26 @@ class ELANG_LIR_EXPORT BranchInstruction final
   BranchInstruction(Value condition,
                     BasicBlock* true_block,
                     BasicBlock* false_block);
+};
+
+// CmpInstruction
+class ELANG_LIR_EXPORT CmpInstruction final : public InstructionTemplate<1, 2> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Cmp);
+
+ public:
+  IntegerCondition condition() const { return condition_; }
+
+ private:
+  CmpInstruction(Value output,
+                 IntegerCondition condition,
+                 Value left,
+                 Value right);
+
+  void set_condition(IntegerCondition new_condition) {
+    condition_ = new_condition;
+  }
+
+  IntegerCondition condition_;
 };
 
 // EntryInstruction

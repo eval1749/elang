@@ -287,6 +287,20 @@ void Validator::VisitBranch(BranchInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInput, instr, 0);
 }
 
+void Validator::VisitCmp(CmpInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const left = instr->input(0);
+  auto const right = instr->input(1);
+  if (!output.is_condition())
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  if (!left.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (!right.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  if (left.size != right.size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
 void Validator::VisitCopy(CopyInstruction* instr) {
   if (instr->output(0).size != instr->input(0).size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);

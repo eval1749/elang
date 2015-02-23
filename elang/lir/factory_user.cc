@@ -27,6 +27,10 @@ Literal* FactoryUser::GetLiteral(Value value) {
   return factory()->GetLiteral(value);
 }
 
+Value FactoryUser::NewCondition() {
+  return factory()->NewCondition();
+}
+
 Value FactoryUser::NewFloat32Value(float32_t data) {
   return factory()->NewFloat32Value(data);
 }
@@ -48,6 +52,13 @@ Value FactoryUser::NewStringValue(base::StringPiece16 data) {
 }
 
 // Creating instructions
+Instruction* FactoryUser::NewCmpInstruction(Value output,
+                                            IntegerCondition condition,
+                                            Value left,
+                                            Value right) {
+  return factory()->NewCmpInstruction(output, condition, left, right);
+}
+
 Instruction* FactoryUser::NewPCopyInstruction(
     const std::vector<Value>& outputs,
     const std::vector<Value>& inputs) {

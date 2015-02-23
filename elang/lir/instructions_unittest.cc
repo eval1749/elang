@@ -2,39 +2,33 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <memory>
 #include <vector>
+
+#include "elang/lir/testing/lir_test.h"
 
 #include "elang/base/zone.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
-#include "gtest/gtest.h"
 
 namespace elang {
 namespace lir {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LirInstructionTest offers HIR factories.
+// LirInstructionTest
 //
-class LirInstructionTest : public ::testing::Test {
+class LirInstructionTest : public testing::LirTest {
  protected:
-  LirInstructionTest();
+  LirInstructionTest() = default;
+  ~LirInstructionTest() = default;
 
-  Factory* factory() { return factory_.get(); }
   Value NewIntPtrRegister();
-
- private:
-  const std::unique_ptr<Factory> factory_;
 };
 
-LirInstructionTest::LirInstructionTest() : factory_(new Factory()) {
-}
-
 Value LirInstructionTest::NewIntPtrRegister() {
-  return factory()->NewRegister(Target::IntPtrType());
+  return NewRegister(Target::IntPtrType());
 }
 
 // Test cases...
@@ -76,6 +70,18 @@ TEST_F(LirInstructionTest, CallInstruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
+}
+
+// CmpInstruction
+TEST_F(LirInstructionTest, CmpInstruction) {
+  auto const instr = NewCmpInstruction(
+      NewCondition(), IntegerCondition::NotEqual,
+      NewRegister(Value::Int32Type()), NewRegister(Value::Int32Type()));
+  EXPECT_TRUE(instr->is<CmpInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
 }
 
 // CopyInstruction

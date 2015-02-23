@@ -95,6 +95,10 @@ std::ostream& operator<<(std::ostream& ostream,
     }
     ostream << " =";
   }
+
+  if (auto const cmp_instr = instr->as<CmpInstruction>())
+    ostream << " " << cmp_instr->condition() << ",";
+
   auto separator = " ";
   for (auto const input : instr->inputs()) {
     auto const allocation = assignments->AllocationOf(instr, input);
@@ -214,7 +218,7 @@ Function* LirTest::CreateFunctionSample1() {
 //      // Out: {block3, block4}
 //      entry
 //      pcopy %r1, %r2 = ECX, EDX
-//      eq %b2 = %r1, 0
+//      cmp %b2 = eq %r1, 0
 //      br %b2, block3, block4
 //    block3: // true block
 //      // In: {block1}
@@ -258,8 +262,8 @@ Function* LirTest::CreateFunctionSample2() {
   editor.Append(
       factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
   auto const cond1 = factory()->NewCondition();
-  editor.Append(
-      factory()->NewEqInstruction(cond1, values[0], Value::SmallInt32(0)));
+  editor.Append(NewCmpInstruction(cond1, IntegerCondition::Equal, values[0],
+                                  Value::SmallInt32(0)));
   editor.SetBranch(cond1, true_block, false_block);
   EXPECT_EQ("", Commit(&editor));
 

@@ -67,6 +67,7 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   void VisitBitOr(BitOrInstruction* instruction) final;
   void VisitBitXor(BitXorInstruction* instruction) final;
   void VisitBranch(BranchInstruction* instruction) final;
+  void VisitCmp(CmpInstruction* instruction) final;
   void VisitCopy(CopyInstruction* instruction) final;
   void VisitDiv(DivInstruction* instruction) final;
   void VisitExtend(ExtendInstruction* instruction) final;

@@ -235,6 +235,17 @@ Instruction* Factory::NewBranchInstruction(Value condition,
   return new (zone()) BranchInstruction(condition, true_block, false_block);
 }
 
+Instruction* Factory::NewCmpInstruction(Value output,
+                                        IntegerCondition condition,
+                                        Value left,
+                                        Value right) {
+  DCHECK(output.is_condition());
+  DCHECK(left.is_integer());
+  DCHECK(right.is_integer());
+  DCHECK_EQ(left.size, right.size);
+  return new (zone()) CmpInstruction(output, condition, left, right);
+}
+
 Instruction* Factory::NewEntryInstruction(const std::vector<Value>& outputs) {
   return new (zone()) EntryInstruction(zone(), outputs);
 }

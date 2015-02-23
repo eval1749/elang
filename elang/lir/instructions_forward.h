@@ -14,8 +14,7 @@
 namespace elang {
 namespace lir {
 
-#define FOR_EACH_LIR_INSTRUCTION_0_0(V) \
-  V(Exit, "exit")
+#define FOR_EACH_LIR_INSTRUCTION_0_0(V) V(Exit, "exit")
 
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Call, "call")
 
@@ -44,17 +43,13 @@ namespace lir {
   V(BitXor, "xor")                      \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
-  V(UShr, "ushr")                       \
-  V(Eq, "eq")                           \
-  V(Ne, "ne")                           \
-  V(Ge, "ge")                           \
-  V(Gt, "gt")                           \
-  V(Le, "le")                           \
-  V(Lt, "lt")
+  V(UShr, "ushr")
 
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
+  V(Cmp, "cmp",                                                            \
+    (Value output, IntegerCondition condition, Value left, Value right))   \
   V(Entry, "entry", (const std::vector<Value>& outputs))                   \
   V(Jump, "jmp", (BasicBlock * target_block))                              \
   V(PCopy, "pcopy",                                                        \
@@ -92,7 +87,7 @@ namespace lir {
 #endif
 
 // Forward declarations
-// Forward declarations
+enum class IntegerCondition;
 class Instruction;
 class InstructionVisitor;
 enum class Opcode;
@@ -104,6 +99,8 @@ FOR_EACH_LIR_INSTRUCTION(V)
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction& instruction);
 
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          IntegerCondition condition);
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream, Opcode opcode);
 
 ELANG_LIR_EXPORT base::StringPiece ToStringPiece(Opcode opcode);

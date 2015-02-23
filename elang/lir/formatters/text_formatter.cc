@@ -175,12 +175,27 @@ std::ostream& operator<<(std::ostream& ostream,
     }
     return ostream;
   }
+
+  if (auto const cmp_instr = instruction.as<CmpInstruction>())
+    ostream << " " << cmp_instr->condition() << ",";
+
   auto separator = " ";
   for (auto const input : instruction.inputs()) {
     ostream << separator << input;
     separator = ", ";
   }
   return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, IntegerCondition condition) {
+  static const char* const names[] = {
+#define V(Name, mnemonic) mnemonic,
+      FOR_EACH_INTEGER_CONDITION(V)
+#undef V
+          "invalid",
+  };
+  return ostream << names[std::min(static_cast<size_t>(condition),
+                                   arraysize(names) - 1)];
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
