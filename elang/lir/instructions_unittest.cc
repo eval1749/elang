@@ -186,5 +186,18 @@ TEST_F(LirInstructionTest, StoreInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
+// UShrInstruction
+TEST_F(LirInstructionTest, UShrInstruction) {
+  auto const input = NewIntPtrRegister();
+  auto const output = NewIntPtrRegister();
+  auto const instr =
+      factory()->NewUShrInstruction(output, input, Value::SmallInt32(3));
+  EXPECT_TRUE(instr->is<UShrInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+}
+
 }  // namespace lir
 }  // namespace elang

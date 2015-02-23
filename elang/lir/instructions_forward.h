@@ -44,6 +44,7 @@ namespace lir {
   V(BitXor, "xor")                      \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
+  V(UShr, "ushr")                       \
   V(Eq, "eq")                           \
   V(Ne, "ne")                           \
   V(Ge, "ge")                           \
