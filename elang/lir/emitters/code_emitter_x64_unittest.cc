@@ -369,6 +369,123 @@ TEST_F(CodeEmitterX64Test, LiteralInt8) {
             Emit(function));
 }
 
+TEST_F(CodeEmitterX64Test, ShlInt16) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const cl = Target::GetRegister(isa::CL);
+  auto const ax = Target::GetRegister(isa::AX);
+  auto const bx = Target::GetRegister(isa::BX);
+  auto const imm32 = Value::SmallInt32(42);
+  auto const one = Value::SmallInt32(1);
+  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
+
+  editor.Append(NewShlInstruction(ax, ax, one));
+  editor.Append(NewShlInstruction(ax, ax, cl));
+  editor.Append(NewShlInstruction(ax, ax, imm32));
+
+  editor.Append(NewShlInstruction(bx, bx, one));
+  editor.Append(NewShlInstruction(bx, bx, cl));
+  editor.Append(NewShlInstruction(bx, bx, imm32));
+
+  editor.Append(NewShlInstruction(r9w, r9w, one));
+  editor.Append(NewShlInstruction(r9w, r9w, cl));
+  editor.Append(NewShlInstruction(r9w, r9w, imm32));
+
+  editor.Append(NewShlInstruction(var33, var33, one));
+  editor.Append(NewShlInstruction(var33, var33, cl));
+  editor.Append(NewShlInstruction(var33, var33, imm32));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 66 D1 E0 66 D3 E0 66 C1 E0 2A 66 D1 E3 66 D3 E3\n"
+      "0010 66 C1 E3 2A 66 41 D1 E1 66 41 D3 E1 66 41 C1 E1\n"
+      "0020 2A 66 D1 65 21 66 D3 65 21 66 C1 65 21 2A C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, ShlInt32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const cl = Target::GetRegister(isa::CL);
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const edi = Target::GetRegister(isa::EDI);
+  auto const imm32 = Value::SmallInt32(42);
+  auto const one = Value::SmallInt32(1);
+  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+
+  editor.Append(NewShlInstruction(eax, eax, one));
+  editor.Append(NewShlInstruction(eax, eax, cl));
+  editor.Append(NewShlInstruction(eax, eax, imm32));
+
+  editor.Append(NewShlInstruction(ebx, ebx, one));
+  editor.Append(NewShlInstruction(ebx, ebx, cl));
+  editor.Append(NewShlInstruction(ebx, ebx, imm32));
+
+  editor.Append(NewShlInstruction(r9d, r9d, one));
+  editor.Append(NewShlInstruction(r9d, r9d, cl));
+  editor.Append(NewShlInstruction(r9d, r9d, imm32));
+
+  editor.Append(NewShlInstruction(var33, var33, one));
+  editor.Append(NewShlInstruction(var33, var33, cl));
+  editor.Append(NewShlInstruction(var33, var33, imm32));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 D1 E0 D3 E0 C1 E0 2A D1 E3 D3 E3 C1 E3 2A 41 D1\n"
+      "0010 E1 41 D3 E1 41 C1 E1 2A D1 65 21 D3 65 21 C1 65\n"
+      "0020 21 2A C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, ShrInt8) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const cl = Target::GetRegister(isa::CL);
+  auto const al = Target::GetRegister(isa::AL);
+  auto const bl = Target::GetRegister(isa::BL);
+  auto const dil = Target::GetRegister(isa::DIL);
+  auto const imm32 = Value::SmallInt32(42);
+  auto const one = Value::SmallInt32(1);
+  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
+
+  editor.Append(NewShrInstruction(al, al, one));
+  editor.Append(NewShrInstruction(al, al, cl));
+  editor.Append(NewShrInstruction(al, al, imm32));
+
+  editor.Append(NewShrInstruction(bl, bl, one));
+  editor.Append(NewShrInstruction(bl, bl, cl));
+  editor.Append(NewShrInstruction(bl, bl, imm32));
+
+  editor.Append(NewShrInstruction(dil, dil, one));
+  editor.Append(NewShrInstruction(dil, dil, cl));
+  editor.Append(NewShrInstruction(dil, dil, imm32));
+
+  editor.Append(NewShrInstruction(r9b, r9b, one));
+  editor.Append(NewShrInstruction(r9b, r9b, cl));
+  editor.Append(NewShrInstruction(r9b, r9b, imm32));
+
+  editor.Append(NewShrInstruction(var33, var33, one));
+  editor.Append(NewShrInstruction(var33, var33, cl));
+  editor.Append(NewShrInstruction(var33, var33, imm32));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 D0 F8 D2 F8 C0 F8 2A D0 FB D2 FB C0 FB 2A 40 D0\n"
+      "0010 FF 40 D2 FF 40 C0 FF 2A 41 D0 F9 41 D2 F9 41 C0\n"
+      "0020 F9 2A D0 7D 21 D2 7D 21 C0 7D 21 2A C3\n",
+      Emit(function));
+}
+
 TEST_F(CodeEmitterX64Test, StackSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
@@ -380,6 +497,43 @@ TEST_F(CodeEmitterX64Test, StackSlot) {
   ASSERT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
   EXPECT_EQ("0000 48 8B 04 24 89 54 24 08 C3\n", Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, UShrInt64) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const cl = Target::GetRegister(isa::CL);
+  auto const rax = Target::GetRegister(isa::RAX);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const imm32 = Value::SmallInt32(42);
+  auto const one = Value::SmallInt32(1);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
+
+  editor.Append(NewUShrInstruction(rax, rax, one));
+  editor.Append(NewUShrInstruction(rax, rax, cl));
+  editor.Append(NewUShrInstruction(rax, rax, imm32));
+
+  editor.Append(NewUShrInstruction(rbx, rbx, one));
+  editor.Append(NewUShrInstruction(rbx, rbx, cl));
+  editor.Append(NewUShrInstruction(rbx, rbx, imm32));
+
+  editor.Append(NewUShrInstruction(r9, r9, one));
+  editor.Append(NewUShrInstruction(r9, r9, cl));
+  editor.Append(NewUShrInstruction(r9, r9, imm32));
+
+  editor.Append(NewUShrInstruction(var33, var33, one));
+  editor.Append(NewUShrInstruction(var33, var33, cl));
+  editor.Append(NewUShrInstruction(var33, var33, imm32));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 48 D1 E8 48 D3 E8 48 C1 E8 2A 48 D1 EB 48 D3 EB\n"
+      "0010 48 C1 EB 2A 49 D1 E9 49 D3 E9 49 C1 E9 2A 48 D1\n"
+      "0020 6D 21 48 D3 6D 21 48 C1 6D 21 2A C3\n",
+      Emit(function));
 }
 
 }  // namespace

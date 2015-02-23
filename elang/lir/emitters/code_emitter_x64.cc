@@ -89,15 +89,32 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
   void EmitOpcode(isa::Opcode opcode);
+
+  // Emit ModRm byte, reg field from |opext|, r/m field from |output|.
   void EmitOpcodeExt(isa::OpcodeExt opext, Value input);
+
+  // Emit opcode adding |delta| value. This function usually used for opcode
+  // encodes register name, e.g. |MOV eAX, Iv|.
   void EmitOpcodePlus(isa::Opcode opcode, int delta);
   void EmitOperand(Value value);
-  void EmitRexPrefix(Value output, Value input);
+
+  // Emit REX prefix for ModRm reg and rm fields.
+  void EmitRexPrefix(Value reg, Value rm);
+
+  // Emit REX prefix for ModRm rm fields.
+  void EmitRexPrefix(Value rm);
+
+  // TODO(eval1749) We should have|EmitRexPrefix(reg, base, index)| for
+  // REX_X bit.
+
+  // Emit SIB byte.
   void EmitSib(Scale scale, Register index, Register base);
 
   void HandleIntegerArithmetic(Instruction* instr,
                                isa::Opcode op_eb_gb,
                                isa::OpcodeExt opext);
+
+  void HandleShiftInstruction(Instruction* instr, isa::OpcodeExt opext);
 
   int32_t Int32ValueOf(Value literal) const;
   int64_t Int64ValueOf(Value literal) const;
@@ -111,7 +128,10 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCopy(CopyInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
+  void VisitShl(ShlInstruction* instr) final;
+  void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
+  void VisitUShr(UShrInstruction* instr) final;
 
   const Factory* const factory_;
 
@@ -247,6 +267,22 @@ void InstructionHandlerX64::EmitOperand(Value value) {
   Emit32(0);
 }
 
+void InstructionHandlerX64::EmitRexPrefix(Value rm) {
+  if (rm.is_16bit())
+    EmitOpcode(isa::Opcode::OPDSIZ);
+  auto rex = 0;
+  if (rm.is_64bit())
+    rex |= isa::REX_W;
+  if (rm.is_physical() && rm.data >= 8)
+    rex |= isa::REX_B;
+  // For access lower 8-bit part of SI, DI, SP, BP
+  if (rm.is_8bit() && rm.is_physical() && rm.data >= 4)
+    rex |= isa::REX;
+  if (!rex)
+    return;
+  Emit8(isa::REX | rex);
+}
+
 void InstructionHandlerX64::EmitRexPrefix(Value reg, Value rm) {
   if (reg.is_16bit())
     EmitOpcode(isa::Opcode::OPDSIZ);
@@ -298,16 +334,17 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
       return;
     }
 
-    EmitRexPrefix(input, output);
     auto const imm8 = Int32ValueOf(input);
     if (output.is_physical() && (output.data & 15) == 0) {
       //  04 ib: ADD AL, imm8
+      EmitRexPrefix(output);
       EmitOpcodePlus(op_eb_gb, 4);
       Emit8(imm8);
       return;
     }
 
     // 80 /0 ib: ADD r/m8, imm8
+    EmitRexPrefix(output);
     EmitOpcode(isa::Opcode::ADD_Eb_Ib);
     EmitOpcodeExt(opext, output);
     Emit8(imm8);
@@ -331,7 +368,7 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
     return;
   }
 
-  EmitRexPrefix(input, output);
+  EmitRexPrefix(output);
   auto const imm32 = Int32ValueOf(input);
   if (output.is_physical() && (output.data & 15) == 0) {
     // 05 id: ADD EAX, imm32
@@ -352,6 +389,68 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   EmitOpcode(isa::Opcode::ADD_Ev_Iz);
   EmitOpcodeExt(opext, output);
   EmitIz(output, imm32);
+}
+
+
+// Emit code for Shl, Shl, UShr instrutions.
+//
+// Opcode extension:
+//  SAL/SHL=4, SAR=7, SHR=5
+//
+// int8:
+//  D0 /4    SHL r/m8, 1
+//  D2 /4    SHL r/m8, CL
+//  C0 /4 ib SHL r/m8, imm8
+// int32:
+//  D1 /4    SHL r/m32, 1
+//  D3 /4    SHL r/m32, CL
+//  C1 /4    SHL r/m32, imm8
+void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
+                                                   isa::OpcodeExt opext) {
+  auto const count = instr->input(1);
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0));
+
+  EmitRexPrefix(output);
+
+  if (output.is_8bit()) {
+    if (count == Value::SmallInt32(1)) {
+      EmitOpcode(isa::Opcode::SHL_Eb_1);
+      EmitOpcodeExt(opext, output);
+      return;
+    }
+    if (count == Target::GetRegister(isa::CL)) {
+      EmitOpcode(isa::Opcode::SHL_Eb_CL);
+      EmitOpcodeExt(opext, output);
+      return;
+    }
+    if (count.is_immediate() && Is8Bit(count.data)) {
+      EmitOpcode(isa::Opcode::SHL_Eb_Ib);
+      EmitOpcodeExt(opext, output);
+      Emit8(count.data);
+      return;
+    }
+    NOTREACHED() << "invalid operand for SHL/SHR: " << *instr;
+    return;
+  }
+
+  if (count == Value::SmallInt32(1)) {
+    EmitOpcode(isa::Opcode::SHL_Ev_1);
+    EmitOpcodeExt(opext, output);
+    return;
+  }
+  if (count == Target::GetRegister(isa::CL)) {
+    EmitOpcode(isa::Opcode::SHL_Ev_CL);
+    EmitOpcodeExt(opext, output);
+    return;
+  }
+  if (count.is_immediate() && Is8Bit(count.data)) {
+    EmitOpcode(isa::Opcode::SHL_Ev_Ib);
+    EmitOpcodeExt(opext, output);
+    Emit8(count.data);
+    return;
+  }
+  NOTREACHED() << "invalid operand for SHL/SHR: " << *instr;
 }
 
 int32_t InstructionHandlerX64::Int32ValueOf(Value value) const {
@@ -616,6 +715,14 @@ void InstructionHandlerX64::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
 }
 
+void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {
+  HandleShiftInstruction(instr, isa::OpcodeExt::SHL_Ev_1);
+}
+
+void InstructionHandlerX64::VisitShr(ShrInstruction* instr) {
+  HandleShiftInstruction(instr, isa::OpcodeExt::SAR_Ev_1);
+}
+
 // Instruction formats are as same as ADD.
 // Base opcode = 0x28, opext = 5
 void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
@@ -627,6 +734,10 @@ void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
     return;
   }
   NOTREACHED() << "NYI: float sub: " << *instr;
+}
+
+void InstructionHandlerX64::VisitUShr(UShrInstruction* instr) {
+  HandleShiftInstruction(instr, isa::OpcodeExt::SHR_Ev_1);
 }
 
 }  // namespace
