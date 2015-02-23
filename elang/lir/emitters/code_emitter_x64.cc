@@ -125,6 +125,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
   void VisitCall(CallInstruction* instr) final;
+  void VisitCmp(CmpInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
@@ -310,87 +311,93 @@ void InstructionHandlerX64::EmitSib(Scale scale,
   Emit8(static_cast<int>(scale) | ((index & 7) << 3) | (base & 7));
 }
 
+// Emit code for arithmetic instructions using opcode extension:
+//  opext=0 ADD
+//  opext=1 OR
+//  opext=4 AND
+//  opext=5 SUB
+//  opext=6 XOR
+//  opext=7 CMP
 void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
                                                     isa::Opcode op_eb_gb,
                                                     isa::OpcodeExt opext) {
-  auto const output = instr->output(0);
-  auto const input = instr->input(1);
-  DCHECK_EQ(output.size, input.size);
-  DCHECK_EQ(output.type, input.type);
+  auto const left = instr->input(0);
+  auto const right = instr->input(1);
+  DCHECK_EQ(left.size, right.size);
+  DCHECK_EQ(left.type, right.type);
 
-  if (output.is_8bit()) {
-    if (input.is_physical()) {
+  if (left.is_8bit()) {
+    if (right.is_physical()) {
       // 00 /r: ADD r/m8, r8
-      EmitRexPrefix(input, output);
+      EmitRexPrefix(right, left);
       EmitOpcode(op_eb_gb);
-      EmitModRm(input, output);
+      EmitModRm(right, left);
       return;
     }
-    if (input.is_memory_slot()) {
+    if (right.is_memory_slot()) {
       //  02 /r: ADD r8, r/m8
-      EmitRexPrefix(output, input);
+      EmitRexPrefix(left, right);
       EmitOpcodePlus(op_eb_gb, 2);
-      EmitModRm(output, input);
+      EmitModRm(left, right);
       return;
     }
 
-    auto const imm8 = Int32ValueOf(input);
-    if (output.is_physical() && (output.data & 15) == 0) {
+    auto const imm8 = Int32ValueOf(right);
+    if (left.is_physical() && (left.data & 15) == 0) {
       //  04 ib: ADD AL, imm8
-      EmitRexPrefix(output);
+      EmitRexPrefix(left);
       EmitOpcodePlus(op_eb_gb, 4);
       Emit8(imm8);
       return;
     }
 
     // 80 /0 ib: ADD r/m8, imm8
-    EmitRexPrefix(output);
+    EmitRexPrefix(left);
     EmitOpcode(isa::Opcode::ADD_Eb_Ib);
-    EmitOpcodeExt(opext, output);
+    EmitOpcodeExt(opext, left);
     Emit8(imm8);
     return;
   }
 
   // 16bit, 32bit, 64bit
-  if (input.is_physical()) {
+  if (right.is_physical()) {
     // 01 /r: ADD r/m32, r32
-    EmitRexPrefix(input, output);
+    EmitRexPrefix(right, left);
     EmitOpcodePlus(op_eb_gb, 1);
-    EmitModRm(input, output);
+    EmitModRm(right, left);
     return;
   }
 
-  if (input.is_memory_slot()) {
+  if (right.is_memory_slot()) {
     // 03 /r: ADD r32, r/m32
-    EmitRexPrefix(output, input);
+    EmitRexPrefix(left, right);
     EmitOpcodePlus(op_eb_gb, 3);
-    EmitModRm(output, input);
+    EmitModRm(left, right);
     return;
   }
 
-  EmitRexPrefix(output);
-  auto const imm32 = Int32ValueOf(input);
-  if (output.is_physical() && (output.data & 15) == 0) {
+  EmitRexPrefix(left);
+  auto const imm32 = Int32ValueOf(right);
+  if (left.is_physical() && (left.data & 15) == 0) {
     // 05 id: ADD EAX, imm32
     EmitOpcodePlus(op_eb_gb, 5);
-    EmitIz(output, imm32);
+    EmitIz(left, imm32);
     return;
   }
 
   if (Is8Bit(imm32)) {
     // 83 /0 ib: ADD r/m32, imm8
     EmitOpcode(isa::Opcode::ADD_Ev_Ib);
-    EmitOpcodeExt(opext, output);
+    EmitOpcodeExt(opext, left);
     Emit8(imm32);
     return;
   }
 
   // 81 /0 id: ADD r/m32, imm32
   EmitOpcode(isa::Opcode::ADD_Ev_Iz);
-  EmitOpcodeExt(opext, output);
-  EmitIz(output, imm32);
+  EmitOpcodeExt(opext, left);
+  EmitIz(left, imm32);
 }
-
 
 // Emit code for Shl, Shl, UShr instrutions.
 //
@@ -563,6 +570,14 @@ void InstructionHandlerX64::VisitBitXor(BitXorInstruction* instr) {
 void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
   EmitOperand(instr->input(0));
+}
+
+// Instruction formats are as same as ADD.
+// Base opcode = 0x38, opext = 7
+void InstructionHandlerX64::VisitCmp(CmpInstruction* instr) {
+  DCHECK(instr->output(0).is_conditional());
+  HandleIntegerArithmetic(instr, isa::Opcode::CMP_Eb_Gb,
+                          isa::OpcodeExt::CMP_Eb_Ib);
 }
 
 // int8:

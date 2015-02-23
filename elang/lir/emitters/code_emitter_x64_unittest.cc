@@ -213,6 +213,48 @@ TEST_F(CodeEmitterX64Test, Call) {
       Emit(function));
 }
 
+TEST_F(CodeEmitterX64Test, CmpInt32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const cond = NewConditional();
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const eq = IntegerCondition::Equal;
+  auto const imm32 = Value::SmallInt32(2359);
+  auto const imm8 = Value::SmallInt32(42);
+  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+  // 05 ib CMP EAX, imm32
+  editor.Append(NewCmpInstruction(cond, eq, eax, imm32));
+  // 81 /0 ib CMP r/m32, imm32
+  editor.Append(NewCmpInstruction(cond, eq, ebx, imm32));
+  editor.Append(NewCmpInstruction(cond, eq, r9d, imm32));
+  // 81 /0 ib CMP r/m32, imm32
+  editor.Append(NewCmpInstruction(cond, eq, var33, imm32));
+  // 00 /r CMP r/m32, r32
+  editor.Append(NewCmpInstruction(cond, eq, ebx, eax));
+  editor.Append(NewCmpInstruction(cond, eq, ebx, r9d));
+  editor.Append(NewCmpInstruction(cond, eq, r9d, ebx));
+  editor.Append(NewCmpInstruction(cond, eq, var33, ebx));
+  editor.Append(NewCmpInstruction(cond, eq, var33, r9d));
+  // 02 /r  CMP r32, r/m32
+  editor.Append(NewCmpInstruction(cond, eq, ebx, var33));
+  editor.Append(NewCmpInstruction(cond, eq, r9d, var33));
+  // 83 /0 ib CMP r/m32, imm8
+  editor.Append(NewCmpInstruction(cond, eq, ebx, imm8));
+  editor.Append(NewCmpInstruction(cond, eq, r9d, imm8));
+  editor.Append(NewCmpInstruction(cond, eq, var33, imm8));
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 3D 37 09 00 00 81 FB 37 09 00 00 41 81 F9 37 09\n"
+      "0010 00 00 81 7D 21 37 09 00 00 39 C3 44 39 CB 41 39\n"
+      "0020 D9 39 5D 21 44 39 4D 21 3B 5D 21 44 3B 4D 21 83\n"
+      "0030 FB 2A 41 83 F9 2A 83 7D 21 2A C3\n",
+      Emit(function));
+}
+
 TEST_F(CodeEmitterX64Test, CopyInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
