@@ -599,29 +599,49 @@ void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
   DCHECK_EQ(input.size, output.size);
   DCHECK_EQ(input.type, output.type);
 
-  EmitRexPrefix(output, input);
-
-  if (output.is_physical()) {
-    if (output.is_int8()) {
+  if (output.is_int8()) {
+    if (output.is_physical()) {
+      EmitRexPrefix(output, input);
       EmitOpcode(isa::Opcode::MOV_Gb_Eb);
-    } else if (output.is_integer()) {
-      EmitOpcode(isa::Opcode::MOV_Gv_Ev);
-    } else if (output.is_32bit()) {
-      EmitOpcode(isa::Opcode::MOVSS_Vss_Wss);
     } else {
-      EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
-    }
-  } else {
-    if (output.is_int8())
+      EmitRexPrefix(input, output);
       EmitOpcode(isa::Opcode::MOV_Eb_Gb);
-    else if (output.is_integer())
-      EmitOpcode(isa::Opcode::MOV_Ev_Gv);
-    else if (output.is_32bit())
-      EmitOpcode(isa::Opcode::MOVSS_Wss_Vss);
-    else
-      EmitOpcode(isa::Opcode::MOVSD_Wsd_Vsd);
+    }
+    EmitModRm(output, input);
+    return;
   }
 
+  if (output.is_integer()) {
+    if (output.is_physical()) {
+      EmitRexPrefix(output, input);
+      EmitOpcode(isa::Opcode::MOV_Gv_Ev);
+    } else {
+      EmitRexPrefix(input, output);
+      EmitOpcode(isa::Opcode::MOV_Ev_Gv);
+    }
+    EmitModRm(output, input);
+    return;
+  }
+
+  if (output.is_32bit()) {
+    if (output.is_physical()) {
+      EmitRexPrefix(output, input);
+      EmitOpcode(isa::Opcode::MOVSS_Vss_Wss);
+    } else {
+      EmitRexPrefix(input, output);
+      EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
+    }
+    EmitModRm(output, input);
+    return;
+  }
+
+  if (output.is_physical()) {
+    EmitRexPrefix(output, input);
+    EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
+  } else {
+    EmitRexPrefix(input, output);
+    EmitOpcode(isa::Opcode::MOVSD_Wsd_Vsd);
+  }
   EmitModRm(output, input);
 }
 

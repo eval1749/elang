@@ -213,6 +213,245 @@ TEST_F(CodeEmitterX64Test, Call) {
       Emit(function));
 }
 
+TEST_F(CodeEmitterX64Test, CopyInt16) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const ax = Target::GetRegister(isa::AX);
+  auto const bx = Target::GetRegister(isa::BX);
+  auto const di = Target::GetRegister(isa::DI);
+  auto const r8w = Target::GetRegister(isa::R8W);
+  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
+
+  editor.Append(NewCopyInstruction(ax, bx));
+  editor.Append(NewCopyInstruction(ax, di));
+  editor.Append(NewCopyInstruction(ax, r8w));
+  editor.Append(NewCopyInstruction(ax, r9w));
+  editor.Append(NewCopyInstruction(ax, var33));
+
+  editor.Append(NewCopyInstruction(bx, ax));
+  editor.Append(NewCopyInstruction(bx, di));
+  editor.Append(NewCopyInstruction(bx, r8w));
+  editor.Append(NewCopyInstruction(bx, r9w));
+  editor.Append(NewCopyInstruction(bx, var33));
+
+  editor.Append(NewCopyInstruction(di, ax));
+  editor.Append(NewCopyInstruction(di, bx));
+  editor.Append(NewCopyInstruction(di, r8w));
+  editor.Append(NewCopyInstruction(di, r9w));
+  editor.Append(NewCopyInstruction(di, var33));
+
+  editor.Append(NewCopyInstruction(r8w, ax));
+  editor.Append(NewCopyInstruction(r8w, bx));
+  editor.Append(NewCopyInstruction(r8w, di));
+  editor.Append(NewCopyInstruction(r8w, r9w));
+  editor.Append(NewCopyInstruction(r8w, var33));
+
+  editor.Append(NewCopyInstruction(r9w, ax));
+  editor.Append(NewCopyInstruction(r9w, bx));
+  editor.Append(NewCopyInstruction(r9w, di));
+  editor.Append(NewCopyInstruction(r9w, r8w));
+  editor.Append(NewCopyInstruction(r9w, var33));
+
+  editor.Append(NewCopyInstruction(var33, ax));
+  editor.Append(NewCopyInstruction(var33, bx));
+  editor.Append(NewCopyInstruction(var33, di));
+  editor.Append(NewCopyInstruction(var33, r8w));
+  editor.Append(NewCopyInstruction(var33, r9w));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 66 8B C3 66 8B C7 66 41 8B C0 66 41 8B C1 66 8B\n"
+      "0010 45 21 66 8B D8 66 8B DF 66 41 8B D8 66 41 8B D9\n"
+      "0020 66 8B 5D 21 66 8B F8 66 8B FB 66 41 8B F8 66 41\n"
+      "0030 8B F9 66 8B 7D 21 66 44 8B C0 66 44 8B C3 66 44\n"
+      "0040 8B C7 66 45 8B C1 66 44 8B 45 21 66 44 8B C8 66\n"
+      "0050 44 8B CB 66 44 8B CF 66 45 8B C8 66 44 8B 4D 21\n"
+      "0060 66 89 45 21 66 89 5D 21 66 89 7D 21 66 44 89 45\n"
+      "0070 21 66 44 89 4D 21 C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, CopyInt32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const edi = Target::GetRegister(isa::EDI);
+  auto const r8d = Target::GetRegister(isa::R8D);
+  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+
+  editor.Append(NewCopyInstruction(eax, ebx));
+  editor.Append(NewCopyInstruction(eax, edi));
+  editor.Append(NewCopyInstruction(eax, r8d));
+  editor.Append(NewCopyInstruction(eax, r9d));
+  editor.Append(NewCopyInstruction(eax, var33));
+
+  editor.Append(NewCopyInstruction(ebx, eax));
+  editor.Append(NewCopyInstruction(ebx, edi));
+  editor.Append(NewCopyInstruction(ebx, r8d));
+  editor.Append(NewCopyInstruction(ebx, r9d));
+  editor.Append(NewCopyInstruction(ebx, var33));
+
+  editor.Append(NewCopyInstruction(edi, eax));
+  editor.Append(NewCopyInstruction(edi, ebx));
+  editor.Append(NewCopyInstruction(edi, r8d));
+  editor.Append(NewCopyInstruction(edi, r9d));
+  editor.Append(NewCopyInstruction(edi, var33));
+
+  editor.Append(NewCopyInstruction(r8d, eax));
+  editor.Append(NewCopyInstruction(r8d, ebx));
+  editor.Append(NewCopyInstruction(r8d, edi));
+  editor.Append(NewCopyInstruction(r8d, r9d));
+  editor.Append(NewCopyInstruction(r8d, var33));
+
+  editor.Append(NewCopyInstruction(r9d, eax));
+  editor.Append(NewCopyInstruction(r9d, ebx));
+  editor.Append(NewCopyInstruction(r9d, edi));
+  editor.Append(NewCopyInstruction(r9d, r8d));
+  editor.Append(NewCopyInstruction(r9d, var33));
+
+  editor.Append(NewCopyInstruction(var33, eax));
+  editor.Append(NewCopyInstruction(var33, ebx));
+  editor.Append(NewCopyInstruction(var33, edi));
+  editor.Append(NewCopyInstruction(var33, r8d));
+  editor.Append(NewCopyInstruction(var33, r9d));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 8B C3 8B C7 41 8B C0 41 8B C1 8B 45 21 8B D8 8B\n"
+      "0010 DF 41 8B D8 41 8B D9 8B 5D 21 8B F8 8B FB 41 8B\n"
+      "0020 F8 41 8B F9 8B 7D 21 44 8B C0 44 8B C3 44 8B C7\n"
+      "0030 45 8B C1 44 8B 45 21 44 8B C8 44 8B CB 44 8B CF\n"
+      "0040 45 8B C8 44 8B 4D 21 89 45 21 89 5D 21 89 7D 21\n"
+      "0050 44 89 45 21 44 89 4D 21 C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, CopyInt64) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const rax = Target::GetRegister(isa::RAX);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const rdi = Target::GetRegister(isa::RDI);
+  auto const r8 = Target::GetRegister(isa::R8);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
+
+  editor.Append(NewCopyInstruction(rax, rbx));
+  editor.Append(NewCopyInstruction(rax, rdi));
+  editor.Append(NewCopyInstruction(rax, r8));
+  editor.Append(NewCopyInstruction(rax, r9));
+  editor.Append(NewCopyInstruction(rax, var33));
+
+  editor.Append(NewCopyInstruction(rbx, rax));
+  editor.Append(NewCopyInstruction(rbx, rdi));
+  editor.Append(NewCopyInstruction(rbx, r8));
+  editor.Append(NewCopyInstruction(rbx, r9));
+  editor.Append(NewCopyInstruction(rbx, var33));
+
+  editor.Append(NewCopyInstruction(rdi, rax));
+  editor.Append(NewCopyInstruction(rdi, rbx));
+  editor.Append(NewCopyInstruction(rdi, r8));
+  editor.Append(NewCopyInstruction(rdi, r9));
+  editor.Append(NewCopyInstruction(rdi, var33));
+
+  editor.Append(NewCopyInstruction(r8, rax));
+  editor.Append(NewCopyInstruction(r8, rbx));
+  editor.Append(NewCopyInstruction(r8, rdi));
+  editor.Append(NewCopyInstruction(r8, r9));
+  editor.Append(NewCopyInstruction(r8, var33));
+
+  editor.Append(NewCopyInstruction(r9, rax));
+  editor.Append(NewCopyInstruction(r9, rbx));
+  editor.Append(NewCopyInstruction(r9, rdi));
+  editor.Append(NewCopyInstruction(r9, r8));
+  editor.Append(NewCopyInstruction(r9, var33));
+
+  editor.Append(NewCopyInstruction(var33, rax));
+  editor.Append(NewCopyInstruction(var33, rbx));
+  editor.Append(NewCopyInstruction(var33, rdi));
+  editor.Append(NewCopyInstruction(var33, r8));
+  editor.Append(NewCopyInstruction(var33, r9));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 48 8B C3 48 8B C7 49 8B C0 49 8B C1 48 8B 45 21\n"
+      "0010 48 8B D8 48 8B DF 49 8B D8 49 8B D9 48 8B 5D 21\n"
+      "0020 48 8B F8 48 8B FB 49 8B F8 49 8B F9 48 8B 7D 21\n"
+      "0030 4C 8B C0 4C 8B C3 4C 8B C7 4D 8B C1 4C 8B 45 21\n"
+      "0040 4C 8B C8 4C 8B CB 4C 8B CF 4D 8B C8 4C 8B 4D 21\n"
+      "0050 48 89 45 21 48 89 5D 21 48 89 7D 21 4C 89 45 21\n"
+      "0060 4C 89 4D 21 C3\n",
+      Emit(function));
+}
+
+TEST_F(CodeEmitterX64Test, CopyInt8) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const al = Target::GetRegister(isa::AL);
+  auto const bl = Target::GetRegister(isa::BL);
+  auto const dil = Target::GetRegister(isa::DIL);
+  auto const r8b = Target::GetRegister(isa::R8B);
+  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
+
+  editor.Append(NewCopyInstruction(al, bl));
+  editor.Append(NewCopyInstruction(al, dil));
+  editor.Append(NewCopyInstruction(al, r8b));
+  editor.Append(NewCopyInstruction(al, r9b));
+  editor.Append(NewCopyInstruction(al, var33));
+
+  editor.Append(NewCopyInstruction(bl, al));
+  editor.Append(NewCopyInstruction(bl, dil));
+  editor.Append(NewCopyInstruction(bl, r8b));
+  editor.Append(NewCopyInstruction(bl, r9b));
+  editor.Append(NewCopyInstruction(bl, var33));
+
+  editor.Append(NewCopyInstruction(dil, al));
+  editor.Append(NewCopyInstruction(dil, bl));
+  editor.Append(NewCopyInstruction(dil, r8b));
+  editor.Append(NewCopyInstruction(dil, r9b));
+  editor.Append(NewCopyInstruction(dil, var33));
+
+  editor.Append(NewCopyInstruction(r8b, al));
+  editor.Append(NewCopyInstruction(r8b, bl));
+  editor.Append(NewCopyInstruction(r8b, dil));
+  editor.Append(NewCopyInstruction(r8b, r9b));
+  editor.Append(NewCopyInstruction(r8b, var33));
+
+  editor.Append(NewCopyInstruction(r9b, al));
+  editor.Append(NewCopyInstruction(r9b, bl));
+  editor.Append(NewCopyInstruction(r9b, dil));
+  editor.Append(NewCopyInstruction(r9b, r8b));
+  editor.Append(NewCopyInstruction(r9b, var33));
+
+  editor.Append(NewCopyInstruction(var33, al));
+  editor.Append(NewCopyInstruction(var33, bl));
+  editor.Append(NewCopyInstruction(var33, dil));
+  editor.Append(NewCopyInstruction(var33, r8b));
+  editor.Append(NewCopyInstruction(var33, r9b));
+
+  ASSERT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "0000 8A C3 40 8A C7 41 8A C0 41 8A C1 8A 45 21 8A D8\n"
+      "0010 40 8A DF 41 8A D8 41 8A D9 8A 5D 21 40 8A F8 40\n"
+      "0020 8A FB 41 8A F8 41 8A F9 40 8A 7D 21 44 8A C0 44\n"
+      "0030 8A C3 44 8A C7 45 8A C1 44 8A 45 21 44 8A C8 44\n"
+      "0040 8A CB 44 8A CF 45 8A C8 44 8A 4D 21 88 45 21 88\n"
+      "0050 5D 21 40 88 7D 21 44 88 45 21 44 88 4D 21 C3\n",
+      Emit(function));
+}
+
 TEST_F(CodeEmitterX64Test, Empty) {
   auto const function = factory()->NewFunction({});
   EXPECT_EQ("0000 C3\n", Emit(function));
