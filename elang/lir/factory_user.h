@@ -25,7 +25,7 @@ class ELANG_LIR_EXPORT FactoryUser {
   Factory* factory() const { return factory_; }
 
   Literal* GetLiteral(Value value);
-  Value NewCondition();
+  Value NewConditional();
   Value NewFloat32Value(float32_t data);
   Value NewFloat64Value(float64_t data);
   Value NewIntValue(Value type, int64_t value);

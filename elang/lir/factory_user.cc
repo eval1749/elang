@@ -27,8 +27,8 @@ Literal* FactoryUser::GetLiteral(Value value) {
   return factory()->GetLiteral(value);
 }
 
-Value FactoryUser::NewCondition() {
-  return factory()->NewCondition();
+Value FactoryUser::NewConditional() {
+  return factory()->NewConditional();
 }
 
 Value FactoryUser::NewFloat32Value(float32_t data) {

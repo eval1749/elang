@@ -43,7 +43,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   BasicBlock* NewBasicBlock();
 
   // Returns newly created condition.
-  Value NewCondition();
+  Value NewConditional();
 
   // Returns newly created |Function|.
   Function* NewFunction(const std::vector<Value> parameters);

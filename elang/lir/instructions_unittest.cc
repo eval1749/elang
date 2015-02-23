@@ -84,7 +84,7 @@ TEST_F(LirInstructionTest, CallInstruction) {
 // CmpInstruction
 TEST_F(LirInstructionTest, CmpInstruction) {
   auto const instr = NewCmpInstruction(
-      NewCondition(), IntegerCondition::NotEqual,
+      NewConditional(), IntegerCondition::NotEqual,
       NewRegister(Value::Int32Type()), NewRegister(Value::Int32Type()));
   EXPECT_TRUE(instr->is<CmpInstruction>());
   EXPECT_FALSE(instr->IsTerminator());

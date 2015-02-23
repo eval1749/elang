@@ -283,7 +283,7 @@ void Validator::VisitBitXor(BitXorInstruction* instr) {
 }
 
 void Validator::VisitBranch(BranchInstruction* instr) {
-  if (!instr->input(0).is_condition())
+  if (!instr->input(0).is_conditional())
     Error(ErrorCode::ValidateInstructionInput, instr, 0);
 }
 
@@ -291,7 +291,7 @@ void Validator::VisitCmp(CmpInstruction* instr) {
   auto const output = instr->output(0);
   auto const left = instr->input(0);
   auto const right = instr->input(1);
-  if (!output.is_condition())
+  if (!output.is_conditional())
     Error(ErrorCode::ValidateInstructionOutput, instr, 0);
   if (!left.is_integer())
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);

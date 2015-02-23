@@ -258,7 +258,7 @@ Function* LirTest::CreateFunctionSample2() {
   editor.Edit(function->entry_block());
   editor.Append(
       factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
-  auto const cond1 = factory()->NewCondition();
+  auto const cond1 = factory()->NewConditional();
   editor.Append(NewCmpInstruction(cond1, IntegerCondition::Equal, values[0],
                                   Value::SmallInt32(0)));
   editor.SetBranch(cond1, true_block, false_block);
@@ -350,11 +350,11 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(start_block);
-  editor.SetBranch(factory()->NewCondition(), sample2_block, sample_block);
+  editor.SetBranch(factory()->NewConditional(), sample2_block, sample_block);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(sample_block);
-  editor.SetBranch(factory()->NewCondition(), merge_block, start_block);
+  editor.SetBranch(factory()->NewConditional(), merge_block, start_block);
   EXPECT_EQ("", Commit(&editor));
 
   editor.Edit(sample2_block);

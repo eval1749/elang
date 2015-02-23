@@ -23,7 +23,7 @@ bool Value::CanBeImmediate(int64_t value) {
 }
 
 Value Value::False() {
-  return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 0);
+  return Value(Type::Integer, ValueSize::Size8, Kind::Conditional, 0);
 }
 
 Value Value::Float32Literal() {
@@ -106,13 +106,13 @@ Value Value::StackSlot(Value type, int data) {
 }
 
 Value Value::True() {
-  return Value(Type::Integer, ValueSize::Size8, Kind::Condition, 1);
+  return Value(Type::Integer, ValueSize::Size8, Kind::Conditional, 1);
 }
 
 bool Value::is_output() const {
   switch (kind) {
     case Kind::Argument:
-    case Kind::Condition:
+    case Kind::Conditional:
     case Kind::FrameSlot:
     case Kind::Parameter:
     case Kind::PhysicalRegister:

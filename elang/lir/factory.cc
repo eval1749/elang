@@ -49,8 +49,8 @@ BasicBlock* Factory::NewBasicBlock() {
   return block;
 }
 
-Value Factory::NewCondition() {
-  return Value(Value::Type::Integer, ValueSize::Size8, Value::Kind::Condition,
+Value Factory::NewConditional() {
+  return Value(Value::Type::Integer, ValueSize::Size8, Value::Kind::Conditional,
                ++last_condition_id_);
 }
 
@@ -239,7 +239,7 @@ Instruction* Factory::NewCmpInstruction(Value output,
                                         IntegerCondition condition,
                                         Value left,
                                         Value right) {
-  DCHECK(output.is_condition());
+  DCHECK(output.is_conditional());
   DCHECK(left.is_integer());
   DCHECK(right.is_integer());
   DCHECK_EQ(left.size, right.size);

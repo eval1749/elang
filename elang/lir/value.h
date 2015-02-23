@@ -23,22 +23,22 @@ enum class ValueSize : uint32_t {
   Size64,
 };
 
-#define FOR_EACH_VALUE_KIND(V)                                       \
-  V(Void)                                                            \
-  V(Immediate)                                                       \
-  V(Literal)                                                         \
-  V(Parameter)                                                       \
-  V(PhysicalRegister)                                                \
-  V(VirtualRegister)                                                 \
-  V(Condition) /* output of equality and relational instructions. */ \
-  V(Argument)                                                        \
-  V(StackSlot) /* stack location for spilled registers */            \
-  V(SpillSlot)                                                       \
-  V(FrameSlot)                                                       \
-  V(NotUsed11)                                                       \
-  V(NotUsed12)                                                       \
-  V(NotUsed13)                                                       \
-  V(NotUsed14)                                                       \
+#define FOR_EACH_VALUE_KIND(V)                            \
+  V(Void)                                                 \
+  V(Immediate)                                            \
+  V(Literal)                                              \
+  V(Parameter)                                            \
+  V(PhysicalRegister)                                     \
+  V(VirtualRegister)                                      \
+  V(Conditional) /* output of cmp/fcmp instructions. */   \
+  V(Argument)                                             \
+  V(StackSlot) /* stack location for spilled registers */ \
+  V(SpillSlot)                                            \
+  V(FrameSlot)                                            \
+  V(NotUsed11)                                            \
+  V(NotUsed12)                                            \
+  V(NotUsed13)                                            \
+  V(NotUsed14)                                            \
   V(Instruction) /* for ErrorData */
 
 //////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ struct ELANG_LIR_EXPORT Value {
 
   // predicates for |Kind|
   bool is_argument() const { return kind == Kind::Argument; }
-  bool is_condition() const { return kind == Kind::Condition; }
+  bool is_conditional() const { return kind == Kind::Conditional; }
   bool is_frame_slot() const { return kind == Kind::FrameSlot; }
   bool is_immediate() const { return kind == Kind::Immediate; }
   bool is_instruction() const { return kind == Kind::Instruction; }

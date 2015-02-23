@@ -99,7 +99,7 @@ std::ostream& operator<<(std::ostream& ostream,
   switch (value.kind) {
     case Value::Kind::Argument:
       return ostream << "%arg[" << value.data << "]";
-    case Value::Kind::Condition:
+    case Value::Kind::Conditional:
       if (value.data == 0)
         return ostream << "true";
       if (value.data == 1)

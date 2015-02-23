@@ -277,7 +277,7 @@ bool Instruction::IsTerminator() const {
 BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
                                      BasicBlock* false_block) {
-  DCHECK(condition.is_condition());
+  DCHECK(condition.is_conditional());
   InitInput(0, condition);
   InitBlockOperand(0, true_block);
   InitBlockOperand(1, false_block);
@@ -289,7 +289,7 @@ CmpInstruction::CmpInstruction(Value output,
                                Value left,
                                Value right)
     : condition_(condition) {
-  DCHECK(output.is_condition());
+  DCHECK(output.is_conditional());
   DCHECK(left.is_integer());
   DCHECK(right.is_integer());
   DCHECK_EQ(left.size, right.size);
@@ -301,9 +301,9 @@ CmpInstruction::CmpInstruction(Value output,
 base::StringPiece CmpInstruction::mnemonic() const {
   static const char* const mnemonics[] = {
 #define V(Name, mnemonic) "cmp_" mnemonic,
-    FOR_EACH_INTEGER_CONDITION(V)
+      FOR_EACH_INTEGER_CONDITION(V)
 #undef V
-    "cmp_invalid",
+          "cmp_invalid",
   };
   return mnemonics[std::min(static_cast<size_t>(condition()),
                             arraysize(mnemonics) - 1)];
