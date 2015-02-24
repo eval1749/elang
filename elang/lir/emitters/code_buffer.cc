@@ -29,6 +29,7 @@ class CodeBuffer::CodeLocation : public ZoneAllocated {
  public:
   CodeLocation(int buffer_offset, int code_offset);
   CodeLocation();
+  ~CodeLocation();
 
   int buffer_offset() const { return buffer_offset_; }
   int code_offset() const { return code_offset_; }
@@ -51,6 +52,10 @@ CodeBuffer::CodeLocation::CodeLocation()
     : buffer_offset_(-1), code_offset_(-1) {
 }
 
+CodeBuffer::CodeLocation::~CodeLocation() {
+  NOTREACHED();
+}
+
 // Relocate this |CodeLocation|. |delta| can be negative for code alignment
 // adjustment.
 void CodeBuffer::CodeLocation::Relocate(int delta) {
@@ -71,6 +76,7 @@ void CodeBuffer::CodeLocation::Start(int buffer_offset, int code_offset) {
 class CodeBuffer::BasicBlockData : public CodeLocation {
  public:
   BasicBlockData();
+  ~BasicBlockData() = delete;
 
   int code_length() const { return code_length_; }
   void set_code_length(int new_length);
@@ -232,6 +238,7 @@ void CodeBuffer::JumpResolver::UpdateWorkSet(int code_offset) {
 class CodeBuffer::ValueInCode : public CodeLocation {
  public:
   ValueInCode(int buffer_offset, int code_offset, Value value);
+  ~ValueInCode() = delete;
 
   Value value() const { return value_; }
 
