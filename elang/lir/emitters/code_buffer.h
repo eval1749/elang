@@ -5,9 +5,11 @@
 #ifndef ELANG_LIR_EMITTERS_CODE_BUFFER_H_
 #define ELANG_LIR_EMITTERS_CODE_BUFFER_H_
 
+#include <unordered_map>
+#include <vector>
+
 #include "base/basictypes.h"
-#include "elang/base/zone_unordered_map.h"
-#include "elang/base/zone_vector.h"
+#include "elang/base/zone_owner.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -25,46 +27,56 @@ struct Value;
 //
 // CodeBuffer
 //
-class CodeBuffer final {
+class CodeBuffer final : public ZoneOwner {
  public:
-  struct BasicBlockData;
+  struct Jump {
+    int opcode;
+    int opcode_size;
+    int operand_size;
 
-  // CodeValue represents reference to |Value| in code buffer.
-  struct CodeValue {
-    int code_offset;
-    Value value;
-
-    CodeValue() : code_offset(0) {}
-    CodeValue(int code_offset, Value value)
-        : code_offset(code_offset), value(value) {}
+    Jump(int opcode, int opcode_size, int operand_size);
+    int size() const { return opcode_size + operand_size; }
   };
 
-  static_assert(sizeof(CodeValue) == sizeof(int) + sizeof(Value),
-                "CodeValue should be small object.");
-
-  explicit CodeBuffer(Zone* zone);
+  explicit CodeBuffer(const Function* function);
   ~CodeBuffer() = default;
 
+  // Associate |value| to current offset.
   void AssociateValue(Value value);
-  void Finish(const Factory* factory,
-              const Function* function,
-              api::MachineCodeBuilder* builder);
+
+  // Tells code emission is finished.
+  void Finish(const Factory* factory, api::MachineCodeBuilder* builder);
   void Emit16(int value);
   void Emit32(uint32_t value);
   void Emit64(uint64_t value);
   void Emit8(int value);
+  void EmitJump(const Jump& long_jump,
+                const Jump& short_jump,
+                BasicBlock* basic_block);
   void EndBasicBlock();
   void StartBasicBlock(const BasicBlock* basic_block);
 
  private:
+  class BasicBlockData;
+  class CodeLocation;
+  class JumpData;
+  class JumpResolver;
+  class ValueInCode;
+
   int buffer_size() const { return static_cast<int>(bytes_.size()); }
 
-  ZoneUnorderedMap<const BasicBlock*, BasicBlockData*> block_data_map_;
-  ZoneVector<uint8_t> bytes_;
+  void Patch8(int buffer_offset, int value);
+  void Patch32(int buffer_offset, int value);
+  void PatchJump(const JumpData* jump_data);
+  void RelocateAfter(int code_offset, int delta);
+
+  std::vector<BasicBlockData*> block_data_list_;
+  std::unordered_map<const BasicBlock*, BasicBlockData*> block_data_map_;
+  std::vector<uint8_t> bytes_;
   int code_size_;
-  ZoneVector<CodeValue> code_values_;
   BasicBlockData* current_block_data_;
-  Zone* const zone_;
+  std::vector<JumpData*> jump_data_list_;
+  std::vector<ValueInCode*> value_in_code_list_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeBuffer);
 };

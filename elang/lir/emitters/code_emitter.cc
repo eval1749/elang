@@ -4,7 +4,6 @@
 
 #include "elang/lir/emitters/code_emitter.h"
 
-#include "elang/base/zone.h"
 #include "elang/lir/emitters/code_buffer.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
@@ -26,8 +25,7 @@ CodeEmitter::~CodeEmitter() {
 }
 
 void CodeEmitter::Process(const Function* function) {
-  Zone zone;
-  CodeBuffer code_buffer(&zone);
+  CodeBuffer code_buffer(function);
   // Generate codes
   {
     auto const handler = NewInstructionHandler(&code_buffer);
@@ -38,7 +36,7 @@ void CodeEmitter::Process(const Function* function) {
       code_buffer.EndBasicBlock();
     }
   }
-  code_buffer.Finish(factory_, function, builder_);
+  code_buffer.Finish(factory_, builder_);
 }
 
 }  // namespace lir
