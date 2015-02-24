@@ -19,7 +19,9 @@ namespace lir {
 //
 ValueEmitter::ValueEmitter(const Factory* factory,
                            api::MachineCodeBuilder* builder)
-    : builder_(builder), code_offset_(-1), factory_(factory) {
+    : builder_(builder),
+      code_offset_(-1),
+      factory_(factory) {
 }
 
 void ValueEmitter::Emit(int code_offset, Value value) {

@@ -25,7 +25,7 @@ class ValueEmitter : private LiteralVisitor {
   ValueEmitter(const Factory* factory, api::MachineCodeBuilder* builder);
   ~ValueEmitter() = default;
 
-  void Emit(int offset, Value value);
+  void Emit(int code_offset, Value value);
 
  private:
 // LiteralVisitor
@@ -34,8 +34,8 @@ class ValueEmitter : private LiteralVisitor {
 #undef V
 
   api::MachineCodeBuilder* const builder_;
-  const Factory* const factory_;
   int code_offset_;
+  const Factory* const factory_;
 
   DISALLOW_COPY_AND_ASSIGN(ValueEmitter);
 };
