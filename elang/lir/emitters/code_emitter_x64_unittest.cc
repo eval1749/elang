@@ -13,7 +13,6 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/testing/test_machine_code_builder.h"
-#include "gtest/gtest.h"
 
 namespace elang {
 namespace lir {
