@@ -17,7 +17,7 @@ namespace lir {
 namespace {
 // TODO(eval1749) We should move |Is8Bit()| to another place to share code.
 bool Is8Bit(int data) {
-  return (data & 255) == data;
+  return data >= -128 && data <= 127;
 }
 }  // namespace
 
@@ -71,41 +71,80 @@ void CodeBuffer::CodeLocation::Start(int buffer_offset, int code_offset) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// CodeBuffer::BasicBlockData
+// CodeBuffer::CodeBlock
 //
-class CodeBuffer::BasicBlockData : public CodeLocation {
+class CodeBuffer::CodeBlock : public CodeLocation {
  public:
-  BasicBlockData();
-  ~BasicBlockData() = delete;
+  ~CodeBlock() = default;
 
   int code_length() const { return code_length_; }
-  void set_code_length(int new_length);
 
-  void RelocateBlock(int delta);
+  void RelocateCodeBlock(int delta);
+
+ protected:
+  CodeBlock(int buffer_offset, int code_offset, int code_length);
+  CodeBlock();
+
+  void set_code_length(int new_length);
 
  private:
   int code_length_;
 
-  DISALLOW_COPY_AND_ASSIGN(BasicBlockData);
+  DISALLOW_COPY_AND_ASSIGN(CodeBlock);
 };
 
-CodeBuffer::BasicBlockData::BasicBlockData() : code_length_(-1) {
+CodeBuffer::CodeBlock::CodeBlock(int buffer_offset,
+                                 int code_offset,
+                                 int code_length)
+    : CodeLocation(buffer_offset, code_offset), code_length_(code_length) {
 }
 
-void CodeBuffer::BasicBlockData::set_code_length(int new_length) {
+CodeBuffer::CodeBlock::CodeBlock() : code_length_(-1) {
+}
+
+void CodeBuffer::CodeBlock::set_code_length(int new_length) {
   code_length_ = new_length;
 }
 
-void CodeBuffer::BasicBlockData::RelocateBlock(int delta) {
+void CodeBuffer::CodeBlock::RelocateCodeBlock(int delta) {
   Relocate(delta);
   code_length_ += delta;
 }
 
 //////////////////////////////////////////////////////////////////////
 //
+// CodeBuffer::BasicBlockData
+//
+class CodeBuffer::BasicBlockData : public CodeBlock {
+ public:
+  BasicBlockData() = default;
+  ~BasicBlockData() = delete;
+
+  void EndBasicBlock(int code_offset);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BasicBlockData);
+};
+
+void CodeBuffer::BasicBlockData::EndBasicBlock(int code_size) {
+  auto const new_code_length = code_size - code_offset();
+  DCHECK_GE(new_code_length, 0);
+  set_code_length(new_code_length);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// CodeBuffer::Jump
+//
+CodeBuffer::Jump::Jump(int opcode, int opcode_size, int operand_size)
+    : opcode(opcode), opcode_size(opcode_size), operand_size(operand_size) {
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // CodeBuffer::JumpData
 //
-class CodeBuffer::JumpData final : public CodeLocation {
+class CodeBuffer::JumpData final : public CodeBlock {
  public:
   JumpData(int buffer_offset,
            int code_offset,
@@ -139,7 +178,7 @@ CodeBuffer::JumpData::JumpData(int buffer_offset,
                                const Jump& long_jump,
                                const Jump& short_jump,
                                BasicBlockData* target_block)
-    : CodeLocation(buffer_offset, code_offset),
+    : CodeBlock(buffer_offset, code_offset, short_jump.size()),
       is_long_jump_(false),
       long_jump_(long_jump),
       short_jump_(short_jump),
@@ -163,12 +202,13 @@ bool CodeBuffer::JumpData::IsCrossing(int ref_code_offset) const {
 }
 
 int CodeBuffer::JumpData::RelativeOffset() const {
-  return target_block_->code_offset() - code_offset();
+  return target_block_->code_offset() - (code_offset() + jump().size());
 }
 
 const CodeBuffer::Jump& CodeBuffer::JumpData::UseLongJump() {
   DCHECK(!is_long_jump_);
   is_long_jump_ = true;
+  set_code_length(long_jump_.size());
   return long_jump_;
 }
 
@@ -262,11 +302,8 @@ CodeBuffer::ValueInCode::ValueInCode(int buffer_offset,
 // number of re-allocation of internal buffer.
 CodeBuffer::CodeBuffer(const Function* function)
     : code_size_(0), current_block_data_(nullptr) {
-  for (auto const block : function->basic_blocks()) {
-    auto const data = new (zone()) BasicBlockData();
-    block_data_list_.push_back(data);
-    block_data_map_[block] = data;
-  }
+  for (auto const block : function->basic_blocks())
+    block_data_map_[block] = new (zone()) BasicBlockData();
 }
 
 void CodeBuffer::AssociateValue(Value value) {
@@ -282,7 +319,7 @@ void CodeBuffer::Finish(const Factory* factory,
   for (auto const jump_data : jump_data_list_)
     PatchJump(jump_data);
   builder->PrepareCode(code_size_);
-  for (auto const data : block_data_list_) {
+  for (auto const data : code_blocks_) {
     DCHECK_GE(data->buffer_offset(), 0);
     DCHECK_GE(data->code_offset(), 0);
     // TODO(eval1749) Insert target specific NOP instructions for code
@@ -334,26 +371,30 @@ void CodeBuffer::Emit8(int value) {
 void CodeBuffer::EmitJump(const Jump& long_jump,
                           const Jump& short_jump,
                           BasicBlock* target_block) {
-  DCHECK(current_block_data_);
+  EndBasicBlock();
   DCHECK_NE(long_jump.opcode, short_jump.opcode);
   DCHECK_GT(long_jump.size(), short_jump.size());
-  jump_data_list_.push_back(
+  auto const jump_data =
       new (zone()) JumpData(buffer_size(), code_size_, long_jump, short_jump,
-                            block_data_map_[target_block]));
+                            block_data_map_[target_block]);
+  code_blocks_.push_back(jump_data);
+  jump_data_list_.push_back(jump_data);
   // Reserve buffer for long jump.
   bytes_.resize(buffer_size() + long_jump.size());
   code_size_ += short_jump.size();
 }
 
 void CodeBuffer::EndBasicBlock() {
-  DCHECK(current_block_data_);
-  auto const data = current_block_data_;
+  if (!current_block_data_)
+    return;
+  auto const block_data = current_block_data_;
   current_block_data_ = nullptr;
-  data->set_code_length(code_size_ - data->code_offset());
+  block_data->EndBasicBlock(code_size_);
 }
 
 void CodeBuffer::RelocateAfter(int ref_code_offset, int delta) {
   DCHECK_GT(delta, 0);
+  code_size_ += delta;
   for (auto it = jump_data_list_.rbegin(); it != jump_data_list_.rbegin();
        ++it) {
     auto const jump_data = *it;
@@ -361,12 +402,11 @@ void CodeBuffer::RelocateAfter(int ref_code_offset, int delta) {
       continue;
     jump_data->Relocate(delta);
   }
-  for (auto it = block_data_list_.rbegin(); it != block_data_list_.rend();
-       ++it) {
+  for (auto it = code_blocks_.rbegin(); it != code_blocks_.rend(); ++it) {
     auto const block_data = *it;
     if (block_data->code_offset() < ref_code_offset)
       break;
-    block_data->RelocateBlock(delta);
+    block_data->RelocateCodeBlock(delta);
   }
   for (auto it = value_in_code_list_.rbegin(); it != value_in_code_list_.rend();
        ++it) {
@@ -390,25 +430,25 @@ void CodeBuffer::Patch32(int buffer_offset, int value) {
 
 void CodeBuffer::PatchJump(const JumpData* jump_data) {
   auto const jump = jump_data->jump();
-  auto offset = jump_data->buffer_offset();
+  auto buffer_offset = jump_data->buffer_offset();
 
   // Set opcode of jump instruction
   auto opcode = jump.opcode;
   for (auto count = jump.opcode_size; count; --count) {
-    Patch8(offset, opcode);
+    Patch8(buffer_offset, opcode);
     opcode >>= 8;
-    ++offset;
+    ++buffer_offset;
   }
 
   // Set operand of jump instruction
   auto const relative_offset = jump_data->RelativeOffset();
   if (jump.operand_size == 4) {
-    Patch32(offset, relative_offset);
+    Patch32(buffer_offset, relative_offset);
     return;
   }
   if (jump.operand_size == 1) {
     DCHECK(Is8Bit(relative_offset));
-    Patch8(offset, relative_offset);
+    Patch8(buffer_offset, relative_offset);
     return;
   }
   NOTREACHED() << "Unsupported relative offset size" << jump.operand_size;
@@ -418,11 +458,12 @@ void CodeBuffer::StartBasicBlock(const BasicBlock* block) {
   DCHECK(!current_block_data_);
   auto const it = block_data_map_.find(block);
   DCHECK(it != block_data_map_.end());
-  auto const data = it->second;
+  auto const block_data = it->second;
   // TODO(eval1749) If one of incoming edge is back edge, we should align
   // code offset of this block in target's code cache alignment, e.g. 16 bytes.
-  data->Start(buffer_size(), code_size_);
-  current_block_data_ = it->second;
+  block_data->Start(buffer_size(), code_size_);
+  current_block_data_ = block_data;
+  code_blocks_.push_back(block_data);
 }
 
 }  // namespace lir

@@ -35,7 +35,9 @@ source_set("emitters") {
 
 source_set("tests") {
   testonly = true
-  sources = []
+  sources = [
+    "code_buffer_unittest.cc",
+  ]
   public_deps = [
     "//elang/lir:test_support",
   ]

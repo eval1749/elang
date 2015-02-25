@@ -10,6 +10,7 @@
 
 #include "base/basictypes.h"
 #include "elang/base/zone_owner.h"
+#include "elang/lir/lir_export.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -27,9 +28,9 @@ struct Value;
 //
 // CodeBuffer
 //
-class CodeBuffer final : public ZoneOwner {
+class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
  public:
-  struct Jump {
+  struct ELANG_LIR_EXPORT Jump {
     int opcode;
     int opcode_size;
     int operand_size;
@@ -58,6 +59,7 @@ class CodeBuffer final : public ZoneOwner {
 
  private:
   class BasicBlockData;
+  class CodeBlock;
   class CodeLocation;
   class JumpData;
   class JumpResolver;
@@ -70,7 +72,7 @@ class CodeBuffer final : public ZoneOwner {
   void PatchJump(const JumpData* jump_data);
   void RelocateAfter(int code_offset, int delta);
 
-  std::vector<BasicBlockData*> block_data_list_;
+  std::vector<CodeBlock*> code_blocks_;
   std::unordered_map<const BasicBlock*, BasicBlockData*> block_data_map_;
   std::vector<uint8_t> bytes_;
   int code_size_;
