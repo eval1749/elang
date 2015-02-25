@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -189,10 +190,9 @@ std::ostream& operator<<(std::ostream& ostream, IntegerCondition condition) {
 #define V(Name, mnemonic) mnemonic,
       FOR_EACH_INTEGER_CONDITION(V)
 #undef V
-          "invalid",
   };
-  return ostream << names[std::min(static_cast<size_t>(condition),
-                                   arraysize(names) - 1)];
+  auto const it = std::begin(names) + static_cast<size_t>(condition);
+  return ostream << (it < std::end(names) ? *it : "invalid");
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Literal& literal) {
@@ -257,24 +257,24 @@ std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
       FOR_EACH_VALUE_KIND(V)
 #undef V
   };
-  return ostream
-         << kinds[std::min(static_cast<size_t>(kind), arraysize(kinds) - 1)];
+  auto const it = std::begin(kinds) + static_cast<size_t>(kind);
+  return ostream << (it < std::end(kinds) ? *it : "invalid");
 }
 
 std::ostream& operator<<(std::ostream& ostream, const ValueSize& size) {
   static const char* const sizes[] = {
-      "Size8", "Size16", "Size32", "Size64", "Illegal",
+      "Size8", "Size16", "Size32", "Size64",
   };
-  return ostream
-         << sizes[std::min(static_cast<size_t>(size), arraysize(sizes) - 1)];
+  auto const it = std::begin(sizes) + static_cast<size_t>(size);
+  return ostream << (it < std::end(sizes) ? *it : "invalid");
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Type& type) {
   static const char* const types[] = {
-      "Integer", "Float", "Illegal",
+      "Integer", "Float",
   };
-  return ostream
-         << types[std::min(static_cast<size_t>(type), arraysize(types) - 1)];
+  auto const it = std::begin(types) + static_cast<size_t>(type);
+  return ostream << (it < std::end(types) ? *it : "invalid");
 }
 
 //////////////////////////////////////////////////////////////////////

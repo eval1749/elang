@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include "base/logging.h"
@@ -24,10 +24,9 @@ base::StringPiece ToStringPiece(Opcode opcode) {
 #define V(Name, mnemonic, ...) mnemonic,
       FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
-          "Invalid",
   };
-  return mnemonics[std::min(static_cast<size_t>(opcode),
-                            arraysize(mnemonics) - 1)];
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(opcode);
+  return it < std::end(mnemonics) ? *it : "Invalid";
 }
 
 // Implement visitor pattern:
@@ -303,10 +302,9 @@ base::StringPiece CmpInstruction::mnemonic() const {
 #define V(Name, mnemonic) "cmp_" mnemonic,
       FOR_EACH_INTEGER_CONDITION(V)
 #undef V
-          "cmp_invalid",
   };
-  return mnemonics[std::min(static_cast<size_t>(condition()),
-                            arraysize(mnemonics) - 1)];
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(condition());
+  return it < std::end(mnemonics) ? *it : "cmp_invalid";
 }
 
 // EntryInstruction

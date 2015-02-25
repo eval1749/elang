@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
+#include <iterator>
 
 #include "elang/lir/error_data.h"
 
@@ -30,13 +30,13 @@ std::ostream& operator<<(std::ostream& ostream, const ErrorData& error) {
 #define V(category, subcategory, name) #category "." #subcategory "." #name,
       FOR_EACH_LIR_ERROR_CODE(V, V)
 #undef V
-          "Invalid",
   };
 
-  auto const index = std::min(static_cast<size_t>(error.error_code()),
-                              arraysize(mnemonics) - 1);
+  auto const error_code = error.error_code();
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(error_code);
+  auto const mnemonic = it < std::end(mnemonics) ? *it : "invalid";
   auto const literals = error.literals();
-  ostream << mnemonics[index] << "("
+  ostream << mnemonic << "("
           << PrintableValue(literals, error.error_value());
   auto separator = ": ";
   for (auto detail : error.details()) {

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
+#include <iterator>
 
 #include "elang/lir/printer_generic.h"
 
@@ -85,10 +85,9 @@ std::ostream& operator<<(std::ostream& ostream,
 #define V(Name, mnemonic, ...) mnemonic,
       FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
-          "Invalid",
   };
-  return ostream << mnemonics[std::min(static_cast<size_t>(printable.opcode),
-                                       arraysize(mnemonics) - 1)];
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(printable.opcode);
+  return ostream << (it < std::end(mnemonics) ? *it : "Invalid");
 }
 
 std::ostream& operator<<(std::ostream& ostream,

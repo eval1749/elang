@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <iterator>
 #include <ostream>
 #include <string>
 
@@ -205,7 +206,8 @@ std::vector<Value> Target::AllocatableGeneralRegisters() {
 
 Value Target::GetArgumentAt(Value output, int position) {
   DCHECK_GE(position, 0);
-  if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
+  auto const it = std::begin(isa::kIntegerParameters) + position;
+  if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
                                           : isa::kIntegerParameters[position];
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
@@ -216,7 +218,8 @@ Value Target::GetArgumentAt(Value output, int position) {
 
 Value Target::GetParameterAt(Value output, int position) {
   DCHECK_GE(position, 0);
-  if (position < static_cast<int>(arraysize(isa::kIntegerParameters))) {
+  auto const it = std::begin(isa::kIntegerParameters) + position;
+  if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
                                           : isa::kIntegerParameters[position];
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
