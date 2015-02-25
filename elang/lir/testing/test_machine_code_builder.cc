@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+#include <vector>
+
 #include "elang/lir/testing/test_machine_code_builder.h"
 
 #include "base/logging.h"
@@ -10,6 +13,86 @@
 
 namespace elang {
 namespace lir {
+
+namespace {
+//////////////////////////////////////////////////////////////////////
+//
+// BytesPrinter
+//
+class BytesPrinter final {
+ public:
+  explicit BytesPrinter(std::ostream* ostream)
+      : offset_(0), ostream_(*ostream), repeated_(0x100), repeat_times_(0) {}
+
+  ~BytesPrinter() {
+    PrintRepat();
+    PrintBytes();
+  }
+
+  void Feed(uint8_t byte) {
+    bytes_.push_back(byte);
+    if (bytes_.size() < 16)
+      return;
+
+    if (IsRepeated()) {
+      bytes_.resize(0);
+      repeat_times_ += 16;
+      return;
+    }
+
+    PrintRepat();
+
+    repeated_ = byte;
+    if (IsRepeated()) {
+      bytes_.resize(0);
+      repeat_times_ = 16;
+      return;
+    }
+
+    PrintBytes();
+  }
+
+ private:
+  bool IsRepeated() const {
+    for (auto const byte : bytes_) {
+      if (byte != repeated_)
+        return false;
+    }
+    return true;
+  }
+
+  void PrintRepat() {
+    if (!repeat_times_)
+      return;
+    ostream_ << base::StringPrintf("%04X ... 0x%02X x %d ...", offset_,
+                                   repeated_, repeat_times_);
+    ostream_ << std::endl;
+    offset_ += repeat_times_;
+    repeated_ = 0x100;
+    repeat_times_ = 0;
+  }
+
+  void PrintBytes() {
+    if (bytes_.empty())
+      return;
+    ostream_ << base::StringPrintf("%04X", offset_);
+    for (auto byte : bytes_)
+      ostream_ << base::StringPrintf(" %02X", byte);
+    ostream_ << std::endl;
+    offset_ += static_cast<int>(bytes_.size());
+    bytes_.resize(0);
+  }
+
+  std::vector<uint8_t> bytes_;
+  int offset_;
+  int repeated_;
+  int repeat_times_;
+  std::ostream& ostream_;
+
+  DISALLOW_COPY_AND_ASSIGN(BytesPrinter);
+};
+
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -22,18 +105,11 @@ TestMachineCodeBuilder::~TestMachineCodeBuilder() {
 }
 
 std::string TestMachineCodeBuilder::GetResult() {
-  auto offset = 0;
-  for (auto byte : bytes_) {
-    if (!(offset & 15)) {
-      if (offset)
-        stream_ << std::endl;
-      stream_ << base::StringPrintf("%04X", offset);
-    }
-    stream_ << base::StringPrintf(" %02X", byte);
-    ++offset;
+  {
+    BytesPrinter printer(&stream_);
+    for (auto const byte : bytes_)
+      printer.Feed(byte);
   }
-  if (offset & 15)
-    stream_ << std::endl;
   return stream_.str();
 }
 
