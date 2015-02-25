@@ -88,6 +88,58 @@ TEST_F(CodeBufferTest, JumpBasic) {
   EXPECT_EQ("0000 73 01 4E 62 FD 73 00 52\n", builder.GetResult());
 }
 
+// entry:
+//  jump block2
+// block1:
+//  NOP
+// block2:
+//  ... NOP x 96 ...
+//  br %b, block1, block3
+// block3:
+//  ret
+//
+TEST_F(CodeBufferTest, JumpLong) {
+  auto const function = CreateFunctionEmptySample();
+
+  Editor editor(factory(), function);
+  auto const block1 = editor.NewBasicBlock(editor.exit_block());
+  auto const block2 = editor.NewBasicBlock(editor.exit_block());
+  auto const block3 = editor.NewBasicBlock(editor.exit_block());
+
+  CodeBuffer code_buffer(function);
+
+  code_buffer.StartBasicBlock(editor.entry_block());
+  code_buffer.EmitJump(long_jump(), short_jump(), block2);
+  code_buffer.EndBasicBlock();
+
+  code_buffer.StartBasicBlock(block1);
+  code_buffer.Emit8(Nop);
+  code_buffer.EndBasicBlock();
+
+  code_buffer.StartBasicBlock(block2);
+  for (auto index = 0; index < 135; ++index)
+    code_buffer.Emit8(Nop);
+  code_buffer.EmitJump(long_branch(), short_branch(), block1);
+  code_buffer.EmitJump(long_jump(), short_jump(), block3);
+  code_buffer.EndBasicBlock();
+
+  code_buffer.StartBasicBlock(block3);
+  code_buffer.Emit8(Ret);
+  code_buffer.EndBasicBlock();
+
+  code_buffer.StartBasicBlock(editor.exit_block());
+  code_buffer.EndBasicBlock();
+
+  TestMachineCodeBuilder builder;
+  code_buffer.Finish(factory(), &builder);
+  EXPECT_EQ(
+      "0000 73 01 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E\n"
+      "0010 ... 0x4E x 112 ...\n"
+      "0080 4E 4E 4E 4E 4E 4E 4E 4E 4E 4E 00 42 72 FF FF FF\n"
+      "0090 73 00 52\n",
+      builder.GetResult());
+}
+
 }  // namespace
 }  // namespace lir
 }  // namespace elang

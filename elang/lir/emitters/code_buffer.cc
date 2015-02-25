@@ -79,8 +79,6 @@ class CodeBuffer::CodeBlock : public CodeLocation {
 
   int code_length() const { return code_length_; }
 
-  void RelocateCodeBlock(int delta);
-
  protected:
   CodeBlock(int buffer_offset, int code_offset, int code_length);
   CodeBlock();
@@ -104,11 +102,6 @@ CodeBuffer::CodeBlock::CodeBlock() : code_length_(-1) {
 
 void CodeBuffer::CodeBlock::set_code_length(int new_length) {
   code_length_ = new_length;
-}
-
-void CodeBuffer::CodeBlock::RelocateCodeBlock(int delta) {
-  Relocate(delta);
-  code_length_ += delta;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -319,16 +312,18 @@ void CodeBuffer::Finish(const Factory* factory,
   for (auto const jump_data : jump_data_list_)
     PatchJump(jump_data);
   builder->PrepareCode(code_size_);
-  for (auto const data : code_blocks_) {
-    DCHECK_GE(data->buffer_offset(), 0);
-    DCHECK_GE(data->code_offset(), 0);
+  auto code_offset = 0;
+  for (auto const code_block : code_blocks_) {
+    DCHECK_GE(code_block->buffer_offset(), 0);
+    DCHECK_EQ(code_offset, code_block->code_offset());
+    code_offset += code_block->code_length();
     // TODO(eval1749) Insert target specific NOP instructions for code
     // alignment.
-    if (!data->code_length())
+    if (!code_block->code_length())
       continue;
-    DCHECK_GT(data->code_length(), 0);
-    builder->EmitCode(bytes_.data() + data->buffer_offset(),
-                      data->code_length());
+    DCHECK_GT(code_block->code_length(), 0);
+    builder->EmitCode(bytes_.data() + code_block->buffer_offset(),
+                      code_block->code_length());
   }
   ValueEmitter value_emitter(factory, builder);
   for (auto const value_in_code : value_in_code_list_)
@@ -398,20 +393,20 @@ void CodeBuffer::RelocateAfter(int ref_code_offset, int delta) {
   for (auto it = jump_data_list_.rbegin(); it != jump_data_list_.rbegin();
        ++it) {
     auto const jump_data = *it;
-    if (jump_data->code_offset() < ref_code_offset)
+    if (jump_data->code_offset() <= ref_code_offset)
       continue;
     jump_data->Relocate(delta);
   }
   for (auto it = code_blocks_.rbegin(); it != code_blocks_.rend(); ++it) {
     auto const block_data = *it;
-    if (block_data->code_offset() < ref_code_offset)
+    if (block_data->code_offset() <= ref_code_offset)
       break;
-    block_data->RelocateCodeBlock(delta);
+    block_data->Relocate(delta);
   }
   for (auto it = value_in_code_list_.rbegin(); it != value_in_code_list_.rend();
        ++it) {
     auto const value_in_code = *it;
-    if (value_in_code->code_offset() < ref_code_offset)
+    if (value_in_code->code_offset() <= ref_code_offset)
       break;
     value_in_code->Relocate(delta);
   }
@@ -422,27 +417,30 @@ void CodeBuffer::Patch8(int buffer_offset, int value) {
 }
 
 void CodeBuffer::Patch32(int buffer_offset, int value) {
-  bytes_[buffer_offset] = static_cast<uint8_t>(value >> 24);
-  bytes_[buffer_offset + 1] = static_cast<uint8_t>(value >> 16);
-  bytes_[buffer_offset + 2] = static_cast<uint8_t>(value >> 8);
-  bytes_[buffer_offset + 3] = static_cast<uint8_t>(value);
+  bytes_[buffer_offset] = static_cast<uint8_t>(value);
+  bytes_[buffer_offset + 1] = static_cast<uint8_t>(value >> 8);
+  bytes_[buffer_offset + 2] = static_cast<uint8_t>(value >> 16);
+  bytes_[buffer_offset + 3] = static_cast<uint8_t>(value >> 24);
 }
 
 void CodeBuffer::PatchJump(const JumpData* jump_data) {
   auto const jump = jump_data->jump();
+  DCHECK_LE(jump.opcode_size, 2);
   auto buffer_offset = jump_data->buffer_offset();
 
   // Set opcode of jump instruction
   auto opcode = jump.opcode;
-  for (auto count = jump.opcode_size; count; --count) {
-    Patch8(buffer_offset, opcode);
-    opcode >>= 8;
+  if (jump.opcode_size == 2) {
+    Patch8(buffer_offset, opcode >> 8);
     ++buffer_offset;
   }
+  Patch8(buffer_offset, opcode);
+  ++buffer_offset;
 
   // Set operand of jump instruction
   auto const relative_offset = jump_data->RelativeOffset();
   if (jump.operand_size == 4) {
+    DCHECK(!Is8Bit(relative_offset));
     Patch32(buffer_offset, relative_offset);
     return;
   }
