@@ -32,7 +32,7 @@ int64_t MinusOne64 = static_cast<int64_t>(-1);
 int64_t One64 = static_cast<int64_t>(1);
 
 bool Is8Bit(int data) {
-  return (data & 255) == data;
+  return data >= -128 && data <= 127;
 }
 
 bool Is32Bit(int64_t data) {
