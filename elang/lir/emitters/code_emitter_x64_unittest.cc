@@ -199,6 +199,32 @@ TEST_F(CodeEmitterX64Test, AddInt8) {
       Emit(function));
 }
 
+TEST_F(CodeEmitterX64Test, Branch) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  auto const block1 = editor.NewBasicBlock(function->exit_block());
+  auto const block2 = editor.NewBasicBlock(function->exit_block());
+
+  editor.Edit(function->entry_block());
+  auto const conditional = NewConditional();
+  editor.Append(NewCmpInstruction(conditional, IntegerCondition::SignedLessThan,
+                                  Target::GetRegister(isa::EAX),
+                                  Target::GetRegister(isa::EBX)));
+  editor.SetBranch(conditional, block1, block2);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(block1);
+  editor.SetReturn();
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(block2);
+  editor.SetReturn();
+  ASSERT_EQ("", Commit(&editor));
+
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ("0000 39 D8 7D 01 C3 C3\n", Emit(function));
+}
+
 TEST_F(CodeEmitterX64Test, Call) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);

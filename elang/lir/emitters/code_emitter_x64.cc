@@ -27,6 +27,7 @@ using isa::Rm;
 using isa::Rex;
 using isa::Scale;
 using isa::Tttn;
+typedef CodeBuffer::Jump Jump;
 
 int64_t MinusOne64 = static_cast<int64_t>(-1);
 int64_t One64 = static_cast<int64_t>(1);
@@ -72,6 +73,41 @@ isa::Register ToRegister(Value reg) {
 }
 #endif
 
+isa::Tttn ToTttn(IntegerCondition condition) {
+  static const isa::Tttn tttns[] = {
+      isa::Tttn::NotEqual,        // 0
+      isa::Tttn::GreaterOrEqual,  // 1
+      isa::Tttn::GreaterThan,     // 2
+      isa::Tttn::AboveOrEqual,    // 3
+      isa::Tttn::Above,           // 4
+
+      // Fillers for unassigned |IntegerCondition|.
+      isa::Tttn::Parity,  // 5
+      isa::Tttn::Parity,  // 6
+      isa::Tttn::Parity,  // 7
+      isa::Tttn::Parity,  // 8
+      isa::Tttn::Parity,  // 9
+      isa::Tttn::Parity,  // 10
+
+      isa::Tttn::BelowOrEqual,     // 11
+      isa::Tttn::Below,            // 12
+      isa::Tttn::LessThanOrEqual,  // 13
+      isa::Tttn::LessThan,         // 14
+      isa::Tttn::Equal,            // 15
+  };
+  auto const it = std::begin(tttns) + static_cast<size_t>(condition);
+  DCHECK(it < std::end(tttns));
+  return *it;
+}
+
+CodeBuffer::Jump JumpOf(isa::Opcode opcode,
+                        isa::Tttn tttn,
+                        int opcode_size,
+                        int operand_size) {
+  return CodeBuffer::Jump(static_cast<int>(opcode) + static_cast<int>(tttn),
+                          opcode_size, operand_size);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // InstructionHandlerX64
@@ -83,6 +119,9 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   ~InstructionHandlerX64() final = default;
 
  private:
+  void EmitBranch(IntegerCondition condition, BasicBlock* target_block);
+  void EmitBranch(BasicBlock* target_block);
+  // Emit Iz (imm8, imm16 or imm32) operand.
   void EmitIz(Value output, int imm);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
@@ -119,11 +158,14 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   int32_t Int32ValueOf(Value literal) const;
   int64_t Int64ValueOf(Value literal) const;
 
+  IntegerCondition UseCondition(Instruction* user);
+
   // InstructionVisitor
   void VisitAdd(AddInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
+  void VisitBranch(BranchInstruction* instr) final;
   void VisitCall(CallInstruction* instr) final;
   void VisitCmp(CmpInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
@@ -136,12 +178,33 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 
   const Factory* const factory_;
 
+  // Last 'cmp' instruction in current processing basic block for
+  // detecting condition code of conditional register in 'br' and 'if'
+  // instruction.
+  Instruction* last_cmp_instruction_;
+
   DISALLOW_COPY_AND_ASSIGN(InstructionHandlerX64);
 };
 
 InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
                                              CodeBuffer* code_buffer)
-    : CodeBufferUser(code_buffer), factory_(factory) {
+    : CodeBufferUser(code_buffer),
+      factory_(factory),
+      last_cmp_instruction_(nullptr) {
+}
+
+void InstructionHandlerX64::EmitBranch(IntegerCondition condition,
+                                       BasicBlock* target_block) {
+  auto const tttn = ToTttn(condition);
+  auto const long_branch = JumpOf(isa::Opcode::Jcc_Jv, tttn, 2, 4);
+  auto const short_branch = JumpOf(isa::Opcode::Jcc_Jb, tttn, 1, 1);
+  code_buffer()->EmitJump(long_branch, short_branch, target_block);
+}
+
+void InstructionHandlerX64::EmitBranch(BasicBlock* target_block) {
+  Jump long_branch(static_cast<int>(isa::Opcode::JMP_Jv), 1, 4);
+  Jump short_branch(static_cast<int>(isa::Opcode::JMP_Jb), 1, 1);
+  code_buffer()->EmitJump(long_branch, short_branch, target_block);
 }
 
 void InstructionHandlerX64::EmitIz(Value output, int imm) {
@@ -326,6 +389,9 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   DCHECK_EQ(left.size, right.size);
   DCHECK_EQ(left.type, right.type);
 
+  // Remember instruction which updates EFLAGS.
+  last_cmp_instruction_ = instr;
+
   if (left.is_8bit()) {
     if (right.is_physical()) {
       // 00 /r: ADD r/m8, r8
@@ -399,7 +465,7 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   EmitIz(left, imm32);
 }
 
-// Emit code for Shl, Shl, UShr instrutions.
+// Emit code for Shl, Shl, UShr instructions.
 //
 // Opcode extension:
 //  SAL/SHL=4, SAR=7, SHR=5
@@ -417,6 +483,8 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
   auto const count = instr->input(1);
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0));
+
+  last_cmp_instruction_ = instr;
 
   EmitRexPrefix(output);
 
@@ -486,6 +554,14 @@ int64_t InstructionHandlerX64::Int64ValueOf(Value value) const {
     return i64->data();
   NOTREACHED() << value << " isn't 32-bit literal";
   return 0;
+}
+
+IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) {
+  auto const cmp_instr = last_cmp_instruction_->as<CmpInstruction>();
+  DCHECK(cmp_instr) << "Not cmp instruction" << *last_cmp_instruction_;
+  DCHECK_EQ(cmp_instr->output(0), user->input(0));
+  last_cmp_instruction_ = nullptr;
+  return cmp_instr->condition();
 }
 
 // InstructionVisitor
@@ -565,6 +641,33 @@ void InstructionHandlerX64::VisitBitXor(BitXorInstruction* instr) {
     return;
   }
   NOTREACHED() << "float bitxor: " << *instr;
+}
+
+// 'br' instruction emits one 'Jcc' instruction and one 'JMP' instruction if
+// target block isn't next block. Forward reference of target block and
+// relative address are resolved by |CodeBuffer|.
+//
+// 70+tttn cb   Jcc Jb
+// 0F 87 cv     Jcc Jv
+// EB cb        JMP rel8
+// E9 cd        JMP rel32
+void InstructionHandlerX64::VisitBranch(BranchInstruction* instr) {
+  auto const true_block = instr->block_operand(0);
+  auto const false_block = instr->block_operand(1);
+  DCHECK_NE(true_block, false_block);
+
+  auto const condition = UseCondition(instr);
+  auto const next_block = instr->basic_block()->next();
+  if (next_block == true_block) {
+    EmitBranch(CommuteCondition(condition), false_block);
+    return;
+  }
+
+  EmitBranch(condition, true_block);
+  if (next_block == false_block)
+    return;
+
+  EmitBranch(false_block);
 }
 
 void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
