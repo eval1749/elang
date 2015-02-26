@@ -299,7 +299,7 @@ CmpInstruction::CmpInstruction(Value output,
 
 base::StringPiece CmpInstruction::mnemonic() const {
   static const char* const mnemonics[] = {
-#define V(Name, mnemonic) "cmp_" mnemonic,
+#define V(Name, mnemonic, ...) "cmp_" mnemonic,
       FOR_EACH_INTEGER_CONDITION(V)
 #undef V
   };

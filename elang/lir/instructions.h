@@ -32,24 +32,30 @@ class Factory;
 //////////////////////////////////////////////////////////////////////
 //
 // IntegerCondition
+// Make |CommuteCondition()| to simple, condition ^ 15, we assign constant
+// to each codnition.
 //
-#define FOR_EACH_INTEGER_CONDITION(V)  \
-  V(Equal, "eq")                       \
-  V(NotEqual, "ne")                    \
-  V(SignedGreaterThanOrEqual, "ge")    \
-  V(SignedGreaterThan, "gt")           \
-  V(SignedLessThanOrEqual, "le")       \
-  V(SignedLessThan, "lt")              \
-  V(UnsignedGreaterThanOrEqual, "uge") \
-  V(UnsignedGreaterThan, "ugt")        \
-  V(UnsignedLessThanOrEqual, "ule")    \
-  V(UnsignedLessThan, "le")
+#define FOR_EACH_INTEGER_CONDITION(V)     \
+  V(Equal, "eq", 0)                       \
+  V(NotEqual, "ne", 15)                   \
+  V(SignedGreaterThanOrEqual, "ge", 1)    \
+  V(SignedLessThan, "lt", 14)             \
+  V(SignedGreaterThan, "gt", 2)           \
+  V(SignedLessThanOrEqual, "le", 13)      \
+  V(UnsignedGreaterThanOrEqual, "uge", 3) \
+  V(UnsignedLessThan, "le", 12)           \
+  V(UnsignedLessThanOrEqual, "ule", 4)    \
+  V(UnsignedGreaterThan, "ugt", 11)
 
 enum class IntegerCondition {
-#define V(Name, mnemonic) Name,
+#define V(Name, mnemonic, value) Name = value,
   FOR_EACH_INTEGER_CONDITION(V)
 #undef V
 };
+
+inline IntegerCondition CommuteCondition(IntegerCondition condition) {
+  return static_cast<IntegerCondition>(static_cast<int>(condition) ^ 15);
+}
 
 //////////////////////////////////////////////////////////////////////
 //
