@@ -27,16 +27,19 @@ class CodeEmitterX64Test : public testing::LirTest {
   CodeEmitterX64Test() = default;
   ~CodeEmitterX64Test() override = default;
 
-  std::string Emit(Function* function);
+  std::string Emit(Editor* editor);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CodeEmitterX64Test);
 };
 
-std::string CodeEmitterX64Test::Emit(Function* function) {
+std::string CodeEmitterX64Test::Emit(Editor* editor) {
+  auto const result = Validate(editor);
+  if (!result.empty())
+    return result;
   TestMachineCodeBuilder builder;
   CodeEmitter emitter(factory(), &builder);
-  emitter.Process(function);
+  emitter.Process(editor->function());
   return builder.GetResult();
 }
 
@@ -73,14 +76,14 @@ TEST_F(CodeEmitterX64Test, AddInt16) {
   editor.Append(NewAddInstruction(r9w, r9w, imm8));
   editor.Append(NewAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 66 05 37 09 66 81 C3 37 09 66 41 81 C1 37 09 66\n"
       "0010 81 45 21 37 09 66 01 C3 66 44 01 CB 66 41 01 D9\n"
       "0020 66 01 5D 21 66 44 01 4D 21 66 03 5D 21 66 44 03\n"
       "0030 4D 21 66 83 C3 2A 66 41 83 C1 2A 66 83 45 21 2A\n"
       "0040 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, AddInt32) {
@@ -114,13 +117,13 @@ TEST_F(CodeEmitterX64Test, AddInt32) {
   editor.Append(NewAddInstruction(r9d, r9d, imm8));
   editor.Append(NewAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 05 37 09 00 00 81 C3 37 09 00 00 41 81 C1 37 09\n"
       "0010 00 00 81 45 21 37 09 00 00 01 C3 44 01 CB 41 01\n"
       "0020 D9 01 5D 21 44 01 4D 21 03 5D 21 44 03 4D 21 83\n"
       "0030 C3 2A 41 83 C1 2A 83 45 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, AddInt64) {
@@ -154,14 +157,14 @@ TEST_F(CodeEmitterX64Test, AddInt64) {
   editor.Append(NewAddInstruction(r9, r9, imm8));
   editor.Append(NewAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 48 05 37 09 00 00 48 81 C3 37 09 00 00 49 81 C1\n"
       "0010 37 09 00 00 48 81 45 21 37 09 00 00 48 01 C3 4C\n"
       "0020 01 CB 49 01 D9 48 01 5D 21 4C 01 4D 21 48 03 5D\n"
       "0030 21 4C 03 4D 21 48 83 C3 2A 49 83 C1 2A 48 83 45\n"
       "0040 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, AddInt8) {
@@ -191,12 +194,12 @@ TEST_F(CodeEmitterX64Test, AddInt8) {
   editor.Append(NewAddInstruction(dil, dil, var33));
   editor.Append(NewAddInstruction(r9b, r9b, var33));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 04 2A 80 C3 2A 40 80 C7 2A 41 80 C1 2A 80 45 21\n"
       "0010 2A 00 5D 21 40 00 7D 21 44 00 4D 21 02 5D 21 40\n"
       "0020 02 7D 21 44 02 4D 21 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, Branch) {
@@ -221,8 +224,8 @@ TEST_F(CodeEmitterX64Test, Branch) {
   editor.SetReturn();
   ASSERT_EQ("", Commit(&editor));
 
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 39 D8 7D 01 C3 C3\n", Emit(function));
+
+  EXPECT_EQ("0000 39 D8 7D 01 C3 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, Call) {
@@ -231,11 +234,11 @@ TEST_F(CodeEmitterX64Test, Call) {
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewCallInstruction(NewStringValue8("Foo")));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "string +0001 \"Foo\"\n"
       "0000 E8 00 00 00 00 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, CmpInt32) {
@@ -271,13 +274,13 @@ TEST_F(CodeEmitterX64Test, CmpInt32) {
   editor.Append(NewCmpInstruction(cond, eq, r9d, imm8));
   editor.Append(NewCmpInstruction(cond, eq, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 3D 37 09 00 00 81 FB 37 09 00 00 41 81 F9 37 09\n"
       "0010 00 00 81 7D 21 37 09 00 00 39 C3 44 39 CB 41 39\n"
       "0020 D9 39 5D 21 44 39 4D 21 3B 5D 21 44 3B 4D 21 83\n"
       "0030 FB 2A 41 83 F9 2A 83 7D 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, CopyInt16) {
@@ -328,7 +331,7 @@ TEST_F(CodeEmitterX64Test, CopyInt16) {
   editor.Append(NewCopyInstruction(var33, r9w));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 66 8B C3 66 8B C7 66 41 8B C0 66 41 8B C1 66 8B\n"
       "0010 45 21 66 8B D8 66 8B DF 66 41 8B D8 66 41 8B D9\n"
@@ -338,7 +341,7 @@ TEST_F(CodeEmitterX64Test, CopyInt16) {
       "0050 44 8B CB 66 44 8B CF 66 45 8B C8 66 44 8B 4D 21\n"
       "0060 66 89 45 21 66 89 5D 21 66 89 7D 21 66 44 89 45\n"
       "0070 21 66 44 89 4D 21 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, CopyInt32) {
@@ -389,7 +392,7 @@ TEST_F(CodeEmitterX64Test, CopyInt32) {
   editor.Append(NewCopyInstruction(var33, r9d));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 8B C3 8B C7 41 8B C0 41 8B C1 8B 45 21 8B D8 8B\n"
       "0010 DF 41 8B D8 41 8B D9 8B 5D 21 8B F8 8B FB 41 8B\n"
@@ -397,7 +400,7 @@ TEST_F(CodeEmitterX64Test, CopyInt32) {
       "0030 45 8B C1 44 8B 45 21 44 8B C8 44 8B CB 44 8B CF\n"
       "0040 45 8B C8 44 8B 4D 21 89 45 21 89 5D 21 89 7D 21\n"
       "0050 44 89 45 21 44 89 4D 21 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, CopyInt64) {
@@ -448,7 +451,7 @@ TEST_F(CodeEmitterX64Test, CopyInt64) {
   editor.Append(NewCopyInstruction(var33, r9));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 48 8B C3 48 8B C7 49 8B C0 49 8B C1 48 8B 45 21\n"
       "0010 48 8B D8 48 8B DF 49 8B D8 49 8B D9 48 8B 5D 21\n"
@@ -457,7 +460,7 @@ TEST_F(CodeEmitterX64Test, CopyInt64) {
       "0040 4C 8B C8 4C 8B CB 4C 8B CF 4D 8B C8 4C 8B 4D 21\n"
       "0050 48 89 45 21 48 89 5D 21 48 89 7D 21 4C 89 45 21\n"
       "0060 4C 89 4D 21 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, CopyInt8) {
@@ -508,7 +511,7 @@ TEST_F(CodeEmitterX64Test, CopyInt8) {
   editor.Append(NewCopyInstruction(var33, r9b));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 8A C3 40 8A C7 41 8A C0 41 8A C1 8A 45 21 8A D8\n"
       "0010 40 8A DF 41 8A D8 41 8A D9 8A 5D 21 40 8A F8 40\n"
@@ -516,12 +519,13 @@ TEST_F(CodeEmitterX64Test, CopyInt8) {
       "0030 8A C3 44 8A C7 45 8A C1 44 8A 45 21 44 8A C8 44\n"
       "0040 8A CB 44 8A CF 45 8A C8 44 8A 4D 21 88 45 21 88\n"
       "0050 5D 21 40 88 7D 21 44 88 45 21 44 88 4D 21 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, Empty) {
   auto const function = factory()->NewFunction({});
-  EXPECT_EQ("0000 C3\n", Emit(function));
+  Editor editor(factory(), function);
+  EXPECT_EQ("0000 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, FrameSlot) {
@@ -533,8 +537,8 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   editor.Append(NewCopyInstruction(Value::FrameSlot(Value::Int32Type(), 8),
                                    Target::GetRegister(isa::EDX)));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 48 8B 05 89 55 08 C3\n", Emit(function));
+
+  EXPECT_EQ("0000 48 8B 05 89 55 08 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, LiteralInt16) {
@@ -553,11 +557,11 @@ TEST_F(CodeEmitterX64Test, LiteralInt16) {
   editor.Append(NewLiteralInstruction(r9w, imm16));
   editor.Append(NewLiteralInstruction(var33, imm16));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 66 B8 2A 00 66 BB 2A 00 66 BF 2A 00 66 41 B9 2A\n"
       "0010 00 66 C7 45 21 2A 00 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, LiteralInt32) {
@@ -586,13 +590,13 @@ TEST_F(CodeEmitterX64Test, LiteralInt32) {
   editor.Append(NewLiteralInstruction(var33, imm32));
   editor.Append(NewLiteralInstruction(var33, imm32x));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 B8 2A 00 00 00 B8 44 55 66 77 BB 2A 00 00 00 BB\n"
       "0010 44 55 66 77 BF 2A 00 00 00 BF 44 55 66 77 41 B9\n"
       "0020 2A 00 00 00 41 B9 44 55 66 77 C7 45 21 2A 00 00\n"
       "0030 00 C7 45 21 44 55 66 77 C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, LiteralInt64) {
@@ -639,7 +643,7 @@ TEST_F(CodeEmitterX64Test, LiteralInt64) {
   // Note: There are no instruction to store 64-bit integer to 64-bit memory.
   // So, we can't use |LiteralInstruction| with |var33| and |imm64x|.
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 B8 2A 00 00 00 B8 44 55 66 77 B8 2A 00 00 00 48\n"
       "0010 B8 00 11 22 33 44 55 66 77 C7 C0 D6 FF FF FF 48\n"
@@ -651,7 +655,7 @@ TEST_F(CodeEmitterX64Test, LiteralInt64) {
       "0070 C1 D6 FF FF FF 49 B9 00 EF DD CC BB AA 99 88 C7\n"
       "0080 45 21 2A 00 00 00 C7 45 21 44 55 66 77 C7 45 21\n"
       "0090 2A 00 00 00 C7 45 21 D6 FF FF FF C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, LiteralInt8) {
@@ -670,9 +674,9 @@ TEST_F(CodeEmitterX64Test, LiteralInt8) {
   editor.Append(NewLiteralInstruction(r9b, imm8));
   editor.Append(NewLiteralInstruction(var33, imm8));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ("0000 B0 2A B3 2A 40 B7 2A 41 B1 2A C6 45 21 2A C3\n",
-            Emit(function));
+            Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, ShlInt16) {
@@ -704,12 +708,12 @@ TEST_F(CodeEmitterX64Test, ShlInt16) {
   editor.Append(NewShlInstruction(var33, var33, imm32));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 66 D1 E0 66 D3 E0 66 C1 E0 2A 66 D1 E3 66 D3 E3\n"
       "0010 66 C1 E3 2A 66 41 D1 E1 66 41 D3 E1 66 41 C1 E1\n"
       "0020 2A 66 D1 65 21 66 D3 65 21 66 C1 65 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, ShlInt32) {
@@ -742,12 +746,12 @@ TEST_F(CodeEmitterX64Test, ShlInt32) {
   editor.Append(NewShlInstruction(var33, var33, imm32));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 D1 E0 D3 E0 C1 E0 2A D1 E3 D3 E3 C1 E3 2A 41 D1\n"
       "0010 E1 41 D3 E1 41 C1 E1 2A D1 65 21 D3 65 21 C1 65\n"
       "0020 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, ShrInt8) {
@@ -784,12 +788,12 @@ TEST_F(CodeEmitterX64Test, ShrInt8) {
   editor.Append(NewShrInstruction(var33, var33, imm32));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 D0 F8 D2 F8 C0 F8 2A D0 FB D2 FB C0 FB 2A 40 D0\n"
       "0010 FF 40 D2 FF 40 C0 FF 2A 41 D0 F9 41 D2 F9 41 C0\n"
       "0020 F9 2A D0 7D 21 D2 7D 21 C0 7D 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, StackSlot) {
@@ -801,8 +805,8 @@ TEST_F(CodeEmitterX64Test, StackSlot) {
   editor.Append(NewCopyInstruction(Value::StackSlot(Value::Int32Type(), 8),
                                    Target::GetRegister(isa::EDX)));
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-  EXPECT_EQ("0000 48 8B 04 24 89 54 24 08 C3\n", Emit(function));
+
+  EXPECT_EQ("0000 48 8B 04 24 89 54 24 08 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, UShrInt64) {
@@ -834,12 +838,12 @@ TEST_F(CodeEmitterX64Test, UShrInt64) {
   editor.Append(NewUShrInstruction(var33, var33, imm32));
 
   ASSERT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
+
   EXPECT_EQ(
       "0000 48 D1 E8 48 D3 E8 48 C1 E8 2A 48 D1 EB 48 D3 EB\n"
       "0010 48 C1 EB 2A 49 D1 E9 49 D3 E9 49 C1 E9 2A 48 D1\n"
       "0020 6D 21 48 D3 6D 21 48 C1 6D 21 2A C3\n",
-      Emit(function));
+      Emit(&editor));
 }
 
 }  // namespace
