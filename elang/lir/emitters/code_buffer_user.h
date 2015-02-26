@@ -22,6 +22,8 @@ class CodeBufferUser {
   explicit CodeBufferUser(CodeBuffer* code_buffer);
   ~CodeBufferUser();
 
+  CodeBuffer* code_buffer() const { return code_buffer_; }
+
   void AssociateValue(Value value);
   void Emit16(int data);
   void Emit32(uint32_t data);
