@@ -117,6 +117,9 @@ struct ELANG_LIR_EXPORT Value {
   static int SizeOf(Value value) { return 1 << Log2Of(value); }
   static int Log2Of(Value value) { return static_cast<int>(value.size); }
 
+  // |Value::Type|
+  static Value TypeOf(Value value);
+
   static Value Argument(Value type, int data);
   static Value False();
   static Value Float32Literal();

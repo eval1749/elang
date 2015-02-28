@@ -14,6 +14,21 @@ bool Value::is_memory_slot() const {
          is_frame_slot() || is_spill_slot();
 }
 
+bool Value::is_output() const {
+  switch (kind) {
+    case Kind::Argument:
+    case Kind::Conditional:
+    case Kind::FrameSlot:
+    case Kind::Parameter:
+    case Kind::PhysicalRegister:
+    case Kind::SpillSlot:
+    case Kind::StackSlot:
+    case Kind::VirtualRegister:
+      return true;
+  }
+  return false;
+}
+
 Value Value::Argument(Value type, int data) {
   return Value(type.type, type.size, Kind::Argument, data);
 }
@@ -109,19 +124,8 @@ Value Value::True() {
   return Value(Type::Integer, ValueSize::Size8, Kind::Conditional, 1);
 }
 
-bool Value::is_output() const {
-  switch (kind) {
-    case Kind::Argument:
-    case Kind::Conditional:
-    case Kind::FrameSlot:
-    case Kind::Parameter:
-    case Kind::PhysicalRegister:
-    case Kind::SpillSlot:
-    case Kind::StackSlot:
-    case Kind::VirtualRegister:
-      return true;
-  }
-  return false;
+Value Value::TypeOf(Value value) {
+  return Value(value.type, value.size, Kind::Void, 0);
 }
 
 }  // namespace lir
