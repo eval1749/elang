@@ -443,7 +443,6 @@ TEST_F(CodeEmitterX64Test, Branch) {
   editor.SetReturn();
   ASSERT_EQ("", Commit(&editor));
 
-
   EXPECT_EQ("0000 39 D8 7D 01 C3 C3\n", Emit(&editor));
 }
 
