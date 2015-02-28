@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <limits>
+
 #include "base/macros.h"
 #include "elang/lir/emitters/code_buffer.h"
 #include "elang/lir/emitters/code_buffer_user.h"
@@ -29,17 +31,13 @@ using isa::Scale;
 using isa::Tttn;
 typedef CodeBuffer::Jump Jump;
 
-int64_t MinusOne64 = static_cast<int64_t>(-1);
-int64_t One64 = static_cast<int64_t>(1);
-
 bool Is8Bit(int data) {
   return data >= -128 && data <= 127;
 }
 
 bool Is32Bit(int64_t data) {
-  if (data >= 0)
-    return data < (One64 << 32);
-  return data > (MinusOne64 << 32);
+  return data >= static_cast<int64_t>(std::numeric_limits<int32_t>::min()) &&
+         data <= static_cast<int64_t>(std::numeric_limits<int32_t>::max());
 }
 
 Value To32bitValue(Value value) {
