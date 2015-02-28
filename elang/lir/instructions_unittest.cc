@@ -83,15 +83,16 @@ TEST_F(LirInstructionTest, CallInstruction) {
 
 // CmpInstruction
 TEST_F(LirInstructionTest, CmpInstruction) {
+  auto const left = NewRegister(Value::Int32Type());
+  auto const right = NewRegister(Value::Int32Type());
   auto const instr = NewCmpInstruction(
-      NewConditional(), IntegerCondition::NotEqual,
-      NewRegister(Value::Int32Type()), NewRegister(Value::Int32Type()));
+      NewConditional(), IntegerCondition::NotEqual, left, right);
   EXPECT_TRUE(instr->is<CmpInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:cmp_ne %b2 = %r2, %r1", ToString(*instr));
+  EXPECT_EQ("--:0:cmp_ne %b2 = %r1, %r2", ToString(*instr));
 }
 
 // CopyInstruction

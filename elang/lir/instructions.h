@@ -33,19 +33,25 @@ class Factory;
 //
 // IntegerCondition
 // Make |CommuteCondition()| to simple, condition ^ 15, we assign constant
-// to each codnition.
+// to each condition.
 //
 #define FOR_EACH_INTEGER_CONDITION(V)     \
   V(Equal, "eq", 0)                       \
-  V(NotEqual, "ne", 15)                   \
   V(SignedGreaterThanOrEqual, "ge", 1)    \
-  V(SignedLessThan, "lt", 14)             \
   V(SignedGreaterThan, "gt", 2)           \
-  V(SignedLessThanOrEqual, "le", 13)      \
   V(UnsignedGreaterThanOrEqual, "uge", 3) \
-  V(UnsignedLessThan, "le", 12)           \
-  V(UnsignedLessThanOrEqual, "ule", 4)    \
-  V(UnsignedGreaterThan, "ugt", 11)
+  V(UnsignedGreaterThan, "ugt", 4)        \
+  V(Invalid5, "invalid5", 5)              \
+  V(Invalid6, "invalid6", 6)              \
+  V(Invalid7, "invalid7", 7)              \
+  V(Invalid8, "invalid8", 8)              \
+  V(Invalid9, "invalid9", 9)              \
+  V(Invalid10, "invalid10", 10)           \
+  V(UnsignedLessThanOrEqual, "ule", 11)   \
+  V(UnsignedLessThan, "ult", 12)          \
+  V(SignedLessThanOrEqual, "le", 13)      \
+  V(SignedLessThan, "lt", 14)             \
+  V(NotEqual, "ne", 15)
 
 enum class IntegerCondition {
 #define V(Name, mnemonic, value) Name = value,
