@@ -176,7 +176,8 @@ void Generator::VisitLe(hir::LeInstruction* instr) {
 
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
   Emit(factory()->NewLoadInstruction(MapRegister(instr),
-                                     MapInput(instr->input(0))));
+                                     MapInput(instr->input(0)),
+                                     lir::Value::SmallInt32(0)));
 }
 
 void Generator::VisitLt(hir::LtInstruction* instr) {

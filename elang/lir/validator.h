@@ -72,6 +72,7 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   void VisitDiv(DivInstruction* instruction) final;
   void VisitExtend(ExtendInstruction* instruction) final;
   void VisitFCmp(FCmpInstruction* instruction) final;
+  void VisitLoad(LoadInstruction* instruction) final;
   void VisitMul(MulInstruction* instruction) final;
   void VisitPhi(PhiInstruction* instruction) final;
   void VisitRet(RetInstruction* instruction) final;

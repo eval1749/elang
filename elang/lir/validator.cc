@@ -15,6 +15,7 @@
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
+#include "elang/lir/target.h"
 
 namespace elang {
 namespace lir {
@@ -335,6 +336,17 @@ void Validator::VisitFCmp(FCmpInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 1);
   if (left.size != right.size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
+void Validator::VisitLoad(LoadInstruction* instr) {
+  auto const pointer = instr->input(0);
+  auto const offset = instr->input(1);
+  if (!pointer.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (pointer.size != Target::IntPtrType().size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+  if (!offset.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
 }
 
 void Validator::VisitMul(MulInstruction* instr) {

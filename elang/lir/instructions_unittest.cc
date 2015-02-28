@@ -168,14 +168,16 @@ TEST_F(LirInstructionTest, JumpInstruction) {
 
 // LoadInstruction
 TEST_F(LirInstructionTest, LoadInstruction) {
-  auto const destination = NewIntPtrRegister();
-  auto const instr = factory()->NewLoadInstruction(
-      destination, Value::Parameter(destination, 0));
+  auto const pointer = NewRegister(Target::IntPtrType());
+  auto const offset = Value::SmallInt32(42);
+  auto const output = NewRegister(Value::Int32Type());
+  auto const instr = factory()->NewLoadInstruction(output, pointer, offset);
   EXPECT_TRUE(instr->is<LoadInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
+    EXPECT_EQ("--:0:load %r2 = %r1l, 42", ToString(*instr));
 }
 
 // PCopyInstruction

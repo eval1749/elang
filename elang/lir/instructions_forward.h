@@ -25,7 +25,6 @@ namespace lir {
   V(Copy, "mov")                        \
   V(Extend, "ext")                      \
   V(Literal, "lit")                     \
-  V(Load, "load")                       \
   V(SignedConvert, "sconv")             \
   V(SignExtend, "sext")                 \
   V(Truncate, "trunc")                  \
@@ -41,6 +40,7 @@ namespace lir {
   V(BitAnd, "and")                      \
   V(BitOr, "or")                        \
   V(BitXor, "xor")                      \
+  V(Load, "load")                       \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
   V(UShr, "ushr")
