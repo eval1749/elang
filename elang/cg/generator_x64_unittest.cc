@@ -118,6 +118,61 @@ TEST_F(GeneratorX64Test, Call) {
       Generate(function()));
 }
 
+TEST_F(GeneratorX64Test, Comparison) {
+  auto const params_type = types()->NewTupleType({int32_type(), int32_type()});
+  auto const function = NewFunction(int32_type(), params_type);
+
+  hir::Editor editor(factory(), function);
+
+  auto const true_block = editor.NewBasicBlock(editor.exit_block());
+  auto const false_block = editor.NewBasicBlock(editor.exit_block());
+
+  editor.Edit(editor.entry_block());
+  auto const entry_instr = editor.entry_block()->first_instruction();
+  auto const param0 = factory()->NewGetInstruction(entry_instr, 0);
+  editor.Append(param0);
+  auto const param1 = factory()->NewGetInstruction(entry_instr, 1);
+  editor.Append(param1);
+  auto const compare = factory()->NewLtInstruction(param0, param1);
+  editor.Append(compare);
+  editor.SetBranch(compare, true_block, false_block);
+  editor.Commit();
+
+  editor.Edit(true_block);
+  editor.SetReturn(param0);
+  editor.Commit();
+
+  editor.Edit(false_block);
+  editor.SetReturn(param1);
+  editor.Commit();
+
+  ASSERT_EQ("", Validate(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block4}\n"
+      "  entry ECX, EDX =\n"
+      "  pcopy %r1, %r2 = ECX, EDX\n"
+      "  cmp_lt %b2 = %r1, %r2\n"
+      "  br %b2, block4, block3\n"
+      "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
+      "  mov EAX = %r2\n"
+      "  ret block2\n"
+      "block4:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
+      "  mov EAX = %r1\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block3, block4}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Generate(function));
+}
+
 TEST_F(GeneratorX64Test, Element) {
   auto const function = NewFunction(
       char_type(),

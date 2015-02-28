@@ -86,6 +86,7 @@ lir::Value Generator::MapInput(hir::Value* value) {
 }
 
 // Get output register for instruction except for 'load'.
+// TODO(eval1749) Why do we exclude 'load' instruction?
 lir::Value Generator::MapOutput(hir::Instruction* instruction) {
   DCHECK(!instruction->is<hir::LoadInstruction>());
   DCHECK(!register_map_.count(instruction));
@@ -225,9 +226,45 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
   Emit(factory()->NewPCopyInstruction(outputs, inputs));
 }
 
+void Generator::VisitEq(hir::EqInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::Equal,
+                   lir::IntegerCondition::Equal,
+                   lir::FloatCondition::OrderedEqual);
+}
+
+void Generator::VisitGe(hir::GeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThanOrEqual,
+                   lir::IntegerCondition::UnsignedGreaterThanOrEqual,
+                   lir::FloatCondition::OrderedGreaterThanOrEqual);
+}
+
+void Generator::VisitGt(hir::GtInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThan,
+                   lir::IntegerCondition::UnsignedGreaterThan,
+                   lir::FloatCondition::OrderedGreaterThan);
+}
+
+void Generator::VisitNe(hir::NeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::NotEqual,
+                   lir::IntegerCondition::NotEqual,
+                   lir::FloatCondition::OrderedNotEqual);
+}
+
+void Generator::VisitLe(hir::LeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedLessThanOrEqual,
+                   lir::IntegerCondition::UnsignedLessThanOrEqual,
+                   lir::FloatCondition::OrderedLessThanOrEqual);
+}
+
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
   Emit(factory()->NewLoadInstruction(MapRegister(instr),
                                      MapInput(instr->input(0))));
+}
+
+void Generator::VisitLt(hir::LtInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
+                   lir::IntegerCondition::UnsignedLessThan,
+                   lir::FloatCondition::OrderedLessThan);
 }
 
 // Set return value and emit 'ret' instruction.

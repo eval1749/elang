@@ -40,21 +40,6 @@ lir::Function* Generator::function() const {
   return editor_->function();
 }
 
-void Generator::EditBasicBlock(hir::BasicBlock* hir_block) {
-  auto const it = block_map_.find(hir_block);
-  if (it != block_map_.end()) {
-    auto const block = it->second;
-    DCHECK(!block->first_instruction() ||
-           block->first_instruction()->is<lir::EntryInstruction>() ||
-           block->first_instruction()->is<lir::ExitInstruction>());
-    editor()->Edit(block);
-    return;
-  }
-  editor()->EditNewBasicBlock();
-  auto const new_lir_block = editor()->basic_block();
-  block_map_[hir_block] = new_lir_block;
-}
-
 void Generator::Emit(lir::Instruction* instruction) {
   editor()->Append(instruction);
 }
@@ -66,12 +51,57 @@ void Generator::EmitCopy(lir::Value output, lir::Value input) {
 
 lir::Function* Generator::Generate() {
   for (auto const hir_block : hir_function_->basic_blocks()) {
-    EditBasicBlock(hir_block);
+    editor()->Edit(MapBlock(hir_block));
     for (auto const instruction : hir_block->instructions())
       const_cast<hir::Instruction*>(instruction)->Accept(this);
     editor()->Commit();
   }
   return editor()->function();
+}
+
+void Generator::HandleComparison(hir::Instruction* instr,
+                                 lir::IntegerCondition signed_condition,
+                                 lir::IntegerCondition unsigned_condition,
+                                 lir::FloatCondition float_condition) {
+  auto const output = factory()->NewConditional();
+  DCHECK(!register_map_.count(instr));
+  register_map_[instr] = output;
+
+  auto const left = MapInput(instr->input(0));
+  auto const right = MapInput(instr->input(1));
+  auto const primitive_type =
+      instr->input(0)->type()->as<hir::PrimitiveValueType>();
+  if (!primitive_type) {
+    DCHECK_EQ(lir::IntegerCondition::Equal, signed_condition);
+    Emit(factory()->NewCmpInstruction(output, signed_condition, left, right));
+    return;
+  }
+
+  if (primitive_type->is_float()) {
+    Emit(factory()->NewFCmpInstruction(output, float_condition, left, right));
+    return;
+  }
+
+  if (primitive_type->is_signed()) {
+    Emit(factory()->NewCmpInstruction(output, signed_condition, left, right));
+    return;
+  }
+
+  Emit(factory()->NewCmpInstruction(output, unsigned_condition, left, right));
+}
+
+lir::BasicBlock* Generator::MapBlock(hir::BasicBlock* hir_block) {
+  auto const it = block_map_.find(hir_block);
+  if (it != block_map_.end()) {
+    auto const block = it->second;
+    DCHECK(!block->first_instruction() ||
+           block->first_instruction()->is<lir::EntryInstruction>() ||
+           block->first_instruction()->is<lir::ExitInstruction>());
+    return block;
+  }
+  auto const block = editor()->NewBasicBlock(editor()->exit_block());
+  block_map_[hir_block] = block;
+  return block;
 }
 
 lir::Function* Generator::NewFunction(lir::Factory* factory,
@@ -103,6 +133,12 @@ lir::Function* Generator::NewFunction(lir::Factory* factory,
 }
 
 // hir::InstructionVisitor
+
+void Generator::VisitBranch(hir::BranchInstruction* instr) {
+  editor()->SetBranch(MapInput(instr->input(0)),
+                      MapBlock(instr->input(1)->as<hir::BasicBlock>()),
+                      MapBlock(instr->input(2)->as<hir::BasicBlock>()));
+}
 
 #define V(Name, ...)                                                          \
   void Generator::Visit##Name(hir::Name##Instruction* instr) {                \
