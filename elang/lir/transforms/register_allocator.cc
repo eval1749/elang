@@ -339,13 +339,20 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
     }
   }
 
+  if (instr->is<ArrayLoadInstruction>() && position == 0) {
+    // Since first operand of |ArrayInstruction| is used for GC map, we don't
+    // need to allocate physical register for it.
+    DCHECK(SpillSlotFor(input).is_spill_slot());
+    return;
+  }
+
   // Spill one of register for |input| at |instr| by emitting spill and
   // reload instr:
   //    spill %stack[i] = %physical[1]
   //    reload %physical[1] = %stack[j]
   //    use %physical[1]
   //
-  // TODO(eval1749) If instr can accept memory operand at |position|,
+  // TODO(eval1749) If |instr| can accept memory operand at |position|,
   // we can use spilled location as operand.
   auto const victim = ChooseRegisterToSpill(instr, input);
   DCHECK_NE(victim, input);
