@@ -44,8 +44,14 @@ enum class Mod {
 };
 
 enum class Rm {
+  Rm0 = 0,
+  Rm1 = 1,
+  Rm2 = 2,
+  Rm3 = 2,
   Sib = 4,
   Disp32 = 5,
+  Rm6 = 6,
+  Rm7 = 7,
 };
 
 enum class Scale {
