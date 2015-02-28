@@ -31,6 +31,7 @@ class GeneratorX64Test : public testing::CgTest {
 // Test cases...
 
 TEST_F(GeneratorX64Test, Basic) {
+  hir::Editor editor(factory(), function());
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -42,7 +43,7 @@ TEST_F(GeneratorX64Test, Basic) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function()));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, BinaryOperation) {
@@ -59,8 +60,7 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
       factory()->NewAddInstruction(int32_type(), param0, param1);
   editor.Append(add_instr);
   editor.SetReturn(add_instr);
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
       "function1:\n"
@@ -76,7 +76,7 @@ TEST_F(GeneratorX64Test, BinaryOperation) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, Call) {
@@ -100,8 +100,7 @@ TEST_F(GeneratorX64Test, Call) {
                     factory()->NewFloat64Literal(3.4)});
   editor.Append(arguments);
   editor.Append(factory()->NewCallInstruction(callee, arguments));
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -115,7 +114,7 @@ TEST_F(GeneratorX64Test, Call) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function()));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, Comparison) {
@@ -136,17 +135,17 @@ TEST_F(GeneratorX64Test, Comparison) {
   auto const compare = factory()->NewLtInstruction(param0, param1);
   editor.Append(compare);
   editor.SetBranch(compare, true_block, false_block);
-  editor.Commit();
+  ASSERT_EQ("", Commit(&editor));
 
   editor.Edit(true_block);
   editor.SetReturn(param0);
-  editor.Commit();
+  ASSERT_EQ("", Commit(&editor));
 
   editor.Edit(false_block);
   editor.SetReturn(param1);
-  editor.Commit();
+  ASSERT_EQ("", Commit(&editor));
 
-  ASSERT_EQ("", Validate(&editor));
+  // int Min(int x, int y) { return x < y ? x : y; }
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -170,7 +169,7 @@ TEST_F(GeneratorX64Test, Comparison) {
       "  // In: {block3, block4}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, Element) {
@@ -186,8 +185,7 @@ TEST_F(GeneratorX64Test, Element) {
   auto const load_instr = factory()->NewLoadInstruction(element_instr);
   editor.Append(load_instr);
   editor.SetReturn(load_instr);
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -206,7 +204,7 @@ TEST_F(GeneratorX64Test, Element) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, Parameter) {
@@ -222,8 +220,7 @@ TEST_F(GeneratorX64Test, Parameter) {
   editor.Edit(function->entry_block());
   for (auto position = 0; position < num_parameters; ++position)
     editor.Append(factory()->NewGetInstruction(entry, position));
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
       "function1:\n"
@@ -237,7 +234,7 @@ TEST_F(GeneratorX64Test, Parameter) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, ReturnInt32) {
@@ -245,8 +242,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
   hir::Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt32Literal(42));
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -259,7 +255,7 @@ TEST_F(GeneratorX64Test, ReturnInt32) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 TEST_F(GeneratorX64Test, ReturnInt64) {
@@ -267,8 +263,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
   hir::Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.SetReturn(factory()->NewInt64Literal(42));
-  editor.Commit();
-  ASSERT_EQ("", Validate(&editor));
+  ASSERT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -281,7 +276,7 @@ TEST_F(GeneratorX64Test, ReturnInt64) {
       "  // In: {block1}\n"
       "  // Out: {}\n"
       "  exit\n",
-      Generate(function));
+      Generate(&editor));
 }
 
 }  // namespace

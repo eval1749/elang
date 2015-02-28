@@ -40,6 +40,16 @@ CgTest::CgTest()
 CgTest::~CgTest() {
 }
 
+std::string CgTest::Commit(hir::Editor* editor) {
+  if (!editor->Validate(editor->basic_block())) {
+    std::stringstream ostream;
+    ostream << editor->errors();
+    return ostream.str();
+  }
+  editor->Commit();
+  return "";
+}
+
 std::string CgTest::Format(const lir::Function* function) {
   std::stringstream ostream;
   lir::TextFormatter formatter(lir_factory()->literals(), &ostream);
@@ -47,8 +57,13 @@ std::string CgTest::Format(const lir::Function* function) {
   return ostream.str();
 }
 
-std::string CgTest::Generate(hir::Function* function) {
-  Generator generator(lir_factory(), function);
+std::string CgTest::Generate(hir::Editor* editor) {
+  if (!editor->Validate()) {
+    std::stringstream ostream;
+    ostream << editor->errors();
+    return ostream.str();
+  }
+  Generator generator(lir_factory(), editor->function());
   return CgTest::Format(generator.Generate());
 }
 
@@ -56,14 +71,6 @@ hir::Function* CgTest::NewFunction(hir::Type* return_type,
                                    hir::Type* parameters_type) {
   return factory()->NewFunction(
       types()->NewFunctionType(return_type, parameters_type));
-}
-
-std::string CgTest::Validate(hir::Editor* editor) {
-  if (editor->Validate())
-    return "";
-  std::stringstream ostream;
-  ostream << editor->errors();
-  return ostream.str();
 }
 
 }  // namespace testing
