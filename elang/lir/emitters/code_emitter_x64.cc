@@ -58,6 +58,19 @@ isa::Opcode OpcodeForLoad(Value output) {
   return isa::Opcode::MOVSD_Vsd_Wsd;
 }
 
+isa::Opcode OpcodeForStore(Value output) {
+  DCHECK(output.is_physical());
+  if (output.is_int8())
+    return isa::Opcode::MOV_Eb_Gb;
+  if (output.is_integer())
+    return isa::Opcode::MOV_Ev_Gv;
+  DCHECK(output.is_float());
+  if (output.is_32bit())
+    return isa::Opcode::MOVSS_Wss_Vss;
+  DCHECK(output.is_64bit());
+  return isa::Opcode::MOVSD_Wsd_Vsd;
+}
+
 isa::Register ToRegister(Value reg) {
   DCHECK(reg.is_physical());
   if (reg.is_float()) {
@@ -745,52 +758,18 @@ void InstructionHandlerX64::VisitCmp(CmpInstruction* instr) {
 void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
   auto const input = instr->input(0);
   auto const output = instr->output(0);
-  DCHECK_EQ(input.size, output.size);
-  DCHECK_EQ(input.type, output.type);
-
-  if (output.is_int8()) {
-    if (output.is_physical()) {
-      EmitRexPrefix(output, input);
-      EmitOpcode(isa::Opcode::MOV_Gb_Eb);
-    } else {
-      EmitRexPrefix(input, output);
-      EmitOpcode(isa::Opcode::MOV_Eb_Gb);
-    }
-    EmitModRm(output, input);
-    return;
-  }
-
-  if (output.is_integer()) {
-    if (output.is_physical()) {
-      EmitRexPrefix(output, input);
-      EmitOpcode(isa::Opcode::MOV_Gv_Ev);
-    } else {
-      EmitRexPrefix(input, output);
-      EmitOpcode(isa::Opcode::MOV_Ev_Gv);
-    }
-    EmitModRm(output, input);
-    return;
-  }
-
-  if (output.is_32bit()) {
-    if (output.is_physical()) {
-      EmitRexPrefix(output, input);
-      EmitOpcode(isa::Opcode::MOVSS_Vss_Wss);
-    } else {
-      EmitRexPrefix(input, output);
-      EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
-    }
-    EmitModRm(output, input);
-    return;
-  }
+  DCHECK_EQ(Value::TypeOf(output), Value::TypeOf(input));
 
   if (output.is_physical()) {
     EmitRexPrefix(output, input);
-    EmitOpcode(isa::Opcode::MOVSD_Vsd_Wsd);
-  } else {
-    EmitRexPrefix(input, output);
-    EmitOpcode(isa::Opcode::MOVSD_Wsd_Vsd);
+    EmitOpcode(OpcodeForLoad(output));
+    EmitModRm(output, input);
+    return;
   }
+
+  DCHECK(input.is_physical());
+  EmitRexPrefix(input, output);
+  EmitOpcode(OpcodeForStore(input));
   EmitModRm(output, input);
 }
 
