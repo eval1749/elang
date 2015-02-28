@@ -756,7 +756,7 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
                                    Target::GetRegister(isa::EDX)));
   ASSERT_EQ("", Commit(&editor));
 
-  EXPECT_EQ("0000 48 8B 05 89 55 08 C3\n", Emit(&editor));
+  EXPECT_EQ("0000 48 8B 45 00 89 55 08 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, LiteralInt16) {

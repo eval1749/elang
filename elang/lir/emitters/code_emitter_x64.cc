@@ -136,7 +136,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
-  void EmitModRmDisp(Register reg, Value input, Value offset);
+  void EmitModRmDisp(Register reg, Register base, int displacement);
   void EmitOpcode(isa::Opcode opcode);
 
   // Emit ModRm byte, reg field from |opext|, r/m field from |output|.
@@ -240,39 +240,11 @@ void InstructionHandlerX64::EmitModRm(Mod mod, Register reg, Rm rm) {
 
 void InstructionHandlerX64::EmitModRm(Register reg, Value memory) {
   if (memory.is_frame_slot()) {
-    if (!memory.data) {
-      // mov reg, [rbp]
-      EmitModRm(Mod::Disp0, reg, isa::RBP);
-      return;
-    }
-    // mov reg, [rbp+n]
-    if (Is8Bit(memory.data)) {
-      EmitModRm(Mod::Disp8, reg, isa::RBP);
-      Emit8(memory.data);
-      return;
-    }
-    // mov reg, [rbp+n]
-    EmitModRm(Mod::Disp32, reg, isa::RBP);
-    Emit32(memory.data);
+    EmitModRmDisp(reg, isa::RBP, memory.data);
     return;
   }
   if (memory.is_stack_slot()) {
-    if (!memory.data) {
-      EmitModRm(Mod::Disp0, reg, Rm::Sib);
-      EmitSib(Scale::One, isa::RSP, isa::RSP);
-      return;
-    }
-    if (Is8Bit(memory.data)) {
-      // mov reg, [rsp+disp8]
-      EmitModRm(Mod::Disp8, reg, Rm::Sib);
-      EmitSib(Scale::One, isa::RSP, isa::RSP);
-      Emit8(memory.data);
-      return;
-    }
-    // mov reg, [rsp+n]
-    EmitModRm(Mod::Disp32, reg, Rm::Sib);
-    EmitSib(Scale::One, isa::RSP, isa::RSP);
-    Emit32(memory.data);
+    EmitModRmDisp(reg, isa::RSP, memory.data);
     return;
   }
   NOTREACHED() << "EmitModRm " << reg << ", " << memory;
@@ -296,13 +268,9 @@ void InstructionHandlerX64::EmitModRm(Value output, Value input) {
   NOTREACHED() << "EmitModRm " << output << ", " << input;
 }
 
-void InstructionHandlerX64::EmitModRmDisp(Register reg, Value pointer,
-                                          Value offset) {
-  DCHECK_EQ(Value::Int64Type(), Value::TypeOf(pointer));
-  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(offset));
-  // Note: We don't support full 32-bit displacement.
-  auto const displacement = offset.data;
-  auto const base = ToRegister(pointer);
+void InstructionHandlerX64::EmitModRmDisp(Register reg,
+                                          Register base,
+                                          int displacement) {
   auto const rm = static_cast<Rm>(static_cast<int>(base) & 7);
   if (!displacement && rm != Rm::Disp32) {
     EmitModRm(isa::Mod::Disp0, reg, base);
@@ -661,7 +629,10 @@ void InstructionHandlerX64::VisitArrayLoad(ArrayLoadInstruction* instr) {
   auto const pointer = instr->input(1);
   EmitRexPrefix(output, pointer);
   EmitOpcode(OpcodeForLoad(output));
-  EmitModRmDisp(ToRegister(output), pointer, instr->input(2));
+  auto const displacement = instr->input(2);
+  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(displacement));
+  DCHECK(displacement.is_immediate());
+  EmitModRmDisp(ToRegister(output), ToRegister(pointer), displacement.data);
 }
 
 // Instruction formats are as same as ADD.
