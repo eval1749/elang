@@ -142,13 +142,13 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   Value* NewInt32(int32_t data);
 
   // Expose |Validate()| for testing in release build.
+  bool Validate(BasicBlock* basic_block);
   bool Validate();
 
  private:
   void DidChangeControlFlow();
   void InitializeFunctionIfNeeded();
   void ResetInputs(Instruction* instruction);
-  bool Validate(BasicBlock* basic_block);
   bool Validate(Function* function);
 
   BasicBlock* basic_block_;
