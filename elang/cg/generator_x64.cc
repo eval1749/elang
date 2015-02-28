@@ -38,14 +38,76 @@ void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
 }
 
 lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
+  DCHECK_GE(shift_count, 0);
   shift_count &= lir::Value::BitSizeOf(input) - 1;
   DCHECK_GE(shift_count, 0);
   if (!shift_count)
     return input;
   auto const output = factory()->NewRegister(input);
+  if (shift_count == 1) {
+    Emit(factory()->NewAddInstruction(output, input, input));
+    return output;
+  }
   Emit(factory()->NewShlInstruction(output, input,
                                     lir::Value::SmallInt32(shift_count)));
   return output;
+}
+
+Generator::ArrayReference Generator::HandleElement(
+    hir::ElementInstruction* instr) {
+  auto const indexes = instr->input(1)->as<hir::TupleInstruction>();
+  if (indexes) {
+    // Multiple dimensions array:
+    //   T* %ptr = element %array_ptr, %index...
+    //   =>
+    //   pcopy RCX, RDX, ... = %array_ptr%, %index...
+    //   call `CalculateRowMajorIndex` //   for multiple dimension array
+    //   copy %row_major_index, EAX
+    //   sext %row_major_index64, %row_major_index
+    //   add %element_ptr = %array_ptr, %row_major_index64
+    //   aload %output = %array_ptr, %element_ptr, sizeof(ArrayHeader)
+    // or
+    //   astore %array_ptr, %element_ptr, sizeof(ArrayHeader), %new_value
+    // TODO(eval1749) We need to have helper function to calculate row-major-
+    // index from array type.
+    NOTREACHED() << "NYI: multiple dimension array access";
+    // Layout of multiple dimensions array object:
+    //  +0 object header
+    //  +8 dimension[0]
+    //  +16 dimension[1]
+    //  ...
+    //  +8*(n+1) element[0]
+    return ArrayReference();
+  }
+
+  // Vector (single dimension array)
+  //   T* %ptr = element %array_ptr, %index
+  //   =>
+  //   shl %index64 = %index, sizeof(*%array_ptr)
+  //   add %element_ptr = %array_ptr, %index
+  //   aload %output = %array_ptr, %element_ptr, sizeof(ArrayHeader)
+  // or
+  //   astore %array_ptr, %element_ptr, sizeof(ArrayHeader), %new_value
+  ArrayReference array_ref;
+  array_ref.array_pointer = MapInput(instr->input(0));
+  array_ref.element_type =
+      MapType(instr->type()->as<hir::PointerType>()->pointee());
+  auto const shift_count = lir::Value::Log2Of(array_ref.element_type);
+  auto const scaled_index = GenerateShl(MapInput(instr->input(1)), shift_count);
+  auto const scaled_index64 = factory()->NewRegister(Target::IntPtrType());
+  Emit(factory()->NewSignExtendInstruction(scaled_index64, scaled_index));
+
+  array_ref.element_pointer = factory()->NewRegister(Target::IntPtrType());
+  Emit(factory()->NewAddInstruction(array_ref.element_pointer,
+                                    array_ref.array_pointer, scaled_index64));
+
+  // Layout of vector object:
+  //  +0 object header
+  //  +8 length
+  //  +16 element[0]
+  array_ref.sizeof_array_header =
+      lir::Value::SmallInt32(lir::Value::SizeOf(Target::IntPtrType()) * 2);
+  return array_ref;
 }
 
 lir::Value Generator::MapInput(hir::Value* value) {
@@ -86,9 +148,7 @@ lir::Value Generator::MapInput(hir::Value* value) {
 }
 
 // Get output register for instruction except for 'load'.
-// TODO(eval1749) Why do we exclude 'load' instruction?
 lir::Value Generator::MapOutput(hir::Instruction* instruction) {
-  DCHECK(!instruction->is<hir::LoadInstruction>());
   DCHECK(!register_map_.count(instruction));
   return MapRegister(instruction);
 }
@@ -162,42 +222,6 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   Emit(factory()->NewCallInstruction(lir_callee));
 }
 
-// T* %ptr = element %array_ptr, %index...
-// =>
-// pcopy RCX, RDX, ... = %array_ptr%, %index...
-// call `CalculateRowMajorIndex` // for multiple dimension array
-// copy %row_major_index, EAX
-// sext %row_major_index64, %row_major_index
-// add %element_start = %element_base, sizeof(ArrayHeader)
-// add %ptr = %element_start, %row_major_index64
-//
-// Vector:
-//  +0 object header
-//  +8 length
-//  +16 element[0]
-void Generator::VisitElement(hir::ElementInstruction* instr) {
-  auto const indexes = instr->input(1)->as<hir::TupleInstruction>();
-  if (indexes) {
-    // TODO(eval1749) We need to have helper function to calculate row-major-
-    // index from array type.
-    NOTREACHED() << "NYI: multiple dimension array access";
-    return;
-  }
-  auto const array_ptr = MapInput(instr->input(0));
-  auto const element_start = factory()->NewRegister(Target::IntPtrType());
-  auto const size_of_array_header = lir::Value::SizeOf(element_start) * 2;
-  Emit(factory()->NewAddInstruction(
-      element_start, array_ptr, lir::Value::SmallInt64(size_of_array_header)));
-  auto const output = MapOutput(instr);
-  auto const element =
-      MapType(instr->type()->as<hir::PointerType>()->pointee());
-  auto const scaled_index =
-      GenerateShl(MapInput(instr->input(1)), lir::Value::Log2Of(element));
-  auto const scaled_index64 = factory()->NewRegister(Target::IntPtrType());
-  Emit(factory()->NewSignExtendInstruction(scaled_index64, scaled_index));
-  Emit(factory()->NewAddInstruction(output, element_start, scaled_index64));
-}
-
 // Load parameters from registers and stack
 void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const parameters_type = instr->output_type();
@@ -224,6 +248,18 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     inputs.push_back(lir::Target::GetParameterAt(output, get_instr->index()));
   }
   Emit(factory()->NewPCopyInstruction(outputs, inputs));
+}
+
+void Generator::VisitLoad(hir::LoadInstruction* instr) {
+  auto const pointer_instr = instr->input(0);
+  if (auto const element_instr = pointer_instr->as<hir::ElementInstruction>()) {
+    auto const array_ref = HandleElement(element_instr);
+    Emit(factory()->NewArrayLoadInstruction(
+        MapOutput(instr), array_ref.array_pointer, array_ref.element_pointer,
+        array_ref.sizeof_array_header));
+    return;
+  }
+  NOTREACHED() << "Unsupported load pointer: " << *pointer_instr;
 }
 
 // Set return value and emit 'ret' instruction.

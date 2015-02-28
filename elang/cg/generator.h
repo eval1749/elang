@@ -10,6 +10,8 @@
 
 #include "elang/base/zone_owner.h"
 #include "elang/hir/instruction_visitor.h"
+#include "elang/lir/factory_user.h"
+#include "elang/lir/value.h"
 
 namespace elang {
 namespace hir {
@@ -27,7 +29,6 @@ enum class FloatCondition;
 class Function;
 class Instruction;
 enum class IntegerCondition;
-struct Value;
 }
 namespace cg {
 
@@ -43,6 +44,13 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   lir::Function* Generate();
 
  private:
+  struct ArrayReference {
+    lir::Value array_pointer;
+    lir::Value element_type;
+    lir::Value element_pointer;
+    lir::Value sizeof_array_header;
+  };
+
   lir::Editor* editor() const { return editor_.get(); }
   lir::Factory* factory() const;
   lir::Function* function() const;
@@ -55,6 +63,7 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
                         lir::IntegerCondition signed_condition,
                         lir::IntegerCondition unsigned_condition,
                         lir::FloatCondition float_condition);
+  ArrayReference HandleElement(hir::ElementInstruction* instr);
   lir::BasicBlock* MapBlock(hir::BasicBlock* block);
   lir::Value MapInput(hir::Value* instr);
   lir::Value MapOutput(hir::Instruction* instr);
@@ -69,7 +78,6 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
 
   // hir::InstructionVisitor
   void VisitBranch(hir::BranchInstruction* instr) final;
-  void VisitElement(hir::ElementInstruction* instr) final;
   void VisitEntry(hir::EntryInstruction* instr) final;
   void VisitCall(hir::CallInstruction* instr) final;
   void VisitJump(hir::JumpInstruction* instr) final;

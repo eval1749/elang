@@ -173,6 +173,7 @@ TEST_F(GeneratorX64Test, Comparison) {
 }
 
 TEST_F(GeneratorX64Test, Element) {
+  // char foo(char[] array) { return array[42]; }
   auto const function = NewFunction(
       char_type(),
       types()->NewPointerType(types()->NewArrayType(char_type(), {-1})));
@@ -193,12 +194,11 @@ TEST_F(GeneratorX64Test, Element) {
       "  // Out: {block2}\n"
       "  entry RCX =\n"
       "  mov %r1l = RCX\n"
-      "  add %r2l = %r1l, 16l\n"
-      "  shl %r4 = 42, 1\n"
-      "  sext %r5l = %r4\n"
-      "  add %r3l = %r2l, %r5l\n"
-      "  load %r6w = %r3l, 0\n"
-      "  zext EAX = %r6w\n"
+      "  add %r2 = 42, 42\n"
+      "  sext %r3l = %r2\n"
+      "  add %r4l = %r1l, %r3l\n"
+      "  aload %r5w = %r1l, %r4l, 16\n"
+      "  zext EAX = %r5w\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

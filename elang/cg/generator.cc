@@ -174,12 +174,6 @@ void Generator::VisitLe(hir::LeInstruction* instr) {
                    lir::FloatCondition::OrderedLessThanOrEqual);
 }
 
-void Generator::VisitLoad(hir::LoadInstruction* instr) {
-  Emit(factory()->NewLoadInstruction(MapRegister(instr),
-                                     MapInput(instr->input(0)),
-                                     lir::Value::SmallInt32(0)));
-}
-
 void Generator::VisitLt(hir::LtInstruction* instr) {
   HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
                    lir::IntegerCondition::UnsignedLessThan,
