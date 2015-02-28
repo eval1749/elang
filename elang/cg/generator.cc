@@ -140,6 +140,47 @@ void Generator::VisitBranch(hir::BranchInstruction* instr) {
                       MapBlock(instr->input(2)->as<hir::BasicBlock>()));
 }
 
+void Generator::VisitEq(hir::EqInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::Equal,
+                   lir::IntegerCondition::Equal,
+                   lir::FloatCondition::OrderedEqual);
+}
+
+void Generator::VisitGe(hir::GeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThanOrEqual,
+                   lir::IntegerCondition::UnsignedGreaterThanOrEqual,
+                   lir::FloatCondition::OrderedGreaterThanOrEqual);
+}
+
+void Generator::VisitGt(hir::GtInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThan,
+                   lir::IntegerCondition::UnsignedGreaterThan,
+                   lir::FloatCondition::OrderedGreaterThan);
+}
+
+void Generator::VisitNe(hir::NeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::NotEqual,
+                   lir::IntegerCondition::NotEqual,
+                   lir::FloatCondition::OrderedNotEqual);
+}
+
+void Generator::VisitLe(hir::LeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedLessThanOrEqual,
+                   lir::IntegerCondition::UnsignedLessThanOrEqual,
+                   lir::FloatCondition::OrderedLessThanOrEqual);
+}
+
+void Generator::VisitLoad(hir::LoadInstruction* instr) {
+  Emit(factory()->NewLoadInstruction(MapRegister(instr),
+                                     MapInput(instr->input(0))));
+}
+
+void Generator::VisitLt(hir::LtInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
+                   lir::IntegerCondition::UnsignedLessThan,
+                   lir::FloatCondition::OrderedLessThan);
+}
+
 #define V(Name, ...)                                                          \
   void Generator::Visit##Name(hir::Name##Instruction* instr) {                \
     auto const output = MapOutput(instr);                                     \
