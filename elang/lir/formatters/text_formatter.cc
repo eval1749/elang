@@ -155,7 +155,7 @@ std::ostream& operator<<(std::ostream& ostream, const Function& function) {
 std::ostream& operator<<(std::ostream& ostream,
                          const Instruction& instruction) {
   if (auto const block = instruction.basic_block())
-    ostream << "bb:" << block->id();
+    ostream << "bb" << block->id() << ":";
   else
     ostream << "--:";
   ostream << instruction.id() << ":" << instruction.mnemonic();
