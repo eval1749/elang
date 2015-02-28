@@ -330,6 +330,31 @@ Value* EntryInstruction::OutputValues() const {
   return const_cast<EntryInstruction*>(this)->outputs_.data();
 }
 
+// FCmpInstruction
+FCmpInstruction::FCmpInstruction(Value output,
+                                 FloatCondition condition,
+                                 Value left,
+                                 Value right)
+    : condition_(condition) {
+  DCHECK(output.is_conditional());
+  DCHECK(left.is_float());
+  DCHECK(right.is_float());
+  DCHECK_EQ(left.size, right.size);
+  InitOutput(0, output);
+  InitInput(0, left);
+  InitInput(1, right);
+}
+
+base::StringPiece FCmpInstruction::mnemonic() const {
+  static const char* const mnemonics[] = {
+#define V(Name, mnemonic, ...) "fcmp_" mnemonic,
+      FOR_EACH_FLOAT_CONDITION(V)
+#undef V
+  };
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(condition());
+  return it < std::end(mnemonics) ? *it : "fcmp_invalid";
+}
+
 // JumpInstruction
 JumpInstruction::JumpInstruction(BasicBlock* target_block) {
   InitBlockOperand(0, target_block);

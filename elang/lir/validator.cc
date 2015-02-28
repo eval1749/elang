@@ -323,6 +323,20 @@ void Validator::VisitExtend(ExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
+void Validator::VisitFCmp(FCmpInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const left = instr->input(0);
+  auto const right = instr->input(1);
+  if (!output.is_conditional())
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  if (!left.is_float())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (!right.is_float())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  if (left.size != right.size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
 void Validator::VisitMul(MulInstruction* instr) {
   ValidateArithmeticInstruction(instr);
 }

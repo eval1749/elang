@@ -250,6 +250,17 @@ Instruction* Factory::NewEntryInstruction(const std::vector<Value>& outputs) {
   return new (zone()) EntryInstruction(zone(), outputs);
 }
 
+Instruction* Factory::NewFCmpInstruction(Value output,
+                                         FloatCondition condition,
+                                         Value left,
+                                         Value right) {
+  DCHECK(output.is_conditional());
+  DCHECK(left.is_float());
+  DCHECK(right.is_float());
+  DCHECK_EQ(left.size, right.size);
+  return new (zone()) FCmpInstruction(output, condition, left, right);
+}
+
 Instruction* Factory::NewJumpInstruction(BasicBlock* target_block) {
   DCHECK(target_block->id());
   return new (zone()) JumpInstruction(target_block);

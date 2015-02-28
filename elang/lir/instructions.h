@@ -31,6 +31,40 @@ class Factory;
 
 //////////////////////////////////////////////////////////////////////
 //
+// FloatCondition
+// Make |CommuteCondition()| to simple, condition ^ 15, we assign constant
+// to each condition.
+//
+#define FOR_EACH_FLOAT_CONDITION(V)        \
+  V(OrderedEqual, "eq", 0)                 \
+  V(OrderedGreaterThanOrEqual, "ge", 1)    \
+  V(OrderedGreaterThan, "gt", 2)           \
+  V(UnorderedGreaterThanOrEqual, "uge", 3) \
+  V(UnorderedGreaterThan, "ugt", 4)        \
+  V(UnorderedEqual, "ueq", 5)              \
+  V(Invalid6, "invalid6", 6)               \
+  V(Invalid7, "invalid7", 7)               \
+  V(Invalid8, "invalid8", 8)               \
+  V(Invalid9, "invalid9", 9)               \
+  V(UnorderedNotEqual, "une", 10)          \
+  V(UnorderedLessThanOrEqual, "ule", 11)   \
+  V(UnorderedLessThan, "ult", 12)          \
+  V(OrderedLessThanOrEqual, "le", 13)      \
+  V(OrderedLessThan, "lt", 14)             \
+  V(OrderedNotEqual, "ne", 15)
+
+enum class FloatCondition {
+#define V(Name, mnemonic, value) Name = value,
+  FOR_EACH_FLOAT_CONDITION(V)
+#undef V
+};
+
+inline FloatCondition CommuteCondition(FloatCondition condition) {
+  return static_cast<FloatCondition>(static_cast<int>(condition) ^ 15);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // IntegerCondition
 // Make |CommuteCondition()| to simple, condition ^ 15, we assign constant
 // to each condition.
@@ -352,6 +386,29 @@ class ELANG_LIR_EXPORT ExitInstruction final
 
  private:
   ExitInstruction();
+};
+
+// FCmpInstruction
+class ELANG_LIR_EXPORT FCmpInstruction final
+    : public InstructionTemplate<1, 2> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(FCmp);
+
+ public:
+  FloatCondition condition() const { return condition_; }
+
+ private:
+  FCmpInstruction(Value output,
+                  FloatCondition condition,
+                  Value left,
+                  Value right);
+
+  base::StringPiece mnemonic() const final;
+
+  void set_condition(FloatCondition new_condition) {
+    condition_ = new_condition;
+  }
+
+  FloatCondition condition_;
 };
 
 // JumpInstruction

@@ -51,6 +51,8 @@ namespace lir {
   V(Cmp, "cmp",                                                            \
     (Value output, IntegerCondition condition, Value left, Value right))   \
   V(Entry, "entry", (const std::vector<Value>& outputs))                   \
+  V(FCmp, "fcmp",                                                          \
+    (Value output, FloatCondition condition, Value left, Value right))     \
   V(Jump, "jmp", (BasicBlock * target_block))                              \
   V(PCopy, "pcopy",                                                        \
     (const std::vector<Value>& outputs, const std::vector<Value>& inputs)) \
@@ -87,6 +89,7 @@ namespace lir {
 #endif
 
 // Forward declarations
+enum class FloatCondition;
 enum class IntegerCondition;
 class Instruction;
 class InstructionVisitor;

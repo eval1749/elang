@@ -139,6 +139,20 @@ TEST_F(LirInstructionTest, ExitInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
+// FCmpInstruction
+TEST_F(LirInstructionTest, FCmpInstruction) {
+  auto const left = NewRegister(Value::Float32Type());
+  auto const right = NewRegister(Value::Float32Type());
+  auto const instr = NewFCmpInstruction(
+      NewConditional(), FloatCondition::OrderedNotEqual, left, right);
+  EXPECT_TRUE(instr->is<FCmpInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:fcmp_ne %b2 = %f1, %f2", ToString(*instr));
+}
+
 // JumpInstruction
 TEST_F(LirInstructionTest, JumpInstruction) {
   auto const function = factory()->NewFunction({});
