@@ -45,7 +45,19 @@ Value To32bitValue(Value value) {
   return Value(value.type, ValueSize::Size32, value.kind, value.data);
 }
 
-#if 0
+isa::Opcode OpcodeForLoad(Value output) {
+  DCHECK(output.is_physical());
+  if (output.is_int8())
+    return isa::Opcode::MOV_Gb_Eb;
+  if (output.is_integer())
+    return isa::Opcode::MOV_Gv_Ev;
+  DCHECK(output.is_float());
+  if (output.is_32bit())
+    return isa::Opcode::MOVSS_Vss_Wss;
+  DCHECK(output.is_64bit());
+  return isa::Opcode::MOVSD_Vsd_Wsd;
+}
+
 isa::Register ToRegister(Value reg) {
   DCHECK(reg.is_physical());
   if (reg.is_float()) {
@@ -69,7 +81,6 @@ isa::Register ToRegister(Value reg) {
   NOTREACHED() << "Unknown size: " << reg;
   return static_cast<Register>(0);
 }
-#endif
 
 isa::Tttn ToTttn(IntegerCondition condition) {
   static const isa::Tttn tttns[] = {
@@ -125,6 +136,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
+  void EmitModRmDisp(Register reg, Value input, Value offset);
   void EmitOpcode(isa::Opcode opcode);
 
   // Emit ModRm byte, reg field from |opext|, r/m field from |output|.
@@ -160,6 +172,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 
   // InstructionVisitor
   void VisitAdd(AddInstruction* instr) final;
+  void VisitArrayLoad(ArrayLoadInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
@@ -281,6 +294,34 @@ void InstructionHandlerX64::EmitModRm(Value output, Value input) {
     return;
   }
   NOTREACHED() << "EmitModRm " << output << ", " << input;
+}
+
+void InstructionHandlerX64::EmitModRmDisp(Register reg, Value pointer,
+                                          Value offset) {
+  DCHECK_EQ(Value::Int64Type(), Value::TypeOf(pointer));
+  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(offset));
+  // Note: We don't support full 32-bit displacement.
+  auto const displacement = offset.data;
+  auto const base = ToRegister(pointer);
+  auto const rm = static_cast<Rm>(static_cast<int>(base) & 7);
+  if (!displacement && rm != Rm::Disp32) {
+    EmitModRm(isa::Mod::Disp0, reg, base);
+    if (rm != Rm::Sib)
+      return;
+    EmitSib(Scale::One, isa::RSP, isa::RSP);
+    return;
+  }
+  if (Is8Bit(displacement)) {
+    EmitModRm(isa::Mod::Disp8, reg, base);
+    if (rm == Rm::Sib)
+      EmitSib(Scale::One, isa::RSP, isa::RSP);
+    Emit8(displacement);
+    return;
+  }
+  EmitModRm(isa::Mod::Disp32, reg, base);
+  if (rm == Rm::Sib)
+    EmitSib(Scale::One, isa::RSP, isa::RSP);
+  Emit32(displacement);
 }
 
 void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode) {
@@ -600,6 +641,27 @@ void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
     return;
   }
   NOTREACHED() << "NYI: float add: " << *instr;
+}
+
+// Output code pattern:
+//  int8:
+//      8A /r MOV r8, r/m8
+//  int16:
+//      66 8A /r MOV r8, r/m8
+//  int32:
+//      8B /r MOV r32, r/m32
+//  int64:
+//      REX.W 8B /r MOV r32, r/m32
+//
+// Note: |instr->input(0)| doesn't contribute code emission, it holds base
+// address of pointer in |instr->input(1)|.
+//
+void InstructionHandlerX64::VisitArrayLoad(ArrayLoadInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const pointer = instr->input(1);
+  EmitRexPrefix(output, pointer);
+  EmitOpcode(OpcodeForLoad(output));
+  EmitModRmDisp(ToRegister(output), pointer, instr->input(2));
 }
 
 // Instruction formats are as same as ADD.
