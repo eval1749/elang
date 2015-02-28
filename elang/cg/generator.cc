@@ -164,6 +164,10 @@ void Generator::VisitNe(hir::NeInstruction* instr) {
                    lir::FloatCondition::OrderedNotEqual);
 }
 
+void Generator::VisitJump(hir::JumpInstruction* instr) {
+  editor()->SetJump(MapBlock(instr->input(0)->as<hir::BasicBlock>()));
+}
+
 void Generator::VisitLe(hir::LeInstruction* instr) {
   HandleComparison(instr, lir::IntegerCondition::SignedLessThanOrEqual,
                    lir::IntegerCondition::UnsignedLessThanOrEqual,

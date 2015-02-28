@@ -72,6 +72,7 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   void VisitElement(hir::ElementInstruction* instr) final;
   void VisitEntry(hir::EntryInstruction* instr) final;
   void VisitCall(hir::CallInstruction* instr) final;
+  void VisitJump(hir::JumpInstruction* instr) final;
   void VisitLoad(hir::LoadInstruction* instr) final;
   void VisitRet(hir::RetInstruction* instr) final;
 

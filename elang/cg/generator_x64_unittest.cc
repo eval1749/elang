@@ -207,6 +207,37 @@ TEST_F(GeneratorX64Test, Element) {
       Generate(&editor));
 }
 
+TEST_F(GeneratorX64Test, Jump) {
+  auto const function = NewFunction(void_type(), void_type());
+  hir::Editor editor(factory(), function);
+  auto const target_block = editor.NewBasicBlock(editor.exit_block());
+
+  editor.Edit(editor.entry_block());
+  editor.SetBranch(target_block);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(target_block);
+  editor.SetReturn(void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3}\n"
+      "  entry\n"
+      "  jmp block3\n"
+      "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block3}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Generate(&editor));
+}
+
 TEST_F(GeneratorX64Test, Parameter) {
   auto const function =
       NewFunction(void_type(), types()->NewTupleType({int32_type(),
