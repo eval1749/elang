@@ -47,6 +47,10 @@ Value FactoryUser::NewRegister(Value type) {
   return factory()->NewRegister(type);
 }
 
+Value FactoryUser::NewStringValue(AtomicString* data) {
+  return factory()->NewStringValue(data);
+}
+
 Value FactoryUser::NewStringValue(base::StringPiece16 data) {
   return factory()->NewStringValue(data);
 }

@@ -11,6 +11,7 @@
 #include "elang/lir/literals_forward.h"
 
 namespace elang {
+class AtomicString;
 namespace lir {
 
 //////////////////////////////////////////////////////////////////////
@@ -30,6 +31,7 @@ class ELANG_LIR_EXPORT FactoryUser {
   Value NewFloat64Value(float64_t data);
   Value NewIntValue(Value type, int64_t value);
   Value NewRegister(Value type);
+  Value NewStringValue(AtomicString* atomic_string);
   Value NewStringValue(base::StringPiece16 data);
 
 // New instructions
