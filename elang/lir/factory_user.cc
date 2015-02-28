@@ -110,5 +110,13 @@ FOR_EACH_LIR_INSTRUCTION_1_1(V)
 FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
+#define V(Name, ...)                                                          \
+  Instruction* FactoryUser::New##Name##Instruction(                           \
+      Value output, Value input0, Value input1, Value input2) {               \
+    return factory()->New##Name##Instruction(output, input0, input1, input2); \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_3(V)
+#undef V
+
 }  // namespace lir
 }  // namespace elang

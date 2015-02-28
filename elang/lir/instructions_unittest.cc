@@ -42,6 +42,22 @@ std::string LirInstructionTest::ToString(const Instruction& instr) {
 
 // Test cases...
 
+// ArrayLoadInstruction
+TEST_F(LirInstructionTest, ArrayLoadInstruction) {
+  auto const array = NewRegister(Target::IntPtrType());
+  auto const pointer = NewRegister(Target::IntPtrType());
+  auto const offset = Value::SmallInt32(42);
+  auto const output = NewRegister(Value::Int32Type());
+  auto const instr =
+      factory()->NewArrayLoadInstruction(output, array, pointer, offset);
+  EXPECT_TRUE(instr->is<ArrayLoadInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(3, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:aload %r3 = %r1l, %r2l, 42", ToString(*instr));
+}
+
 // AssignInstruction
 TEST_F(LirInstructionTest, AssignInstruction) {
   auto const instr =
@@ -85,8 +101,8 @@ TEST_F(LirInstructionTest, CallInstruction) {
 TEST_F(LirInstructionTest, CmpInstruction) {
   auto const left = NewRegister(Value::Int32Type());
   auto const right = NewRegister(Value::Int32Type());
-  auto const instr = NewCmpInstruction(
-      NewConditional(), IntegerCondition::NotEqual, left, right);
+  auto const instr = NewCmpInstruction(NewConditional(),
+                                       IntegerCondition::NotEqual, left, right);
   EXPECT_TRUE(instr->is<CmpInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
@@ -177,7 +193,7 @@ TEST_F(LirInstructionTest, LoadInstruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
-    EXPECT_EQ("--:0:load %r2 = %r1l, 42", ToString(*instr));
+  EXPECT_EQ("--:0:load %r2 = %r1l, 42", ToString(*instr));
 }
 
 // PCopyInstruction

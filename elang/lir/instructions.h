@@ -578,6 +578,17 @@ FOR_EACH_LIR_INSTRUCTION_1_1(V)
 FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
+#define V(Name, ...)                                                           \
+  class ELANG_LIR_EXPORT Name##Instruction final                               \
+      : public InstructionTemplate<1, 3> {                                     \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);                              \
+                                                                               \
+   private:                                                                    \
+    Name##Instruction(Value output, Value input0, Value input1, Value input2); \
+  };
+FOR_EACH_LIR_INSTRUCTION_1_3(V)
+#undef V
+
 }  // namespace lir
 }  // namespace elang
 

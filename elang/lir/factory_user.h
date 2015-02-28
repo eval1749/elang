@@ -56,6 +56,12 @@ class ELANG_LIR_EXPORT FactoryUser {
   FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
+#define V(Name, ...)                                              \
+  Instruction* New##Name##Instruction(Value output, Value input0, \
+                                      Value input1, Value input2);
+  FOR_EACH_LIR_INSTRUCTION_1_3(V)
+#undef V
+
 #define V(Name, mnemonic, parameters, ...) \
   Instruction* New##Name##Instruction parameters;
   FOR_EACH_LIR_INSTRUCTION_N_N(V)

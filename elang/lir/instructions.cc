@@ -81,6 +81,18 @@ FOR_EACH_LIR_INSTRUCTION_1_1(V)
 FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
+#define V(Name, ...)                                                 \
+  Name##Instruction::Name##Instruction(Value output, Value input0,   \
+                                       Value input1, Value input2) { \
+    DCHECK(output.is_output());                                      \
+    InitOutput(0, output);                                           \
+    InitInput(0, input0);                                            \
+    InitInput(1, input1);                                            \
+    InitInput(2, input2);                                            \
+  }
+FOR_EACH_LIR_INSTRUCTION_1_3(V)
+#undef V
+
 //////////////////////////////////////////////////////////////////////
 //
 // BasicBlockOperands::Iterator

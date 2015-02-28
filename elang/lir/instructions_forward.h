@@ -45,6 +45,8 @@ namespace lir {
   V(Shr, "shr")                         \
   V(UShr, "ushr")
 
+#define FOR_EACH_LIR_INSTRUCTION_1_3(V) V(ArrayLoad, "aload")
+
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
@@ -69,6 +71,7 @@ namespace lir {
   FOR_EACH_LIR_INSTRUCTION_0_2(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_1(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_2(V)          \
+  FOR_EACH_LIR_INSTRUCTION_1_3(V)          \
   FOR_EACH_LIR_INSTRUCTION_N_N(V)
 
 #ifdef ELANG_TARGET_ARCH_X64

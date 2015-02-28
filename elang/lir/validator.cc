@@ -338,6 +338,22 @@ void Validator::VisitFCmp(FCmpInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
 }
 
+void Validator::VisitArrayLoad(ArrayLoadInstruction* instr) {
+  auto const array = instr->input(0);
+  auto const pointer = instr->input(1);
+  auto const offset = instr->input(2);
+  if (!array.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (array.size != Target::IntPtrType().size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+  if (!pointer.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  if (pointer.size != Target::IntPtrType().size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+  if (!offset.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 2);
+}
+
 void Validator::VisitLoad(LoadInstruction* instr) {
   auto const pointer = instr->input(0);
   auto const offset = instr->input(1);
