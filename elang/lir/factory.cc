@@ -155,6 +155,10 @@ Value Factory::NewIntValue(Value type, int64_t data) {
   return value;
 }
 
+Value Factory::NewStringValue(AtomicString* atomic_string) {
+  return NewStringValue(atomic_string->string());
+}
+
 Value Factory::NewStringValue(base::StringPiece16 data) {
   auto const it = string_map_.find(data);
   if (it != string_map_.end())
@@ -165,10 +169,6 @@ Value Factory::NewStringValue(base::StringPiece16 data) {
   RegisterLiteral(literal);
   string_map_[literal->data()] = value;
   return value;
-}
-
-Value Factory::NewStringValue(AtomicString* atomic_string) {
-  return NewStringValue(atomic_string->string());
 }
 
 int Factory::NextBasicBlockId() {
