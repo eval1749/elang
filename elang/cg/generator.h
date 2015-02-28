@@ -36,7 +36,9 @@ namespace cg {
 //
 // Generator
 //
-class Generator final : public ZoneOwner, public hir::InstructionVisitor {
+class Generator final : public ZoneOwner,
+                        public hir::InstructionVisitor,
+                        public lir::FactoryUser {
  public:
   Generator(lir::Factory* factory, hir::Function* hir_function);
   ~Generator();
@@ -52,7 +54,6 @@ class Generator final : public ZoneOwner, public hir::InstructionVisitor {
   };
 
   lir::Editor* editor() const { return editor_.get(); }
-  lir::Factory* factory() const;
   lir::Function* function() const;
 
   void Emit(lir::Instruction* instruction);

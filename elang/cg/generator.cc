@@ -23,17 +23,14 @@ namespace cg {
 // Generator
 //
 Generator::Generator(lir::Factory* factory, hir::Function* hir_function)
-    : editor_(new lir::Editor(factory, NewFunction(factory, hir_function))),
+    : FactoryUser(factory),
+      editor_(new lir::Editor(factory, NewFunction(factory, hir_function))),
       hir_function_(hir_function) {
   block_map_[hir_function->entry_block()] = function()->entry_block();
   block_map_[hir_function->exit_block()] = function()->exit_block();
 }
 
 Generator::~Generator() {
-}
-
-lir::Factory* Generator::factory() const {
-  return editor()->factory();
 }
 
 lir::Function* Generator::function() const {
@@ -46,7 +43,7 @@ void Generator::Emit(lir::Instruction* instruction) {
 
 void Generator::EmitCopy(lir::Value output, lir::Value input) {
   DCHECK_NE(output, input);
-  Emit(factory()->NewCopyInstruction(output, input));
+  Emit(NewCopyInstruction(output, input));
 }
 
 lir::Function* Generator::Generate() {
@@ -63,7 +60,7 @@ void Generator::HandleComparison(hir::Instruction* instr,
                                  lir::IntegerCondition signed_condition,
                                  lir::IntegerCondition unsigned_condition,
                                  lir::FloatCondition float_condition) {
-  auto const output = factory()->NewConditional();
+  auto const output = NewConditional();
   DCHECK(!register_map_.count(instr));
   register_map_[instr] = output;
 
@@ -73,21 +70,21 @@ void Generator::HandleComparison(hir::Instruction* instr,
       instr->input(0)->type()->as<hir::PrimitiveValueType>();
   if (!primitive_type) {
     DCHECK_EQ(lir::IntegerCondition::Equal, signed_condition);
-    Emit(factory()->NewCmpInstruction(output, signed_condition, left, right));
+    Emit(NewCmpInstruction(output, signed_condition, left, right));
     return;
   }
 
   if (primitive_type->is_float()) {
-    Emit(factory()->NewFCmpInstruction(output, float_condition, left, right));
+    Emit(NewFCmpInstruction(output, float_condition, left, right));
     return;
   }
 
   if (primitive_type->is_signed()) {
-    Emit(factory()->NewCmpInstruction(output, signed_condition, left, right));
+    Emit(NewCmpInstruction(output, signed_condition, left, right));
     return;
   }
 
-  Emit(factory()->NewCmpInstruction(output, unsigned_condition, left, right));
+  Emit(NewCmpInstruction(output, unsigned_condition, left, right));
 }
 
 lir::BasicBlock* Generator::MapBlock(hir::BasicBlock* hir_block) {
@@ -180,11 +177,11 @@ void Generator::VisitLt(hir::LtInstruction* instr) {
                    lir::FloatCondition::OrderedLessThan);
 }
 
-#define V(Name, ...)                                                          \
-  void Generator::Visit##Name(hir::Name##Instruction* instr) {                \
-    auto const output = MapOutput(instr);                                     \
-    Emit(factory()->New##Name##Instruction(output, MapInput(instr->input(0)), \
-                                           MapInput(instr->input(1))));       \
+#define V(Name, ...)                                               \
+  void Generator::Visit##Name(hir::Name##Instruction* instr) {     \
+    auto const output = MapOutput(instr);                          \
+    Emit(New##Name##Instruction(output, MapInput(instr->input(0)), \
+                                MapInput(instr->input(1))));       \
   }
 FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_BINARY_OPERATION(V)

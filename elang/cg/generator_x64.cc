@@ -34,7 +34,7 @@ void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
     EmitCopy(output, input);
     return;
   }
-  Emit(factory()->NewLiteralInstruction(output, input));
+  Emit(NewLiteralInstruction(output, input));
 }
 
 lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
@@ -43,13 +43,12 @@ lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
   DCHECK_GE(shift_count, 0);
   if (!shift_count)
     return input;
-  auto const output = factory()->NewRegister(input);
+  auto const output = NewRegister(input);
   if (shift_count == 1) {
-    Emit(factory()->NewAddInstruction(output, input, input));
+    Emit(NewAddInstruction(output, input, input));
     return output;
   }
-  Emit(factory()->NewShlInstruction(output, input,
-                                    lir::Value::SmallInt32(shift_count)));
+  Emit(NewShlInstruction(output, input, lir::Value::SmallInt32(shift_count)));
   return output;
 }
 
@@ -94,12 +93,12 @@ Generator::ArrayReference Generator::HandleElement(
       MapType(instr->type()->as<hir::PointerType>()->pointee());
   auto const shift_count = lir::Value::Log2Of(array_ref.element_type);
   auto const scaled_index = GenerateShl(MapInput(instr->input(1)), shift_count);
-  auto const scaled_index64 = factory()->NewRegister(Target::IntPtrType());
-  Emit(factory()->NewSignExtendInstruction(scaled_index64, scaled_index));
+  auto const scaled_index64 = NewRegister(Target::IntPtrType());
+  Emit(NewSignExtendInstruction(scaled_index64, scaled_index));
 
-  array_ref.element_pointer = factory()->NewRegister(Target::IntPtrType());
-  Emit(factory()->NewAddInstruction(array_ref.element_pointer,
-                                    array_ref.array_pointer, scaled_index64));
+  array_ref.element_pointer = NewRegister(Target::IntPtrType());
+  Emit(NewAddInstruction(array_ref.element_pointer, array_ref.array_pointer,
+                         scaled_index64));
 
   // Layout of vector object:
   //  +0 object header
@@ -118,33 +117,33 @@ lir::Value Generator::MapInput(hir::Value* value) {
   }
 
   if (auto const literal = value->as<hir::BoolLiteral>())
-    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::Float32Literal>())
-    return factory()->NewFloat32Value(literal->data());
+    return NewFloat32Value(literal->data());
   if (auto const literal = value->as<hir::Float64Literal>())
-    return factory()->NewFloat64Value(literal->data());
+    return NewFloat64Value(literal->data());
   if (auto const literal = value->as<hir::Int8Literal>())
-    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::Int16Literal>())
-    return factory()->NewIntValue(lir::Value::Int16Type(), literal->data());
+    return NewIntValue(lir::Value::Int16Type(), literal->data());
   if (auto const literal = value->as<hir::Int32Literal>())
-    return factory()->NewIntValue(lir::Value::Int32Type(), literal->data());
+    return NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::Int64Literal>())
-    return factory()->NewIntValue(lir::Value::Int64Type(), literal->data());
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
   if (auto const literal = value->as<hir::UInt8Literal>())
-    return factory()->NewIntValue(lir::Value::Int8Type(), literal->data());
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::UInt16Literal>())
-    return factory()->NewIntValue(lir::Value::Int16Type(), literal->data());
+    return NewIntValue(lir::Value::Int16Type(), literal->data());
   if (auto const literal = value->as<hir::UInt32Literal>())
-    return factory()->NewIntValue(lir::Value::Int32Type(), literal->data());
+    return NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::UInt64Literal>())
-    return factory()->NewIntValue(lir::Value::Int64Type(), literal->data());
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
 
   if (auto const reference = value->as<hir::Reference>())
-    return factory()->NewStringValue(reference->name());
+    return NewStringValue(reference->name());
 
   NOTREACHED() << "unsupported hir::Literal: " << *value;
-  return factory()->NewIntValue(lir::Value::Int8Type(), 0);
+  return NewIntValue(lir::Value::Int8Type(), 0);
 }
 
 // Get output register for instruction except for 'load'.
@@ -157,7 +156,7 @@ lir::Value Generator::MapRegister(hir::Value* value) {
   auto const it = register_map_.find(value);
   if (it != register_map_.end())
     return it->second;
-  auto const new_register = factory()->NewRegister(MapType(value->type()));
+  auto const new_register = NewRegister(MapType(value->type()));
   register_map_[value] = new_register;
   return new_register;
 }
@@ -193,7 +192,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
 
   if (argument->type()->is<hir::VoidType>()) {
     // No argument
-    Emit(factory()->NewCallInstruction(lir_callee));
+    Emit(NewCallInstruction(lir_callee));
     return;
   }
 
@@ -202,7 +201,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
     // One argument
     auto const lir_argument = MapInput(argument);
     EmitCopy(Target::GetArgumentAt(lir_argument, 0), lir_argument);
-    Emit(factory()->NewCallInstruction(lir_callee));
+    Emit(NewCallInstruction(lir_callee));
     return;
   }
 
@@ -218,8 +217,8 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
     outputs.push_back(Target::GetArgumentAt(lir_argument, position));
     ++position;
   }
-  Emit(factory()->NewPCopyInstruction(outputs, inputs));
-  Emit(factory()->NewCallInstruction(lir_callee));
+  Emit(NewPCopyInstruction(outputs, inputs));
+  Emit(NewCallInstruction(lir_callee));
 }
 
 // Load parameters from registers and stack
@@ -247,16 +246,16 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
     outputs.push_back(output);
     inputs.push_back(lir::Target::GetParameterAt(output, get_instr->index()));
   }
-  Emit(factory()->NewPCopyInstruction(outputs, inputs));
+  Emit(NewPCopyInstruction(outputs, inputs));
 }
 
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
   auto const pointer_instr = instr->input(0);
   if (auto const element_instr = pointer_instr->as<hir::ElementInstruction>()) {
     auto const array_ref = HandleElement(element_instr);
-    Emit(factory()->NewArrayLoadInstruction(
-        MapOutput(instr), array_ref.array_pointer, array_ref.element_pointer,
-        array_ref.sizeof_array_header));
+    Emit(NewArrayLoadInstruction(MapOutput(instr), array_ref.array_pointer,
+                                 array_ref.element_pointer,
+                                 array_ref.sizeof_array_header));
     return;
   }
   NOTREACHED() << "Unsupported load pointer: " << *pointer_instr;
@@ -300,11 +299,11 @@ void Generator::VisitRet(hir::RetInstruction* instr) {
   }
 
   if (primitive_type->is_signed()) {
-    Emit(factory()->NewSignExtendInstruction(output, input));
+    Emit(NewSignExtendInstruction(output, input));
     editor()->SetReturn();
     return;
   }
-  Emit(factory()->NewZeroExtendInstruction(output, input));
+  Emit(NewZeroExtendInstruction(output, input));
   editor()->SetReturn();
 }
 
