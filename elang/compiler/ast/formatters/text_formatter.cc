@@ -42,17 +42,17 @@ class Formatter final : public ast::Visitor {
 
  private:
   // ast::Visitor
-  void VisitCall(ast::Call* node);
-  void VisitClass(ast::Class* node);
-  void VisitLiteral(ast::Literal* node);
-  void VisitImport(ast::Import* node);
-  void VisitMemberAccess(ast::MemberAccess* node);
-  void VisitMethod(ast::Method* node);
-  void VisitMethodGroup(ast::MethodGroup* node);
-  void VisitNameReference(ast::NameReference* node);
-  void VisitNamespace(ast::Namespace* node);
-  void VisitTypeMemberAccess(ast::TypeMemberAccess* node);
-  void VisitTypeNameReference(ast::TypeNameReference* node);
+  void VisitCall(ast::Call* node) final;
+  void VisitClass(ast::Class* node) final;
+  void VisitLiteral(ast::Literal* node) final;
+  void VisitImport(ast::Import* node) final;
+  void VisitMemberAccess(ast::MemberAccess* node) final;
+  void VisitMethod(ast::Method* node) final;
+  void VisitMethodGroup(ast::MethodGroup* node) final;
+  void VisitNameReference(ast::NameReference* node) final;
+  void VisitNamespace(ast::Namespace* node) final;
+  void VisitTypeMemberAccess(ast::TypeMemberAccess* node) final;
+  void VisitTypeNameReference(ast::TypeNameReference* node) final;
 
   std::ostream& ostream_;
 
