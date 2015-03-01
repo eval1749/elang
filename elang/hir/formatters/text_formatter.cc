@@ -140,7 +140,7 @@ void TypeFormatter::VisitArrayType(ArrayType* type) {
 }
 
 void TypeFormatter::VisitExternalType(ExternalType* type) {
-  ostream_ << type->name();
+  ostream_ << *type->name();
 }
 
 void TypeFormatter::VisitFunctionType(FunctionType* type) {
