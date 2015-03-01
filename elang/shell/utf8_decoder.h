@@ -10,6 +10,7 @@
 #include "base/basictypes.h"
 
 namespace elang {
+namespace compiler {
 namespace shell {
 
 //////////////////////////////////////////////////////////////////////
@@ -36,6 +37,7 @@ class Utf8Decoder final {
 };
 
 }  // namespace shell
+}  // namespace compiler
 }  // namespace elang
 
 #endif  // ELANG_SHELL_UTF8_DECODER_H_

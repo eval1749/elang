@@ -7,6 +7,7 @@
 #include "base/logging.h"
 
 namespace elang {
+namespace compiler {
 namespace shell {
 
 //////////////////////////////////////////////////////////////////////
@@ -82,4 +83,5 @@ int Utf8Decoder::Get() {
 }
 
 }  // namespace shell
+}  // namespace compiler
 }  // namespace elang

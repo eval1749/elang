@@ -9,6 +9,7 @@
 #include "gtest/gtest.h"
 
 namespace elang {
+namespace compiler {
 namespace shell {
 namespace {
 
@@ -45,4 +46,5 @@ TEST(Utf8DecoderTest, Basic) {
 
 }  // namespace
 }  // namespace shell
+}  // namespace compiler
 }  // namespace elang
