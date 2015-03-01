@@ -20,6 +20,7 @@ class AtomicString;
 class AtomicStringFactory;
 
 namespace hir {
+class Factory;
 class Function;
 }
 
@@ -76,6 +77,9 @@ class CompilationSession final : public ZoneOwner {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
+
+  // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
+  bool Compile(NameResolver* name_resolver, hir::Factory* factory);
 
   // Returns |hir::Function| of |method|.
   hir::Function* FunctionOf(ast::Method* method);

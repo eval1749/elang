@@ -12,6 +12,7 @@ static_library("compiler") {
     "compilation_session_user.h",
     "compilation_unit.cc",
     "compilation_unit.h",
+    "compile.cc",
     "modifiers.cc",
     "modifiers.h",
     "modifiers_builder.cc",
