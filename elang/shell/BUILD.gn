@@ -4,6 +4,8 @@
 
 executable("elang_shell") {
   sources = [
+    "compiler.cc",
+    "compiler.h",
     "shell_main.cc",
   ]
 
@@ -16,6 +18,12 @@ executable("elang_shell") {
 
 static_library("shell_library") {
   sources = [
+    "namespace_builder.cc",
+    "namespace_builder.h",
+    "node_query.cc",
+    "node_query.h",
+    "source_file_stream.cc",
+    "source_file_stream.h",
     "utf8_decoder.cc",
     "utf8_decoder.h",
   ]

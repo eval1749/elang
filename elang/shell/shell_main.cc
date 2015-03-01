@@ -3,18 +3,25 @@
 // found in the LICENSE file.
 
 #include <iostream>
+#include <iterator>
+#include <vector>
 
 #include "base/at_exit.h"
+#include "base/basictypes.h"
 #include "base/command_line.h"
+#include "base/files/file_path.h"
+#include "base/files/file_util.h"
 #include "base/logging.h"
-#include "elang/compiler/compilation_session.h"
-#include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/syntax/parser.h"
-#include "elang/compiler/string_source_code.h"
+#include "elang/shell/compiler.h"
 
 namespace elang {
+namespace compiler {
 namespace shell {
 
+//////////////////////////////////////////////////////////////////////
+//
+// Main - The entry point.
+//
 extern "C" int main() {
   base::AtExitManager at_exit;
   CommandLine::set_slash_is_not_a_switch();
@@ -25,18 +32,19 @@ extern "C" int main() {
     logging::InitLogging(settings);
   }
 
-  compiler::CompilationSession session;
+  Compiler compiler;
   auto command_line = base::CommandLine::ForCurrentProcess();
   for (auto file_name : command_line->GetArgs()) {
-    std::cout << "Compile: " << file_name << std::endl;
-    compiler::StringSourceCode source_code(file_name, L"namespace foo");
-    auto const compilation_unit = session.NewCompilationUnit(&source_code);
-    compiler::Parser parser(&session, compilation_unit);
-    parser.Run();
+    base::FilePath file_path(file_name);
+    compiler.AddSourceFile(base::MakeAbsoluteFilePath(file_path));
   }
-
-  return 0;
+  auto exit_code = compiler.CompileAndGo();
+  if (!exit_code)
+    return 0;
+  compiler.ReportErrors();
+  return exit_code;
 }
 
 }  // namespace shell
+}  // namespace compiler
 }  // namespace elang
