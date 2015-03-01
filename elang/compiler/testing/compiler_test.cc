@@ -63,27 +63,8 @@ ast::Class* CompilerTest::FindClass(base::StringPiece name) {
   return member ? member->as<ast::Class>() : nullptr;
 }
 
-ast::NamedNode* CompilerTest::FindMember(base::StringPiece name) {
-  auto enclosing =
-      static_cast<ast::ContainerNode*>(session()->global_namespace());
-  auto found = static_cast<ast::NamedNode*>(nullptr);
-  for (size_t pos = 0u; pos < name.length(); ++pos) {
-    auto dot_pos = name.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = name.length();
-    auto const simple_name = session()->NewAtomicString(
-        base::UTF8ToUTF16(name.substr(pos, dot_pos - pos)));
-    found = enclosing->FindMember(simple_name);
-    if (!found)
-      return nullptr;
-    pos = dot_pos;
-    if (pos == name.length())
-      break;
-    enclosing = found->as<ast::NamespaceNode>();
-    if (!enclosing)
-      return nullptr;
-  }
-  return found;
+ast::NamedNode* CompilerTest::FindMember(base::StringPiece qualified_name) {
+  return session()->QueryAstNode(base::UTF8ToUTF16(qualified_name));
 }
 
 std::string CompilerTest::Format(base::StringPiece source_code) {

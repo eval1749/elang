@@ -22,9 +22,10 @@ class AtomicStringFactory;
 namespace compiler {
 namespace ast {
 class Class;
+class Factory;
+class NamedNode;
 class Namespace;
 class NamespaceBody;
-class Factory;
 }
 
 class CompilationUnit;
@@ -69,6 +70,7 @@ class CompilationSession final : public ZoneOwner {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
+
   ast::Class* GetPredefinedType(PredefinedName name);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
@@ -79,6 +81,9 @@ class CompilationSession final : public ZoneOwner {
                             const base::char16* format);
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
   Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
+
+  // Returns |ast::Node| which qualified name is |qualified_name|.
+  ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
 
  private:
   void AddError(const SourceCodeRange& location,

@@ -159,5 +159,27 @@ Token* CompilationSession::NewToken(const SourceCodeRange& location,
   return token_factory_->NewToken(location, TokenData(name));
 }
 
+ast::NamedNode* CompilationSession::QueryAstNode(base::StringPiece16 name) {
+  auto enclosing =
+      static_cast<ast::ContainerNode*>(global_namespace());
+  auto found = static_cast<ast::NamedNode*>(nullptr);
+  for (size_t pos = 0u; pos < name.length(); ++pos) {
+    auto dot_pos = name.find('.', pos);
+    if (dot_pos == base::StringPiece::npos)
+      dot_pos = name.length();
+    auto const simple_name = NewAtomicString(name.substr(pos, dot_pos - pos));
+    found = enclosing->FindMember(simple_name);
+    if (!found)
+      return nullptr;
+    pos = dot_pos;
+    if (pos == name.length())
+      break;
+    enclosing = found->as<ast::NamespaceNode>();
+    if (!enclosing)
+      return nullptr;
+  }
+  return found;
+}
+
 }  // namespace compiler
 }  // namespace elang
