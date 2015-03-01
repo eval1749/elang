@@ -34,7 +34,6 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
                 VariableAnalyzer* variable_analyzer);
   ~CodeGenerator();
 
-  hir::Function* FunctionOf(ast::Method* method) const;
   bool Run();
 
  private:
@@ -119,7 +118,6 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Editor* editor_;
   hir::Factory* const factory_;
   hir::Function* function_;
-  std::unordered_map<ast::Method*, hir::Function*> functions_;
   Output* output_;
   const std::unique_ptr<TypeMapper> type_mapper_;
   VariableAnalyzer* const variable_analyzer_;

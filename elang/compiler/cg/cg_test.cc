@@ -70,7 +70,7 @@ std::string CgTest::FormatFunction(hir::Function* function) {
 }
 
 hir::Function* CgTest::FunctionOf(ast::Method* ast_method) {
-  return code_generator()->FunctionOf(ast_method);
+  return session()->FunctionOf(ast_method);
 }
 
 std::string CgTest::Generate(base::StringPiece name) {

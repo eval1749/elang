@@ -19,10 +19,15 @@ namespace elang {
 class AtomicString;
 class AtomicStringFactory;
 
+namespace hir {
+class Function;
+}
+
 namespace compiler {
 namespace ast {
 class Class;
 class Factory;
+class Method;
 class NamedNode;
 class Namespace;
 class NamespaceBody;
@@ -31,6 +36,7 @@ class NamespaceBody;
 class CompilationUnit;
 enum class ErrorCode;
 class ErrorData;
+class NameResolver;
 enum class PredefinedName;
 class PredefinedNames;
 class Semantics;
@@ -71,6 +77,9 @@ class CompilationSession final : public ZoneOwner {
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
 
+  // Returns |hir::Function| of |method|.
+  hir::Function* FunctionOf(ast::Method* method);
+
   ast::Class* GetPredefinedType(PredefinedName name);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
@@ -81,6 +90,8 @@ class CompilationSession final : public ZoneOwner {
                             const base::char16* format);
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
   Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
+
+  void RegisterFunction(ast::Method* method, hir::Function* function);
 
   // Returns |ast::Node| which qualified name is |qualified_name|.
   ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
@@ -94,6 +105,8 @@ class CompilationSession final : public ZoneOwner {
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
+  // The result of compilation.
+  std::unordered_map<ast::Method*, hir::Function*> function_map_;
   const std::unique_ptr<TokenFactory> token_factory_;
   const std::unique_ptr<PredefinedNames> predefined_names_;
   const std::unique_ptr<Semantics> semantics_;

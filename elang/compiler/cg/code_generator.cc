@@ -259,11 +259,6 @@ void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
   EmitOutputInstruction(factory()->NewLoadInstruction(home));
 }
 
-hir::Function* CodeGenerator::FunctionOf(ast::Method* ast_method) const {
-  auto const it = functions_.find(ast_method);
-  return it == functions_.end() ? nullptr : it->second;
-}
-
 void CodeGenerator::Generate(ast::Statement* statement) {
   DCHECK(!output_);
   if (!statement)
@@ -484,7 +479,7 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   auto const function = factory()->NewFunction(
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
   TemporaryChangeValue<hir::Function*> function_scope(function_, function);
-  functions_[ast_method] = function;
+  session()->RegisterFunction(ast_method, function);
   variable_analyzer_->RegisterFunction(function);
 
   hir::Editor editor(factory(), function_);
