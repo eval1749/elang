@@ -10,6 +10,24 @@ executable("elang_shell") {
   deps = [
     "//base",
     "//elang/compiler",
+    ":shell_library",
+  ]
+}
+
+static_library("shell_library") {
+  sources = [
+    "utf8_decoder.cc",
+    "utf8_decoder.h",
+  ]
+}
+
+source_set("shell_unittests") {
+  sources = [
+    "utf8_decoder_unittest.cc",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    ":shell_library",
   ]
 }
 
