@@ -42,6 +42,8 @@ class Formatter final : public ast::Visitor {
 
  private:
   // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) final;
+  void VisitArrayType(ast::ArrayType* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitClass(ast::Class* node) final;
   void VisitLiteral(ast::Literal* node) final;
@@ -67,6 +69,35 @@ void Formatter::Format(const ast::Node* node) {
 }
 
 // Visitor
+
+void Formatter::DoDefaultVisit(ast::Node* node) {
+  ostream_ << node->class_name() << "@" << node;
+}
+
+// Element type of array type is omitting left most rank, e.g.
+//  element_type_of(T[A]) = T
+//  element_type_of(T[A][B}) = T[B]
+//  element_type_of(T[A][B}[C]) = T[B][C]
+void Formatter::VisitArrayType(ast::ArrayType* node) {
+  std::vector<ArrayType*> array_types;
+  for (Type* runner = node; runner->is<ArrayType>();
+       runner = runner->as<ArrayType>()->element_type()) {
+    array_types.push_back(runner->as<ArrayType>());
+  }
+  ostream_ << *array_types.back()->element_type();
+  for (auto array_type : array_types) {
+    ostream_ << "[";
+    auto separator = "";
+    for (auto dimension : array_type->dimensions()) {
+      ostream_ << separator;
+      if (dimension >= 0)
+        ostream_ << dimension;
+      separator = ",";
+    }
+    ostream_ << "]";
+  }
+}
+
 void Formatter::VisitCall(ast::Call* node) {
   ostream_ << *node->callee() << "(";
   auto separator = "";
