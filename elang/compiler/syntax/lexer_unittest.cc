@@ -238,6 +238,11 @@ TEST_F(LexerTest, Integers) {
   EXPECT_TOKEN(UInt64Literal, 185, 193, 0x7FE5);
 }
 
+TEST_F(LexerTest, LineComment) {
+  PrepareLexer(L"// foo\n|");
+  EXPECT_OPERATOR_TOKEN(BitOr, 7, 8);
+}
+
 TEST_F(LexerTest, Operators) {
   PrepareLexer(
       L" ~ . ,    "

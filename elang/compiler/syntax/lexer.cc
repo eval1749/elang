@@ -759,7 +759,8 @@ bool Lexer::SkipBlockComment() {
 void Lexer::SkipLineComment() {
   enum State { Backslash, Normal, } state = Normal;
   while (!IsAtEndOfStream()) {
-    auto const char_code = ReadChar();
+    Advance();
+    auto const char_code = PeekChar();
     switch (state) {
       case State::Backslash:
         state = State::Normal;
