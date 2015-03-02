@@ -71,7 +71,6 @@ class Lexer final {
   base::char16 PeekChar();
   void SkipLineComment();
   bool SkipBlockComment();
-  base::char16 ReadChar();
 
   DISALLOW_COPY_AND_ASSIGN(Lexer);
 };

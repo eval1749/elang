@@ -702,11 +702,6 @@ base::char16 Lexer::PeekChar() {
   return input_stream_->PeekChar();
 }
 
-base::char16 Lexer::ReadChar() {
-  ++token_end_;
-  return input_stream_->ReadChar();
-}
-
 // Returns false when we don't get matching "*/" at end of source code.
 // Note: Block comments is nestable.
 bool Lexer::SkipBlockComment() {
