@@ -82,16 +82,6 @@ TEST_P(DiscardableMemoryTest, DeleteWhileLocked) {
   ASSERT_TRUE(memory);
 }
 
-// Test forced purging.
-TEST_P(DiscardableMemoryTest, Purge) {
-  const scoped_ptr<DiscardableMemory> memory(CreateLockedMemory(kSize));
-  ASSERT_TRUE(memory);
-  memory->Unlock();
-
-  DiscardableMemory::PurgeForTesting();
-  EXPECT_EQ(DISCARDABLE_MEMORY_LOCK_STATUS_PURGED, memory->Lock());
-}
-
 #if !defined(NDEBUG) && !defined(OS_ANDROID)
 // Death tests are not supported with Android APKs.
 TEST_P(DiscardableMemoryTest, UnlockedMemoryAccessCrashesInDebugMode) {
@@ -105,6 +95,9 @@ TEST_P(DiscardableMemoryTest, UnlockedMemoryAccessCrashesInDebugMode) {
 
 // Test behavior when creating enough instances that could use up a 32-bit
 // address space.
+// This is disabled under AddressSanitizer on Windows as it crashes (by design)
+// on OOM. See http://llvm.org/PR22026 for the details.
+#if !defined(ADDRESS_SANITIZER) || !defined(OS_WIN)
 TEST_P(DiscardableMemoryTest, AddressSpace) {
   const size_t kLargeSize = 4 * 1024 * 1024;  // 4MiB.
   const size_t kNumberOfInstances = 1024 + 1;  // >4GiB total.
@@ -118,6 +111,7 @@ TEST_P(DiscardableMemoryTest, AddressSpace) {
     memory->Unlock();
   }
 }
+#endif
 
 std::vector<DiscardableMemoryType> GetSupportedDiscardableMemoryTypes() {
   std::vector<DiscardableMemoryType> supported_types;

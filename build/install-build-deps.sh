@@ -155,7 +155,7 @@ nacl_list="g++-mingw-w64-i686 lib32z1-dev
            libfontconfig1:i386 libgconf-2-4:i386 libglib2.0-0:i386 libgpm2:i386
            libgtk2.0-0:i386 libncurses5:i386 lib32ncurses5-dev
            libnss3:i386 libpango1.0-0:i386
-           libssl0.9.8:i386 libtinfo-dev libtinfo-dev:i386 libtool
+           libssl1.0.0:i386 libtinfo-dev libtinfo-dev:i386 libtool
            libxcomposite1:i386 libxcursor1:i386 libxdamage1:i386 libxi6:i386
            libxrandr2:i386 libxss1:i386 libxtst6:i386 texinfo xvfb
            ${naclports_list}"
@@ -304,9 +304,11 @@ else
   nacl_list=
 fi
 
+# The `sort -r -s -t: -k2` sorts all the :i386 packages to the front, to avoid
+# confusing dpkg-query (crbug.com/446172).
 packages="$(
   echo "${dev_list} ${lib_list} ${dbg_list} ${lib32_list} ${arm_list}"\
-       "${nacl_list}" | tr " " "\n" | sort -u | tr "\n" " "
+       "${nacl_list}" | tr " " "\n" | sort -u | sort -r -s -t: -k2 | tr "\n" " "
 )"
 
 if [ 1 -eq "${do_quick_check-0}" ] ; then
@@ -350,7 +352,7 @@ if test "$do_inst_lib32" = "1" || test "$do_inst_nacl" = "1"; then
     sudo dpkg --add-architecture i386
   fi
 fi
-sudo apt-get update
+#sudo apt-get update
 
 # We initially run "apt-get" with the --reinstall option and parse its output.
 # This way, we can find all the packages that need to be newly installed
@@ -414,14 +416,32 @@ else
   echo "Skipping installation of Chrome OS fonts."
 fi
 
+# $1 - target name
+# $2 - link name
+create_library_symlink() {
+  target=$1
+  linkname=$2
+  if [ -L $linkname ]; then
+    if [ "$(basename $(readlink $linkname))" != "$(basename $target)" ]; then
+      sudo rm $linkname
+    fi
+  fi
+  if [ ! -r $linkname ]; then
+    echo "Creating link: $linkname"
+    sudo ln -fs $target $linkname
+  fi
+}
+
 if test "$do_inst_nacl" = "1"; then
   echo "Installing symbolic links for NaCl."
-  if [ ! -r /usr/lib/i386-linux-gnu/libcrypto.so ]; then
-    sudo ln -fs libcrypto.so.0.9.8 /usr/lib/i386-linux-gnu/libcrypto.so
-  fi
-  if [ ! -r /usr/lib/i386-linux-gnu/libssl.so ]; then
-    sudo ln -fs libssl.so.0.9.8 /usr/lib/i386-linux-gnu/libssl.so
-  fi
+  # naclports needs to cross build python for i386, but libssl1.0.0:i386
+  # only contains libcrypto.so.1.0.0 and not the symlink needed for
+  # linking (libcrypto.so).
+  create_library_symlink /lib/i386-linux-gnu/libcrypto.so.1.0.0 \
+      /usr/lib/i386-linux-gnu/libcrypto.so
+
+  create_library_symlink /lib/i386-linux-gnu/libssl.so.1.0.0 \
+      /usr/lib/i386-linux-gnu/libssl.so
 else
   echo "Skipping symbolic links for NaCl."
 fi

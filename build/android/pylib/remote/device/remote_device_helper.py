@@ -4,8 +4,10 @@
 
 """Common functions and Exceptions for remote_device_*"""
 
+from pylib.utils import base_error
 
-class RemoteDeviceError(Exception):
+
+class RemoteDeviceError(base_error.BaseError):
   """Exception to throw when problems occur with remote device service."""
   pass
 

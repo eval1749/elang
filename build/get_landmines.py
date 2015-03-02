@@ -28,8 +28,8 @@ def print_landmines():
       builder() == 'ninja'):
     print 'Need to clobber winja goma due to backend cwd cache fix.'
   if platform() == 'android':
-    print 'Clobber: To delete newly generated mojo class files.'
-    print 'Clobber to ensure that recipe tests do not break (issue 680923002).'
+    print 'Clobber: to handle new way of suppressing findbugs failures.'
+    print 'Clobber to fix gyp not rename package name (crbug.com/457038)'
   if platform() == 'win' and builder() == 'ninja':
     print 'Compile on cc_unittests fails due to symbols removed in r185063.'
   if platform() == 'linux' and builder() == 'ninja':
@@ -54,15 +54,15 @@ def print_landmines():
   if (platform() != 'ios'):
     print 'Clobber to get rid of obselete test plugin after r248358'
     print 'Clobber to rebuild GN files for V8'
+  print 'Clobber to get rid of stale generated mojom.h files'
   print 'Need to clobber everything due to build_nexe change in nacl r13424'
   print '[chromium-dev] PSA: clobber build needed for IDR_INSPECTOR_* compil...'
   print 'blink_resources.grd changed: crbug.com/400860'
   print 'ninja dependency cycle: crbug.com/408192'
-  if platform() == 'android':
-    print 'Delete stale generated .java files yet again. crbug.com/349592'
-    print 'Clobber to delete incompatible object binary format with NDK r10c'
   print 'Clobber to fix missing NaCl gyp dependencies (crbug.com/427427).'
   print 'Another clobber for missing NaCl gyp deps (crbug.com/427427).'
+  print 'Clobber to fix GN not picking up increased ID range (crbug.com/444902)'
+  print 'Remove NaCl toolchains from the output dir (crbug.com/456902)'
 
 
 def main():

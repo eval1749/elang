@@ -11,11 +11,6 @@
 namespace base {
 
 // static
-void DiscardableMemory::ReleaseFreeMemory() {
-  internal::DiscardableMemoryShmem::ReleaseFreeMemory();
-}
-
-// static
 bool DiscardableMemory::ReduceMemoryUsage() {
   return internal::DiscardableMemoryEmulated::ReduceMemoryUsage();
 }
@@ -24,8 +19,8 @@ bool DiscardableMemory::ReduceMemoryUsage() {
 void DiscardableMemory::GetSupportedTypes(
     std::vector<DiscardableMemoryType>* types) {
   const DiscardableMemoryType supported_types[] = {
-    DISCARDABLE_MEMORY_TYPE_EMULATED,
-    DISCARDABLE_MEMORY_TYPE_SHMEM
+    DISCARDABLE_MEMORY_TYPE_SHMEM,
+    DISCARDABLE_MEMORY_TYPE_EMULATED
   };
   types->assign(supported_types, supported_types + arraysize(supported_types));
 }
@@ -59,12 +54,6 @@ scoped_ptr<DiscardableMemory> DiscardableMemory::CreateLockedMemoryWithType(
 
   NOTREACHED();
   return nullptr;
-}
-
-// static
-void DiscardableMemory::PurgeForTesting() {
-  internal::DiscardableMemoryEmulated::PurgeForTesting();
-  internal::DiscardableMemoryShmem::PurgeForTesting();
 }
 
 }  // namespace base

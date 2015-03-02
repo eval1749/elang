@@ -7,6 +7,7 @@
 import logging
 import os
 import sys
+import tempfile
 
 from pylib import constants
 from pylib.base import base_test_result
@@ -15,12 +16,19 @@ from pylib.remote.device import remote_device_test_run
 from pylib.remote.device import remote_device_helper
 
 
-class RemoteDeviceGtestRun(remote_device_test_run.RemoteDeviceTestRun):
+_EXTRA_COMMAND_LINE_FILE = (
+    'org.chromium.native_test.ChromeNativeTestActivity.CommandLineFile')
+# TODO(jbudorick): Remove this extra when b/18981674 is fixed.
+_EXTRA_ONLY_OUTPUT_FAILURES = (
+    'org.chromium.native_test.ChromeNativeTestInstrumentationTestRunner.'
+        'OnlyOutputFailures')
+
+
+class RemoteDeviceGtestTestRun(remote_device_test_run.RemoteDeviceTestRun):
   """Run gtests and uirobot tests on a remote device."""
 
-  DEFAULT_RUNNER_TYPE = 'robotium'
   DEFAULT_RUNNER_PACKAGE = (
-      'org.chromium.native_test.ChromiumNativeTestInstrumentationTestRunner')
+      'org.chromium.native_test.ChromeNativeTestInstrumentationTestRunner')
 
   #override
   def TestPackage(self):
@@ -30,24 +38,34 @@ class RemoteDeviceGtestRun(remote_device_test_run.RemoteDeviceTestRun):
   def _TriggerSetUp(self):
     """Set up the triggering of a test run."""
     logging.info('Triggering test run.')
-    self._app_id = self._UploadAppToDevice(self._test_instance.apk)
 
-    if not self._env.runner_type:
-      runner_type = self.DEFAULT_RUNNER_TYPE
-      logging.info('Using default runner type: %s', self.DEFAULT_RUNNER_TYPE)
-    else:
-      runner_type = self._env.runner_type
+    if self._env.runner_type:
+      logging.warning('Ignoring configured runner_type "%s"',
+                      self._env.runner_type)
 
     if not self._env.runner_package:
       runner_package = self.DEFAULT_RUNNER_PACKAGE
       logging.info('Using default runner package: %s',
-                    self.DEFAULT_RUNNER_TYPE)
+                   self.DEFAULT_RUNNER_PACKAGE)
     else:
       runner_package = self._env.runner_package
 
-    self._test_id = self._UploadTestToDevice(runner_type)
-    config_body = {'runner': runner_package}
-    self._SetTestConfig(runner_type, config_body)
+    dummy_app_path = os.path.join(
+        constants.GetOutDirectory(), 'apks', 'remote_device_dummy.apk')
+    with tempfile.NamedTemporaryFile(suffix='.flags.txt') as flag_file:
+      env_vars = {}
+      filter_string = self._test_instance._GenerateDisabledFilterString(None)
+      if filter_string:
+        flag_file.write('_ --gtest_filter=%s' % filter_string)
+        flag_file.flush()
+        env_vars[_EXTRA_COMMAND_LINE_FILE] = os.path.basename(flag_file.name)
+        self._test_instance._data_deps.append(
+            (os.path.abspath(flag_file.name), None))
+      if self._env.only_output_failures:
+        env_vars[_EXTRA_ONLY_OUTPUT_FAILURES] = None
+      self._AmInstrumentTestSetup(
+          dummy_app_path, self._test_instance.apk, runner_package,
+          environment_variables=env_vars)
 
   _INSTRUMENTATION_STREAM_LEADER = 'INSTRUMENTATION_STATUS: stream='
 
@@ -65,4 +83,10 @@ class RemoteDeviceGtestRun(remote_device_test_run.RemoteDeviceTestRun):
                 if l.startswith(self._INSTRUMENTATION_STREAM_LEADER))
       results_list = self._test_instance.ParseGTestOutput(output)
       results.AddResults(results_list)
+      if self._env.only_output_failures:
+        logging.info('See logcat for more results information.')
+      if not self._results['results']['pass']:
+        results.AddResult(base_test_result.BaseTestResult(
+            'Remote Service detected error.',
+            base_test_result.ResultType.FAIL))
     return results

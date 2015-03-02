@@ -22,9 +22,20 @@ declare_args() {
   enable_plugins = !is_android && !is_ios
 
   # Enables Native Client support.
-  # TODO(GYP) enable this when nacl works in GN.
-  enable_nacl = false
-  #enable_nacl = (!is_ios && !is_android)
+  # TODO(GYP): Get NaCl linking on other platforms.
+  # Also, see if we can always get rid of enable_nacl_untrusted and
+  # enable_pnacl and always build them if enable_nacl is true.
+  # The "is_nacl" part of the condition is needed to ensure that
+  # the untrusted code is built properly; arguably it should be
+  # guarded by "is_nacl" directly rather than enable_nacl_untrusted, but
+  # this will go away when Mac and Win are working and we can just use
+  # the commented out logic.
+  # Eventually we want this to be:
+  #   enable_nacl = !is_ios && !is_android
+  enable_nacl =
+      (is_linux && !is_chromeos && !is_debug && current_cpu == "x64") || is_nacl
+  enable_nacl_untrusted = enable_nacl
+  enable_pnacl = enable_nacl_untrusted
 
   # If debug_devtools is set to true, JavaScript files for DevTools are stored
   # as is and loaded from disk. Otherwise, a concatenated file is stored in
@@ -33,9 +44,8 @@ declare_args() {
   debug_devtools = false
 
   # Enables WebRTC.
-  #enable_webrtc = !is_ios  TODO(GYP) use this condition when WebRTC works in
-  #                         the GN build.
-  enable_webrtc = false
+  # TODO(GYP) make mac and android work.
+  enable_webrtc = !is_ios && !is_mac && !is_android
 
   # Enables proprietary codecs and demuxers; e.g. H264, MOV, AAC, and MP3.
   proprietary_codecs = false
@@ -74,9 +84,9 @@ enable_print_preview = !is_android
 # currently.
 # Do not disable seccomp_bpf anywhere without talking to
 # security@chromium.org!
-use_seccomp_bpf =
-    (is_linux || is_android) && (cpu_arch == "x86" || cpu_arch == "x64" ||
-                                 cpu_arch == "arm" || cpu_arch == "mipsel")
+use_seccomp_bpf = (is_linux || is_android) &&
+                  (current_cpu == "x86" || current_cpu == "x64" ||
+                   current_cpu == "arm" || current_cpu == "mipsel")
 
 # Enable notifications everywhere except iOS.
 enable_notifications = !is_ios
@@ -155,6 +165,8 @@ enable_chromevox_next = false
 
 # Use brlapi from brltty for braille display support.
 use_brlapi = is_chromeos
+
+enable_media_router = !is_ios && !is_android
 
 # Option controlling the use of GConf (the classic GNOME configuration
 # system).

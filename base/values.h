@@ -33,6 +33,7 @@
 
 namespace base {
 
+class BinaryValue;
 class DictionaryValue;
 class FundamentalValue;
 class ListValue;
@@ -85,6 +86,7 @@ class BASE_EXPORT Value {
   virtual bool GetAsString(std::string* out_value) const;
   virtual bool GetAsString(string16* out_value) const;
   virtual bool GetAsString(const StringValue** out_value) const;
+  virtual bool GetAsBinary(const BinaryValue** out_value) const;
   virtual bool GetAsList(ListValue** out_value);
   virtual bool GetAsList(const ListValue** out_value) const;
   virtual bool GetAsDictionary(DictionaryValue** out_value);
@@ -188,6 +190,7 @@ class BASE_EXPORT BinaryValue: public Value {
   const char* GetBuffer() const { return buffer_.get(); }
 
   // Overridden from Value:
+  bool GetAsBinary(const BinaryValue** out_value) const override;
   BinaryValue* DeepCopy() const override;
   bool Equals(const Value* other) const override;
 
@@ -228,9 +231,9 @@ class BASE_EXPORT DictionaryValue : public Value {
   // within a key, but there are no other restrictions on keys.
   // If the key at any step of the way doesn't exist, or exists but isn't
   // a DictionaryValue, a new DictionaryValue will be created and attached
-  // to the path in that location.
-  // Note that the dictionary takes ownership of the value referenced by
-  // |in_value|, and therefore |in_value| must be non-NULL.
+  // to the path in that location. |in_value| must be non-null.
+  void Set(const std::string& path, scoped_ptr<Value> in_value);
+  // Deprecated version of the above. TODO(estade): remove.
   void Set(const std::string& path, Value* in_value);
 
   // Convenience forms of Set().  These methods will replace any existing
@@ -243,6 +246,9 @@ class BASE_EXPORT DictionaryValue : public Value {
 
   // Like Set(), but without special treatment of '.'.  This allows e.g. URLs to
   // be used as paths.
+  void SetWithoutPathExpansion(const std::string& key,
+                               scoped_ptr<Value> in_value);
+  // Deprecated version of the above. TODO(estade): remove.
   void SetWithoutPathExpansion(const std::string& key, Value* in_value);
 
   // Convenience forms of SetWithoutPathExpansion().

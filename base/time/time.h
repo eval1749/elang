@@ -100,6 +100,15 @@ class BASE_EXPORT TimeDelta {
     return delta_;
   }
 
+  // Returns the magnitude (absolute value) of this TimeDelta.
+  TimeDelta magnitude() const {
+    // Some toolchains provide an incomplete C++11 implementation and lack an
+    // int64 overload for std::abs().  The following is a simple branchless
+    // implementation:
+    const int64 mask = delta_ >> (sizeof(delta_) * 8 - 1);
+    return TimeDelta((delta_ + mask) ^ mask);
+  }
+
   // Returns true if the time delta is the maximum time delta.
   bool is_max() const {
     return delta_ == std::numeric_limits<int64>::max();
@@ -149,22 +158,26 @@ class BASE_EXPORT TimeDelta {
     return TimeDelta(-delta_);
   }
 
-  // Computations with ints, note that we only allow multiplicative operations
-  // with ints, and additive operations with other deltas.
-  TimeDelta operator*(int64 a) const {
+  // Computations with numeric types.
+  template<typename T>
+  TimeDelta operator*(T a) const {
     return TimeDelta(delta_ * a);
   }
-  TimeDelta operator/(int64 a) const {
+  template<typename T>
+  TimeDelta operator/(T a) const {
     return TimeDelta(delta_ / a);
   }
-  TimeDelta& operator*=(int64 a) {
+  template<typename T>
+  TimeDelta& operator*=(T a) {
     delta_ *= a;
     return *this;
   }
-  TimeDelta& operator/=(int64 a) {
+  template<typename T>
+  TimeDelta& operator/=(T a) {
     delta_ /= a;
     return *this;
   }
+
   int64 operator/(TimeDelta a) const {
     return delta_ / a.delta_;
   }
@@ -196,7 +209,6 @@ class BASE_EXPORT TimeDelta {
  private:
   friend class Time;
   friend class TimeTicks;
-  friend TimeDelta operator*(int64 a, TimeDelta td);
 
   // Constructs a delta given the duration in microseconds. This is private
   // to avoid confusion by callers with an integer constructor. Use
@@ -208,8 +220,9 @@ class BASE_EXPORT TimeDelta {
   int64 delta_;
 };
 
-inline TimeDelta operator*(int64 a, TimeDelta td) {
-  return TimeDelta(a * td.delta_);
+template<typename T>
+inline TimeDelta operator*(T a, TimeDelta td) {
+  return td * a;
 }
 
 // For logging use only.
@@ -588,18 +601,17 @@ class BASE_EXPORT TimeTicks {
   TimeTicks() : ticks_(0) {
   }
 
-  // Platform-dependent tick count representing "right now."
-  // The resolution of this clock is ~1-15ms.  Resolution varies depending
-  // on hardware/operating system configuration.
+  // Platform-dependent tick count representing "right now." When
+  // IsHighResolution() returns false, the resolution of the clock could be
+  // as coarse as ~15.6ms. Otherwise, the resolution should be no worse than one
+  // microsecond.
   static TimeTicks Now();
 
-  // Returns a platform-dependent high-resolution tick count. Implementation
-  // is hardware dependent and may or may not return sub-millisecond
-  // resolution.  THIS CALL IS GENERALLY MUCH MORE EXPENSIVE THAN Now() AND
-  // SHOULD ONLY BE USED WHEN IT IS REALLY NEEDED.
-  static TimeTicks HighResNow();
-
-  static bool IsHighResNowFastAndReliable();
+  // Returns true if the high resolution clock is working on this system and
+  // Now() will return high resolution values. Note that, on systems where the
+  // high resolution clock works but is deemed inefficient, the low resolution
+  // clock will be used instead.
+  static bool IsHighResolution();
 
   // Returns true if ThreadNow() is supported on this system.
   static bool IsThreadNowSupported() {
@@ -616,27 +628,33 @@ class BASE_EXPORT TimeTicks {
   // to (approximately) measure how much time the calling thread spent doing
   // actual work vs. being de-scheduled. May return bogus results if the thread
   // migrates to another CPU between two calls.
+  //
+  // WARNING: The returned value might NOT have the same origin as Now(). Do not
+  // perform math between TimeTicks values returned by Now() and ThreadNow() and
+  // expect meaningful results.
+  // TODO(miu): Since the timeline of these values is different, the values
+  // should be of a different type.
   static TimeTicks ThreadNow();
 
-  // Returns the current system trace time or, if none is defined, the current
-  // high-res time (i.e. HighResNow()). On systems where a global trace clock
-  // is defined, timestamping TraceEvents's with this value guarantees
-  // synchronization between events collected inside chrome and events
-  // collected outside (e.g. kernel, X server).
+  // Returns the current system trace time or, if not available on this
+  // platform, a high-resolution time value; or a low-resolution time value if
+  // neither are avalable. On systems where a global trace clock is defined,
+  // timestamping TraceEvents's with this value guarantees synchronization
+  // between events collected inside chrome and events collected outside
+  // (e.g. kernel, X server).
+  //
+  // WARNING: The returned value might NOT have the same origin as Now(). Do not
+  // perform math between TimeTicks values returned by Now() and
+  // NowFromSystemTraceTime() and expect meaningful results.
+  // TODO(miu): Since the timeline of these values is different, the values
+  // should be of a different type.
   static TimeTicks NowFromSystemTraceTime();
 
 #if defined(OS_WIN)
-  // Get the absolute value of QPC time drift. For testing.
-  static int64 GetQPCDriftMicroseconds();
-
+  // Translates an absolute QPC timestamp into a TimeTicks value. The returned
+  // value has the same origin as Now(). Do NOT attempt to use this if
+  // IsHighResolution() returns false.
   static TimeTicks FromQPCValue(LONGLONG qpc_value);
-
-  // Returns true if the high resolution clock is working on this system.
-  // This is only for testing.
-  static bool IsHighResClockWorking();
-
-  // Returns a time value that is NOT rollover protected.
-  static TimeTicks UnprotectedNow();
 #endif
 
   // Returns true if this object has not been initialized.
@@ -665,6 +683,12 @@ class BASE_EXPORT TimeTicks {
   int64 ToInternalValue() const {
     return ticks_;
   }
+
+  // Returns |this| snapped to the next tick, given a |tick_phase| and
+  // repeating |tick_interval| in both directions. |this| may be before,
+  // after, or equal to the |tick_phase|.
+  TimeTicks SnappedToNextTick(TimeTicks tick_phase,
+                              TimeDelta tick_interval) const;
 
   TimeTicks& operator=(TimeTicks other) {
     ticks_ = other.ticks_;

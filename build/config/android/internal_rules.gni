@@ -15,6 +15,7 @@ android_sdk_jar = "$android_sdk/android.jar"
 rebased_android_sdk_jar = rebase_path(android_sdk_jar, root_build_dir)
 
 template("android_lint") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -62,6 +63,7 @@ template("android_lint") {
 }
 
 template("dex") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -113,6 +115,7 @@ template("dex") {
 # Creates a zip archive of the inputs.
 # If base_dir is provided, the archive paths will be relative to it.
 template("zip") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -155,6 +158,7 @@ template("zip") {
 # See build/android/gyp/write_build_config.py and
 # build/android/gyp/util/build_utils.py:ExpandFileArgs
 template("write_build_config") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -269,6 +273,7 @@ template("write_build_config") {
 
     if (is_apk) {
       if (defined(invoker.native_libs)) {
+        inputs += invoker.native_libs
         rebased_native_libs = rebase_path(invoker.native_libs, root_build_dir)
         rebased_android_readelf = rebase_path(android_readelf, root_build_dir)
         args += [
@@ -288,6 +293,7 @@ template("write_build_config") {
 }
 
 template("process_java_prebuilt") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -375,6 +381,7 @@ template("process_java_prebuilt") {
 # Packages resources, assets, dex, and native libraries into an apk. Signs and
 # zipaligns the apk.
 template("create_apk") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -554,6 +561,7 @@ template("create_apk") {
 }
 
 template("java_prebuilt_impl") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -633,6 +641,7 @@ template("java_prebuilt_impl") {
 #   jar_path: Use this to explicitly set the output jar path. Defaults to
 #     "${target_gen_dir}/${target_name}.jar.
 template("compile_java") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -655,6 +664,10 @@ template("compile_java") {
   _chromium_code = false
   if (defined(invoker.chromium_code)) {
     _chromium_code = invoker.chromium_code
+  }
+  _manifest_entries = []
+  if (defined(invoker.manifest_entries)) {
+    _manifest_entries = invoker.manifest_entries
   }
 
   _srcjar_deps = []
@@ -709,6 +722,9 @@ template("compile_java") {
       "--java-srcjars=@FileArg($_rebased_build_config:javac:srcjars)",
       "--jar-excluded-classes=$_jar_excluded_patterns",
     ]
+    foreach(e, _manifest_entries) {
+      args += [ "--manifest-entry=" + e ]
+    }
     if (_chromium_code) {
       args += [ "--chromium-code=1" ]
     }
@@ -733,6 +749,7 @@ template("compile_java") {
 }
 
 template("java_library_impl") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -851,6 +868,9 @@ template("java_library_impl") {
     if (defined(invoker.dist_jar_path)) {
       dist_jar_path = invoker.dist_jar_path
     }
+    if (defined(invoker.manifest_entries)) {
+      manifest_entries = invoker.manifest_entries
+    }
   }
 
   if (defined(invoker.main_class)) {
@@ -916,6 +936,7 @@ template("java_library_impl") {
 
 # Runs process_resources.py
 template("process_resources") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -1006,6 +1027,7 @@ template("process_resources") {
 }
 
 template("copy_ex") {
+  set_sources_assignment_filter([])
   if (defined(invoker.testonly)) {
     testonly = invoker.testonly
   }
@@ -1053,6 +1075,7 @@ template("copy_ex") {
 
 # Produces a single .dex.jar out of a set of Java dependencies.
 template("deps_dex") {
+  set_sources_assignment_filter([])
   build_config = "$target_gen_dir/${target_name}.build_config"
   write_build_config("${target_name}__build_config") {
     type = "deps_dex"
@@ -1070,5 +1093,9 @@ template("deps_dex") {
     output = invoker.dex_path
     dex_arg_key = "${rebased_build_config}:final_dex:dependency_dex_files"
     args = [ "--inputs=@FileArg($dex_arg_key)" ]
+    if (defined(invoker.excluded_jars)) {
+      excluded_jars = rebase_path(invoker.excluded_jars, root_build_dir)
+      args += [ "--excluded-paths=${excluded_jars}" ]
+    }
   }
 }

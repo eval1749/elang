@@ -7,40 +7,26 @@
 
 #include "base/memory/discardable_memory.h"
 
-#include "base/memory/discardable_memory_manager.h"
-
 namespace base {
-class DiscardableSharedMemory;
+class DiscardableMemoryShmemChunk;
 
 namespace internal {
 
-class DiscardableMemoryShmem
-    : public DiscardableMemory,
-      public internal::DiscardableMemoryManagerAllocation {
+class DiscardableMemoryShmem : public DiscardableMemory {
  public:
   explicit DiscardableMemoryShmem(size_t bytes);
-  virtual ~DiscardableMemoryShmem();
-
-  static void ReleaseFreeMemory();
-
-  static void PurgeForTesting();
+  ~DiscardableMemoryShmem() override;
 
   bool Initialize();
 
   // Overridden from DiscardableMemory:
-  virtual DiscardableMemoryLockStatus Lock() override;
-  virtual void Unlock() override;
-  virtual void* Memory() const override;
-
-  // Overridden from internal::DiscardableMemoryManagerAllocation:
-  virtual bool AllocateAndAcquireLock() override;
-  virtual void ReleaseLock() override;
-  virtual void Purge() override;
-  virtual bool IsMemoryResident() const override;
+  DiscardableMemoryLockStatus Lock() override;
+  void Unlock() override;
+  void* Memory() const override;
 
  private:
   const size_t bytes_;
-  scoped_ptr<DiscardableSharedMemory> shared_memory_;
+  scoped_ptr<DiscardableMemoryShmemChunk> chunk_;
   bool is_locked_;
 
   DISALLOW_COPY_AND_ASSIGN(DiscardableMemoryShmem);

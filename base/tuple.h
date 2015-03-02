@@ -40,6 +40,50 @@ struct IndexSequence {};
 template <size_t... Ns>
 struct MakeIndexSequenceImpl;
 
+#if defined(_PREFAST_) && defined(OS_WIN)
+
+// Work around VC++ 2013 /analyze internal compiler error:
+// https://connect.microsoft.com/VisualStudio/feedback/details/1053626
+
+template <> struct MakeIndexSequenceImpl<0> {
+  using Type = IndexSequence<>;
+};
+template <> struct MakeIndexSequenceImpl<1> {
+  using Type = IndexSequence<0>;
+};
+template <> struct MakeIndexSequenceImpl<2> {
+  using Type = IndexSequence<0,1>;
+};
+template <> struct MakeIndexSequenceImpl<3> {
+  using Type = IndexSequence<0,1,2>;
+};
+template <> struct MakeIndexSequenceImpl<4> {
+  using Type = IndexSequence<0,1,2,3>;
+};
+template <> struct MakeIndexSequenceImpl<5> {
+  using Type = IndexSequence<0,1,2,3,4>;
+};
+template <> struct MakeIndexSequenceImpl<6> {
+  using Type = IndexSequence<0,1,2,3,4,5>;
+};
+template <> struct MakeIndexSequenceImpl<7> {
+  using Type = IndexSequence<0,1,2,3,4,5,6>;
+};
+template <> struct MakeIndexSequenceImpl<8> {
+  using Type = IndexSequence<0,1,2,3,4,5,6,7>;
+};
+template <> struct MakeIndexSequenceImpl<9> {
+  using Type = IndexSequence<0,1,2,3,4,5,6,7,8>;
+};
+template <> struct MakeIndexSequenceImpl<10> {
+  using Type = IndexSequence<0,1,2,3,4,5,6,7,8,9>;
+};
+template <> struct MakeIndexSequenceImpl<11> {
+  using Type = IndexSequence<0,1,2,3,4,5,6,7,8,9,10>;
+};
+
+#else  // defined(WIN) && defined(_PREFAST_)
+
 template <size_t... Ns>
 struct MakeIndexSequenceImpl<0, Ns...> {
   using Type = IndexSequence<Ns...>;
@@ -48,6 +92,8 @@ struct MakeIndexSequenceImpl<0, Ns...> {
 template <size_t N, size_t... Ns>
 struct MakeIndexSequenceImpl<N, Ns...>
     : MakeIndexSequenceImpl<N - 1, N - 1, Ns...> {};
+
+#endif  // defined(WIN) && defined(_PREFAST_)
 
 template <size_t N>
 using MakeIndexSequence = typename MakeIndexSequenceImpl<N>::Type;
@@ -123,71 +169,6 @@ struct TupleLeaf {
 
   T x;
 };
-
-// For legacy compatibility, we name the first 8 tuple elements "a", "b", ...
-// TODO(mdempsky): Update users to use get<N>() (crbug.com/440675).
-
-#define DEFINE_TUPLE_LEAF(N, x)                                        \
-  template <typename T>                                                \
-  struct TupleLeaf<N, T> {                                             \
-    TupleLeaf() {}                                                     \
-    explicit TupleLeaf(typename TupleTraits<T>::ParamType x) : x(x) {} \
-                                                                       \
-    T& get() { return x; }                                             \
-    const T& get() const { return x; }                                 \
-                                                                       \
-    T x;                                                               \
-  }
-
-DEFINE_TUPLE_LEAF(0, a);
-DEFINE_TUPLE_LEAF(1, b);
-DEFINE_TUPLE_LEAF(2, c);
-DEFINE_TUPLE_LEAF(3, d);
-DEFINE_TUPLE_LEAF(4, e);
-DEFINE_TUPLE_LEAF(5, f);
-DEFINE_TUPLE_LEAF(6, g);
-DEFINE_TUPLE_LEAF(7, h);
-
-#undef DEFINE_TUPLE_LEAF
-
-// Deprecated compat aliases
-// TODO(mdempsky): Update users to just use Tuple instead (crbug.com/440675).
-
-using Tuple0 = Tuple<>;
-template <typename A>
-using Tuple1 = Tuple<A>;
-template <typename A, typename B>
-using Tuple2 = Tuple<A, B>;
-template <typename A, typename B, typename C>
-using Tuple3 = Tuple<A, B, C>;
-template <typename A, typename B, typename C, typename D>
-using Tuple4 = Tuple<A, B, C, D>;
-template <typename A, typename B, typename C, typename D, typename E>
-using Tuple5 = Tuple<A, B, C, D, E>;
-template <typename A,
-          typename B,
-          typename C,
-          typename D,
-          typename E,
-          typename F>
-using Tuple6 = Tuple<A, B, C, D, E, F>;
-template <typename A,
-          typename B,
-          typename C,
-          typename D,
-          typename E,
-          typename F,
-          typename G>
-using Tuple7 = Tuple<A, B, C, D, E, F, G>;
-template <typename A,
-          typename B,
-          typename C,
-          typename D,
-          typename E,
-          typename F,
-          typename G,
-          typename H>
-using Tuple8 = Tuple<A, B, C, D, E, F, G, H>;
 
 // Tuple getters --------------------------------------------------------------
 //

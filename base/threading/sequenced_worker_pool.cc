@@ -14,7 +14,6 @@
 #include "base/callback.h"
 #include "base/compiler_specific.h"
 #include "base/critical_closure.h"
-#include "base/debug/trace_event.h"
 #include "base/lazy_instance.h"
 #include "base/logging.h"
 #include "base/memory/linked_ptr.h"
@@ -28,6 +27,7 @@
 #include "base/threading/thread_local.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/time/time.h"
+#include "base/trace_event/trace_event.h"
 #include "base/tracked_objects.h"
 
 #if defined(OS_MACOSX)
@@ -798,9 +798,11 @@ void SequencedWorkerPool::Inner::ThreadLoop(Worker* this_worker) {
         // to run them. Also, there may be some tasks stuck behind running
         // ones with the same sequence token, but additional threads won't
         // help this case.
-        if (shutdown_called_ &&
-            blocking_shutdown_pending_task_count_ == 0)
+        if (shutdown_called_ && blocking_shutdown_pending_task_count_ == 0) {
+          AutoUnlock unlock(lock_);
+          delete_these_outside_lock.clear();
           break;
+        }
         waiting_thread_count_++;
 
         switch (status) {

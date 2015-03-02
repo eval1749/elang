@@ -69,8 +69,8 @@ char kTSanDefaultSuppressions[] =
 "race:v8::Locker::Initialize\n"
 
 // http://crbug.com/223352
-"race:uprv_malloc_52\n"
-"race:uprv_realloc_52\n"
+"race:uprv_malloc_54\n"
+"race:uprv_realloc_54\n"
 
 // http://crbug.com/239359
 "race:media::TestInputCallback::OnData\n"
@@ -111,7 +111,8 @@ char kTSanDefaultSuppressions[] =
 "race:content::GpuWatchdogThread::CheckArmed\n"
 
 // http://crbug.com/257396
-"race:base::debug::TraceEventTestFixture_TraceSamplingScope_Test::TestBody\n"
+"race:base::trace_event::"
+    "TraceEventTestFixture_TraceSamplingScope_Test::TestBody\n"
 
 // http://crbug.com/258479
 "race:SamplingStateScope\n"
@@ -291,10 +292,10 @@ char kTSanDefaultSuppressions[] =
 
 // http://crbug.com/397022
 "deadlock:"
-"base::debug::TraceEventTestFixture_ThreadOnceBlocking_Test::TestBody\n"
+"base::trace_event::TraceEventTestFixture_ThreadOnceBlocking_Test::TestBody\n"
 
 // http://crbug.com/415472
-"deadlock:base::debug::TraceLog::GetCategoryGroupEnabled\n"
+"deadlock:base::trace_event::TraceLog::GetCategoryGroupEnabled\n"
 
 // http://crbug.com/425057
 "deadlock:webrtc::ViEChannelManagerScoped::ViEChannelManagerScoped\n"
@@ -305,6 +306,33 @@ char kTSanDefaultSuppressions[] =
 // http://crbug.com/417193
 // Suppressing both AudioContext.{cpp,h}.
 "race:modules/webaudio/AudioContext\n"
+
+// https://code.google.com/p/skia/issues/detail?id=3294
+"race:SkBaseMutex::acquire\n"
+
+// https://crbug.com/430533
+"race:TileTaskGraphRunner::Run\n"
+
+// https://crbug.com/448203
+"race:blink::RemoteFrame::detach\n"
+
+// https://crbug.com/454652
+"race:net::NetworkChangeNotifier::SetTestNotificationsOnly\n"
+
+// https://crbug.com/455638
+"deadlock:dbus::Bus::ShutdownAndBlock\n"
+
+// https://crbug.com/455665
+"race:mojo::common::*::tick_clock\n"
+
+// https://crbug.com/459429
+"race:randomnessPid\n"
+
+// https://crbug.com/460243
+"race:IPC::ChannelMojoHost::OnClientLaunched\n"
+
+// https://crbug.com/454655
+"race:content::BrowserTestBase::PostTaskToInProcessRendererAndWait\n"
 
 // End of suppressions.
 ;  // Please keep this semicolon.

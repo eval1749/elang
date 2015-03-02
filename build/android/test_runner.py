@@ -44,6 +44,7 @@ from pylib.results import report_results
 from pylib.uiautomator import setup as uiautomator_setup
 from pylib.uiautomator import test_options as uiautomator_test_options
 from pylib.utils import apk_helper
+from pylib.utils import base_error
 from pylib.utils import reraiser_thread
 from pylib.utils import run_tests_helper
 
@@ -102,7 +103,6 @@ def AddCommonOptions(parser):
                      help='If set, will dump results in JSON form '
                           'to specified file.')
 
-
 def ProcessCommonOptions(args):
   """Processes and handles all common options."""
   run_tests_helper.SetLogLevel(args.verbose_count)
@@ -122,40 +122,54 @@ def ProcessCommonOptions(args):
 def AddRemoteDeviceOptions(parser):
   group = parser.add_argument_group('Remote Device Options')
 
-  group.add_argument('--trigger', default='',
-                   help=('Only triggers the test if set. Stores test_run_id '
-                         'in given file path. '))
-  group.add_argument('--collect', default='',
-                   help=('Only collects the test results if set. '
-                         'Gets test_run_id from given file path.'))
-  group.add_argument('--remote-device', default='Nexus 5',
-                   help=('Device type to run test on.'))
-  group.add_argument('--remote-device-os', default='4.4.2',
-                   help=('OS to have on the device.'))
-  group.add_argument('--results-path', default='',
-                   help=('File path to download results to.'))
+  group.add_argument('--trigger',
+                     help=('Only triggers the test if set. Stores test_run_id '
+                           'in given file path. '))
+  group.add_argument('--collect',
+                     help=('Only collects the test results if set. '
+                           'Gets test_run_id from given file path.'))
+  group.add_argument('--remote-device', action='append',
+                     help='Device type to run test on.')
+  group.add_argument('--results-path',
+                     help='File path to download results to.')
   group.add_argument('--api-protocol',
-                   help=('HTTP protocol to use. (http or https)'))
-  group.add_argument('--api-address', help=('Address to send HTTP requests.'))
-  group.add_argument('--api-port', help=('Port to send HTTP requests to.'))
-  group.add_argument('--runner-type', default='',
-                   help=('Type of test to run as.'))
-  group.add_argument('--runner-package', default='',
-                   help=('Package name of test.'))
-  group.add_argument('--apk-under-test', default='apks/Chrome.apk',
-                   help=('APK to run tests on.'))
+                     help='HTTP protocol to use. (http or https)')
+  group.add_argument('--api-address',
+                     help='Address to send HTTP requests.')
+  group.add_argument('--api-port',
+                     help='Port to send HTTP requests to.')
+  group.add_argument('--runner-type',
+                     help='Type of test to run as.')
+  group.add_argument('--runner-package',
+                     help='Package name of test.')
+  group.add_argument('--device-type',
+                     choices=constants.VALID_DEVICE_TYPES,
+                     help=('Type of device to run on. iOS or android'))
+  group.add_argument('--device-oem', action='append',
+                     help='Device OEM to run on.')
+  group.add_argument('--remote-device-file',
+                     help=('File with JSON to select remote device. '
+                           'Overrides all other flags.'))
+  group.add_argument('--remote-device-timeout', type=int,
+                     help='Times to retry finding remote device')
+
+  device_os_group = group.add_mutually_exclusive_group()
+  device_os_group.add_argument('--remote-device-minimum-os',
+                               help='Minimum OS on device.')
+  device_os_group.add_argument('--remote-device-os', action='append',
+                               help='OS to have on the device.')
 
   api_secret_group = group.add_mutually_exclusive_group()
   api_secret_group.add_argument('--api-secret', default='',
-                   help=('API secret for remote devices.'))
+                                help='API secret for remote devices.')
   api_secret_group.add_argument('--api-secret-file', default='',
-                   help=('Path to file that contains API secret.'))
+                                help='Path to file that contains API secret.')
 
   api_key_group = group.add_mutually_exclusive_group()
   api_key_group.add_argument('--api-key', default='',
-                   help=('API key for remote devices.'))
+                             help='API key for remote devices.')
   api_key_group.add_argument('--api-key-file', default='',
-                   help=('Path to file that contains API key.'))
+                             help='Path to file that contains API key.')
 
 
 def AddDeviceOptions(parser):
@@ -185,9 +199,6 @@ def AddGTestOptions(parser):
                      help=('Executable name of the test suite to run. '
                            'Available suites include (but are not limited to): '
                             '%s' % ', '.join('"%s"' % s for s in gtest_suites)))
-  group.add_argument('-f', '--gtest_filter', '--gtest-filter',
-                     dest='test_filter',
-                     help='googletest-style filter string.')
   group.add_argument('--gtest_also_run_disabled_tests',
                      '--gtest-also-run-disabled-tests',
                      dest='run_disabled', action='store_true',
@@ -203,6 +214,16 @@ def AddGTestOptions(parser):
                      dest='isolate_file_path',
                      help='.isolate file path to override the default '
                           'path')
+
+  filter_group = group.add_mutually_exclusive_group()
+  filter_group.add_argument('-f', '--gtest_filter', '--gtest-filter',
+                            dest='test_filter',
+                            help='googletest-style filter string.')
+  filter_group.add_argument('--gtest-filter-file', dest='test_filter_file',
+                            help='Path to file that contains googletest-style '
+                                  'filter strings. (Lines will be joined with '
+                                  '":" to create a single filter string.)')
+
   AddDeviceOptions(parser)
   AddCommonOptions(parser)
   AddRemoteDeviceOptions(parser)
@@ -247,6 +268,10 @@ def AddJavaTestOptions(argument_group):
             'should be of the form <target>:<source>, <target> is relative to '
             'the device data directory, and <source> is relative to the '
             'chromium build directory.'))
+  argument_group.add_argument(
+      '--disable-dalvik-asserts', dest='set_asserts', action='store_false',
+      default=True, help='Removes the dalvik.vm.enableassertions property')
+
 
 
 def ProcessJavaTestOptions(args):
@@ -289,6 +314,8 @@ def AddInstrumentationTestOptions(parser):
   group.add_argument('-w', '--wait_debugger', dest='wait_for_debugger',
                      action='store_true',
                      help='Wait for debugger.')
+  group.add_argument('--apk-under-test', dest='apk_under_test',
+                     help=('the name of the apk under test.'))
   group.add_argument('--test-apk', dest='test_apk', required=True,
                      help=('The name of the apk containing the tests '
                            '(without the .apk extension; '
@@ -299,6 +326,9 @@ def AddInstrumentationTestOptions(parser):
   group.add_argument('--device-flags', dest='device_flags', default='',
                      help='The relative filepath to a file containing '
                           'command-line flags to set on the device')
+  group.add_argument('--device-flags-file', default='',
+                     help='The relative filepath to a file containing '
+                          'command-line flags to set on the device')
   group.add_argument('--isolate_file_path',
                      '--isolate-file-path',
                      dest='isolate_file_path',
@@ -307,6 +337,7 @@ def AddInstrumentationTestOptions(parser):
 
   AddCommonOptions(parser)
   AddDeviceOptions(parser)
+  AddRemoteDeviceOptions(parser)
 
 
 def ProcessInstrumentationOptions(args):
@@ -356,7 +387,8 @@ def ProcessInstrumentationOptions(args):
       args.test_runner,
       args.test_support_apk_path,
       args.device_flags,
-      args.isolate_file_path
+      args.isolate_file_path,
+      args.set_asserts
       )
 
 
@@ -414,7 +446,8 @@ def ProcessUIAutomatorOptions(args):
       args.screenshot_failures,
       args.uiautomator_jar,
       args.uiautomator_info_jar,
-      args.package)
+      args.package,
+      args.set_asserts)
 
 
 def AddJUnitTestOptions(parser):
@@ -495,9 +528,11 @@ def AddUirobotTestOptions(parser):
   """Adds uirobot test options to |option_parser|."""
   group = parser.add_argument_group('Uirobot Test Options')
 
+  group.add_argument('--app-under-test', required=True,
+                     help='APK to run tests on.')
   group.add_argument(
       '--minutes', default=5, type=int,
-      help='Number of minutes to run uirobot test [default: %default].')
+      help='Number of minutes to run uirobot test [default: %(default)s].')
 
   AddCommonOptions(parser)
   AddDeviceOptions(parser)
@@ -767,13 +802,10 @@ def _RunPerfTests(args):
     return perf_test_runner.OutputJsonList(
         perf_options.steps, perf_options.output_json_list)
 
-  if perf_options.output_chartjson_data:
-    return perf_test_runner.OutputChartjson(
-        perf_options.print_step, perf_options.output_chartjson_data)
-
   # Just print the results from a single previously executed step.
   if perf_options.print_step:
-    return perf_test_runner.PrintTestOutput(perf_options.print_step)
+    return perf_test_runner.PrintTestOutput(
+        perf_options.print_step, perf_options.output_chartjson_data)
 
   runner_factory, tests, devices = perf_setup.Setup(perf_options)
 
@@ -895,7 +927,9 @@ def RunTestsCommand(args, parser):
 
 _SUPPORTED_IN_PLATFORM_MODE = [
   # TODO(jbudorick): Add support for more test types.
-  'gtest', 'uirobot',
+  'gtest',
+  'instrumentation',
+  'uirobot',
 ]
 
 
@@ -910,7 +944,7 @@ def RunTestsInPlatformMode(args, parser):
           args, env, test, parser.error) as test_run:
         results = test_run.RunTests()
 
-        if args.trigger:
+        if args.environment == 'remote_device' and args.trigger:
           return 0 # Not returning results, only triggering.
 
         report_results.LogFull(
@@ -924,7 +958,7 @@ def RunTestsInPlatformMode(args, parser):
           json_results.GenerateJsonResultsFile(
               results, args.json_results_file)
 
-  return 0 if results.DidRunPass() else 1
+  return 0 if results.DidRunPass() else constants.ERROR_EXIT_CODE
 
 
 CommandConfigTuple = collections.namedtuple(
@@ -980,7 +1014,18 @@ def main():
     config.add_options_func(subparser)
 
   args = parser.parse_args()
-  return RunTestsCommand(args, parser)
+
+  try:
+    return RunTestsCommand(args, parser)
+  except base_error.BaseError as e:
+    logging.exception('Error occurred.')
+    if e.is_infra_error:
+      return constants.INFRA_EXIT_CODE
+    else:
+      return constants.ERROR_EXIT_CODE
+  except: # pylint: disable=W0702
+    logging.exception('Unrecognized error occurred.')
+    return constants.ERROR_EXIT_CODE
 
 
 if __name__ == '__main__':

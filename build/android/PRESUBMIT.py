@@ -5,7 +5,7 @@
 """Presubmit script for android buildbot.
 
 See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts for
-details on the presubmit API built into gcl.
+details on the presubmit API built into depot_tools.
 """
 
 _DELETIONS_ONLY_FILES = (
@@ -62,13 +62,16 @@ def CommonChecks(input_api, output_api):
       output_api,
       unit_tests=[
           J('pylib', 'device', 'device_utils_test.py'),
+          J('pylib', 'device', 'logcat_monitor_test.py'),
           J('pylib', 'gtest', 'gtest_test_instance_test.py'),
-          J('pylib', 'instrumentation', 'test_runner_test.py'),
+          J('pylib', 'instrumentation',
+            'instrumentation_test_instance_test.py'),
           J('pylib', 'results', 'json_results_test.py'),
           J('pylib', 'utils', 'md5sum_test.py'),
       ],
       env=pylib_test_env))
-  output.extend(_CheckDeletionsOnlyFiles(input_api, output_api))
+  # TODO(jbudorick): Reenable this check once upstreaming is finished.
+  # output.extend(_CheckDeletionsOnlyFiles(input_api, output_api))
   return output
 
 

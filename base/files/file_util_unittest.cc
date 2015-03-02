@@ -30,6 +30,7 @@
 #include "base/files/scoped_file.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/path_service.h"
+#include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/test/test_file_util.h"
 #include "base/threading/platform_thread.h"
@@ -184,7 +185,7 @@ const int FILES_AND_DIRECTORIES =
 // to be a PlatformTest
 class FileUtilTest : public PlatformTest {
  protected:
-  virtual void SetUp() override {
+  void SetUp() override {
     PlatformTest::SetUp();
     ASSERT_TRUE(temp_dir_.CreateUniqueTempDir());
   }
@@ -326,6 +327,13 @@ TEST_F(FileUtilTest, NormalizeFilePathReparsePoints) {
   //     |-> to_sub_long (reparse point to temp_dir\sub_a\long_name_\sub_long)
 
   FilePath base_a = temp_dir_.path().Append(FPL("base_a"));
+#if defined(OS_WIN)
+  // TEMP can have a lower case drive letter.
+  string16 temp_base_a = base_a.value();
+  ASSERT_FALSE(temp_base_a.empty());
+  *temp_base_a.begin() = base::ToUpperASCII(*temp_base_a.begin());
+  base_a = FilePath(temp_base_a);
+#endif
   ASSERT_TRUE(CreateDirectory(base_a));
 
   FilePath sub_a = base_a.Append(FPL("sub_a"));
@@ -428,6 +436,7 @@ TEST_F(FileUtilTest, NormalizeFilePathReparsePoints) {
 TEST_F(FileUtilTest, DevicePathToDriveLetter) {
   // Get a drive letter.
   std::wstring real_drive_letter = temp_dir_.path().value().substr(0, 2);
+  StringToUpperASCII(&real_drive_letter);
   if (!isalpha(real_drive_letter[0]) || ':' != real_drive_letter[1]) {
     LOG(ERROR) << "Can't get a drive letter to test with.";
     return;
@@ -1388,19 +1397,15 @@ void SetReadOnly(const FilePath& path, bool read_only) {
       path.value().c_str(),
       read_only ? (attrs | FILE_ATTRIBUTE_READONLY) :
           (attrs & ~FILE_ATTRIBUTE_READONLY)));
-  // Files in the temporary directory should not be indexed ever. If this
-  // assumption change, fix this unit test accordingly.
-  // FILE_ATTRIBUTE_NOT_CONTENT_INDEXED doesn't exist on XP.
+
   DWORD expected = read_only ?
       ((attrs & (FILE_ATTRIBUTE_ARCHIVE | FILE_ATTRIBUTE_DIRECTORY)) |
           FILE_ATTRIBUTE_READONLY) :
       (attrs & (FILE_ATTRIBUTE_ARCHIVE | FILE_ATTRIBUTE_DIRECTORY));
-  // TODO(ripp@yandex-team.ru): this seems out of place here. If we really think
-  // it is important to verify that temp files are not indexed there should be
-  // a dedicated test for that (create a file, inspect the attributes)
-  if (win::GetVersion() >= win::VERSION_VISTA)
-    expected |= FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
-  attrs = GetFileAttributes(path.value().c_str());
+
+  // Ignore FILE_ATTRIBUTE_NOT_CONTENT_INDEXED if present.
+  attrs = GetFileAttributes(path.value().c_str()) &
+          ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
   ASSERT_EQ(expected, attrs);
 #else
   // On all other platforms, it involves removing/setting the write bit.
@@ -2170,7 +2175,7 @@ TEST_F(FileUtilTest, IsDirectoryEmpty) {
 // with a common SetUp() method.
 class VerifyPathControlledByUserTest : public FileUtilTest {
  protected:
-  virtual void SetUp() override {
+  void SetUp() override {
     FileUtilTest::SetUp();
 
     // Create a basic structure used by each test.

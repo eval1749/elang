@@ -49,6 +49,20 @@ class BASE_EXPORT Process {
   // Returns an object for the current process.
   static Process Current();
 
+  // Returns a Process for the given |pid|.
+  static Process Open(ProcessId pid);
+
+  // Returns a Process for the given |pid|. On Windows the handle is opened
+  // with more access rights and must only be used by trusted code (can read the
+  // address space and duplicate handles).
+  static Process OpenWithExtraPriviles(ProcessId pid);
+
+#if defined(OS_WIN)
+  // Returns a Process for the given |pid|, using some |desired_access|.
+  // See ::OpenProcess documentation for valid |desired_access|.
+  static Process OpenWithAccess(ProcessId pid, DWORD desired_access);
+#endif
+
   // Creates an object from a |handle| owned by someone else.
   // Don't use this for new code. It is only intended to ease the migration to
   // a strict ownership model.
@@ -69,7 +83,7 @@ class BASE_EXPORT Process {
   Process Duplicate() const;
 
   // Get the PID for this process.
-  ProcessId pid() const;
+  ProcessId Pid() const;
 
   // Returns true if this process is the current process.
   bool is_current() const;
@@ -84,6 +98,8 @@ class BASE_EXPORT Process {
 
   // Waits for the process to exit. Returns true on success.
   // On POSIX, if the process has been signaled then |exit_code| is set to -1.
+  // On Linux this must be a child process, however on Mac and Windows it can be
+  // any process.
   bool WaitForExit(int* exit_code);
 
   // Same as WaitForExit() but only waits for up to |timeout|.

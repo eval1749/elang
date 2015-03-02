@@ -12,7 +12,6 @@
 #include "base/logging.h"
 #include "base/message_loop/message_loop.h"
 #include "base/process/process_iterator.h"
-#include "base/profiler/scoped_tracker.h"
 #include "base/win/object_watcher.h"
 
 namespace base {
@@ -71,10 +70,6 @@ void TimerExpiredTask::TimedOut() {
 }
 
 void TimerExpiredTask::OnObjectSignaled(HANDLE object) {
-  // TODO(vadimt): Remove ScopedTracker below once crbug.com/418183 is fixed.
-  tracked_objects::ScopedTracker tracking_profile(
-      FROM_HERE_WITH_EXPLICIT_FUNCTION("TimerExpiredTask_OnObjectSignaled"));
-
   process_.Close();
 }
 
@@ -181,15 +176,14 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
 }
 
 bool WaitForExitCode(ProcessHandle handle, int* exit_code) {
-  bool success = WaitForExitCodeWithTimeout(
-      handle, exit_code, base::TimeDelta::FromMilliseconds(INFINITE));
-  CloseProcessHandle(handle);
-  return success;
+  // TODO(rvargas) crbug.com/417532: Remove this function.
+  Process process(handle);
+  return process.WaitForExit(exit_code);
 }
 
 bool WaitForExitCodeWithTimeout(ProcessHandle handle,
                                 int* exit_code,
-                                base::TimeDelta timeout) {
+                                TimeDelta timeout) {
   if (::WaitForSingleObject(
       handle, static_cast<DWORD>(timeout.InMilliseconds())) != WAIT_OBJECT_0)
     return false;
@@ -202,7 +196,7 @@ bool WaitForExitCodeWithTimeout(ProcessHandle handle,
 }
 
 bool WaitForProcessesToExit(const FilePath::StringType& executable_name,
-                            base::TimeDelta wait,
+                            TimeDelta wait,
                             const ProcessFilter* filter) {
   bool result = true;
   DWORD start_time = GetTickCount();
@@ -224,13 +218,8 @@ bool WaitForProcessesToExit(const FilePath::StringType& executable_name,
   return result;
 }
 
-bool WaitForSingleProcess(ProcessHandle handle, base::TimeDelta wait) {
-  int exit_code;
-  return WaitForExitCodeWithTimeout(handle, &exit_code, wait) && exit_code == 0;
-}
-
 bool CleanupProcesses(const FilePath::StringType& executable_name,
-                      base::TimeDelta wait,
+                      TimeDelta wait,
                       int exit_code,
                       const ProcessFilter* filter) {
   if (WaitForProcessesToExit(executable_name, wait, filter))
@@ -249,9 +238,9 @@ void EnsureProcessTerminated(Process process) {
 
   MessageLoop::current()->PostDelayedTask(
       FROM_HERE,
-      base::Bind(&TimerExpiredTask::TimedOut,
-                 base::Owned(new TimerExpiredTask(process.Pass()))),
-      base::TimeDelta::FromMilliseconds(kWaitInterval));
+      Bind(&TimerExpiredTask::TimedOut,
+           Owned(new TimerExpiredTask(process.Pass()))),
+      TimeDelta::FromMilliseconds(kWaitInterval));
 }
 
 }  // namespace base

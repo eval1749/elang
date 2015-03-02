@@ -61,6 +61,12 @@ PACKAGE_INFO = {
         '/data/local/chrome-command-line',
         'chrome_devtools_remote',
         None),
+    'chrome_work': PackageInfo(
+        'com.chrome.work',
+        'com.google.android.apps.chrome.Main',
+        '/data/local/chrome-command-line',
+        'chrome_devtools_remote',
+        None),
     'legacy_browser': PackageInfo(
         'com.google.android.browser',
         'com.android.browser.BrowserActivity',
@@ -88,7 +94,7 @@ PACKAGE_INFO = {
     'android_webview_shell': PackageInfo(
         'org.chromium.android_webview.shell',
         'org.chromium.android_webview.shell.AwShellActivity',
-        None,
+        '/data/local/tmp/android-webview-command-line',
         None,
         'org.chromium.android_webview.test'),
     'gtest': PackageInfo(
@@ -205,6 +211,7 @@ LOCAL_MACHINE_TESTS = ['junit', 'python']
 VALID_ENVIRONMENTS = ['local', 'remote_device']
 VALID_TEST_TYPES = ['gtest', 'instrumentation', 'junit', 'linker', 'monkey',
                     'perf', 'python', 'uiautomator', 'uirobot']
+VALID_DEVICE_TYPES = ['Android', 'iOS']
 
 
 def GetBuildType():
@@ -281,4 +288,5 @@ def _FindAdbPath():
 
 # Exit codes
 ERROR_EXIT_CODE = 1
+INFRA_EXIT_CODE = 87
 WARNING_EXIT_CODE = 88

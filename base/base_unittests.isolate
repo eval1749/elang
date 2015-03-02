@@ -19,7 +19,8 @@
           '--brave-new-test-launcher',
           '--test-launcher-bot-mode',
           '--asan=<(asan)',
-          '--lsan=<(lsan)',
+          '--msan=<(msan)',
+          '--tsan=<(tsan)',
         ],
         'files': [
           '../testing/xvfb.py',
@@ -50,7 +51,15 @@
           '--brave-new-test-launcher',
           '--test-launcher-bot-mode',
           '--asan=<(asan)',
-          '--lsan=<(lsan)',
+          '--msan=<(msan)',
+          '--tsan=<(tsan)',
+        ],
+      },
+    }],
+    ['OS=="mac" and asan==1 and fastbuild==0', {
+      'variables': {
+        'files': [
+          '<(PRODUCT_DIR)/base_unittests.dSYM/',
         ],
       },
     }],

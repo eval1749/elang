@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//elang/build/elang_target_arch.gni")
+import("//testing/test.gni")
 
 group("elang") {
   deps = [

@@ -19,6 +19,9 @@ declare_args() {
   # TODO(sebmarchand): Update this comment once this flag guarantee that
   #     there's no build metadata in the build artifacts.
   dont_embed_build_metadata = false
+
+  # Set to true to enable dcheck in Release builds.
+  dcheck_always_on = false
 }
 
 # TODO(brettw) Most of these should be removed. Instead of global feature
@@ -73,6 +76,9 @@ config("feature_flags") {
   }
   if (dont_embed_build_metadata) {
     defines += [ "DONT_EMBED_BUILD_METADATA" ]
+  }
+  if (dcheck_always_on) {
+    defines += [ "DCHECK_ALWAYS_ON=1" ]
   }
   if (use_udev) {
     # TODO(brettw) should probably be "=1".
@@ -196,9 +202,6 @@ config("feature_flags") {
   if (enable_one_click_signin) {
     defines += [ "ENABLE_ONE_CLICK_SIGNIN" ]
   }
-  if (use_athena) {
-    defines += [ "USE_ATHENA=1" ]
-  }
   if (enable_hidpi) {
     defines += [ "ENABLE_HIDPI=1" ]
   }
@@ -228,7 +231,7 @@ config("debug") {
       # have to tell it to turn it off.
       defines += [ "_HAS_ITERATOR_DEBUGGING=0" ]
     }
-  } else if (is_linux && !is_android && cpu_arch == "x64" &&
+  } else if (is_linux && !is_android && current_cpu == "x64" &&
              !disable_iterator_debugging) {
     # Enable libstdc++ debugging facilities to help catch problems early, see
     # http://crbug.com/65151 .

@@ -6,7 +6,6 @@
 
 #include "base/bind.h"
 #include "base/callback.h"
-#include "base/debug/trace_event.h"
 #include "base/lazy_instance.h"
 #include "base/logging.h"
 #include "base/memory/ref_counted.h"
@@ -14,6 +13,7 @@
 #include "base/threading/platform_thread.h"
 #include "base/threading/thread_local.h"
 #include "base/threading/worker_pool.h"
+#include "base/trace_event/trace_event.h"
 #include "base/tracked_objects.h"
 
 using tracked_objects::TrackedTime;
@@ -102,8 +102,7 @@ void WorkerThread::ThreadMain() {
     stopwatch.Stop();
 
     tracked_objects::ThreadData::TallyRunOnWorkerThreadIfTracking(
-        pending_task.birth_tally, TrackedTime(pending_task.time_posted),
-        stopwatch);
+        pending_task.birth_tally, pending_task.time_posted, stopwatch);
   }
 
   // The WorkerThread is non-joinable, so it deletes itself.

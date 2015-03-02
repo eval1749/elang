@@ -845,6 +845,7 @@ public class Linker {
      */
     public static boolean checkMapExecSupport(String apkFile) {
         assert apkFile != null;
+
         synchronized (Linker.class) {
             ensureInitializedLocked();
 
@@ -1038,7 +1039,7 @@ public class Linker {
             mLoadSize = in.readLong();
             mRelroStart = in.readLong();
             mRelroSize = in.readLong();
-            ParcelFileDescriptor fd = in.readFileDescriptor();
+            ParcelFileDescriptor fd = ParcelFileDescriptor.CREATOR.createFromParcel(in);
             // If CreateSharedRelro fails, the OS file descriptor will be -1 and |fd| will be null.
             mRelroFd = (fd == null) ? -1 : fd.detachFd();
         }

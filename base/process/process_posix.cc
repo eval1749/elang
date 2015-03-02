@@ -14,7 +14,6 @@
 namespace base {
 
 Process::Process(ProcessHandle handle) : process_(handle) {
-  CHECK_NE(handle, GetCurrentProcessHandle());
 }
 
 Process::Process(RValue other)
@@ -32,9 +31,22 @@ Process& Process::operator=(RValue other) {
 
 // static
 Process Process::Current() {
-  Process process;
-  process.process_ = GetCurrentProcessHandle();
-  return process.Pass();
+  return Process(GetCurrentProcessHandle());
+}
+
+// static
+Process Process::Open(ProcessId pid) {
+  if (pid == GetCurrentProcId())
+    return Current();
+
+  // On POSIX process handles are the same as PIDs.
+  return Process(pid);
+}
+
+// static
+Process Process::OpenWithExtraPriviles(ProcessId pid) {
+  // On POSIX there are no privileges to set.
+  return Open(pid);
 }
 
 // static
@@ -65,7 +77,7 @@ Process Process::Duplicate() const {
   return Process(process_);
 }
 
-ProcessId Process::pid() const {
+ProcessId Process::Pid() const {
   DCHECK(IsValid());
   return GetProcId(process_);
 }

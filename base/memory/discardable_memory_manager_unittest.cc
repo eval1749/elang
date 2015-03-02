@@ -33,10 +33,6 @@ class TestAllocationImpl : public internal::DiscardableMemoryManagerAllocation {
     DCHECK(is_allocated_);
     is_allocated_ = false;
   }
-  virtual bool IsMemoryResident() const override {
-    DCHECK(is_allocated_);
-    return true;
-  }
 
   bool is_locked() const { return is_locked_; }
 
@@ -460,9 +456,9 @@ class ThreadedDiscardableMemoryManagerTest
       : memory_usage_thread_("memory_usage_thread"),
         thread_sync_(true, false) {}
 
-  virtual void SetUp() override { memory_usage_thread_.Start(); }
+  void SetUp() override { memory_usage_thread_.Start(); }
 
-  virtual void TearDown() override { memory_usage_thread_.Stop(); }
+  void TearDown() override { memory_usage_thread_.Stop(); }
 
   void UseMemoryHelper() {
     size_t size = 1024;

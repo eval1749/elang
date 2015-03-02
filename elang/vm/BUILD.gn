@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//elang/build/elang_target_arch.gni")
+import("//testing/test.gni")
 
 static_library("vm") {
   output_name = "elang_vm"

@@ -56,8 +56,12 @@ class AdbWrapper(object):
 
   # pylint: disable=unused-argument
   @classmethod
-  def _BuildAdbCmd(cls, args, device_serial):
-    cmd = [constants.GetAdbPath()]
+  def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
+    if cpu_affinity is not None:
+      cmd = ['taskset', '-c', str(cpu_affinity)]
+    else:
+      cmd = []
+    cmd.append(constants.GetAdbPath())
     if device_serial is not None:
       cmd.extend(['-s', device_serial])
     cmd.extend(args)
@@ -68,9 +72,9 @@ class AdbWrapper(object):
   @classmethod
   @decorators.WithTimeoutAndRetries
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
-                 check_error=True):
+                 check_error=True, cpu_affinity=None):
     status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-        cls._BuildAdbCmd(args, device_serial),
+        cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
         timeout_retry.CurrentTimeoutThread().GetRemainingTime())
     if status != 0:
       raise device_errors.AdbCommandFailedError(
@@ -134,6 +138,25 @@ class AdbWrapper(object):
 
   def __repr__(self):
     return '%s(\'%s\')' % (self.__class__.__name__, self)
+
+  # pylint: disable=unused-argument
+  @classmethod
+  def IsServerOnline(cls):
+    status, output = cmd_helper.GetCmdStatusAndOutput(['pgrep', 'adb'])
+    output = [int(x) for x in output.split()]
+    logging.info('PIDs for adb found: %r', output)
+    return status == 0
+  # pylint: enable=unused-argument
+
+  @classmethod
+  def KillServer(cls, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
+    cls._RunAdbCmd(['kill-server'], timeout=timeout, retries=retries)
+
+  @classmethod
+  def StartServer(cls, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
+    # CPU affinity is used to reduce adb instability http://crbug.com/268450
+    cls._RunAdbCmd(['start-server'], timeout=timeout, retries=retries,
+                   cpu_affinity=0)
 
   # TODO(craigdh): Determine the filter criteria that should be supported.
   @classmethod
@@ -222,13 +245,27 @@ class AdbWrapper(object):
         status = int(output[output_end+1:])
       except ValueError:
         logging.warning('exit status of shell command %r missing.', command)
-        raise device_errors.AdbCommandFailedError(
-            args, output, device_serial=self._device_serial)
+        raise device_errors.AdbShellCommandFailedError(
+            command, output, status=None, device_serial=self._device_serial)
       output = output[:output_end]
       if status != expect_status:
-        raise device_errors.AdbCommandFailedError(
-            args, output, status, self._device_serial)
+        raise device_errors.AdbShellCommandFailedError(
+            command, output, status=status, device_serial=self._device_serial)
     return output
+
+  def IterShell(self, command, timeout):
+    """Runs a shell command and returns an iterator over its output lines.
+
+    Args:
+      command: A string with the shell command to run.
+      timeout: Timeout in seconds.
+
+    Yields:
+      The output of the command line by line.
+    """
+    args = ['shell', command]
+    return cmd_helper.IterCmdOutputLines(
+      self._BuildAdbCmd(args, self._device_serial), timeout=timeout)
 
   def Ls(self, path, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
     """List the contents of a directory on the device.
@@ -262,20 +299,43 @@ class AdbWrapper(object):
           cmd, 'path does not specify an accessible directory in the device',
           device_serial=self._device_serial)
 
-  def Logcat(self, filter_spec=None, timeout=None):
-    """Get an iterator over the logcat output.
+  def Logcat(self, clear=False, dump=False, filter_specs=None,
+             logcat_format=None, timeout=None, retries=_DEFAULT_RETRIES):
+    """Get an iterable over the logcat output.
 
     Args:
-      filter_spec: (optional) Spec to filter the logcat.
-      timeout: (optional) Timeout per try in seconds.
+      clear: If true, clear the logcat.
+      dump: If true, dump the current logcat contents.
+      filter_specs: If set, a list of specs to filter the logcat.
+      logcat_format: If set, the format in which the logcat should be output.
+        Options include "brief", "process", "tag", "thread", "raw", "time",
+        "threadtime", and "long"
+      timeout: (optional) If set, timeout per try in seconds. If clear or dump
+        is set, defaults to _DEFAULT_TIMEOUT.
+      retries: (optional) If clear or dump is set, the number of retries to
+        attempt. Otherwise, does nothing.
 
     Yields:
       logcat output line by line.
     """
     cmd = ['logcat']
-    if filter_spec is not None:
-      cmd.append(filter_spec)
-    return self._IterRunDeviceAdbCmd(cmd, timeout)
+    use_iter = True
+    if clear:
+      cmd.append('-c')
+      use_iter = False
+    if dump:
+      cmd.append('-d')
+      use_iter = False
+    if logcat_format:
+      cmd.extend(['-v', logcat_format])
+    if filter_specs:
+      cmd.extend(filter_specs)
+
+    if use_iter:
+      return self._IterRunDeviceAdbCmd(cmd, timeout)
+    else:
+      timeout = timeout if timeout is not None else _DEFAULT_TIMEOUT
+      return self._RunDeviceAdbCmd(cmd, timeout, retries).splitlines()
 
   def Forward(self, local, remote, timeout=_DEFAULT_TIMEOUT,
               retries=_DEFAULT_RETRIES):
