@@ -254,7 +254,6 @@ void Validator::ValidateArrayAccess(Instruction* instr) {
   for (auto const member : indexes_type->members()) {
     if (member != int32_type())
       Error(ErrorCode::ValidateInstructionType, instr, 1);
-    return;
   }
 }
 
