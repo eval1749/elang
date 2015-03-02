@@ -239,7 +239,6 @@ ir::Type* NameResolver::GetPredefinedType(PredefinedName name) {
   auto const type = Resolve(ast_type)->as<ir::Type>();
   DCHECK(type) << *type_name;
   return type;
-  return nullptr;
 }
 
 ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
