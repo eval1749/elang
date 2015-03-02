@@ -718,13 +718,16 @@ bool Lexer::SkipBlockComment() {
   auto state = Normal;
   auto depth = 1;
   while (!IsAtEndOfStream()) {
-    auto const char_code = ReadChar();
+    Advance();
+    auto const char_code = PeekChar();
     switch (state) {
       case State::Asterisk:
         if (char_code == '/') {
           --depth;
-          if (!depth)
+          if (!depth) {
+            Advance();
             return true;
+          }
           state = State::Normal;
           break;
         }

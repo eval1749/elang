@@ -188,6 +188,11 @@ TEST_F(LexerTest, Basic) {
   EXPECT_TOKEN(EndOfSource, 103, 104, 0);
 }
 
+TEST_F(LexerTest, BlockComment) {
+  PrepareLexer(L"/* foo */|");
+  EXPECT_OPERATOR_TOKEN(BitOr, 9, 10);
+}
+
 TEST_F(LexerTest, Bracket) {
   PrepareLexer(L"()<>[]{}");
   EXPECT_TRUE(Get()->is_left_bracket()) << "(";
