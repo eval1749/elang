@@ -361,6 +361,27 @@ class ELANG_HIR_EXPORT JumpInstruction final
 
 //////////////////////////////////////////////////////////////////////
 //
+// ty %pointer = length %array, rank
+//  %array pointer to array object
+//  rank int32 literal
+//
+class ELANG_HIR_EXPORT LengthInstruction final
+    : public SimpleInstruction<LengthInstruction, Value*> {
+  DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Length);
+
+ public:
+  int index() const { return index_; }
+
+ private:
+  LengthInstruction(Type* output_type, int index);
+
+  int const index_;
+
+  DISALLOW_COPY_AND_ASSIGN(LengthInstruction);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // ty %result = load %pointer
 //
 class ELANG_HIR_EXPORT LoadInstruction final

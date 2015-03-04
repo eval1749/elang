@@ -82,6 +82,11 @@ std::ostream& operator<<(std::ostream& ostream, const WithoutAddress& thing) {
     return ostream;
   }
 
+  if (auto const length = instruction->as<LengthInstruction>()) {
+    ostream << " " << AsValue(*length->input(0)) << ", " << length->index();
+    return ostream;
+  }
+
   if (auto const phi = instruction->as<PhiInstruction>()) {
     auto separator = " ";
     for (auto const phi_input : phi->phi_inputs()) {

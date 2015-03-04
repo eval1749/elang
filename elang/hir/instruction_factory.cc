@@ -222,6 +222,17 @@ Instruction* InstructionFactory::NewIfInstruction(Type* output_type,
   return instr;
 }
 
+Instruction* InstructionFactory::NewLengthInstruction(Value* array, int index) {
+  auto const array_type =
+      array->type()->as<PointerType>()->pointee()->as<ArrayType>();
+  DCHECK(array_type);
+  DCHECK_GE(index, 0);
+  DCHECK_LT(index, array_type->rank());
+  auto const instr = new (zone()) LengthInstruction(int32_type(), index);
+  instr->InitInputAt(0, array);
+  return instr;
+}
+
 Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {
   auto const pointer_type = pointer->type()->as<PointerType>();
   DCHECK(pointer_type);

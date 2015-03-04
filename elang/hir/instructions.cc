@@ -175,6 +175,11 @@ bool JumpInstruction::IsTerminator() const {
   return true;
 }
 
+// LengthInstruction
+LengthInstruction::LengthInstruction(Type* output_type, int index)
+    : SimpleInstruction(output_type), index_(index) {
+}
+
 // PhiInput
 PhiInput::PhiInput(PhiInstruction* phi, BasicBlock* block, Value* value)
     : basic_block_(block) {

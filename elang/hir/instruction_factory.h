@@ -48,6 +48,7 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
                                 Value* condition,
                                 Value* true_value,
                                 Value* false_value);
+  Instruction* NewLengthInstruction(Value* array, int index);
   Instruction* NewLoadInstruction(Value* pointer);
   PhiInstruction* NewPhiInstruction(Type* output_type);
   Instruction* NewRetInstruction(Value* value, BasicBlock* exit_block);

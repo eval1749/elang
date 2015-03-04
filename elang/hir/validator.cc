@@ -420,6 +420,19 @@ void Validator::VisitJump(JumpInstruction* instr) {
   Error(ErrorCode::ValidateInstructionOperand, instr, 0);
 }
 
+void Validator::VisitLength(LengthInstruction* instr) {
+  auto const array_pointer = instr->input(0);
+  auto const array_type = PointTo(array_pointer->type())->as<ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::ValidateInstructionType, instr, 0);
+    return;
+  }
+  if (instr->index() < 0 || instr->index() >= array_type->rank()) {
+    Error(ErrorCode::ValidateInstructionType, instr, 1);
+    return;
+  }
+}
+
 void Validator::VisitLoad(LoadInstruction* instr) {
   auto const pointer_type = instr->input(0)->type()->as<PointerType>();
   if (!pointer_type) {

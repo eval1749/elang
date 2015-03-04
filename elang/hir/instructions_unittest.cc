@@ -282,6 +282,22 @@ TEST_F(HirInstructionTest, IfInstruction) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// LengthInstruction
+//
+TEST_F(HirInstructionTest, LengthInstruction) {
+  editor()->Edit(entry_block());
+  auto const array_type = types()->NewArrayType(float64_type(), {1});
+  auto const array_pointer = NewSource(types()->NewPointerType(array_type));
+  editor()->Append(array_pointer);
+  auto const instr = factory()->NewLengthInstruction(array_pointer, 0);
+  editor()->Append(instr);
+  editor()->Commit();
+  EXPECT_EQ("", Validate());
+  EXPECT_EQ("bb1:5:int32 %r5 = length %p4, 0", ToString(instr));
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // LoadInstruction
 //
 TEST_F(HirInstructionTest, LoadInstruction) {

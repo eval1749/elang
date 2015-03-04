@@ -91,6 +91,7 @@ namespace hir {
 #define FOR_EACH_HIR_INSTRUCTION(V)  \
   FOR_EACH_SIMPLE_HIR_INSTRUCTION(V) \
   V(Get, "get")                      \
+  V(Length, "length")                \
   V(Phi, "phi")                      \
   V(StackAlloc, "alloca")            \
   V(Tuple, "tuple")
