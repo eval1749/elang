@@ -318,7 +318,7 @@ class ELANG_HIR_EXPORT GetInstruction final
   int index() const { return index_; }
 
  private:
-  explicit GetInstruction(Type* output_type, int index);
+  GetInstruction(Type* output_type, int index);
 
   int const index_;
 

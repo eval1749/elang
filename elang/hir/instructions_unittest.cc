@@ -217,12 +217,12 @@ TEST_F(HirInstructionTest, ElementInstruction) {
   auto const array_type = types()->NewArrayType(float64_type(), {1});
   auto const array_pointer = NewSource(types()->NewPointerType(array_type));
   editor()->Append(array_pointer);
-  auto const element = factory()->NewElementInstruction(
+  auto const instr = factory()->NewElementInstruction(
       array_pointer, factory()->NewInt32Literal(42));
-  editor()->Append(element);
+  editor()->Append(instr);
   editor()->Commit();
   EXPECT_EQ("", Validate());
-  EXPECT_EQ("bb1:5:float64* %p5 = element %p4, 42", ToString(element));
+  EXPECT_EQ("bb1:5:float64* %p5 = element %p4, 42", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -248,7 +248,7 @@ TEST_F(HirInstructionTest, GetInstruction) {
   editor.Append(get1);
   editor.Append(
       factory()->NewNeInstruction(get0, int32_type()->default_value()));
-  // |get2| doesn't confirm 'get' instruciton ordering restriction.
+  // |get2| doesn't confirm 'get' instruction ordering restriction.
   editor.Append(get2);
   editor.Commit();
   EXPECT_FALSE(editor.Validate());
