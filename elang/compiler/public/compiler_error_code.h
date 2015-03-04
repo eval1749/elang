@@ -207,9 +207,11 @@ namespace compiler {
   E(TypeResolver, Conditional, NotMatch)              \
   E(TypeResolver, Expression, Invalid)                \
   E(TypeResolver, Expression, NotBool)                \
+  E(TypeResolver, Expression, NotYetImplemented)      \
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \
   E(TypeResolver, Method, Return)                     \
+  E(TypeResolver, Statement, NotYetImplemented)       \
   E(TypeResolver, Variable, NotResolved)              \
   /* Warnings */                                      \
   W(Warning, Code, Zero)                              \

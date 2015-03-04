@@ -58,8 +58,12 @@ class MethodBodyAnalyzer final : public Analyzer,
   void RegisterParameters();
 
   // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) final;
   void VisitBlockStatement(ast::BlockStatement* node) final;
+  void VisitBreakStatement(ast::BreakStatement* node) final;
+  void VisitContinueStatement(ast::ContinueStatement* node) final;
   void VisitDoStatement(ast::DoStatement* node) final;
+  void VisitEmptyStatement(ast::EmptyStatement* node) final;
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
   void VisitForStatement(ast::ForStatement* node) final;
@@ -173,6 +177,10 @@ void MethodBodyAnalyzer::Run() {
 }
 
 // ast::Visitor statements
+void MethodBodyAnalyzer::DoDefaultVisit(ast::Node* node) {
+  Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
+}
+
 void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const statement : node->statements()) {
     Analyze(statement);
@@ -184,9 +192,21 @@ void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
   }
 }
 
+void MethodBodyAnalyzer::VisitBreakStatement(ast::BreakStatement* node) {
+  DCHECK(node);
+}
+
+void MethodBodyAnalyzer::VisitContinueStatement(ast::ContinueStatement* node) {
+  DCHECK(node);
+}
+
 void MethodBodyAnalyzer::VisitDoStatement(ast::DoStatement* node) {
   Analyze(node->statement());
   AnalyzeAsBool(node->condition());
+}
+
+void MethodBodyAnalyzer::VisitEmptyStatement(ast::EmptyStatement* node) {
+  DCHECK(node);
 }
 
 void MethodBodyAnalyzer::VisitExpressionList(ast::ExpressionList* node) {
