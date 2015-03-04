@@ -227,6 +227,9 @@ ir::Node* TypeResolver::ValueOf(ast::Node* node) {
 }
 
 // ast::Visitor
+void TypeResolver::DoDefaultVisit(ast::Node* node) {
+  Error(ErrorCode::TypeResolverExpressionNotYetImplemented, node);
+}
 
 // Check |array| is array type and |index|+ are integer type.
 void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {

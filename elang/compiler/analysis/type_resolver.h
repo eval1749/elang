@@ -76,6 +76,7 @@ class TypeResolver final : public Analyzer,
   ir::Node* ValueOf(ast::Node* node);
 
   // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) final;
   void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitAssignment(ast::Assignment* node) final;
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
