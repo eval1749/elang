@@ -129,7 +129,8 @@ void Formatter::VisitSignature(Signature* signature) {
 }
 
 void Formatter::VisitVariable(Variable* variable) {
-  ostream_ << variable->ast_node()->name() << "@" << variable->storage();
+  ostream_ << variable->storage() << " " << *variable->type() << " "
+           << variable->ast_node()->name();
 }
 
 }  // namespace
