@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
+
+#include "base/strings/string_piece.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/error_code.h"
 #include "elang/hir/error_data.h"
@@ -27,20 +31,40 @@ class HirInstructionTest : public testing::HirTest {
   Instruction* NewSource(Type* output_type);
 
  private:
+  AtomicString* MethodNameFor(FunctionType* type, base::StringPiece name);
+
   DISALLOW_COPY_AND_ASSIGN(HirInstructionTest);
 };
 
+AtomicString* HirInstructionTest::MethodNameFor(FunctionType* function_type,
+                                                base::StringPiece name) {
+  std::stringstream ostream;
+  ostream << *function_type->return_type() << " " << name << "(";
+  auto const parameters_type = function_type->parameters_type();
+  if (auto const tuple_type = parameters_type->as<TupleType>()) {
+    auto separator = "";
+    for (auto member : tuple_type->members()) {
+      ostream << separator << *member;
+      separator = ", ";
+    }
+  } else {
+    ostream << *parameters_type;
+  }
+  ostream << ")";
+  return factory()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));
+}
+
 Instruction* HirInstructionTest::NewConsumer(Type* input_type) {
-  auto const name = factory()->NewAtomicString(L"Consumer");
+  auto const function_type = types()->NewFunctionType(void_type(), input_type);
   auto const callee = factory()->NewReference(
-      types()->NewFunctionType(void_type(), input_type), name);
+      function_type, MethodNameFor(function_type, "Consumer"));
   return factory()->NewCallInstruction(callee, input_type->default_value());
 }
 
 Instruction* HirInstructionTest::NewSource(Type* output_type) {
-  auto const name = factory()->NewAtomicString(L"Source");
+  auto const function_type = types()->NewFunctionType(output_type, void_type());
   auto const callee = factory()->NewReference(
-      types()->NewFunctionType(output_type, void_type()), name);
+      function_type, MethodNameFor(function_type, "Source"));
   return factory()->NewCallInstruction(callee, void_value());
 }
 
@@ -302,19 +326,26 @@ TEST_F(HirInstructionTest, LengthInstruction) {
 //
 TEST_F(HirInstructionTest, LoadInstruction) {
   editor()->Edit(entry_block());
-  auto const bool_pointer_type = types()->NewPointerType(bool_type());
-  auto const source = NewSource(bool_pointer_type);
+
+  auto const array_type = types()->NewArrayType(bool_type(), {-1});
+  auto const array_pointer = NewSource(types()->NewPointerType(array_type));
+  editor()->Append(array_pointer);
+
+  auto const source = NewSource(types()->NewPointerType(bool_type()));
   editor()->Append(source);
-  auto const instr = factory()->NewLoadInstruction(source);
+
+  auto const instr = factory()->NewLoadInstruction(array_pointer, source);
   editor()->Append(instr);
   editor()->Commit();
+
   EXPECT_EQ("", Validate());
   EXPECT_TRUE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(bool_type(), instr->output_type());
-  EXPECT_EQ(1, instr->CountInputs());
-  EXPECT_EQ(source, instr->input(0));
-  EXPECT_EQ("bb1:5:bool %b5 = load %p4", ToString(instr));
+  EXPECT_EQ(2, instr->CountInputs());
+  EXPECT_EQ(array_pointer, instr->input(0));
+  EXPECT_EQ(source, instr->input(1));
+  EXPECT_EQ("bb1:6:bool %b6 = load %p4, %p5", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -373,21 +404,29 @@ TEST_F(HirInstructionTest, RetInstruction) {
 //
 TEST_F(HirInstructionTest, StoreInstruction) {
   editor()->Edit(entry_block());
-  auto const bool_pointer_type = types()->NewPointerType(bool_type());
-  auto const source = NewSource(bool_pointer_type);
+
+  auto const array_type = types()->NewArrayType(bool_type(), {-1});
+  auto const array_pointer = NewSource(types()->NewPointerType(array_type));
+  editor()->Append(array_pointer);
+
+  auto const source = NewSource(types()->NewPointerType(bool_type()));
   editor()->Append(source);
+
   auto const value = bool_type()->default_value();
-  auto const instr = factory()->NewStoreInstruction(source, value);
+  auto const instr =
+    factory()->NewStoreInstruction(array_pointer, source, value);
   editor()->Append(instr);
   editor()->Commit();
+
   EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(void_type(), instr->output_type());
-  EXPECT_EQ(2, instr->CountInputs());
-  EXPECT_EQ(source, instr->input(0));
-  EXPECT_EQ(value, instr->input(1));
-  EXPECT_EQ("bb1:5:store %p4, false", ToString(instr));
+  EXPECT_EQ(3, instr->CountInputs());
+  EXPECT_EQ(array_pointer, instr->input(0));
+  EXPECT_EQ(source, instr->input(1));
+  EXPECT_EQ(value, instr->input(2));
+  EXPECT_EQ("bb1:6:store %p4, %p5, false", ToString(instr));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -398,7 +437,7 @@ TEST_F(HirInstructionTest, StackAllocInstruction) {
   editor()->Edit(entry_block());
   auto const instr = factory()->NewStackAllocInstruction(int32_type(), 3);
   editor()->Append(instr);
-  editor()->Append(factory()->NewLoadInstruction(instr));
+  editor()->Append(factory()->NewLoadInstruction(instr, instr));
   editor()->Commit();
   EXPECT_EQ("", Validate());
   EXPECT_FALSE(instr->MaybeUseless());

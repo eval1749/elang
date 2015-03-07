@@ -171,7 +171,7 @@ void Renamer::Run() {
 
 // hir::InstructionVisitor
 void Renamer::VisitLoad(hir::LoadInstruction* instr) {
-  auto const rename_stack = stack_for(instr->input(0));
+  auto const rename_stack = stack_for(instr->input(1));
   if (!rename_stack)
     return;
   editor()->ReplaceAll(rename_stack->top(), instr);
@@ -185,10 +185,10 @@ void Renamer::VisitPhi(hir::PhiInstruction* instr) {
 }
 
 void Renamer::VisitStore(hir::StoreInstruction* instr) {
-  auto const rename_stack = stack_for(instr->input(0));
+  auto const rename_stack = stack_for(instr->input(1));
   if (!rename_stack)
     return;
-  Push(rename_stack, instr->input(1));
+  Push(rename_stack, instr->input(2));
   editor()->RemoveInstruction(instr);
 }
 

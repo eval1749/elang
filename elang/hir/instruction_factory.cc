@@ -233,11 +233,14 @@ Instruction* InstructionFactory::NewLengthInstruction(Value* array, int index) {
   return instr;
 }
 
-Instruction* InstructionFactory::NewLoadInstruction(Value* pointer) {
+Instruction* InstructionFactory::NewLoadInstruction(Value* base_pointer,
+                                                    Value* pointer) {
+  DCHECK(base_pointer->type()->is<PointerType>());
   auto const pointer_type = pointer->type()->as<PointerType>();
   DCHECK(pointer_type);
   auto const instr = new (zone()) LoadInstruction(pointer_type->pointee());
-  instr->InitInputAt(0, pointer);
+  instr->InitInputAt(0, base_pointer);
+  instr->InitInputAt(1, pointer);
   return instr;
 }
 
@@ -270,13 +273,17 @@ Instruction* InstructionFactory::NewStackAllocInstruction(Type* type,
       StackAllocInstruction(types()->NewPointerType(type), count);
 }
 
-Instruction* InstructionFactory::NewStoreInstruction(Value* pointer,
+Instruction* InstructionFactory::NewStoreInstruction(Value* base_pointer,
+                                                     Value* pointer,
                                                      Value* value) {
-  DCHECK(pointer->type()->is<PointerType>());
-  DCHECK(!value->type()->is<VoidType>());
+  DCHECK(base_pointer->type()->is<PointerType>());
+  auto const pointer_type = pointer->type()->as<PointerType>();
+  DCHECK(pointer_type);
+  DCHECK_EQ(pointer_type->pointee(), value->type());
   auto const instr = new (zone()) StoreInstruction(void_type());
-  instr->InitInputAt(0, pointer);
-  instr->InitInputAt(1, value);
+  instr->InitInputAt(0, base_pointer);
+  instr->InitInputAt(1, pointer);
+  instr->InitInputAt(2, value);
   return instr;
 }
 

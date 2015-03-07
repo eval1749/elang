@@ -49,11 +49,13 @@ class ELANG_HIR_EXPORT InstructionFactory : public TypeFactoryUser,
                                 Value* true_value,
                                 Value* false_value);
   Instruction* NewLengthInstruction(Value* array, int index);
-  Instruction* NewLoadInstruction(Value* pointer);
+  Instruction* NewLoadInstruction(Value* base_pointer, Value* pointer);
   PhiInstruction* NewPhiInstruction(Type* output_type);
   Instruction* NewRetInstruction(Value* value, BasicBlock* exit_block);
   Instruction* NewStackAllocInstruction(Type* type, int number_of_element);
-  Instruction* NewStoreInstruction(Value* pointer, Value* value);
+  Instruction* NewStoreInstruction(Value* base_pointer,
+                                   Value* pointer,
+                                   Value* value);
   Instruction* NewThrowInstruction(Value* value, BasicBlock* exit_block);
   Instruction* NewTupleInstruction(Type* output_type,
                                    const std::vector<Value*>& inputs);

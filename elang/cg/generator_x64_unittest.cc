@@ -179,11 +179,12 @@ TEST_F(GeneratorX64Test, Element) {
       types()->NewPointerType(types()->NewArrayType(char_type(), {-1})));
   hir::Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const entry_instr = function->entry_block()->first_instruction();
+  auto const array_instr = function->entry_block()->first_instruction();
   auto const element_instr = factory()->NewElementInstruction(
-      entry_instr, factory()->NewInt32Literal(42));
+      array_instr, factory()->NewInt32Literal(42));
   editor.Append(element_instr);
-  auto const load_instr = factory()->NewLoadInstruction(element_instr);
+  auto const load_instr =
+      factory()->NewLoadInstruction(array_instr, element_instr);
   editor.Append(load_instr);
   editor.SetReturn(load_instr);
   ASSERT_EQ("", Commit(&editor));
@@ -194,11 +195,12 @@ TEST_F(GeneratorX64Test, Element) {
       "  // Out: {block2}\n"
       "  entry RCX =\n"
       "  mov %r1l = RCX\n"
-      "  add %r2 = 42, 42\n"
-      "  sext %r3l = %r2\n"
-      "  add %r4l = %r1l, %r3l\n"
-      "  aload %r5w = %r1l, %r4l, 16\n"
-      "  zext EAX = %r5w\n"
+      "  add %r2l = %r1l, 16l\n"
+      "  add %r3 = 42, 42\n"
+      "  sext %r4l = %r3\n"
+      "  add %r5l = %r2l, %r4l\n"
+      "  load %r6w = %r1l, %r5l\n"
+      "  zext EAX = %r6w\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

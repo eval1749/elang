@@ -434,10 +434,14 @@ void Validator::VisitLength(LengthInstruction* instr) {
 }
 
 void Validator::VisitLoad(LoadInstruction* instr) {
-  auto const pointer_type = instr->input(0)->type()->as<PointerType>();
-  if (!pointer_type) {
+  if (!instr->input(0)->type()->is<PointerType>()) {
     Error(ErrorCode::ValidateInstructionOperand, instr, 0,
           instr->input(0)->type());
+  }
+  auto const pointer_type = instr->input(1)->type()->as<PointerType>();
+  if (!pointer_type) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1,
+          instr->input(1)->type());
     return;
   }
   if (instr->output_type() != pointer_type->pointee()) {
@@ -490,20 +494,24 @@ void Validator::VisitStackAlloc(StackAllocInstruction* instr) {
 }
 
 void Validator::VisitStore(StoreInstruction* instr) {
+  if (!instr->input(0)->type()->is<PointerType>()) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 0,
+          instr->input(0)->type());
+  }
   if (!instr->output_type()->is<VoidType>()) {
     Error(ErrorCode::ValidateInstructionOutput, instr);
     return;
   }
-  auto const pointer_type = instr->input(0)->type()->as<PointerType>();
+  auto const pointer_type = instr->input(1)->type()->as<PointerType>();
   if (!pointer_type) {
-    Error(ErrorCode::ValidateInstructionOperand, instr, 0, pointer_type);
+    Error(ErrorCode::ValidateInstructionOperand, instr, 1, pointer_type);
     return;
   }
   // TODO(eval1749) We should check type of instr->input(2) is subtype of
   // |pointer_type->pointee()|.
   auto const pointee = pointer_type->pointee();
-  if (instr->input(1)->type() != pointee) {
-    Error(ErrorCode::ValidateInstructionOperand, instr, 1, pointee);
+  if (instr->input(2)->type() != pointee) {
+    Error(ErrorCode::ValidateInstructionOperand, instr, 2, pointee);
     return;
   }
 }

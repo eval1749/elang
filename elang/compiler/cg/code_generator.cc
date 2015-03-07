@@ -209,7 +209,7 @@ void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
   auto const home = variables_[variable]->as<hir::Instruction>();
   DCHECK(home);
   variable_analyzer_->DidSetVariable(home, editor()->basic_block());
-  Emit(factory()->NewStoreInstruction(home, value));
+  Emit(factory()->NewStoreInstruction(home, home, value));
   EmitOutput(value);
 }
 
@@ -234,7 +234,8 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
   DCHECK(!variables_.count(variable));
   variables_[variable] = alloc_instr;
   Emit(alloc_instr);
-  Emit(factory()->NewStoreInstruction(alloc_instr, variable_value));
+  Emit(
+      factory()->NewStoreInstruction(alloc_instr, alloc_instr, variable_value));
   variable_analyzer_->RegisterVariable(alloc_instr);
 }
 
@@ -253,7 +254,7 @@ void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
   auto const home = it->second->as<hir::Instruction>();
   DCHECK(home);
   variable_analyzer_->DidUseVariable(home, editor()->basic_block());
-  EmitOutputInstruction(factory()->NewLoadInstruction(home));
+  EmitOutputInstruction(factory()->NewLoadInstruction(home, home));
 }
 
 void CodeGenerator::Generate(ast::Statement* statement) {
@@ -450,7 +451,7 @@ hir::Value* CodeGenerator::NewMethodReference(ir::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
   // |ir::Method|.
   auto const method_name =
-    factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
+      factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
   return factory()->NewReference(MapType(method->signature()), method_name);
 }
 
@@ -528,8 +529,9 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
 //
 
 void CodeGenerator::VisitArrayAccess(ast::ArrayAccess* node) {
-  auto const element_instr = GenerateArrayAccess(node);
-  EmitOutputInstruction(factory()->NewLoadInstruction(element_instr));
+  auto const element_instr = GenerateArrayAccess(node)->as<hir::Instruction>();
+  EmitOutputInstruction(
+      factory()->NewLoadInstruction(element_instr->input(0), element_instr));
 }
 
 // There are five patterns:
@@ -552,7 +554,8 @@ void CodeGenerator::VisitAssignment(ast::Assignment* node) {
   if (auto const reference = lhs->as<ast::ArrayAccess>()) {
     auto const pointer = GenerateArrayAccess(reference);
     auto const value = GenerateValue(rhs);
-    EmitOutputInstruction(factory()->NewStoreInstruction(pointer, value));
+    EmitOutputInstruction(
+        factory()->NewStoreInstruction(pointer, pointer, value));
     return;
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
@@ -881,7 +884,8 @@ void CodeGenerator::VisitForEachStatement(ast::ForEachStatement* node) {
   editor()->SetBranch(continue_block);
   {
     ScopedBreakContext scope(this, break_block, continue_block);
-    auto const element = factory()->NewLoadInstruction(element_pointer_phi);
+    auto const element =
+        factory()->NewLoadInstruction(array, element_pointer_phi);
     Emit(element);
     EmitVariableBinding(node->variable(), element);
     Generate(node->statement());

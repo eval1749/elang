@@ -46,13 +46,6 @@ class Generator final : public ZoneOwner,
   lir::Function* Generate();
 
  private:
-  struct ArrayReference {
-    lir::Value array_pointer;
-    lir::Value element_type;
-    lir::Value element_pointer;
-    lir::Value sizeof_array_header;
-  };
-
   lir::Editor* editor() const { return editor_.get(); }
   lir::Function* function() const;
 
@@ -64,7 +57,6 @@ class Generator final : public ZoneOwner,
                         lir::IntegerCondition signed_condition,
                         lir::IntegerCondition unsigned_condition,
                         lir::FloatCondition float_condition);
-  ArrayReference HandleElement(hir::ElementInstruction* instr);
   lir::BasicBlock* MapBlock(hir::BasicBlock* block);
   lir::Value MapInput(hir::Value* instr);
   lir::Value MapOutput(hir::Instruction* instr);
@@ -79,6 +71,7 @@ class Generator final : public ZoneOwner,
 
   // hir::InstructionVisitor
   void VisitBranch(hir::BranchInstruction* instr) final;
+  void VisitElement(hir::ElementInstruction* instr) final;
   void VisitEntry(hir::EntryInstruction* instr) final;
   void VisitCall(hir::CallInstruction* instr) final;
   void VisitJump(hir::JumpInstruction* instr) final;

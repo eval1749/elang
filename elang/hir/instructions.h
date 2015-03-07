@@ -385,7 +385,7 @@ class ELANG_HIR_EXPORT LengthInstruction final
 // ty %result = load %pointer
 //
 class ELANG_HIR_EXPORT LoadInstruction final
-    : public SimpleInstruction<LoadInstruction, Value*> {
+    : public SimpleInstruction<LoadInstruction, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Load);
 
  private:
@@ -497,7 +497,7 @@ class ELANG_HIR_EXPORT RetInstruction final
 // void store %pointer, %value
 //
 class ELANG_HIR_EXPORT StoreInstruction final
-    : public SimpleInstruction<StoreInstruction, Value*, Value*> {
+    : public SimpleInstruction<StoreInstruction, Value*, Value*, Value*> {
   DECLARE_CONCRETE_HIR_INSTRUCTION_CLASS(Store);
 
  private:
