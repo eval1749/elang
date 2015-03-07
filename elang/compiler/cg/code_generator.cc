@@ -455,6 +455,21 @@ ir::Node* CodeGenerator::ValueOf(ast::Node* node) const {
 }
 
 //
+// ast::Visitor
+//
+void CodeGenerator::DoDefaultVisit(ast::Node* node) {
+  if (node->is<ast::Expression>()) {
+    Error(ErrorCode::CodeGeneratorExpressionNotYetImplemented, node);
+    return;
+  }
+  if (node->is<ast::Statement>()) {
+    Error(ErrorCode::CodeGeneratorStatementNotYetImplemented, node);
+    return;
+  }
+  ast::Visitor::DoDefaultVisit(node);
+}
+
+//
 // ast::Visitor declaration nodes
 //
 

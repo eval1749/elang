@@ -85,6 +85,9 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   // Shortcut for |semantics()->ValueOf()|
   ir::Node* ValueOf(ast::Node* node) const;
 
+  // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) final;
+
   // ast::Visitor declaration nodes
   void CodeGenerator::VisitMethod(ast::Method* ast_method) final;
 

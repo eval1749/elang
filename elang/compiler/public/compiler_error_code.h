@@ -18,6 +18,7 @@ namespace compiler {
   E(ClassResolution, Method, Conflict)                \
   E(ClassResolution, Method, Duplicate)               \
   /* Code Generator */                                \
+  E(CodeGenerator, Expression, NotYetImplemented)     \
   E(CodeGenerator, Return, None)                      \
   E(CodeGenerator, Statement, NotYetImplemented)      \
   /* Method Analyzer */                               \

@@ -56,6 +56,8 @@ std::string CgTest::ConvertToSsa(base::StringPiece name) {
   auto const ast_method =
       FindMember("Sample.Foo")->as<ast::MethodGroup>()->methods()[0];
   auto const function = FunctionOf(ast_method);
+  if (!function)
+    return GetErrors();
   hir::Editor editor(factory(), function);
   CfgToSsaConverter pass(&editor, AnalyzeVariables());
   pass.Run();
