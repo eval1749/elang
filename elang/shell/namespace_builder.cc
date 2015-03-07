@@ -38,6 +38,10 @@ NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
 NamespaceBuilder::~NamespaceBuilder() {
 }
 
+ast::Factory* NamespaceBuilder::ast_factory() const {
+  return session()->ast_factory();
+}
+
 ir::Class* NamespaceBuilder::system_object() {
   auto const ast_class = GetPredefinedType(PredefinedName::Object);
   return semantics()->ValueOf(ast_class)->as<ir::Class>();

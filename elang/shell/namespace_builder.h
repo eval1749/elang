@@ -21,6 +21,10 @@ enum class PredefinedName;
 class Token;
 enum class TokenType;
 
+namespace ast {
+class Factory;
+}
+
 namespace ir {
 class Class;
 }
@@ -41,7 +45,8 @@ class NamespaceBuilder : public CompilationSessionUser {
   explicit NamespaceBuilder(NameResolver* name_resolver);
   ~NamespaceBuilder();
 
-  NameResolver* name_resolver() { return name_resolver_; }
+  ast::Factory* ast_factory() const;
+  NameResolver* name_resolver() const { return name_resolver_; }
   ir::Class* system_object();
 
   ast::ClassBody* NewClass(base::StringPiece name,
