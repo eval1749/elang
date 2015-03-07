@@ -52,6 +52,9 @@ class TypeResolver final : public Analyzer,
   // empty value.
   ts::Value* ResolveAsBool(ast::Expression* expression);
 
+  // Returns lower bound of type value of |value1| and |value2|.
+  ts::Value* Unify(ts::Value* value1, ts::Value* value2);
+
  private:
   struct Context;
   struct NumericType;
@@ -70,7 +73,6 @@ class TypeResolver final : public Analyzer,
   void ProduceSemantics(ts::Value* value, ast::Node* node);
 
   ast::NamedNode* ResolveReference(ast::Expression* expression);
-  ts::Value* Unify(ts::Value* value1, ts::Value* value2);
 
   // Shortcut function.
   ir::Node* ValueOf(ast::Node* node);
