@@ -13,6 +13,8 @@
 #include "base/logging.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
@@ -25,6 +27,7 @@
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/syntax/parser.h"
+#include "elang/compiler/token_type.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
 #include "elang/hir/formatters/text_formatter.h"
@@ -122,13 +125,50 @@ void PopulateNamespace(NameResolver* name_resolver) {
   builder.NewClass("Int32", "ValueType");
   builder.NewClass("Int64", "ValueType");
   builder.NewClass("Int8", "ValueType");
+  builder.NewClass("IntPtr", "ValueType");
   builder.NewClass("UInt16", "ValueType");
   builder.NewClass("UInt32", "ValueType");
   builder.NewClass("UInt64", "ValueType");
   builder.NewClass("UInt8", "ValueType");
+  builder.NewClass("UIntPtr", "ValueType");
   builder.NewClass("Void", "ValueType");
 
   builder.NewClass("String", "Object");
+
+  // public class Console {
+  //   public static void WriteLine(String string);
+  //   public static void WriteLine(String string, Object object);
+  // }
+  auto const console_class_body = builder.NewClass("Console", "Object");
+  auto const console_class = console_class_body->owner();
+
+  auto const write_line = builder.ast_factory()->NewMethodGroup(
+      console_class, builder.NewName("WriteLine"));
+
+  auto const write_line_string = builder.ast_factory()->NewMethod(
+      console_class_body, write_line,
+      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
+      builder.NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string->SetParameters({
+      builder.NewParameter(write_line_string, 0, "System.String", "string"),
+  });
+
+  auto const write_line_string_object = builder.ast_factory()->NewMethod(
+      console_class_body, write_line,
+      Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
+      builder.NewTypeReference(TokenType::Void), write_line->name(), {});
+  write_line_string_object->SetParameters({
+      builder.NewParameter(write_line_string_object, 0, "System.String",
+                           "string"),
+      builder.NewParameter(write_line_string_object, 1, "System.Object",
+                           "object"),
+  });
+
+  write_line->AddMethod(write_line_string);
+  console_class_body->AddMember(write_line_string);
+  write_line->AddMethod(write_line_string_object);
+  console_class_body->AddMember(write_line_string_object);
+  console_class->AddNamedMember(write_line);
 }
 
 // Collect methods having following signature:
