@@ -245,6 +245,28 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
   Emit(NewPCopyInstruction(outputs, inputs));
 }
 
+void Generator::VisitLength(hir::LengthInstruction* instr) {
+  // Layout of vector object:
+  //  +0 object header
+  //  +8 length[0]
+  //  +12 length[1]
+  //  ...
+  //  +8+(rank-1)*4 length[rank-1]
+  //  +8+rank*4 padding for align(16)
+  //  +8+rank*4+align(16) element[0]
+  //
+  //  length int32 %length = %array, index
+  //  =>
+  //  add %length_ptr = %array_ptr, sizeof(ArrayHeader) + sizeof(int32) * index
+  //  load length = %array_ptr, %length_ptr
+  auto const pointer = NewRegister(Target::IntPtrType());
+  auto const offset =
+      lir::Value::SizeOf(Target::IntPtrType()) + instr->index() * 4;
+  auto const array_ptr = MapInput(instr->input(0));
+  Emit(NewAddInstruction(pointer, array_ptr, lir::Value::SmallInt64(offset)));
+  Emit(NewLoadInstruction(MapOutput(instr), array_ptr, pointer));
+}
+
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
   Emit(NewLoadInstruction(MapOutput(instr), MapInput(instr->input(0)),
                           MapInput(instr->input(1))));

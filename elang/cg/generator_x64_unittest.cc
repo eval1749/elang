@@ -240,6 +240,35 @@ TEST_F(GeneratorX64Test, Jump) {
       Generate(&editor));
 }
 
+TEST_F(GeneratorX64Test, Length) {
+  auto const array_type = types()->NewArrayType(int32_type(), {-1});
+  auto const function = NewFunction(int32_type(),
+                                    types()->NewPointerType(array_type));
+  hir::Editor editor(factory(), function);
+  editor.Edit(editor.entry_block());
+  auto const array_instr = function->entry_block()->first_instruction();
+  auto const length_instr = factory()->NewLengthInstruction(array_instr, 0);
+  editor.Append(length_instr);
+  editor.SetReturn(length_instr);
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  mov %r1l = RCX\n"
+      "  add %r2l = %r1l, 8l\n"
+      "  load %r3 = %r1l, %r2l\n"
+      "  mov EAX = %r3\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Generate(&editor));
+}
+
 TEST_F(GeneratorX64Test, Parameter) {
   auto const function =
       NewFunction(void_type(), types()->NewTupleType({int32_type(),
