@@ -436,6 +436,58 @@ TEST_F(CodeGeneratorTest, For) {
       Generate("Sample.Foo"));
 }
 
+TEST_F(CodeGeneratorTest, ForEach) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(String[] args) {"
+      "    for (var arg : args)"
+      "      Use(arg);"
+      "  }"
+      "  static extern void Use(String x);"
+      "}");
+  EXPECT_EQ(
+      "function1 void(System.String[]*)\n"
+      "block1:\n"
+      "  // In:\n"
+      "  // Out: block6\n"
+      "  System.String[]* %p2 = entry\n"
+      "  System.String* %p5 = element %p2, 0\n"
+      "  int32 %r6 = length %p2, 0\n"
+      "  System.String* %p7 = element %p2, %r6\n"
+      "  br block6\n"
+      "block4:\n"
+      "  // In: block6\n"
+      "  // Out: block5\n"
+      "  System.String %r18 = load %p16\n"
+      "  call `Sample.Use`, %r18\n"
+      "  br block5\n"
+      "block5:\n"
+      "  // In: block4\n"
+      "  // Out: block6\n"
+      "  uintptr %r14 = static_cast %p8\n"
+      "  uintptr %r15 = add %r14, sizeof(System.String)\n"
+      "  System.String* %p16 = static_cast %r15\n"
+      "  br block6\n"
+      "block6:\n"
+      "  // In: block1 block5\n"
+      "  // Out: block4 block3\n"
+      "  System.String* %p8 = phi block1 %p5, block5 %p16\n"
+      "  uintptr %r9 = static_cast %p8\n"
+      "  uintptr %r10 = static_cast %p7\n"
+      "  bool %b11 = lt %r9, %r10\n"
+      "  br %b11, block4, block3\n"
+      "block3:\n"
+      "  // In: block6\n"
+      "  // Out: block2\n"
+      "  ret void, block2\n"
+      "block2:\n"
+      "  // In: block3\n"
+      "  // Out:\n"
+      "  exit\n",
+      Generate("Sample.Main"));
+}
+
 TEST_F(CodeGeneratorTest, If) {
   Prepare(
       "class Sample {\n"

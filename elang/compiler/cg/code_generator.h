@@ -107,6 +107,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
   void VisitForStatement(ast::ForStatement* node) final;
+  void VisitForEachStatement(ast::ForEachStatement* node) final;
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;

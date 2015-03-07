@@ -766,6 +766,112 @@ void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
   editor()->Edit(break_block);
 }
 
+void CodeGenerator::VisitForEachStatement(ast::ForEachStatement* node) {
+  auto const array = GenerateValue(node->enumerable());
+  if (!array->type()->is<hir::PointerType>()) {
+    Error(ErrorCode::CodeGeneratorStatementNotYetImplemented, node);
+    return;
+  }
+  auto const array_type =
+      array->type()->as<hir::PointerType>()->pointee()->as<hir::ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::CodeGeneratorStatementNotYetImplemented, node);
+    return;
+  }
+
+  //    for (var element : array)
+  //      use(element);
+  //
+  //    head:
+  //      ...
+  //      element elty* %start = %array, 0
+  //      length int32 %length = %array, 0
+  //      element elty* %end = %array, %length
+  //      br while
+  //    loop:
+  //      load elty %element = %ptr,
+  //      call $"use", %element
+  //      br continue
+  //    continue:
+  //      static_cast uintptr %ptrint, %ptr
+  //      add elty* %ptrint2 = %ptrint, sizeof(elty)
+  //      static_cast elty* %ptr2 = %ptrint2
+  //      br while
+  //    while:
+  //      phi elty* %ptr = start: %start, continue: %ptr2
+  //      static_cast uintptr %1 = %ptr
+  //      static_cast uintptr %2 = %end
+  //      lt %cmp = %1, %2
+  //      br %cmp, loop, break
+  //    break:
+  //      ...
+  auto const head_block = editor()->basic_block();
+  auto const break_block = EmitMergeBlock();
+  auto const loop_block = editor()->NewBasicBlock(break_block);
+  auto const continue_block = editor()->NewBasicBlock(break_block);
+  auto const while_block = editor()->NewBasicBlock(break_block);
+
+  auto const element_type = array_type->as<hir::ArrayType>()->element_type();
+  auto const uintptr_type = factory()->types()->uintptr_type();
+
+  editor()->Continue(head_block);
+  editor()->SetBranch(while_block);
+  auto const element_pointer_type =
+      factory()->types()->NewPointerType(element_type);
+  auto const start_element_pointer =
+      factory()->NewElementInstruction(array, factory()->NewInt32Literal(0));
+  Emit(start_element_pointer);
+  auto const length = factory()->NewLengthInstruction(array, 0);
+  Emit(length);
+  auto const end_element_pointer =
+      factory()->NewElementInstruction(array, length);
+  Emit(end_element_pointer);
+  Commit();
+
+  editor()->Edit(while_block);
+  auto const element_pointer_phi = editor()->NewPhi(element_pointer_type);
+  editor()->SetPhiInput(element_pointer_phi, head_block, start_element_pointer);
+  auto const left =
+      factory()->NewStaticCastInstruction(uintptr_type, element_pointer_phi);
+  Emit(left);
+  auto const right =
+      factory()->NewStaticCastInstruction(uintptr_type, end_element_pointer);
+  Emit(right);
+  auto const compare = factory()->NewLtInstruction(left, right);
+  Emit(compare);
+  editor()->SetBranch(compare, loop_block, break_block);
+  Commit();
+
+  editor()->Edit(continue_block);
+  editor()->SetBranch(while_block);
+  auto const pointer_int =
+      factory()->NewStaticCastInstruction(uintptr_type, element_pointer_phi);
+  Emit(pointer_int);
+  auto const pointer_int2 = factory()->NewAddInstruction(
+      uintptr_type, pointer_int, factory()->NewSizeOf(element_type));
+  Emit(pointer_int2);
+  auto const element_pointer =
+      factory()->NewStaticCastInstruction(element_pointer_type, pointer_int2);
+  Emit(element_pointer);
+  Commit();
+
+  editor()->Edit(loop_block);
+  editor()->SetBranch(continue_block);
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    auto const element = factory()->NewLoadInstruction(element_pointer);
+    Emit(element);
+    EmitVariableBinding(node->variable(), element);
+    Generate(node->statement());
+  }
+  Commit();
+
+  editor()->Edit(while_block);
+  editor()->SetPhiInput(element_pointer_phi, continue_block, element_pointer);
+  Commit();
+  editor()->Edit(break_block);
+}
+
 void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
   auto const cond_value = GenerateBool(node->condition());
   auto const cond_block = editor()->basic_block();
