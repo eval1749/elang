@@ -251,6 +251,10 @@ void ValueFormatter::VisitInt8Literal(Int8Literal* literal) {
   ostream_ << "int8(" << static_cast<int>(literal->data()) << ")";
 }
 
+void ValueFormatter::VisitIntPtrLiteral(IntPtrLiteral* literal) {
+  ostream_ << "intptr(" << literal->data() << ")";
+}
+
 void ValueFormatter::VisitFunction(Function* function) {
   ostream_ << "function" << function->id();
 }
@@ -288,6 +292,10 @@ void ValueFormatter::VisitUInt64Literal(UInt64Literal* literal) {
 
 void ValueFormatter::VisitUInt8Literal(UInt8Literal* literal) {
   ostream_ << "uint8(" << static_cast<int>(literal->data()) << ")";
+}
+
+void ValueFormatter::VisitUIntPtrLiteral(UIntPtrLiteral* literal) {
+  ostream_ << "uintptr(" << literal->data() << ")";
 }
 
 void ValueFormatter::VisitVoidValue(VoidValue* literal) {

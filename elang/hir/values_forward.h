@@ -29,11 +29,13 @@ namespace hir {
   V(Int32, int32, int32_t)               \
   V(Int64, int64, int64_t)               \
   V(Int8, int8, int8_t)                  \
+  V(IntPtr, int64, int64_t)              \
   V(String, string, base::StringPiece16) \
   V(UInt16, uint16, uint16_t)            \
   V(UInt32, uint32, uint32_t)            \
   V(UInt64, uint64, uint64_t)            \
-  V(UInt8, uint8, uint8_t)
+  V(UInt8, uint8, uint8_t)               \
+  V(UIntPtr, uint64, uint64_t)
 
 #define V(Name, ...) class Name##Literal;
 FOR_EACH_HIR_LITERAL_VALUE(V)
@@ -52,6 +54,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
   V(Int32Literal)             \
   V(Int64Literal)             \
   V(Int8Literal)              \
+  V(IntPtrLiteral)            \
   V(NullLiteral)              \
   V(Reference)                \
   V(StringLiteral)            \
@@ -59,6 +62,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
   V(UInt32Literal)            \
   V(UInt64Literal)            \
   V(UInt8Literal)             \
+  V(UIntPtrLiteral)           \
   V(VoidValue)
 
 #define V(Name, ...) class Name;

@@ -109,11 +109,13 @@ TEST_F(HirValuesTest, Literal) {
   ostream << *factory()->NewInt32Literal(-1234) << std::endl;
   ostream << *factory()->NewInt64Literal(-1234) << std::endl;
   ostream << *factory()->NewInt8Literal(-123) << std::endl;
+  ostream << *factory()->NewIntPtrLiteral(-1234) << std::endl;
 
   ostream << *factory()->NewUInt16Literal(1234) << std::endl;
   ostream << *factory()->NewUInt32Literal(1234) << std::endl;
   ostream << *factory()->NewUInt64Literal(1234) << std::endl;
   ostream << *factory()->NewUInt8Literal(123) << std::endl;
+  ostream << *factory()->NewUIntPtrLiteral(1234) << std::endl;
 
   EXPECT_EQ(
       "false\n"
@@ -129,10 +131,12 @@ TEST_F(HirValuesTest, Literal) {
       "-1234\n"
       "-1234l\n"
       "int8(-123)\n"
+      "intptr(-1234)\n"
       "uint16(1234)\n"
       "1234u\n"
       "1234ul\n"
-      "uint8(123)\n",
+      "uint8(123)\n"
+      "uintptr(1234)\n",
       ostream.str());
 }
 

@@ -29,12 +29,14 @@ class CompilationSession;
   V(Int32)                          \
   V(Int64)                          \
   V(Int8)                           \
+  V(IntPtr)                         \
   V(Object)                         \
   V(String)                         \
   V(UInt16)                         \
   V(UInt32)                         \
   V(UInt64)                         \
   V(UInt8)                          \
+  V(UIntPtr)                        \
   V(ValueType)                      \
   V(Void)
 

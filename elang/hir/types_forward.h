@@ -33,12 +33,14 @@ namespace hir {
   V(Int32Type)                        \
   V(Int64Type)                        \
   V(Int8Type)                         \
+  V(IntPtrType)                       \
   V(PointerType)                      \
   V(TupleType)                        \
   V(UInt16Type)                       \
   V(UInt32Type)                       \
   V(UInt64Type)                       \
   V(UInt8Type)                        \
+  V(UIntPtrType)                      \
   V(StringType)                       \
   V(VoidType)
 
@@ -60,10 +62,12 @@ namespace hir {
   V(Int32, int32, int32_t, 32, Integer, Signed)      \
   V(Int64, int64, int64_t, 64, Integer, Signed)      \
   V(Int8, int8, int8_t, 8, Integer, Signed)          \
+  V(IntPtr, intptr, int64_t, 0, Integer, Signed)     \
   V(UInt16, uint16, uint16_t, 16, Integer, Unsigned) \
   V(UInt32, uint32, uint32_t, 32, Integer, Unsigned) \
   V(UInt64, uint64, uint64_t, 64, Integer, Unsigned) \
-  V(UInt8, uint8, uint8_t, 8, Integer, Unsigned)
+  V(UInt8, uint8, uint8_t, 8, Integer, Unsigned)     \
+  V(UIntPtr, uintptr, uint64_t, 0, Integer, Unsigned)
 
 #define FOR_EACH_HIR_PRIMITIVE_TYPE(V) \
   FOR_EACH_HIR_PRIMITIVE_VALUE_TYPE(V) \
