@@ -219,9 +219,9 @@ bool Validator::Validate(Instruction* instruction) {
   for (auto input : instruction->inputs()) {
     if (auto const instr = input->as<Instruction>()) {
       if (!instr->id() || !instr->basic_block()->id())
-        Error(ErrorCode::ValidateInstructionOrphan, instr, position);
+        Error(ErrorCode::ValidateInstructionOrphan, instruction, position);
       else if (dominator_tree_ && !Dominates(input, instruction))
-        Error(ErrorCode::ValidateInstructionDominance, instr, position);
+        Error(ErrorCode::ValidateInstructionDominance, instruction, position);
     }
     ++position;
   }
