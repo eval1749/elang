@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
 #include <vector>
 
 #include "elang/compiler/cg/code_generator.h"
@@ -874,7 +875,7 @@ void CodeGenerator::VisitForEachStatement(ast::ForEachStatement* node) {
   editor()->SetBranch(continue_block);
   {
     ScopedBreakContext scope(this, break_block, continue_block);
-    auto const element = factory()->NewLoadInstruction(element_pointer);
+    auto const element = factory()->NewLoadInstruction(element_pointer_phi);
     Emit(element);
     EmitVariableBinding(node->variable(), element);
     Generate(node->statement());

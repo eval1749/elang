@@ -459,7 +459,7 @@ TEST_F(CodeGeneratorTest, ForEach) {
       "block4:\n"
       "  // In: block6\n"
       "  // Out: block5\n"
-      "  System.String %r18 = load %p16\n"
+      "  System.String %r18 = load %p8\n"
       "  call `Sample.Use`, %r18\n"
       "  br block5\n"
       "block5:\n"
