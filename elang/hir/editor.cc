@@ -242,7 +242,7 @@ void Editor::ReplaceAll(Value* new_value, Instruction* old_value) {
   for (auto const user : old_value->users())
     user->SetValue(new_value);
   RemoveInstruction(old_value);
-  DCHECK(Validate(basic_block_));
+  DCHECK(Validate(basic_block_)) << errors();
 }
 
 void Editor::ResetInputs(Instruction* instruction) {
