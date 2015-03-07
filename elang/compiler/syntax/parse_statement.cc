@@ -473,6 +473,12 @@ void Parser::ParseMethod(Modifiers method_modifiers,
                                   param_type, param_name, nullptr);
       method_space.AddMember(parameter);
       parameters.push_back(parameter);
+      if (method_modifiers.HasAbstract() || method_modifiers.HasExtern()) {
+        // To avoid "not used" warning of parameter in abstract and extern
+        // methods, since these methods don't have method body, we mark
+        // parameter as used.
+        method_space.RecordReference(parameter);
+      }
       ++position;
       if (AdvanceIf(TokenType::RightParenthesis))
         break;
