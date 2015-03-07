@@ -47,13 +47,15 @@ class MethodBodyAnalyzer final : public Analyzer,
   void Run();
 
  private:
+  ts::Value* empty_value() const { return type_factory()->empty_value(); }
   ts::Factory* type_factory() const { return type_factory_.get(); }
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
   ir::Type* void_type() const;
 
-  void Analyze(ast::Expression* expressions, ts::Value* value);
+  ts::Value* Analyze(ast::Expression* expressions, ts::Value* value);
   void Analyze(ast::Statement* statement);
   void AnalyzeAsBool(ast::Expression* expression);
+  void AnalyzeVariable(ast::Variable* variable, ts::Value* super);
   ts::Value* NewLiteral(ir::Type* type);
   void RegisterParameters();
 
@@ -66,6 +68,7 @@ class MethodBodyAnalyzer final : public Analyzer,
   void VisitEmptyStatement(ast::EmptyStatement* node) final;
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitForEachStatement(ast::ForEachStatement* node) final;
   void VisitForStatement(ast::ForStatement* node) final;
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
@@ -106,9 +109,9 @@ ir::Type* MethodBodyAnalyzer::void_type() const {
       ->as<ir::Type>();
 }
 
-void MethodBodyAnalyzer::Analyze(ast::Expression* expression,
-                                 ts::Value* value) {
-  type_resolver()->Resolve(expression, value);
+ts::Value* MethodBodyAnalyzer::Analyze(ast::Expression* expression,
+                                       ts::Value* value) {
+  return type_resolver()->Resolve(expression, value);
 }
 
 void MethodBodyAnalyzer::Analyze(ast::Statement* statement) {
@@ -119,6 +122,32 @@ void MethodBodyAnalyzer::Analyze(ast::Statement* statement) {
 
 void MethodBodyAnalyzer::AnalyzeAsBool(ast::Expression* expression) {
   type_resolver()->ResolveAsBool(expression);
+}
+
+void MethodBodyAnalyzer::AnalyzeVariable(ast::Variable* variable,
+                                         ts::Value* super) {
+  if (variable->type()->name() == TokenType::Var) {
+    // Assign type variable for variable declared with `var`.
+    auto const type_variable = type_factory()->NewVariable(variable, super);
+    variable_tracker_->RegisterVariable(variable, type_variable);
+    if (!variable->value())
+      return;
+    Analyze(variable->value(), type_variable);
+    return;
+  }
+  auto const type = ResolveTypeReference(variable->type(), method_);
+  if (!type) {
+    variable_tracker_->RegisterVariable(variable, empty_value());
+    return;
+  }
+  auto const var_value = NewLiteral(type);
+  if (type_resolver()->Unify(var_value, super) == empty_value())
+    Error(ErrorCode::TypeResolverForEachElementType, variable);
+  variable_tracker_->RegisterVariable(variable, var_value);
+  if (!variable->value())
+    return;
+  // Check initial value expression matches variable type.
+  Analyze(variable->value(), var_value);
 }
 
 ts::Value* MethodBodyAnalyzer::NewLiteral(ir::Type* type) {
@@ -219,6 +248,32 @@ void MethodBodyAnalyzer::VisitExpressionStatement(
   Analyze(node->expression(), type_factory()->any_value());
 }
 
+// A 'expression' of for-each statement can be one of
+//  - |System.Array|
+//  - |System.Collections.IEnumerable<T>|
+//  - Type X which has |GetEnumerator() -> E|, |E.Current() -> T|,
+//    |E.MoveNext() -> System.Bool|.
+//
+// TODO(eval1749) We should support |IEnumerable<T>| and |GetEnumerator()|.
+void MethodBodyAnalyzer::VisitForEachStatement(ast::ForEachStatement* node) {
+  auto const type = Analyze(node->enumerable(), type_factory()->any_value());
+  auto const literal = type->as<ts::Literal>();
+  if (!literal) {
+    Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
+    AnalyzeVariable(node->variable(), empty_value());
+    return;
+  }
+  auto const array_type = literal->value()->as<ir::ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
+    AnalyzeVariable(node->variable(), empty_value());
+    return;
+  }
+  auto const element_type = NewLiteral(array_type->element_type());
+  AnalyzeVariable(node->variable(), element_type);
+  Analyze(node->statement());
+}
+
 void MethodBodyAnalyzer::VisitForStatement(ast::ForStatement* node) {
   Analyze(node->initializer());
   AnalyzeAsBool(node->condition());
@@ -248,27 +303,8 @@ void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
-  for (auto const variable : node->variables()) {
-    if (!variable->value())
-      continue;
-    if (auto const reference = variable->type()) {
-      if (reference->name() == TokenType::Var) {
-        // Assign type variable for variable declared with `var`.
-        auto const type_variable =
-            type_factory()->NewVariable(variable, type_factory()->any_value());
-        variable_tracker_->RegisterVariable(variable, type_variable);
-        Analyze(variable->value(), type_variable);
-        continue;
-      }
-    }
-    auto const type = ResolveTypeReference(variable->type(), method_);
-    if (!type)
-      continue;
-    auto const value = NewLiteral(type);
-    variable_tracker_->RegisterVariable(variable, value);
-    // Check initial value expression matches variable type.
-    Analyze(variable->value(), value);
-  }
+  for (auto const variable : node->variables())
+    AnalyzeVariable(variable, type_factory()->any_value());
 }
 
 void MethodBodyAnalyzer::VisitWhileStatement(ast::WhileStatement* node) {

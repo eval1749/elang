@@ -42,29 +42,33 @@ class Collector final : private ast::Visitor {
   Collector(const Semantics* semantics, ast::Method* method);
   Collector() = default;
 
-  const Semantics* semantics() const { return semantics_; }
+  const std::vector<ast::NamedNode*> variables() const { return variables_; }
 
   std::string GetCalls() const;
 
  private:
+  const Semantics* semantics() const { return semantics_; }
+
   // ast::Visitor expressions
   void VisitCall(ast::Call* node);
-  void VisitVariableReference(ast::VariableReference* node);
 
-  // ast::Visitor statemetns
+  // ast::Visitor statements
   void VisitBlockStatement(ast::BlockStatement* node);
   void VisitExpressionStatement(ast::ExpressionStatement* node);
+  void VisitForEachStatement(ast::ForEachStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
 
   std::vector<ast::Call*> calls_;
   const Semantics* const semantics_;
-  std::vector<ast::Variable*> variables_;
+  std::vector<ast::NamedNode*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 
 Collector::Collector(const Semantics* semantics, ast::Method* method)
     : semantics_(semantics) {
+  for (auto const parameter : method->parameters())
+    variables_.push_back(parameter);
   auto const body = method->body();
   if (!body)
     return;
@@ -93,8 +97,15 @@ void Collector::VisitExpressionStatement(ast::ExpressionStatement* node) {
   node->expression()->Accept(this);
 }
 
+void Collector::VisitForEachStatement(ast::ForEachStatement* node) {
+  variables_.push_back(node->variable());
+  node->enumerable()->Accept(this);
+  node->statement()->Accept(this);
+}
+
 void Collector::VisitVarStatement(ast::VarStatement* node) {
   for (auto const variable : node->variables()) {
+    variables_.push_back(variable);
     auto const value = variable->value();
     if (!value)
       continue;
@@ -107,10 +118,6 @@ void Collector::VisitCall(ast::Call* node) {
   for (auto const child : node->arguments())
     child->Accept(this);
   calls_.push_back(node);
-}
-
-void Collector::VisitVariableReference(ast::VariableReference* node) {
-  variables_.push_back(node->variable());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -182,6 +189,9 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
   // Collect calls in method |method_name|.
   std::string GetCalls(base::StringPiece method_name);
 
+  // Collect variables used in method |method_name|.
+  std::string VariablesOf(base::StringPiece method_name);
+
   // ::testing::Test
   void SetUp() final;
 
@@ -201,9 +211,9 @@ std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
   }
   std::sort(key_values.begin(), key_values.end(),
             [](const KeyValue& a, const KeyValue& b) {
-    return a.first->token()->location().start_offset() <
-           b.first->token()->location().start_offset();
-  });
+              return a.first->token()->location().start_offset() <
+                     b.first->token()->location().start_offset();
+            });
   std::stringstream ostream;
   for (auto const key_value : key_values)
     ostream << *key_value.second << std::endl;
@@ -222,6 +232,23 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
   auto const method_main = method_group->methods()[0];
   Collector collector(semantics(), method_main);
   return collector.GetCalls();
+}
+
+std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
+  auto const analyze_result = Analyze();
+  if (!analyze_result.empty())
+    return analyze_result;
+
+  auto const method_group = FindMember(method_name)->as<ast::MethodGroup>();
+  if (!method_group)
+    return std::string("Not found: ") + method_name.as_string();
+
+  auto const method_main = method_group->methods()[0];
+  Collector collector(semantics(), method_main);
+  std::stringstream ostream;
+  for (auto const variable : collector.variables())
+    ostream << *semantics()->ValueOf(variable) << std::endl;
+  return ostream.str();
 }
 
 // Install methods for testing
@@ -419,6 +446,35 @@ TEST_F(MethodAnalyzerTest, ForErrorCondition) {
       "    abstract Sample Foo(int x);"
       "  }");
   EXPECT_EQ("TypeResolver.Expression.NotBool(38) Foo\n", Analyze());
+}
+
+// for each statement
+TEST_F(MethodAnalyzerTest, ForEach) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(String[] args) {"
+      "    for (var arg : args)"
+      "      Console.WriteLine(arg);"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "ReadOnly System.String[] args\n"
+      "ReadOnly System.String arg\n",
+      VariablesOf("Sample.Main"));
+}
+
+TEST_F(MethodAnalyzerTest, ForEachError) {
+  Prepare(
+      "using System;"
+      "class Sample {"
+      "  static void Main(String[] args) {"
+      "    for (int arg : args)"
+      "      Console.WriteLine(arg);"
+      "  }"
+      "}");
+  EXPECT_EQ("TypeResolver.ForEach.ElementType(75) arg\n",
+            VariablesOf("Sample.Main"));
 }
 
 // 'if' statement

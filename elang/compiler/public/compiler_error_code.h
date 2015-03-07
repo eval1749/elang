@@ -208,6 +208,7 @@ namespace compiler {
   E(TypeResolver, Expression, Invalid)                \
   E(TypeResolver, Expression, NotBool)                \
   E(TypeResolver, Expression, NotYetImplemented)      \
+  E(TypeResolver, ForEach, ElementType)               \
   E(TypeResolver, Method, Ambiguous)                  \
   E(TypeResolver, Method, NoMatch)                    \
   E(TypeResolver, Method, Return)                     \
