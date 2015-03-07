@@ -91,6 +91,15 @@ Reference* Factory::NewReference(Type* type, AtomicString* name) {
   return new_reference;
 }
 
+SizeOf* Factory::NewSizeOf(Type* type) {
+  auto const it = sizeof_cache_.find(type);
+  if (it != sizeof_cache_.end())
+    return it->second;
+  auto const new_sizeof = new (zone()) SizeOf(types()->uintptr_type(), type);
+  sizeof_cache_[type] = new_sizeof;
+  return new_sizeof;
+}
+
 base::StringPiece16 Factory::NewString(base::StringPiece16 string) {
   return atomic_string_factory_->NewString(string);
 }

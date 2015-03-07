@@ -40,6 +40,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
   Reference* NewReference(Type* type, AtomicString* name);
+  SizeOf* NewSizeOf(Type* type);
   base::StringPiece16 NewString(base::StringPiece16 string_piece);
   StringLiteral* NewStringLiteral(base::StringPiece16 data);
 
@@ -59,6 +60,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   int last_function_id_;
   int last_instruction_id_;
   std::unordered_map<AtomicString*, Reference*> reference_cache_;
+  std::unordered_map<Type*, SizeOf*> sizeof_cache_;
   Value* const true_value_;
   Value* const void_value_;
 

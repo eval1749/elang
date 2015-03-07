@@ -7,6 +7,7 @@
 #include "elang/hir/instructions.h"
 #include "elang/hir/values.h"
 #include "elang/hir/types.h"
+#include "elang/hir/type_factory.h"
 #include "elang/hir/testing/hir_test.h"
 
 namespace elang {
@@ -138,6 +139,12 @@ TEST_F(HirValuesTest, Literal) {
       "uint8(123)\n"
       "uintptr(1234)\n",
       ostream.str());
+}
+
+TEST_F(HirValuesTest, SizeOf) {
+  std::stringstream ostream;
+  ostream << *factory()->NewSizeOf(types()->int32_type());
+  EXPECT_EQ("sizeof(int32)", ostream.str());
 }
 
 }  // namespace hir

@@ -271,6 +271,10 @@ void ValueFormatter::VisitNullLiteral(NullLiteral* literal) {
   ostream_ << "static_cast<" << *literal->type() << ">(null)";
 }
 
+void ValueFormatter::VisitSizeOf(SizeOf* literal) {
+  ostream_ << "sizeof(" << *literal->type_operand() << ")";
+}
+
 void ValueFormatter::VisitStringLiteral(StringLiteral* literal) {
   ostream_ << "\"";
   for (auto const ch : literal->data())

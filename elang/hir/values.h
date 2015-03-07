@@ -33,6 +33,8 @@ namespace hir {
 //      Float32Literal Float64Literal
 //      Int16Literal Int32Literal Int64Literal Int16Literal
 //      NullLiteral -- typed null value for pointer and reference types.
+//      Reference
+//      SizeOf
 //      StringLiteral
 //      UInt16Literal UInt32Literal UInt64Literal UInt16Literal
 //      VoidValue -- singleton
@@ -158,6 +160,23 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
   AtomicString* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(Reference);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Represents size of type.
+//
+class ELANG_HIR_EXPORT SizeOf final : public Literal {
+  DECLARE_HIR_CONCRETE_VALUE_CLASS(SizeOf, Literal);
+ public:
+  Type* type_operand() const { return type_operand_; }
+
+ private:
+  SizeOf(Type* uintptr_type, Type* type_operand);
+
+  Type* const type_operand_;
+
+  DISALLOW_COPY_AND_ASSIGN(SizeOf);
 };
 
 //////////////////////////////////////////////////////////////////////

@@ -179,6 +179,11 @@ Reference::Reference(Type* type, AtomicString* name)
     : Literal(type), name_(name) {
 }
 
+// SizeOf
+SizeOf::SizeOf(Type* uintptr_type, Type* type_operand)
+    : Literal(uintptr_type), type_operand_(type_operand) {
+}
+
 // UseDefNode
 UseDefNode::UseDefNode() : instruction_(nullptr), value_(nullptr) {
 }

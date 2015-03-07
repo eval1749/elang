@@ -57,6 +57,7 @@ FOR_EACH_HIR_LITERAL_VALUE(V)
   V(IntPtrLiteral)            \
   V(NullLiteral)              \
   V(Reference)                \
+  V(SizeOf)                   \
   V(StringLiteral)            \
   V(UInt16Literal)            \
   V(UInt32Literal)            \
