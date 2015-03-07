@@ -39,16 +39,13 @@ namespace {
 //
 class Collector final : private ast::Visitor {
  public:
-  Collector(const Semantics* semantics, ast::Method* method);
+  explicit Collector(ast::Method* method);
   Collector() = default;
 
+  const std::vector<ast::Call*>& calls() const { return  calls_; }
   const std::vector<ast::NamedNode*> variables() const { return variables_; }
 
-  std::string GetCalls() const;
-
  private:
-  const Semantics* semantics() const { return semantics_; }
-
   // ast::Visitor expressions
   void VisitCall(ast::Call* node);
 
@@ -59,32 +56,18 @@ class Collector final : private ast::Visitor {
   void VisitVarStatement(ast::VarStatement* node);
 
   std::vector<ast::Call*> calls_;
-  const Semantics* const semantics_;
   std::vector<ast::NamedNode*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 
-Collector::Collector(const Semantics* semantics, ast::Method* method)
-    : semantics_(semantics) {
+Collector::Collector(ast::Method* method) {
   for (auto const parameter : method->parameters())
     variables_.push_back(parameter);
   auto const body = method->body();
   if (!body)
     return;
   body->Accept(this);
-}
-
-std::string Collector::GetCalls() const {
-  std::stringstream ostream;
-  for (auto const call : calls_) {
-    if (auto const method = semantics()->ValueOf(call->callee()))
-      ostream << *method;
-    else
-      ostream << "Not resolved: " << *call;
-    ostream << std::endl;
-  }
-  return ostream.str();
 }
 
 // ast::Visitor statements
@@ -230,8 +213,16 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
     return std::string("Not found: ") + method_name.as_string();
 
   auto const method_main = method_group->methods()[0];
-  Collector collector(semantics(), method_main);
-  return collector.GetCalls();
+  Collector collector(method_main);
+  std::stringstream ostream;
+  for (auto const call : collector.calls()) {
+    if (auto const method = semantics()->ValueOf(call->callee()))
+      ostream << *method;
+    else
+      ostream << "Not resolved: " << *call;
+    ostream << std::endl;
+  }
+  return ostream.str();
 }
 
 std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
@@ -244,7 +235,7 @@ std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
     return std::string("Not found: ") + method_name.as_string();
 
   auto const method_main = method_group->methods()[0];
-  Collector collector(semantics(), method_main);
+  Collector collector(method_main);
   std::stringstream ostream;
   for (auto const variable : collector.variables())
     ostream << *semantics()->ValueOf(variable) << std::endl;
