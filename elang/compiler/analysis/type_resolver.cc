@@ -187,16 +187,21 @@ void TypeResolver::ProduceSemantics(ts::Value* value, ast::Node* ast_node) {
   ProduceUnifiedResult(value, ast_node);
 }
 
-// The entry point of |TypeResolver|.
+// The entry point of |TypeResolver|. When |upper_bound| is |EmptyValue|, we
+// assume |expression| is analyzed in error context.
 ts::Value* TypeResolver::Resolve(ast::Expression* expression,
-                                 ts::Value* value) {
+                                 ts::Value* upper_bound) {
+  auto const value = upper_bound == empty_value() ? any_value() : upper_bound;
   ScopedContext context(this, value, expression);
   expression->Accept(this);
   auto const result = context_->result;
   if (!result)
     return NewInvalidValue(expression);
-  if (result == empty_value())
+  if (result == empty_value() && !expression->as<ast::VariableReference>()) {
+    // Since, we've already reported empty value |VaraibleReference| at
+    // variable declaration, we don't report again.
     Error(ErrorCode::TypeResolverExpressionInvalid, expression);
+  }
   return result;
 }
 
