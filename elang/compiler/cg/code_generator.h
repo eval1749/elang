@@ -68,6 +68,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* GenerateValueAs(ast::Expression* expression, hir::Type* type);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
+  hir::Value* NewMethodReference(ir::Method* method);
 
   // Output
   void Commit();

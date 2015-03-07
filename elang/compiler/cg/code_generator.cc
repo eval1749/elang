@@ -8,6 +8,7 @@
 #include "elang/compiler/cg/code_generator.h"
 
 #include "base/logging.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/base/temporary_change_value.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -445,6 +446,14 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
   return nullptr;
 }
 
+hir::Value* CodeGenerator::NewMethodReference(ir::Method* method) {
+  // TODO(eval1749) We should calculate key as |base::string16| from
+  // |ir::Method|.
+  auto const method_name =
+    factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
+  return factory()->NewReference(MapType(method->signature()), method_name);
+}
+
 // The entry point of |CodeGenerator|.
 bool CodeGenerator::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
@@ -604,7 +613,7 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
 void CodeGenerator::VisitCall(ast::Call* node) {
   auto const ir_callee = ValueOf(node->callee())->as<ir::Method>();
   DCHECK(ir_callee) << "Unresolved call" << *node;
-  auto const callee = GenerateValue(node->callee());
+  auto const callee = NewMethodReference(ir_callee);
   if (node->arguments().empty()) {
     EmitOutputInstruction(factory()->NewCallInstruction(callee, void_value()));
     return;
@@ -672,10 +681,7 @@ void CodeGenerator::VisitNameReference(ast::NameReference* node) {
   //    |ir::Field| load instance or static field
   //    |ir::Literal| constant variable reference, or enum member.
   if (auto const method = value->as<ir::Method>()) {
-    auto const method_name =
-        factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
-    EmitOutput(
-        factory()->NewReference(MapType(method->signature()), method_name));
+    EmitOutput(NewMethodReference(method));
     return;
   }
   NOTREACHED() << "Unsupported value " << *value;
