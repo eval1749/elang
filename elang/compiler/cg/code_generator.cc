@@ -188,14 +188,14 @@ void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
   auto const entry = function_->entry_block()->first_instruction();
   if (ast_method->parameters().size() == 1u) {
     // Take parameter from `entry` instruction.
-    EmitVariableBinding(ast_method->parameters()[0], nullptr, entry);
+    EmitVariableBinding(ast_method->parameters()[0], entry);
     return;
   }
   auto index = 0;
   for (auto const parameter : ast_method->parameters()) {
     auto const get_instr = factory()->NewGetInstruction(entry, index);
     Emit(get_instr);
-    EmitVariableBinding(parameter, nullptr, get_instr);
+    EmitVariableBinding(parameter, get_instr);
     ++index;
   }
 }
@@ -214,14 +214,9 @@ void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
 // |ast_value| comes from `var` statement
 // |value| comes from parameter
 void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
-                                        ast::Expression* ast_value,
-                                        hir::Value* value) {
+                                        hir::Value* variable_value) {
   auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
   auto const variable_type = MapType(variable->type());
-  auto const variable_value =
-      value ? value : ast_value ? GenerateValue(ast_value)
-                                : variable_type->default_value();
-
   if (variable->storage() == ir::StorageClass::Void)
     return;
 
@@ -808,7 +803,7 @@ void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
   for (auto const ast_variable : node->variables())
-    EmitVariableBinding(ast_variable, ast_variable->value(), nullptr);
+    EmitVariableBinding(ast_variable, GenerateValue(ast_variable->value()));
 }
 
 void CodeGenerator::VisitWhileStatement(ast::WhileStatement* node) {

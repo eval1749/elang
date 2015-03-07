@@ -78,9 +78,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void EmitParameterBindings(ast::Method* method);
   void EmitVariableAssignment(ast::NamedNode* ast_node,
                               ast::Expression* ast_value);
-  void EmitVariableBinding(ast::NamedNode* ast_node,
-                           ast::Expression* ast_value,
-                           hir::Value* value);
+  void EmitVariableBinding(ast::NamedNode* ast_node, hir::Value* value);
   void EmitVariableReference(ast::NamedNode* node);
   bool NeedOutput() const;
 
