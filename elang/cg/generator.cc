@@ -49,8 +49,26 @@ void Generator::EmitCopy(lir::Value output, lir::Value input) {
 lir::Function* Generator::Generate() {
   for (auto const hir_block : hir_function_->basic_blocks()) {
     editor()->Edit(MapBlock(hir_block));
-    for (auto const instruction : hir_block->instructions())
-      const_cast<hir::Instruction*>(instruction)->Accept(this);
+    for (auto const phi : hir_block->phi_instructions())
+      editor()->NewPhi(MapOutput(phi));
+    for (auto const instr : hir_block->instructions())
+      const_cast<hir::Instruction*>(instr)->Accept(this);
+    editor()->Commit();
+  }
+
+  // Set phi operands.
+  for (auto const hir_block : hir_function_->basic_blocks()) {
+    DCHECK(block_map_.count(hir_block));
+    auto const block = block_map_[hir_block];
+    editor()->Edit(block);
+    auto phis = block->phi_instructions().begin();
+    for (auto const hir_phi : hir_block->phi_instructions()) {
+      for (auto const hir_phi_input : hir_phi->phi_inputs()) {
+        editor()->SetPhiInput(*phis, MapBlock(hir_phi_input->basic_block()),
+                              MapInput(hir_phi_input->value()));
+      }
+      ++phis;
+    }
     editor()->Commit();
   }
   return editor()->function();
@@ -89,13 +107,8 @@ void Generator::HandleComparison(hir::Instruction* instr,
 
 lir::BasicBlock* Generator::MapBlock(hir::BasicBlock* hir_block) {
   auto const it = block_map_.find(hir_block);
-  if (it != block_map_.end()) {
-    auto const block = it->second;
-    DCHECK(!block->first_instruction() ||
-           block->first_instruction()->is<lir::EntryInstruction>() ||
-           block->first_instruction()->is<lir::ExitInstruction>());
-    return block;
-  }
+  if (it != block_map_.end())
+    return it->second;
   auto const block = editor()->NewBasicBlock(editor()->exit_block());
   block_map_[hir_block] = block;
   return block;
