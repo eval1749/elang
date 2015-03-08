@@ -235,6 +235,18 @@ TEST_F(LirInstructionTest, StoreInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
+// UseInstruction
+TEST_F(LirInstructionTest, UseInstruction) {
+  auto const input = NewRegister(Value::Int32Type());
+  auto const instr = factory()->NewUseInstruction(input);
+  EXPECT_TRUE(instr->is<UseInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(0, instr->outputs().size());
+  EXPECT_EQ("--:0:use %r1", ToString(*instr));
+}
+
 // UShrInstruction
 TEST_F(LirInstructionTest, UShrInstruction) {
   auto const input = NewIntPtrRegister();

@@ -71,6 +71,7 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void VisitSignExtend(SignExtendInstruction* instruction) final;
   void VisitSub(SubInstruction* instruction) final;
   void VisitTruncate(TruncateInstruction* instruction) final;
+  void VisitUse(UseInstruction* instruction) final;
   void VisitUnsignedConvert(UnsignedConvertInstruction* instruction) final;
   void VisitZeroExtend(ZeroExtendInstruction* instruction) final;
 

@@ -388,6 +388,11 @@ void Validator::VisitTruncate(TruncateInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
+void Validator::VisitUse(UseInstruction* instr) {
+  if (!instr->input(0).is_output())
+    Error(ErrorCode::ValidateInstructionInput, instr, 0);
+}
+
 void Validator::VisitUnsignedConvert(UnsignedConvertInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
