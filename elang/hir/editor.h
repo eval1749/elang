@@ -5,7 +5,6 @@
 #ifndef ELANG_HIR_EDITOR_H_
 #define ELANG_HIR_EDITOR_H_
 
-#include <ostream>
 #include <memory>
 #include <vector>
 
