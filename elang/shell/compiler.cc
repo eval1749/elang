@@ -29,12 +29,14 @@
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/syntax/parser.h"
 #include "elang/compiler/token_type.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
 #include "elang/hir/formatters/text_formatter.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
+#include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
 #include "elang/shell/namespace_builder.h"
@@ -209,6 +211,22 @@ lir::Function* Generate(lir::Factory* factory, hir::Function* hir_function) {
   return generator.Generate();
 }
 
+bool ReportHirError(const hir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
+bool ReportLirError(const lir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
 }  // namespace
 
 Compiler::Compiler()
@@ -249,6 +267,10 @@ int Compiler::CompileAndGo() {
   if (!session()->Compile(&name_resolver, factory.get()))
     return 1;
 
+  if (ReportHirError(factory.get()))
+    return 1;
+
+  // Find entry point.
   auto const main_methods = CollectMainMethods(session(), &name_resolver);
   if (main_methods.empty()) {
     std::cerr << "No Main method." << std::endl;
@@ -270,8 +292,14 @@ int Compiler::CompileAndGo() {
     hir::TextFormatter formatter(&std::cout);
     formatter.FormatFunction(main_function);
   }
+
+  // Translate HIR to LIR
   std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
   auto const lir_function = Generate(lir_factory.get(), main_function);
+
+  if (ReportLirError(lir_factory.get()))
+    return 1;
+
   if (is_dump_lir_) {
     lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
     formatter.FormatFunction(lir_function);
