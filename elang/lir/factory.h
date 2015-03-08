@@ -23,6 +23,8 @@
 namespace elang {
 class AtomicString;
 namespace lir {
+enum class ErrorCode;
+class ErrorData;
 class LiteralMap;
 
 //////////////////////////////////////////////////////////////////////
@@ -34,7 +36,16 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   Factory();
   ~Factory();
 
+  // Errors found by validator.
+  const std::vector<ErrorData*>& errors() const { return errors_; }
+
+  // Literal data map
   LiteralMap* literals() const { return literal_map_.get(); }
+
+  // Add error.
+  void AddError(ErrorCode error_code,
+                Value value,
+                const std::vector<Value> details);
 
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value) const;
@@ -113,6 +124,8 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   base::StringPiece16 NewString(base::StringPiece16 string);
   void RegisterLiteral(Literal* literal);
 
+  // List of errors found by validator
+  std::vector<ErrorData*> errors_;
   std::unordered_map<float32_t, Value> float32_map_;
   std::unordered_map<float64_t, Value> float64_map_;
   std::unordered_map<int32_t, Value> int32_map_;

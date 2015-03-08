@@ -33,7 +33,7 @@ class ELANG_LIR_EXPORT ErrorData final : public ZoneAllocated {
   LiteralMap* literals() const { return literals_; }
 
  private:
-  friend class Editor;
+  friend class Factory;
 
   // |error_value| has error of |error_code| with additional information
   // in |details|.

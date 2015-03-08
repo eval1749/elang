@@ -41,6 +41,10 @@ BasicBlock* Editor::entry_block() const {
   return function()->entry_block();
 }
 
+const std::vector<ErrorData*>& Editor::errors() const {
+  return factory()->errors();
+}
+
 BasicBlock* Editor::exit_block() const {
   return function()->exit_block();
 }
@@ -55,13 +59,6 @@ void Editor::AddEdgesFrom(Instruction* instruction) {
   auto const block = instruction->basic_block();
   for (auto successor : instruction->block_operands())
     graph_editor_.AddEdge(block, successor);
-}
-
-void Editor::AddError(ErrorCode error_code,
-                      Value value,
-                      const std::vector<Value> details) {
-  errors_.push_back(new (factory()->zone()) ErrorData(
-      factory()->zone(), factory()->literals(), error_code, value, details));
 }
 
 const Editor::LivenessData& Editor::AnalyzeLiveness() const {
@@ -175,18 +172,18 @@ void Editor::EditNewBasicBlock() {
 }
 
 void Editor::Error(ErrorCode error_code, Value value) {
-  AddError(error_code, value, {});
+  factory()->AddError(error_code, value, {});
 }
 
 void Editor::Error(ErrorCode error_code, Value value, Value detail) {
-  AddError(error_code, value, {detail});
+  factory()->AddError(error_code, value, {detail});
 }
 
 void Editor::Error(ErrorCode error_code,
                    Value value,
                    Value detail1,
                    Value detail2) {
-  AddError(error_code, value, {detail1, detail2});
+  factory()->AddError(error_code, value, {detail1, detail2});
 }
 
 void Editor::InsertAfter(Instruction* new_instruction,

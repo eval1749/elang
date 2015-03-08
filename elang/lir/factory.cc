@@ -9,6 +9,7 @@
 #include "elang/base/atomic_string.h"
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/error_data.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
@@ -35,6 +36,13 @@ Factory::Factory()
 }
 
 Factory::~Factory() {
+}
+
+void Factory::AddError(ErrorCode error_code,
+                       Value value,
+                       const std::vector<Value> details) {
+  errors_.push_back(new (zone()) ErrorData(
+      zone(), literals(), error_code, value, details));
 }
 
 Literal* Factory::GetLiteral(Value value) const {

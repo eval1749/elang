@@ -45,7 +45,7 @@ Function* Validator::function() const {
 void Validator::AddError(ErrorCode error_code,
                          Value value,
                          const std::vector<Value> details) {
-  editor_->AddError(error_code, value, details);
+  editor_->factory()->AddError(error_code, value, details);
 }
 
 Value Validator::AsValue(Instruction* instruction) {

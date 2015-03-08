@@ -63,7 +63,7 @@ class ELANG_LIR_EXPORT Editor final {
 
   BasicBlock* basic_block() const { return basic_block_; }
   BasicBlock* entry_block() const;
-  const std::vector<ErrorData*>& errors() { return errors_; }
+  const std::vector<ErrorData*>& errors() const;
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
@@ -78,9 +78,6 @@ class ELANG_LIR_EXPORT Editor final {
   const DominatorTree<Function>& BuildPostDominatorTree() const;
 
   // Validation errors
-  void AddError(ErrorCode error_code,
-                Value value,
-                const std::vector<Value> details);
   void Error(ErrorCode error_code, Value value);
   void Error(ErrorCode error_code, Value value, Value detail);
   void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
@@ -150,8 +147,6 @@ class ELANG_LIR_EXPORT Editor final {
 
   // A basic block being edited, or null if not editing.
   BasicBlock* basic_block_;
-  // List of errors found by validator
-  std::vector<ErrorData*> errors_;
   // The factory
   Factory* const factory_;
   // A function being edited.
