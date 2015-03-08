@@ -94,7 +94,7 @@ class ELANG_LIR_EXPORT Editor final {
   // be editing block.
   void RemoveCriticalEdges();
 
-  // Set |index|'s block operand by |new_block|. This function doesn't upddate
+  // Set |index|'s block operand by |new_block|. This function doesn't update
   // `phi` instruction. You may need to update `phi` instruction by
   // |ReplacePhiInput(new_block, old_block)|.
   void SetBlockOperand(Instruction* instruction,
