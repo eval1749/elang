@@ -42,6 +42,9 @@
 #include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/source_file_stream.h"
+#include "elang/vm/factory.h"
+#include "elang/vm/machine_code_function.h"
+#include "elang/vm/machine_code_builder_impl.h"
 
 namespace elang {
 namespace compiler {
@@ -211,6 +214,14 @@ lir::Function* Generate(lir::Factory* factory, hir::Function* hir_function) {
   return generator.Generate();
 }
 
+vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
+                                             lir::Factory* lir_factory,
+                                             lir::Function* lir_function) {
+  vm::MachineCodeBuilderImpl mc_builder(vm_factory);
+  lir_factory->GenerateMachineCode(&mc_builder, lir_function);
+  return mc_builder.NewMachineCodeFunction();
+}
+
 bool ReportHirError(const hir::Factory* factory) {
   if (factory->errors().empty())
     return false;
@@ -300,10 +311,27 @@ int Compiler::CompileAndGo() {
   if (ReportLirError(lir_factory.get()))
     return 1;
 
+  factory.release();
+
   if (is_dump_lir_) {
     lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
     formatter.FormatFunction(lir_function);
   }
+
+  // Translate LIR to Machine code
+  std::unique_ptr<vm::Factory> vm_factory(new vm::Factory());
+  auto const mc_function =
+      GenerateMachineCode(vm_factory.get(), lir_factory.get(), lir_function);
+
+  // Dump machine code
+  auto const code_start = mc_function->code_start_for_testing();
+  auto const code_end = code_start + mc_function->code_size_for_testing();
+  for (auto code = code_start; code < code_end; ++code) {
+    if ((code - code_start) % 16 == 0)
+      std::cout << std::endl;
+    std::cout << " " << std::hex << *code;
+  }
+  std::cout << std::endl;
   return 0;
 }
 

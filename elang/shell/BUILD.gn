@@ -11,8 +11,10 @@ executable("elang_shell") {
 
   deps = [
     "//base",
+    "//elang/api",
     "//elang/compiler",
     "//elang/cg",
+    "//elang/vm",
     ":shell_library",
   ]
 }
