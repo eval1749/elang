@@ -40,7 +40,9 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   Value* true_value() const { return true_value_; }
   Value* void_value() const { return void_value_; }
 
-  void AddError(ErrorData* error_data);
+  void AddError(ErrorCode error_code,
+             const Value* value,
+             const std::vector<Thing*>& details);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);

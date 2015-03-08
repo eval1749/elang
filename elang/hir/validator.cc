@@ -43,6 +43,10 @@ Validator::Validator(Editor* editor)
 Validator::~Validator() {
 }
 
+Factory* Validator::factory() const {
+  return editor()->factory();
+}
+
 // Returns true if |dominator| dominates |dominatee|.
 bool Validator::Dominates(Value* dominator, Instruction* dominatee) {
   DCHECK(dominator_tree_);
@@ -59,26 +63,19 @@ bool Validator::Dominates(Value* dominator, Instruction* dominatee) {
 
 void Validator::Error(ErrorCode error_code, const Value* error_value) {
   is_valid_ = false;
-  editor()->Error(error_code, error_value);
+  factory()->AddError(error_code, error_value, std::vector<Thing*>{});
 }
 
 void Validator::Error(ErrorCode error_code, const Value* value, Thing* detail) {
   is_valid_ = false;
-  editor()->Error(error_code, value, detail);
-}
-
-void Validator::Error(ErrorCode error_code,
-                      const Value* error_value,
-                      const std::vector<Thing*>& details) {
-  is_valid_ = false;
-  editor()->Error(error_code, error_value, details);
+  factory()->AddError(error_code, value, std::vector<Thing*>{detail});
 }
 
 void Validator::Error(ErrorCode error_code,
                       const Instruction* instruction,
                       int index) {
   is_valid_ = false;
-  editor()->Error(error_code, instruction, {NewInt32(index)});
+  factory()->AddError(error_code, instruction, {NewInt32(index)});
 }
 
 void Validator::Error(ErrorCode error_code,
@@ -86,7 +83,7 @@ void Validator::Error(ErrorCode error_code,
                       int index,
                       Thing* detail) {
   is_valid_ = false;
-  editor()->Error(error_code, instruction, {NewInt32(index), detail});
+  factory()->AddError(error_code, instruction, {NewInt32(index), detail});
 }
 
 Value* Validator::NewInt32(int32_t data) {

@@ -11,6 +11,7 @@
 #include "elang/base/atomic_string.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
+#include "elang/hir/error_data.h"
 #include "elang/hir/intrinsic_names.h"
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
@@ -61,8 +62,11 @@ AtomicString* Factory::intrinsic_name(IntrinsicName name) {
   return NewAtomicString(names[static_cast<size_t>(name)]);
 }
 
-void Factory::AddError(ErrorData* error_data) {
-  errors_.push_back(error_data);
+void Factory::AddError(ErrorCode error_code,
+                       const Value* error_value,
+                       const std::vector<Thing*>& details) {
+  errors_.push_back(new (zone()) ErrorData(
+      zone(), error_code, const_cast<Value*>(error_value), details));
 }
 
 BasicBlock* Factory::NewBasicBlock() {

@@ -59,9 +59,6 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   // Validation errors
   void Error(ErrorCode error_code, const Value* value);
   void Error(ErrorCode error_code, const Value* value, Thing* detail);
-  void Error(ErrorCode error_code,
-             const Value* value,
-             const std::vector<Thing*>& details);
   void Error(ErrorCode error_code, const Instruction* instruction, int index);
   void Error(ErrorCode error_code,
              const Instruction* instruction,

@@ -18,6 +18,7 @@ namespace hir {
 class BasicBlock;
 class DominatorTree;
 class Editor;
+class Factory;
 enum class ErrorCode;
 class ErrorData;
 class Function;
@@ -44,15 +45,13 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
 
  private:
   Editor* editor() const { return editor_; }
+  Factory* factory() const;
 
   // Returns true if |dominator| dominates |dominatee|.
   bool Dominates(Value* dominator, Instruction* dominatee);
 
   void Error(ErrorCode error_code, const Value* value);
   void Error(ErrorCode error_code, const Value* value, Thing* detail);
-  void Error(ErrorCode error_code,
-             const Value* value,
-             const std::vector<Thing*>& details);
   void Error(ErrorCode error_code, const Instruction* instruction, int index);
   void Error(ErrorCode error_code,
              const Instruction* instruction,

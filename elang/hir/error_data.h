@@ -16,7 +16,7 @@
 namespace elang {
 namespace hir {
 
-class Editor;
+class Factory;
 enum class ErrorCode;
 class Thing;
 class Value;
@@ -32,7 +32,7 @@ class ELANG_HIR_EXPORT ErrorData final : public ZoneAllocated {
   Value* error_value() const { return error_value_; }
 
  private:
-  friend class Editor;
+  friend class Factory;
 
   // |error_value| has error of |error_code| with additional information
   // in |details|.

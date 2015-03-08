@@ -10,7 +10,6 @@
 #include "base/logging.h"
 #include "elang/hir/analysis/dominator_tree_builder.h"
 #include "elang/hir/analysis/graph.h"
-#include "elang/hir/error_code.h"
 #include "elang/hir/error_data.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/instructions.h"
@@ -125,31 +124,24 @@ BasicBlock* Editor::EditNewBasicBlock() {
 }
 
 void Editor::Error(ErrorCode error_code, const Value* error_value) {
-  Error(error_code, error_value, std::vector<Thing*>{});
+  factory()->AddError(error_code, error_value, std::vector<Thing*>{});
 }
 
 void Editor::Error(ErrorCode error_code, const Value* value, Thing* detail) {
-  Error(error_code, value, std::vector<Thing*>{detail});
-}
-
-void Editor::Error(ErrorCode error_code,
-                   const Value* error_value,
-                   const std::vector<Thing*>& details) {
-  factory()->AddError(new (zone()) ErrorData(
-      zone(), error_code, const_cast<Value*>(error_value), details));
+  factory()->AddError(error_code, value, std::vector<Thing*>{detail});
 }
 
 void Editor::Error(ErrorCode error_code,
                    const Instruction* instruction,
                    int index) {
-  Error(error_code, instruction, {NewInt32(index)});
+  factory()->AddError(error_code, instruction, {NewInt32(index)});
 }
 
 void Editor::Error(ErrorCode error_code,
                    const Instruction* instruction,
                    int index,
                    Thing* detail) {
-  Error(error_code, instruction, {NewInt32(index), detail});
+  factory()->AddError(error_code, instruction, {NewInt32(index), detail});
 }
 
 void Editor::InitializeFunctionIfNeeded() {
