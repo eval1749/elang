@@ -375,6 +375,69 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   return function;
 }
 
+// The sample block for RemoveCriticalEdges test case:
+//   entry:
+//    entry
+//    copy %var0, param[0]
+//    br start
+//   start:
+//    br %flag1, sample2, sample
+//   sample:
+//    br %flag2, merge, start
+//   sample2:
+//    jump merge
+//   merge:
+//    phi %1 = start var0, sample 42
+//    mov EAX = %1
+//    ret
+// An edge sample => merge is a critical edge.
+//
+Function* LirTest::CreateFunctionWithCriticalEdge2() {
+  auto const function = CreateFunctionEmptySample({Value::Int32Type()});
+  auto const entry_block = function->entry_block();
+  auto const exit_block = function->exit_block();
+
+  Editor editor(factory(), function);
+
+  auto const type = Value::Int32Type();
+  auto const start_block = editor.NewBasicBlock(exit_block);
+  auto const sample_block = editor.NewBasicBlock(exit_block);
+  auto const sample2_block = editor.NewBasicBlock(exit_block);
+  auto const merge_block = editor.NewBasicBlock(exit_block);
+  auto const var0 = NewRegister(Value::Int32Type());
+
+  editor.Edit(entry_block);
+  editor.Append(factory()->NewCopyInstruction(var0,
+                                              Target::GetParameterAt(var0, 0)));
+  editor.SetJump(start_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(start_block);
+  editor.SetBranch(factory()->NewConditional(), sample2_block, sample_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(sample_block);
+  editor.SetBranch(factory()->NewConditional(), merge_block, start_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(sample2_block);
+  editor.SetJump(merge_block);
+  EXPECT_EQ("", Commit(&editor));
+
+  editor.Edit(merge_block);
+  auto const phi_instr = editor.NewPhi(NewRegister(type));
+  editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
+  editor.SetPhiInput(phi_instr, sample2_block, var0);
+  editor.Append(factory()->NewCopyInstruction(
+      Target::GetReturn(phi_instr->output(0)), phi_instr->output(0)));
+  editor.SetReturn();
+  EXPECT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("", Validate(&editor));
+
+  return function;
+}
+
 std::string LirTest::FormatFunction(Editor* editor) {
   auto const result = Validate(editor);
   if (result != "")

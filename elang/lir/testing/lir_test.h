@@ -62,7 +62,10 @@ class LirTest : public ::testing::Test, public FactoryUser {
   Function* CreateFunctionSample1();
   Function* CreateFunctionSample2();
   Function* CreateFunctionSampleAdd();
+  // TODO(eval1749) We should unify |CreateFunctionWithCriticalEdge()| and
+  // |CreateFunctionWithCriticalEdge2()|.
   Function* CreateFunctionWithCriticalEdge();
+  Function* CreateFunctionWithCriticalEdge2();
 
   std::string FormatFunction(Editor* editor);
   // Returns newly allocated virtual integer register which can hold pointer.
