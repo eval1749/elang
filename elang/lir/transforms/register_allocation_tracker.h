@@ -35,6 +35,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   const std::unordered_map<Value, Value>& physical_map() const;
 
   Value AllocationOf(BasicBlock* block, Value vreg) const;
+  Value AllocationOf(Instruction* instr, Value vreg) const;
   void EndBlock(BasicBlock* block);
   void StartBlock(BasicBlock* block);
   void SetPhysical(BasicBlock* block, Value vreg, Value physical);

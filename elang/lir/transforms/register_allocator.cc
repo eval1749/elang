@@ -453,6 +453,12 @@ void RegisterAllocator::ProcessPhiInputOperands(BasicBlock* block) {
     allocation_tracker_->StartBlock(predecessor);
     // Reinitialize physical register tracking.
     for (auto const phi : block->phi_instructions()) {
+      {
+        auto const output = phi->output(0);
+        auto const allocation = allocation_tracker_->AllocationOf(phi, output);
+        if (allocation.is_physical())
+          allocation_tracker_->TrackPhysical(output, allocation);
+      }
       auto const input = phi->FindPhiInputFor(predecessor)->value();
       if (!input.is_virtual())
         continue;

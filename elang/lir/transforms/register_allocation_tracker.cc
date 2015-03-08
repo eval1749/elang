@@ -47,6 +47,11 @@ Value RegisterAllocationTracker::AllocationOf(BasicBlock* block,
   return assignments_.AllocationOf(block, value);
 }
 
+Value RegisterAllocationTracker::AllocationOf(Instruction* instr,
+                                              Value value) const {
+  return assignments_.AllocationOf(instr, value);
+}
+
 Value RegisterAllocationTracker::AllocationOf(Value virtual_register) const {
   auto const physical = PhysicalFor(virtual_register);
   if (physical.is_physical())
