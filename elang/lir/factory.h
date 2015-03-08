@@ -22,6 +22,11 @@
 
 namespace elang {
 class AtomicString;
+
+namespace api {
+class MachineCodeBuilder;
+}
+
 namespace lir {
 enum class ErrorCode;
 class ErrorData;
@@ -46,6 +51,9 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   void AddError(ErrorCode error_code,
                 Value value,
                 const std::vector<Value> details);
+
+  void GenerateMachineCode(api::MachineCodeBuilder* builder,
+                           Function* function);
 
   // Returns |Literal| associated with |index|.
   Literal* GetLiteral(Value value) const;

@@ -38,6 +38,7 @@ source_set("core") {
     "factory_user.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
+    "generate_machine_code.cc",
     "instructions.cc",
     "instructions.h",
     "instruction_visitor.cc",
