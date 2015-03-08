@@ -27,6 +27,9 @@ class Compiler final {
   Compiler();
   ~Compiler();
 
+  void set_dump_hir(bool dump) { is_dump_hir_ = dump; }
+  void set_dump_lir(bool dump) { is_dump_lir_ = dump; }
+
   // Add source file as compilation unit.
   void AddSourceFile(const base::FilePath& file_path);
 
@@ -41,6 +44,8 @@ class Compiler final {
 
   CompilationSession* session() { return session_.get(); }
 
+  bool is_dump_hir_;
+  bool is_dump_lir_;
   std::unique_ptr<CompilationSession> session_;
 
   DISALLOW_COPY_AND_ASSIGN(Compiler);

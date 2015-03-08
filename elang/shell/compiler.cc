@@ -12,6 +12,7 @@
 #include "base/files/file_util.h"
 #include "base/logging.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/cg/generator.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
@@ -34,6 +35,8 @@
 #include "elang/hir/types.h"
 #include "elang/hir/type_factory.h"
 #include "elang/hir/values.h"
+#include "elang/lir/factory.h"
+#include "elang/lir/formatters/text_formatter.h"
 #include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/source_file_stream.h"
@@ -201,9 +204,17 @@ std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
   return QueryAllNodes(session, &query);
 }
 
+lir::Function* Generate(lir::Factory* factory, hir::Function* hir_function) {
+  ::elang::cg::Generator generator(factory, hir_function);
+  return generator.Generate();
+}
+
 }  // namespace
 
-Compiler::Compiler() : session_(new CompilationSession()) {
+Compiler::Compiler()
+    : is_dump_hir_(false),
+      is_dump_lir_(false),
+      session_(new CompilationSession()) {
 }
 
 Compiler::~Compiler() {
@@ -255,8 +266,16 @@ int Compiler::CompileAndGo() {
     std::cerr << "No function for main method." << *main_method;
     return 1;
   }
-  hir::TextFormatter formatter(&std::cout);
-  formatter.FormatFunction(main_function);
+  if (is_dump_hir_) {
+    hir::TextFormatter formatter(&std::cout);
+    formatter.FormatFunction(main_function);
+  }
+  std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
+  auto const lir_function = Generate(lir_factory.get(), main_function);
+  if (is_dump_lir_) {
+    lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
+    formatter.FormatFunction(lir_function);
+  }
   return 0;
 }
 
