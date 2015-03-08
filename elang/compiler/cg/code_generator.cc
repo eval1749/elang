@@ -157,7 +157,7 @@ hir::Value* CodeGenerator::void_value() const {
 
 void CodeGenerator::Commit() {
   auto const is_valid = editor()->Commit();
-  DCHECK(is_valid) << editor()->errors();
+  DCHECK(is_valid) << factory()->errors();
 }
 
 void CodeGenerator::Emit(hir::Instruction* instruction) {

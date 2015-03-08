@@ -44,7 +44,6 @@ class HirTest : public ::testing::Test, public FactoryUser {
 
   std::string Format(Function* function);
   std::string Format();
-  std::string GetErrors(const Editor& editor);
   std::string GetErrors();
   Function* NewFunction(Type* return_type, Type* parameters_type);
   Function* NewSampleFunction();

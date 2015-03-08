@@ -279,7 +279,7 @@ TEST_F(HirInstructionTest, GetInstruction) {
   EXPECT_EQ("bb3:7:int32 %r7 = get %t5, 0", ToString(get0));
   EXPECT_EQ("bb3:8:bool %b8 = get %t5, 1", ToString(get1));
   EXPECT_EQ("Validate.Instruction.Get bb3:10:bool %b10 = get %t5, 1\n",
-            GetErrors(editor));
+            GetErrors());
 }
 
 //////////////////////////////////////////////////////////////////////

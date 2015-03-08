@@ -89,12 +89,8 @@ std::string HirTest::Format() {
   return Format(function());
 }
 
-std::string HirTest::GetErrors(const Editor& editor) {
-  return ConvertErrorListToString(editor.errors());
-}
-
 std::string HirTest::GetErrors() {
-  return GetErrors(*editor_);
+  return ConvertErrorListToString(factory()->errors());
 }
 
 Function* HirTest::NewFunction(Type* return_type, Type* parameters_type) {

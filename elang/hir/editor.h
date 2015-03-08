@@ -50,9 +50,6 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
-  // TODO(eval1749) We should use |Factory::errors()| instead of
-  // |Editor::errors()|.
-  const std::vector<ErrorData*>& errors() const;
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }

@@ -51,10 +51,6 @@ BasicBlock* Editor::entry_block() const {
   return function_->entry_block();
 }
 
-const std::vector<ErrorData*>& Editor::errors() const {
-  return factory()->errors();
-}
-
 BasicBlock* Editor::exit_block() const {
   return function_->exit_block();
 }
@@ -115,7 +111,7 @@ void Editor::Edit(BasicBlock* basic_block) {
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
-  DCHECK(Validate(basic_block)) << errors();
+  DCHECK(Validate(basic_block)) << factory()->errors();
 }
 
 BasicBlock* Editor::EditNewBasicBlock(BasicBlock* reference) {
@@ -158,7 +154,7 @@ void Editor::Error(ErrorCode error_code,
 
 void Editor::InitializeFunctionIfNeeded() {
   if (!function_->basic_blocks_.empty()) {
-    DCHECK(Validate(function_)) << errors();
+    DCHECK(Validate(function_)) << factory()->errors();
     return;
   }
 
@@ -184,7 +180,7 @@ void Editor::InitializeFunctionIfNeeded() {
   SetReturn(function_->return_type()->default_value());
 
   basic_block_ = nullptr;
-  DCHECK(Validate(function_)) << errors();
+  DCHECK(Validate(function_)) << factory()->errors();
 }
 
 void Editor::InsertBefore(Instruction* new_instruction,
@@ -246,7 +242,7 @@ void Editor::ReplaceAll(Value* new_value, Instruction* old_value) {
   for (auto const user : old_value->users())
     user->SetValue(new_value);
   RemoveInstruction(old_value);
-  DCHECK(Validate(basic_block_)) << errors();
+  DCHECK(Validate(basic_block_)) << factory()->errors();
 }
 
 void Editor::ResetInputs(Instruction* instruction) {
@@ -360,12 +356,12 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
     new_basic_block->instructions_.AppendNode(runner);
     runner->basic_block_ = new_basic_block;
   }
-  DCHECK(Validate(new_basic_block)) << errors();
+  DCHECK(Validate(new_basic_block)) << factory()->errors();
   return new_basic_block;
 }
 
 bool Editor::Validate() {
-  if (!errors().empty())
+  if (!factory()->errors().empty())
     return false;
   return Validate(function());
 }

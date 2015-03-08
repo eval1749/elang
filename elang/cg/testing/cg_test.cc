@@ -43,7 +43,7 @@ CgTest::~CgTest() {
 std::string CgTest::Commit(hir::Editor* editor) {
   if (!editor->Validate(editor->basic_block())) {
     std::stringstream ostream;
-    ostream << editor->errors();
+    ostream << factory()->errors();
     return ostream.str();
   }
   editor->Commit();
@@ -60,7 +60,7 @@ std::string CgTest::Format(const lir::Function* function) {
 std::string CgTest::Generate(hir::Editor* editor) {
   if (!editor->Validate()) {
     std::stringstream ostream;
-    ostream << editor->errors();
+    ostream << factory()->errors();
     return ostream.str();
   }
   Generator generator(lir_factory(), editor->function());
