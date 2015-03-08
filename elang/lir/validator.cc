@@ -38,6 +38,10 @@ BasicBlock* Validator::exit_block() const {
   return function()->exit_block();
 }
 
+Factory* Validator::factory() const {
+  return editor()->factory();
+}
+
 Function* Validator::function() const {
   return editor()->function();
 }
@@ -167,7 +171,7 @@ bool Validator::Validate(BasicBlock* block) {
     Error(ErrorCode::ValidateBasicBlockTerminator, block->value());
     return false;
   }
-  return editor()->errors().empty();
+  return factory()->errors().empty();
 }
 
 bool Validator::Validate(Function* function) {
@@ -225,7 +229,7 @@ bool Validator::Validate(Function* function) {
   }
   if (!found_exit)
     Error(ErrorCode::ValidateBasicBlockExit, function->value());
-  return editor()->errors().empty();
+  return factory()->errors().empty();
 }
 
 bool Validator::Validate(Instruction* instruction) {
@@ -246,7 +250,7 @@ bool Validator::Validate(Instruction* instruction) {
   }
   // Instruction specific validation.
   instruction->Accept(this);
-  return editor()->errors().empty();
+  return factory()->errors().empty();
 }
 
 void Validator::ValidateArithmeticInstruction(Instruction* instr) {

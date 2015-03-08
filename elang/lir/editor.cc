@@ -41,10 +41,6 @@ BasicBlock* Editor::entry_block() const {
   return function()->entry_block();
 }
 
-const std::vector<ErrorData*>& Editor::errors() const {
-  return factory()->errors();
-}
-
 BasicBlock* Editor::exit_block() const {
   return function()->exit_block();
 }
@@ -164,7 +160,7 @@ void Editor::Edit(BasicBlock* basic_block) {
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
-  DCHECK(Validate(basic_block_)) << errors();
+  DCHECK(Validate(basic_block_)) << factory()->errors();
 }
 
 void Editor::EditNewBasicBlock() {

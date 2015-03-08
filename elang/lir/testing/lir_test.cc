@@ -165,7 +165,7 @@ std::string LirTest::Commit(Editor* editor) {
     return "";
   }
   std::stringstream ostream;
-  ostream << editor->errors();
+  ostream << factory()->errors();
   ostream << std::endl;
   TextFormatter formatter(factory()->literals(), &ostream);
   formatter.FormatFunction(editor->function());
@@ -397,7 +397,7 @@ std::string LirTest::Validate(Editor* editor) {
   if (editor->Validate())
     return "";
   std::stringstream ostream;
-  ostream << editor->errors();
+  ostream << factory()->errors();
   ostream << std::endl;
   TextFormatter formatter(factory()->literals(), &ostream);
   formatter.FormatFunction(editor->function());

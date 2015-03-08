@@ -19,6 +19,7 @@ class BasicBlock;
 enum class ErrorCode;
 class ErrorData;
 class Editor;
+class Factory;
 class Function;
 class Instruction;
 class Literal;
@@ -38,9 +39,10 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   bool Validate(Instruction* instruction);
 
  private:
-  Editor* editor() const { return editor_; }
+  const Editor* editor() const { return editor_; }
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
+  Factory* Validator::factory() const;
   Function* function() const;
 
   // Validation errors

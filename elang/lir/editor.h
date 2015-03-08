@@ -63,7 +63,6 @@ class ELANG_LIR_EXPORT Editor final {
 
   BasicBlock* basic_block() const { return basic_block_; }
   BasicBlock* entry_block() const;
-  const std::vector<ErrorData*>& errors() const;
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
