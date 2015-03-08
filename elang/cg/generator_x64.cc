@@ -22,6 +22,32 @@ namespace cg {
 
 using lir::Target;
 
+namespace {
+int SizeOfType(hir::Type* type) {
+  if (type->is<hir::IntPtrType>())
+    return 8;
+  if (type->is<hir::UIntPtrType>())
+    return 8;
+  if (auto const primitive_type = type->as<hir::PrimitiveType>())
+    return primitive_type->bit_size() / 8;
+  if (auto const tuple_type = type->as<hir::TupleType>()) {
+    auto size = 0;
+    for (auto const member : tuple_type->members())
+      size += SizeOfType(member);
+    return size;
+  }
+  if (auto const array_type = type->as<hir::ArrayType>()) {
+    auto size = SizeOfType(array_type->element_type());
+    for (auto const dimension : array_type->dimensions()) {
+      DCHECK_GE(dimension, 0);
+      size *= dimension;
+    }
+    return size;
+  }
+  return 8;
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Generator
@@ -53,11 +79,10 @@ lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
 }
 
 lir::Value Generator::MapInput(hir::Value* value) {
-  if (auto const instr = value->as<hir::Instruction>()) {
-    auto const it = register_map_.find(instr);
-    DCHECK(it != register_map_.end());
-    return it->second;
-  }
+  // TODO(eval1749) We should process |value| in reverse post order to ensure
+  // |value| is mapped before it used.
+  if (auto const instr = value->as<hir::Instruction>())
+    return MapRegister(instr);
 
   if (auto const literal = value->as<hir::BoolLiteral>())
     return NewIntValue(lir::Value::Int8Type(), literal->data());
@@ -73,6 +98,8 @@ lir::Value Generator::MapInput(hir::Value* value) {
     return NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::Int64Literal>())
     return NewIntValue(lir::Value::Int64Type(), literal->data());
+  if (auto const literal = value->as<hir::IntPtrLiteral>())
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
   if (auto const literal = value->as<hir::UInt8Literal>())
     return NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = value->as<hir::UInt16Literal>())
@@ -81,18 +108,26 @@ lir::Value Generator::MapInput(hir::Value* value) {
     return NewIntValue(lir::Value::Int32Type(), literal->data());
   if (auto const literal = value->as<hir::UInt64Literal>())
     return NewIntValue(lir::Value::Int64Type(), literal->data());
+  if (auto const literal = value->as<hir::UIntPtrLiteral>())
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
 
   if (auto const reference = value->as<hir::Reference>())
     return NewStringValue(reference->name());
+
+  if (auto const size = value->as<hir::SizeOf>())
+    return NewIntValue(lir::Value::Int64Type(), SizeOfType(value->type()));
 
   NOTREACHED() << "unsupported hir::Literal: " << *value;
   return NewIntValue(lir::Value::Int8Type(), 0);
 }
 
 // Get output register for instruction except for 'load'.
-lir::Value Generator::MapOutput(hir::Instruction* instruction) {
-  DCHECK(!register_map_.count(instruction));
-  return MapRegister(instruction);
+lir::Value Generator::MapOutput(hir::Instruction* instr) {
+  // TODO(eval1749) We should process |value| in reverse post order to ensure
+  // |value| is mapped before it used.
+  if (!instr->is<hir::PhiInstruction>())
+    DCHECK(!register_map_.count(instr)) << *instr;
+  return MapRegister(instr);
 }
 
 lir::Value Generator::MapRegister(hir::Value* value) {
@@ -112,6 +147,10 @@ lir::Value Generator::MapType(hir::Type* type) {
     return lir::Value::Float32Type();
   if (primitive_type->is<hir::Float64Type>())
     return lir::Value::Float64Type();
+  if (primitive_type->is<hir::IntPtrType>())
+    return lir::Value::Int64Type();
+  if (primitive_type->is<hir::UIntPtrType>())
+    return lir::Value::Int64Type();
   switch (primitive_type->bit_size()) {
     case 1:
     case 8:
