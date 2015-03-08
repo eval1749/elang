@@ -34,10 +34,10 @@ Type* PointTo(Type* type) {
 // Validator
 //
 Validator::Validator(Editor* editor)
-    : TypeFactoryUser(editor->types()),
+    : ErrorReporter(editor->factory()),
+      TypeFactoryUser(editor->types()),
       dominator_tree_(editor->maybe_dominator_tree()),
-      editor_(editor),
-      is_valid_(false) {
+      editor_(editor) {
 }
 
 Validator::~Validator() {
@@ -59,35 +59,6 @@ bool Validator::Dominates(Value* dominator, Instruction* dominatee) {
     return false;
   return dominator_tree_->Dominates(dominator_instruction->basic_block(),
                                     dominatee->basic_block());
-}
-
-void Validator::Error(ErrorCode error_code, const Value* error_value) {
-  is_valid_ = false;
-  factory()->AddError(error_code, error_value, std::vector<Thing*>{});
-}
-
-void Validator::Error(ErrorCode error_code, const Value* value, Thing* detail) {
-  is_valid_ = false;
-  factory()->AddError(error_code, value, std::vector<Thing*>{detail});
-}
-
-void Validator::Error(ErrorCode error_code,
-                      const Instruction* instruction,
-                      int index) {
-  is_valid_ = false;
-  factory()->AddError(error_code, instruction, {NewInt32(index)});
-}
-
-void Validator::Error(ErrorCode error_code,
-                      const Instruction* instruction,
-                      int index,
-                      Thing* detail) {
-  is_valid_ = false;
-  factory()->AddError(error_code, instruction, {NewInt32(index), detail});
-}
-
-Value* Validator::NewInt32(int32_t data) {
-  return editor()->NewInt32(data);
 }
 
 // Validates |BasicBlock|
@@ -200,7 +171,6 @@ bool Validator::Validate(Instruction* instruction) {
     Error(ErrorCode::ValidateInstructionBasicBlock, instruction);
     return false;
   }
-  is_valid_ = true;
   // Check instruction inputs are alive.
   // Note: Event if inputs are alive, they are wrong when users of inputs
   // aren't dominated where inputs are set.
@@ -223,7 +193,7 @@ bool Validator::Validate(Instruction* instruction) {
     ++position;
   }
   instruction->Accept(this);
-  return is_valid_;
+  return factory()->errors().empty();
 }
 
 void Validator::ValidateArrayAccess(Instruction* instr) {

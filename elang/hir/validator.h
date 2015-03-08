@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "base/basictypes.h"
+#include "elang/hir/error_reporter.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/instruction_visitor.h"
 #include "elang/hir/type_factory_user.h"
@@ -33,7 +34,8 @@ class Value;
 //
 // Validator
 //
-class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
+class ELANG_HIR_EXPORT Validator final : public ErrorReporter,
+                                         public InstructionVisitor,
                                          public TypeFactoryUser {
  public:
   explicit Validator(Editor* editor);
@@ -50,15 +52,6 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
   // Returns true if |dominator| dominates |dominatee|.
   bool Dominates(Value* dominator, Instruction* dominatee);
 
-  void Error(ErrorCode error_code, const Value* value);
-  void Error(ErrorCode error_code, const Value* value, Thing* detail);
-  void Error(ErrorCode error_code, const Instruction* instruction, int index);
-  void Error(ErrorCode error_code,
-             const Instruction* instruction,
-             int index,
-             Thing* detail);
-
-  Value* NewInt32(int32_t data);
   void ValidateArrayAccess(Instruction* instr);
 
 // InstructionVisitor
@@ -68,7 +61,6 @@ class ELANG_HIR_EXPORT Validator final : public InstructionVisitor,
 
   DominatorTree* const dominator_tree_;
   Editor* const editor_;
-  bool is_valid_;
 
   DISALLOW_COPY_AND_ASSIGN(Validator);
 };

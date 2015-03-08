@@ -38,7 +38,10 @@ Editor::ScopedEdit::~ScopedEdit() {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : FactoryUser(factory), basic_block_(nullptr), function_(function) {
+    : ErrorReporter(factory),
+      FactoryUser(factory),
+      basic_block_(nullptr),
+      function_(function) {
   InitializeFunctionIfNeeded();
 }
 
@@ -121,27 +124,6 @@ BasicBlock* Editor::EditNewBasicBlock(BasicBlock* reference) {
 
 BasicBlock* Editor::EditNewBasicBlock() {
   return EditNewBasicBlock(exit_block());
-}
-
-void Editor::Error(ErrorCode error_code, const Value* error_value) {
-  factory()->AddError(error_code, error_value, std::vector<Thing*>{});
-}
-
-void Editor::Error(ErrorCode error_code, const Value* value, Thing* detail) {
-  factory()->AddError(error_code, value, std::vector<Thing*>{detail});
-}
-
-void Editor::Error(ErrorCode error_code,
-                   const Instruction* instruction,
-                   int index) {
-  factory()->AddError(error_code, instruction, {NewInt32(index)});
-}
-
-void Editor::Error(ErrorCode error_code,
-                   const Instruction* instruction,
-                   int index,
-                   Thing* detail) {
-  factory()->AddError(error_code, instruction, {NewInt32(index), detail});
 }
 
 void Editor::InitializeFunctionIfNeeded() {

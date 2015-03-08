@@ -34,14 +34,15 @@ class HirEditorTest : public testing::HirTest {
 TEST_F(HirEditorTest, ValidateError) {
   editor()->EditNewBasicBlock();
   EXPECT_FALSE(editor()->Commit());
+  EXPECT_EQ("Validate.BasicBlock.Empty block3\n", GetErrors());
+}
 
+TEST_F(HirEditorTest, ValidateError2) {
   editor()->Edit(entry_block());
   editor()->SetInput(entry_block()->last_instruction(), 0, false_value());
   EXPECT_FALSE(editor()->Commit());
-  EXPECT_EQ(
-      "Validate.BasicBlock.Empty block3\n"
-      "Validate.Instruction.Operand bb1:3:ret false, block2 0 void\n",
-      GetErrors());
+  EXPECT_EQ("Validate.Instruction.Operand bb1:3:ret false, block2 0 void\n",
+            GetErrors());
 }
 
 }  // namespace hir

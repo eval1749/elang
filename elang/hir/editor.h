@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/basictypes.h"
-#include "elang/hir/editor.h"
+#include "elang/hir/error_reporter.h"
 #include "elang/hir/hir_export.h"
 #include "elang/hir/factory_user.h"
 
@@ -32,7 +32,7 @@ class Value;
 //
 // Editor
 //
-class ELANG_HIR_EXPORT Editor final : public FactoryUser {
+class ELANG_HIR_EXPORT Editor final : public ErrorReporter, public FactoryUser {
  public:
   class ELANG_HIR_EXPORT ScopedEdit final {
    public:
@@ -55,15 +55,6 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
 
   // Returns dominator tree for current editing function if available.
   DominatorTree* maybe_dominator_tree() const;
-
-  // Validation errors
-  void Error(ErrorCode error_code, const Value* value);
-  void Error(ErrorCode error_code, const Value* value, Thing* detail);
-  void Error(ErrorCode error_code, const Instruction* instruction, int index);
-  void Error(ErrorCode error_code,
-             const Instruction* instruction,
-             int index,
-             Thing* detail);
 
   ////////////////////////////////////////////////////////////
   //

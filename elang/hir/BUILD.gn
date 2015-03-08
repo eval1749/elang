@@ -18,6 +18,8 @@ component("hir") {
     "error_code.h",
     "error_data.cc",
     "error_data.h",
+    "error_reporter.cc",
+    "error_reporter.h",
     "factory.cc",
     "factory.h",
     "factory_config.h",
