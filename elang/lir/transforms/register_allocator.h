@@ -55,7 +55,7 @@ struct Value;
 //
 class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
  public:
-  RegisterAllocator(const Editor* editor,
+  RegisterAllocator(Editor* editor,
                     RegisterAssignments* register_assignments,
                     StackAssignments* stack_assignments);
   ~RegisterAllocator();
@@ -83,7 +83,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   void ProcessInputOperands(Instruction* instruction);
   void ProcessOutputOperand(Instruction* instruction, Value output);
   void ProcessOutputOperands(Instruction* instruction);
-  void ProcessPhiInstructions(BasicBlock* block);
+  void ProcessPhiInputOperands(BasicBlock* block);
   void ProcessPhiOutputOperands(BasicBlock* block);
   void SortAllocatableRegisters();
 
@@ -124,6 +124,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   void VisitCall(CallInstruction* instr);
   void VisitCopy(CopyInstruction* instr);
   void VisitPCopy(PCopyInstruction* instr);
+  void VisitUse(UseInstruction* instr);
 
   std::unique_ptr<RegisterAllocationTracker> allocation_tracker_;
   const std::unique_ptr<ConflictMap> conflit_map_;

@@ -110,7 +110,7 @@ bool IsLeafFunction(const Function* function) {
 //
 // RegisterAllocator
 //
-RegisterAllocator::RegisterAllocator(const Editor* editor,
+RegisterAllocator::RegisterAllocator(Editor* editor,
                                      RegisterAssignments* register_assignments,
                                      StackAssignments* stack_assignments)
     : allocation_tracker_(new RegisterAllocationTracker(register_assignments)),
@@ -154,7 +154,8 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
       continue;
     auto const candidate = it.first;
     auto const next_use = usage_tracker_->NextUseAfter(candidate, instr);
-    DCHECK(next_use);
+    DCHECK(next_use) << "failed to free register for " << candidate << " at "
+                     << *instr;
     if (victim.next_use < next_use->index()) {
       victim.next_use = next_use->index();
       victim.vreg = candidate;
@@ -167,13 +168,27 @@ Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
   }
   if (spilled_victim.vreg.is_virtual())
     return spilled_victim.vreg;
+
+#ifndef _NDEBUG
+  if (!victim.vreg.is_virtual()) {
+    DVLOG(0) << "physical map for " << type << " at " << *instr;
+    for (auto const it : allocation_tracker_->physical_map())
+      DVLOG(0) << it.first << " -> " << it.second;
+    NOTREACHED();
+  }
+#endif
+
   return victim.vreg;
 }
 
 Value RegisterAllocator::EnsureSpillSlot(Value vreg) {
   DCHECK(vreg.is_virtual());
   auto const present = SpillSlotFor(vreg);
-  return present.is_memory_slot() ? present : stack_allocator_->Allocate(vreg);
+  if (present.is_memory_slot())
+    return present;
+  auto const spill_slot = stack_allocator_->Allocate(vreg);
+  allocation_tracker_->SetSpillSlot(vreg, spill_slot);
+  return spill_slot;
 }
 
 void RegisterAllocator::ExpandParallelCopy(const std::vector<ValuePair>& pairs,
@@ -313,7 +328,7 @@ void RegisterAllocator::PopulateAllocationMap(BasicBlock* block) {
 void RegisterAllocator::ProcessBlock(BasicBlock* block) {
   allocation_tracker_->StartBlock(block);
   PopulateAllocationMap(block);
-  ProcessPhiInstructions(block);
+  ProcessPhiOutputOperands(block);
   for (auto const instr : block->instructions()) {
     ProcessInputOperands(instr);
     instr->Accept(this);
@@ -339,10 +354,12 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
     }
   }
 
+  DCHECK(SpillSlotFor(input).is_spill_slot())
+      << input << " doesn't have spill slot at " << *instr;
+
   if (instr->is<ArrayLoadInstruction>() && position == 0) {
     // Since first operand of |ArrayInstruction| is used for GC map, we don't
     // need to allocate physical register for it.
-    DCHECK(SpillSlotFor(input).is_spill_slot());
     return;
   }
 
@@ -363,6 +380,8 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
 }
 
 void RegisterAllocator::ProcessInputOperands(Instruction* instr) {
+  if (instr->is<UseInstruction>())
+    return;
   auto input_position = 0;
   for (auto const input : instr->inputs()) {
     ProcessInputOperand(instr, input, input_position);
@@ -422,20 +441,28 @@ void RegisterAllocator::ProcessOutputOperands(Instruction* instr) {
     ProcessOutputOperand(instr, output);
 }
 
-// TODO(eval1749) Allocate physical registers to frequently used phi outputs.
-void RegisterAllocator::ProcessPhiInstructions(BasicBlock* block) {
-  if (block->phi_instructions().empty())
-    return;
-
-  ProcessPhiOutputOperands(block);
+void RegisterAllocator::ProcessPhiInputOperands(BasicBlock* block) {
+  DCHECK(!block->phi_instructions().empty());
 
   // TODO(eval1749) We should use free output registers in different size, e.g.
-  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register durign
+  // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register during
   // expanding float 32.
   // Insert pcopy expanded into predecessors.
-  for (auto const type : IntegerTypesAndFloatTypes()) {
-    for (auto const predecessor : block->predecessors()) {
-      DCHECK_EQ(predecessor->successors().size(), 1u);
+  for (auto const predecessor : block->predecessors()) {
+    DCHECK_EQ(predecessor->successors().size(), 1u);
+    allocation_tracker_->StartBlock(predecessor);
+    // Reinitialize physical register tracking.
+    for (auto const phi : block->phi_instructions()) {
+      auto const input = phi->FindPhiInputFor(predecessor)->value();
+      if (!input.is_virtual())
+        continue;
+      auto const physical =
+          allocation_tracker_->AllocationOf(predecessor, input);
+      if (!physical.is_physical())
+        continue;
+      allocation_tracker_->TrackPhysical(input, physical);
+    }
+    for (auto const type : IntegerTypesAndFloatTypes()) {
       std::vector<ValuePair> pairs;
       for (auto const phi : block->phi_instructions()) {
         auto const output = phi->output(0);
@@ -453,6 +480,7 @@ void RegisterAllocator::ProcessPhiInstructions(BasicBlock* block) {
   }
 }
 
+// TODO(eval1749) Allocate physical registers to frequently used phi outputs.
 void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
   struct InputFrequency {
     Value value;
@@ -502,10 +530,10 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
     if (allocated)
       continue;
 
-    auto const spill_slot = stack_allocator_->Allocate(output);
+    auto const spill_slot = EnsureSpillSlot(output);
     DCHECK(spill_slot.is_memory_slot());
-    allocation_tracker_->TrackSpillSlot(output, spill_slot);
     allocation_tracker_->SetAllocation(phi, output, spill_slot);
+    allocation_tracker_->TrackSpillSlot(output, spill_slot);
   }
 }
 
@@ -513,6 +541,13 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
 // basic blocks in dominator tree.
 void RegisterAllocator::Run() {
   ProcessBlock(function()->entry_block());
+
+  // Invert 'phi' instructions
+  for (auto const block : function()->basic_blocks()) {
+    if (block->phi_instructions().empty())
+      continue;
+    ProcessPhiInputOperands(block);
+  }
 }
 
 void RegisterAllocator::SortAllocatableRegisters() {
@@ -534,11 +569,12 @@ void RegisterAllocator::SortAllocatableRegisters() {
 }
 
 Value RegisterAllocator::Spill(Instruction* instr, Value victim) {
-  DCHECK(victim.is_virtual());
+  DCHECK(victim.is_virtual()) << "Failed to choose spill victim for " << *instr;
   auto const physical = PhysicalFor(victim);
   DCHECK(physical.is_physical());
-  auto const spill_slot = EnsureSpillSlot(victim);
   allocation_tracker_->FreePhysical(physical);
+  auto const spill_slot = EnsureSpillSlot(victim);
+  allocation_tracker_->SetAllocation(instr, victim, spill_slot);
   allocation_tracker_->TrackSpillSlot(victim, spill_slot);
   allocation_tracker_->InsertBefore(NewSpill(spill_slot, physical), instr);
   return physical;
@@ -609,8 +645,11 @@ void RegisterAllocator::VisitCopy(CopyInstruction* instr) {
     return;
   DCHECK(output.is_virtual());
   if (physical.is_physical()) {
-    MustAllocate(instr, output, physical);
-    return;
+    auto const next_use = usage_tracker_->NextUseAfter(output, instr);
+    if (!usage_tracker_->NextUseAfter(output, next_use)) {
+      MustAllocate(instr, output, physical);
+      return;
+    }
   }
   if (input.is_parameter()) {
     stack_allocator_->Assign(output, input);
@@ -645,5 +684,8 @@ void RegisterAllocator::VisitPCopy(PCopyInstruction* instr) {
   }
 }
 
+void RegisterAllocator::VisitUse(UseInstruction* instr) {
+  DCHECK(!AllocationOf(instr->input(0)).is_void());
+}
 }  // namespace lir
 }  // namespace elang

@@ -38,6 +38,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   void EndBlock(BasicBlock* block);
   void StartBlock(BasicBlock* block);
   void SetPhysical(BasicBlock* block, Value vreg, Value physical);
+  void SetSpillSlot(Value virtual_register, Value spill_slot);
 
   // Query current mapping
   Value AllocationOf(Value virtual_register) const;

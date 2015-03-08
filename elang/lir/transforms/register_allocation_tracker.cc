@@ -133,6 +133,12 @@ void RegisterAllocationTracker::SetPhysical(BasicBlock* block,
   assignments_.SetPhysical(block, vreg, physical);
 }
 
+void RegisterAllocationTracker::SetSpillSlot(Value vreg, Value spill_slot) {
+  DCHECK(vreg.is_virtual());
+  DCHECK(spill_slot.is_memory_proxy());
+  assignments_.SetSpillSlot(vreg, spill_slot);
+}
+
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
