@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 
@@ -29,6 +30,16 @@ base::StringPiece PreparePhiInversionPass::name() const {
   return "prepare_phi_inversion";
 }
 
+void PreparePhiInversionPass::InsertUses(BasicBlock* predecessor,
+                                         BasicBlock* phi_block) {
+  for (auto const phi : phi_block->phi_instructions()) {
+    auto const value = phi->FindPhiInputFor(predecessor)->value();
+    if (!value.is_output())
+      continue;
+    editor()->Append(factory()->NewUseInstruction(value));
+  }
+}
+
 // Inserts a new block between predecessors of phi block if predecessor block
 // has more than one successors.
 void PreparePhiInversionPass::RunOnFunction() {
@@ -45,9 +56,13 @@ void PreparePhiInversionPass::RunOnFunction() {
     if (block->phi_instructions().empty())
       continue;
     for (auto const predecessor : block->predecessors()) {
-      if (!predecessor->HasMoreThanOneSuccessor())
+      if (predecessor->HasMoreThanOneSuccessor()) {
+        items.push_back({block, predecessor});
         continue;
-      items.push_back({block, predecessor});
+      }
+      Editor::ScopedEdit scoped_edit(editor());
+      editor()->Edit(predecessor);
+      InsertUses(predecessor, block);
     }
   }
 
@@ -58,6 +73,7 @@ void PreparePhiInversionPass::RunOnFunction() {
 
     // |new_block| to |phi_block|
     editor()->Edit(new_block);
+    InsertUses(item.predecessor, item.phi_block);
     editor()->SetJump(item.phi_block);
     editor()->Commit();
 

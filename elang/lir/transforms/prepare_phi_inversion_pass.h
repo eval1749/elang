@@ -26,6 +26,8 @@ class ELANG_LIR_EXPORT PreparePhiInversionPass final : public FunctionPass {
   // Pass
   base::StringPiece name() const final;
 
+  void InsertUses(BasicBlock* predecessor, BasicBlock* phi_block);
+
   // FunctionPass
   void RunOnFunction() final;
 

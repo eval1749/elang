@@ -28,7 +28,7 @@ class LirPreparePhiInversionTest : public testing::LirTest {
 // Test cases...
 
 TEST_F(LirPreparePhiInversionTest, Basic) {
-  auto const function = CreateFunctionWithCriticalEdge();
+  auto const function = CreateFunctionWithCriticalEdge2();
   Editor editor(factory(), function);
   Run<PreparePhiInversionPass>(&editor);
   EXPECT_EQ(
@@ -36,7 +36,8 @@ TEST_F(LirPreparePhiInversionTest, Basic) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block3}\n"
-      "  entry\n"
+      "  entry void =\n"
+      "  mov %r1 = ECX\n"
       "  jmp block3\n"
       "block3:\n"
       "  // In: {block1, block4}\n"
@@ -53,12 +54,13 @@ TEST_F(LirPreparePhiInversionTest, Basic) {
       "block5:\n"
       "  // In: {block3}\n"
       "  // Out: {block6}\n"
+      "  use %r1\n"
       "  jmp block6\n"
       "block6:\n"
       "  // In: {block5, block7}\n"
       "  // Out: {block2}\n"
-      "  phi %r1 = block7 42, block5 39\n"
-      "  mov EAX = %r1\n"
+      "  phi %r2 = block7 42, block5 %r1\n"
+      "  mov EAX = %r2\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block6}\n"
