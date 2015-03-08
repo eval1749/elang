@@ -27,7 +27,8 @@ namespace lir {
 // Editor
 //
 Editor::Editor(Factory* factory, Function* function)
-    : basic_block_(nullptr),
+    : ErrorReporter(factory),
+      basic_block_(nullptr),
       factory_(factory),
       function_(function),
       graph_editor_(function) {
@@ -165,21 +166,6 @@ void Editor::Edit(BasicBlock* basic_block) {
 
 void Editor::EditNewBasicBlock() {
   Edit(NewBasicBlock(exit_block()));
-}
-
-void Editor::Error(ErrorCode error_code, Value value) {
-  factory()->AddError(error_code, value, {});
-}
-
-void Editor::Error(ErrorCode error_code, Value value, Value detail) {
-  factory()->AddError(error_code, value, {detail});
-}
-
-void Editor::Error(ErrorCode error_code,
-                   Value value,
-                   Value detail1,
-                   Value detail2) {
-  factory()->AddError(error_code, value, {detail1, detail2});
 }
 
 void Editor::InsertAfter(Instruction* new_instruction,

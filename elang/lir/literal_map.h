@@ -15,10 +15,10 @@
 namespace elang {
 namespace lir {
 
+class ErrorReporter;
 class Factory;
 class Instruction;
 class Literal;
-class Validator;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -38,8 +38,8 @@ class ELANG_LIR_EXPORT LiteralMap {
   Literal* GetLiteral(Value value) const;
 
  private:
+  friend class ErrorReporter;
   friend class Factory;
-  friend class Validator;
 
   // Register |instruction| for error message
   Value RegisterInstruction(Instruction* instruction);

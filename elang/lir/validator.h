@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/lir/error_reporter.h"
 #include "elang/lir/instructions_forward.h"
 #include "elang/lir/instruction_visitor.h"
 #include "elang/lir/lir_export.h"
@@ -29,7 +30,8 @@ struct Value;
 //
 // Validator
 //
-class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
+class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
+                                         public InstructionVisitor {
  public:
   explicit Validator(Editor* editor);
   ~Validator();
@@ -44,20 +46,6 @@ class ELANG_LIR_EXPORT Validator final : public InstructionVisitor {
   BasicBlock* exit_block() const;
   Factory* Validator::factory() const;
   Function* function() const;
-
-  // Validation errors
-  void AddError(ErrorCode error_code,
-                Value value,
-                const std::vector<Value> details);
-  Value AsValue(Instruction* instruction);
-
-  // Helper functions for reporting error
-  void Error(ErrorCode error_code, Instruction* instruction);
-  void Error(ErrorCode error_code, Instruction* instruction, int detail);
-  void Error(ErrorCode error_code, Instruction* instruction, Value detail);
-  void Error(ErrorCode error_code, Value value);
-  void Error(ErrorCode error_code, Value value, Value detail);
-  void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
 
   Literal* GetLiteral(Value value);
 

@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
+#include "elang/lir/error_reporter.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/literals_forward.h"
 
@@ -35,7 +36,7 @@ struct Value;
 //
 // Editor
 //
-class ELANG_LIR_EXPORT Editor final {
+class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
  public:
   typedef LivenessCollection<BasicBlock*, Value> LivenessData;
 
@@ -75,11 +76,6 @@ class ELANG_LIR_EXPORT Editor final {
   // Dominator tree
   const DominatorTree<Function>& BuildDominatorTree() const;
   const DominatorTree<Function>& BuildPostDominatorTree() const;
-
-  // Validation errors
-  void Error(ErrorCode error_code, Value value);
-  void Error(ErrorCode error_code, Value value, Value detail);
-  void Error(ErrorCode error_code, Value value, Value detail1, Value detail2);
 
   // Basic block editing
   bool Commit();

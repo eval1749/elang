@@ -24,7 +24,8 @@ namespace lir {
 //
 // Validator
 //
-Validator::Validator(Editor* editor) : editor_(editor) {
+Validator::Validator(Editor* editor)
+    : ErrorReporter(editor->factory()), editor_(editor) {
 }
 
 Validator::~Validator() {
@@ -44,47 +45,6 @@ Factory* Validator::factory() const {
 
 Function* Validator::function() const {
   return editor()->function();
-}
-
-void Validator::AddError(ErrorCode error_code,
-                         Value value,
-                         const std::vector<Value> details) {
-  editor_->factory()->AddError(error_code, value, details);
-}
-
-Value Validator::AsValue(Instruction* instruction) {
-  return editor_->factory()->literals()->RegisterInstruction(instruction);
-}
-
-void Validator::Error(ErrorCode error_code, Instruction* instruction) {
-  Error(error_code, AsValue(instruction));
-}
-
-void Validator::Error(ErrorCode error_code,
-                      Instruction* instruction,
-                      int detail) {
-  Error(error_code, AsValue(instruction), Value::SmallInt32(detail));
-}
-
-void Validator::Error(ErrorCode error_code,
-                      Instruction* instruction,
-                      Value detail) {
-  Error(error_code, AsValue(instruction), detail);
-}
-
-void Validator::Error(ErrorCode error_code, Value value) {
-  AddError(error_code, value, {});
-}
-
-void Validator::Error(ErrorCode error_code, Value value, Value detail) {
-  AddError(error_code, value, {detail});
-}
-
-void Validator::Error(ErrorCode error_code,
-                      Value value,
-                      Value detail1,
-                      Value detail2) {
-  AddError(error_code, value, {detail1, detail2});
 }
 
 Literal* Validator::GetLiteral(Value value) {
