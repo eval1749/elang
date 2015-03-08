@@ -25,11 +25,12 @@ struct Value;
 
 //////////////////////////////////////////////////////////////////////
 //
-// RegisterUsageTracker
+// RegisterUsageTracker assigns index to instructions and build use-def list.
+// for virtual registers.
 //
 class ELANG_LIR_EXPORT RegisterUsageTracker final {
  public:
-  explicit RegisterUsageTracker(const Editor* editor);
+  explicit RegisterUsageTracker(Editor* editor);
   ~RegisterUsageTracker();
 
   // Returns true if |input| is used after |instruction|.
@@ -39,6 +40,7 @@ class ELANG_LIR_EXPORT RegisterUsageTracker final {
   Instruction* NextUseAfter(Value input, Instruction* instruction) const;
 
  private:
+  const DominatorTree<Function>& dominator_tree_;
   const DominatorTree<Function>& post_dominator_tree_;
   const UseDefList use_def_list_;
 

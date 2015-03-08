@@ -20,9 +20,11 @@ namespace lir {
 //
 // RegisterUsageTracker
 //
-RegisterUsageTracker::RegisterUsageTracker(const Editor* editor)
-    : post_dominator_tree_(editor->BuildPostDominatorTree()),
+RegisterUsageTracker::RegisterUsageTracker(Editor* editor)
+    : dominator_tree_(editor->BuildDominatorTree()),
+      post_dominator_tree_(editor->BuildPostDominatorTree()),
       use_def_list_(UseDefListBuilder(editor->function()).Build()) {
+  editor->AssignIndex();
 }
 
 RegisterUsageTracker::~RegisterUsageTracker() {
@@ -48,16 +50,28 @@ bool RegisterUsageTracker::IsUsedAfter(Value input, Instruction* instr) const {
 Instruction* RegisterUsageTracker::NextUseAfter(Value input,
                                                 Instruction* instr) const {
   DCHECK(input.is_virtual());
+  // Other than 'entry' instruction, instructions should have non-zero index.
+  DCHECK(!instr->is<EntryInstruction>());
+  DCHECK(instr->index()) << "Function is modified after assigning index."
+                         << " You should call Editor::AssignIndex() again.";
   auto const block = instr->basic_block();
   auto candidate = instr;
   for (auto const user : use_def_list_.UsersOf(input)) {
-    if (user->index() < candidate->index())
-      continue;
-    if (user->basic_block() != block ||
-        !post_dominator_tree_.Dominates(block, user->basic_block())) {
+    DCHECK(user->index()) << *user;
+    if (user->basic_block() == block) {
+      if (candidate->index() >= user->index())
+        continue;
+      candidate = user;
       continue;
     }
-    candidate = user;
+    if (dominator_tree_.Dominates(block, user->basic_block())) {
+      candidate = user;
+      continue;
+    }
+    if (post_dominator_tree_.Dominates(user->basic_block(), block)) {
+      candidate = user;
+      continue;
+    }
   }
   return candidate == instr ? nullptr : candidate;
 }
