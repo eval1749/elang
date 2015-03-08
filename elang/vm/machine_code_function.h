@@ -21,6 +21,12 @@ class MachineCodeFunction final : public Collectable {
  public:
   ~MachineCodeFunction() = delete;
 
+  // Expose code area for testing.
+  int code_size_for_testing() const { return code_size_; }
+  const uint8_t* code_start_for_testing() const {
+    return reinterpret_cast<uint8_t*>(entry_point_);
+  }
+
   template <typename Return, typename... Params>
   Return Call(Params... params) {
     typedef Return(Signature)(Params...);
