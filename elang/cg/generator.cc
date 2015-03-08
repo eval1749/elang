@@ -144,6 +144,10 @@ lir::Function* Generator::NewFunction(lir::Factory* factory,
 
 // hir::InstructionVisitor
 
+void Generator::DoDefaultVisit(hir::Instruction* instr) {
+  NOTREACHED() << *instr;
+}
+
 void Generator::VisitBranch(hir::BranchInstruction* instr) {
   editor()->SetBranch(MapInput(instr->input(0)),
                       MapBlock(instr->input(1)->as<hir::BasicBlock>()),
@@ -156,10 +160,18 @@ void Generator::VisitEq(hir::EqInstruction* instr) {
                    lir::FloatCondition::OrderedEqual);
 }
 
+void Generator::VisitExit(hir::ExitInstruction* instr) {
+  DCHECK(instr);
+}
+
 void Generator::VisitGe(hir::GeInstruction* instr) {
   HandleComparison(instr, lir::IntegerCondition::SignedGreaterThanOrEqual,
                    lir::IntegerCondition::UnsignedGreaterThanOrEqual,
                    lir::FloatCondition::OrderedGreaterThanOrEqual);
+}
+
+void Generator::VisitGet(hir::GetInstruction* instr) {
+  DCHECK(instr);
 }
 
 void Generator::VisitGt(hir::GtInstruction* instr) {
@@ -188,6 +200,15 @@ void Generator::VisitLt(hir::LtInstruction* instr) {
   HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
                    lir::IntegerCondition::UnsignedLessThan,
                    lir::FloatCondition::OrderedLessThan);
+}
+
+void Generator::VisitStaticCast(hir::StaticCastInstruction* instr) {
+  DCHECK(!register_map_.count(instr));
+  register_map_[instr] = MapInput(instr->input(0));
+}
+
+void Generator::VisitTuple(hir::TupleInstruction* instr) {
+  DCHECK(instr);
 }
 
 #define V(Name, ...)                                               \

@@ -70,14 +70,19 @@ class Generator final : public ZoneOwner,
                                     hir::Function* hir_function);
 
   // hir::InstructionVisitor
+  void DoDefaultVisit(hir::Instruction* instr) final;
   void VisitBranch(hir::BranchInstruction* instr) final;
   void VisitElement(hir::ElementInstruction* instr) final;
   void VisitEntry(hir::EntryInstruction* instr) final;
+  void VisitExit(hir::ExitInstruction* instr) final;
   void VisitCall(hir::CallInstruction* instr) final;
+  void VisitGet(hir::GetInstruction* instr) final;
   void VisitJump(hir::JumpInstruction* instr) final;
   void VisitLength(hir::LengthInstruction* instr) final;
   void VisitLoad(hir::LoadInstruction* instr) final;
   void VisitRet(hir::RetInstruction* instr) final;
+  void VisitStaticCast(hir::StaticCastInstruction* instr) final;
+  void VisitTuple(hir::TupleInstruction* instr) final;
 
 #define V(Name, ...) void Visit##Name(hir::Name##Instruction* instr) final;
   FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
