@@ -19,6 +19,8 @@ component("lir") {
 
 source_set("core") {
   sources = [
+    "dump_function_pass.h",
+    "dump_function_pass.cc",
     "editor.cc",
     "editor.h",
     "editor_owner.cc",
