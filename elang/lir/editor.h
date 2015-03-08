@@ -136,12 +136,20 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
 
  private:
   void AddEdgesFrom(Instruction* instruction);
+
+  // For cache invalidation.
   void DidChangeControlFlow();
+  void DidInsertInstruction();
+  void DidRemoveInstruction();
+
   void RemoveEdgesFrom(Instruction* instruction);
   bool Validate(Function* function);
 
   // A basic block being edited, or null if not editing.
   BasicBlock* basic_block_;
+  // Counters
+  Counters counters_;
+
   // The factory
   Factory* const factory_;
   // A function being edited.
@@ -162,6 +170,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   mutable std::unique_ptr<LivenessData> liveness_data_;
 
   GraphEditor<Function, BasicBlock> graph_editor_;
+  bool is_index_valid_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

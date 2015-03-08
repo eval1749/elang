@@ -31,7 +31,11 @@ Editor::Editor(Factory* factory, Function* function)
       basic_block_(nullptr),
       factory_(factory),
       function_(function),
-      graph_editor_(function) {
+      graph_editor_(function),
+      is_index_valid_(false) {
+  counters_.block_counter = 0;
+  counters_.instruction_counter = 0;
+  counters_.output_counter = 0;
 }
 
 Editor::~Editor() {
@@ -74,35 +78,38 @@ const ConflictMap& Editor::AnalyzeConflicts() const {
 
 Editor::Counters Editor::AssignIndex() {
   DCHECK(!basic_block_);
-  Counters counters;
-  counters.block_counter = 0;
-  counters.instruction_counter = 0;
-  counters.output_counter = 0;
+  if (is_index_valid_)
+    return counters_;
+  counters_.block_counter = 0;
+  counters_.instruction_counter = 0;
+  counters_.output_counter = 0;
   for (auto const block : function()->basic_blocks()) {
-    block->index_ = counters.block_counter;
-    ++counters.block_counter;
+    block->index_ = counters_.block_counter;
+    ++counters_.block_counter;
     for (auto const phi_instr : block->phi_instructions()) {
       DCHECK(phi_instr->output(0).is_virtual());
-      ++counters.output_counter;
-      phi_instr->index_ = counters.instruction_counter;
-      ++counters.instruction_counter;
+      ++counters_.output_counter;
+      phi_instr->index_ = counters_.instruction_counter;
+      ++counters_.instruction_counter;
     }
     for (auto const instr : block->instructions()) {
       for (auto const output : instr->outputs()) {
         if (output.is_virtual())
-          ++counters.output_counter;
+          ++counters_.output_counter;
       }
-      instr->index_ = counters.instruction_counter;
-      ++counters.instruction_counter;
+      instr->index_ = counters_.instruction_counter;
+      ++counters_.instruction_counter;
     }
   }
-  return counters;
+  is_index_valid_ = true;
+  return counters_;
 }
 
 void Editor::Append(Instruction* new_instruction) {
   DCHECK(!new_instruction->basic_block_);
   DCHECK(!new_instruction->id_);
   DCHECK(basic_block_);
+  DidInsertInstruction();
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block_;
   auto const last = basic_block_->last_instruction();
@@ -146,6 +153,7 @@ bool Editor::Commit() {
 }
 
 void Editor::DidChangeControlFlow() {
+  is_index_valid_ = false;
   dominator_tree_.reset();
   post_dominator_tree_.reset();
   liveness_data_.reset();
@@ -153,6 +161,14 @@ void Editor::DidChangeControlFlow() {
   post_order_list_.reset();
   reverse_pre_order_list_.reset();
   reverse_post_order_list_.reset();
+}
+
+void Editor::DidInsertInstruction() {
+  is_index_valid_ = false;
+}
+
+void Editor::DidRemoveInstruction() {
+  is_index_valid_ = false;
 }
 
 void Editor::Edit(BasicBlock* basic_block) {
@@ -187,6 +203,7 @@ void Editor::InsertBefore(Instruction* new_instruction,
   basic_block_->instructions_.InsertBefore(new_instruction, ref_instruction);
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block_;
+  DidInsertInstruction();
 }
 
 Value Editor::InsertCopyBefore(Value output,
@@ -248,6 +265,7 @@ const OrderedBlockList& Editor::PostOrderList() const {
 void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, old_instruction->basic_block_);
+  DidRemoveInstruction();
   if (old_instruction->IsTerminator()) {
     RemoveEdgesFrom(old_instruction);
     DidChangeControlFlow();
@@ -362,6 +380,8 @@ void Editor::Replace(Instruction* new_instruction,
   new_instruction->basic_block_ = basic_block_;
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
+  DidRemoveInstruction();
+  DidInsertInstruction();
 }
 
 const OrderedBlockList& Editor::ReversePreOrderList() const {
