@@ -61,6 +61,10 @@ AtomicString* Factory::intrinsic_name(IntrinsicName name) {
   return NewAtomicString(names[static_cast<size_t>(name)]);
 }
 
+void Factory::AddError(ErrorData* error_data) {
+  errors_.push_back(error_data);
+}
+
 BasicBlock* Factory::NewBasicBlock() {
   return new (zone()) BasicBlock(this);
 }

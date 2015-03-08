@@ -51,6 +51,10 @@ BasicBlock* Editor::entry_block() const {
   return function_->entry_block();
 }
 
+const std::vector<ErrorData*>& Editor::errors() const {
+  return factory()->errors();
+}
+
 BasicBlock* Editor::exit_block() const {
   return function_->exit_block();
 }
@@ -135,7 +139,7 @@ void Editor::Error(ErrorCode error_code, const Value* value, Thing* detail) {
 void Editor::Error(ErrorCode error_code,
                    const Value* error_value,
                    const std::vector<Thing*>& details) {
-  errors_.push_back(new (zone()) ErrorData(
+  factory()->AddError(new (zone()) ErrorData(
       zone(), error_code, const_cast<Value*>(error_value), details));
 }
 
@@ -356,12 +360,13 @@ BasicBlock* Editor::SplitBefore(Instruction* reference) {
     new_basic_block->instructions_.AppendNode(runner);
     runner->basic_block_ = new_basic_block;
   }
-  DCHECK(Validate(new_basic_block)) << errors_;
+  DCHECK(Validate(new_basic_block)) << errors();
   return new_basic_block;
 }
 
 bool Editor::Validate() {
-  errors_.clear();
+  if (!errors().empty())
+    return false;
   return Validate(function());
 }
 

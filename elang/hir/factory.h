@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
@@ -19,6 +20,8 @@
 namespace elang {
 namespace hir {
 
+enum class ErrorCode;
+class ErrorData;
 enum class IntrinsicName;
 
 //////////////////////////////////////////////////////////////////////
@@ -31,11 +34,13 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
   ~Factory();
 
   const FactoryConfig& config() const { return config_; }
+  const std::vector<ErrorData*>& errors() const { return errors_; }
   Value* false_value() const { return false_value_; }
   AtomicString* intrinsic_name(IntrinsicName name);
   Value* true_value() const { return true_value_; }
   Value* void_value() const { return void_value_; }
 
+  void AddError(ErrorData* error_data);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   BasicBlock* NewBasicBlock();
   Function* NewFunction(FunctionType* function_type);
@@ -55,6 +60,7 @@ class ELANG_HIR_EXPORT Factory final : public InstructionFactory {
  private:
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
+  std::vector<ErrorData*> errors_;
   Value* const false_value_;
   int last_basic_block_id_;
   int last_function_id_;

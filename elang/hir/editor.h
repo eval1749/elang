@@ -50,7 +50,9 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
   ~Editor();
 
   BasicBlock* basic_block() const { return basic_block_; }
-  const std::vector<ErrorData*>& errors() const { return errors_; }
+  // TODO(eval1749) We should use |Factory::errors()| instead of
+  // |Editor::errors()|.
+  const std::vector<ErrorData*>& errors() const;
   BasicBlock* entry_block() const;
   BasicBlock* exit_block() const;
   Function* function() const { return function_; }
@@ -153,7 +155,6 @@ class ELANG_HIR_EXPORT Editor final : public FactoryUser {
 
   BasicBlock* basic_block_;
   std::unique_ptr<DominatorTree> dominator_tree_;
-  std::vector<ErrorData*> errors_;
   Function* const function_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
