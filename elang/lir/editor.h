@@ -82,10 +82,6 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
 
-  // Remove critical edges to blocks having 'phi' instructions. Editor must not
-  // be editing block.
-  void RemoveCriticalEdges();
-
   // Set |index|'s block operand by |new_block|. This function doesn't update
   // `phi` instruction. You may need to update `phi` instruction by
   // |ReplacePhiInput(new_block, old_block)|.

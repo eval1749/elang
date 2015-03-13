@@ -10,6 +10,8 @@ source_set("transforms") {
     "parallel_copy_expander.h",
     "prepare_phi_inversion_pass.cc",
     "prepare_phi_inversion_pass.h",
+    "remove_critical_edges_pass.cc",
+    "remove_critical_edges_pass.h",
     "register_allocation_pass.cc",
     "register_allocation_pass.h",
     "register_allocation_tracker.cc",
@@ -46,6 +48,7 @@ source_set("tests") {
   testonly = true
   sources = [
     "prepare_phi_inversion_pass_unittest.cc",
+    "remove_critical_edges_pass_unittest.cc",
     "stack_allocator_unittest.cc",
   ]
   public_deps = [
