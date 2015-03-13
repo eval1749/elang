@@ -11,7 +11,7 @@
 #include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/lowering_x64_pass.h"
-#include "elang/lir/transforms/prepare_phi_inversion_pass.h"
+#include "elang/lir/transforms/remove_critical_edges_pass.h"
 #include "elang/lir/transforms/register_allocation_pass.h"
 
 namespace elang {
@@ -31,7 +31,7 @@ typedef void PassEntry(Editor* editor);
 
 PassEntry* kPasses[] = {
     &RunPass<LoweringX64Pass>,
-    &RunPass<PreparePhiInversionPass>,
+    &RunPass<RemoveCriticalEdgesPass>,
     &RunPass<DumpFunctionPass>,
     &RunPass<RegisterAssignmentsPass>,
 };
