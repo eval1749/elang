@@ -8,8 +8,6 @@ source_set("transforms") {
   sources = [
     "parallel_copy_expander.cc",
     "parallel_copy_expander.h",
-    "prepare_phi_inversion_pass.cc",
-    "prepare_phi_inversion_pass.h",
     "remove_critical_edges_pass.cc",
     "remove_critical_edges_pass.h",
     "register_allocation_pass.cc",
@@ -47,7 +45,6 @@ source_set("transforms") {
 source_set("tests") {
   testonly = true
   sources = [
-    "prepare_phi_inversion_pass_unittest.cc",
     "remove_critical_edges_pass_unittest.cc",
     "stack_allocator_unittest.cc",
   ]
