@@ -16,9 +16,9 @@
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
-#include "elang/lir/transforms/prepare_phi_inversion_pass.h"
 #include "elang/lir/transforms/register_allocator.h"
 #include "elang/lir/transforms/register_assignments.h"
+#include "elang/lir/transforms/remove_critical_edges_pass.h"
 #include "elang/lir/transforms/stack_allocator.h"
 #include "elang/lir/transforms/stack_assignments.h"
 #include "elang/lir/value.h"
@@ -123,7 +123,7 @@ LirTest::~LirTest() {
 std::string LirTest::Allocate(Function* function) {
   Editor editor(factory(), function);
 
-  Run<PreparePhiInversionPass>(&editor);
+  Run<RemoveCriticalEdgesPass>(&editor);
 
   RegisterAssignments assignments;
   StackAssignments stack_assignments;
