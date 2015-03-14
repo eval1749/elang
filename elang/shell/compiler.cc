@@ -11,6 +11,7 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/logging.h"
+#include "base/strings/stringprintf.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/cg/generator.h"
 #include "elang/compiler/analysis/name_resolver.h"
@@ -329,7 +330,7 @@ int Compiler::CompileAndGo() {
   for (auto code = code_start; code < code_end; ++code) {
     if ((code - code_start) % 16 == 0)
       std::cout << std::endl;
-    std::cout << " " << std::hex << *code;
+    std::cout << " " << base::StringPrintf("%02X", *code);
   }
   std::cout << std::endl;
   return 0;
