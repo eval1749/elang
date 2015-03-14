@@ -502,7 +502,7 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
                                                    isa::OpcodeExt opext) {
   auto const count = instr->input(1);
   auto const output = instr->output(0);
-  DCHECK_EQ(output, instr->input(0));
+  DCHECK_EQ(output, instr->input(0)) << *instr;
 
   last_cmp_instruction_ = instr;
 
