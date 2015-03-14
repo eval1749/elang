@@ -36,6 +36,7 @@ Value LoweringX64Pass::GetRDX(Value type) {
 
 // Rewrite count operand to use |CL| register.
 void LoweringX64Pass::RewriteShiftInstruciton(Instruction* instr) {
+  RewriteToTwoOperands(instr);
   auto const count_input = instr->input(1);
   if (!count_input.is_register())
     return;
