@@ -156,8 +156,8 @@ const int kNumberOfGeneralRegisters = 16;
 const int kAllFloatRegisters = (1 << kNumberOfFloatRegisters) - 1;
 const int kAllGeneralRegisters = (1 << kNumberOfGeneralRegisters) - 1;
 
-// All registers except for XMM0 are allocatable.
-const int kAllocatableFloatRegisters = kAllocatableFloatRegisters;
+// All float registers are allocatable.
+const int kAllocatableFloatRegisters = kAllFloatRegisters;
 
 // All registers except for RBP and RSP are allocatable.
 const int kAllocatableGeneralRegisters =
