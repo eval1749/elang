@@ -9,9 +9,12 @@
 namespace elang {
 namespace lir {
 
+bool Value::is_memory_proxy() const {
+  return is_argument() || is_parameter() || is_spill_slot();
+}
+
 bool Value::is_memory_slot() const {
-  return is_parameter() || is_argument() || is_stack_slot() ||
-         is_frame_slot() || is_spill_slot();
+  return is_stack_slot() || is_frame_slot();
 }
 
 bool Value::is_output() const {
