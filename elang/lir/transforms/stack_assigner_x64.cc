@@ -147,9 +147,10 @@ void StackAssigner::RunForNonLeafFunction() {
     AddPrologue(NewSubInstruction(rsp, rsp, Value::SmallInt64(size)));
     if (local_size) {
       AddPrologue(NewCopyInstruction(Value::StackSlot(rbp, args_size), rbp));
+      // TODO(eval1749) We should use |lea rbp, [rsp+arg_size+base_offset]|
       AddPrologue(NewCopyInstruction(rbp, rsp));
       AddPrologue(NewAddInstruction(
-          rsp, rbp, Value::SmallInt64(args_size + base_offset)));
+          rbp, rbp, Value::SmallInt64(args_size + base_offset)));
     }
   }
 
@@ -203,7 +204,7 @@ void StackAssigner::RunForNonLeafFunction() {
   auto const rsp = Target::GetRegister(isa::RSP);
   auto const size64 = Value::SmallInt64(size);
   if (local_size)
-    AddPrologue(NewCopyInstruction(rbp, Value::StackSlot(rbp, args_size)));
+    AddEpilogue(NewCopyInstruction(rbp, Value::StackSlot(rbp, args_size)));
   AddEpilogue(NewAddInstruction(rsp, rsp, size64));
 }
 
