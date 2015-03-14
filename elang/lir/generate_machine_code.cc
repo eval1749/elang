@@ -34,6 +34,7 @@ PassEntry* kPasses[] = {
     &RunPass<RemoveCriticalEdgesPass>,
     &RunPass<DumpFunctionPass>,
     &RunPass<RegisterAssignmentsPass>,
+    &RunPass<DumpFunctionPass>,
 };
 
 }  // namespace
