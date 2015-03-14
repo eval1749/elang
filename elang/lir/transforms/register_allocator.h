@@ -33,6 +33,7 @@ class LocalAllocation;
 class RegisterAssignments;
 class RegisterAllocationTracker;
 class RegisterUsageTracker;
+class SpillManager;
 class StackAllocator;
 class StackAssignments;
 struct Value;
@@ -72,10 +73,15 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Returns list of all allocatable natural registers for |type|. Returned list
   // contains both allocated and free registers.
   const std::vector<Value>& AllocatableRegistersFor(Value type) const;
+  // Returns physical register of if 'assign' instruction just before |instr|,
+  // otherwise returns void.
+  Value AssignedPhysicalFor(Instruction* instr);
   Value EnsureSpillSlot(Value vreg);
   void ExpandParallelCopy(const std::vector<ValuePair>& pairs,
                           Instruction* ref_instr);
   void FreeInputOperandsIfNotUsed(Instruction* instruction);
+  bool HasBackEdge(BasicBlock* block) const;
+  bool IsBackEdge(BasicBlock* from, BasicBlock* to) const;
   void MustAllocate(Instruction* instruction, Value output, Value physical);
   void PopulateAllocationMap(BasicBlock* block);
   void ProcessBlock(BasicBlock* block);
@@ -83,8 +89,9 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   void ProcessInputOperands(Instruction* instruction);
   void ProcessOutputOperand(Instruction* instruction, Value output);
   void ProcessOutputOperands(Instruction* instruction);
-  void ProcessPhiInputOperands(BasicBlock* block);
+  void ProcessPhiInputOperands(BasicBlock* block, BasicBlock* predecessor);
   void ProcessPhiOutputOperands(BasicBlock* block);
+  void ProcessPredecessors(BasicBlock* block);
   void SortAllocatableRegisters();
 
   // Returns true if |output| is allocated to |physical|, or returns false.
@@ -99,7 +106,6 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Spill physical register allocated to virtual register |victim| before
   // |instruction|.
   Value Spill(Instruction* instruction, Value victim);
-  Instruction* NewReload(Value physical, Value spill_slot);
   Instruction* NewSpill(Value spill_slot, Value physical);
 
   ////////////////////////////////////////////////////////////
@@ -127,7 +133,6 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   void VisitUse(UseInstruction* instr);
 
   std::unique_ptr<RegisterAllocationTracker> allocation_tracker_;
-  const std::unique_ptr<ConflictMap> conflit_map_;
   const DominatorTree<Function>& dominator_tree_;
   const Editor* const editor_;
 
@@ -139,6 +144,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   LocalAllocation* local_map_;
   const LivenessCollection<BasicBlock*, Value>& liveness_;
   const std::unique_ptr<StackAllocator> stack_allocator_;
+  const std::unique_ptr<SpillManager> spill_manager_;
   const std::unique_ptr<RegisterUsageTracker> usage_tracker_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAllocator);

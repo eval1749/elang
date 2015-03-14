@@ -53,7 +53,6 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   void FreeVirtual(Value virtual_register);
   void FreePhysical(Value physical);
   void TrackPhysical(Value virtual_register, Value physical);
-  void TrackSpillSlot(Value virtual_register, Value stack_slot);
 
   // Returns true if |output| is allocated to |physical|, otherwise returns
   // false.

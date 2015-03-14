@@ -13,11 +13,12 @@
 
 namespace elang {
 
-template <typename Graph>
-class DominatorTree;
+template <typename BasicBlock, typename Value>
+class LivenessCollection;
 
 namespace lir {
 
+class BasicBlock;
 class Editor;
 class Function;
 class Instruction;
@@ -36,12 +37,11 @@ class ELANG_LIR_EXPORT RegisterUsageTracker final {
   // Returns true if |input| is used after |instruction|.
   bool IsUsedAfter(Value input, Instruction* instruction) const;
 
-  // Returns next user of |input| after |instruction|.
+  // Returns next user of |input| after |instruction| in block.
   Instruction* NextUseAfter(Value input, Instruction* instruction) const;
 
  private:
-  const DominatorTree<Function>& dominator_tree_;
-  const DominatorTree<Function>& post_dominator_tree_;
+  const LivenessCollection<BasicBlock*, Value>& liveness_;
   const UseDefList use_def_list_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterUsageTracker);

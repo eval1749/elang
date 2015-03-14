@@ -8,6 +8,8 @@
 
 #include "base/logging.h"
 #include "elang/base/analysis/dominator_tree.h"
+#include "elang/base/analysis/liveness.h"
+#include "elang/base/analysis/liveness_collection.h"
 #include "elang/lir/analysis/use_def_list_builder.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/instructions.h"
@@ -21,8 +23,7 @@ namespace lir {
 // RegisterUsageTracker
 //
 RegisterUsageTracker::RegisterUsageTracker(Editor* editor)
-    : dominator_tree_(editor->BuildDominatorTree()),
-      post_dominator_tree_(editor->BuildPostDominatorTree()),
+    : liveness_(editor->AnalyzeLiveness()),
       use_def_list_(UseDefListBuilder(editor->function()).Build()) {
   editor->AssignIndex();
 }
@@ -33,13 +34,11 @@ RegisterUsageTracker::~RegisterUsageTracker() {
 bool RegisterUsageTracker::IsUsedAfter(Value input, Instruction* instr) const {
   DCHECK(input.is_virtual());
   auto const block = instr->basic_block();
+  auto& live_out = liveness_.LivenessOf(block).out();
+  if (live_out.Contains(liveness_.NumberOf(input)))
+    return true;
   for (auto const user : use_def_list_.UsersOf(input)) {
-    if (user->basic_block() == block) {
-      if (user->index() <= instr->index())
-        continue;
-      return true;
-    }
-    if (!post_dominator_tree_.Dominates(block, user->basic_block()))
+    if (user->basic_block() != block)
       continue;
     if (user->index() > instr->index())
       return true;
@@ -55,25 +54,14 @@ Instruction* RegisterUsageTracker::NextUseAfter(Value input,
   DCHECK(instr->index()) << "Function is modified after assigning index."
                          << " You should call Editor::AssignIndex() again.";
   auto const block = instr->basic_block();
-  auto candidate = instr;
   for (auto const user : use_def_list_.UsersOf(input)) {
     DCHECK(user->index()) << *user;
-    if (user->basic_block() == block) {
-      if (candidate->index() >= user->index())
-        continue;
-      candidate = user;
+    if (user->basic_block() != block)
       continue;
-    }
-    if (dominator_tree_.Dominates(block, user->basic_block())) {
-      candidate = user;
-      continue;
-    }
-    if (post_dominator_tree_.Dominates(user->basic_block(), block)) {
-      candidate = user;
-      continue;
-    }
+    if (user->index() > instr->index())
+      return user;
   }
-  return candidate == instr ? nullptr : candidate;
+  return nullptr;
 }
 
 }  // namespace lir

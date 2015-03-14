@@ -5,6 +5,8 @@
 #include "elang/lir/transforms/register_assignments.h"
 
 #include "base/logging.h"
+#include "elang/lir/instructions.h"
+#include "elang/lir/literals.h"
 #include "elang/lir/value.h"
 
 namespace elang {
@@ -107,7 +109,7 @@ Value RegisterAssignments::AllocationOf(BasicBlock* block, Value value) const {
   if (!value.is_virtual())
     return value;
   auto const it = block_value_map_.find(std::make_pair(block, value));
-  DCHECK(it != block_value_map_.end());
+  DCHECK(it != block_value_map_.end()) << value << " isn't found in " << *block;
   return it->second;
 }
 
@@ -115,7 +117,7 @@ Value RegisterAssignments::AllocationOf(Instruction* instr, Value value) const {
   if (!value.is_virtual())
     return value;
   auto const it = instruction_value_map_.find(std::make_pair(instr, value));
-  DCHECK(it != instruction_value_map_.end());
+  DCHECK(it != instruction_value_map_.end()) << "No allocation for " << *instr;
   return it->second;
 }
 

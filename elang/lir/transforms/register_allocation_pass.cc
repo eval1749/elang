@@ -64,9 +64,10 @@ void RegisterAssignmentsPass::RunOnFunction() {
   {
     auto const entry_block = editor()->entry_block();
     auto const entry_instr = entry_block->first_instruction();
+    auto const ref_instr = entry_instr->next();
     editor()->Edit(entry_block);
     for (auto const instr : stack_assignments_->prologue())
-      editor()->InsertAfter(instr, entry_instr);
+      editor()->InsertBefore(instr, ref_instr);
     editor()->Commit();
   }
 

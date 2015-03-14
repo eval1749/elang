@@ -100,16 +100,6 @@ Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
   return it == physical_map_.end() ? Value() : it->second;
 }
 
-Value RegisterAllocationTracker::SpillSlotFor(Value vreg) const {
-  DCHECK(vreg.is_virtual());
-  return assignments_.SpillSlotFor(vreg);
-}
-
-void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
-  DCHECK(block);
-  physical_map_.clear();
-}
-
 void RegisterAllocationTracker::SetAllocation(Instruction* instr,
                                               Value vreg,
                                               Value allocation) {
@@ -144,20 +134,26 @@ void RegisterAllocationTracker::SetSpillSlot(Value vreg, Value spill_slot) {
   assignments_.SetSpillSlot(vreg, spill_slot);
 }
 
+Value RegisterAllocationTracker::SpillSlotFor(Value vreg) const {
+  DCHECK(vreg.is_virtual());
+  return assignments_.SpillSlotFor(vreg);
+}
+
+void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
+  DCHECK(block);
+  physical_map_.clear();
+}
+
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
   DCHECK_EQ(vreg.type, physical.type);
   DCHECK_EQ(vreg.size, physical.size);
   DCHECK(!physical_map_.count(vreg));
-  DCHECK(VirtualFor(physical).is_void());
+  DCHECK(VirtualFor(physical).is_void())
+      << "Can't allocate " << vreg << " to " << physical
+      << ", it is already allocated to " << VirtualFor(physical);
   physical_map_[vreg] = physical;
-}
-
-void RegisterAllocationTracker::TrackSpillSlot(Value vreg, Value spill_slot) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(spill_slot.is_memory_proxy());
-  DCHECK_EQ(SpillSlotFor(vreg), spill_slot);
 }
 
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
@@ -168,7 +164,8 @@ bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
   auto const present = VirtualFor(physical);
-  if (present.is_virtual()) {
+  if (!present.is_void()) {
+    DCHECK(present.is_virtual()) << present;
     DCHECK_NE(present, vreg);
     return false;
   }
