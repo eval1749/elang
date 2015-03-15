@@ -159,10 +159,10 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
                                             Value vreg,
                                             Value physical) {
-  DCHECK_EQ(vreg.type, physical.type);
-  DCHECK_EQ(vreg.size, physical.size);
-  DCHECK(vreg.is_virtual());
-  DCHECK(physical.is_physical());
+  DCHECK_EQ(vreg.type, physical.type) << *instr << " " << physical;
+  DCHECK_EQ(vreg.size, physical.size) << *instr << " " << physical;
+  DCHECK(vreg.is_virtual()) << *instr << " " << physical;
+  DCHECK(physical.is_physical()) << *instr << " " << physical;
   auto const present = VirtualFor(physical);
   if (!present.is_void()) {
     DCHECK(present.is_virtual()) << present;

@@ -80,7 +80,7 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
         "  // Out: {block2}\n"                                          \
         "  entry XMM0, XMM1 =\n"                                        \
         "  pcopy %f1d, %f2d = XMM0, XMM1\n"                             \
-        "  assign %f4d = %f1d\n"                                        \
+        "  mov %f4d = %f1d\n"                                           \
         "  " mnemonic                                                   \
         " %f5d = %f4d, %f2d\n"                                          \
         "  mov %f3d = %f5d\n"                                           \
@@ -120,7 +120,7 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
         "  // Out: {block2}\n"                                          \
         "  entry ECX, EDX =\n"                                          \
         "  pcopy %r1, %r2 = ECX, EDX\n"                                 \
-        "  assign %r4 = %r1\n"                                          \
+        "  mov %r4 = %r1\n"                                             \
         "  " mnemonic                                                   \
         " %r5 = %r4, %r2\n"                                             \
         "  mov %r3 = %r5\n"                                             \
@@ -251,11 +251,15 @@ TEST_F(LirLoweringX64Test, MulInt) {
         "  // Out: {block2}\n"                                                 \
         "  entry ECX, EDX =\n"                                                 \
         "  pcopy %r1, %r2 = ECX, EDX\n"                                        \
+        "  mov %r5 = %r1\n"                                                    \
         "  " mnemonic                                                          \
-        " %r4 = %r1, 5\n"                                                      \
+        " %r6 = %r5, 5\n"                                                      \
+        "  mov %r4 = %r6\n"                                                    \
+        "  mov %r7 = %r4\n"                                                    \
         "  mov ECX = %r2\n"                                                    \
         "  " mnemonic                                                          \
-        " %r3 = %r4, ECX\n"                                                    \
+        " %r8 = %r7, ECX\n"                                                    \
+        "  mov %r3 = %r8\n"                                                    \
         "  mov EAX = %r3\n"                                                    \
         "  ret block2\n"                                                       \
         "block2:\n"                                                            \

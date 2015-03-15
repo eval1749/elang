@@ -134,17 +134,45 @@ Value RegisterAllocator::AllocationOf(Value value) const {
   return value.is_virtual() ? allocation_tracker_->AllocationOf(value) : value;
 }
 
+// We must allocate same physical register to %tmp1 and %tmp2 for two
+// operands arithmetic operation:
+//  copy %tmp1 = %2
+//  add %tmp2 = %tmp1 %3
+//  copy %5 = %tmp2
 Value RegisterAllocator::AssignedPhysicalFor(Instruction* instr) {
-  auto const previous = instr->previous();
-  if (!previous || !previous->is<AssignInstruction>())
+  if (instr->CountOutputs() != 1 || instr->CountInputs() != 2)
     return Value();
-  auto const output = previous->output(0);
-  auto const physical = allocation_tracker_->AllocationOf(previous, output);
+  auto const previous = instr->previous();
+  if (!previous || !previous->is<CopyInstruction>())
+    return Value();
+  auto const next = instr->next();
+  if (!next->is<CopyInstruction>())
+    return Value();
+
+  auto const previous_output = previous->output(0);
+  auto const output = instr->output(0);
+  auto const next_output = next->output(0);
+
+  if (Value::TypeOf(previous_output) != Value::TypeOf(output))
+    return Value();
+  if (Value::TypeOf(next_output) != Value::TypeOf(next_output))
+    return Value();
+
+  if (instr->input(0) != previous_output || next->input(0) != output)
+    return Value();
+
+  if (usage_tracker_->NextUseAfter(previous_output, instr))
+    return Value();
+  if (usage_tracker_->NextUseAfter(output, next))
+    return Value();
+
+  auto const physical =
+      allocation_tracker_->AllocationOf(previous, previous_output);
   DCHECK(physical.is_physical())
       << *previous << " must output to physical register, but " << physical;
-  DCHECK(allocation_tracker_->PhysicalFor(output).is_void())
+  DCHECK(allocation_tracker_->PhysicalFor(previous_output).is_void())
       << *previous << " output is must be free, but "
-      << allocation_tracker_->PhysicalFor(output);
+      << allocation_tracker_->PhysicalFor(previous_output);
   return physical;
 }
 
@@ -416,9 +444,7 @@ void RegisterAllocator::ProcessPhiInputOperands(BasicBlock* block,
   if (block->phi_instructions().empty())
     return;
 
-  PhiExpander expander(allocation_tracker_.get(),
-                       spill_manager_.get(),
-                       block,
+  PhiExpander expander(allocation_tracker_.get(), spill_manager_.get(), block,
                        predecessor);
 
   // Tells available registers to |expander|.
@@ -568,17 +594,10 @@ bool RegisterAllocator::TryAllocate(Instruction* instr,
 // InstructionVisitor
 void RegisterAllocator::DoDefaultVisit(Instruction* instr) {
   FreeInputOperandsIfNotUsed(instr);
-  if (instr->CountOutputs() == 1 && instr->CountInputs() >= 1) {
-    auto const physical = AssignedPhysicalFor(instr);
-    if (physical.is_physical()) {
-      // We must allocate same physical register to %tmp1 and %tmp2 for two
-      // operands arithmetic operation:
-      //  assign %tmp1 = %2
-      //  add %tmp2 = %tmp1 %3
-      //  copy %5 = %tmp2
-      MustAllocate(instr, instr->output(0), physical);
-      return;
-    }
+  auto const physical = AssignedPhysicalFor(instr);
+  if (physical.is_physical()) {
+    MustAllocate(instr, instr->output(0), physical);
+    return;
   }
 
   ProcessOutputOperands(instr);
@@ -610,12 +629,17 @@ void RegisterAllocator::VisitCopy(CopyInstruction* instr) {
   if (output.is_physical())
     return;
   DCHECK(output.is_virtual());
-  if (physical.is_physical()) {
+  if (physical.is_physical() && PhysicalFor(input).is_void()) {
+#if 0
     auto const next_use = usage_tracker_->NextUseAfter(output, instr);
     if (next_use && !usage_tracker_->IsUsedAfter(output, next_use)) {
       MustAllocate(instr, output, physical);
       return;
     }
+#else
+    MustAllocate(instr, output, physical);
+    return;
+#endif
   }
   if (input.is_parameter())
     stack_allocator_->Assign(output, input);

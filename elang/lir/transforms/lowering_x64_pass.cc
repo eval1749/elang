@@ -49,19 +49,24 @@ void LoweringX64Pass::RewriteShiftInstruciton(Instruction* instr) {
 // Rewrite three operands instruction to two operands instruction.
 //   add %a = %b, %c
 //   =>
-//   assign %1 = %b
+//   copy %1 = %b
 //   add %2 = %1, %c
 //   copy %a = %2
 void LoweringX64Pass::RewriteToTwoOperands(Instruction* instr) {
   // TODO(eval1749) If target supports VEX instruction, we don't need to rewrite
   // floating operation to two operands.
   auto const output = instr->output(0);
-  auto const assign_instr =
-      NewAssignInstruction(NewRegister(output), instr->input(0));
-  editor()->InsertBefore(assign_instr, instr);
+  if (!instr->input(0).is_virtual()) {
+    auto const new_input = NewRegister(output);
+    editor()->InsertBefore(NewLiteralInstruction(new_input, instr->input(0)),
+                           instr);
+    editor()->SetInput(instr, 0, new_input);
+  }
+  auto const new_temp = NewRegister(output);
+  editor()->InsertCopyBefore(new_temp, instr->input(0), instr);
   auto const new_output = NewRegister(output);
   editor()->SetOutput(instr, 0, new_output);
-  editor()->SetInput(instr, 0, assign_instr->output(0));
+  editor()->SetInput(instr, 0, new_temp);
   editor()->InsertCopyBefore(output, new_output, instr->next());
 }
 
