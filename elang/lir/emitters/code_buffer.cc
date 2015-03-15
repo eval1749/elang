@@ -166,19 +166,19 @@ CodeBuffer::Jump::Jump(int opcode, int opcode_size, int operand_size)
 
 //////////////////////////////////////////////////////////////////////
 //
-// CodeBuffer::JumpData
+// CodeBuffer::JumpSite
 //
-class CodeBuffer::JumpData final : public CodeBlock {
-  DECLARE_CASTABLE_CLASS(JumpData, CodeBlock);
+class CodeBuffer::JumpSite final : public CodeBlock {
+  DECLARE_CASTABLE_CLASS(JumpSite, CodeBlock);
 
  public:
-  JumpData(int buffer_offset,
+  JumpSite(int buffer_offset,
            int code_offset,
            const Jump& long_jump,
            const Jump& short_jump,
            BasicBlockData* target_block);
 
-  ~JumpData() final = default;
+  ~JumpSite() final = default;
 
   bool is_long_jump() const { return is_long_jump_; }
   const Jump& jump() const { return is_long_jump_ ? long_jump_ : short_jump_; }
@@ -196,10 +196,10 @@ class CodeBuffer::JumpData final : public CodeBlock {
   const Jump short_jump_;
   const BasicBlockData* const target_block_;
 
-  DISALLOW_COPY_AND_ASSIGN(JumpData);
+  DISALLOW_COPY_AND_ASSIGN(JumpSite);
 };
 
-CodeBuffer::JumpData::JumpData(int buffer_offset,
+CodeBuffer::JumpSite::JumpSite(int buffer_offset,
                                int code_offset,
                                const Jump& long_jump,
                                const Jump& short_jump,
@@ -213,7 +213,7 @@ CodeBuffer::JumpData::JumpData(int buffer_offset,
   DCHECK_GT(long_jump_.size(), short_jump_.size());
 }
 
-bool CodeBuffer::JumpData::IsCrossing(int ref_code_offset) const {
+bool CodeBuffer::JumpSite::IsCrossing(int ref_code_offset) const {
   if (code_offset() < ref_code_offset) {
     //    jump target
     //    -- |code_offset| --
@@ -227,11 +227,11 @@ bool CodeBuffer::JumpData::IsCrossing(int ref_code_offset) const {
   return target_block_->code_offset() < ref_code_offset;
 }
 
-int CodeBuffer::JumpData::RelativeOffset() const {
+int CodeBuffer::JumpSite::RelativeOffset() const {
   return target_block_->code_offset() - (code_offset() + jump().size());
 }
 
-const CodeBuffer::Jump& CodeBuffer::JumpData::UseLongJump() {
+const CodeBuffer::Jump& CodeBuffer::JumpSite::UseLongJump() {
   DCHECK(!is_long_jump_);
   is_long_jump_ = true;
   set_code_length(long_jump_.size());
@@ -250,12 +250,12 @@ class CodeBuffer::JumpResolver final {
   void Run();
 
  private:
-  void AnalyzeJump(JumpData* data);
-  void SetJump(const JumpData* data);
+  void AnalyzeJump(JumpSite* data);
+  void SetJump(const JumpSite* data);
   void UpdateWorkSet(int code_offset);
 
   CodeBuffer* const code_buffer_;
-  std::unordered_set<JumpData*> work_set_;
+  std::unordered_set<JumpSite*> work_set_;
 
   DISALLOW_COPY_AND_ASSIGN(JumpResolver);
 };
@@ -264,7 +264,7 @@ CodeBuffer::JumpResolver::JumpResolver(CodeBuffer* code_buffer)
     : code_buffer_(code_buffer) {
 }
 
-void CodeBuffer::JumpResolver::AnalyzeJump(JumpData* data) {
+void CodeBuffer::JumpResolver::AnalyzeJump(JumpSite* data) {
   if (data->is_long_jump())
     return;
   auto const relative_offset = data->RelativeOffset();
@@ -278,8 +278,8 @@ void CodeBuffer::JumpResolver::AnalyzeJump(JumpData* data) {
 }
 
 void CodeBuffer::JumpResolver::Run() {
-  work_set_.insert(code_buffer_->jump_data_list_.begin(),
-                   code_buffer_->jump_data_list_.end());
+  work_set_.insert(code_buffer_->jump_sites_.begin(),
+                   code_buffer_->jump_sites_.end());
   while (!work_set_.empty()) {
     auto const data = *work_set_.begin();
     AnalyzeJump(data);
@@ -288,7 +288,7 @@ void CodeBuffer::JumpResolver::Run() {
 }
 
 void CodeBuffer::JumpResolver::UpdateWorkSet(int code_offset) {
-  for (auto const data : code_buffer_->jump_data_list_) {
+  for (auto const data : code_buffer_->jump_sites_) {
     if (work_set_.count(data))
       continue;
     if (!data->IsCrossing(code_offset))
@@ -350,8 +350,8 @@ void CodeBuffer::Finish(const Factory* factory,
                         api::MachineCodeBuilder* builder) {
   // TODO(eval1749) Fix code references, e.g. branches, indirect jumps, etc.
   JumpResolver(this).Run();
-  for (auto const jump_data : jump_data_list_)
-    PatchJump(jump_data);
+  for (auto const jump_site : jump_sites_)
+    PatchJump(jump_site);
   builder->PrepareCode(code_size_);
 
   ValueEmitter value_emitter(factory, builder);
@@ -423,11 +423,11 @@ void CodeBuffer::EmitJump(const Jump& long_jump,
   EndBasicBlock();
   DCHECK_NE(long_jump.opcode, short_jump.opcode);
   DCHECK_GT(long_jump.size(), short_jump.size());
-  auto const jump_data =
-      new (zone()) JumpData(buffer_size(), code_size_, long_jump, short_jump,
+  auto const jump_site =
+      new (zone()) JumpSite(buffer_size(), code_size_, long_jump, short_jump,
                             block_data_map_[target_block]);
-  code_locations_.push_back(jump_data);
-  jump_data_list_.push_back(jump_data);
+  code_locations_.push_back(jump_site);
+  jump_sites_.push_back(jump_site);
   // Reserve buffer for long jump.
   bytes_.resize(buffer_size() + long_jump.size());
   code_size_ += short_jump.size();
@@ -463,10 +463,10 @@ void CodeBuffer::Patch32(int buffer_offset, int value) {
   bytes_[buffer_offset + 3] = static_cast<uint8_t>(value >> 24);
 }
 
-void CodeBuffer::PatchJump(const JumpData* jump_data) {
-  auto const jump = jump_data->jump();
+void CodeBuffer::PatchJump(const JumpSite* jump_site) {
+  auto const jump = jump_site->jump();
   DCHECK_LE(jump.opcode_size, 2);
-  auto buffer_offset = jump_data->buffer_offset();
+  auto buffer_offset = jump_site->buffer_offset();
 
   // Set opcode of jump instruction
   auto opcode = jump.opcode;
@@ -478,7 +478,7 @@ void CodeBuffer::PatchJump(const JumpData* jump_data) {
   ++buffer_offset;
 
   // Set operand of jump instruction
-  auto const relative_offset = jump_data->RelativeOffset();
+  auto const relative_offset = jump_site->RelativeOffset();
   if (jump.operand_size == 4) {
     DCHECK(!Is8Bit(relative_offset));
     Patch32(buffer_offset, relative_offset);

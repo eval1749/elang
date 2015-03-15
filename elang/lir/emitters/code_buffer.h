@@ -66,7 +66,7 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
   class CallSite;
   class CodeBlock;
   class CodeLocation;
-  class JumpData;
+  class JumpSite;
   class JumpResolver;
   class ValueInCode;
 
@@ -74,7 +74,7 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
 
   void Patch8(int buffer_offset, int value);
   void Patch32(int buffer_offset, int value);
-  void PatchJump(const JumpData* jump_data);
+  void PatchJump(const JumpSite* jump_site);
   void RelocateAfter(int code_offset, int delta);
 
   std::unordered_map<const BasicBlock*, BasicBlockData*> block_data_map_;
@@ -82,7 +82,7 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
   std::vector<CodeLocation*> code_locations_;
   int code_size_;
   BasicBlockData* current_block_data_;
-  std::vector<JumpData*> jump_data_list_;
+  std::vector<JumpSite*> jump_sites_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeBuffer);
 };
