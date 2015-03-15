@@ -33,7 +33,13 @@ using isa::Tttn;
 typedef CodeBuffer::Jump Jump;
 
 bool Is8Bit(int data) {
-  return data >= -128 && data <= 127;
+  return data >= static_cast<int64_t>(std::numeric_limits<int8_t>::min()) &&
+         data <= static_cast<int64_t>(std::numeric_limits<int8_t>::max());
+}
+
+bool Is16Bit(int data) {
+  return data >= static_cast<int64_t>(std::numeric_limits<int16_t>::min()) &&
+         data <= static_cast<int64_t>(std::numeric_limits<int16_t>::max());
 }
 
 bool Is32Bit(int64_t data) {
@@ -213,6 +219,10 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 
   const Factory* const factory_;
 
+  // Holds an instruction which is fused in previous instruction, otherwise
+  // it is |nullptr| if no fusion is occurred.
+  Instruction* fused_instruction_;
+
   // Last 'cmp' instruction in current processing basic block for
   // detecting condition code of conditional register in 'br' and 'if'
   // instruction.
@@ -225,6 +235,7 @@ InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
                                              CodeBuffer* code_buffer)
     : CodeBufferUser(code_buffer),
       factory_(factory),
+      fused_instruction_(nullptr),
       last_cmp_instruction_(nullptr) {
 }
 
@@ -591,6 +602,13 @@ IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) const {
 
 // InstructionHandler
 void InstructionHandlerX64::Handle(Instruction* instr) {
+  if (fused_instruction_) {
+    DCHECK_EQ(fused_instruction_, instr)
+        << "Invalid fused instruction: expected=" << *fused_instruction_
+        << " actual=" << *instr;
+    fused_instruction_ = nullptr;
+    return;
+  }
   instr->Accept(this);
   last_cmp_instruction_ = instr->as<CmpInstruction>();
 }
@@ -627,8 +645,21 @@ void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
 //  REX.W 01 /r     ADD r/m64, r64
 //  REX.W 03 /r     ADD r64, r/m64
 //
+// Fusion:
+//  C2 Iw RET imm16 -- r/m64 is RSP and next instruction is RET.
+//
 void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
   auto const output = instr->output(0);
+  auto const right = instr->input(1);
+  if (output == Target::GetRegister(isa::RSP) && right.is_immediate() &&
+      Is16Bit(right.data) && instr->next()->is<RetInstruction>()) {
+    fused_instruction_ = instr->next();
+    EmitOpcode(isa::Opcode::RET_Iw);
+    // TODO(eval1749) If target function uses Windows calling convention, we
+    // should check |right.data % 16 == 8|.
+    Emit16(right.data);
+    return;
+  }
   DCHECK_EQ(output, instr->input(0)) << *instr;
   if (output.is_integer()) {
     HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,

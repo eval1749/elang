@@ -540,6 +540,16 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   EXPECT_EQ("0000 48 8B 45 00 89 55 08 C3\n", Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, FuseAddRet) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(editor.entry_block());
+  auto const rsp = Target::GetRegister(isa::RSP);
+  editor.Append(NewAddInstruction(rsp, rsp, Value::SmallInt64(24)));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ("0000 C2 18 00\n", Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, LiteralInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
