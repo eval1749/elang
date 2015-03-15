@@ -833,7 +833,7 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
       EmitRexPrefix(Target::GetRegister(isa::EAX), value32);
       if (imm32 >= 0 && output.is_physical()) {
         // B8+r imm32: mov r32, imm32
-        EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, value32.data);
+        EmitOpcodePlus(isa::Opcode::MOV_rAX_Iv, value32.data);
         Emit32(imm32);
         return;
       }
@@ -848,7 +848,7 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
     // REX.W B8+r imm64: MOV r64, imm64
     DCHECK(output.is_physical());
     EmitRexPrefix(input, output);
-    EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, output.data);
+    EmitOpcodePlus(isa::Opcode::MOV_rAX_Iv, output.data);
     Emit64(imm64);
     return;
   }
@@ -872,7 +872,7 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
 
   if (output.is_physical()) {
     // B8+r imm32: mov r32, imm32
-    EmitOpcodePlus(isa::Opcode::MOV_eAX_Iv, output.data);
+    EmitOpcodePlus(isa::Opcode::MOV_rAX_Iv, output.data);
     EmitOperand(input);
     return;
   }

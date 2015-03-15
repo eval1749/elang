@@ -34,7 +34,7 @@ namespace lir {
   V2(0x02, ADD, Gb, Eb)                           \
   V2(0x03, ADD, Gv, Ev)                           \
   V2(0x04, ADD, AL, Ib)                           \
-  V2(0x05, ADD, eAX, Iz)                          \
+  V2(0x05, ADD, rAX, Iz)                          \
   V1(0x06, PUSH, ES)                              \
   V1(0x07, POP, ES)                               \
   V2(0x08, OR, Eb, Gb)                            \
@@ -42,7 +42,7 @@ namespace lir {
   V2(0x0A, OR, Gb, Eb)                            \
   V2(0x0B, OR, Gv, Ev)                            \
   V2(0x0C, OR, AL, Ib)                            \
-  V2(0x0D, OR, eAX, Iz)                           \
+  V2(0x0D, OR, rAX, Iz)                           \
   V1(0x0E, PUSH, CS)                              \
   /* 0x10 */                                      \
   V2(0x10, ADC, Eb, Gb)                           \
@@ -50,7 +50,7 @@ namespace lir {
   V2(0x12, ADC, Gb, Eb)                           \
   V2(0x13, ADC, Gv, Ev)                           \
   V2(0x14, ADC, AL, Ib)                           \
-  V2(0x15, ADC, eAX, Iz)                          \
+  V2(0x15, ADC, rAX, Iz)                          \
   V1(0x16, PUSH, SS)                              \
   V1(0x17, POP, SS)                               \
   V2(0x18, SBB, Eb, Gb)                           \
@@ -58,7 +58,7 @@ namespace lir {
   V2(0x1A, SBB, Gb, Eb)                           \
   V2(0x1B, SBB, Gv, Ev)                           \
   V2(0x1C, SBB, AL, Ib)                           \
-  V2(0x1D, SBB, eAX, Iz)                          \
+  V2(0x1D, SBB, rAX, Iz)                          \
   V1(0x1E, PUSH, DS)                              \
   V1(0x1F, POP, DS)                               \
   /* 0x20 */                                      \
@@ -67,7 +67,7 @@ namespace lir {
   V2(0x22, AND, Gb, Eb)                           \
   V2(0x23, AND, Gv, Ev)                           \
   V2(0x24, AND, AL, Ib)                           \
-  V2(0x25, AND, eAX, Iz)                          \
+  V2(0x25, AND, rAX, Iz)                          \
   V0(0x26, ES)                                    \
   V0(0x27, DAA)                                   \
   V2(0x28, SUB, Eb, Gb)                           \
@@ -75,7 +75,7 @@ namespace lir {
   V2(0x2A, SUB, Gb, Eb)                           \
   V2(0x2B, SUB, Gv, Ev)                           \
   V2(0x2C, SUB, AL, Ib)                           \
-  V2(0x2D, SUB, eAX, Iz)                          \
+  V2(0x2D, SUB, rAX, Iz)                          \
   V0(0x2E, CS)                                    \
   V0(0x2F, DAS)                                   \
   /* 0x30 */                                      \
@@ -84,7 +84,7 @@ namespace lir {
   V2(0x32, XOR, Gb, Eb)                           \
   V2(0x33, XOR, Gv, Ev)                           \
   V2(0x34, XOR, AL, Ib)                           \
-  V2(0x35, XOR, eAX, Iz)                          \
+  V2(0x35, XOR, rAX, Iz)                          \
   V0(0x36, SS)                                    \
   V0(0x37, AAA)                                   \
   V2(0x38, CMP, Eb, Gb)                           \
@@ -92,7 +92,7 @@ namespace lir {
   V2(0x3A, CMP, Gb, Eb)                           \
   V2(0x3B, CMP, Gv, Ev)                           \
   V2(0x3C, CMP, AL, Ib)                           \
-  V2(0x3D, CMP, eAX, Iz)                          \
+  V2(0x3D, CMP, rAX, Iz)                          \
   V0(0x3E, DS)                                    \
   V0(0x3F, AAS)                                   \
   /* 0x40 */                                      \
@@ -176,13 +176,13 @@ namespace lir {
   V2(0x8E, MOV, Sw, Ew)                           \
   /* 0x90 */                                      \
   V0(0x90, NOP) /* XCHG eAX, eAX */               \
-  V2(0x91, XCHG, eAX, eCX)                        \
-  V2(0x92, XCHG, eAX, eDX)                        \
-  V2(0x93, XCHG, eAX, eBX)                        \
-  V2(0x94, XCHG, eAX, eSP)                        \
-  V2(0x95, XCHG, eAX, eBP)                        \
-  V2(0x96, XCHG, eAX, eSI)                        \
-  V2(0x97, XCHG, eAX, eDI)                        \
+  V2(0x91, XCHG, rAX, rCX)                        \
+  V2(0x92, XCHG, rAX, rDX)                        \
+  V2(0x93, XCHG, rAX, rBX)                        \
+  V2(0x94, XCHG, rAX, rSP)                        \
+  V2(0x95, XCHG, rAX, rBP)                        \
+  V2(0x96, XCHG, rAX, rSI)                        \
+  V2(0x97, XCHG, rAX, rDI)                        \
   V0(0x6698, CBW)                                 \
   V0(0x98, CWDE)                                  \
   V0(0x99, CDQ)                                   \
@@ -197,9 +197,9 @@ namespace lir {
   V0(0x9F, LAHF)                                  \
   /* 0xA0 */                                      \
   V2(0xA0, MOV, AL, Ob)                           \
-  V2(0xA1, MOV, eAX, Ov)                          \
+  V2(0xA1, MOV, rAX, Ov)                          \
   V2(0xA2, MOV, Ob, AL)                           \
-  V2(0xA3, MOV, Ov, eAX)                          \
+  V2(0xA3, MOV, Ov, rAX)                          \
   V0(0xA4, MOVSB)                                 \
   V0(0xA5, MOVSD)                                 \
   V0(0x66A5, MOVSW)                               \
@@ -208,7 +208,7 @@ namespace lir {
   V0(0xA7, CMPSD)                                 \
   V0(0x66A7, CMPSW)                               \
   V2(0xA8, TEST, AL, Ib)                          \
-  V2(0xA9, TEST, eAX, Iz)                         \
+  V2(0xA9, TEST, rAX, Iz)                         \
   V0(0xAA, STOSB)                                 \
   V0(0xAB, STOSD)                                 \
   V0(0x66AB, STOSW)                               \
@@ -227,14 +227,14 @@ namespace lir {
   V2(0xB5, MOV, CH, Ib)                           \
   V2(0xB6, MOV, DH, Ib)                           \
   V2(0xB7, MOV, BH, Ib)                           \
-  V2(0xB8, MOV, eAX, Iv)                          \
-  V2(0xB9, MOV, eCX, Iv)                          \
-  V2(0xBA, MOV, eDX, Iv)                          \
-  V2(0xBB, MOV, eBX, Iv)                          \
-  V2(0xBC, MOV, eSP, Iv)                          \
-  V2(0xBD, MOV, eBP, Iv)                          \
-  V2(0xBE, MOV, eSI, Iv)                          \
-  V2(0xBF, MOV, eDI, Iv)                          \
+  V2(0xB8, MOV, rAX, Iv)                          \
+  V2(0xB9, MOV, rCX, Iv)                          \
+  V2(0xBA, MOV, rDX, Iv)                          \
+  V2(0xBB, MOV, rBX, Iv)                          \
+  V2(0xBC, MOV, rSP, Iv)                          \
+  V2(0xBD, MOV, rBP, Iv)                          \
+  V2(0xBE, MOV, rSI, Iv)                          \
+  V2(0xBF, MOV, rDI, Iv)                          \
   /* 0xC0 */                                      \
   V1(0xC2, RET, Iw)                               \
   V0(0xC3, RET)                                   \
@@ -742,10 +742,10 @@ namespace lir {
   VX2(0xF7, 0, TEST, Ev, Iz)                            \
   VX1(0xF7, 2, NOT, Ev)                                 \
   VX1(0xF7, 3, NEG, Ev)                                 \
-  VX1(0xF7, 4, MUL, Ev)  /* vDX:eAX = eAX * Ev */       \
-  VX1(0xF7, 5, IMUL, Ev) /* vDX:eAX = eAX * Ev  */      \
-  VX1(0xF7, 6, DIV, Ev)  /* eAX, vDX = vDX:eAX / Ev  */ \
-  VX1(0xF7, 7, IDIV, Ev) /* eAX, vDX = vDX:eAX / Ev */  \
+  VX1(0xF7, 4, MUL, Ev)  /* rDX:vAX = rAX * Ev */       \
+  VX1(0xF7, 5, IMUL, Ev) /* rDX:vAX = rAX * Ev  */      \
+  VX1(0xF7, 6, DIV, Ev)  /* rAX, rDX = rDX:rAX / Ev  */ \
+  VX1(0xF7, 7, IDIV, Ev) /* rAX, rDX = rDX:rAX / Ev */  \
                                                         \
   /* Group 4 */                                         \
   VX1(0xFE, 0, INC, Eb)                                 \
