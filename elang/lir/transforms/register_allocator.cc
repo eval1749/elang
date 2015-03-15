@@ -354,9 +354,9 @@ void RegisterAllocator::ProcessInputOperand(Instruction* instr,
   DCHECK(SpillSlotFor(input).is_spill_slot())
       << input << " doesn't have spill slot at " << *instr;
 
-  if (instr->is<ArrayLoadInstruction>() && position == 0) {
-    // Since first operand of |ArrayInstruction| is used for GC map, we don't
-    // need to allocate physical register for it.
+  if (instr->is<LoadInstruction>() && position == 0) {
+    // Since first operand of |LoadInstruction| is used for GC map, we
+    // don't need to allocate physical register for it.
     return;
   }
 

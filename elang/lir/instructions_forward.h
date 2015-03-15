@@ -42,12 +42,11 @@ namespace lir {
   V(BitAnd, "and")                      \
   V(BitOr, "or")                        \
   V(BitXor, "xor")                      \
-  V(Load, "load")                       \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
   V(UShr, "ushr")
 
-#define FOR_EACH_LIR_INSTRUCTION_1_3(V) V(ArrayLoad, "aload")
+#define FOR_EACH_LIR_INSTRUCTION_1_3(V) V(Load, "load")
 
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \

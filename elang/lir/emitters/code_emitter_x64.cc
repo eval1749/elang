@@ -186,7 +186,6 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   // InstructionVisitor
   void DoDefaultVisit(Instruction* instr) final;
   void VisitAdd(AddInstruction* instr) final;
-  void VisitArrayLoad(ArrayLoadInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
@@ -198,6 +197,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitExit(ExitInstruction* instr) final;
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
+  void VisitLoad(LoadInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
   void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
@@ -634,30 +634,6 @@ void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
   NOTREACHED() << "NYI: float add: " << *instr;
 }
 
-// Output code pattern:
-//  int8:
-//      8A /r MOV r8, r/m8
-//  int16:
-//      66 8A /r MOV r8, r/m8
-//  int32:
-//      8B /r MOV r32, r/m32
-//  int64:
-//      REX.W 8B /r MOV r32, r/m32
-//
-// Note: |instr->input(0)| doesn't contribute code emission, it holds base
-// address of pointer in |instr->input(1)|.
-//
-void InstructionHandlerX64::VisitArrayLoad(ArrayLoadInstruction* instr) {
-  auto const output = instr->output(0);
-  auto const pointer = instr->input(1);
-  EmitRexPrefix(output, pointer);
-  EmitOpcode(OpcodeForLoad(output));
-  auto const displacement = instr->input(2);
-  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(displacement));
-  DCHECK(displacement.is_immediate());
-  EmitModRmDisp(ToRegister(output), ToRegister(pointer), displacement.data);
-}
-
 // Instruction formats are as same as ADD.
 // Base opcode = 0x20, opext = 4
 void InstructionHandlerX64::VisitBitAnd(BitAndInstruction* instr) {
@@ -882,6 +858,30 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
   EmitOpcode(isa::Opcode::MOV_Ev_Iz);
   EmitOpcodeExt(isa::OpcodeExt::MOV_Ev_Iz, output);
   EmitOperand(input);
+}
+
+// Output code pattern:
+//  int8:
+//      8A /r MOV r8, r/m8
+//  int16:
+//      66 8A /r MOV r8, r/m8
+//  int32:
+//      8B /r MOV r32, r/m32
+//  int64:
+//      REX.W 8B /r MOV r32, r/m32
+//
+// Note: |instr->input(0)| doesn't contribute code emission, it holds base
+// address of pointer in |instr->input(1)|.
+//
+void InstructionHandlerX64::VisitLoad(LoadInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const pointer = instr->input(1);
+  EmitRexPrefix(output, pointer);
+  EmitOpcode(OpcodeForLoad(output));
+  auto const displacement = instr->input(2);
+  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(displacement));
+  DCHECK(displacement.is_immediate());
+  EmitModRmDisp(ToRegister(output), ToRegister(pointer), displacement.data);
 }
 
 void InstructionHandlerX64::VisitRet(RetInstruction* instr) {

@@ -107,7 +107,8 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
   editor.Edit(function->entry_block());
   auto const destination = NewIntPtrRegister();
   editor.Append(factory()->NewLoadInstruction(
-      destination, Value::Parameter(destination, 4), Value::SmallInt32(42)));
+      destination, Value::Parameter(destination, 4),
+      Value::Parameter(destination, 4), Value::SmallInt32(42)));
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
       "function1:\n"
@@ -115,7 +116,7 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "  // In: {}\n"
       "  // Out: {block2}\n"
       "  entry\n"
-      "  load %r1l = %param[4], 42\n"
+      "  load %r1l = %param[4], %param[4], 42\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

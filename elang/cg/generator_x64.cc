@@ -296,19 +296,21 @@ void Generator::VisitLength(hir::LengthInstruction* instr) {
   //
   //  length int32 %length = %array, index
   //  =>
-  //  add %length_ptr = %array_ptr, sizeof(ArrayHeader) + sizeof(int32) * index
-  //  load length = %array_ptr, %length_ptr
+  //  add %length_ptr =
+  //  load length = %array_ptr, %array_ptr,
+  //                sizeof(ArrayHeader) + sizeof(int32) * index
   auto const pointer = NewRegister(Target::IntPtrType());
   auto const offset =
       lir::Value::SizeOf(Target::IntPtrType()) + instr->index() * 4;
   auto const array_ptr = MapInput(instr->input(0));
-  Emit(NewAddInstruction(pointer, array_ptr, lir::Value::SmallInt64(offset)));
-  Emit(NewLoadInstruction(MapOutput(instr), array_ptr, pointer));
+  Emit(NewLoadInstruction(MapOutput(instr), array_ptr, array_ptr,
+                          lir::Value::SmallInt32(offset)));
 }
 
 void Generator::VisitLoad(hir::LoadInstruction* instr) {
   Emit(NewLoadInstruction(MapOutput(instr), MapInput(instr->input(0)),
-                          MapInput(instr->input(1))));
+                          MapInput(instr->input(1)),
+                          lir::Value::SmallInt32(0)));
 }
 
 // Set return value and emit 'ret' instruction.

@@ -53,7 +53,6 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
 
   // InstructionVisitor
   void VisitAdd(AddInstruction* instruction) final;
-  void VisitArrayLoad(ArrayLoadInstruction* instruction) final;
   void VisitBitAnd(BitAndInstruction* instruction) final;
   void VisitBitOr(BitOrInstruction* instruction) final;
   void VisitBitXor(BitXorInstruction* instruction) final;
