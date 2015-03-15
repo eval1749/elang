@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "base/macros.h"
+#include "elang/base/work_list.h"
 #include "elang/lir/pass.h"
 
 namespace elang {
@@ -37,6 +38,9 @@ class ELANG_LIR_EXPORT RegisterAssignmentsPass final : public FunctionPass {
 
   std::unique_ptr<RegisterAssignments> register_assignments_;
   std::unique_ptr<StackAssignments> stack_assignments_;
+
+  // List of useless instructions after register assignments.
+  WorkList<Instruction> useless_instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterAssignmentsPass);
 };

@@ -17,6 +17,14 @@
 namespace elang {
 namespace lir {
 
+namespace {
+bool IsUselessInstruction(const Instruction* instr) {
+  if (instr->is<CopyInstruction>())
+    return instr->output(0) == instr->input(0);
+  return false;
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // RegisterAssignmentsPass
@@ -86,6 +94,8 @@ void RegisterAssignmentsPass::RunOnFunction() {
     for (auto const instr : stack_assignments_->epilogue())
       editor()->InsertBefore(instr, ret_instr);
   }
+
+  editor()->BulkRemoveInstructions(&useless_instructions_);
 }
 
 void RegisterAssignmentsPass::ProcessInstruction(Instruction* instr) {
@@ -101,6 +111,9 @@ void RegisterAssignmentsPass::ProcessInstruction(Instruction* instr) {
     editor()->SetInput(instr, input_position, assignment);
     ++input_position;
   }
+  if (!IsUselessInstruction(instr))
+    return;
+  useless_instructions_.Push(instr);
 }
 
 }  // namespace lir
