@@ -38,6 +38,7 @@ component("base") {
     "simple_directed_graph.h",
     "temporary_change_value.h",
     "visitable.h",
+    "work_list.h",
     "zone.cc",
     "zone.h",
     "zone_allocated.h",
@@ -92,6 +93,7 @@ source_set("base_unittests") {
     "ordered_list_unittest.cc",
     "simple_directed_graph_unittest.cc",
     "temporary_change_value_unittest.cc",
+    "work_list_unittest.cc",
   ]
 
   public_deps = [
