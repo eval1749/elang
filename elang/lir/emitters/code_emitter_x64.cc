@@ -184,6 +184,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   IntegerCondition UseCondition(Instruction* user);
 
   // InstructionVisitor
+  void DoDefaultVisit(Instruction* instr) final;
   void VisitAdd(AddInstruction* instr) final;
   void VisitArrayLoad(ArrayLoadInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
@@ -193,6 +194,8 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCall(CallInstruction* instr) final;
   void VisitCmp(CmpInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
+  void VisitEntry(EntryInstruction* instr) final;
+  void VisitExit(ExitInstruction* instr) final;
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
@@ -587,6 +590,10 @@ IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) {
 
 // InstructionVisitor
 
+void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
+  DVLOG(0) << "NYI " << *instr;
+}
+
 // int8:
 //  04 ib           ADD AL, imm8
 //  80 /0 ib        ADD r/m8, imm8
@@ -772,6 +779,12 @@ void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
   EmitRexPrefix(input, output);
   EmitOpcode(OpcodeForStore(input));
   EmitModRm(output, input);
+}
+
+void InstructionHandlerX64::VisitEntry(EntryInstruction* instr) {
+}
+
+void InstructionHandlerX64::VisitExit(ExitInstruction* instr) {
 }
 
 // EB cb JMP rel
