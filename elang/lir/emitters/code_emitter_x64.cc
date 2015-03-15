@@ -199,6 +199,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
+  void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
@@ -884,6 +885,32 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
 
 void InstructionHandlerX64::VisitRet(RetInstruction* instr) {
   EmitOpcode(isa::Opcode::RET);
+}
+
+// 0F BE /r     MOVSX r32, r/m8
+// 0F BF /r     MOVSX r32, r/m16
+// REX 0F BE /r MOVSX r64, r/m8
+// REX 0F BF /r MOVSX r64, r/m16
+// REX 63 /r    MOVSXD r64, r/m32
+void InstructionHandlerX64::VisitSignExtend(SignExtendInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  EmitRexPrefix(output, input);
+  switch (input.size) {
+    case ValueSize::Size8:
+      EmitOpcode(isa::Opcode::MOVSX_Gv_Eb);
+      break;
+    case ValueSize::Size16:
+      EmitOpcode(isa::Opcode::MOVSX_Gv_Ew);
+      break;
+    case ValueSize::Size32:
+      EmitOpcode(isa::Opcode::MOVSXD_Gv_Ev);
+      break;
+    default:
+      NOTREACHED() << "Unsupported size: " << *instr;
+      break;
+  }
+  EmitModRm(output, input);
 }
 
 void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {

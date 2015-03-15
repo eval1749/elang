@@ -1014,6 +1014,39 @@ TEST_F(CodeEmitterX64Test, ShrInt8) {
       Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, SignExtend) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+
+  auto const m8 = Value::StackSlot(Value::Int8Type(), 1);
+  auto const m16 = Value::StackSlot(Value::Int16Type(), 2);
+  auto const m32 = Value::StackSlot(Value::Int32Type(), 4);
+  auto const r8 = Target::GetRegister(isa::BL);
+  auto const r16 = Target::GetRegister(isa::BX);
+  auto const r32 = Target::GetRegister(isa::EBX);
+  auto const r64 = Target::GetRegister(isa::RBX);
+
+  editor.Append(NewSignExtendInstruction(r32, r8));
+  editor.Append(NewSignExtendInstruction(r32, m8));
+  editor.Append(NewSignExtendInstruction(r32, r16));
+  editor.Append(NewSignExtendInstruction(r32, m16));
+
+  editor.Append(NewSignExtendInstruction(r64, r8));
+  editor.Append(NewSignExtendInstruction(r64, m8));
+  editor.Append(NewSignExtendInstruction(r64, r16));
+  editor.Append(NewSignExtendInstruction(r64, m16));
+  editor.Append(NewSignExtendInstruction(r64, r32));
+  editor.Append(NewSignExtendInstruction(r64, m32));
+
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "0000 0F BE DB 0F BE 5C 24 01 0F BF DB 0F BF 5C 24 02\n"
+      "0010 48 0F BE DB 48 0F BE 5C 24 01 48 0F BF DB 48 0F\n"
+      "0020 BF 5C 24 02 48 63 DB 48 63 5C 24 04 C3\n",
+      Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, StackSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
