@@ -450,8 +450,17 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
 hir::Value* CodeGenerator::NewMethodReference(ir::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
   // |ir::Method|.
+  std::stringstream ostream;
+  ostream << *method->return_type() << " "
+          << method->ast_method()->NewQualifiedName() << "(";
+  auto separator = "";
+  for (auto const parameter : method->parameters()) {
+    ostream << separator << *parameter->type();
+    separator = ", ";
+  }
+  ostream << ")";
   auto const method_name =
-      factory()->NewAtomicString(method->ast_method()->NewQualifiedName());
+      factory()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));
   return factory()->NewReference(MapType(method->signature()), method_name);
 }
 
