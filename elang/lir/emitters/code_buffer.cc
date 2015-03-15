@@ -71,6 +71,29 @@ void CodeBuffer::CodeLocation::Start(int buffer_offset, int code_offset) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// CodeBuffer::CallSite represents reference to |Value| in code buffer.
+//
+class CodeBuffer::CallSite : public CodeLocation {
+ public:
+  CallSite(int buffer_offset, int code_offset, base::StringPiece16 callee);
+  ~CallSite() = delete;
+
+  base::StringPiece16 callee() const { return callee_; }
+
+ private:
+  const base::StringPiece16 callee_;
+
+  DISALLOW_COPY_AND_ASSIGN(CallSite);
+};
+
+CodeBuffer::CallSite::CallSite(int buffer_offset,
+                               int code_offset,
+                               base::StringPiece16 callee)
+    : CodeLocation(buffer_offset, code_offset), callee_(callee) {
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // CodeBuffer::CodeBlock
 //
 class CodeBuffer::CodeBlock : public CodeLocation {
@@ -299,6 +322,12 @@ CodeBuffer::CodeBuffer(const Function* function)
     block_data_map_[block] = new (zone()) BasicBlockData();
 }
 
+void CodeBuffer::AssociateCallSite(base::StringPiece16 callee) {
+  DCHECK(current_block_data_);
+  call_site_list_.push_back(
+      new (zone()) CallSite(buffer_size(), code_size_, callee));
+}
+
 void CodeBuffer::AssociateValue(Value value) {
   DCHECK(current_block_data_);
   value_in_code_list_.push_back(
@@ -325,6 +354,8 @@ void CodeBuffer::Finish(const Factory* factory,
     builder->EmitCode(bytes_.data() + code_block->buffer_offset(),
                       code_block->code_length());
   }
+  for (auto const call_site : call_site_list_)
+    builder->SetCallSite(call_site->code_offset(), call_site->callee());
   ValueEmitter value_emitter(factory, builder);
   for (auto const value_in_code : value_in_code_list_)
     value_emitter.Emit(value_in_code->code_offset(), value_in_code->value());
@@ -396,6 +427,13 @@ void CodeBuffer::RelocateAfter(int ref_code_offset, int delta) {
     if (jump_data->code_offset() <= ref_code_offset)
       continue;
     jump_data->Relocate(delta);
+  }
+  for (auto it = call_site_list_.rbegin(); it != call_site_list_.rend();
+       ++it) {
+    auto const call_site = *it;
+    if (call_site->code_offset() <= ref_code_offset)
+      break;
+    call_site->Relocate(delta);
   }
   for (auto it = code_blocks_.rbegin(); it != code_blocks_.rend(); ++it) {
     auto const block_data = *it;

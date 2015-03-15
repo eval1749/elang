@@ -130,6 +130,12 @@ void TestMachineCodeBuilder::PrepareCode(int code_length) {
   bytes_.resize(code_length);
 }
 
+void TestMachineCodeBuilder::SetCallSite(int offset,
+                                         base::StringPiece16 callee) {
+  stream_ << base::StringPrintf("call site +%04X ", offset)
+          << callee.as_string() << std::endl;
+}
+
 void TestMachineCodeBuilder::SetCodeOffset(int offset, int target_offset) {
   stream_ << base::StringPrintf("code offset +%04X %d", offset, target_offset)
           << std::endl;

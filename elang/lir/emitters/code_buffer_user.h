@@ -6,6 +6,7 @@
 #define ELANG_LIR_EMITTERS_CODE_BUFFER_USER_H_
 
 #include "base/basictypes.h"
+#include "base/strings/string_piece.h"
 
 namespace elang {
 namespace lir {
@@ -24,6 +25,7 @@ class CodeBufferUser {
 
   CodeBuffer* code_buffer() const { return code_buffer_; }
 
+  void AssociateCallSite(base::StringPiece16 callee);
   void AssociateValue(Value value);
   void Emit16(int data);
   void Emit32(uint32_t data);

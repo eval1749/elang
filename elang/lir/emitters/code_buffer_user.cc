@@ -20,6 +20,10 @@ CodeBufferUser::CodeBufferUser(CodeBuffer* code_buffer)
 CodeBufferUser::~CodeBufferUser() {
 }
 
+void CodeBufferUser::AssociateCallSite(base::StringPiece16 callee) {
+  code_buffer_->AssociateCallSite(callee);
+}
+
 void CodeBufferUser::AssociateValue(Value value) {
   code_buffer_->AssociateValue(value);
 }

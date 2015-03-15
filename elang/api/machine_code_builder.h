@@ -27,6 +27,7 @@ class MachineCodeBuilder {
   virtual void EmitCode(const uint8_t* codes, int code_size) = 0;
   virtual void FinishCode() = 0;
   virtual void PrepareCode(int code_size) = 0;
+  virtual void SetCallSite(int offset, base::StringPiece16 string) = 0;
   virtual void SetCodeOffset(int offset, int target_offset) = 0;
   virtual void SetFloat32(int offset, float32_t float32) = 0;
   virtual void SetFloat64(int offset, float64_t float64) = 0;

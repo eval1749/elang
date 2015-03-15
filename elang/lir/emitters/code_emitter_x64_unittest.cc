@@ -235,7 +235,7 @@ TEST_F(CodeEmitterX64Test, Call) {
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
-      "string +0001 \"Foo\"\n"
+      "call site +0001 Foo\n"
       "0000 E8 00 00 00 00 C3\n",
       Emit(&editor));
 }

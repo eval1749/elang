@@ -44,6 +44,10 @@ void MachineCodeBuilderImpl::PrepareCode(int code_size) {
   bytes_.reserve(code_size);
 }
 
+void MachineCodeBuilderImpl::SetCallSite(int offset,
+                                         base::StringPiece16 string) {
+}
+
 void MachineCodeBuilderImpl::SetCodeOffset(int offset, int target_offset) {
   DCHECK_LT(static_cast<size_t>(offset), code_size());
   DCHECK_LT(static_cast<size_t>(target_offset), code_size());

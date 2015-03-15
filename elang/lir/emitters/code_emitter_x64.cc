@@ -702,7 +702,11 @@ void InstructionHandlerX64::VisitBranch(BranchInstruction* instr) {
 
 void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
   EmitOpcode(isa::Opcode::CALL_Jv);
-  EmitOperand(instr->input(0));
+  auto const callee =
+      factory_->GetLiteral(instr->input(0))->as<StringLiteral>();
+  DCHECK(callee) << "Unsupported callee: " << *instr;
+  AssociateCallSite(callee->data());
+  Emit32(0);
 }
 
 // Instruction formats are as same as ADD.

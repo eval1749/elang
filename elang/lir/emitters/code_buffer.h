@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/basictypes.h"
+#include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
 #include "elang/lir/lir_export.h"
 #include "elang/lir/value.h"
@@ -42,6 +43,9 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
   explicit CodeBuffer(const Function* function);
   ~CodeBuffer() = default;
 
+  // Associate |callee| to call site at current offset.
+  void AssociateCallSite(base::StringPiece16 callee);
+
   // Associate |value| to current offset.
   void AssociateValue(Value value);
 
@@ -59,6 +63,7 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
 
  private:
   class BasicBlockData;
+  class CallSite;
   class CodeBlock;
   class CodeLocation;
   class JumpData;
@@ -75,6 +80,7 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
   std::vector<CodeBlock*> code_blocks_;
   std::unordered_map<const BasicBlock*, BasicBlockData*> block_data_map_;
   std::vector<uint8_t> bytes_;
+  std::vector<CallSite*> call_site_list_;
   int code_size_;
   BasicBlockData* current_block_data_;
   std::vector<JumpData*> jump_data_list_;
