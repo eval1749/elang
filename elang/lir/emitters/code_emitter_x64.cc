@@ -204,6 +204,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
   void VisitUShr(UShrInstruction* instr) final;
+  void VisitZeroExtend(ZeroExtendInstruction* instr) final;
 
   const Factory* const factory_;
 
@@ -936,6 +937,36 @@ void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
 
 void InstructionHandlerX64::VisitUShr(UShrInstruction* instr) {
   HandleShiftInstruction(instr, isa::OpcodeExt::SHR_Ev_1);
+}
+
+// 0F B6 /r     MOVZX r32, r/m8
+// 0F B7 /r     MOVXZ r32, r/m16
+// REX 0F B6 /r MOVZX r64, r/m8
+// REX 0F B7 /r MOVXZ r64, r/m16
+// Note: Since 32-bit version of MOV instruction zero clear high part of 64-bit
+// register, so we use 32-bit version of MOV instead of REX.W+MOVXZ.
+void InstructionHandlerX64::VisitZeroExtend(ZeroExtendInstruction* instr) {
+  auto const output_orig = instr->output(0);
+  auto const output = output_orig.size == ValueSize::Size64
+                          ? To32bitValue(output_orig)
+                          : output_orig;
+  auto const input = instr->input(0);
+  EmitRexPrefix(output, input);
+  switch (input.size) {
+    case ValueSize::Size8:
+      EmitOpcode(isa::Opcode::MOVZX_Gv_Eb);
+      break;
+    case ValueSize::Size16:
+      EmitOpcode(isa::Opcode::MOVZX_Gv_Ew);
+      break;
+    case ValueSize::Size32:
+      EmitOpcode(isa::Opcode::MOV_Gv_Ev);
+      break;
+    default:
+      NOTREACHED() << "Unsupported size: " << *instr;
+      break;
+  }
+  EmitModRm(output, input);
 }
 
 }  // namespace

@@ -1097,6 +1097,38 @@ TEST_F(CodeEmitterX64Test, UShrInt64) {
       Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, ZeroExtend) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+
+  auto const m8 = Value::StackSlot(Value::Int8Type(), 1);
+  auto const m16 = Value::StackSlot(Value::Int16Type(), 2);
+  auto const m32 = Value::StackSlot(Value::Int32Type(), 4);
+  auto const r8 = Target::GetRegister(isa::BL);
+  auto const r16 = Target::GetRegister(isa::BX);
+  auto const r32 = Target::GetRegister(isa::EBX);
+  auto const r64 = Target::GetRegister(isa::RBX);
+
+  editor.Append(NewZeroExtendInstruction(r32, r8));
+  editor.Append(NewZeroExtendInstruction(r32, m8));
+  editor.Append(NewZeroExtendInstruction(r32, r16));
+  editor.Append(NewZeroExtendInstruction(r32, m16));
+
+  editor.Append(NewZeroExtendInstruction(r64, r8));
+  editor.Append(NewZeroExtendInstruction(r64, m8));
+  editor.Append(NewZeroExtendInstruction(r64, r16));
+  editor.Append(NewZeroExtendInstruction(r64, m16));
+  editor.Append(NewZeroExtendInstruction(r64, r32));
+  editor.Append(NewZeroExtendInstruction(r64, m32));
+
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ("0000 0F B6 DB 0F B6 5C 24 01 0F B7 DB 0F B7 5C 24 02\n"
+            "0010 0F B6 DB 0F B6 5C 24 01 0F B7 DB 0F B7 5C 24 02\n"
+            "0020 8B DB 8B 5C 24 04 C3\n",
+            Emit(&editor));
+}
+
 }  // namespace
 }  // namespace lir
 }  // namespace elang
