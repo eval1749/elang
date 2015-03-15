@@ -135,7 +135,7 @@ namespace lir {
   V0(0x61, POPAD)                                 \
   V0(0x6661, POPA)                                \
   V2(0x62, BOUND, Gv, Ma)                         \
-  V2(0x63, ARPL, Ew, Gw)                          \
+  V2(0x63, MOVSXD, Gv, Ev)                        \
   V0(0x64, FS)                                    \
   V0(0x65, GS)                                    \
   V0(0x66, OPDSIZ)                                \
