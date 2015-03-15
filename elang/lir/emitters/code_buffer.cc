@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/api/machine_code_builder.h"
+#include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/lir/emitters/value_emitter.h"
 #include "elang/lir/factory.h"
@@ -25,11 +26,13 @@ bool Is8Bit(int data) {
 //
 // CodeBuffer::CodeLocation
 //
-class CodeBuffer::CodeLocation : public ZoneAllocated {
+class CodeBuffer::CodeLocation : public Castable, public ZoneAllocated {
+  DECLARE_CASTABLE_CLASS(CodeLocation, Castable);
+
  public:
   CodeLocation(int buffer_offset, int code_offset);
   CodeLocation();
-  ~CodeLocation();
+  ~CodeLocation() override;
 
   int buffer_offset() const { return buffer_offset_; }
   int code_offset() const { return code_offset_; }
@@ -73,10 +76,12 @@ void CodeBuffer::CodeLocation::Start(int buffer_offset, int code_offset) {
 //
 // CodeBuffer::CallSite represents reference to |Value| in code buffer.
 //
-class CodeBuffer::CallSite : public CodeLocation {
+class CodeBuffer::CallSite final : public CodeLocation {
+  DECLARE_CASTABLE_CLASS(CallSite, CodeLocation);
+
  public:
   CallSite(int buffer_offset, int code_offset, base::StringPiece16 callee);
-  ~CallSite() = delete;
+  ~CallSite() override = default;
 
   base::StringPiece16 callee() const { return callee_; }
 
@@ -97,14 +102,15 @@ CodeBuffer::CallSite::CallSite(int buffer_offset,
 // CodeBuffer::CodeBlock
 //
 class CodeBuffer::CodeBlock : public CodeLocation {
- public:
-  ~CodeBlock() = default;
+  DECLARE_CASTABLE_CLASS(CodeBlock, CodeLocation);
 
+ public:
   int code_length() const { return code_length_; }
 
  protected:
   CodeBlock(int buffer_offset, int code_offset, int code_length);
   CodeBlock();
+  ~CodeBlock() override = default;
 
   void set_code_length(int new_length);
 
@@ -131,10 +137,12 @@ void CodeBuffer::CodeBlock::set_code_length(int new_length) {
 //
 // CodeBuffer::BasicBlockData
 //
-class CodeBuffer::BasicBlockData : public CodeBlock {
+class CodeBuffer::BasicBlockData final : public CodeBlock {
+  DECLARE_CASTABLE_CLASS(BasicBlockData, CodeBlock);
+
  public:
   BasicBlockData() = default;
-  ~BasicBlockData() = delete;
+  ~BasicBlockData() final = default;
 
   void EndBasicBlock(int code_offset);
 
@@ -161,6 +169,8 @@ CodeBuffer::Jump::Jump(int opcode, int opcode_size, int operand_size)
 // CodeBuffer::JumpData
 //
 class CodeBuffer::JumpData final : public CodeBlock {
+  DECLARE_CASTABLE_CLASS(JumpData, CodeBlock);
+
  public:
   JumpData(int buffer_offset,
            int code_offset,
@@ -168,7 +178,7 @@ class CodeBuffer::JumpData final : public CodeBlock {
            const Jump& short_jump,
            BasicBlockData* target_block);
 
-  ~JumpData() = delete;
+  ~JumpData() final = default;
 
   bool is_long_jump() const { return is_long_jump_; }
   const Jump& jump() const { return is_long_jump_ ? long_jump_ : short_jump_; }
@@ -291,10 +301,12 @@ void CodeBuffer::JumpResolver::UpdateWorkSet(int code_offset) {
 //
 // CodeBuffer::ValueInCode represents reference to |Value| in code buffer.
 //
-class CodeBuffer::ValueInCode : public CodeLocation {
+class CodeBuffer::ValueInCode final : public CodeLocation {
+  DECLARE_CASTABLE_CLASS(ValueInCode, CodeLocation);
+
  public:
   ValueInCode(int buffer_offset, int code_offset, Value value);
-  ~ValueInCode() = delete;
+  ~ValueInCode() final = default;
 
   Value value() const { return value_; }
 
@@ -324,13 +336,13 @@ CodeBuffer::CodeBuffer(const Function* function)
 
 void CodeBuffer::AssociateCallSite(base::StringPiece16 callee) {
   DCHECK(current_block_data_);
-  call_site_list_.push_back(
+  code_locations_.push_back(
       new (zone()) CallSite(buffer_size(), code_size_, callee));
 }
 
 void CodeBuffer::AssociateValue(Value value) {
   DCHECK(current_block_data_);
-  value_in_code_list_.push_back(
+  code_locations_.push_back(
       new (zone()) ValueInCode(buffer_size(), code_size_, value));
 }
 
@@ -341,8 +353,23 @@ void CodeBuffer::Finish(const Factory* factory,
   for (auto const jump_data : jump_data_list_)
     PatchJump(jump_data);
   builder->PrepareCode(code_size_);
+
+  ValueEmitter value_emitter(factory, builder);
+
   auto code_offset = 0;
-  for (auto const code_block : code_blocks_) {
+  for (auto const code_location : code_locations_) {
+    if (auto const call_site = code_location->as<CallSite>()) {
+      builder->SetCallSite(call_site->code_offset(), call_site->callee());
+      continue;
+    }
+    if (auto const value_in_code = code_location->as<ValueInCode>()) {
+      value_emitter.Emit(value_in_code->code_offset(), value_in_code->value());
+      continue;
+    }
+
+    auto const code_block = code_location->as<CodeBlock>();
+    if (!code_block)
+      continue;
     DCHECK_GE(code_block->buffer_offset(), 0);
     DCHECK_EQ(code_offset, code_block->code_offset());
     code_offset += code_block->code_length();
@@ -354,11 +381,7 @@ void CodeBuffer::Finish(const Factory* factory,
     builder->EmitCode(bytes_.data() + code_block->buffer_offset(),
                       code_block->code_length());
   }
-  for (auto const call_site : call_site_list_)
-    builder->SetCallSite(call_site->code_offset(), call_site->callee());
-  ValueEmitter value_emitter(factory, builder);
-  for (auto const value_in_code : value_in_code_list_)
-    value_emitter.Emit(value_in_code->code_offset(), value_in_code->value());
+
   builder->FinishCode();
 }
 
@@ -403,7 +426,7 @@ void CodeBuffer::EmitJump(const Jump& long_jump,
   auto const jump_data =
       new (zone()) JumpData(buffer_size(), code_size_, long_jump, short_jump,
                             block_data_map_[target_block]);
-  code_blocks_.push_back(jump_data);
+  code_locations_.push_back(jump_data);
   jump_data_list_.push_back(jump_data);
   // Reserve buffer for long jump.
   bytes_.resize(buffer_size() + long_jump.size());
@@ -421,32 +444,11 @@ void CodeBuffer::EndBasicBlock() {
 void CodeBuffer::RelocateAfter(int ref_code_offset, int delta) {
   DCHECK_GT(delta, 0);
   code_size_ += delta;
-  for (auto it = jump_data_list_.rbegin(); it != jump_data_list_.rbegin();
-       ++it) {
-    auto const jump_data = *it;
-    if (jump_data->code_offset() <= ref_code_offset)
-      continue;
-    jump_data->Relocate(delta);
-  }
-  for (auto it = call_site_list_.rbegin(); it != call_site_list_.rend();
-       ++it) {
-    auto const call_site = *it;
-    if (call_site->code_offset() <= ref_code_offset)
+  for (auto it = code_locations_.rbegin(); it != code_locations_.rend(); ++it) {
+    auto const code_location = *it;
+    if (code_location->code_offset() <= ref_code_offset)
       break;
-    call_site->Relocate(delta);
-  }
-  for (auto it = code_blocks_.rbegin(); it != code_blocks_.rend(); ++it) {
-    auto const block_data = *it;
-    if (block_data->code_offset() <= ref_code_offset)
-      break;
-    block_data->Relocate(delta);
-  }
-  for (auto it = value_in_code_list_.rbegin(); it != value_in_code_list_.rend();
-       ++it) {
-    auto const value_in_code = *it;
-    if (value_in_code->code_offset() <= ref_code_offset)
-      break;
-    value_in_code->Relocate(delta);
+    code_location->Relocate(delta);
   }
 }
 
@@ -499,7 +501,7 @@ void CodeBuffer::StartBasicBlock(const BasicBlock* block) {
   // code offset of this block in target's code cache alignment, e.g. 16 bytes.
   block_data->Start(buffer_size(), code_size_);
   current_block_data_ = block_data;
-  code_blocks_.push_back(block_data);
+  code_locations_.push_back(block_data);
 }
 
 }  // namespace lir

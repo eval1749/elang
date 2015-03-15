@@ -77,14 +77,12 @@ class ELANG_LIR_EXPORT CodeBuffer final : public ZoneOwner {
   void PatchJump(const JumpData* jump_data);
   void RelocateAfter(int code_offset, int delta);
 
-  std::vector<CodeBlock*> code_blocks_;
   std::unordered_map<const BasicBlock*, BasicBlockData*> block_data_map_;
   std::vector<uint8_t> bytes_;
-  std::vector<CallSite*> call_site_list_;
+  std::vector<CodeLocation*> code_locations_;
   int code_size_;
   BasicBlockData* current_block_data_;
   std::vector<JumpData*> jump_data_list_;
-  std::vector<ValueInCode*> value_in_code_list_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeBuffer);
 };
