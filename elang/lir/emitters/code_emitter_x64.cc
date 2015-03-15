@@ -142,9 +142,9 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 
  private:
   void EmitBranch(IntegerCondition condition, BasicBlock* target_block);
-  void EmitBranch(BasicBlock* target_block);
   // Emit Iz (imm8, imm16 or imm32) operand.
   void EmitIz(Value output, int imm);
+  void EmitJump(BasicBlock* target_block);
   void EmitModRm(Mod mod, Register reg, Register rm);
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
@@ -193,6 +193,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCall(CallInstruction* instr) final;
   void VisitCmp(CmpInstruction* instr) final;
   void VisitCopy(CopyInstruction* instr) final;
+  void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
@@ -225,12 +226,6 @@ void InstructionHandlerX64::EmitBranch(IntegerCondition condition,
   code_buffer()->EmitJump(long_branch, short_branch, target_block);
 }
 
-void InstructionHandlerX64::EmitBranch(BasicBlock* target_block) {
-  Jump long_branch(static_cast<int>(isa::Opcode::JMP_Jv), 1, 4);
-  Jump short_branch(static_cast<int>(isa::Opcode::JMP_Jb), 1, 1);
-  code_buffer()->EmitJump(long_branch, short_branch, target_block);
-}
-
 void InstructionHandlerX64::EmitIz(Value output, int imm) {
   if (output.is_8bit()) {
     Emit8(imm);
@@ -241,6 +236,12 @@ void InstructionHandlerX64::EmitIz(Value output, int imm) {
     return;
   }
   Emit32(imm);
+}
+
+void InstructionHandlerX64::EmitJump(BasicBlock* target_block) {
+  Jump long_branch(static_cast<int>(isa::Opcode::JMP_Jv), 1, 4);
+  Jump short_branch(static_cast<int>(isa::Opcode::JMP_Jb), 1, 1);
+  code_buffer()->EmitJump(long_branch, short_branch, target_block);
 }
 
 void InstructionHandlerX64::EmitModRm(Mod mod, Register reg, Register rm) {
@@ -711,7 +712,7 @@ void InstructionHandlerX64::VisitBranch(BranchInstruction* instr) {
   if (next_block == false_block)
     return;
 
-  EmitBranch(false_block);
+  EmitJump(false_block);
 }
 
 void InstructionHandlerX64::VisitCall(CallInstruction* instr) {
@@ -771,6 +772,15 @@ void InstructionHandlerX64::VisitCopy(CopyInstruction* instr) {
   EmitRexPrefix(input, output);
   EmitOpcode(OpcodeForStore(input));
   EmitModRm(output, input);
+}
+
+// EB cb JMP rel
+// E9 cd JMP rel32
+void InstructionHandlerX64::VisitJump(JumpInstruction* instr) {
+  auto const target_block = instr->block_operand(0);
+  if (target_block == instr->basic_block()->next())
+    return;
+  EmitJump(target_block);
 }
 
 // int8:
