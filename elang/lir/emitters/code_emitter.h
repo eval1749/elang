@@ -21,7 +21,7 @@ namespace lir {
 class CodeBuffer;
 class Factory;
 class Function;
-class InstructionVisitor;
+class InstructionHandler;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -38,7 +38,7 @@ class ELANG_LIR_EXPORT CodeEmitter final {
   // Returns target specific machine code emitter for instructions.
   // Implementation of |NewInstructionHandler| found in
   // "code_emitter_${arch}.cc".
-  std::unique_ptr<InstructionVisitor> NewInstructionHandler(
+  std::unique_ptr<InstructionHandler> NewInstructionHandler(
       CodeBuffer* code_buffer);
 
   // Machine codes and embedded literals are feed to |builder_|.

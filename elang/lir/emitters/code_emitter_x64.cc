@@ -8,6 +8,7 @@
 #include "elang/lir/emitters/code_buffer.h"
 #include "elang/lir/emitters/code_buffer_user.h"
 #include "elang/lir/emitters/code_emitter.h"
+#include "elang/lir/emitters/instruction_handler.h"
 #include "elang/lir/emitters/isa_x64.h"
 #include "elang/lir/emitters/opcodes_x64.h"
 #include "elang/lir/factory.h"
@@ -135,6 +136,7 @@ CodeBuffer::Jump JumpOf(isa::Opcode opcode,
 // InstructionHandlerX64
 //
 class InstructionHandlerX64 final : public CodeBufferUser,
+                                    public InstructionHandler,
                                     public InstructionVisitor {
  public:
   InstructionHandlerX64(const Factory* factory, CodeBuffer* code_buffer);
@@ -182,6 +184,9 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   int64_t Int64ValueOf(Value literal) const;
 
   IntegerCondition UseCondition(Instruction* user);
+
+  // InstructionHandler
+  void Handle(Instruction* instr) final;
 
   // InstructionVisitor
   void DoDefaultVisit(Instruction* instr) final;
@@ -590,8 +595,12 @@ IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) {
   return cmp_instr->condition();
 }
 
-// InstructionVisitor
+// InstructionHandler
+void InstructionHandlerX64::Handle(Instruction* instr) {
+  instr->Accept(this);
+}
 
+// InstructionVisitor
 void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
   DVLOG(0) << "NYI " << *instr;
 }
@@ -975,7 +984,7 @@ void InstructionHandlerX64::VisitZeroExtend(ZeroExtendInstruction* instr) {
 
 }  // namespace
 
-std::unique_ptr<InstructionVisitor> CodeEmitter::NewInstructionHandler(
+std::unique_ptr<InstructionHandler> CodeEmitter::NewInstructionHandler(
     CodeBuffer* code_buffer) {
   return std::make_unique<InstructionHandlerX64>(factory_, code_buffer);
 }

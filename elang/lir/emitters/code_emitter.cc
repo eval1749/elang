@@ -5,8 +5,8 @@
 #include "elang/lir/emitters/code_emitter.h"
 
 #include "elang/lir/emitters/code_buffer.h"
+#include "elang/lir/emitters/instruction_handler.h"
 #include "elang/lir/instructions.h"
-#include "elang/lir/instruction_visitor.h"
 #include "elang/lir/literals.h"
 
 namespace elang {
@@ -31,8 +31,8 @@ void CodeEmitter::Process(const Function* function) {
     auto const handler = NewInstructionHandler(&code_buffer);
     for (auto const block : function->basic_blocks()) {
       code_buffer.StartBasicBlock(block);
-      for (auto const instruction : block->instructions())
-        instruction->Accept(handler.get());
+      for (auto const instr : block->instructions())
+        handler->Handle(instr);
       code_buffer.EndBasicBlock();
     }
   }

@@ -12,6 +12,8 @@ source_set("emitters") {
     "code_buffer_user.h",
     "code_emitter.cc",
     "code_emitter.h",
+    "instruction_handler.cc",
+    "instruction_handler.h",
     "value_emitter.cc",
     "value_emitter.h",
   ]
