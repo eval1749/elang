@@ -53,10 +53,8 @@ std::unique_ptr<LivenessCollection<BasicBlock*, Value>> AnalyzeLiveness(
     }
     // Mark use phi input in successor block.
     for (auto const successor : block->successors()) {
-      for (auto const phi_instruction : successor->phi_instructions()) {
-        auto const phi_input = phi_instruction->FindPhiInputFor(block);
-        builder.MarkUse(liveness, Normalize(phi_input->value()));
-      }
+      for (auto const phi : successor->phi_instructions())
+        builder.MarkUse(liveness, Normalize(phi->input_of(block)));
     }
   }
 

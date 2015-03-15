@@ -141,7 +141,7 @@ void PhiExpander::Expand() {
     if (output_allocation.is_physical())
       scratch_registers_.erase(Target::NaturalRegisterOf(output_allocation));
 
-    auto const input = phi->FindPhiInputFor(predecessor_)->value();
+    auto const input = phi->input_of(predecessor_);
     if (!input.is_virtual()) {
       allocations_[input] = input;
       tasks.push_back(std::make_pair(output, input));
@@ -210,10 +210,8 @@ void PhiExpander::Expand() {
   auto const last_instruction = predecessor_->last_instruction();
   for (auto const instr : spills_)
     allocation_tracker_->InsertBefore(instr, last_instruction);
-  for (auto const instr : copies) {
-DVLOG(0) << "copy " << *instr;
+  for (auto const instr : copies)
     allocation_tracker_->InsertBefore(instr, last_instruction);
-  }
   for (auto const instr : reloads_)
     allocation_tracker_->InsertBefore(instr, last_instruction);
 }
@@ -222,7 +220,7 @@ bool PhiExpander::IsInput(Value physical) const {
   DCHECK(physical.is_physical());
   auto const natural = Target::NaturalRegisterOf(physical);
   for (auto const phi : phi_block_->phi_instructions()) {
-    auto const input = phi->FindPhiInputFor(predecessor_)->value();
+    auto const input = phi->input_of(predecessor_);
     if (Target::NaturalRegisterOf(AllocationOf(input)) == natural)
       return true;
   }

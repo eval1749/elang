@@ -410,9 +410,9 @@ PhiInput::PhiInput(BasicBlock* basic_block, Value value)
 PhiInstruction::PhiInstruction(Value output) : output_(output) {
 }
 
-Value PhiInstruction::input_of(BasicBlock* basic_block) const {
-  auto const phi_input = FindPhiInputFor(basic_block);
-  DCHECK(phi_input);
+Value PhiInstruction::input_of(BasicBlock* block) const {
+  auto const phi_input = FindPhiInputFor(block);
+  DCHECK(phi_input) << "No input for " << *block << " in " << *this;
   return phi_input->value();
 }
 

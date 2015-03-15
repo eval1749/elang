@@ -471,13 +471,19 @@ class ELANG_LIR_EXPORT PhiInstruction final : public Instruction {
  public:
   typedef DoubleLinked<PhiInput, PhiInstruction> PhiInputs;
 
+  // Returns |PhiInput| for |block|. |this| instruction must have an operand
+  // for |block|.
   Value input_of(BasicBlock* block) const;
-  const PhiInputs& phi_inputs() const { return phi_inputs_; }
 
-  PhiInput* FindPhiInputFor(BasicBlock* block) const;
+  // Returns list of |PhiInput|.
+  const PhiInputs& phi_inputs() const { return phi_inputs_; }
 
  private:
   explicit PhiInstruction(Value output_value);
+
+  // Returns |PhiInput| if |this| instruction operand for |block|, otherwise
+  // |nullptr|.
+  PhiInput* FindPhiInputFor(BasicBlock* block) const;
 
   // Instruction operand protocol
   int CountInputs() const final;
