@@ -183,7 +183,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   int32_t Int32ValueOf(Value literal) const;
   int64_t Int64ValueOf(Value literal) const;
 
-  IntegerCondition UseCondition(Instruction* user);
+  IntegerCondition UseCondition(Instruction* user) const;
 
   // InstructionHandler
   void Handle(Instruction* instr) final;
@@ -420,9 +420,6 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   DCHECK_EQ(left.size, right.size);
   DCHECK_EQ(left.type, right.type);
 
-  // Remember instruction which updates EFLAGS.
-  last_cmp_instruction_ = instr;
-
   if (left.is_8bit()) {
     if (right.is_physical()) {
       // 00 /r: ADD r/m8, r8
@@ -515,8 +512,6 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0)) << *instr;
 
-  last_cmp_instruction_ = instr;
-
   EmitRexPrefix(output);
 
   if (output.is_8bit()) {
@@ -587,17 +582,17 @@ int64_t InstructionHandlerX64::Int64ValueOf(Value value) const {
   return 0;
 }
 
-IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) {
+IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) const {
   auto const cmp_instr = last_cmp_instruction_->as<CmpInstruction>();
   DCHECK(cmp_instr) << "Not cmp instruction" << *last_cmp_instruction_;
   DCHECK_EQ(cmp_instr->output(0), user->input(0));
-  last_cmp_instruction_ = nullptr;
   return cmp_instr->condition();
 }
 
 // InstructionHandler
 void InstructionHandlerX64::Handle(Instruction* instr) {
   instr->Accept(this);
+  last_cmp_instruction_ = instr->as<CmpInstruction>();
 }
 
 // InstructionVisitor
