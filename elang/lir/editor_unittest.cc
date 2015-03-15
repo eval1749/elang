@@ -9,6 +9,7 @@
 #include "elang/base/analysis/dominator_tree.h"
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
+#include "elang/base/work_list.h"
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
@@ -137,6 +138,38 @@ TEST_F(LirEditorTest, BuildPostDominatorTree) {
                                          << " is not in dominator tree.";
 }
 
+TEST_F(LirEditorTest, BulkRemoveInstructions) {
+  auto const function = CreateFunctionEmptySample();
+  Editor editor(factory(), function);
+  auto const r1 = NewRegister(Value::Int32Type());
+  auto const r2 = NewRegister(Value::Int32Type());
+  editor.Edit(editor.entry_block());
+  editor.Append(NewCopyInstruction(r1, r2));
+  editor.Append(NewCopyInstruction(r1, r2));
+  editor.Append(NewCopyInstruction(r1, r2));
+  editor.Commit();
+  WorkList<Instruction> removes;
+  for (auto const instr : editor.entry_block()->instructions()) {
+    if (!instr->is<CopyInstruction>())
+      continue;
+    removes.Push(instr);
+  }
+  editor.BulkRemoveInstructions(&removes);
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
 TEST_F(LirEditorTest, FunctionEmpty) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
@@ -221,8 +254,8 @@ TEST_F(LirEditorTest, LiteralInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewLiteralInstruction(
-      NewIntPtrRegister(), Value::SmallInt64(42)));
+  editor.Append(factory()->NewLiteralInstruction(NewIntPtrRegister(),
+                                                 Value::SmallInt64(42)));
   editor.Append(factory()->NewLiteralInstruction(
       NewIntPtrRegister(), factory()->NewStringValue(L"foo")));
   EXPECT_EQ("", Commit(&editor));

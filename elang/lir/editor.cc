@@ -140,6 +140,33 @@ const DominatorTree<Function>& Editor::BuildPostDominatorTree() const {
   return *post_dominator_tree_;
 }
 
+void Editor::BulkRemoveInstructions(WorkList<Instruction>* instructions) {
+  DCHECK(!basic_block_);
+  if (instructions->empty())
+    return;
+#ifndef NDEBUG
+  WorkList<BasicBlock> changed_blocks;
+#endif
+  while (!instructions->empty()) {
+    auto const instr = instructions->Pop();
+    DCHECK(!instr->IsTerminator())
+        << "BulkRemove can't remove terminator: " << *instr;
+#ifndef NDEBUG
+    auto const block = instr->basic_block_;
+    if (!changed_blocks.Contains(block))
+      changed_blocks.Push(block);
+#endif
+    RemoveInternal(instr);
+  }
+  DidRemoveInstruction();
+#ifndef NDEBUG
+  while (!changed_blocks.empty()) {
+    auto const block = changed_blocks.Pop();
+    DCHECK(Validate(block)) << factory()->errors();
+  }
+#endif
+}
+
 bool Editor::Commit() {
   DCHECK(basic_block_);
 #ifdef NDEBUG
@@ -270,7 +297,21 @@ void Editor::Remove(Instruction* old_instruction) {
     RemoveEdgesFrom(old_instruction);
     DidChangeControlFlow();
   }
-  basic_block_->instructions_.RemoveNode(old_instruction);
+  RemoveInternal(old_instruction);
+}
+
+// Remove edges between |instruction|'s block and old successors.
+void Editor::RemoveEdgesFrom(Instruction* instruction) {
+  if (!instruction->IsTerminator())
+    return;
+  auto const block = instruction->basic_block();
+  for (auto successor : instruction->block_operands()) {
+    graph_editor_.RemoveEdge(block, successor);
+  }
+}
+
+void Editor::RemoveInternal(Instruction* old_instruction) {
+  old_instruction->basic_block_->instructions_.RemoveNode(old_instruction);
   old_instruction->id_ = 0;
   old_instruction->basic_block_ = nullptr;
 }
@@ -305,16 +346,6 @@ const OrderedBlockList& Editor::ReversePostOrderList() const {
         Function::Sorter::SortByReversePostOrder(function())));
   }
   return *reverse_post_order_list_;
-}
-
-// Remove edges between |instruction|'s block and old successors.
-void Editor::RemoveEdgesFrom(Instruction* instruction) {
-  if (!instruction->IsTerminator())
-    return;
-  auto const block = instruction->basic_block();
-  for (auto successor : instruction->block_operands()) {
-    graph_editor_.RemoveEdge(block, successor);
-  }
 }
 
 void Editor::SetBlockOperand(Instruction* instruction,

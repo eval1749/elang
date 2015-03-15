@@ -14,6 +14,7 @@
 #include "elang/base/double_linked.h"
 #include "elang/base/iterator_on_iterator.h"
 #include "elang/base/visitable.h"
+#include "elang/base/work_list.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
 #include "elang/lir/instructions_forward.h"
@@ -159,6 +160,7 @@ class ELANG_LIR_EXPORT Instruction
     : public Castable,
       public DoubleLinked<Instruction, BasicBlock>::Node,
       public Visitable<InstructionVisitor>,
+      public WorkList<Instruction>::Item,
       public ZoneAllocated {
   DECLARE_CASTABLE_CLASS(Instruction, Castable);
 

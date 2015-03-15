@@ -14,6 +14,7 @@
 #include "elang/base/float_types.h"
 #include "elang/base/graphs/graph.h"
 #include "elang/base/visitable.h"
+#include "elang/base/work_list.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
 #include "elang/lir/literals_forward.h"
@@ -84,7 +85,8 @@ typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
 //
 class ELANG_LIR_EXPORT BasicBlock final
     : public Literal,
-      public Graph<Function, BasicBlock>::Node {
+      public Graph<Function, BasicBlock>::Node,
+      public WorkList<BasicBlock>::Item {
   DECLARE_LIR_CONCRETE_LITERAL_CLASS(BasicBlock);
 
  public:

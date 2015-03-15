@@ -22,6 +22,9 @@ class LivenessCollection;
 template <typename Graph>
 class DominatorTree;
 
+template <typename Element>
+class WorkList;
+
 namespace lir {
 
 class ConflictMap;
@@ -106,6 +109,10 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
 
   // Instruction editing
   void Append(Instruction* new_instruction);
+
+  // Remove instructions in |instructions|, at end of this function work list
+  // |instructions| becomes empty. |this| editor must not be editing block.
+  void BulkRemoveInstructions(WorkList<Instruction>* instructions);
   void InsertAfter(Instruction* new_instruction, Instruction* ref_instruction);
   void InsertBefore(Instruction* new_instruction, Instruction* ref_instruction);
   void Remove(Instruction* old_instruction);
@@ -138,6 +145,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   void DidInsertInstruction();
   void DidRemoveInstruction();
 
+  void RemoveInternal(Instruction* instruction);
   void RemoveEdgesFrom(Instruction* instruction);
   bool Validate(Function* function);
 
