@@ -87,6 +87,7 @@ source_set("core") {
 source_set("core_tests") {
   testonly = true
   sources = [
+    "editor_unittest.cc",
     "instructions_unittest.cc",
     "literals_unittest.cc",
     "value_unittest.cc",
