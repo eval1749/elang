@@ -27,7 +27,7 @@ MachineCodeBuilderImpl::~MachineCodeBuilderImpl() {
 MachineCodeFunction* MachineCodeBuilderImpl::NewMachineCodeFunction() {
   auto const blob = factory_->NewCodeBlob(code_size());
   ::memcpy(blob, bytes_.data(), code_size());
-  return new (factory_) MachineCodeFunction(blob, code_size());
+  return new (factory_) MachineCodeFunction(blob, code_size(), {});
 }
 
 // api::MachineCodeBuilder

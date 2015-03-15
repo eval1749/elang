@@ -9,8 +9,13 @@
 namespace elang {
 namespace vm {
 
-MachineCodeFunction::MachineCodeFunction(EntryPoint entry_point, int code_size)
-    : entry_point_(entry_point), code_size_(code_size) {
+MachineCodeFunction::MachineCodeFunction(
+    EntryPoint entry_point,
+    int code_size,
+    const std::vector<MachineCodeAnnotation>& annotations)
+    : annotations_(annotations),
+      entry_point_(entry_point),
+      code_size_(code_size) {
   DCHECK(entry_point_);
 }
 

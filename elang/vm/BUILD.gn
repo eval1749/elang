@@ -16,6 +16,7 @@ static_library("vm") {
     "entry_point.h",
     "factory.cc",
     "factory.h",
+    "machine_code_annotation.h",
     "machine_code_builder_impl.cc",
     "machine_code_builder_impl.h",
     "machine_code_function.cc",

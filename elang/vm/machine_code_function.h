@@ -5,10 +5,13 @@
 #ifndef ELANG_VM_MACHINE_CODE_FUNCTION_H_
 #define ELANG_VM_MACHINE_CODE_FUNCTION_H_
 
+#include <vector>
+
 #include "elang/api/machine_code_builder.h"
 
 #include "elang/vm/collectable.h"
 #include "elang/vm/entry_point.h"
+#include "elang/vm/machine_code_annotation.h"
 
 namespace elang {
 namespace vm {
@@ -42,8 +45,11 @@ class MachineCodeFunction final : public Collectable {
  private:
   friend class MachineCodeBuilderImpl;
 
-  MachineCodeFunction(EntryPoint entry_point, int code_size);
+  MachineCodeFunction(EntryPoint entry_point,
+                      int code_size,
+                      const std::vector<MachineCodeAnnotation>& annotations);
 
+  const std::vector<MachineCodeAnnotation> annotations_;
   EntryPoint const entry_point_;
   int const code_size_;
 
