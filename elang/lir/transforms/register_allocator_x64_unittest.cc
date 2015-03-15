@@ -81,7 +81,7 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
       "* mov r10l = r1l\n"
       "* mov r11l = r2l\n"
       "  pcopy r10l, r11l = r1l, r2l\n"
-      "  copy r10l = r10l\n"
+      "  mov r10l = r10l\n"
       "  add r10l = r10l, r11l\n"
       "  mov r10l = r10l\n"
       "  mov r0l = r10l\n"
