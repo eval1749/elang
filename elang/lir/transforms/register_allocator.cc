@@ -137,7 +137,7 @@ Value RegisterAllocator::AllocationOf(Value value) const {
 // We must allocate same physical register to %tmp1 and %tmp2 for two
 // operands arithmetic operation:
 //  copy %tmp1 = %2
-//  add %tmp2 = %tmp1 %3
+//  add %tmp2 = %tmp1, %3
 //  copy %5 = %tmp2
 Value RegisterAllocator::AssignedPhysicalFor(Instruction* instr) {
   if (instr->CountOutputs() != 1 || instr->CountInputs() != 2)
