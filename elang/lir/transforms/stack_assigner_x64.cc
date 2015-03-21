@@ -150,7 +150,7 @@ void StackAssigner::RunForNonLeafFunction() {
       // TODO(eval1749) We should use |lea rbp, [rsp+arg_size+base_offset]|
       AddPrologue(NewCopyInstruction(rbp, rsp));
       AddPrologue(NewAddInstruction(
-          rbp, rbp, Value::SmallInt64(args_size + base_offset)));
+          rbp, rbp, Value::SmallInt64(args_size + 8 + base_offset)));
     }
   }
 
