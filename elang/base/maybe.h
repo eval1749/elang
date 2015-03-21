@@ -5,23 +5,71 @@
 #ifndef ELANG_BASE_MAYBE_H_
 #define ELANG_BASE_MAYBE_H_
 
+#include "base/logging.h"
+
 namespace elang {
 
 // A simple |Maybe| type, representing a value which may or may not have a
-// value
+// value, see https://hackage.haskell.org/package/base/docs/Data-Maybe.html.
+// This class is inspired by v8's |Maybe<T>| class.
 template <typename T>
-struct Maybe {
-  explicit Maybe(T t) : has_value(true), value(t) {}
-  Maybe() : has_value(false) {}
+class Maybe {
+ public:
+  bool operator==(const Maybe& other) const;
+  bool operator!=(const Maybe& other) const;
 
-  bool has_value;
-  T value;
+  T FromJust() const;
+  T FromMaybe(const T& default_value) const;
+
+  bool IsJust() const { return has_value_; }
+  bool IsNothing() const { return !has_value_; }
+
+ private:
+  template <typename U>
+  friend Maybe<U> Just(const U& value);
+
+  template <typename U>
+  friend Maybe<U> Nothing();
+
+  explicit Maybe(T value) : has_value_(true), value_(value) {}
+  Maybe() : has_value_(false) {}
+
+  bool has_value_;
+  T value_;
 };
 
-// Convenience wrapper.
 template <typename T>
-Maybe<T> make_maybe(T t) {
-  return Maybe<T>(t);
+bool Maybe<T>::operator==(const Maybe& other) const {
+  if (IsNothing())
+    return other.IsNothing();
+  return FromJust() == other.FromJust();
+}
+
+template <typename T>
+bool Maybe<T>::operator!=(const Maybe& other) const {
+  return !operator==(other);
+}
+
+template <typename T>
+T Maybe<T>::FromJust() const {
+  DCHECK(IsJust());
+  return value_;
+}
+
+template <typename T>
+T Maybe<T>::FromMaybe(const T& default_value) const {
+  return IsJust() > value_ : default_value;
+}
+
+// Constructors
+template <typename T>
+Maybe<T> Just(const T& value) {
+  return Maybe<T>(value);
+}
+
+template <typename T>
+Maybe<T> Nothing() {
+  return Maybe<T>();
 }
 
 }  // namespace elang
