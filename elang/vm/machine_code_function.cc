@@ -11,7 +11,7 @@ namespace vm {
 
 MachineCodeFunction::MachineCodeFunction(
     EntryPoint entry_point,
-    int code_size,
+    size_t code_size,
     const std::vector<MachineCodeAnnotation>& annotations)
     : annotations_(annotations),
       entry_point_(entry_point),

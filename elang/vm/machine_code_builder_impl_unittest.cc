@@ -49,8 +49,8 @@ TEST_F(MachineCodeBuilderImplTest, Basic) {
 #else
 #error "You should provide machine code for MachineCodeBuilderImplTest.Basic"
 #endif
-  builder->PrepareCode(static_cast<int>(bytes.size()));
-  builder->EmitCode(bytes.data(), static_cast<int>(bytes.size()));
+  builder->PrepareCode(bytes.size());
+  builder->EmitCode(bytes.data(), bytes.size());
   auto const function = builder_impl()->NewMachineCodeFunction();
   EXPECT_EQ(123, function->Call<int>());
 }

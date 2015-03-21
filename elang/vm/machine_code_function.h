@@ -30,10 +30,10 @@ class MachineCodeFunction final : public Collectable {
   const uint8_t* code_bytes() const {
     return reinterpret_cast<uint8_t*>(entry_point_);
   }
-  int code_size() const { return code_size_; }
+  size_t code_size() const { return code_size_; }
 
   // Expose code area for testing.
-  int code_size_for_testing() const { return code_size(); }
+  size_t code_size_for_testing() const { return code_size(); }
   const uint8_t* code_start_for_testing() const { return code_bytes(); }
 
   template <typename Return, typename... Params>
@@ -52,12 +52,12 @@ class MachineCodeFunction final : public Collectable {
   friend class MachineCodeBuilderImpl;
 
   MachineCodeFunction(EntryPoint entry_point,
-                      int code_size,
+                      size_t code_size,
                       const std::vector<MachineCodeAnnotation>& annotations);
 
   const std::vector<MachineCodeAnnotation> annotations_;
   EntryPoint const entry_point_;
-  int const code_size_;
+  size_t const code_size_;
 
   DISALLOW_COPY_AND_ASSIGN(MachineCodeFunction);
 };

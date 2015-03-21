@@ -50,12 +50,13 @@ Class* Factory::NewClass(Namespace* outer,
   return new (zone()) Class(zone(), outer, name, base_classes);
 }
 
-EntryPoint Factory::NewCodeBlob(int size) {
-  return reinterpret_cast<EntryPoint>(code_memory_pool_->Allocate(size));
+EntryPoint Factory::NewCodeBlob(size_t size) {
+  return reinterpret_cast<EntryPoint>(
+      code_memory_pool_->Allocate(static_cast<int>(size)));
 }
 
-void* Factory::NewDataBlob(int size) {
-  return data_memory_pool_->Allocate(size);
+void* Factory::NewDataBlob(size_t size) {
+  return data_memory_pool_->Allocate(static_cast<int>(size));
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* name) {

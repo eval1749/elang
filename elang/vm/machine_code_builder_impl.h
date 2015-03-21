@@ -34,18 +34,18 @@ class MachineCodeBuilderImpl final : public api::MachineCodeBuilder {
   class CodeBuffer;
 
   // api::MachineCodeBuilder
-  void EmitCode(const uint8_t* bytes, int code_size) final;
+  void EmitCode(const uint8_t* bytes, size_t code_size) final;
   void FinishCode() final;
-  void PrepareCode(int code_size) final;
-  void SetCallSite(int offset, base::StringPiece16 string) final;
-  void SetCodeOffset(int offset, int target_offset) final;
-  void SetFloat32(int offset, float32_t float32) final;
-  void SetFloat64(int offset, float64_t float64) final;
-  void SetInt32(int offset, int32_t int32) final;
-  void SetInt64(int offset, int64_t int64) final;
-  void SetSourceCodeLocation(int offset,
+  void PrepareCode(size_t code_size) final;
+  void SetCallSite(size_t offset, base::StringPiece16 string) final;
+  void SetCodeOffset(size_t offset, size_t target_offset) final;
+  void SetFloat32(size_t offset, float32_t float32) final;
+  void SetFloat64(size_t offset, float64_t float64) final;
+  void SetInt32(size_t offset, int32_t int32) final;
+  void SetInt64(size_t offset, int64_t int64) final;
+  void SetSourceCodeLocation(size_t offset,
                              api::SourceCodeLocation location) final;
-  void SetString(int offset, base::StringPiece16 string) final;
+  void SetString(size_t offset, base::StringPiece16 string) final;
 
   std::unique_ptr<CodeBuffer> code_buffer_;
   Factory* const factory_;

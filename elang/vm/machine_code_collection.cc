@@ -81,7 +81,7 @@ void MachineCodeCollection::InstallPredefinedFunction(Factory* factory,
   code_buffer[13] = static_cast<uint8_t>(entry_point >> 40);
   code_buffer[14] = static_cast<uint8_t>(entry_point >> 48);
   code_buffer[15] = static_cast<uint8_t>(entry_point >> 56);
-  auto const code_size = static_cast<int>(code_buffer.size());
+  auto const code_size = code_buffer.size();
   builder->PrepareCode(code_size);
   builder->EmitCode(code_buffer.data(), code_size);
   builder->FinishCode();

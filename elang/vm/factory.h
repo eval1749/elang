@@ -43,8 +43,8 @@ class Factory final : public ZoneOwner {
   Class* NewClass(Namespace* outer,
                   AtomicString* simple_name,
                   const std::vector<Class*>& base_classes);
-  EntryPoint NewCodeBlob(int size);
-  void* NewDataBlob(int size);
+  EntryPoint NewCodeBlob(size_t size);
+  void* NewDataBlob(size_t size);
   Namespace* NewNamespace(Namespace* outer, AtomicString* simple_name);
   base::StringPiece16 NewString(base::StringPiece16 string);
 

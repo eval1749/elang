@@ -32,7 +32,7 @@ class MachineCodeBuilderImpl::CodeBuffer final {
   size_t size() const { return bytes_.size(); }
 
   void Append(const uint8_t* bytes, size_t size);
-  void SetRelativeAddress32(int offset, const uint8_t* address);
+  void SetRelativeAddress32(size_t offset, const uint8_t* address);
 
  private:
   targets::Bytes bytes_;
@@ -54,7 +54,7 @@ void MachineCodeBuilderImpl::CodeBuffer::Append(const uint8_t* bytes,
 }
 
 void MachineCodeBuilderImpl::CodeBuffer::SetRelativeAddress32(
-    int offset,
+    size_t offset,
     const uint8_t* address) {
   DCHECK_LE(offset + 4, size_);
   bytes_.SetRelativeAddress32(offset, address);
@@ -72,12 +72,12 @@ MachineCodeBuilderImpl::~MachineCodeBuilderImpl() {
 }
 
 MachineCodeFunction* MachineCodeBuilderImpl::NewMachineCodeFunction() {
-  return new (factory_) MachineCodeFunction(
-      code_buffer_->entry_point(), static_cast<int>(code_buffer_->size()), {});
+  return new (factory_) MachineCodeFunction(code_buffer_->entry_point(),
+                                            code_buffer_->size(), {});
 }
 
 // api::MachineCodeBuilder
-void MachineCodeBuilderImpl::EmitCode(const uint8_t* bytes, int size) {
+void MachineCodeBuilderImpl::EmitCode(const uint8_t* bytes, size_t size) {
   DCHECK(code_buffer_) << "You should call Prepare(code_size).";
   code_buffer_->Append(bytes, size);
 }
@@ -85,14 +85,13 @@ void MachineCodeBuilderImpl::EmitCode(const uint8_t* bytes, int size) {
 void MachineCodeBuilderImpl::FinishCode() {
 }
 
-void MachineCodeBuilderImpl::PrepareCode(int code_size) {
+void MachineCodeBuilderImpl::PrepareCode(size_t size) {
   DCHECK(!code_buffer_);
-  auto const bytes =
-      reinterpret_cast<uint8_t*>(factory_->NewCodeBlob(code_size));
-  code_buffer_.reset(new CodeBuffer(bytes, code_size));
+  auto const bytes = reinterpret_cast<uint8_t*>(factory_->NewCodeBlob(size));
+  code_buffer_.reset(new CodeBuffer(bytes, size));
 }
 
-void MachineCodeBuilderImpl::SetCallSite(int offset,
+void MachineCodeBuilderImpl::SetCallSite(size_t offset,
                                          base::StringPiece16 string) {
   auto const name = factory_->NewAtomicString(string);
   auto const function =
@@ -102,27 +101,29 @@ void MachineCodeBuilderImpl::SetCallSite(int offset,
                                      function->code_start_for_testing());
 }
 
-void MachineCodeBuilderImpl::SetCodeOffset(int offset, int target_offset) {
+void MachineCodeBuilderImpl::SetCodeOffset(size_t offset,
+                                           size_t target_offset) {
 }
 
-void MachineCodeBuilderImpl::SetFloat32(int offset, float32_t data) {
+void MachineCodeBuilderImpl::SetFloat32(size_t offset, float32_t data) {
 }
 
-void MachineCodeBuilderImpl::SetFloat64(int offset, float64_t data) {
+void MachineCodeBuilderImpl::SetFloat64(size_t offset, float64_t data) {
 }
 
-void MachineCodeBuilderImpl::SetInt32(int offset, int32_t data) {
+void MachineCodeBuilderImpl::SetInt32(size_t offset, int32_t data) {
 }
 
-void MachineCodeBuilderImpl::SetInt64(int offset, int64_t data) {
+void MachineCodeBuilderImpl::SetInt64(size_t offset, int64_t data) {
 }
 
 void MachineCodeBuilderImpl::SetSourceCodeLocation(
-    int offset,
+    size_t offset,
     api::SourceCodeLocation location) {
 }
 
-void MachineCodeBuilderImpl::SetString(int offset, base::StringPiece16 data) {
+void MachineCodeBuilderImpl::SetString(size_t offset,
+                                       base::StringPiece16 data) {
 }
 
 }  // namespace vm

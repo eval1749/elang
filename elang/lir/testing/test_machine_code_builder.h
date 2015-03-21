@@ -27,22 +27,22 @@ class TestMachineCodeBuilder final : public api::MachineCodeBuilder {
   std::string GetResult();
 
  private:
-  void EmitCode(const uint8_t* codes, int code_length) final;
+  void EmitCode(const uint8_t* bytes, size_t size) final;
   void FinishCode() final;
-  void PrepareCode(int code_length) final;
-  void SetCallSite(int offset, base::StringPiece16 string) final;
-  void SetCodeOffset(int offset, int target_offset) final;
-  void SetFloat32(int offset, float32_t data) final;
-  void SetFloat64(int offset, float64_t data) final;
-  void SetInt32(int offset, int32_t data) final;
-  void SetInt64(int offset, int64_t data) final;
-  void SetSourceCodeLocation(int offset,
+  void PrepareCode(size_t size) final;
+  void SetCallSite(size_t offset, base::StringPiece16 string) final;
+  void SetCodeOffset(size_t offset, size_t target_offset) final;
+  void SetFloat32(size_t offset, float32_t data) final;
+  void SetFloat64(size_t offset, float64_t data) final;
+  void SetInt32(size_t offset, int32_t data) final;
+  void SetInt64(size_t offset, int64_t data) final;
+  void SetSourceCodeLocation(size_t offset,
                              api::SourceCodeLocation location) final;
-  void SetString(int offset, base::StringPiece16 data) final;
+  void SetString(size_t offset, base::StringPiece16 data) final;
 
  private:
   std::vector<uint8_t> bytes_;
-  int code_length_;
+  size_t size_;
   std::stringstream stream_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMachineCodeBuilder);
