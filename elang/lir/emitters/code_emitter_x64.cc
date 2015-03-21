@@ -645,21 +645,9 @@ void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
 //  REX.W 01 /r     ADD r/m64, r64
 //  REX.W 03 /r     ADD r64, r/m64
 //
-// Fusion:
-//  C2 Iw RET imm16 -- r/m64 is RSP and next instruction is RET.
-//
 void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
   auto const output = instr->output(0);
   auto const right = instr->input(1);
-  if (output == Target::GetRegister(isa::RSP) && right.is_immediate() &&
-      Is16Bit(right.data) && instr->next()->is<RetInstruction>()) {
-    fused_instruction_ = instr->next();
-    EmitOpcode(isa::Opcode::RET_Iw);
-    // TODO(eval1749) If target function uses Windows calling convention, we
-    // should check |right.data % 16 == 8|.
-    Emit16(right.data);
-    return;
-  }
   DCHECK_EQ(output, instr->input(0)) << *instr;
   if (output.is_integer()) {
     HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
