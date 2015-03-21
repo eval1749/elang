@@ -21,11 +21,8 @@ namespace vm {
 
 namespace {
 void ConsoleWriteLineString(impl::String* string) {
-  auto const start =
-      static_cast<base::char16*>(string->characters->first_element);
-  auto const end = start + string->characters->length;
-  for (auto ptr = start; ptr < end; ++ptr)
-    std::cout << *ptr;
+  base::StringPiece16 data(&(*string->data)[0], string->data->length);
+  std::cout << base::UTF16ToUTF8(data.as_string()) << std::endl;
 }
 
 }  // namespace
