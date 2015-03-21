@@ -6,8 +6,11 @@
 #define ELANG_SHELL_COMPILER_H_
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "base/macros.h"
+#include "base/strings/string16.h"
 
 namespace base {
 class FilePath;
@@ -24,7 +27,7 @@ namespace shell {
 //
 class Compiler final {
  public:
-  Compiler();
+  explicit Compiler(const std::vector<base::string16>& args);
   ~Compiler();
 
   void set_dump_hir(bool dump) { is_dump_hir_ = dump; }
@@ -44,6 +47,7 @@ class Compiler final {
 
   CompilationSession* session() { return session_.get(); }
 
+  const std::vector<base::string16> args_;
   bool is_dump_hir_;
   bool is_dump_lir_;
   std::unique_ptr<CompilationSession> session_;

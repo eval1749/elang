@@ -46,6 +46,8 @@
 #include "elang/vm/factory.h"
 #include "elang/vm/machine_code_function.h"
 #include "elang/vm/machine_code_builder_impl.h"
+#include "elang/vm/objects.h"
+#include "elang/vm/object_factory.h"
 
 namespace elang {
 namespace compiler {
@@ -241,8 +243,9 @@ bool ReportLirError(const lir::Factory* factory) {
 
 }  // namespace
 
-Compiler::Compiler()
-    : is_dump_hir_(false),
+Compiler::Compiler(const std::vector<base::string16>& args)
+    : args_(args),
+      is_dump_hir_(false),
       is_dump_lir_(false),
       session_(new CompilationSession()) {
 }
@@ -333,7 +336,28 @@ int Compiler::CompileAndGo() {
     std::cout << " " << base::StringPrintf("%02X", *code);
   }
   std::cout << std::endl;
-  return 0;
+
+  // Execute
+  if (main_function->parameters_type()->is<hir::VoidType>()) {
+    if (main_function->return_type()->is<hir::VoidType>()) {
+      mc_function->Invoke();
+      return 0;
+    }
+    return mc_function->Call<int>();
+  }
+  DCHECK_GE(args_.size(), 1);
+  auto const objects = vm_factory->object_factory();
+  auto const args = objects->NewVector<vm::impl::String*>(
+      objects->string_class(), args_.size() - 1);
+  for (auto index = 1; index < args_.size(); ++index)
+    (*args)[index - 1] = objects->NewString(base::StringPiece16(args_[index]));
+
+  if (main_function->return_type()->is<hir::VoidType>()) {
+    mc_function->Invoke(args);
+    return 0;
+  }
+
+  return mc_function->Call<int, vm::impl::Vector<vm::impl::String*>*>(args);
 }
 
 void Compiler::ReportErrors() {
