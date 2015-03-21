@@ -30,6 +30,7 @@ test("elang_all_unittests") {
     "//elang/hir:hir_unittests",
     "//elang/lir:lir_unittests",
     "//elang/shell:shell_unittests",
+    "//elang/targets:targets_tests",
     "//elang/vm:vm_unittests",
   ]
 }

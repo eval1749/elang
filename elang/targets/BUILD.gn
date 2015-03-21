@@ -1,0 +1,32 @@
+# Copyright 2014-2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+import("//testing/test.gni")
+
+static_library("targets") {
+  output_name = "elang_targets"
+  sources = [
+    "bytes.cc",
+    "bytes.h",
+    "target_features.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//elang:elang_target_arch",
+  ]
+}
+
+source_set("targets_tests") {
+  testonly = true
+  sources = [
+    "bytes_test.cc",
+  ]
+
+  public_deps = [
+    "//testing/gtest",
+    ":targets",
+  ]
+}
