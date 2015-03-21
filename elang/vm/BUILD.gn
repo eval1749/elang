@@ -31,7 +31,10 @@ static_library("vm") {
     "namespace_member.h",
     "node.cc",
     "node.h",
+    "objects.cc",
     "objects.h",
+    "object_factory.cc",
+    "object_factory.h",
     "virtual_memory.h",
   ]
 

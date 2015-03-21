@@ -13,6 +13,7 @@
 #include "elang/vm/machine_code_collection.h"
 #include "elang/vm/memory_pool.h"
 #include "elang/vm/namespace.h"
+#include "elang/vm/object_factory.h"
 
 namespace elang {
 namespace vm {
@@ -34,7 +35,8 @@ Factory::Factory()
       code_memory_pool_(new MemoryPool(MemoryPool::Kind::Code, 16)),
       data_memory_pool_(new MemoryPool(MemoryPool::Kind::Data, 16)),
       global_namespace_(CreateGlobalNamespace(this)),
-      machine_code_collection_(new MachineCodeCollection(this)) {
+      machine_code_collection_(new MachineCodeCollection(this)),
+      object_factory_(new impl::ObjectFactory(this)) {
 }
 
 Factory::~Factory() {

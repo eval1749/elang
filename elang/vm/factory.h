@@ -19,6 +19,10 @@ class AtomicString;
 class AtomicStringFactory;
 
 namespace vm {
+namespace impl {
+class ObjectFactory;
+}
+
 class Class;
 class MemoryPool;
 class MachineCodeCollection;
@@ -39,6 +43,8 @@ class Factory final : public ZoneOwner {
     return machine_code_collection_.get();
   }
 
+  impl::ObjectFactory* object_factory() const { return object_factory_.get(); }
+
   AtomicString* NewAtomicString(base::StringPiece16 string);
   Class* NewClass(Namespace* outer,
                   AtomicString* simple_name,
@@ -54,6 +60,7 @@ class Factory final : public ZoneOwner {
   const std::unique_ptr<MemoryPool> data_memory_pool_;
   Namespace* const global_namespace_;
   const std::unique_ptr<MachineCodeCollection> machine_code_collection_;
+  const std::unique_ptr<impl::ObjectFactory> object_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
