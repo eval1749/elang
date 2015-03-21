@@ -10,6 +10,7 @@
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/vm/class.h"
+#include "elang/vm/machine_code_collection.h"
 #include "elang/vm/memory_pool.h"
 #include "elang/vm/namespace.h"
 
@@ -32,7 +33,8 @@ Factory::Factory()
     : atomic_string_factory_(new AtomicStringFactory()),
       code_memory_pool_(new MemoryPool(MemoryPool::Kind::Code, 16)),
       data_memory_pool_(new MemoryPool(MemoryPool::Kind::Data, 16)),
-      global_namespace_(CreateGlobalNamespace(this)) {
+      global_namespace_(CreateGlobalNamespace(this)),
+      machine_code_collection_(new MachineCodeCollection(this)) {
 }
 
 Factory::~Factory() {

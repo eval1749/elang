@@ -19,6 +19,8 @@ static_library("vm") {
     "machine_code_annotation.h",
     "machine_code_builder_impl.cc",
     "machine_code_builder_impl.h",
+    "machine_code_collection.cc",
+    "machine_code_collection.h",
     "machine_code_function.cc",
     "machine_code_function.h",
     "memory_pool.cc",
@@ -29,13 +31,14 @@ static_library("vm") {
     "namespace_member.h",
     "node.cc",
     "node.h",
+    "objects.h",
     "virtual_memory.h",
   ]
 
   public_deps = [
     "//base",
     "//elang/base",
-    "//elang:elang_target_arch",
+    "//elang/targets",
   ]
 
   if (is_win) {
