@@ -5,12 +5,15 @@
 #ifndef ELANG_VM_MACHINE_CODE_BUILDER_IMPL_H_
 #define ELANG_VM_MACHINE_CODE_BUILDER_IMPL_H_
 
+#include <memory>
 #include <string>
-#include <vector>
 
 #include "elang/api/machine_code_builder.h"
 
 namespace elang {
+namespace targets {
+class CodeBuffer;
+}
 namespace vm {
 
 class Factory;
@@ -28,10 +31,10 @@ class MachineCodeBuilderImpl final : public api::MachineCodeBuilder {
   MachineCodeFunction* NewMachineCodeFunction();
 
  private:
-  int code_size() { return static_cast<int>(bytes_.size()); }
+  class CodeBuffer;
 
   // api::MachineCodeBuilder
-  void EmitCode(const uint8_t* codes, int code_size) final;
+  void EmitCode(const uint8_t* bytes, int code_size) final;
   void FinishCode() final;
   void PrepareCode(int code_size) final;
   void SetCallSite(int offset, base::StringPiece16 string) final;
@@ -44,7 +47,7 @@ class MachineCodeBuilderImpl final : public api::MachineCodeBuilder {
                              api::SourceCodeLocation location) final;
   void SetString(int offset, base::StringPiece16 string) final;
 
-  std::vector<uint8_t> bytes_;
+  std::unique_ptr<CodeBuffer> code_buffer_;
   Factory* const factory_;
 
   DISALLOW_COPY_AND_ASSIGN(MachineCodeBuilderImpl);

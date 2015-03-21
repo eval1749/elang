@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <array>
 #include <memory>
 #include <sstream>
 
@@ -37,18 +38,19 @@ MachineCodeBuilderImplTest::MachineCodeBuilderImplTest()
 TEST_F(MachineCodeBuilderImplTest, Basic) {
   auto const builder = static_cast<api::MachineCodeBuilder*>(builder_impl());
 #if ELANG_TARGET_ARCH_X64
-  uint8_t codes[] = {
-      0xB8,
+  std::array<uint8_t, 6> bytes{
+      0xB8,  // mov eax, 123
       0x7B,
       0x00,
       0x00,
-      0x00,  // mov eax, 123
+      0x00,
       0xC3,  // ret
   };
 #else
 #error "You should provide machine code for MachineCodeBuilderImplTest.Basic"
 #endif
-  builder->EmitCode(codes, sizeof(codes));
+  builder->PrepareCode(static_cast<int>(bytes.size()));
+  builder->EmitCode(bytes.data(), static_cast<int>(bytes.size()));
   auto const function = builder_impl()->NewMachineCodeFunction();
   EXPECT_EQ(123, function->Call<int>());
 }

@@ -24,11 +24,17 @@ class MachineCodeFunction final : public Collectable {
  public:
   ~MachineCodeFunction() = delete;
 
-  // Expose code area for testing.
-  int code_size_for_testing() const { return code_size_; }
-  const uint8_t* code_start_for_testing() const {
+  uintptr_t address() const {
+    return reinterpret_cast<uintptr_t>(code_bytes());
+  }
+  const uint8_t* code_bytes() const {
     return reinterpret_cast<uint8_t*>(entry_point_);
   }
+  int code_size() const { return code_size_; }
+
+  // Expose code area for testing.
+  int code_size_for_testing() const { return code_size(); }
+  const uint8_t* code_start_for_testing() const { return code_bytes(); }
 
   template <typename Return, typename... Params>
   Return Call(Params... params) {
