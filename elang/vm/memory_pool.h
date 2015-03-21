@@ -24,12 +24,12 @@ class MemoryPool {
     Data,
   };
 
-  explicit MemoryPool(Kind kind, int alignment);
+  explicit MemoryPool(Kind kind, size_t alignment);
 
-  void* Allocate(int size);
+  void* Allocate(size_t size);
 
  private:
-  int const alignment_;
+  size_t const alignment_;
   Kind const kind_;
   DoubleLinked<Segment, MemoryPool> large_blob_segment_;
   DoubleLinked<Segment, MemoryPool> small_blob_segment_;

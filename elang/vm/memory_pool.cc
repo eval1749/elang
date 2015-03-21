@@ -12,7 +12,7 @@ namespace vm {
 namespace {
 const int kLargeDataThreshold = 1024 * 1;
 
-int RoundUp(int num, int unit) {
+size_t RoundUp(size_t num, size_t unit) {
   return ((num + unit - 1) / unit) * unit;
 }
 }  // namespace
@@ -24,30 +24,30 @@ int RoundUp(int num, int unit) {
 class MemoryPool::Segment final
     : public DoubleLinked<Segment, MemoryPool>::Node {
  public:
-  Segment(Kind kind, int size);
+  Segment(Kind kind, size_t size);
   ~Segment() = default;
 
-  void* Allocate(int size);
+  void* Allocate(size_t size);
 
  private:
   VirtualMemory memory_;
-  int offset_;
-  int const size_;
+  size_t offset_;
+  size_t const size_;
 
   DISALLOW_COPY_AND_ASSIGN(Segment);
 };
 
-MemoryPool::Segment::Segment(Kind kind, int size)
+MemoryPool::Segment::Segment(Kind kind, size_t size)
     : memory_(VirtualMemory(size)),
       offset_(0),
-      size_(static_cast<int>(memory_.size())) {
+      size_(memory_.size()) {
   if (kind == Kind::Code)
     memory_.CommitCode();
   else
     memory_.CommitData();
 }
 
-void* MemoryPool::Segment::Allocate(int size) {
+void* MemoryPool::Segment::Allocate(size_t size) {
   auto const new_offset = offset_ + size;
   // TODO(eval1749) We should remember rest of memory in segment.
   if (new_offset > size_)
@@ -61,13 +61,13 @@ void* MemoryPool::Segment::Allocate(int size) {
 //
 // MemoryPool
 //
-MemoryPool::MemoryPool(Kind kind, int alignment)
+MemoryPool::MemoryPool(Kind kind, size_t alignment)
     : alignment_(alignment), kind_(kind) {
   large_blob_segment_.AppendNode(new Segment(kind_, 1));
   small_blob_segment_.AppendNode(new Segment(kind_, 1));
 }
 
-void* MemoryPool::Allocate(int requested_size) {
+void* MemoryPool::Allocate(size_t requested_size) {
   auto const size = RoundUp(requested_size, alignment_);
   if (size > kLargeDataThreshold) {
     for (;;) {

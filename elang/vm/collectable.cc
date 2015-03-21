@@ -17,7 +17,7 @@ void Collectable::operator delete(void* pointer, Factory* factory) {
 }
 
 void* Collectable::operator new(size_t size, Factory* factory) {
-  return factory->NewDataBlob(static_cast<int>(size));
+  return factory->NewDataBlob(size);
 }
 
 Collectable::Collectable() {

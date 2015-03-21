@@ -51,12 +51,11 @@ Class* Factory::NewClass(Namespace* outer,
 }
 
 EntryPoint Factory::NewCodeBlob(size_t size) {
-  return reinterpret_cast<EntryPoint>(
-      code_memory_pool_->Allocate(static_cast<int>(size)));
+  return reinterpret_cast<EntryPoint>(code_memory_pool_->Allocate(size));
 }
 
 void* Factory::NewDataBlob(size_t size) {
-  return data_memory_pool_->Allocate(static_cast<int>(size));
+  return data_memory_pool_->Allocate(size);
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, AtomicString* name) {
