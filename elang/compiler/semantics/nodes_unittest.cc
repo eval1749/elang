@@ -20,40 +20,40 @@ namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
-// IrNodesTest
+// IrSemanticsTest
 //
-class IrNodesTest : public testing::AnalyzerTest {
+class IrSemanticsTest : public testing::AnalyzerTest {
  protected:
-  IrNodesTest() = default;
-  ~IrNodesTest() override = default;
+  IrSemanticsTest() = default;
+  ~IrSemanticsTest() override = default;
 
   Factory* factory() { return name_resolver()->factory(); }
   Type* system_int32();
   Type* system_int64();
 
-  std::string ToString(Node* node);
+  std::string ToString(Semantic* node);
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(IrNodesTest);
+  DISALLOW_COPY_AND_ASSIGN(IrSemanticsTest);
 };
 
-Type* IrNodesTest::system_int32() {
+Type* IrSemanticsTest::system_int32() {
   return semantics()->ValueOf(FindClass("System.Int32"))->as<Type>();
 }
 
-Type* IrNodesTest::system_int64() {
+Type* IrSemanticsTest::system_int64() {
   return semantics()->ValueOf(FindClass("System.Int64"))->as<Type>();
 }
 
-std::string IrNodesTest::ToString(Node* node) {
+std::string IrSemanticsTest::ToString(Semantic* semantic) {
   std::stringstream ostream;
-  ostream << *node;
+  ostream << *semantic;
   return ostream.str();
 }
 
 // Test cases...
 
-TEST_F(IrNodesTest, ArrayType) {
+TEST_F(IrSemanticsTest, ArrayType) {
   auto const type1 = factory()->NewArrayType(system_int32(), {10, 20});
   auto const type2 = factory()->NewArrayType(system_int32(), {10, 20});
   auto const type3 = factory()->NewArrayType(system_int32(), {10});
@@ -69,7 +69,7 @@ TEST_F(IrNodesTest, ArrayType) {
 //  element_type_of(T[A]) = T
 //  element_type_of(T[A][B}) = T[B]
 //  element_type_of(T[A][B}[C]) = T[B][C]
-TEST_F(IrNodesTest, ArrayTypeArrayOfArray) {
+TEST_F(IrSemanticsTest, ArrayTypeArrayOfArray) {
   auto const type1 = factory()->NewArrayType(system_int32(), {10});
   auto const type2 = factory()->NewArrayType(type1, {20});
   auto const type3 = factory()->NewArrayType(type2, {30});
@@ -78,7 +78,7 @@ TEST_F(IrNodesTest, ArrayTypeArrayOfArray) {
   EXPECT_EQ("System.Int32[30][20][10]", ToString(type3));
 }
 
-TEST_F(IrNodesTest, ArrayTypeUnbound) {
+TEST_F(IrSemanticsTest, ArrayTypeUnbound) {
   EXPECT_EQ("System.Int32[]",
             ToString(factory()->NewArrayType(system_int32(), {-1})));
   EXPECT_EQ("System.Int32[,]",

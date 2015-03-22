@@ -130,8 +130,8 @@ Type* Method::return_type() const {
   return signature_->return_type();
 }
 
-// Node
-Node::Node() {
+// Semantic
+Semantic::Semantic() {
 }
 
 // Parameter

@@ -22,9 +22,9 @@ class ContainerNode;
 class NamedNode;
 }
 namespace sm {
-class Node;
 class Factory;
 class Method;
+class Semantic;
 class Type;
 }
 
@@ -46,12 +46,12 @@ class NameResolver final : public CompilationSessionUser {
   sm::Factory* factory() const { return factory_.get(); }
 
   // Registering functions.
-  void DidResolve(ast::NamedNode* ast_node, sm::Node* node);
+  void DidResolve(ast::NamedNode* ast_node, sm::Semantic* node);
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.
   sm::Type* GetPredefinedType(PredefinedName name);
-  sm::Node* Resolve(ast::NamedNode* ast_node) const;
+  sm::Semantic* Resolve(ast::NamedNode* ast_node) const;
   // Resolve to |sm::Type| named |name| for |token|.
   sm::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,

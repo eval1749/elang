@@ -470,7 +470,7 @@ bool CodeGenerator::Run() {
   return session()->errors().empty();
 }
 
-sm::Node* CodeGenerator::ValueOf(ast::Node* node) const {
+sm::Semantic* CodeGenerator::ValueOf(ast::Node* node) const {
   return semantics()->ValueOf(node);
 }
 

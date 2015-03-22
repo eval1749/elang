@@ -12,7 +12,7 @@ namespace compiler {
 namespace sm {
 
 #define FOR_EACH_ABSTRACT_IR_NODE(V) \
-  V(Node)                            \
+  V(Semantic)                        \
   V(Type)                            \
   V(Value)
 
@@ -39,7 +39,7 @@ enum class StorageClass;
 class Visitor;
 
 // Print for formatting and debugging.
-std::ostream& operator<<(std::ostream& ostream, const Node& node);
+std::ostream& operator<<(std::ostream& ostream, const Semantic& node);
 std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class);
 
 }  // namespace sm

@@ -42,7 +42,7 @@ class Collector final : private ast::Visitor {
   explicit Collector(ast::Method* method);
   Collector() = default;
 
-  const std::vector<ast::Call*>& calls() const { return  calls_; }
+  const std::vector<ast::Call*>& calls() const { return calls_; }
   const std::vector<ast::NamedNode*> variables() const { return variables_; }
 
  private:
@@ -183,7 +183,7 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
 };
 
 std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
-  typedef std::pair<ast::Node*, sm::Node*> KeyValue;
+  typedef std::pair<ast::Node*, sm::Semantic*> KeyValue;
   std::vector<KeyValue> key_values;
   for (auto const key_value : semantics()->all()) {
     if (!key_value.first->token()->location().start_offset())

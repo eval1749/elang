@@ -13,7 +13,7 @@ namespace elang {
 namespace compiler {
 namespace sm {
 
-class Node;
+class Semantic;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -24,7 +24,7 @@ class TextFormatter final {
   explicit TextFormatter(std::ostream* stream);
   ~TextFormatter();
 
-  void Format(const sm::Node* node);
+  void Format(const Semantic* node);
 
  private:
   std::ostream& ostream_;

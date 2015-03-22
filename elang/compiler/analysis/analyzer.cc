@@ -36,15 +36,15 @@ sm::Factory* Analyzer::ir_factory() const {
   return name_resolver_->factory();
 }
 
-sm::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
+sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return name_resolver_->Resolve(ast_node);
 }
 
 sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
   if (auto const array_type = type->as<ast::ArrayType>()) {
-    auto const element_type = ResolveTypeReference(
-        array_type->element_type(), container);
+    auto const element_type =
+        ResolveTypeReference(array_type->element_type(), container);
     std::vector<int> dimensions(array_type->dimensions().begin(),
                                 array_type->dimensions().end());
     auto const value = factory()->NewArrayType(element_type, dimensions);

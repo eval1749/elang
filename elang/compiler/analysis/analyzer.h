@@ -15,7 +15,7 @@ namespace compiler {
 
 namespace sm {
 class Factory;
-class Node;
+class Semantic;
 class Type;
 }
 
@@ -39,7 +39,7 @@ class Analyzer : public CompilationSessionUser {
   NameResolver* resolver() const { return name_resolver_; }
 
   // Shortcut to |NameResolver|.
-  sm::Node* Resolve(ast::NamedNode* ast_node);
+  sm::Semantic* Resolve(ast::NamedNode* ast_node);
   sm::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
 

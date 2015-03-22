@@ -227,7 +227,7 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
   return result;
 }
 
-sm::Node* TypeResolver::ValueOf(ast::Node* node) {
+sm::Semantic* TypeResolver::ValueOf(ast::Node* node) {
   return semantics()->ValueOf(node);
 }
 

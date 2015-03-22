@@ -27,14 +27,14 @@ namespace sm {
 #define DECLARE_ABSTRACT_IR_NODE_CLASS(self, super) \
   DECLARE_IR_NODE_CLASS(self, super);
 
-#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super)  \
-  DECLARE_IR_NODE_CLASS(self, super);                \
-                                                     \
- private:                                            \
-  /* |Factory| class if friend of concrete |Node| */ \
-  /* class, for accessing constructor. */            \
-  friend class Factory;                              \
-  /* Visitor pattern */                              \
+#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super)      \
+  DECLARE_IR_NODE_CLASS(self, super);                    \
+                                                         \
+ private:                                                \
+  /* |Factory| class if friend of concrete |Semantic| */ \
+  /* class, for accessing constructor. */                \
+  friend class Factory;                                  \
+  /* Visitor pattern */                                  \
   void Accept(Visitor* visitor) final;
 
 #define FOR_EACH_IR_STORAGE_CLASS(V) \
@@ -52,24 +52,26 @@ enum class StorageClass {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Node
+// Semantic
 //
-class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Node, Castable);
+class Semantic : public Castable,
+                 public Visitable<Visitor>,
+                 public ZoneAllocated {
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Semantic, Castable);
 
  protected:
-  Node();
+  Semantic();
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Node);
+  DISALLOW_COPY_AND_ASSIGN(Semantic);
 };
 
 //////////////////////////////////////////////////////////////////////
 //
 // Value
 //
-class Value : public Node {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Value, Node);
+class Value : public Semantic {
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Value, Semantic);
 
  protected:
   Value();
@@ -82,8 +84,8 @@ class Value : public Node {
 //
 // Type
 //
-class Type : public Node {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Type, Node);
+class Type : public Semantic {
+  DECLARE_ABSTRACT_IR_NODE_CLASS(Type, Semantic);
 
  public:
   virtual bool IsSubtypeOf(const Type* other) const = 0;
@@ -208,8 +210,8 @@ class Literal final : public Value {
 //
 // Method
 //
-class Method final : public Node {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Method, Node);
+class Method final : public Semantic {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Method, Semantic);
 
  public:
   ast::Method* ast_method() const { return ast_method_; }
@@ -230,8 +232,8 @@ class Method final : public Node {
 //
 // Parameter
 //
-class Parameter final : public Node {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Parameter, Node);
+class Parameter final : public Semantic {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Parameter, Semantic);
 
  public:
   bool operator==(const Parameter& other) const;
@@ -299,8 +301,8 @@ class Signature final : public Type {
 //
 // Variable
 //
-class Variable final : public Node {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Variable, Node);
+class Variable final : public Semantic {
+  DECLARE_CONCRETE_IR_NODE_CLASS(Variable, Semantic);
 
  public:
   ast::NamedNode* ast_node() const { return ast_node_; }

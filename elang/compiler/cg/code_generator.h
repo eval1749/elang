@@ -84,7 +84,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   bool NeedOutput() const;
 
   // Shortcut for |semantics()->ValueOf()|
-  sm::Node* ValueOf(ast::Node* node) const;
+  sm::Semantic* ValueOf(ast::Node* node) const;
 
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;

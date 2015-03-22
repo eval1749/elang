@@ -39,11 +39,11 @@ class Formatter final : public Visitor {
   explicit Formatter(std::ostream* ostream);
   ~Formatter() = default;
 
-  void Format(const sm::Node* node);
+  void Format(const sm::Semantic* semantic);
 
  private:
 // Visitor
-#define V(Name) void Visit##Name(Name* node) final;
+#define V(Name) void Visit##Name(Name* semantic) final;
   FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
@@ -55,8 +55,8 @@ class Formatter final : public Visitor {
 Formatter::Formatter(std::ostream* ostream) : ostream_(*ostream) {
 }
 
-void Formatter::Format(const Node* node) {
-  const_cast<Node*>(node)->Accept(this);
+void Formatter::Format(const Semantic* semantic) {
+  const_cast<Semantic*>(semantic)->Accept(this);
 }
 
 // Visitor
@@ -65,9 +65,9 @@ void Formatter::Format(const Node* node) {
 //  element_type_of(T[A]) = T
 //  element_type_of(T[A][B}) = T[B]
 //  element_type_of(T[A][B}[C]) = T[B][C]
-void Formatter::VisitArrayType(ArrayType* node) {
+void Formatter::VisitArrayType(ArrayType* semantic) {
   std::vector<ArrayType*> array_types;
-  for (Type* runner = node; runner->is<ArrayType>();
+  for (Type* runner = semantic; runner->is<ArrayType>();
        runner = runner->as<ArrayType>()->element_type()) {
     array_types.push_back(runner->as<ArrayType>());
   }
@@ -85,12 +85,12 @@ void Formatter::VisitArrayType(ArrayType* node) {
   }
 }
 
-void Formatter::VisitClass(Class* node) {
-  ostream_ << node->ast_class()->NewQualifiedName();
+void Formatter::VisitClass(Class* semantic) {
+  ostream_ << semantic->ast_class()->NewQualifiedName();
 }
 
-void Formatter::VisitEnum(Enum* node) {
-  ostream_ << node->ast_enum()->NewQualifiedName();
+void Formatter::VisitEnum(Enum* semantic) {
+  ostream_ << semantic->ast_enum()->NewQualifiedName();
 }
 
 void Formatter::VisitLiteral(Literal* literal) {
@@ -135,9 +135,9 @@ void Formatter::VisitVariable(Variable* variable) {
 
 }  // namespace
 
-std::ostream& operator<<(std::ostream& ostream, const Node& node) {
+std::ostream& operator<<(std::ostream& ostream, const Semantic& semantic) {
   Formatter formatter(&ostream);
-  formatter.Format(&node);
+  formatter.Format(&semantic);
   return ostream;
 }
 
@@ -162,9 +162,9 @@ TextFormatter::TextFormatter(std::ostream* ostream) : ostream_(*ostream) {
 TextFormatter::~TextFormatter() {
 }
 
-void TextFormatter::Format(const Node* node) {
+void TextFormatter::Format(const Semantic* semantic) {
   Formatter formatter(&ostream_);
-  formatter.Format(node);
+  formatter.Format(semantic);
 }
 
 }  // namespace sm

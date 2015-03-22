@@ -218,7 +218,7 @@ NameResolver::NameResolver(CompilationSession* session)
 NameResolver::~NameResolver() {
 }
 
-void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Node* node) {
+void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Semantic* node) {
   DCHECK(ast_node);
   DCHECK(!semantics()->ValueOf(ast_node));
   semantics()->SetValue(ast_node, node);
@@ -247,7 +247,7 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   return it == using_map_.end() ? nullptr : it->second;
 }
 
-sm::Node* NameResolver::Resolve(ast::NamedNode* member) const {
+sm::Semantic* NameResolver::Resolve(ast::NamedNode* member) const {
   return semantics()->ValueOf(member);
 }
 
