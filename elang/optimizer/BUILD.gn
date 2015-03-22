@@ -1,0 +1,79 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//testing/test.gni")
+
+component("optimizer") {
+  output_name = "elang_optimizer"
+  sources = [
+    "error_code.h",
+    "error_data.cc",
+    "error_data.h",
+    "error_sink.cc",
+    "error_sink.h",
+    "factory.cc",
+    "factory.h",
+    "factory_user.cc",
+    "factory_user.h",
+    "nodes.cc",
+    "nodes.h",
+    "nodes_forward.h",
+    "node_factory.cc",
+    "node_factory.h",
+    "node_factory_user.cc",
+    "node_factory_user.h",
+    "node_printers.cc",
+    "node_printers.h",
+    "node_visitor.cc",
+    "node_visitor.h",
+    "optimizer_export.h",
+    "thing.h",
+    "thing_printer.cc",
+    "types.cc",
+    "types.h",
+    "types_forward.h",
+    "type_factory.cc",
+    "type_factory.h",
+    "type_factory_user.cc",
+    "type_factory_user.h",
+    "type_printers.cc",
+    "type_visitor.cc",
+    "type_visitor.h",
+  ]
+
+  defines = [ "OPTIMIZER_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+  ]
+}
+
+source_set("optimizer_test_support") {
+  testonly = true
+  sources = [
+    "testing/optimizer_test.cc",
+    "testing/optimizer_test.h",
+  ]
+  public_deps = [
+    "//testing/gtest",
+    "//elang/base",
+    ":optimizer",
+  ]
+}
+
+source_set("optimizer_tests") {
+  testonly = true
+}
+
+test("elang_optimizer_tests") {
+  sources = [
+    "nodes_test.cc",
+    "types_test.cc",
+  ]
+  deps = [
+    "//base/test:run_all_unittests",
+    ":optimizer_test_support",
+  ]
+}
