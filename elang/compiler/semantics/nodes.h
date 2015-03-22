@@ -18,17 +18,17 @@ namespace elang {
 namespace compiler {
 namespace sm {
 
-#define DECLARE_IR_NODE_CLASS(self, super) \
-  DECLARE_CASTABLE_CLASS(self, super);     \
-                                           \
- protected:                                \
+#define DECLARE_SEMANTIC_CLASS(self, super) \
+  DECLARE_CASTABLE_CLASS(self, super);      \
+                                            \
+ protected:                                 \
   ~self() = default;
 
-#define DECLARE_ABSTRACT_IR_NODE_CLASS(self, super) \
-  DECLARE_IR_NODE_CLASS(self, super);
+#define DECLARE_ABSTRACT_SEMANTIC_CLASS(self, super) \
+  DECLARE_SEMANTIC_CLASS(self, super);
 
-#define DECLARE_CONCRETE_IR_NODE_CLASS(self, super)      \
-  DECLARE_IR_NODE_CLASS(self, super);                    \
+#define DECLARE_CONCRETE_SEMANTIC_CLASS(self, super)     \
+  DECLARE_SEMANTIC_CLASS(self, super);                   \
                                                          \
  private:                                                \
   /* |Factory| class if friend of concrete |Semantic| */ \
@@ -37,16 +37,16 @@ namespace sm {
   /* Visitor pattern */                                  \
   void Accept(Visitor* visitor) final;
 
-#define FOR_EACH_IR_STORAGE_CLASS(V) \
-  V(Heap)                            \
-  V(Local)                           \
-  V(NonLocal)                        \
-  V(ReadOnly)                        \
+#define FOR_EACH_STORAGE_CLASS(V) \
+  V(Heap)                         \
+  V(Local)                        \
+  V(NonLocal)                     \
+  V(ReadOnly)                     \
   V(Void)
 
 enum class StorageClass {
 #define V(Name) Name,
-  FOR_EACH_IR_STORAGE_CLASS(V)
+  FOR_EACH_STORAGE_CLASS(V)
 #undef V
 };
 
@@ -57,7 +57,7 @@ enum class StorageClass {
 class Semantic : public Castable,
                  public Visitable<Visitor>,
                  public ZoneAllocated {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Semantic, Castable);
+  DECLARE_ABSTRACT_SEMANTIC_CLASS(Semantic, Castable);
 
  protected:
   Semantic();
@@ -71,7 +71,7 @@ class Semantic : public Castable,
 // Value
 //
 class Value : public Semantic {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Value, Semantic);
+  DECLARE_ABSTRACT_SEMANTIC_CLASS(Value, Semantic);
 
  protected:
   Value();
@@ -85,7 +85,7 @@ class Value : public Semantic {
 // Type
 //
 class Type : public Semantic {
-  DECLARE_ABSTRACT_IR_NODE_CLASS(Type, Semantic);
+  DECLARE_ABSTRACT_SEMANTIC_CLASS(Type, Semantic);
 
  public:
   virtual bool IsSubtypeOf(const Type* other) const = 0;
@@ -102,7 +102,7 @@ class Type : public Semantic {
 // ArrayType
 //
 class ArrayType final : public Type {
-  DECLARE_CONCRETE_IR_NODE_CLASS(ArrayType, Type);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(ArrayType, Type);
 
  public:
   // Dimension of each rank. dimensions.front() == -1 means unbound array.
@@ -127,7 +127,7 @@ class ArrayType final : public Type {
 // Class
 //
 class Class final : public Type {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Class, Type);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Class, Type);
 
  public:
   // Associated AST class object.
@@ -164,7 +164,7 @@ class Class final : public Type {
 // Enum
 //
 class Enum final : public Type {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Enum, Type);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Enum, Type);
 
  public:
   ast::Enum* ast_enum() const { return ast_enum_; }
@@ -191,7 +191,7 @@ class Enum final : public Type {
 // Literal
 //
 class Literal final : public Value {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Literal, Value);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Literal, Value);
 
  public:
   Token* data() const { return data_; }
@@ -211,7 +211,7 @@ class Literal final : public Value {
 // Method
 //
 class Method final : public Semantic {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Method, Semantic);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Method, Semantic);
 
  public:
   ast::Method* ast_method() const { return ast_method_; }
@@ -233,7 +233,7 @@ class Method final : public Semantic {
 // Parameter
 //
 class Parameter final : public Semantic {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Parameter, Semantic);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Parameter, Semantic);
 
  public:
   bool operator==(const Parameter& other) const;
@@ -263,7 +263,7 @@ class Parameter final : public Semantic {
 // Signature
 //
 class Signature final : public Type {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Signature, Type);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Signature, Type);
 
  public:
   struct Arity {
@@ -302,7 +302,7 @@ class Signature final : public Type {
 // Variable
 //
 class Variable final : public Semantic {
-  DECLARE_CONCRETE_IR_NODE_CLASS(Variable, Semantic);
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Variable, Semantic);
 
  public:
   ast::NamedNode* ast_node() const { return ast_node_; }

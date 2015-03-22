@@ -22,7 +22,7 @@ class Visitor {
   virtual ~Visitor();
 
 #define V(Name) virtual void Visit##Name(Name* node);
-  FOR_EACH_CONCRETE_IR_NODE(V)
+  FOR_EACH_CONCRETE_SEMANTIC(V)
 #undef V
 
  private:

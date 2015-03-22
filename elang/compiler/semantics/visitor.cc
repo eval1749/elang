@@ -27,7 +27,7 @@ Visitor::~Visitor() {
 // functions are implemented in "factory.cc".
 #define V(Name) \
   void Visitor::Visit##Name(Name* node) { DCHECK(node); }
-  FOR_EACH_CONCRETE_IR_NODE(V)
+FOR_EACH_CONCRETE_SEMANTIC(V)
 #undef V
 
 }  // namespace sm

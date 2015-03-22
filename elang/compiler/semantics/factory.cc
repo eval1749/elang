@@ -39,7 +39,7 @@ namespace sm {
 // Implementation of "visitor" pattern.
 #define V(Name) \
   void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
-FOR_EACH_CONCRETE_IR_NODE(V)
+FOR_EACH_CONCRETE_SEMANTIC(V)
 #undef V
 
 //////////////////////////////////////////////////////////////////////

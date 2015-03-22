@@ -11,27 +11,27 @@ namespace elang {
 namespace compiler {
 namespace sm {
 
-#define FOR_EACH_ABSTRACT_IR_NODE(V) \
-  V(Semantic)                        \
-  V(Type)                            \
+#define FOR_EACH_ABSTRACT_SEMANTIC(V) \
+  V(Semantic)                         \
+  V(Type)                             \
   V(Value)
 
-#define FOR_EACH_CONCRETE_IR_TYPE_NODE(V) \
-  V(ArrayType)                            \
-  V(Class)                                \
-  V(Enum)                                 \
+#define FOR_EACH_CONCRETE_TYPE_SEMANTIC(V) \
+  V(ArrayType)                             \
+  V(Class)                                 \
+  V(Enum)                                  \
   V(Signature)
 
-#define FOR_EACH_CONCRETE_IR_NODE(V) \
-  FOR_EACH_CONCRETE_IR_TYPE_NODE(V)  \
-  V(Literal)                         \
-  V(Method)                          \
-  V(Parameter)                       \
+#define FOR_EACH_CONCRETE_SEMANTIC(V) \
+  FOR_EACH_CONCRETE_TYPE_SEMANTIC(V)  \
+  V(Literal)                          \
+  V(Method)                           \
+  V(Parameter)                        \
   V(Variable)
 
 #define V(Name) class Name;
-FOR_EACH_ABSTRACT_IR_NODE(V)
-FOR_EACH_CONCRETE_IR_NODE(V)
+FOR_EACH_ABSTRACT_SEMANTIC(V)
+FOR_EACH_CONCRETE_SEMANTIC(V)
 #undef V
 
 class Factory;

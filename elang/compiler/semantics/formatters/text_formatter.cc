@@ -44,7 +44,7 @@ class Formatter final : public Visitor {
  private:
 // Visitor
 #define V(Name) void Visit##Name(Name* semantic) final;
-  FOR_EACH_CONCRETE_IR_NODE(V)
+  FOR_EACH_CONCRETE_SEMANTIC(V)
 #undef V
 
   std::ostream& ostream_;
@@ -144,7 +144,7 @@ std::ostream& operator<<(std::ostream& ostream, const Semantic& semantic) {
 std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class) {
   static const char* const texts[] = {
 #define V(Name) #Name,
-      FOR_EACH_IR_STORAGE_CLASS(V)
+      FOR_EACH_STORAGE_CLASS(V)
 #undef V
           "Invalid",
   };
