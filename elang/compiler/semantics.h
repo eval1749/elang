@@ -9,7 +9,7 @@
 
 #include "base/macros.h"
 #include "elang/compiler/ast/nodes_forward.h"
-#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
 namespace compiler {

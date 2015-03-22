@@ -6,15 +6,15 @@
 #include <string>
 #include <vector>
 
-#include "elang/compiler/ir/formatters/text_formatter.h"
+#include "elang/compiler/semantics/formatters/text_formatter.h"
 
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/method.h"
-#include "elang/compiler/ir/nodes.h"
-#include "elang/compiler/ir/visitor.h"
+#include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/visitor.h"
 #include "elang/compiler/parameter_kind.h"
 
 namespace base {

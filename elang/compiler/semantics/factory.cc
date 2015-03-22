@@ -5,11 +5,11 @@
 #include <unordered_map>
 #include <utility>
 
-#include "elang/compiler/ir/factory.h"
+#include "elang/compiler/semantics/factory.h"
 
 #include "elang/base/zone_user.h"
-#include "elang/compiler/ir/nodes.h"
-#include "elang/compiler/ir/visitor.h"
+#include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/visitor.h"
 
 namespace {
 using elang::compiler::sm::Type;

@@ -10,7 +10,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics.h"
 #include "elang/hir/factory.h"

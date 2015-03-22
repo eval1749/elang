@@ -10,7 +10,7 @@
 #include "base/logging.h"
 #include "elang/compiler/analysis/type_factory.h"
 #include "elang/compiler/analysis/type_values.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/nodes.h"
 
 namespace elang {
 namespace compiler {

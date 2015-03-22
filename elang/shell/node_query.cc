@@ -12,7 +12,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics.h"
 #include "elang/compiler/token.h"
 

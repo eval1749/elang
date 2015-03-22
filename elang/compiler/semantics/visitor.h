@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_IR_VISITOR_H_
-#define ELANG_COMPILER_IR_VISITOR_H_
+#ifndef ELANG_COMPILER_SEMANTICS_VISITOR_H_
+#define ELANG_COMPILER_SEMANTICS_VISITOR_H_
 
 #include "base/macros.h"
-#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
 namespace compiler {
@@ -33,4 +33,4 @@ class Visitor {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_IR_VISITOR_H_
+#endif  // ELANG_COMPILER_SEMANTICS_VISITOR_H_

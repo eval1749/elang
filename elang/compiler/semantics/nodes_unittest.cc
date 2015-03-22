@@ -9,8 +9,8 @@
 
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
-#include "elang/compiler/ir/factory.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/factory.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics.h"
 
 namespace elang {

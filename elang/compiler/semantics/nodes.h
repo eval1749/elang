@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_IR_NODES_H_
-#define ELANG_COMPILER_IR_NODES_H_
+#ifndef ELANG_COMPILER_SEMANTICS_NODES_H_
+#define ELANG_COMPILER_SEMANTICS_NODES_H_
 
 #include <vector>
 
@@ -12,7 +12,7 @@
 #include "elang/base/zone_unordered_set.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/nodes_forward.h"
-#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
 namespace compiler {
@@ -321,4 +321,4 @@ class Variable final : public Node {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_IR_NODES_H_
+#endif  // ELANG_COMPILER_SEMANTICS_NODES_H_

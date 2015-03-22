@@ -13,8 +13,8 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/ir/factory.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/factory.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/public/compiler_error_code.h"
 

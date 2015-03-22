@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_IR_FACTORY_H_
-#define ELANG_COMPILER_IR_FACTORY_H_
+#ifndef ELANG_COMPILER_SEMANTICS_FACTORY_H_
+#define ELANG_COMPILER_SEMANTICS_FACTORY_H_
 
 #include <memory>
 #include <vector>
 
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/ast/nodes_forward.h"
-#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
 namespace compiler {
@@ -63,4 +63,4 @@ class Factory final : public ZoneOwner {
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_IR_FACTORY_H_
+#endif  // ELANG_COMPILER_SEMANTICS_FACTORY_H_

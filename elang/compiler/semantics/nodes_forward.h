@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_IR_NODES_FORWARD_H_
-#define ELANG_COMPILER_IR_NODES_FORWARD_H_
+#ifndef ELANG_COMPILER_SEMANTICS_NODES_FORWARD_H_
+#define ELANG_COMPILER_SEMANTICS_NODES_FORWARD_H_
 
 #include <ostream>
 
@@ -46,4 +46,4 @@ std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class);
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_IR_NODES_FORWARD_H_
+#endif  // ELANG_COMPILER_SEMANTICS_NODES_FORWARD_H_

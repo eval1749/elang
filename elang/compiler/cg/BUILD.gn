@@ -20,7 +20,7 @@ static_library("cg") {
     "//base",
     "//elang/base",
     "//elang/compiler/ast",
-    "//elang/compiler/ir",
+    "//elang/compiler/semantics",
     "//elang/hir",
   ]
 }

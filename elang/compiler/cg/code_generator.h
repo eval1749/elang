@@ -10,7 +10,7 @@
 #include "base/macros.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session_user.h"
-#include "elang/compiler/ir/nodes_forward.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 #include "elang/hir/values_forward.h"
 
 namespace elang {

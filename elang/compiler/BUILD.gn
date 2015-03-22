@@ -93,7 +93,7 @@ test("compiler_unittests") {
     "//base/test:run_all_unittests",
     "//elang/compiler/analysis:compiler_analysis_test",
     "//elang/compiler/cg:compiler_cg_test",
-    "//elang/compiler/ir:compiler_ir_test",
+    "//elang/compiler/semantics:compiler_semantics_test",
     ":compiler_test",
   ]
 }

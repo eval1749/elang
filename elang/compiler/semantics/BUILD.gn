@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-static_library("ir") {
+static_library("semantics") {
   sources = [
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
@@ -21,13 +21,13 @@ static_library("ir") {
   ]
 }
 
-source_set("compiler_ir_test") {
+source_set("compiler_semantics_test") {
   testonly = true
   sources = [
     "nodes_unittest.cc",
   ]
   public_deps = [
     "//testing/gtest",
-    ":ir",
+    ":semantics",
   ]
 }

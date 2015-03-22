@@ -19,7 +19,7 @@
 #include "elang/compiler/cg/type_mapper.h"
 #include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/ir/nodes.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
