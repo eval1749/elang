@@ -50,13 +50,13 @@ class MethodBodyAnalyzer final : public Analyzer,
   ts::Value* empty_value() const { return type_factory()->empty_value(); }
   ts::Factory* type_factory() const { return type_factory_.get(); }
   TypeResolver* type_resolver() const { return type_resolver_.get(); }
-  ir::Type* void_type() const;
+  sm::Type* void_type() const;
 
   ts::Value* Analyze(ast::Expression* expressions, ts::Value* value);
   void Analyze(ast::Statement* statement);
   void AnalyzeAsBool(ast::Expression* expression);
   void AnalyzeVariable(ast::Variable* variable, ts::Value* super);
-  ts::Value* NewLiteral(ir::Type* type);
+  ts::Value* NewLiteral(sm::Type* type);
   void RegisterParameters();
 
   // ast::Visitor
@@ -103,10 +103,10 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
                                       method)) {
 }
 
-ir::Type* MethodBodyAnalyzer::void_type() const {
+sm::Type* MethodBodyAnalyzer::void_type() const {
   return semantics()
       ->ValueOf(session()->GetPredefinedType(PredefinedName::Void))
-      ->as<ir::Type>();
+      ->as<sm::Type>();
 }
 
 ts::Value* MethodBodyAnalyzer::Analyze(ast::Expression* expression,
@@ -150,7 +150,7 @@ void MethodBodyAnalyzer::AnalyzeVariable(ast::Variable* variable,
   Analyze(variable->value(), var_value);
 }
 
-ts::Value* MethodBodyAnalyzer::NewLiteral(ir::Type* type) {
+ts::Value* MethodBodyAnalyzer::NewLiteral(sm::Type* type) {
   return type_factory()->NewLiteral(type);
 }
 
@@ -164,7 +164,7 @@ void MethodBodyAnalyzer::RegisterParameters() {
 
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
-  auto const ir_method = semantics()->ValueOf(method_)->as<ir::Method>();
+  auto const ir_method = semantics()->ValueOf(method_)->as<sm::Method>();
   if (!ir_method) {
     DVLOG(0) << *method_ << " isn't resolved.";
     return;
@@ -263,7 +263,7 @@ void MethodBodyAnalyzer::VisitForEachStatement(ast::ForEachStatement* node) {
     AnalyzeVariable(node->variable(), empty_value());
     return;
   }
-  auto const array_type = literal->value()->as<ir::ArrayType>();
+  auto const array_type = literal->value()->as<sm::ArrayType>();
   if (!array_type) {
     Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
     AnalyzeVariable(node->variable(), empty_value());
@@ -288,7 +288,7 @@ void MethodBodyAnalyzer::VisitIfStatement(ast::IfStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
-  auto const ir_method = semantics()->ValueOf(method_)->as<ir::Method>();
+  auto const ir_method = semantics()->ValueOf(method_)->as<sm::Method>();
   auto const return_type = ir_method->return_type();
   if (ir_method->return_type() == void_type()) {
     if (node->value())

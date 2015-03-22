@@ -183,7 +183,7 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
 };
 
 std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
-  typedef std::pair<ast::Node*, ir::Node*> KeyValue;
+  typedef std::pair<ast::Node*, sm::Node*> KeyValue;
   std::vector<KeyValue> key_values;
   for (auto const key_value : semantics()->all()) {
     if (!key_value.first->token()->location().start_offset())
@@ -529,7 +529,7 @@ TEST_F(MethodAnalyzerTest, Parameter) {
   std::stringstream ostream;
   for (auto method : foo_group->methods()) {
     for (auto const parameter : method->parameters()) {
-      auto const variable = semantics()->ValueOf(parameter)->as<ir::Variable>();
+      auto const variable = semantics()->ValueOf(parameter)->as<sm::Variable>();
       if (!variable)
         continue;
       ostream << *parameter->name() << " " << variable->storage() << std::endl;

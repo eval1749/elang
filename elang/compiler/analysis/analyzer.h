@@ -13,7 +13,7 @@
 namespace elang {
 namespace compiler {
 
-namespace ir {
+namespace sm {
 class Factory;
 class Node;
 class Type;
@@ -34,13 +34,13 @@ class Analyzer : public CompilationSessionUser {
   explicit Analyzer(NameResolver* resolver);
   virtual ~Analyzer();
 
-  ir::Factory* factory() const { return ir_factory(); }
-  ir::Factory* ir_factory() const;
+  sm::Factory* factory() const { return ir_factory(); }
+  sm::Factory* ir_factory() const;
   NameResolver* resolver() const { return name_resolver_; }
 
   // Shortcut to |NameResolver|.
-  ir::Node* Resolve(ast::NamedNode* ast_node);
-  ir::Type* ResolveTypeReference(ast::Type* reference,
+  sm::Node* Resolve(ast::NamedNode* ast_node);
+  sm::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
 
  private:

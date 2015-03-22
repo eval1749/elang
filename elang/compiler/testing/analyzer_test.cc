@@ -34,12 +34,12 @@ namespace testing {
 
 namespace {
 
-std::vector<ir::Class*> ComputeBaseClassList(
-    const ZoneVector<ir::Class*>& direct_base_classes) {
-  std::vector<ir::Class*> base_classes(direct_base_classes.size());
+std::vector<sm::Class*> ComputeBaseClassList(
+    const ZoneVector<sm::Class*>& direct_base_classes) {
+  std::vector<sm::Class*> base_classes(direct_base_classes.size());
   base_classes.resize(0);
-  std::unordered_set<ir::Class*> seen;
-  std::deque<ir::Class*> pending_classes(direct_base_classes.begin(),
+  std::unordered_set<sm::Class*> seen;
+  std::deque<sm::Class*> pending_classes(direct_base_classes.begin(),
                                          direct_base_classes.end());
   while (!pending_classes.empty()) {
     auto const current = pending_classes.front();
@@ -190,7 +190,7 @@ AnalyzerTest::ClassOrString AnalyzerTest::GetClass(base::StringPiece name) {
   auto const resolved = name_resolver_->Resolve(ast_class);
   if (!resolved)
     return ClassOrString("%s isn't resolved", name);
-  auto const ir_class = resolved->as<ir::Class>();
+  auto const ir_class = resolved->as<sm::Class>();
   if (!ir_class)
     return ClassOrString("%s isn't resolved to class", name);
   return ClassOrString(ir_class);
@@ -225,7 +225,7 @@ std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
 }
 
 std::string AnalyzerTest::MakeClassListString(
-    const std::vector<ir::Class*>& ir_classes) {
+    const std::vector<sm::Class*>& ir_classes) {
   std::stringstream ostream;
   auto separator = "";
   for (auto const ir_base_class : ir_classes) {
@@ -237,9 +237,9 @@ std::string AnalyzerTest::MakeClassListString(
 }
 
 std::string AnalyzerTest::MakeClassListString(
-    const ZoneVector<ir::Class*>& classes) {
+    const ZoneVector<sm::Class*>& classes) {
   return MakeClassListString(
-      std::vector<ir::Class*>(classes.begin(), classes.end()));
+      std::vector<sm::Class*>(classes.begin(), classes.end()));
 }
 
 }  // namespace testing

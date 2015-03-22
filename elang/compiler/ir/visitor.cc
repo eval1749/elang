@@ -8,7 +8,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -30,6 +30,6 @@ Visitor::~Visitor() {
   FOR_EACH_CONCRETE_IR_NODE(V)
 #undef V
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

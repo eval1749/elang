@@ -23,9 +23,9 @@ namespace testing {
 class AnalyzerTest : public CompilerTest {
  protected:
   struct ClassOrString {
-    ir::Class* ir_class;
+    sm::Class* ir_class;
     std::string message;
-    explicit ClassOrString(ir::Class* ir_class) : ir_class(ir_class) {}
+    explicit ClassOrString(sm::Class* ir_class) : ir_class(ir_class) {}
     ClassOrString(const char* format, base::StringPiece name);
   };
 
@@ -42,8 +42,8 @@ class AnalyzerTest : public CompilerTest {
   ClassOrString GetClass(base::StringPiece name);
   std::string GetDirectBaseClasses(base::StringPiece name);
   std::string GetMethodGroup(base::StringPiece name);
-  std::string MakeClassListString(const std::vector<ir::Class*>& classes);
-  std::string MakeClassListString(const ZoneVector<ir::Class*>& classes);
+  std::string MakeClassListString(const std::vector<sm::Class*>& classes);
+  std::string MakeClassListString(const ZoneVector<sm::Class*>& classes);
 
  private:
   std::unique_ptr<NameResolver> name_resolver_;

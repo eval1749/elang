@@ -227,7 +227,7 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
   return result;
 }
 
-ir::Node* TypeResolver::ValueOf(ast::Node* node) {
+sm::Node* TypeResolver::ValueOf(ast::Node* node) {
   return semantics()->ValueOf(node);
 }
 
@@ -240,7 +240,7 @@ void TypeResolver::DoDefaultVisit(ast::Node* node) {
 void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
   auto const array = Resolve(node->array(), any_value());
   auto const array_type =
-      array->as<ts::Literal>()->value()->as<ir::ArrayType>();
+      array->as<ts::Literal>()->value()->as<sm::ArrayType>();
   if (!array_type) {
     Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
     return;
@@ -480,7 +480,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
 
   // Other than |null| literal, the type of literal is predefined.
   auto const ast_type = session()->GetPredefinedType(token->literal_type());
-  auto const literal_type = ValueOf(ast_type)->as<ir::Type>();
+  auto const literal_type = ValueOf(ast_type)->as<sm::Type>();
   if (!literal_type) {
     // Predefined type isn't defined.
     return;

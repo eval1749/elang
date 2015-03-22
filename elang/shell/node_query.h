@@ -16,7 +16,7 @@ namespace compiler {
 namespace ast {
 class Node;
 }
-namespace ir {
+namespace sm {
 class Type;
 }
 class CompilationSession;
@@ -42,9 +42,9 @@ class NodeQuery {
 // ParameterQuery
 struct ParameterQuery {
   AtomicString* name;
-  ir::Type* type;
-  ParameterQuery(AtomicString* name, ir::Type* type);
-  explicit ParameterQuery(ir::Type* type);
+  sm::Type* type;
+  ParameterQuery(AtomicString* name, sm::Type* type);
+  explicit ParameterQuery(sm::Type* type);
   ParameterQuery();
 };
 
@@ -52,7 +52,7 @@ struct ParameterQuery {
 class MethodQuery : public NodeQuery {
  public:
   MethodQuery(AtomicString* name,
-              ir::Type* return_type,
+              sm::Type* return_type,
               const std::vector<ParameterQuery>& parameters);
   ~MethodQuery();
 
@@ -62,7 +62,7 @@ class MethodQuery : public NodeQuery {
 
   AtomicString* const name_;
   const std::vector<ParameterQuery> parameters_;
-  ir::Type* const return_type_;
+  sm::Type* const return_type_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodQuery);
 };

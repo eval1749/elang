@@ -21,7 +21,7 @@ class Expression;
 class ContainerNode;
 class NamedNode;
 }
-namespace ir {
+namespace sm {
 class Node;
 class Factory;
 class Method;
@@ -43,17 +43,17 @@ class NameResolver final : public CompilationSessionUser {
   explicit NameResolver(CompilationSession* session);
   ~NameResolver();
 
-  ir::Factory* factory() const { return factory_.get(); }
+  sm::Factory* factory() const { return factory_.get(); }
 
   // Registering functions.
-  void DidResolve(ast::NamedNode* ast_node, ir::Node* node);
+  void DidResolve(ast::NamedNode* ast_node, sm::Node* node);
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.
-  ir::Type* GetPredefinedType(PredefinedName name);
-  ir::Node* Resolve(ast::NamedNode* ast_node) const;
-  // Resolve to |ir::Type| named |name| for |token|.
-  ir::Type* ResolvePredefinedType(Token* token, PredefinedName name);
+  sm::Type* GetPredefinedType(PredefinedName name);
+  sm::Node* Resolve(ast::NamedNode* ast_node) const;
+  // Resolve to |sm::Type| named |name| for |token|.
+  sm::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,
                                    ast::ContainerNode* container);
 
@@ -63,7 +63,7 @@ class NameResolver final : public CompilationSessionUser {
   // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
   ast::ContainerNode* GetUsingReference(ast::NamedNode* node);
 
-  const std::unique_ptr<ir::Factory> factory_;
+  const std::unique_ptr<sm::Factory> factory_;
 
   // Mapping from |Alias| or |Import| to |ContainerNode|.
   std::unordered_map<ast::NamedNode*, ast::ContainerNode*> using_map_;

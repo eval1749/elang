@@ -58,7 +58,7 @@ Value* Factory::NewInvalidValue(ast::Node* node) {
   return new (zone()) InvalidValue(node);
 }
 
-Value* Factory::NewLiteral(ir::Type* type) {
+Value* Factory::NewLiteral(sm::Type* type) {
   auto const it = literal_cache_map_.find(type);
   if (it != literal_cache_map_.end())
     return it->second;
@@ -78,7 +78,7 @@ Value* Factory::NewNullValue(Value* base_value) {
 
 Value* Factory::NewPredefinedValue(PredefinedName name) {
   auto const ast_type = session()->GetPredefinedType(name);
-  auto const type = semantics()->ValueOf(ast_type)->as<ir::Type>();
+  auto const type = semantics()->ValueOf(ast_type)->as<sm::Type>();
   return NewLiteral(type);
 }
 

@@ -12,7 +12,7 @@
 #include "elang/compiler/ir/visitor.h"
 
 namespace {
-using elang::compiler::ir::Type;
+using elang::compiler::sm::Type;
 typedef std::pair<Type*, std::vector<int>> ArrayProperty;
 }
 
@@ -34,7 +34,7 @@ struct hash<ArrayProperty> {
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 // Implementation of "visitor" pattern.
 #define V(Name) \
@@ -83,7 +83,7 @@ Factory::Factory() : array_type_factory_(new ArrayTypeFactory(zone())) {
 Factory::~Factory() {
 }
 
-ArrayType* Factory::NewArrayType(ir::Type* element_type,
+ArrayType* Factory::NewArrayType(sm::Type* element_type,
                                  const std::vector<int>& dimensions) {
   return array_type_factory_->NewArrayType(element_type, dimensions);
 }
@@ -118,6 +118,6 @@ Variable* Factory::NewVariable(Type* type,
   return new (zone()) Variable(type, storage, ast_node);
 }
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

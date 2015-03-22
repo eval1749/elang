@@ -24,21 +24,21 @@ MethodResolver::MethodResolver(NameResolver* name_resolver)
 MethodResolver::~MethodResolver() {
 }
 
-bool MethodResolver::IsApplicable(const ir::Method* method, int arity) {
+bool MethodResolver::IsApplicable(const sm::Method* method, int arity) {
   auto const signature = method->signature();
   return arity >= signature->minimum_arity() &&
          arity <= signature->maximum_arity();
 }
 
 // TODO(eval1749) We should pass to exclude `void` methods.
-std::vector<ir::Method*> MethodResolver::ComputeApplicableMethods(
+std::vector<sm::Method*> MethodResolver::ComputeApplicableMethods(
     ast::MethodGroup* method_group,
     ts::Value* output,
     int arity) {
-  std::vector<ir::Method*> methods;
+  std::vector<sm::Method*> methods;
   // TODO(eval1749) We should check base classes.
   for (auto const ast_method : method_group->methods()) {
-    auto const method = name_resolver()->Resolve(ast_method)->as<ir::Method>();
+    auto const method = name_resolver()->Resolve(ast_method)->as<sm::Method>();
     DCHECK(method) << " Not resolved: " << *ast_method;
     if (!IsApplicable(method, arity))
       continue;

@@ -32,7 +32,7 @@ struct VariableTracker::TrackingData : ZoneAllocated {
   ts::Value* value;
 
   TrackingData();
-  ir::StorageClass ComputeStorageClass() const;
+  sm::StorageClass ComputeStorageClass() const;
 };
 
 VariableTracker::TrackingData::TrackingData()
@@ -45,17 +45,17 @@ VariableTracker::TrackingData::TrackingData()
       value(nullptr) {
 }
 
-ir::StorageClass VariableTracker::TrackingData::ComputeStorageClass() const {
+sm::StorageClass VariableTracker::TrackingData::ComputeStorageClass() const {
   if (non_local_set_count)
-    return ir::StorageClass::Heap;
+    return sm::StorageClass::Heap;
   if (non_local_set_count)
-    return ir::StorageClass::NonLocal;
+    return sm::StorageClass::NonLocal;
   if (local_set_count)
-    return ir::StorageClass::Local;
+    return sm::StorageClass::Local;
   if (heap_get_count || local_get_count || non_local_get_count)
-    return ir::StorageClass::ReadOnly;
+    return sm::StorageClass::ReadOnly;
   // Maybe variable used as |static_cast<void>(x)|.
-  return ir::StorageClass::Void;
+  return sm::StorageClass::Void;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ VariableTracker::VariableTracker(CompilationSession* session,
 VariableTracker::~VariableTracker() {
 }
 
-void VariableTracker::Finish(ir::Factory* factory, ts::Factory* type_factory) {
+void VariableTracker::Finish(sm::Factory* factory, ts::Factory* type_factory) {
   ts::Evaluator evaluator(type_factory);
   for (auto variable_data : variable_map_) {
     auto const variable = variable_data.first;

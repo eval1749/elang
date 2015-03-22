@@ -34,33 +34,33 @@ class TypeMapperTest : public testing::CgTest {
   TypeMapperTest();
   ~TypeMapperTest() override = default;
 
-  ir::Factory* ir_factory() { return &ir_factory_; }
+  sm::Factory* ir_factory() { return &ir_factory_; }
   hir::TypeFactory* types() { return factory()->types(); }
   TypeMapper* type_mapper() { return &type_mapper_; }
 
   hir::Type* Map(PredefinedName name);
-  hir::Type* Map(ir::Type* type);
+  hir::Type* Map(sm::Type* type);
 
   // IR type constructors
-  ir::Type* GetIr(PredefinedName name);
-  ir::Type* GetIr(ir::Type* type) { return type; }
-  ir::Parameter* NewParameter(ir::Type* type);
-  ir::Parameter* NewParameter(PredefinedName name);
+  sm::Type* GetIr(PredefinedName name);
+  sm::Type* GetIr(sm::Type* type) { return type; }
+  sm::Parameter* NewParameter(sm::Type* type);
+  sm::Parameter* NewParameter(PredefinedName name);
 
   template <typename... T>
-  std::vector<ir::Parameter*> NewParameters(T... params) {
+  std::vector<sm::Parameter*> NewParameters(T... params) {
     return {NewParameter(params)...};
   }
-  std::vector<ir::Parameter*> NewParameters() { return {}; }
+  std::vector<sm::Parameter*> NewParameters() { return {}; }
 
   template <typename R, typename... T>
-  ir::Signature* NewSignature(R return_type, T... params) {
+  sm::Signature* NewSignature(R return_type, T... params) {
     return ir_factory()->NewSignature(GetIr(return_type),
                                       NewParameters(params...));
   }
 
  private:
-  ir::Factory ir_factory_;
+  sm::Factory ir_factory_;
   testing::NamespaceBuilder builder_;
   TypeMapper type_mapper_;
 
@@ -71,21 +71,21 @@ TypeMapperTest::TypeMapperTest()
     : builder_(name_resolver()), type_mapper_(session(), factory()) {
 }
 
-ir::Type* TypeMapperTest::GetIr(PredefinedName name) {
+sm::Type* TypeMapperTest::GetIr(PredefinedName name) {
   return semantics()
       ->ValueOf(session()->GetPredefinedType(name))
-      ->as<ir::Type>();
+      ->as<sm::Type>();
 }
 
 hir::Type* TypeMapperTest::Map(PredefinedName name) {
   return Map(GetIr(name));
 }
 
-hir::Type* TypeMapperTest::Map(ir::Type* type) {
+hir::Type* TypeMapperTest::Map(sm::Type* type) {
   return type_mapper()->Map(type);
 }
 
-ir::Parameter* TypeMapperTest::NewParameter(ir::Type* type) {
+sm::Parameter* TypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_type = session()->ast_factory()->NewTypeNameReference(
       session()->ast_factory()->NewNameReference(builder_.NewName("type")));
   auto const ast_parameter = session()->ast_factory()->NewParameter(
@@ -94,7 +94,7 @@ ir::Parameter* TypeMapperTest::NewParameter(ir::Type* type) {
   return ir_factory()->NewParameter(ast_parameter, type, nullptr);
 }
 
-ir::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
+sm::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
   return NewParameter(GetIr(name));
 }
 

@@ -26,7 +26,7 @@ Evaluator::Evaluator(Factory* factory) : FactoryUser(factory) {
 Evaluator::~Evaluator() {
 }
 
-bool Evaluator::Contains(const AndValue* and_value1, ir::Type* type2) {
+bool Evaluator::Contains(const AndValue* and_value1, sm::Type* type2) {
   for (auto const union_value1 : and_value1->union_values()) {
     if (Contains(union_value1, type2))
       return true;
@@ -44,7 +44,7 @@ bool Evaluator::Contains(const AndValue* and_value1,
 }
 
 // Returns true if we can use |type2| with |union_value1|.
-bool Evaluator::Contains(const UnionValue* union_value1, ir::Type* type2) {
+bool Evaluator::Contains(const UnionValue* union_value1, sm::Type* type2) {
   for (auto const method1 : union_value1->methods()) {
     if (union_value1->CanUse(method1, type2))
       return true;
@@ -66,7 +66,7 @@ Value* Evaluator::Evaluate(ts::Value* value) {
     return result ? result : empty_value();
   }
   if (auto const union_value = value->as<UnionValue>()) {
-    ir::Type* result = nullptr;
+    sm::Type* result = nullptr;
     for (auto const method : union_value->methods()) {
       if (!result) {
         result = union_value->valueFor(method);
@@ -200,7 +200,7 @@ Value* Evaluator::Unify(Literal* literal1, AndValue* and_value2) {
 
 Value* Evaluator::Unify(Literal* literal1, UnionValue* union_value2) {
   auto const type1 = literal1->value();
-  std::vector<ir::Method*> methods2;
+  std::vector<sm::Method*> methods2;
   for (auto const method2 : union_value2->methods()) {
     if (union_value2->CanUse(method2, type1))
       methods2.push_back(method2);
@@ -237,7 +237,7 @@ Value* Evaluator::Unify(Literal* literal1, Value* value2) {
 
 // Unify UnionValue
 Value* Evaluator::Unify(UnionValue* union_value1, AndValue* and_value2) {
-  std::vector<ir::Method*> methods1;
+  std::vector<sm::Method*> methods1;
   for (auto const method1 : union_value1->methods()) {
     if (Contains(and_value2, union_value1->valueFor(method1)))
       methods1.push_back(method1);
@@ -254,7 +254,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, AndValue* and_value2) {
 }
 
 Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
-  std::vector<ir::Method*> methods1;
+  std::vector<sm::Method*> methods1;
   for (auto const method1 : union_value1->methods()) {
     if (Contains(union_value2, union_value1->valueFor(method1)))
       methods1.push_back(method1);
@@ -270,7 +270,7 @@ Value* Evaluator::Unify(UnionValue* union_value1, UnionValue* union_value2) {
                  union_value2);
   }
 
-  std::vector<ir::Method*> methods2;
+  std::vector<sm::Method*> methods2;
   for (auto const method2 : union_value2->methods()) {
     if (Contains(union_value1, union_value2->valueFor(method2)))
       methods2.push_back(method2);

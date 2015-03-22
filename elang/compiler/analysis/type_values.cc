@@ -34,20 +34,20 @@ Argument::Argument(CallValue* call_value, int position)
     : call_value_(call_value), position_(position) {
 }
 
-const ZoneVector<ir::Method*>& Argument::methods() const {
+const ZoneVector<sm::Method*>& Argument::methods() const {
   return call_value_->methods();
 }
 
-ir::Type* Argument::valueFor(const ir::Method* method) const {
+sm::Type* Argument::valueFor(const sm::Method* method) const {
   return method->parameters()[position_]->type();
 }
 
-void Argument::SetMethods(const std::vector<ir::Method*>& methods) {
+void Argument::SetMethods(const std::vector<sm::Method*>& methods) {
   call_value_->SetMethods(methods);
 }
 
 // UnionValue
-bool Argument::CanUse(ir::Method* method, ir::Type* type) const {
+bool Argument::CanUse(sm::Method* method, sm::Type* type) const {
   return type->IsSubtypeOf(valueFor(method));
 }
 
@@ -56,11 +56,11 @@ CallValue::CallValue(Zone* zone, ast::Call* ast_call)
     : ast_call_(ast_call), methods_(zone) {
 }
 
-ir::Type* CallValue::valueFor(const ir::Method* method) const {
+sm::Type* CallValue::valueFor(const sm::Method* method) const {
   return method->return_type();
 }
 
-void CallValue::SetMethods(const std::vector<ir::Method*>& methods) {
+void CallValue::SetMethods(const std::vector<sm::Method*>& methods) {
   methods_.reserve(methods.size());
   methods_.resize(0);
   for (auto const method : methods)
@@ -68,7 +68,7 @@ void CallValue::SetMethods(const std::vector<ir::Method*>& methods) {
 }
 
 // UnionValue
-bool CallValue::CanUse(ir::Method* method, ir::Type* type) const {
+bool CallValue::CanUse(sm::Method* method, sm::Type* type) const {
   return valueFor(method)->IsSubtypeOf(type);
 }
 
@@ -81,7 +81,7 @@ InvalidValue::InvalidValue(ast::Node* node) : node_(node) {
 }
 
 // Literal
-Literal::Literal(ir::Type* value) : value_(value) {
+Literal::Literal(sm::Type* value) : value_(value) {
 }
 
 // NullValue

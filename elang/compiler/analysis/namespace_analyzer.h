@@ -19,7 +19,7 @@
 namespace elang {
 namespace compiler {
 
-namespace ir {
+namespace sm {
 class Factory;
 class Class;
 }
@@ -49,10 +49,10 @@ class NamespaceAnalyzer final : public Analyzer,
   void CheckPartialClass(ast::ClassBody* class_body);
   void DidResolve(ast::NamedNode* node);
   void FindInClass(Token* name,
-                   ir::Class* clazz,
+                   sm::Class* clazz,
                    std::unordered_set<ast::NamedNode*>* founds);
   ast::NamedNode* FindResolvedReference(ast::Expression* reference);
-  ir::Class* GetClass(ast::Class* ast_class);
+  sm::Class* GetClass(ast::Class* ast_class);
 
   // Returns default base class name for |clazz|, for class it is |Object|,
   // for struct it is |Value|.
@@ -74,13 +74,13 @@ class NamespaceAnalyzer final : public Analyzer,
                                   ast::NamedNode* member);
 
   // Resolve |nth| |base_class_name| of |clazz|.
-  Maybe<ir::Class*> ResolveBaseClass(const ResolveContext& context,
+  Maybe<sm::Class*> ResolveBaseClass(const ResolveContext& context,
                                      ast::Expression* base_class_name,
                                      int nth,
                                      ast::Class* clazz);
 
   // Resolve default base class of |clazz|.
-  Maybe<ir::Class*> ResolveDefaultBaseClass(const ResolveContext& context,
+  Maybe<sm::Class*> ResolveDefaultBaseClass(const ResolveContext& context,
                                             ast::Class* clazz);
 
   Maybe<ast::NamedNode*> ResolveMemberAccess(const ResolveContext& context,

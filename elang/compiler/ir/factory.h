@@ -14,7 +14,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -59,7 +59,7 @@ class Factory final : public ZoneOwner {
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

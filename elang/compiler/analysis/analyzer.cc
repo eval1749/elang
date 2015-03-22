@@ -32,15 +32,15 @@ Analyzer::Analyzer(NameResolver* name_resolver)
 Analyzer::~Analyzer() {
 }
 
-ir::Factory* Analyzer::ir_factory() const {
+sm::Factory* Analyzer::ir_factory() const {
   return name_resolver_->factory();
 }
 
-ir::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
+sm::Node* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return name_resolver_->Resolve(ast_node);
 }
 
-ir::Type* Analyzer::ResolveTypeReference(ast::Type* type,
+sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
   if (auto const array_type = type->as<ast::ArrayType>()) {
     auto const element_type = ResolveTypeReference(
@@ -58,7 +58,7 @@ ir::Type* Analyzer::ResolveTypeReference(ast::Type* type,
     Error(ErrorCode::AnalyzeTypeNotFound, type);
     return nullptr;
   }
-  return Resolve(ast_node)->as<ir::Type>();
+  return Resolve(ast_node)->as<sm::Type>();
 }
 
 }  // namespace compiler

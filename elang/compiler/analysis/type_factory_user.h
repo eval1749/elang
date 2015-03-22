@@ -14,7 +14,7 @@ namespace ast {
 class Node;
 }
 
-namespace ir {
+namespace sm {
 class Type;
 }
 
@@ -52,7 +52,7 @@ class FactoryUser {
   Value* uint8_value() const;
 
   Value* NewInvalidValue(ast::Node* node);
-  Value* NewLiteral(ir::Type* type);
+  Value* NewLiteral(sm::Type* type);
 
  private:
   Factory* const factory_;

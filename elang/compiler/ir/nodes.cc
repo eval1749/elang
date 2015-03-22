@@ -11,7 +11,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 namespace {
 
@@ -104,7 +104,7 @@ bool Class::IsSubtypeOf(const Type* other) const {
 // Enum
 Enum::Enum(Zone* zone,
            ast::Enum* ast_enum,
-           ir::Class* base_type,
+           sm::Class* base_type,
            const std::vector<int64_t>& values)
     : ast_enum_(ast_enum), base_type_(base_type), values_(zone, values) {
 }
@@ -227,6 +227,6 @@ Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
 Value::Value() {
 }
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

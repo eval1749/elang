@@ -51,7 +51,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Value* void_value() const;
 
   hir::Type* MapType(PredefinedName name) const;
-  hir::Type* MapType(ir::Type* type) const;
+  hir::Type* MapType(sm::Type* type) const;
 
   // Returns new instruction yields value of |type| with |left| and |right|
   // inputs for |node|
@@ -68,7 +68,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* GenerateValueAs(ast::Expression* expression, hir::Type* type);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
-  hir::Value* NewMethodReference(ir::Method* method);
+  hir::Value* NewMethodReference(sm::Method* method);
 
   // Output
   void Commit();
@@ -84,7 +84,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   bool NeedOutput() const;
 
   // Shortcut for |semantics()->ValueOf()|
-  ir::Node* ValueOf(ast::Node* node) const;
+  sm::Node* ValueOf(ast::Node* node) const;
 
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;
@@ -126,8 +126,8 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   VariableAnalyzer* const variable_analyzer_;
   hir::Type* const void_type_;
 
-  // Map |ir::Variable| to value or pointer producing instruction.
-  std::unordered_map<ir::Variable*, hir::Value*> variables_;
+  // Map |sm::Variable| to value or pointer producing instruction.
+  std::unordered_map<sm::Variable*, hir::Value*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGenerator);
 };

@@ -73,7 +73,7 @@ ts::Value* FactoryUser::NewInvalidValue(ast::Node* node) {
   return factory()->NewInvalidValue(node);
 }
 
-ts::Value* FactoryUser::NewLiteral(ir::Type* type) {
+ts::Value* FactoryUser::NewLiteral(sm::Type* type) {
   return factory()->NewLiteral(type);
 }
 

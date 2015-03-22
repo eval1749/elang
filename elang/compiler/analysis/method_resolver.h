@@ -16,7 +16,7 @@ namespace ast {
 class MethodGroup;
 }
 
-namespace ir {
+namespace sm {
 class Method;
 }
 
@@ -36,7 +36,7 @@ class MethodResolver final {
   explicit MethodResolver(NameResolver* name_resolver);
   ~MethodResolver();
 
-  std::vector<ir::Method*> ComputeApplicableMethods(
+  std::vector<sm::Method*> ComputeApplicableMethods(
       ast::MethodGroup* method_group,
       ts::Value* output,
       int arity);
@@ -45,7 +45,7 @@ class MethodResolver final {
   NameResolver* name_resolver() const { return name_resolver_; }
 
   // Returns true if |method| is applicable with |arity|.
-  bool IsApplicable(const ir::Method* method, int arity);
+  bool IsApplicable(const sm::Method* method, int arity);
 
   NameResolver* const name_resolver_;
 

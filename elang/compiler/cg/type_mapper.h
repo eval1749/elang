@@ -25,7 +25,7 @@ namespace ast {
 class NamedNode;
 }
 
-namespace ir {
+namespace sm {
 class Type;
 }
 
@@ -42,18 +42,18 @@ class TypeMapper final : public CompilationSessionUser {
   ~TypeMapper();
 
   // Map IR type to HIR type.
-  hir::Type* Map(ir::Type* type);
+  hir::Type* Map(sm::Type* type);
   hir::Type* Map(PredefinedName name);
 
  private:
   hir::Factory* factory() const { return factory_; }
   hir::TypeFactory* types() const;
 
-  void InstallType(ir::Type* type, hir::Type* hir_type);
+  void InstallType(sm::Type* type, hir::Type* hir_type);
 
   hir::Factory* const factory_;
 
-  std::unordered_map<ir::Type*, hir::Type*> type_map_;
+  std::unordered_map<sm::Type*, hir::Type*> type_map_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeMapper);
 };

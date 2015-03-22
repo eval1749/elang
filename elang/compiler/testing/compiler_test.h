@@ -21,7 +21,7 @@ class Class;
 class NamedNode;
 }
 
-namespace ir {
+namespace sm {
 class Class;
 }
 

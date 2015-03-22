@@ -21,7 +21,7 @@ class Call;
 class Node;
 }
 
-namespace ir {
+namespace sm {
 class Method;
 class Type;
 }
@@ -71,11 +71,11 @@ class UnionValue : public Value {
   DECLARE_ABSTRACT_TYPE_VALUE_CLASS(UnionValue, Value);
 
  public:
-  virtual const ZoneVector<ir::Method*>& methods() const = 0;
-  virtual ir::Type* valueFor(const ir::Method* method) const = 0;
+  virtual const ZoneVector<sm::Method*>& methods() const = 0;
+  virtual sm::Type* valueFor(const sm::Method* method) const = 0;
 
-  virtual bool CanUse(ir::Method* method, ir::Type* type) const = 0;
-  virtual void SetMethods(const std::vector<ir::Method*>& methods) = 0;
+  virtual bool CanUse(sm::Method* method, sm::Type* type) const = 0;
+  virtual void SetMethods(const std::vector<sm::Method*>& methods) = 0;
 
  protected:
   UnionValue();
@@ -126,14 +126,14 @@ class Argument final : public UnionValue {
 
  public:
   CallValue* call_value() const { return call_value_; }
-  const ZoneVector<ir::Method*>& methods() const final;
+  const ZoneVector<sm::Method*>& methods() const final;
   int position() const { return position_; }
-  ir::Type* valueFor(const ir::Method* method) const final;
+  sm::Type* valueFor(const sm::Method* method) const final;
 
-  void SetMethods(const std::vector<ir::Method*>& methods);
+  void SetMethods(const std::vector<sm::Method*>& methods);
 
   // UnionValue
-  bool CanUse(ir::Method* method, ir::Type* type) const final;
+  bool CanUse(sm::Method* method, sm::Type* type) const final;
 
  private:
   Argument(CallValue* call_value, int position);
@@ -153,19 +153,19 @@ class CallValue final : public UnionValue {
 
  public:
   ast::Call* ast_call() const { return ast_call_; }
-  const ZoneVector<ir::Method*>& methods() const final { return methods_; }
-  ir::Type* valueFor(const ir::Method* method) const final;
+  const ZoneVector<sm::Method*>& methods() const final { return methods_; }
+  sm::Type* valueFor(const sm::Method* method) const final;
 
-  void SetMethods(const std::vector<ir::Method*>& methods) final;
+  void SetMethods(const std::vector<sm::Method*>& methods) final;
 
   // UnionValue
-  bool CanUse(ir::Method* method, ir::Type* type) const final;
+  bool CanUse(sm::Method* method, sm::Type* type) const final;
 
  private:
   CallValue(Zone* zone, ast::Call* ast_call);
 
   ast::Call* const ast_call_;
-  ZoneVector<ir::Method*> methods_;
+  ZoneVector<sm::Method*> methods_;
 
   DISALLOW_COPY_AND_ASSIGN(CallValue);
 };
@@ -206,12 +206,12 @@ class Literal final : public Value {
   DECLARE_CONCRETE_TYPE_VALUE_CLASS(Literal, Value);
 
  public:
-  ir::Type* value() const { return value_; }
+  sm::Type* value() const { return value_; }
 
  private:
-  explicit Literal(ir::Type* value);
+  explicit Literal(sm::Type* value);
 
-  ir::Type* const value_;
+  sm::Type* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };

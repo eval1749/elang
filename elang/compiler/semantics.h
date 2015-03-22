@@ -24,19 +24,19 @@ class Semantics final {
   ~Semantics();
 
   // Returns mapping for testing.
-  const std::unordered_map<ast::Node*, ir::Node*> all() const {
+  const std::unordered_map<ast::Node*, sm::Node*> all() const {
     return value_map_;
   }
 
   // Retrieving
-  ir::Node* ValueOf(ast::Node* node) const;
+  sm::Node* ValueOf(ast::Node* node) const;
 
   // Storing
-  void SetValue(ast::Node* node, ir::Node* value);
+  void SetValue(ast::Node* node, sm::Node* value);
 
  private:
   // Mapping from AST class, enum, and method to IR object
-  std::unordered_map<ast::Node*, ir::Node*> value_map_;
+  std::unordered_map<ast::Node*, sm::Node*> value_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Semantics);
 };

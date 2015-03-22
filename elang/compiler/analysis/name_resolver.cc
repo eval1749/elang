@@ -75,7 +75,7 @@ void NameResolver::ReferenceResolver::FindInClass(
     Error(ErrorCode::NameResolutionNameNotResolved, ast_class);
     return;
   }
-  auto const ir_class = ir_node->as<ir::Class>();
+  auto const ir_class = ir_node->as<sm::Class>();
   if (!ir_class) {
     Error(ErrorCode::NameResolutionNameNotResolved, ast_class);
     return;
@@ -212,13 +212,13 @@ void NameResolver::ReferenceResolver::VisitTypeNameReference(
 // NameResolver
 //
 NameResolver::NameResolver(CompilationSession* session)
-    : CompilationSessionUser(session), factory_(new ir::Factory()) {
+    : CompilationSessionUser(session), factory_(new sm::Factory()) {
 }
 
 NameResolver::~NameResolver() {
 }
 
-void NameResolver::DidResolve(ast::NamedNode* ast_node, ir::Node* node) {
+void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Node* node) {
   DCHECK(ast_node);
   DCHECK(!semantics()->ValueOf(ast_node));
   semantics()->SetValue(ast_node, node);
@@ -232,11 +232,11 @@ void NameResolver::DidResolveUsing(ast::NamedNode* node,
   using_map_[node] = container;
 }
 
-ir::Type* NameResolver::GetPredefinedType(PredefinedName name) {
+sm::Type* NameResolver::GetPredefinedType(PredefinedName name) {
   auto const type_name = session()->name_for(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
   DCHECK(ast_type) << *type_name;
-  auto const type = Resolve(ast_type)->as<ir::Type>();
+  auto const type = Resolve(ast_type)->as<sm::Type>();
   DCHECK(type) << *type_name;
   return type;
 }
@@ -247,11 +247,11 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   return it == using_map_.end() ? nullptr : it->second;
 }
 
-ir::Node* NameResolver::Resolve(ast::NamedNode* member) const {
+sm::Node* NameResolver::Resolve(ast::NamedNode* member) const {
   return semantics()->ValueOf(member);
 }
 
-ir::Type* NameResolver::ResolvePredefinedType(Token* token,
+sm::Type* NameResolver::ResolvePredefinedType(Token* token,
                                               PredefinedName name) {
   auto const type_name = session()->name_for(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
@@ -259,7 +259,7 @@ ir::Type* NameResolver::ResolvePredefinedType(Token* token,
     session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);
     return nullptr;
   }
-  if (auto const type = Resolve(ast_type)->as<ir::Type>())
+  if (auto const type = Resolve(ast_type)->as<sm::Type>())
     return type;
   session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
   DidResolve(ast_type, nullptr);

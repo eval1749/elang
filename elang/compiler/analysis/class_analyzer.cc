@@ -49,7 +49,7 @@ void ClassAnalyzer::VisitField(ast::Field* node) {
 void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
   auto const return_type =
       ResolveTypeReference(ast_method->return_type(), ast_method->owner());
-  std::vector<ir::Parameter*> parameters(ast_method->parameters().size());
+  std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
   auto is_valid = return_type;
   for (auto const parameter : ast_method->parameters()) {
@@ -69,7 +69,7 @@ void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
 
   // Check this size with existing signatures
   for (auto ast_other : ast_method->method_group()->methods()) {
-    auto const other = Resolve(ast_other)->as<ir::Method>();
+    auto const other = Resolve(ast_other)->as<sm::Method>();
     if (!other)
       continue;
     if (!other->signature()->IsIdenticalParameters(signature))

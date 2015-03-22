@@ -60,7 +60,7 @@ void QueryContext::VisitMethodGroup(ast::MethodGroup* node) {
 
 // MethodQuery
 MethodQuery::MethodQuery(AtomicString* name,
-                         ir::Type* return_type,
+                         sm::Type* return_type,
                          const std::vector<ParameterQuery>& parameters)
     : name_(name), parameters_(parameters), return_type_(return_type) {
 }
@@ -70,7 +70,7 @@ MethodQuery::~MethodQuery() {
 
 bool MethodQuery::Match(QueryContext* context, ast::Node* node) const {
   auto const method =
-      context->session->semantics()->ValueOf(node)->as<ir::Method>();
+      context->session->semantics()->ValueOf(node)->as<sm::Method>();
   if (!method)
     return false;
   if (!MatchName(name_, method->ast_method()->name()))
@@ -126,11 +126,11 @@ void MethodQuery::PrintTo(std::ostream* ostream) const {
   *ostream << ")";
 }
 
-ParameterQuery::ParameterQuery(AtomicString* name, ir::Type* type)
+ParameterQuery::ParameterQuery(AtomicString* name, sm::Type* type)
     : name(name), type(type) {
 }
 
-ParameterQuery::ParameterQuery(ir::Type* type) : ParameterQuery(nullptr, type) {
+ParameterQuery::ParameterQuery(sm::Type* type) : ParameterQuery(nullptr, type) {
 }
 
 ParameterQuery::ParameterQuery() : ParameterQuery(nullptr, nullptr) {

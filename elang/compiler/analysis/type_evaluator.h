@@ -13,7 +13,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 class Type;
 }
 namespace ts {
@@ -34,9 +34,9 @@ class Evaluator final : public FactoryUser {
   Value* Unify(Value* value1, Value* value2);
 
  private:
-  bool Contains(const AndValue* and_value, ir::Type* type);
+  bool Contains(const AndValue* and_value, sm::Type* type);
   bool Contains(const AndValue* and_value, const UnionValue* union_value);
-  bool Contains(const UnionValue* union_value, ir::Type* type);
+  bool Contains(const UnionValue* union_value, sm::Type* type);
 
   Value* Unify(AndValue* value1, AndValue* value2);
   Value* Unify(AndValue* value1, Value* value2);

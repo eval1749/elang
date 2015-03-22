@@ -42,9 +42,9 @@ ast::Factory* NamespaceBuilder::ast_factory() const {
   return session()->ast_factory();
 }
 
-ir::Class* NamespaceBuilder::system_object() {
+sm::Class* NamespaceBuilder::system_object() {
   auto const ast_class = GetPredefinedType(PredefinedName::Object);
-  return semantics()->ValueOf(ast_class)->as<ir::Class>();
+  return semantics()->ValueOf(ast_class)->as<sm::Class>();
 }
 
 ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
@@ -69,14 +69,14 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   session()->system_namespace_body()->AddMember(ast_class_body);
   session()->system_namespace_body()->AddNamedMember(ast_class);
 
-  // ir::Class
-  std::vector<ir::Class*> base_classes;
+  // sm::Class
+  std::vector<sm::Class*> base_classes;
   for (auto const base_name : ast_class_body->base_class_names()) {
     auto const ast_base_class =
         name_resolver()->ResolveReference(base_name, ast_class_body->parent());
     DCHECK(ast_base_class) << " Not found " << *base_name;
     auto const base_class =
-        name_resolver()->Resolve(ast_base_class)->as<ir::Class>();
+        name_resolver()->Resolve(ast_base_class)->as<sm::Class>();
     DCHECK(base_class);
     base_classes.push_back(base_class);
   }

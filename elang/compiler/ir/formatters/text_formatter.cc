@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& ostream,
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 namespace {
 
@@ -39,7 +39,7 @@ class Formatter final : public Visitor {
   explicit Formatter(std::ostream* ostream);
   ~Formatter() = default;
 
-  void Format(const ir::Node* node);
+  void Format(const sm::Node* node);
 
  private:
 // Visitor
@@ -167,6 +167,6 @@ void TextFormatter::Format(const Node* node) {
   formatter.Format(node);
 }
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

@@ -108,7 +108,7 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
 // Find |name| in class tree rooted by |clazz|.
 void NamespaceAnalyzer::FindInClass(
     Token* name,
-    ir::Class* clazz,
+    sm::Class* clazz,
     std::unordered_set<ast::NamedNode*>* founds) {
   if (auto const present = clazz->ast_class()->FindMember(name)) {
     founds->insert(present);
@@ -124,8 +124,8 @@ ast::NamedNode* NamespaceAnalyzer::FindResolvedReference(
   return it == reference_cache_.end() ? nullptr : it->second;
 }
 
-ir::Class* NamespaceAnalyzer::GetClass(ast::Class* ast_class) {
-  return resolver()->Resolve(ast_class)->as<ir::Class>();
+sm::Class* NamespaceAnalyzer::GetClass(ast::Class* ast_class) {
+  return resolver()->Resolve(ast_class)->as<sm::Class>();
 }
 
 Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
@@ -193,7 +193,7 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::Remember(ast::Expression* reference,
   return Just<ast::NamedNode*>(member);
 }
 
-Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
+Maybe<sm::Class*> NamespaceAnalyzer::ResolveBaseClass(
     const ResolveContext& context,
     ast::Expression* base_class_name,
     int nth,
@@ -201,15 +201,15 @@ Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
   DCHECK_GE(nth, 1);
   auto const result = ResolveReference(context, base_class_name);
   if (!result.IsJust())
-    return Nothing<ir::Class*>();
+    return Nothing<sm::Class*>();
   if (!result.FromJust())
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
 
   auto const base_class = result.FromJust()->as<ast::Class>();
   if (!base_class) {
     Error(ErrorCode::NameResolutionNameNeitherClassNorInterface,
           base_class_name);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
 
   if (clazz->is_class()) {
@@ -217,16 +217,16 @@ Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
       if (base_class->is_struct()) {
         Error(ErrorCode::NameResolutionNameNeitherClassNorInterface,
               base_class_name);
-        return Just<ir::Class*>(nullptr);
+        return Just<sm::Class*>(nullptr);
       }
     } else if (nth >= 2 && !base_class->is_interface()) {
       Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
-      return Just<ir::Class*>(nullptr);
+      return Just<sm::Class*>(nullptr);
     }
   } else if (!base_class->is_interface()) {
     // interface and struct have interface only.
     Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
 
   // TODO(eval1749) Check |base_class| isn't |final|.
@@ -234,49 +234,49 @@ Maybe<ir::Class*> NamespaceAnalyzer::ResolveBaseClass(
   if (base_class == clazz->parent() ||
       clazz->parent()->IsDescendantOf(base_class)) {
     Error(ErrorCode::NameResolutionClassContaining, base_class_name, clazz);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
 
   if (!IsResolved(base_class)) {
     Postpone(context.node, base_class);
-    return Nothing<ir::Class*>();
+    return Nothing<sm::Class*>();
   }
 
   auto const data = Resolve(base_class);
   if (!data) {
     Error(ErrorCode::NameResolutionClassNotResolved, base_class_name);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
-  if (!data->is<ir::Class>()) {
+  if (!data->is<sm::Class>()) {
     Error(ErrorCode::NameResolutionClassNotClass, base_class_name);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
-  return Just<ir::Class*>(data->as<ir::Class>());
+  return Just<sm::Class*>(data->as<sm::Class>());
 }
 
-Maybe<ir::Class*> NamespaceAnalyzer::ResolveDefaultBaseClass(
+Maybe<sm::Class*> NamespaceAnalyzer::ResolveDefaultBaseClass(
     const ResolveContext& context,
     ast::Class* clazz) {
   auto const default_base_class_name = GetDefaultBaseClassNameAccess(clazz);
   auto const result = ResolveReference(context, default_base_class_name);
   if (result.IsNothing())
-    return Nothing<ir::Class*>();
+    return Nothing<sm::Class*>();
   if (!result.FromJust())
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   auto const default_base_class = result.FromJust();
   if (!IsResolved(default_base_class)) {
     Postpone(clazz, default_base_class);
-    return Nothing<ir::Class*>();
+    return Nothing<sm::Class*>();
   }
   auto const resolved = Resolve(default_base_class);
   if (!resolved) {
     Error(ErrorCode::PredefinedNamesNameNotFound, default_base_class);
-    return Just<ir::Class*>(nullptr);
+    return Just<sm::Class*>(nullptr);
   }
-  if (auto const base_class = resolved->as<ir::Class>())
-    return Just<ir::Class*>(base_class);
+  if (auto const base_class = resolved->as<sm::Class>())
+    return Just<sm::Class*>(base_class);
   Error(ErrorCode::PredefinedNamesNameNotClass, default_base_class);
-  return Just<ir::Class*>(nullptr);
+  return Just<sm::Class*>(nullptr);
 }
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveMemberAccess(
@@ -499,7 +499,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   auto are_direct_base_classes_valid = true;
   auto nth = 0;
   ResolveContext context(class_body, class_body->parent());
-  std::vector<ir::Class*> direct_base_classes;
+  std::vector<sm::Class*> direct_base_classes;
   for (auto const base_class_name : class_body->base_class_names()) {
     ++nth;
     auto const result =
@@ -540,7 +540,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
     direct_base_classes.insert(direct_base_classes.begin(), result.FromJust());
   }
 
-  auto const present = resolver()->Resolve(ast_class)->as<ir::Class>();
+  auto const present = resolver()->Resolve(ast_class)->as<sm::Class>();
   if (present) {
     // TODO(eval1749) Check base classes are matched with |present|.
     resolver()->DidResolve(class_body, present);

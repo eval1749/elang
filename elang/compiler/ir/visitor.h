@@ -10,7 +10,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,7 +29,7 @@ class Visitor {
   DISALLOW_COPY_AND_ASSIGN(Visitor);
 };
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

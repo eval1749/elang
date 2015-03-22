@@ -204,7 +204,7 @@ void CodeGenerator::EmitParameterBindings(ast::Method* ast_method) {
 
 void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
                                            ast::Expression* ast_value) {
-  auto const variable = ValueOf(ast_node)->as<ir::Variable>();
+  auto const variable = ValueOf(ast_node)->as<sm::Variable>();
   auto const value = GenerateValue(ast_value);
   auto const home = variables_[variable]->as<hir::Instruction>();
   DCHECK(home);
@@ -217,18 +217,18 @@ void CodeGenerator::EmitVariableAssignment(ast::NamedNode* ast_node,
 // |value| comes from parameter
 void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
                                         hir::Value* variable_value) {
-  auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
+  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
   auto const variable_type = MapType(variable->type());
-  if (variable->storage() == ir::StorageClass::Void)
+  if (variable->storage() == sm::StorageClass::Void)
     return;
 
-  if (variable->storage() == ir::StorageClass::ReadOnly) {
+  if (variable->storage() == sm::StorageClass::ReadOnly) {
     DCHECK(!variables_.count(variable));
     variables_[variable] = variable_value;
     return;
   }
 
-  DCHECK_EQ(variable->storage(), ir::StorageClass::Local);
+  DCHECK_EQ(variable->storage(), sm::StorageClass::Local);
   auto const alloc_instr =
       factory()->NewStackAllocInstruction(variable_type, 1);
   DCHECK(!variables_.count(variable));
@@ -242,12 +242,12 @@ void CodeGenerator::EmitVariableBinding(ast::NamedNode* ast_variable,
 void CodeGenerator::EmitVariableReference(ast::NamedNode* ast_variable) {
   if (!NeedOutput())
     return;
-  auto const variable = ValueOf(ast_variable)->as<ir::Variable>();
+  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
   DCHECK(variable);
   auto const it = variables_.find(variable);
   DCHECK(it != variables_.end()) << *variable << " isn't resolved";
   DCHECK(it->second) << *variable << " has no value";
-  if (variable->storage() == ir::StorageClass::ReadOnly) {
+  if (variable->storage() == sm::StorageClass::ReadOnly) {
     EmitOutput(it->second);
     return;
   }
@@ -361,7 +361,7 @@ hir::Type* CodeGenerator::MapType(PredefinedName name) const {
   return type_mapper_->Map(name);
 }
 
-hir::Type* CodeGenerator::MapType(ir::Type* type) const {
+hir::Type* CodeGenerator::MapType(sm::Type* type) const {
   return type_mapper_->Map(type);
 }
 
@@ -447,9 +447,9 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
   return nullptr;
 }
 
-hir::Value* CodeGenerator::NewMethodReference(ir::Method* method) {
+hir::Value* CodeGenerator::NewMethodReference(sm::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
-  // |ir::Method|.
+  // |sm::Method|.
   std::stringstream ostream;
   ostream << *method->return_type() << " "
           << method->ast_method()->NewQualifiedName() << "(";
@@ -470,7 +470,7 @@ bool CodeGenerator::Run() {
   return session()->errors().empty();
 }
 
-ir::Node* CodeGenerator::ValueOf(ast::Node* node) const {
+sm::Node* CodeGenerator::ValueOf(ast::Node* node) const {
   return semantics()->ValueOf(node);
 }
 
@@ -498,7 +498,7 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   DCHECK(!function_);
   //  1 Convert ast::FunctionType to hir::FunctionType
   //  2 hir::NewFunction(function_type)
-  auto const method = ValueOf(ast_method)->as<ir::Method>();
+  auto const method = ValueOf(ast_method)->as<sm::Method>();
   if (!method) {
     DVLOG(0) << "Not resolved " << *ast_method;
     return;
@@ -612,7 +612,7 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
     return;
   }
 
-  auto const ir_type = ValueOf(node)->as<ir::Class>();
+  auto const ir_type = ValueOf(node)->as<sm::Class>();
   DCHECK(ir_type) << "NYI user defined operator: " << *node;
   auto const type = MapType(ir_type);
   auto const left = GenerateValueAs(node->left(), type);
@@ -623,7 +623,7 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
 
 // Generate function call by generating callee, arguments from left to right.
 void CodeGenerator::VisitCall(ast::Call* node) {
-  auto const ir_callee = ValueOf(node->callee())->as<ir::Method>();
+  auto const ir_callee = ValueOf(node->callee())->as<sm::Method>();
   DCHECK(ir_callee) << "Unresolved call" << *node;
   auto const callee = NewMethodReference(ir_callee);
   if (node->arguments().empty()) {
@@ -680,7 +680,7 @@ void CodeGenerator::VisitConditional(ast::Conditional* node) {
 void CodeGenerator::VisitLiteral(ast::Literal* node) {
   if (!NeedOutput())
     return;
-  auto const value = ValueOf(node)->as<ir::Literal>();
+  auto const value = ValueOf(node)->as<sm::Literal>();
   EmitOutput(NewLiteral(MapType(value->type()), node->token()));
 }
 
@@ -689,10 +689,10 @@ void CodeGenerator::VisitNameReference(ast::NameReference* node) {
     return;
   auto const value = ValueOf(node);
   // TODO(eval1749) |value| can be
-  //    |ir::Class| load class object literal
-  //    |ir::Field| load instance or static field
-  //    |ir::Literal| constant variable reference, or enum member.
-  if (auto const method = value->as<ir::Method>()) {
+  //    |sm::Class| load class object literal
+  //    |sm::Field| load instance or static field
+  //    |sm::Literal| constant variable reference, or enum member.
+  if (auto const method = value->as<sm::Method>()) {
     EmitOutput(NewMethodReference(method));
     return;
   }

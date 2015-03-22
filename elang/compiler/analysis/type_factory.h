@@ -20,7 +20,7 @@ namespace ast {
 class Call;
 class Node;
 }
-namespace ir {
+namespace sm {
 class Type;
 }
 namespace ts {
@@ -54,7 +54,7 @@ class Factory final : public CompilationSessionUser, public ZoneUser {
   Argument* NewArgument(CallValue* call_value, int position);
   CallValue* NewCallValue(ast::Call* call);
   Value* NewInvalidValue(ast::Node* node);
-  Value* NewLiteral(ir::Type* type);
+  Value* NewLiteral(sm::Type* type);
   Value* NewNullValue(Value* value);
   Value* NewPredefinedValue(PredefinedName name);
   Variable* NewVariable(ast::Node* node, Value* value);
@@ -63,7 +63,7 @@ class Factory final : public CompilationSessionUser, public ZoneUser {
   Value* const any_value_;
   Value* const empty_value_;
 
-  ZoneUnorderedMap<ir::Type*, ts::Literal*> literal_cache_map_;
+  ZoneUnorderedMap<sm::Type*, ts::Literal*> literal_cache_map_;
   ZoneUnorderedMap<ts::Value*, ts::NullValue*> null_value_cache_map_;
 
   // |bool_type_| uses |literal_cache_map_|.

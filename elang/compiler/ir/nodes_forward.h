@@ -9,7 +9,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 #define FOR_EACH_ABSTRACT_IR_NODE(V) \
   V(Node)                            \
@@ -42,7 +42,7 @@ class Visitor;
 std::ostream& operator<<(std::ostream& ostream, const Node& node);
 std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class);
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

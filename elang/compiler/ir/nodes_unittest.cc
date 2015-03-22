@@ -15,7 +15,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 namespace {
 
 //////////////////////////////////////////////////////////////////////
@@ -88,6 +88,6 @@ TEST_F(IrNodesTest, ArrayTypeUnbound) {
 }
 
 }  // namespace
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

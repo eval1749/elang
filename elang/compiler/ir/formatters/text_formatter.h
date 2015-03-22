@@ -11,7 +11,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 class Node;
 
@@ -24,7 +24,7 @@ class TextFormatter final {
   explicit TextFormatter(std::ostream* stream);
   ~TextFormatter();
 
-  void Format(const ir::Node* node);
+  void Format(const sm::Node* node);
 
  private:
   std::ostream& ostream_;
@@ -32,7 +32,7 @@ class TextFormatter final {
   DISALLOW_COPY_AND_ASSIGN(TextFormatter);
 };
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

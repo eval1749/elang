@@ -25,7 +25,7 @@ namespace ast {
 class Factory;
 }
 
-namespace ir {
+namespace sm {
 class Class;
 }
 
@@ -47,7 +47,7 @@ class NamespaceBuilder : public CompilationSessionUser {
 
   ast::Factory* ast_factory() const;
   NameResolver* name_resolver() const { return name_resolver_; }
-  ir::Class* system_object();
+  sm::Class* system_object();
 
   ast::ClassBody* NewClass(base::StringPiece name,
                            base::StringPiece base_names);

@@ -16,7 +16,7 @@
 
 namespace elang {
 namespace compiler {
-namespace ir {
+namespace sm {
 
 #define DECLARE_IR_NODE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);     \
@@ -166,19 +166,19 @@ class Enum final : public Type {
 
  public:
   ast::Enum* ast_enum() const { return ast_enum_; }
-  ir::Class* base_type() const { return base_type_; }
+  sm::Class* base_type() const { return base_type_; }
 
  private:
   Enum(Zone* zone,
        ast::Enum* ast_enum,
-       ir::Class* base_type,
+       sm::Class* base_type,
        const std::vector<int64_t>& values);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
   ast::Enum* const ast_enum_;
-  ir::Class* const base_type_;
+  sm::Class* const base_type_;
   const ZoneVector<int64_t> values_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
@@ -317,7 +317,7 @@ class Variable final : public Node {
   DISALLOW_COPY_AND_ASSIGN(Variable);
 };
 
-}  // namespace ir
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

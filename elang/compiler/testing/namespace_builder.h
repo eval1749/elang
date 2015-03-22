@@ -21,7 +21,7 @@ enum class PredefinedName;
 class Token;
 enum class TokenType;
 
-namespace ir {
+namespace sm {
 class Class;
 }
 
@@ -38,7 +38,7 @@ class NamespaceBuilder : public CompilationSessionUser {
   ~NamespaceBuilder();
 
   NameResolver* name_resolver() { return name_resolver_; }
-  ir::Class* system_object();
+  sm::Class* system_object();
 
   ast::ClassBody* NewClass(base::StringPiece name,
                            base::StringPiece base_names);
