@@ -7,7 +7,6 @@ import("//testing/test.gni")
 
 group("elang") {
   deps = [
-    "//elang/optimizer",
     "//elang/shell",
     "//elang/vm",
   ]
