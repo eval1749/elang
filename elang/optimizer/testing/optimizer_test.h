@@ -29,6 +29,7 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
   OptimizerTest();
   ~OptimizerTest() override;
 
+  std::string ToString(const Function* function);
   std::string ToString(const Thing* thing);
 
  private:

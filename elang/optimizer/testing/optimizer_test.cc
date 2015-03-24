@@ -7,6 +7,7 @@
 #include "elang/base/atomic_string_factory.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/factory_config.h"
+#include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/optimizer/testing/optimizer_test.h"
 #include "elang/optimizer/thing.h"
 
@@ -36,6 +37,12 @@ OptimizerTest::OptimizerTest()
 }
 
 OptimizerTest::~OptimizerTest() {
+}
+
+std::string OptimizerTest::ToString(const Function* function) {
+  std::stringstream ostream;
+  ostream << AsReversePostOrder(function);
+  return ostream.str();
 }
 
 std::string OptimizerTest::ToString(const Thing* thing) {

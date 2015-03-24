@@ -2,42 +2,63 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
-#include <string>
+#include <iomanip>
 
 #include "elang/optimizer/formatters/text_formatter.h"
 
+#include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
-#include "elang/optimizer/instructions.h"
-#include "elang/optimizer/values.h"
-#include "elang/optimizer/value_visitor.h"
+#include "elang/optimizer/depth_first_traversal.h"
+#include "elang/optimizer/nodes.h"
+#include "elang/optimizer/node_visitor.h"
 #include "elang/optimizer/types.h"
-#include "elang/optimizer/type_visitor.h"
-
-namespace base {
-std::ostream& operator<<(std::ostream& ostream,
-                         const base::StringPiece16& piece) {
-  return ostream << base::UTF16ToUTF8(piece.as_string());
-}
-}  // namespace base
 
 namespace elang {
 namespace optimizer {
 
+namespace {
 //////////////////////////////////////////////////////////////////////
 //
-// TextFormatter
+// Printer
 //
-TextFormatter::TextFormatter(std::ostream* ostream) : ostream_(*ostream) {
+class Printer final : public NodeVisitor {
+ public:
+  explicit Printer(std::ostream* ostream);
+  ~Printer() = default;
+
+ private:
+  // NodeVisitor
+  void DoDefaultVisit(Node* node) final;
+
+  int counter_;
+  std::ostream& ostream_;
+
+  DISALLOW_COPY_AND_ASSIGN(Printer);
+};
+
+Printer::Printer(std::ostream* ostream) : counter_(0), ostream_(*ostream) {
 }
 
-TextFormatter::~TextFormatter() {
+void Printer::DoDefaultVisit(Node* node) {
+  if (node->IsLiteral())
+    return;
+  ostream_ << base::StringPrintf("%04d: ", counter_) << *node << std::endl;
+  ++counter_;
 }
 
-void TextFormatter::FormatFunction(const Function* function) {
-  ostream_ << *function << " " << *function->type() << std::endl;
+}  // namespace
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const AsReversePostOrder& thing) {
+  auto const function = thing.function;
+  ostream << "function" << function->id() << " " << *function->function_type()
+          << std::endl;
+  Printer printer(&ostream);
+  DepthFirstTraversal<OnInputEdge, const Function> walker;
+  walker.Traverse(thing.function, &printer);
+  return ostream;
 }
 
 }  // namespace optimizer

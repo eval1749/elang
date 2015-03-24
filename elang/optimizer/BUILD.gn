@@ -7,6 +7,8 @@ import("//testing/test.gni")
 component("optimizer") {
   output_name = "elang_optimizer"
   sources = [
+    "depth_first_traversal.cc",
+    "depth_first_traversal.h",
     "error_code.h",
     "error_data.cc",
     "error_data.h",
@@ -16,6 +18,8 @@ component("optimizer") {
     "factory.h",
     "factory_user.cc",
     "factory_user.h",
+    "formatters/text_formatter.cc",
+    "formatters/text_formatter.h",
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",

@@ -5,7 +5,6 @@
 #ifndef ELANG_OPTIMIZER_FORMATTERS_TEXT_FORMATTER_H_
 #define ELANG_OPTIMIZER_FORMATTERS_TEXT_FORMATTER_H_
 
-#include <memory>
 #include <ostream>
 
 #include "base/macros.h"
@@ -14,22 +13,16 @@
 namespace elang {
 namespace optimizer {
 
-//////////////////////////////////////////////////////////////////////
-//
-// TextFormatter
-//
-class ELANG_OPTIMIZER_EXPORT TextFormatter final {
- public:
-  explicit TextFormatter(std::ostream* stream);
-  ~TextFormatter();
+class Function;
 
-  void FormatFunction(const Function* function);
-
- private:
-  std::ostream& ostream_;
-
-  DISALLOW_COPY_AND_ASSIGN(TextFormatter);
+struct ELANG_OPTIMIZER_EXPORT AsReversePostOrder {
+  const Function* function;
+  explicit AsReversePostOrder(const Function* function) : function(function) {}
 };
+
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(
+    std::ostream& ostream,
+    const AsReversePostOrder& thing);
 
 }  // namespace optimizer
 }  // namespace elang

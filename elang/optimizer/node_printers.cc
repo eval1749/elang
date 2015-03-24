@@ -25,15 +25,16 @@ namespace {
 //
 class NodePrinter final : public NodeVisitor {
  public:
-  explicit NodePrinter(std::ostream& ostream) // NOLINT
-    : ostream_(ostream) {}
+  explicit NodePrinter(std::ostream& ostream)  // NOLINT
+      : ostream_(ostream) {}
 
   ~NodePrinter() = default;
 
  private:
   void DoDefaultVisit(Node* node) final;
+  void VisitVoid(VoidNode* node) final;
 
-#define V(Name, ...) void Visit##Name(Name##Node* literal) final;
+#define V(Name, ...) void Visit##Name(Name##Node* node) final;
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
@@ -72,6 +73,10 @@ void NodePrinter::DoDefaultVisit(Node* node) {
     separator = ", ";
   }
   ostream_ << ")";
+}
+
+void NodePrinter::VisitVoid(VoidNode* node) {
+  ostream_ << "void";
 }
 
 #define V(Name, ...)                                                  \
