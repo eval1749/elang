@@ -95,6 +95,7 @@ Node* NodeFactory::LiteralNodeCache::NewNull(Type* type) {
 //
 NodeFactory::NodeFactory(TypeFactory* type_factory)
     : TypeFactoryUser(type_factory),
+      last_function_id_(0),
       last_node_id_(0),
       literal_node_cache_(new LiteralNodeCache(zone(), type_factory)),
       false_value_(NewBool(false)),
@@ -111,6 +112,8 @@ Function* NodeFactory::NewFunction(FunctionType* function_type) {
   auto const exit_node = NewExit(ret_node, entry_node);
   auto const function =
       new (zone()) Function(function_type, entry_node, exit_node);
+  function->id_ = ++last_function_id_;
+  function->max_node_id_ = last_node_id_;
   return function;
 }
 

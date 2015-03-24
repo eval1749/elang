@@ -88,6 +88,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   size_t NewNodeId();
 
+  size_t last_function_id_;
   size_t last_node_id_;
   const std::unique_ptr<LiteralNodeCache> literal_node_cache_;
 

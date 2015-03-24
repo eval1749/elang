@@ -122,6 +122,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Node* entry_node() const { return entry_node_; }
   Node* exit_node() const { return exit_node_; }
   FunctionType* function_type() const { return function_type_; }
+  size_t id() const { return id_; }
   size_t max_node_id() const { return max_node_id_; }
   Type* parameters_type() const;
   Type* return_type() const;
@@ -136,6 +137,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Node* const entry_node_;
   FunctionType* function_type_;
   Node* const exit_node_;
+  size_t id_;
   size_t max_node_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Function);
