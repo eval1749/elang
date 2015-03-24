@@ -148,11 +148,8 @@ class ELANG_OPTIMIZER_EXPORT Input final
  public:
   typedef ::elang::optimizer::Node Node;
 
-  Input(const Input& other);
   Input();
   ~Input() = default;
-
-  Input& operator=(const Input& other);
 
   Node* owner() const { return owner_; }
   Node* value() const { return value_; }
@@ -172,6 +169,8 @@ class ELANG_OPTIMIZER_EXPORT Input final
 
   // Owner of this |Input| using |value_|.
   Node* owner_;
+
+  DISALLOW_COPY_AND_ASSIGN(Input);
 };
 
 typedef DoubleLinked<Input, Node> Users;
@@ -182,6 +181,12 @@ typedef DoubleLinked<Input, Node> Users;
 //
 class ELANG_OPTIMIZER_EXPORT InputIterator final {
  public:
+  typedef std::forward_iterator_tag iterator_category;
+  typedef int difference_type;
+  typedef Node value_type;
+  typedef Node* pointer;
+  typedef Node& reference;
+
   InputIterator(const Node* node, size_t current);
   InputIterator(const InputIterator& other);
   ~InputIterator();
@@ -335,6 +340,8 @@ class VariableInputsNode : public Node {
   ~VariableInputsNode() override = default;
 
  private:
+  class InputAnchor;
+
   friend class Editor;
   friend class NodeFactory;
 
@@ -342,11 +349,9 @@ class VariableInputsNode : public Node {
 
   // Node input protocol
   size_t CountInputs() const final { return inputs_.size(); }
-  Input* InputAt(size_t index) const final {
-    return const_cast<Input*>(&inputs_[index]);
-  }
+  Input* InputAt(size_t index) const final;
 
-  ZoneVector<Input> inputs_;
+  ZoneVector<InputAnchor*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableInputsNode);
 };

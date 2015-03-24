@@ -54,16 +54,7 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
 }
 
 // Input
-Input::Input(const Input& other) : owner_(other.owner_), value_(other.value_) {
-}
-
 Input::Input() : owner_(nullptr), value_(nullptr) {
-}
-
-Input& Input::operator=(const Input& other) {
-  owner_ = other.owner_;
-  value_ = other.value_;
-  return *this;
 }
 
 void Input::Init(Node* owner, Node* value) {
@@ -308,14 +299,33 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
 
+// VariableInputsNode::InputAnchor
+class VariableInputsNode::InputAnchor : public ZoneAllocated {
+ public:
+  InputAnchor() = default;
+  ~InputAnchor() = delete;
+
+  Input* input() { return &input_; }
+
+ private:
+  Input input_;
+
+  DISALLOW_COPY_AND_ASSIGN(InputAnchor);
+};
+
 // VariableInputsNode
 VariableInputsNode::VariableInputsNode(Type* output_type, Zone* zone)
     : Node(output_type), inputs_(zone) {
 }
 
 void VariableInputsNode::AppendInput(Node* value) {
-  inputs_.emplace_back();
+  auto const zone = inputs_.get_allocator().zone();
+  inputs_.push_back(new (zone) InputAnchor());
   InitInputAt(inputs_.size() - 1, value);
+}
+
+Input* VariableInputsNode::InputAt(size_t index) const {
+  return inputs_[index]->input();
 }
 
 // VoidNode
