@@ -80,7 +80,7 @@ class ELANG_OPTIMIZER_EXPORT Type : public Thing,
   bool can_allocate_on_stack() const;
 
   // Returns default value of this type.
-  virtual Value* default_value() const;
+  virtual Node* default_value() const;
 
   bool is_float() const { return register_class() == RegisterClass::Float; }
   bool is_general() const { return register_class() == RegisterClass::General; }
@@ -105,7 +105,7 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(ArrayType, Type);
 
  public:
-  Value* default_value() const final;
+  Node* default_value() const final;
   Type* element_type() const { return element_type_; }
   const ZoneVector<int> dimensions() const { return dimensions_; }
   int rank() const { return static_cast<int>(dimensions_.size()); }
@@ -117,7 +117,7 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
 
   const ZoneVector<int> dimensions_;
   Type* const element_type_;
-  NullLiteral* const null_literal_;
+  NullNode* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
@@ -177,13 +177,13 @@ class ELANG_OPTIMIZER_EXPORT PointerType final : public Type {
 
  public:
   Type* pointee() const { return pointee_; }
-  Value* default_value() const final;
+  Node* default_value() const final;
   RegisterClass register_class() const final;
 
  private:
   PointerType(Zone* zone, Type* pointee);
 
-  NullLiteral* const null_literal_;
+  NullNode* const null_literal_;
   Type* pointee_;
 
   DISALLOW_COPY_AND_ASSIGN(PointerType);
@@ -233,7 +233,7 @@ class ELANG_OPTIMIZER_EXPORT PrimitiveValueType : public PrimitiveType {
    public:                                                                    \
     /* Protocol defined by |PrimitiveType| class */                           \
     int bit_size() const final;                                               \
-    Value* default_value() const final;                                       \
+    Node* default_value() const final;                                        \
     RegisterClass register_class() const final;                               \
                                                                               \
    private:                                                                   \
@@ -243,7 +243,7 @@ class ELANG_OPTIMIZER_EXPORT PrimitiveValueType : public PrimitiveType {
                                                                               \
     Signedness signedness() const final;                                      \
                                                                               \
-    Value* const default_value_;                                              \
+    Node* const default_value_;                                               \
                                                                               \
     DISALLOW_COPY_AND_ASSIGN(Name##Type);                                     \
   };
@@ -262,7 +262,7 @@ class ELANG_OPTIMIZER_EXPORT ReferenceType : public Type {
   AtomicString* name() const { return name_; }
 
   // Type
-  Value* default_value() const override;
+  Node* default_value() const override;
   RegisterClass register_class() const final;
 
  protected:
@@ -270,7 +270,7 @@ class ELANG_OPTIMIZER_EXPORT ReferenceType : public Type {
 
  private:
   AtomicString* const name_;
-  NullLiteral* const null_literal_;
+  NullNode* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceType);
 };
@@ -293,7 +293,7 @@ class ELANG_OPTIMIZER_EXPORT StringType final : public ReferenceType {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(StringType, ReferenceType);
 
  public:
-  StringLiteral* NewLiteral(base::StringPiece16 data);
+  StringNode* NewLiteral(base::StringPiece16 data);
 
  private:
   StringType(Zone* zone, AtomicString* name);
@@ -309,14 +309,14 @@ class ELANG_OPTIMIZER_EXPORT TupleType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(TupleType, Type);
 
  public:
-  Type* get(int index) const { return members_[index]; }
-  const ZoneVector<Type*>& members() const { return members_; }
-  int size() const { return static_cast<int>(members_.size()); }
+  Type* get(int index) const { return components_[index]; }
+  const ZoneVector<Type*>& components() const { return components_; }
+  size_t size() const { return components_.size(); }
 
  private:
-  TupleType(Zone* zone, const std::vector<Type*>& members);
+  TupleType(Zone* zone, const std::vector<Type*>& components);
 
-  const ZoneVector<Type*> members_;
+  const ZoneVector<Type*> components_;
 
   DISALLOW_COPY_AND_ASSIGN(TupleType);
 };
@@ -329,9 +329,9 @@ class ELANG_OPTIMIZER_EXPORT VoidType final : public PrimitiveType {
   explicit VoidType(Zone* zone);
 
   int bit_size() const final;
-  Value* default_value() const final;
+  Node* default_value() const final;
 
-  Value* const default_value_;
+  Node* const default_value_;
 
   DISALLOW_COPY_AND_ASSIGN(VoidType);
 };

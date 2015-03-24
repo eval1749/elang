@@ -22,8 +22,8 @@ NodeVisitor::~NodeVisitor() {
 void NodeVisitor::DoDefaultVisit(Node* node) {
 }
 
-#define V(Name, Base, ...) \
-  void NodeVisitor::Visit##Name(Name##Base* node) { DoDefaultVisit(node); }
+#define V(Name, ...) \
+  void NodeVisitor::Visit##Name(Name##Node* node) { DoDefaultVisit(node); }
 FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 

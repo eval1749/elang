@@ -43,8 +43,8 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
 
-  std::unique_ptr<NodeFactory> node_factory_;
-  std::unique_ptr<TypeFactory> type_factory_;
+  const std::unique_ptr<NodeFactory> node_factory_;
+  const std::unique_ptr<TypeFactory> type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

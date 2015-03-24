@@ -32,8 +32,8 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
   std::string ToString(const Thing* thing);
 
  private:
-  std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
-  std::unique_ptr<Factory> factory_;
+  const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
+  const std::unique_ptr<Factory> factory_;
 
   DISALLOW_COPY_AND_ASSIGN(OptimizerTest);
 };

@@ -18,7 +18,7 @@ namespace optimizer {
 //
 class ELANG_OPTIMIZER_EXPORT NodeVisitor {
  public:
-#define V(Name, Base, ...) virtual void Visit##Name(Name##Base* node);
+#define V(Name, ...) virtual void Visit##Name(Name##Node* node);
   FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 

@@ -26,7 +26,7 @@ ArrayType::ArrayType(Zone* zone,
                      const std::vector<int>& dimensions)
     : dimensions_(zone, dimensions),
       element_type_(element_type),
-      null_literal_(new (zone) NullLiteral(this)) {
+      null_literal_(new (zone) NullNode(this)) {
 #if _DEBUG
   for (auto const dimension : dimensions) {
     // dimension == -1 means unbound dimension.
@@ -35,9 +35,17 @@ ArrayType::ArrayType(Zone* zone,
 #endif
 }
 
-Value* ArrayType::default_value() const {
+Node* ArrayType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
+}
+
+// ControlType
+ControlType::ControlType() {
+}
+
+// EffectType
+EffectType::EffectType() {
 }
 
 // ExternalType
@@ -52,10 +60,10 @@ FunctionType::FunctionType(Type* return_type, Type* parameters_type)
 
 // PointerType
 PointerType::PointerType(Zone* zone, Type* pointee)
-    : null_literal_(new (zone) NullLiteral(this)), pointee_(pointee) {
+    : null_literal_(new (zone) NullNode(this)), pointee_(pointee) {
 }
 
-Value* PointerType::default_value() const {
+Node* PointerType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
 }
@@ -77,19 +85,19 @@ Type::RegisterClass PointerType::register_class() const {
                                                                                \
   /* Constructor of primitive type */                                          \
   Name##Type::Name##Type(Zone* zone)                                           \
-      : default_value_(new (zone) Name##Literal(this, 0)) {}                   \
+      : default_value_(new (zone) Name##Node(this, 0)) {}                      \
                                                                                \
   /* Type */                                                                   \
-  Value* Name##Type::default_value() const { return default_value_; }
+  Node* Name##Type::default_value() const { return default_value_; }
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
 // ReferenceType
 ReferenceType::ReferenceType(Zone* zone, AtomicString* name)
-    : name_(name), null_literal_(new (zone) NullLiteral(this)) {
+    : name_(name), null_literal_(new (zone) NullNode(this)) {
 }
 
-Value* ReferenceType::default_value() const {
+Node* ReferenceType::default_value() const {
   DCHECK(null_literal_);
   return null_literal_;
 }
@@ -104,9 +112,9 @@ StringType::StringType(Zone* zone, AtomicString* name)
 }
 
 // TupleType
-TupleType::TupleType(Zone* zone, const std::vector<Type*>& members)
-    : members_(zone, members) {
-  DCHECK_GE(members.size(), 2u);
+TupleType::TupleType(Zone* zone, const std::vector<Type*>& components)
+    : components_(zone, components) {
+  DCHECK_GE(components.size(), 2u);
 }
 
 // Type
@@ -117,7 +125,7 @@ bool Type::can_allocate_on_stack() const {
          register_class() == RegisterClass::Tuple;
 }
 
-Value* Type::default_value() const {
+Node* Type::default_value() const {
   NOTREACHED() << *this << " doesn't have default value.";
   return nullptr;
 }
@@ -127,14 +135,14 @@ Type::RegisterClass Type::register_class() const {
 }
 
 // VoidType
-VoidType::VoidType(Zone* zone) : default_value_(new (zone) VoidValue(this)) {
+VoidType::VoidType(Zone* zone) : default_value_(new (zone) VoidNode(this)) {
 }
 
 int VoidType::bit_size() const {
   return 0;
 }
 
-Value* VoidType::default_value() const {
+Node* VoidType::default_value() const {
   return default_value_;
 }
 

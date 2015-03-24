@@ -7,7 +7,6 @@
 #include "elang/optimizer/factory.h"
 
 #include "base/logging.h"
-#include "base/strings/stringprintf.h"
 #include "elang/base/atomic_string.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"

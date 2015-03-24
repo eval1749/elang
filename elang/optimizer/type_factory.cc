@@ -205,14 +205,9 @@ PointerType* TypeFactory::NewPointerType(Type* pointee) {
   return new_pointer_type;
 }
 
-TupleType* TypeFactory::NewTupleType(const std::vector<Type*>& members) {
-  DCHECK_GE(members.size(), 2u);
-#if _DEBUG
-  for (auto const member : members) {
-    DCHECK(!member->is<VoidType>());
-  }
-#endif
-  return tuple_type_factory_->NewTupleType(members);
+TupleType* TypeFactory::NewTupleType(const std::vector<Type*>& components) {
+  DCHECK_GE(components.size(), 2u);
+  return tuple_type_factory_->NewTupleType(components);
 }
 
 }  // namespace optimizer
