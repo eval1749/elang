@@ -44,6 +44,7 @@ component("base") {
     "zone_allocated.h",
     "zone_allocated.cc",
     "zone_allocator.h",
+    "zone_deque.h",
     "zone_owner.h",
     "zone_owner.cc",
     "zone_unordered_map.h",
