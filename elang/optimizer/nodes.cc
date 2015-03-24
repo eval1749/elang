@@ -335,5 +335,9 @@ VoidNode::VoidNode(Type* output_type) : NodeTemplate(output_type) {
   DCHECK(output_type->is<VoidType>());
 }
 
+bool VoidNode::IsLiteral() const {
+  return true;
+}
+
 }  // namespace optimizer
 }  // namespace elang

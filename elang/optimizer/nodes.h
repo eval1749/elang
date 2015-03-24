@@ -591,6 +591,9 @@ class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0> {
 
   explicit VoidNode(Type* output_type);
 
+  // Node
+  bool IsLiteral() const final;
+
   DISALLOW_COPY_AND_ASSIGN(VoidNode);
 };
 
