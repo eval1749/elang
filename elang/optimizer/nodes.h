@@ -122,6 +122,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Node* entry_node() const { return entry_node_; }
   Node* exit_node() const { return exit_node_; }
   FunctionType* function_type() const { return function_type_; }
+  size_t max_node_id() const { return max_node_id_; }
   Type* parameters_type() const;
   Type* return_type() const;
 
@@ -135,6 +136,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Node* const entry_node_;
   FunctionType* function_type_;
   Node* const exit_node_;
+  size_t max_node_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };
@@ -173,55 +175,6 @@ class ELANG_OPTIMIZER_EXPORT Input final
   DISALLOW_COPY_AND_ASSIGN(Input);
 };
 
-typedef DoubleLinked<Input, Node> Users;
-
-//////////////////////////////////////////////////////////////////////
-//
-// InputIterator
-//
-class ELANG_OPTIMIZER_EXPORT InputIterator final {
- public:
-  typedef std::forward_iterator_tag iterator_category;
-  typedef int difference_type;
-  typedef Node value_type;
-  typedef Node* pointer;
-  typedef Node& reference;
-
-  InputIterator(const Node* node, size_t current);
-  InputIterator(const InputIterator& other);
-  ~InputIterator();
-
-  InputIterator& operator=(const InputIterator& other);
-  InputIterator& operator++();
-  Node* operator*() const;
-  Node* operator->() const;
-  bool operator==(const InputIterator& other) const;
-  bool operator!=(const InputIterator& other) const;
-
- private:
-  const Node* node_;
-  size_t current_;
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// Inputs
-//
-class ELANG_OPTIMIZER_EXPORT Inputs final {
- public:
-  explicit Inputs(const Node* node);
-  Inputs(const Inputs& other);
-  ~Inputs();
-
-  Inputs& operator=(const Inputs& other);
-
-  InputIterator begin();
-  InputIterator end();
-
- private:
-  const Node* node_;
-};
-
 //////////////////////////////////////////////////////////////////////
 //
 // Opcode
@@ -241,6 +194,49 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Node, Thing);
 
  public:
+  // InputIterator
+  class ELANG_OPTIMIZER_EXPORT InputIterator final {
+   public:
+    typedef std::forward_iterator_tag iterator_category;
+    typedef int difference_type;
+    typedef Node value_type;
+    typedef Node* pointer;
+    typedef Node& reference;
+
+    InputIterator(const Node* node, size_t current);
+    InputIterator(const InputIterator& other);
+    ~InputIterator();
+
+    InputIterator& operator=(const InputIterator& other);
+    InputIterator& operator++();
+    Node* operator*() const;
+    Node* operator->() const;
+    bool operator==(const InputIterator& other) const;
+    bool operator!=(const InputIterator& other) const;
+
+   private:
+    const Node* node_;
+    size_t current_;
+  };
+
+  // Inputs
+  class ELANG_OPTIMIZER_EXPORT Inputs final {
+   public:
+    explicit Inputs(const Node* node);
+    Inputs(const Inputs& other);
+    ~Inputs();
+
+    Inputs& operator=(const Inputs& other);
+
+    InputIterator begin();
+    InputIterator end();
+
+   private:
+    const Node* node_;
+  };
+
+  typedef DoubleLinked<Input, Node> Users;
+
   // A mnemonic string pf this node used in printer.
   virtual base::StringPiece mnemonic() const;
 

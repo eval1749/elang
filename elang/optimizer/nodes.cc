@@ -34,7 +34,8 @@ Function::Function(FunctionType* function_type,
                    Node* exit_node)
     : entry_node_(entry_node),
       function_type_(function_type),
-      exit_node_(exit_node) {
+      exit_node_(exit_node),
+      max_node_id_(0) {
 }
 
 Type* Function::parameters_type() const {
@@ -80,62 +81,63 @@ void Input::SetValue(Node* new_value) {
   value_ = new_value;
 }
 
-// InputIterator
-InputIterator::InputIterator(const Node* node, size_t current)
+// Node::InputIterator
+Node::InputIterator::InputIterator(const Node* node, size_t current)
     : current_(current), node_(node) {
 }
 
-InputIterator::InputIterator(const InputIterator& other)
+Node::InputIterator::InputIterator(const InputIterator& other)
     : InputIterator(other.node_, other.current_) {
 }
 
-InputIterator::~InputIterator() {
+Node::InputIterator::~InputIterator() {
 }
 
-InputIterator& InputIterator::operator=(const InputIterator& other) {
+Node::InputIterator& Node::InputIterator::operator=(
+    const InputIterator& other) {
   node_ = other.node_;
   current_ = other.current_;
   return *this;
 }
 
-InputIterator& InputIterator::operator++() {
+Node::InputIterator& Node::InputIterator::operator++() {
   ++current_;
   return *this;
 }
 
-Node* InputIterator::operator*() const {
+Node* Node::InputIterator::operator*() const {
   return node_->input(current_);
 }
 
-Node* InputIterator::operator->() const {
+Node* Node::InputIterator::operator->() const {
   return operator*();
 }
 
-bool InputIterator::operator==(const InputIterator& other) const {
+bool Node::InputIterator::operator==(const InputIterator& other) const {
   return node_ == other.node_ && current_ == other.current_;
 }
 
-bool InputIterator::operator!=(const InputIterator& other) const {
+bool Node::InputIterator::operator!=(const InputIterator& other) const {
   return !operator==(other);
 }
 
 // Inputs
-Inputs::Inputs(const Node* node) : node_(node) {
+Node::Inputs::Inputs(const Node* node) : node_(node) {
 }
 
-Inputs::~Inputs() {
+Node::Inputs::~Inputs() {
 }
 
-Inputs& Inputs::operator=(const Inputs& other) {
+Node::Inputs& Node::Inputs::operator=(const Inputs& other) {
   node_ = other.node_;
   return *this;
 }
 
-InputIterator Inputs::begin() {
+Node::InputIterator Node::Inputs::begin() {
   return InputIterator(node_, 0);
 }
 
-InputIterator Inputs::end() {
+Node::InputIterator Node::Inputs::end() {
   return InputIterator(node_, node_->CountInputs());
 }
 
@@ -172,7 +174,7 @@ Node* Node::input(size_t index) const {
   return InputAt(index)->value();
 }
 
-Inputs Node::inputs() const {
+Node::Inputs Node::inputs() const {
   return Inputs(this);
 }
 
