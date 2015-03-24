@@ -14,7 +14,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
-#include "elang/base/zone_vector.h"
+#include "elang/base/zone_deque.h"
 #include "elang/optimizer/nodes_forward.h"
 #include "elang/optimizer/node_visitor.h"
 #include "elang/optimizer/optimizer_export.h"
@@ -351,7 +351,7 @@ class VariableInputsNode : public Node {
   size_t CountInputs() const final { return inputs_.size(); }
   Input* InputAt(size_t index) const final;
 
-  ZoneVector<InputAnchor*> inputs_;
+  ZoneDeque<InputAnchor*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableInputsNode);
 };
