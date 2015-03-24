@@ -79,13 +79,13 @@ void TypePrinter::VisitStringType(StringType* type) {
 }
 
 void TypePrinter::VisitTupleType(TupleType* type) {
-  ostream_ << "{";
+  ostream_ << "(";
   auto separator = "";
   for (auto const component : type->components()) {
     ostream_ << separator << *component;
     separator = ", ";
   }
-  ostream_ << "}";
+  ostream_ << ")";
 }
 
 #define V(Name, name, ...)                                \

@@ -6,7 +6,7 @@
 
 #include "base/strings/utf_string_conversions.h"
 #include "elang/optimizer/nodes.h"
-#include "elang/optimizer/types_forward.h"
+#include "elang/optimizer/types.h"
 
 namespace base {
 std::ostream& operator<<(std::ostream& ostream,
@@ -25,7 +25,9 @@ namespace {
 //
 class NodePrinter final : public NodeVisitor {
  public:
-  explicit NodePrinter(std::ostream* ostream) : ostream_(*ostream) {}
+  explicit NodePrinter(std::ostream& ostream) // NOLINT
+    : ostream_(ostream) {}
+
   ~NodePrinter() = default;
 
  private:
@@ -45,17 +47,31 @@ struct AsInput {
   explicit AsInput(Node* node) : node(node) {}
 };
 
+static char PrefixOf(const Node* node) {
+  if (node->output_type()->is<TupleType>())
+    return 't';
+  if (node->IsControl())
+    return 'c';
+  if (node->IsEffect())
+    return 'e';
+  return 'r';
+}
+
 std::ostream& operator<<(std::ostream& ostream, const AsInput& input) {
   if (input.node->IsLiteral())
     return ostream << *input.node;
-  return ostream << "%" << input.node->id();
+  return ostream << "%" << PrefixOf(input.node) << input.node->id();
 }
 
 void NodePrinter::DoDefaultVisit(Node* node) {
-  ostream_ << *node->output_type() << " %" << node->id() << "="
-           << node->mnemonic();
-  for (auto const input : node->inputs())
-    ostream_ << " " << AsInput(input);
+  ostream_ << *node->output_type() << " " << AsInput(node) << " = "
+           << node->mnemonic() << "(";
+  auto separator = "";
+  for (auto const input : node->inputs()) {
+    ostream_ << separator << AsInput(input);
+    separator = ", ";
+  }
+  ostream_ << ")";
 }
 
 #define V(Name, ...)                                                  \
@@ -87,7 +103,7 @@ std::ostream& operator<<(std::ostream& ostream, IntCondition condition) {
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Node& node) {
-  NodePrinter printer(&ostream);
+  NodePrinter printer(ostream);
   const_cast<Node&>(node).Accept(&printer);
   return ostream;
 }

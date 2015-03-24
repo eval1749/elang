@@ -24,9 +24,9 @@ class NodeTest : public testing::OptimizerTest {
 
 TEST_F(NodeTest, Function) {
   auto const function = NewFunction(NewFunctionType(void_type(), void_type()));
-  EXPECT_EQ("{control, effect, void} %1=Entry",
+  EXPECT_EQ("(control, effect, void) %t1 = Entry()",
             ToString(function->entry_node()));
-  EXPECT_EQ("void %3=Exit %2 %1", ToString(function->exit_node()));
+  EXPECT_EQ("void %r3 = Exit(%c2, %t1)", ToString(function->exit_node()));
 }
 
 }  // namespace optimizer

@@ -68,7 +68,7 @@ TEST_F(TypeTest, TupleType) {
   EXPECT_EQ(type1, type2);
   EXPECT_EQ(int32_type(), type1->get(0));
   EXPECT_EQ(bool_type(), type1->get(1));
-  EXPECT_EQ("{int32, bool}", ToString(type1));
+  EXPECT_EQ("(int32, bool)", ToString(type1));
 }
 
 }  // namespace optimizer
