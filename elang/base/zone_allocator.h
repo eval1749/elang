@@ -46,6 +46,8 @@ class ZoneAllocator {
   pointer address(reference x) const { return &x; }
   const_pointer address(const_reference x) const { return &x; }
 
+  Zone* zone() const { return zone_; }
+
   pointer allocate(size_type n, const void* hint = 0) {
     return static_cast<pointer>(zone_->AllocateObjects<value_type>(n));
   }
