@@ -117,7 +117,7 @@ inline IntCondition CommuteCondition(IntCondition condition) {
 //
 // Function
 //
-class ELANG_OPTIMIZER_EXPORT Function final {
+class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
  public:
   Node* entry_node() const { return entry_node_; }
   Node* exit_node() const { return exit_node_; }
