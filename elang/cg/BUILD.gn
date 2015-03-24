@@ -41,7 +41,7 @@ source_set("test_support") {
   ]
 }
 
-source_set("cg_unittests") {
+source_set("cg_tests") {
   testonly = true
 
   sources = [

@@ -123,7 +123,7 @@ source_set("test_support") {
   }
 }
 
-source_set("lir_unittests") {
+source_set("lir_tests") {
   testonly = true
   deps = [
     ":core_tests",
@@ -133,9 +133,9 @@ source_set("lir_unittests") {
   ]
 }
 
-test("elang_lir_unittests") {
+test("elang_lir_tests") {
   deps = [
     "//base/test:run_all_unittests",
-    ":lir_unittests",
+    ":lir_tests",
   ]
 }

@@ -77,7 +77,7 @@ source_set("test_support") {
   ]
 }
 
-source_set("base_unittests") {
+source_set("base_tests") {
   testonly = true
   sources = [
     "analysis/data_flow_solver_unittest.cc",
@@ -102,9 +102,9 @@ source_set("base_unittests") {
   ]
 }
 
-test("elang_base_unittests") {
+test("elang_base_tests") {
   deps = [
     "//base/test:run_all_unittests",
-    ":base_unittests",
+    ":base_tests",
   ]
 }

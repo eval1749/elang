@@ -74,7 +74,7 @@ source_set("hir_test") {
   ]
 }
 
-source_set("hir_unittests") {
+source_set("hir_tests") {
   testonly = true
   sources = [
     "analysis/dominator_tree_unittest.cc",
@@ -90,9 +90,9 @@ source_set("hir_unittests") {
   ]
 }
 
-test("elang_hir_unittests") {
+test("elang_hir_tests") {
   deps = [
     "//base/test:run_all_unittests",
-    ":hir_unittests",
+    ":hir_tests",
   ]
 }

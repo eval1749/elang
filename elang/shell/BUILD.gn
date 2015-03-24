@@ -32,7 +32,7 @@ static_library("shell_library") {
   ]
 }
 
-source_set("shell_unittests") {
+source_set("shell_tests") {
   sources = [
     "utf8_decoder_unittest.cc",
   ]

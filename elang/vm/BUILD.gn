@@ -61,7 +61,7 @@ source_set("test_support") {
   ]
 }
 
-source_set("vm_unittests") {
+source_set("vm_tests") {
   testonly = true
   sources = [
     "machine_code_builder_impl_unittest.cc",
@@ -72,12 +72,12 @@ source_set("vm_unittests") {
   ]
 }
 
-test("elang_vm_unittests") {
+test("elang_vm_tests") {
   sources = [
   ]
 
   deps = [
     "//base/test:run_all_unittests",
-    ":vm_unittests",
+    ":vm_tests",
   ]
 }

@@ -23,15 +23,15 @@ config("elang_target_arch_config") {
   }
 }
 
-test("elang_all_unittests") {
+test("elang_all_tests") {
   deps = [
     "//base/test:run_all_unittests",
-    "//elang/base:base_unittests",
-    "//elang/cg:cg_unittests",
-    "//elang/hir:hir_unittests",
-    "//elang/lir:lir_unittests",
-    "//elang/shell:shell_unittests",
+    "//elang/base:base_tests",
+    "//elang/cg:cg_tests",
+    "//elang/hir:hir_tests",
+    "//elang/lir:lir_tests",
+    "//elang/shell:shell_tests",
     "//elang/targets:targets_tests",
-    "//elang/vm:vm_unittests",
+    "//elang/vm:vm_tests",
   ]
 }

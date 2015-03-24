@@ -82,7 +82,7 @@ source_set("compiler_test") {
   ]
 }
 
-test("compiler_unittests") {
+test("elang_compiler_tests") {
   sources = [
     "syntax/lexer_unittest.cc",
     "syntax/parser_unittest.cc",
