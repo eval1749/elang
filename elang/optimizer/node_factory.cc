@@ -233,7 +233,7 @@ Node* NodeFactory::NewExit(Node* control, Node* effect) {
 
 Node* NodeFactory::NewRet(Node* control, Node* value) {
   DCHECK(control->IsValidControl()) << *control;
-  DCHECK(value->IsValidValue()) << *value;
+  DCHECK(value->IsValidData()) << *value;
   auto const node = new (zone()) RetNode(control_type(), control, value);
   node->set_id(NewNodeId());
   return node;

@@ -23,7 +23,7 @@ Editor::~Editor() {
 }
 
 void Editor::SetInput(Node* node, size_t index, Node* new_value) {
-  DCHECK(new_value->IsValidValue()) << *new_value;
+  DCHECK(new_value->IsValidData()) << *new_value;
   DCHECK_NE(node, new_value);
   DCHECK_LE(new_value->id(), function_->max_node_id());
   node->InputAt(index)->SetValue(new_value);
