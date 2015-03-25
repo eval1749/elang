@@ -293,7 +293,7 @@ class ELANG_OPTIMIZER_EXPORT TupleType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(TupleType, Type);
 
  public:
-  Type* get(int index) const { return components_[index]; }
+  Type* get(size_t index) const { return components_[index]; }
   const ZoneVector<Type*>& components() const { return components_; }
   size_t size() const { return components_.size(); }
 
