@@ -52,6 +52,8 @@ component("optimizer") {
     "type_printers.cc",
     "type_visitor.cc",
     "type_visitor.h",
+    "validator.cc",
+    "validator.h",
   ]
 
   defines = [ "OPTIMIZER_IMPLEMENTATION" ]
