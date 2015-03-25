@@ -247,6 +247,10 @@ void Node::Unuse(Input* input) {
 NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 }
 
+bool NullNode::IsLiteral() const {
+  return true;
+}
+
 // Simple nodes
 #define V(Name, ...) \
   Name##Node::Name##Node(Type* output_type) : NodeTemplate(output_type) {}

@@ -528,11 +528,10 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(NullNode, Node);
 
  private:
-  friend class ArrayType;
-  friend class PointerType;
-  friend class ReferenceType;
-
   explicit NullNode(Type* output_type);
+
+  // Node
+  bool IsLiteral() const final;
 
   DISALLOW_COPY_AND_ASSIGN(NullNode);
 };
