@@ -25,5 +25,12 @@ Node* NodeFactoryUser::true_value() const {
   return node_factory_->true_value();
 }
 
+#define V(Name, mnemonic, data_type)                 \
+  Node* NodeFactoryUser::New##Name(data_type data) { \
+    return node_factory_->New##Name(data);           \
+  }
+FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
+#undef V
+
 }  // namespace optimizer
 }  // namespace elang

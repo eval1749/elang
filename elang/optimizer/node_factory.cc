@@ -31,9 +31,9 @@ class NodeFactory::LiteralNodeCache final : public ZoneUser {
   LiteralNodeCache(Zone* zone, TypeFactory* type_factory);
   ~LiteralNodeCache();
 
-#define V(Name, name, data_type, ...) \
+#define V(Name, mnemonic, data_type, ...) \
   Node* New##Name(Type* type, data_type data);
-  FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
+  FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
   Node* NewFunctionReference(Type* output_type, Function* function);
   Node* NewNull(Type* type);
@@ -45,6 +45,7 @@ class NodeFactory::LiteralNodeCache final : public ZoneUser {
 #undef V
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;
+  std::unordered_map<base::StringPiece16, Node*> string_cache_;
   TypeFactory* const type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(LiteralNodeCache);
@@ -89,6 +90,21 @@ Node* NodeFactory::LiteralNodeCache::NewNull(Type* type) {
     return it->second;
   auto const literal = new (zone()) NullNode(type);
   null_literal_cache_[type] = literal;
+  return literal;
+}
+
+Node* NodeFactory::LiteralNodeCache::NewString(Type* type,
+                                               base::StringPiece16 data) {
+  auto const it = string_cache_.find(data);
+  if (it != string_cache_.end())
+    return it->second;
+
+  auto const size = data.size() * sizeof(base::char16);
+  auto const chars = static_cast<base::char16*>(zone()->Allocate(size));
+  ::memcpy(chars, data.data(), size);
+  base::StringPiece16 saved_data(chars, data.size());
+  auto const literal = new (zone()) StringNode(type, saved_data);
+  string_cache_[saved_data] = literal;
   return literal;
 }
 
@@ -221,6 +237,10 @@ Node* NodeFactory::NewRet(Node* control, Node* value) {
   auto const node = new (zone()) RetNode(control_type(), control, value);
   node->set_id(NewNodeId());
   return node;
+}
+
+Node* NodeFactory::NewString(base::StringPiece16 data) {
+  return literal_node_cache_->NewString(string_type(), data);
 }
 
 }  // namespace optimizer
