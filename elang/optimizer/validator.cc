@@ -36,7 +36,9 @@ class Validator::Context : public NodeVisitor {
   void DoDefaultVisit(Node* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
+  void VisitGet(GetNode* node) final;
   void VisitRet(RetNode* node) final;
+  void VisitParameter(ParameterNode* node) final;
 
   bool is_valid_;
   Validator* const validator_;
@@ -108,11 +110,35 @@ void Validator::Context::VisitExit(ExitNode* node) {
     Error(ErrorCode::ValidateExitNodeNoEffectInput, node);
 }
 
+void Validator::Context::VisitGet(GetNode* node) {
+  auto const tuple_type = node->input(0)->output_type()->as<TupleType>();
+  if (!tuple_type) {
+    ErrorInInput(node, 0);
+    return;
+  }
+  if (node->field() >= tuple_type->size()) {
+    ErrorInInput(node, 0);
+    return;
+  }
+}
+
 void Validator::Context::VisitRet(RetNode* node) {
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
   if (!node->input(0)->IsValidEffect())
     ErrorInInput(node, 1);
+}
+
+void Validator::Context::VisitParameter(ParameterNode* node) {
+  auto const entry_node = node->input(0)->as<EntryNode>();
+  if (!entry_node) {
+    ErrorInInput(node, 0);
+    return;
+  }
+  if (node->output_type() != entry_node->parameter_type(node->field())) {
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    return;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////

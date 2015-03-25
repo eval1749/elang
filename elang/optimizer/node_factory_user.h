@@ -38,6 +38,9 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
+  Node* NewGet(Node* input, size_t);
+  Node* NewParameter(Node* input, size_t);
+
  protected:
   explicit NodeFactoryUser(NodeFactory* node_factory);
 

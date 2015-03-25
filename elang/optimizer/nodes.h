@@ -305,6 +305,25 @@ class NodeTemplate<0> : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
+// FieldInputNode
+//
+class FieldInputNode : public NodeTemplate<1> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(FieldInputNode, Node);
+
+ public:
+  size_t field() const { return field_; }
+
+ protected:
+  FieldInputNode(Type* output_type, Node* input, size_t field);
+
+ private:
+  size_t field_;
+
+  DISALLOW_COPY_AND_ASSIGN(FieldInputNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // VaraibleInputNode
 //
 class VariableInputsNode : public Node {
@@ -360,18 +379,6 @@ FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 //
 // Simple nodes
 //
-#define V(Name, ...)                                                       \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<0> { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
-                                                                           \
-   private:                                                                \
-    Name##Node(Type* output_type);                                         \
-                                                                           \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
-  };
-FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_0(V)
-#undef V
-
 #define V(Name, ...)                                                       \
   class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<1> { \
     DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
@@ -439,6 +446,24 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
 //////////////////////////////////////////////////////////////////////
 //
+// EntryNode
+//
+class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EntryNode, Node);
+
+ public:
+  Type* parameters_type() const;
+  Type* parameter_type(size_t index) const;
+  Type* CheckedParameterTypeAt(size_t index) const;
+
+ private:
+  explicit EntryNode(Type* output_type);
+
+  DISALLOW_COPY_AND_ASSIGN(EntryNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // FloatCmpNode
 //
 class FloatCmpNode : public NodeTemplate<2> {
@@ -477,6 +502,19 @@ class FunctionReferenceNode : public NodeTemplate<0> {
 
 //////////////////////////////////////////////////////////////////////
 //
+// GetNode
+//
+class ELANG_OPTIMIZER_EXPORT GetNode final : public FieldInputNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, FieldInputNode);
+
+ private:
+  GetNode(Type* output_type, Node* input, size_t field);
+
+  DISALLOW_COPY_AND_ASSIGN(GetNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // IntCmpNode
 //
 class IntCmpNode : public NodeTemplate<2> {
@@ -509,6 +547,19 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
   bool IsLiteral() const final;
 
   DISALLOW_COPY_AND_ASSIGN(NullNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// ParameterNode
+//
+class ELANG_OPTIMIZER_EXPORT ParameterNode final : public FieldInputNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, FieldInputNode);
+
+ private:
+  ParameterNode(Type* output_type, Node* input, size_t field);
+
+  DISALLOW_COPY_AND_ASSIGN(ParameterNode);
 };
 
 //////////////////////////////////////////////////////////////////////

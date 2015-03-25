@@ -47,7 +47,6 @@ namespace optimizer {
   V(Unreachable, "unreachable")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
-  V(Get, "get")                                      \
   V(If, "if")                                        \
   V(PhiInput, "phi_input")                           \
   V(Ret, "ret")                                      \
@@ -89,8 +88,10 @@ namespace optimizer {
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
   V(FloatCmp, "fcmp")                         \
   V(FunctionReference, , "fn")                \
+  V(Get, "get")                               \
   V(IntCmp, "cmp")                            \
   V(Null, "lit_null")                         \
+  V(Parameter, "param")                       \
   V(Reference, "lit")                         \
   V(SizeOf, "sizeof")                         \
   V(Void, "void")

@@ -60,8 +60,9 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewUnreachable(Node* input);
 
   // Two inputs
-  Node* NewGet(Type* output_type, Node* input0, Node* input1);
+  Node* NewGet(Node* input0, size_t field);
   Node* NewIf(Node* control, Node* value);
+  Node* NewParameter(Node* input0, size_t field);
   Node* NewPhiInput(Node* control, Node* value);
   Node* NewRet(Node* control, Node* value);
   Node* NewShl(Node* input0, Node* input1);

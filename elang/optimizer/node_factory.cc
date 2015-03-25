@@ -231,6 +231,23 @@ Node* NodeFactory::NewExit(Node* control, Node* effect) {
   return node;
 }
 
+Node* NodeFactory::NewGet(Node* input, size_t field) {
+  DCHECK(input->IsValidData()) << *input;
+  auto const output_type = input->output_type()->as<TupleType>()->get(field);
+  auto const node = new (zone()) GetNode(output_type, input, field);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Node* NodeFactory::NewParameter(Node* input, size_t field) {
+  auto const entry_node = input->as<EntryNode>();
+  DCHECK(entry_node) << *input;
+  auto const output_type = entry_node->parameter_type(field);
+  auto const node = new (zone()) ParameterNode(output_type, input, field);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Node* NodeFactory::NewRet(Node* control, Node* value) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(value->IsValidData()) << *value;

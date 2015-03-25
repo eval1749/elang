@@ -25,6 +25,15 @@ Node* NodeFactoryUser::true_value() const {
   return node_factory_->true_value();
 }
 
+Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
+  return node_factory_->NewGet(input, field);
+}
+
+Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
+  return node_factory_->NewParameter(input, field);
+}
+
+// Literal nodes
 #define V(Name, mnemonic, data_type)                 \
   Node* NodeFactoryUser::New##Name(data_type data) { \
     return node_factory_->New##Name(data);           \

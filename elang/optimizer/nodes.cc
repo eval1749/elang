@@ -14,6 +14,28 @@
 namespace elang {
 namespace optimizer {
 
+// EntryNode
+EntryNode::EntryNode(Type* output_type) : NodeTemplate(output_type) {
+  DCHECK_EQ(3, output_type->as<TupleType>()->size()) << *output_type;
+}
+
+Type* EntryNode::parameters_type() const {
+  return output_type()->as<TupleType>()->get(2);
+}
+
+Type* EntryNode::parameter_type(size_t index) const {
+  auto const type = CheckedParameterTypeAt(index);
+  DCHECK(type) << *output_type();
+  return type;
+}
+
+Type* EntryNode::CheckedParameterTypeAt(size_t index) const {
+  auto const type = parameters_type();
+  if (auto const tuple_type = type->as<TupleType>())
+    return index < tuple_type->size() ? tuple_type->get(index) : nullptr;
+  return index ? nullptr : type;
+}
+
 // FloatCmpNode
 FloatCmpNode::FloatCmpNode(Type* output_type, FloatCondition condition)
     : NodeTemplate(output_type), condition_(condition) {
@@ -35,6 +57,17 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
     : NodeTemplate(output_type), function_(function) {
   DCHECK_EQ(output_type->as<PointerType>()->pointee(),
             function->function_type());
+}
+
+// FieldInputNode
+FieldInputNode::FieldInputNode(Type* output_type, Node* input, size_t field)
+    : NodeTemplate(output_type), field_(field) {
+  InitInputAt(0, input);
+}
+
+// GetNode
+GetNode::GetNode(Type* output_type, Node* input, size_t field)
+    : FieldInputNode(output_type, input, field) {
 }
 
 // Input
@@ -207,6 +240,7 @@ bool Node::IsData() const {
     for (auto const component : tuple_type->components()) {
       if (component->is<ControlType>() || component->is<EffectType>())
         continue;
+      return true;
     }
     return false;
   }
@@ -261,12 +295,15 @@ bool NullNode::IsLiteral() const {
   return true;
 }
 
-// Simple nodes
-#define V(Name, ...) \
-  Name##Node::Name##Node(Type* output_type) : NodeTemplate(output_type) {}
-FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_0(V)
-#undef V
+// ParameterNode
+ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
+    : FieldInputNode(output_type, input, index) {
+  DCHECK(input->is<EntryNode>()) << *input;
+  DCHECK_EQ(input->as<EntryNode>()->parameter_type(index), output_type)
+      << *output_type << " " << *input;
+}
 
+// Simple nodes
 #define V(Name, ...)                                      \
   Name##Node::Name##Node(Type* output_type, Node* input0) \
       : NodeTemplate(output_type) {                       \

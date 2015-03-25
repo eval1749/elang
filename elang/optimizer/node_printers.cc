@@ -74,6 +74,8 @@ void NodePrinter::DoDefaultVisit(Node* node) {
     ostream_ << separator << AsInput(input);
     separator = ", ";
   }
+  if (auto const field_node = node->as<FieldInputNode>())
+    ostream_ << separator << field_node->field();
   ostream_ << ")";
 }
 
