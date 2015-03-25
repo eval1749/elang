@@ -20,6 +20,8 @@
 namespace elang {
 namespace optimizer {
 
+class SequenceIdSource;
+
 //////////////////////////////////////////////////////////////////////
 //
 // NodeFactory
@@ -84,13 +86,15 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   friend class Factory;
   class LiteralNodeCache;
 
+  SequenceIdSource* node_id_source() const { return node_id_source_.get(); }
+
   Node* NewEntry(Type* parameters_type);
   Node* NewExit(Node* control, Node* effect);
 
   size_t NewNodeId();
 
-  size_t last_node_id_;
   const std::unique_ptr<LiteralNodeCache> literal_node_cache_;
+  const std::unique_ptr<SequenceIdSource> node_id_source_;
 
   // |false_value_| and |true_value| depend on |literal_node_cache_|.
   Node* const false_value_;

@@ -14,6 +14,7 @@ namespace optimizer {
 
 class FunctionType;
 class Node;
+class SequenceIdSource;
 class Type;
 
 //////////////////////////////////////////////////////////////////////
@@ -26,14 +27,15 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Node* exit_node() const { return exit_node_; }
   FunctionType* function_type() const { return function_type_; }
   size_t id() const { return id_; }
-  size_t max_node_id() const { return max_node_id_; }
+  size_t max_node_id() const;
   Type* parameters_type() const;
   Type* return_type() const;
 
  private:
   friend class Factory;
 
-  explicit Function(FunctionType* function_type,
+  explicit Function(SequenceIdSource* node_id_source,
+                    FunctionType* function_type,
                     Node* entry_node,
                     Node* exit_node);
 
@@ -41,7 +43,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   FunctionType* function_type_;
   Node* const exit_node_;
   size_t id_;
-  size_t max_node_id_;
+  SequenceIdSource* const node_id_source_;
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };

@@ -4,19 +4,25 @@
 
 #include "elang/optimizer/function.h"
 
+#include "elang/optimizer/sequence_id_source.h"
 #include "elang/optimizer/types.h"
 
 namespace elang {
 namespace optimizer {
 
 // Function
-Function::Function(FunctionType* function_type,
+Function::Function(SequenceIdSource* node_id_source,
+                   FunctionType* function_type,
                    Node* entry_node,
                    Node* exit_node)
     : entry_node_(entry_node),
       function_type_(function_type),
       exit_node_(exit_node),
-      max_node_id_(0) {
+      node_id_source_(node_id_source) {
+}
+
+size_t Function::max_node_id() const {
+  return node_id_source_->last_id();
 }
 
 Type* Function::parameters_type() const {

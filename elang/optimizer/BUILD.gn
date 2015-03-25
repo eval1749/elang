@@ -34,6 +34,8 @@ component("optimizer") {
     "node_visitor.cc",
     "node_visitor.h",
     "optimizer_export.h",
+    "sequence_id_source.cc",
+    "sequence_id_source.h",
     "thing.h",
     "thing_printer.cc",
     "types.cc",

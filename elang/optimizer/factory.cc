@@ -47,10 +47,9 @@ Function* Factory::NewFunction(FunctionType* function_type) {
   auto const ret_node = node_factory()->NewRet(
       entry_node, node_factory()->DefaultValueOf(function_type->return_type()));
   auto const exit_node = node_factory()->NewExit(ret_node, entry_node);
-  auto const function =
-      new (zone()) Function(function_type, entry_node, exit_node);
+  auto const function = new (zone()) Function(
+      node_factory()->node_id_source(), function_type, entry_node, exit_node);
   function->id_ = ++last_function_id_;
-  function->max_node_id_ = node_factory()->last_node_id_;
   return function;
 }
 

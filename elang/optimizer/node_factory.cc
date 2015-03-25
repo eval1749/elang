@@ -12,6 +12,7 @@
 #include "elang/base/zone_user.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/sequence_id_source.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 #include "elang/optimizer/type_visitor.h"
@@ -145,8 +146,8 @@ FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 //
 NodeFactory::NodeFactory(TypeFactory* type_factory)
     : TypeFactoryUser(type_factory),
-      last_node_id_(0),
       literal_node_cache_(new LiteralNodeCache(zone(), type_factory)),
+      node_id_source_(new SequenceIdSource()),
       false_value_(NewBool(false)),
       true_value_(NewBool(true)),
       void_value_(new (zone()) VoidNode(void_type())) {
@@ -169,7 +170,7 @@ Node* NodeFactory::NewFunctionReference(Function* function) {
 }
 
 size_t NodeFactory::NewNodeId() {
-  return ++last_node_id_;
+  return node_id_source_->NextId();
 }
 
 Node* NodeFactory::NewNull(Type* type) {
