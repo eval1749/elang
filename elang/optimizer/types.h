@@ -15,7 +15,6 @@
 #include "elang/base/zone_allocated.h"
 #include "elang/optimizer/thing.h"
 #include "elang/optimizer/types_forward.h"
-#include "elang/optimizer/nodes_forward.h"
 
 namespace elang {
 class AtomicString;
@@ -79,9 +78,6 @@ class ELANG_OPTIMIZER_EXPORT Type : public Thing,
 
   bool can_allocate_on_stack() const;
 
-  // Returns default value of this type.
-  virtual Node* default_value() const;
-
   bool is_float() const { return register_class() == RegisterClass::Float; }
   bool is_general() const { return register_class() == RegisterClass::General; }
   bool is_integer() const { return register_class() == RegisterClass::Integer; }
@@ -105,7 +101,6 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(ArrayType, Type);
 
  public:
-  Node* default_value() const final;
   Type* element_type() const { return element_type_; }
   const ZoneVector<int> dimensions() const { return dimensions_; }
   int rank() const { return static_cast<int>(dimensions_.size()); }
@@ -117,7 +112,6 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
 
   const ZoneVector<int> dimensions_;
   Type* const element_type_;
-  NullNode* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
@@ -177,13 +171,11 @@ class ELANG_OPTIMIZER_EXPORT PointerType final : public Type {
 
  public:
   Type* pointee() const { return pointee_; }
-  Node* default_value() const final;
   RegisterClass register_class() const final;
 
  private:
-  PointerType(Zone* zone, Type* pointee);
+  explicit PointerType(Type* pointee);
 
-  NullNode* const null_literal_;
   Type* pointee_;
 
   DISALLOW_COPY_AND_ASSIGN(PointerType);
@@ -226,24 +218,21 @@ class ELANG_OPTIMIZER_EXPORT PrimitiveValueType : public PrimitiveType {
   DISALLOW_COPY_AND_ASSIGN(PrimitiveValueType);
 };
 
-#define V(Name, name, value_type, ...)                                        \
+#define V(Name, ...)                                                          \
   class ELANG_OPTIMIZER_EXPORT Name##Type final : public PrimitiveValueType { \
     DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(Name##Type, PrimitiveValueType);    \
                                                                               \
    public:                                                                    \
     /* Protocol defined by |PrimitiveType| class */                           \
     int bit_size() const final;                                               \
-    Node* default_value() const final;                                        \
     RegisterClass register_class() const final;                               \
                                                                               \
    private:                                                                   \
     friend class TypeFactory;                                                 \
                                                                               \
-    explicit Name##Type(Zone* zone);                                          \
+    Name##Type();                                                             \
                                                                               \
     Signedness signedness() const final;                                      \
-                                                                              \
-    Node* const default_value_;                                               \
                                                                               \
     DISALLOW_COPY_AND_ASSIGN(Name##Type);                                     \
   };
@@ -262,15 +251,13 @@ class ELANG_OPTIMIZER_EXPORT ReferenceType : public Type {
   AtomicString* name() const { return name_; }
 
   // Type
-  Node* default_value() const override;
   RegisterClass register_class() const final;
 
  protected:
-  explicit ReferenceType(Zone* zone, AtomicString* name);
+  explicit ReferenceType(AtomicString* name);
 
  private:
   AtomicString* const name_;
-  NullNode* const null_literal_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceType);
 };
@@ -280,7 +267,7 @@ class ELANG_OPTIMIZER_EXPORT ExternalType final : public ReferenceType {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(ExternalType, ReferenceType);
 
  private:
-  ExternalType(Zone* zone, AtomicString* name);
+  explicit ExternalType(AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(ExternalType);
 };
@@ -292,11 +279,8 @@ class ELANG_OPTIMIZER_EXPORT ExternalType final : public ReferenceType {
 class ELANG_OPTIMIZER_EXPORT StringType final : public ReferenceType {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(StringType, ReferenceType);
 
- public:
-  StringNode* NewLiteral(base::StringPiece16 data);
-
  private:
-  StringType(Zone* zone, AtomicString* name);
+  explicit StringType(AtomicString* name);
 
   DISALLOW_COPY_AND_ASSIGN(StringType);
 };
@@ -326,12 +310,9 @@ class ELANG_OPTIMIZER_EXPORT VoidType final : public PrimitiveType {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(VoidType, PrimitiveType);
 
  private:
-  explicit VoidType(Zone* zone);
+  VoidType();
 
   int bit_size() const final;
-  Node* default_value() const final;
-
-  Node* const default_value_;
 
   DISALLOW_COPY_AND_ASSIGN(VoidType);
 };

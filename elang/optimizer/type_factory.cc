@@ -159,8 +159,8 @@ TupleType* TypeFactory::TupleTypeFactory::NewTupleType(
 TypeFactory::TypeFactory(const FactoryConfig& config)
     : control_type_(new (zone()) ControlType()),
       effect_type_(new (zone()) EffectType()),
-      string_type_(new (zone()) StringType(zone(), config.string_type_name)),
-#define V(Name, name, ...) name##_type_(new (zone()) Name##Type(zone())),
+      string_type_(new (zone()) StringType(config.string_type_name)),
+#define V(Name, name, ...) name##_type_(new (zone()) Name##Type()),
       FOR_EACH_OPTIMIZER_PRIMITIVE_TYPE(V)
 #undef V
           array_type_factory_(new ArrayTypeFactory(zone())),
@@ -188,7 +188,7 @@ ArrayType* TypeFactory::NewArrayType(Type* element_type,
 }
 
 ExternalType* TypeFactory::NewExternalType(AtomicString* name) {
-  return new (zone()) ExternalType(zone(), name);
+  return new (zone()) ExternalType(name);
 }
 
 FunctionType* TypeFactory::NewFunctionType(Type* return_type,
@@ -200,7 +200,7 @@ PointerType* TypeFactory::NewPointerType(Type* pointee) {
   auto it = pointer_type_map_.find(pointee);
   if (it != pointer_type_map_.end())
     return it->second;
-  auto const new_pointer_type = new (zone()) PointerType(zone(), pointee);
+  auto const new_pointer_type = new (zone()) PointerType(pointee);
   pointer_type_map_[pointee] = new_pointer_type;
   return new_pointer_type;
 }

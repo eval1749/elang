@@ -24,20 +24,13 @@ FOR_EACH_OPTIMIZER_CONCRETE_TYPE(V)
 ArrayType::ArrayType(Zone* zone,
                      Type* element_type,
                      const std::vector<int>& dimensions)
-    : dimensions_(zone, dimensions),
-      element_type_(element_type),
-      null_literal_(new (zone) NullNode(this)) {
+    : dimensions_(zone, dimensions), element_type_(element_type) {
 #if _DEBUG
   for (auto const dimension : dimensions) {
     // dimension == -1 means unbound dimension.
     DCHECK_GE(dimension, -1);
   }
 #endif
-}
-
-Node* ArrayType::default_value() const {
-  DCHECK(null_literal_);
-  return null_literal_;
 }
 
 // ControlType
@@ -49,8 +42,7 @@ EffectType::EffectType() {
 }
 
 // ExternalType
-ExternalType::ExternalType(Zone* zone, AtomicString* name)
-    : ReferenceType(zone, name) {
+ExternalType::ExternalType(AtomicString* name) : ReferenceType(name) {
 }
 
 // FunctionType
@@ -59,47 +51,29 @@ FunctionType::FunctionType(Type* return_type, Type* parameters_type)
 }
 
 // PointerType
-PointerType::PointerType(Zone* zone, Type* pointee)
-    : null_literal_(new (zone) NullNode(this)), pointee_(pointee) {
-}
-
-Node* PointerType::default_value() const {
-  DCHECK(null_literal_);
-  return null_literal_;
+PointerType::PointerType(Type* pointee) : pointee_(pointee) {
 }
 
 Type::RegisterClass PointerType::register_class() const {
   return RegisterClass::General;
 }
 
-// PrimitiveTypes
-// TODO(eval1749) NYI literal object cache.
+// PrimitiveValueTypes
 #define V(Name, name, data_type, bit_size_value, kind_value, signedness_value) \
+  /* Constructor of primitive type */                                          \
+  Name##Type::Name##Type() {}                                                  \
   PrimitiveType::RegisterClass Name##Type::register_class() const {            \
     return kind_value;                                                         \
   }                                                                            \
   int Name##Type::bit_size() const { return bit_size_value; }                  \
   Signedness Name##Type::signedness() const {                                  \
     return Signedness::signedness_value;                                       \
-  }                                                                            \
-                                                                               \
-  /* Constructor of primitive type */                                          \
-  Name##Type::Name##Type(Zone* zone)                                           \
-      : default_value_(new (zone) Name##Node(this, 0)) {}                      \
-                                                                               \
-  /* Type */                                                                   \
-  Node* Name##Type::default_value() const { return default_value_; }
+  }
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
 // ReferenceType
-ReferenceType::ReferenceType(Zone* zone, AtomicString* name)
-    : name_(name), null_literal_(new (zone) NullNode(this)) {
-}
-
-Node* ReferenceType::default_value() const {
-  DCHECK(null_literal_);
-  return null_literal_;
+ReferenceType::ReferenceType(AtomicString* name) : name_(name) {
 }
 
 Type::RegisterClass ReferenceType::register_class() const {
@@ -107,8 +81,7 @@ Type::RegisterClass ReferenceType::register_class() const {
 }
 
 // StringType
-StringType::StringType(Zone* zone, AtomicString* name)
-    : ReferenceType(zone, name) {
+StringType::StringType(AtomicString* name) : ReferenceType(name) {
 }
 
 // TupleType
@@ -125,25 +98,16 @@ bool Type::can_allocate_on_stack() const {
          register_class() == RegisterClass::Tuple;
 }
 
-Node* Type::default_value() const {
-  NOTREACHED() << *this << " doesn't have default value.";
-  return nullptr;
-}
-
 Type::RegisterClass Type::register_class() const {
   return RegisterClass::Void;
 }
 
 // VoidType
-VoidType::VoidType(Zone* zone) : default_value_(new (zone) VoidNode(this)) {
+VoidType::VoidType() {
 }
 
 int VoidType::bit_size() const {
   return 0;
-}
-
-Node* VoidType::default_value() const {
-  return default_value_;
 }
 
 }  // namespace optimizer

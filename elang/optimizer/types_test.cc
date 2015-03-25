@@ -30,7 +30,6 @@ TEST_F(TypeTest, ArrayType) {
   auto const type1 = NewArrayType(int32_type(), {42});
   auto const type2 = NewArrayType(int32_type(), {42});
   EXPECT_EQ(type1, type2);
-  EXPECT_EQ(type1->default_value(), type1->default_value());
   EXPECT_EQ("int32[42]", ToString(type1));
 }
 
@@ -38,7 +37,6 @@ TEST_F(TypeTest, BoolType) {
   auto const type1 = bool_type()->as<BoolType>();
   auto const type2 = bool_type()->as<BoolType>();
   EXPECT_EQ(type1, type2);
-  EXPECT_EQ(false_value(), type1->default_value());
   EXPECT_EQ("bool", ToString(type1));
 }
 
@@ -58,7 +56,6 @@ TEST_F(TypeTest, PointerType) {
   auto const type1 = NewPointerType(int32_type());
   auto const type2 = NewPointerType(int32_type());
   EXPECT_EQ(type1, type2);
-  EXPECT_EQ(type1->default_value(), type1->default_value());
   EXPECT_EQ("int32*", ToString(type1));
 }
 
