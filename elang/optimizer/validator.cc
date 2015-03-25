@@ -125,7 +125,7 @@ void Validator::Context::VisitGet(GetNode* node) {
 void Validator::Context::VisitRet(RetNode* node) {
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
-  if (!node->input(0)->IsValidEffect())
+  if (!node->input(1)->IsValidData())
     ErrorInInput(node, 1);
 }
 
