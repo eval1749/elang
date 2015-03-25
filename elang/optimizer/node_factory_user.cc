@@ -29,8 +29,24 @@ Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
   return node_factory_->NewGet(input, field);
 }
 
+Node* NodeFactoryUser::NewIf(Node* control, Node* data) {
+  return node_factory_->NewIf(control, data);
+}
+
+Node* NodeFactoryUser::NewIfFalse(Node* control) {
+  return node_factory_->NewIfFalse(control);
+}
+
+Node* NodeFactoryUser::NewIfTrue(Node* control) {
+  return node_factory_->NewIfTrue(control);
+}
+
 Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
+}
+
+Node* NodeFactoryUser::NewRet(Node* control, Node* data) {
+  return node_factory_->NewRet(control, data);
 }
 
 // Literal nodes
@@ -40,6 +56,7 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   }
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
+
 
 }  // namespace optimizer
 }  // namespace elang

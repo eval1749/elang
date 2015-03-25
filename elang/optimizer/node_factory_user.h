@@ -20,6 +20,7 @@ class AtomicString;
 namespace optimizer {
 
 class FunctionType;
+class Type;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -38,8 +39,40 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
-  Node* NewGet(Node* input, size_t);
-  Node* NewParameter(Node* input, size_t);
+  // Single input
+  Node* NewDynamicCast(Type* output_type, Node* input);
+  Node* NewFunctionReference(Function* function);
+  Node* NewIfFalse(Node* input);
+  Node* NewIfSuccess(Node* input);
+  Node* NewIfTrue(Node* input);
+  Node* NewJump(Node* input);
+  Node* NewStaticCast(Type* output_type, Node* input);
+  Node* NewSwitch(Node* input);
+  Node* NewUnreachable(Node* input);
+
+  // Two inputs
+  Node* NewGet(Node* input0, size_t field);
+  Node* NewIf(Node* control, Node* value);
+  Node* NewParameter(Node* input0, size_t field);
+  Node* NewPhiInput(Node* control, Node* value);
+  Node* NewRet(Node* control, Node* value);
+  Node* NewShl(Node* input0, Node* input1);
+  Node* NewShr(Node* input0, Node* input1);
+  Node* NewThrow(Node* control, Node* value);
+
+  // Three inputs
+  Node* NewLoad(Node* effect, Node* base_pointer, Node* pointer);
+
+  // Four inputs
+  Node* NewCall(Node* effect, Node* control, Node* callee, Node* arguments);
+  Node* NewStore(Node* effect, Node* base_pointer, Node* pointer, Node* value);
+
+  // Variable inputs
+  Node* NewCase(Node* control, Node* label_value);
+  Node* NewLoop(Node* control);
+  Node* NewMerge(Node* control0, Node* control1);
+  Node* NewPhi(Type* type);
+  Node* NewTuple(Type* type);
 
  protected:
   explicit NodeFactoryUser(NodeFactory* node_factory);
