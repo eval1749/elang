@@ -32,6 +32,7 @@ class NodePrinter final : public NodeVisitor {
 
  private:
   void DoDefaultVisit(Node* node) final;
+  void VisitNull(NullNode* node) final;
   void VisitVoid(VoidNode* node) final;
 
 #define V(Name, ...) void Visit##Name(Name##Node* node) final;
@@ -65,6 +66,7 @@ std::ostream& operator<<(std::ostream& ostream, const AsInput& input) {
 }
 
 void NodePrinter::DoDefaultVisit(Node* node) {
+  DCHECK(!node->IsLiteral());
   ostream_ << *node->output_type() << " " << AsInput(node) << " = "
            << node->mnemonic() << "(";
   auto separator = "";
@@ -73,6 +75,10 @@ void NodePrinter::DoDefaultVisit(Node* node) {
     separator = ", ";
   }
   ostream_ << ")";
+}
+
+void NodePrinter::VisitNull(NullNode* node) {
+  ostream_ << "null";
 }
 
 void NodePrinter::VisitVoid(VoidNode* node) {
