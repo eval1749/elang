@@ -18,7 +18,9 @@ namespace optimizer {
 //
 class ELANG_OPTIMIZER_EXPORT TypeVisitor {
  public:
-#define V(Name) virtual void Visit##Name(Name* type) = 0;
+  virtual void DoDefaultVisit(Type* type);
+
+#define V(Name) virtual void Visit##Name(Name* type);
   FOR_EACH_OPTIMIZER_CONCRETE_TYPE(V)
 #undef V
 
