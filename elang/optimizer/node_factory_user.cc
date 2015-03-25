@@ -25,9 +25,5 @@ Node* NodeFactoryUser::true_value() const {
   return node_factory_->true_value();
 }
 
-Function* NodeFactoryUser::NewFunction(FunctionType* function_type) {
-  return node_factory_->NewFunction(function_type);
-}
-
 }  // namespace optimizer
 }  // namespace elang

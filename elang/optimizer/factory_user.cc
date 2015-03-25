@@ -18,5 +18,9 @@ FactoryUser::FactoryUser(Factory* factory)
 FactoryUser::~FactoryUser() {
 }
 
+Function* FactoryUser::NewFunction(FunctionType* function_type) {
+  return factory_->NewFunction(function_type);
+}
+
 }  // namespace optimizer
 }  // namespace elang

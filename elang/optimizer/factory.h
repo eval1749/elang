@@ -22,7 +22,7 @@
 namespace elang {
 namespace optimizer {
 
-class TypeFactory;
+class Function;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -38,11 +38,12 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   const FactoryConfig& config() const { return config_; }
 
   AtomicString* NewAtomicString(base::StringPiece16 string);
+  Function* NewFunction(FunctionType* function_type);
 
  private:
   AtomicStringFactory* const atomic_string_factory_;
   const FactoryConfig config_;
-
+  size_t last_function_id_;
   const std::unique_ptr<NodeFactory> node_factory_;
   const std::unique_ptr<TypeFactory> type_factory_;
 

@@ -30,8 +30,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   NodeFactory* node_factory() const { return node_factory_; }
   Node* true_value() const;
 
-  Function* NewFunction(FunctionType* function_type);
-
  protected:
   explicit NodeFactoryUser(NodeFactory* node_factory);
 

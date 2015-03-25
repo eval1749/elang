@@ -128,7 +128,7 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
   Type* return_type() const;
 
  private:
-  friend class NodeFactory;
+  friend class Factory;
 
   explicit Function(FunctionType* function_type,
                     Node* entry_node,

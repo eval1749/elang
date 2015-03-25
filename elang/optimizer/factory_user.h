@@ -27,6 +27,8 @@ class ELANG_OPTIMIZER_EXPORT FactoryUser : public NodeFactoryUser,
   Factory* factory() const { return factory_; }
   Zone* zone() const;
 
+  Function* NewFunction(FunctionType* function_type);
+
  protected:
   explicit FactoryUser(Factory* factory);
 

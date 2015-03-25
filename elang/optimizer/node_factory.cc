@@ -144,7 +144,6 @@ FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 //
 NodeFactory::NodeFactory(TypeFactory* type_factory)
     : TypeFactoryUser(type_factory),
-      last_function_id_(0),
       last_node_id_(0),
       literal_node_cache_(new LiteralNodeCache(zone(), type_factory)),
       false_value_(NewBool(false)),
@@ -161,18 +160,6 @@ Node* NodeFactory::DefaultValueOf(Type* type) {
   LiteralNodeCache::DefaultValueFactory factory(literal_node_cache_.get());
   type->Accept(&factory);
   return factory.value();
-}
-
-Function* NodeFactory::NewFunction(FunctionType* function_type) {
-  auto const entry_node = NewEntry(function_type->parameters_type());
-  auto const ret_node =
-      NewRet(entry_node, DefaultValueOf(function_type->return_type()));
-  auto const exit_node = NewExit(ret_node, entry_node);
-  auto const function =
-      new (zone()) Function(function_type, entry_node, exit_node);
-  function->id_ = ++last_function_id_;
-  function->max_node_id_ = last_node_id_;
-  return function;
 }
 
 Node* NodeFactory::NewFunctionReference(Function* function) {
