@@ -6,11 +6,14 @@
 
 #include "elang/optimizer/node_factory.h"
 
+#include "base/logging.h"
+#include "base/numerics/safe_conversions.h"
 #include "elang/base/zone.h"
 #include "elang/base/zone_user.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
+#include "elang/optimizer/type_visitor.h"
 
 namespace elang {
 namespace optimizer {
@@ -21,6 +24,8 @@ namespace optimizer {
 //
 class NodeFactory::LiteralNodeCache final : public ZoneUser {
  public:
+  class DefaultValueFactory;
+
   LiteralNodeCache(Zone* zone, TypeFactory* type_factory);
   ~LiteralNodeCache();
 
@@ -46,10 +51,6 @@ class NodeFactory::LiteralNodeCache final : public ZoneUser {
 NodeFactory::LiteralNodeCache::LiteralNodeCache(Zone* zone,
                                                 TypeFactory* type_factory)
     : ZoneUser(zone), type_factory_(type_factory) {
-#define V(Name, name, data_type, ...) \
-  name##_cache_[0] = type_factory->name##_type()->default_value();
-  FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
-#undef V
 }
 
 NodeFactory::LiteralNodeCache::~LiteralNodeCache() {
@@ -91,6 +92,54 @@ Node* NodeFactory::LiteralNodeCache::NewNull(Type* type) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// NodeFactory::LiteralNodeCache::DefaultValueFactory
+//
+class NodeFactory::LiteralNodeCache::DefaultValueFactory : public TypeVisitor {
+ public:
+  explicit DefaultValueFactory(LiteralNodeCache* cache);
+  ~DefaultValueFactory() = default;
+
+  Node* value() const {
+    DCHECK(value_);
+    return value_;
+  }
+
+ private:
+  Node* value_;
+
+  // TypeVisitor
+  void DoDefaultVisit(Type* type) final;
+
+#define V(Name, ...) void Visit##Name##Type(Name##Type* type) final;
+  FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
+#undef V
+
+  LiteralNodeCache* const cache_;
+
+  DISALLOW_COPY_AND_ASSIGN(DefaultValueFactory);
+};
+
+NodeFactory::LiteralNodeCache::DefaultValueFactory::DefaultValueFactory(
+    LiteralNodeCache* cache)
+    : cache_(cache), value_(nullptr) {
+}
+
+void NodeFactory::LiteralNodeCache::DefaultValueFactory::DoDefaultVisit(
+    Type* type) {
+  DCHECK(!type->is<PrimitiveValueType>());
+  value_ = cache_->NewNull(type);
+}
+
+#define V(Name, name, data_type, ...)                                         \
+  void NodeFactory::LiteralNodeCache::DefaultValueFactory::Visit##Name##Type( \
+      Name##Type* type) {                                                     \
+    value_ = cache_->New##Name(type, static_cast<data_type>(0));              \
+  }
+FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
+#undef V
+
+//////////////////////////////////////////////////////////////////////
+//
 // NodeFactory
 //
 NodeFactory::NodeFactory(TypeFactory* type_factory)
@@ -99,16 +148,25 @@ NodeFactory::NodeFactory(TypeFactory* type_factory)
       last_node_id_(0),
       literal_node_cache_(new LiteralNodeCache(zone(), type_factory)),
       false_value_(NewBool(false)),
-      true_value_(NewBool(true)) {
+      true_value_(NewBool(true)),
+      void_value_(new (zone()) VoidNode(void_type())) {
 }
 
 NodeFactory::~NodeFactory() {
 }
 
+Node* NodeFactory::DefaultValueOf(Type* type) {
+  if (type == void_type())
+    return void_value_;
+  LiteralNodeCache::DefaultValueFactory factory(literal_node_cache_.get());
+  type->Accept(&factory);
+  return factory.value();
+}
+
 Function* NodeFactory::NewFunction(FunctionType* function_type) {
   auto const entry_node = NewEntry(function_type->parameters_type());
   auto const ret_node =
-      NewRet(entry_node, function_type->return_type()->default_value());
+      NewRet(entry_node, DefaultValueOf(function_type->return_type()));
   auto const exit_node = NewExit(ret_node, entry_node);
   auto const function =
       new (zone()) Function(function_type, entry_node, exit_node);

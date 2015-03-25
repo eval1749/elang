@@ -33,6 +33,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* false_value() const { return false_value_; }
   Node* true_value() const { return true_value_; }
 
+  Node* DefaultValueOf(Type* type);
   Function* NewFunction(FunctionType* function_type);
   Node* NewNull(Type* type);
 
@@ -95,6 +96,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   // |false_value_| and |true_value| depend on |literal_node_cache_|.
   Node* const false_value_;
   Node* const true_value_;
+  Node* const void_value_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };
