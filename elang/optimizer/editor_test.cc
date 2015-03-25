@@ -24,6 +24,37 @@ class EditorTest : public testing::OptimizerTest {
   DISALLOW_COPY_AND_ASSIGN(EditorTest);
 };
 
+TEST_F(EditorTest, BuildIf) {
+  auto const function = NewSampleFunction(int32_type(), bool_type());
+  Editor editor(factory(), function);
+  auto const param0 = editor.EmitParameter(0);
+  editor.StartIf(param0);
+
+  editor.StartThen();
+  editor.EndWithRet(NewInt32(42));
+
+  editor.StartElse();
+  editor.EndWithRet(NewInt32(33));
+
+  editor.EndIf();
+
+  // TODO(eval1749) Make |ExitNode| to take two inputs, control and effect.
+  // TODO(eval1749) Make |NewFunction| to populate |EntryNode| and |ExitNode|
+  // only.
+  EXPECT_EQ(
+      "function1 int32(bool)\n"
+      "0000: (control, effect, bool) %t1 = Entry()\n"
+      "0001: control %c2 = Ret(%t1, Int32(0))\n"
+      "0002: bool %r4 = Parameter(%t1, 0)\n"
+      "0003: control %c5 = If(%t1, %r4)\n"
+      "0004: control %c6 = IfTrue(%c5)\n"
+      "0005: control %c7 = Ret(%c6, Int32(42))\n"
+      "0006: control %c8 = IfFalse(%c5)\n"
+      "0007: control %c9 = Ret(%c8, Int32(33))\n"
+      "0008: void %r3 = Exit(%c2, %t1, %c7, %c9)\n",
+      ToString(function));
+}
+
 TEST_F(EditorTest, SetInput) {
   auto const function = NewSampleFunction(bool_type(), int32_type());
   Editor editor(factory(), function);
