@@ -24,11 +24,7 @@ class FunctionTest : public testing::OptimizerTest {
 };
 
 TEST_F(FunctionTest, Function) {
-  auto const function = NewFunction(NewFunctionType(void_type(), void_type()));
-  EXPECT_EQ("(control, effect, void) %t1 = Entry()",
-            ToString(function->entry_node()));
-  EXPECT_EQ("void %r3 = Exit(%c2, %t1)", ToString(function->exit_node()));
-
+  auto const function = NewSampleFunction(void_type(), void_type());
   EXPECT_EQ(
       "function1 void(void)\n"
       "0000: (control, effect, void) %t1 = Entry()\n"
