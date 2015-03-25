@@ -263,6 +263,10 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   bool IsControl() const;
   bool IsEffect() const;
   virtual bool IsLiteral() const;
+  bool IsValidControl() const;
+  bool IsValidEffect() const;
+  bool IsValidValue() const;
+  bool IsValue() const;
 
   // Number of input operands.
   virtual size_t CountInputs() const = 0;

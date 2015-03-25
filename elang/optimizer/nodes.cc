@@ -227,6 +227,33 @@ bool Node::IsLiteral() const {
   return false;
 }
 
+bool Node::IsValidControl() const {
+  return IsControl() && id_;
+}
+
+bool Node::IsValidEffect() const {
+  return IsEffect() && id_;
+}
+
+bool Node::IsValidValue() const {
+  return IsLiteral() || (IsValue() && id_);
+}
+
+bool Node::IsValue() const {
+  if (output_type_->is<ControlType>())
+    return false;
+  if (output_type_->is<EffectType>())
+    return false;
+  if (auto const tuple_type = output_type_->as<TupleType>()) {
+    for (auto const component : tuple_type->components()) {
+      if (component->is<ControlType>() || component->is<EffectType>())
+        continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 void Node::ResetInputAt(size_t index) {
   InputAt(index)->Reset();
 }
