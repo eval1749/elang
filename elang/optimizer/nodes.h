@@ -327,9 +327,10 @@ class FieldInputNode : public NodeTemplate<1> {
 // VaraibleInputNode
 //
 class VariableInputsNode : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariableInputsNode, Node);
+
  protected:
   VariableInputsNode(Type* output_type, Zone* zone);
-  ~VariableInputsNode() override = default;
 
  private:
   class InputAnchor;
@@ -362,8 +363,6 @@ class VariableInputsNode : public Node {
     data_type data() const { return data_; }                               \
                                                                            \
    private:                                                                \
-    friend class Name##Type;                                               \
-                                                                           \
     Name##Node(Type* output_type, data_type data);                         \
                                                                            \
     bool IsLiteral() const final;                                          \
@@ -466,7 +465,7 @@ class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
 //
 // FloatCmpNode
 //
-class FloatCmpNode : public NodeTemplate<2> {
+class ELANG_OPTIMIZER_EXPORT FloatCmpNode final : public NodeTemplate<2> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FloatCmpNode, Node);
 
  public:
@@ -486,7 +485,8 @@ class FloatCmpNode : public NodeTemplate<2> {
 //
 // FunctionReferenceNode
 //
-class FunctionReferenceNode : public NodeTemplate<0> {
+class ELANG_OPTIMIZER_EXPORT FunctionReferenceNode final
+    : public NodeTemplate<0> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FunctionReferenceNode, Node);
 
  public:
@@ -517,7 +517,7 @@ class ELANG_OPTIMIZER_EXPORT GetNode final : public FieldInputNode {
 //
 // IntCmpNode
 //
-class IntCmpNode : public NodeTemplate<2> {
+class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(IntCmpNode, Node);
 
  public:
@@ -573,10 +573,6 @@ class ELANG_OPTIMIZER_EXPORT ReferenceNode final : public NodeTemplate<0> {
   AtomicString* name() const { return name_; }
 
  private:
-  friend class ArrayType;
-  friend class PointerType;
-  friend class ReferenceType;
-
   ReferenceNode(Type* output_type, AtomicString* name);
 
   AtomicString* const name_;
@@ -595,10 +591,6 @@ class ELANG_OPTIMIZER_EXPORT SizeOfNode final : public NodeTemplate<0> {
   Type* type_operand() const { return type_operand_; }
 
  private:
-  friend class ArrayType;
-  friend class PointerType;
-  friend class SizeOfType;
-
   SizeOfNode(Type* uintptr_type, Type* type_operand);
 
   Type* const type_operand_;
@@ -614,8 +606,6 @@ class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(VoidNode, Node);
 
  private:
-  friend class VoidType;
-
   explicit VoidNode(Type* output_type);
 
   // Node
