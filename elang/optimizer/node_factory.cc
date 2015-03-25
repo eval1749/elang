@@ -217,8 +217,8 @@ Node* NodeFactory::NewEntry(Type* parameters_type) {
 }
 
 Node* NodeFactory::NewExit(Node* control, Node* effect) {
-  DCHECK(control->IsControl()) << *control;
-  DCHECK(effect->IsEffect()) << *effect;
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(effect->IsValidEffect()) << *effect;
   auto const node = new (zone()) ExitNode(void_type(), zone());
   node->AppendInput(control);
   node->AppendInput(effect);
@@ -227,7 +227,8 @@ Node* NodeFactory::NewExit(Node* control, Node* effect) {
 }
 
 Node* NodeFactory::NewRet(Node* control, Node* value) {
-  DCHECK(control->IsControl()) << *control;
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(value->IsValidValue()) << *value;
   auto const node = new (zone()) RetNode(control_type(), control, value);
   node->set_id(NewNodeId());
   return node;
