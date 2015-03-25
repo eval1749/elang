@@ -10,6 +10,7 @@
 #include "base/numerics/safe_conversions.h"
 #include "elang/base/zone.h"
 #include "elang/base/zone_user.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"

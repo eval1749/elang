@@ -11,6 +11,7 @@
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
 #include "elang/optimizer/error_data.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_factory.h"
 #include "elang/optimizer/types.h"

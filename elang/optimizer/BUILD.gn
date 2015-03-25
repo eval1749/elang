@@ -20,6 +20,8 @@ component("optimizer") {
     "factory_user.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
+    "function.cc",
+    "function.h",
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
@@ -73,6 +75,7 @@ source_set("optimizer_tests") {
 
 test("elang_optimizer_tests") {
   sources = [
+    "function_test.cc",
     "nodes_test.cc",
     "types_test.cc",
   ]

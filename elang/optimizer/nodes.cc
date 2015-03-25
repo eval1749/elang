@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_visitor.h"
 #include "elang/optimizer/types.h"
@@ -26,24 +27,6 @@ base::StringPiece FloatCmpNode::mnemonic() const {
   };
   auto const it = std::begin(mnemonics) + static_cast<size_t>(condition_);
   return it < std::end(mnemonics) ? *it : "Invalid";
-}
-
-// Function
-Function::Function(FunctionType* function_type,
-                   Node* entry_node,
-                   Node* exit_node)
-    : entry_node_(entry_node),
-      function_type_(function_type),
-      exit_node_(exit_node),
-      max_node_id_(0) {
-}
-
-Type* Function::parameters_type() const {
-  return function_type()->parameters_type();
-}
-
-Type* Function::return_type() const {
-  return function_type()->return_type();
 }
 
 // FunctionReferenceNode
