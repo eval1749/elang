@@ -239,6 +239,28 @@ Node* NodeFactory::NewGet(Node* input, size_t field) {
   return node;
 }
 
+Node* NodeFactory::NewIf(Node* control, Node* data) {
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(data->IsValidData()) << *data;
+  auto const node = new (zone()) IfNode(control_type(), control, data);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Node* NodeFactory::NewIfFalse(Node* control) {
+  DCHECK(control->IsValidControl()) << *control;
+  auto const node = new (zone()) IfFalseNode(control_type(), control);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Node* NodeFactory::NewIfTrue(Node* control) {
+  DCHECK(control->IsValidControl()) << *control;
+  auto const node = new (zone()) IfTrueNode(control_type(), control);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Node* NodeFactory::NewParameter(Node* input, size_t field) {
   auto const entry_node = input->as<EntryNode>();
   DCHECK(entry_node) << *input;
