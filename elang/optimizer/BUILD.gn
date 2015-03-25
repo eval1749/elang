@@ -9,6 +9,8 @@ component("optimizer") {
   sources = [
     "depth_first_traversal.cc",
     "depth_first_traversal.h",
+    "editor.cc",
+    "editor.h",
     "error_code.h",
     "error_data.cc",
     "error_data.h",
@@ -79,6 +81,7 @@ source_set("optimizer_tests") {
 
 test("elang_optimizer_tests") {
   sources = [
+    "editor_test.cc",
     "function_test.cc",
     "nodes_test.cc",
     "types_test.cc",
