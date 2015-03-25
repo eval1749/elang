@@ -39,6 +39,11 @@ OptimizerTest::OptimizerTest()
 OptimizerTest::~OptimizerTest() {
 }
 
+Function* OptimizerTest::NewSampleFunction(Type* return_type,
+                                           Type* parameters_type) {
+  return NewFunction(NewFunctionType(return_type, parameters_type));
+}
+
 std::string OptimizerTest::ToString(const Function* function) {
   std::stringstream ostream;
   ostream << AsReversePostOrder(function);

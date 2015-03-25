@@ -29,6 +29,8 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
   OptimizerTest();
   ~OptimizerTest() override;
 
+  Function* NewSampleFunction(Type* return_type, Type* parameters_type);
+
   std::string ToString(const Function* function);
   std::string ToString(const Thing* thing);
 
