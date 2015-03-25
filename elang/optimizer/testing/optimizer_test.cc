@@ -5,11 +5,13 @@
 #include <sstream>
 
 #include "elang/base/atomic_string_factory.h"
+#include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/factory_config.h"
 #include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/optimizer/testing/optimizer_test.h"
 #include "elang/optimizer/thing.h"
+#include "elang/optimizer/validator.h"
 
 namespace elang {
 namespace optimizer {
@@ -46,7 +48,11 @@ Function* OptimizerTest::NewSampleFunction(Type* return_type,
 
 std::string OptimizerTest::ToString(const Function* function) {
   std::stringstream ostream;
-  ostream << AsReversePostOrder(function);
+  Validator validator(factory(), function);
+  if (validator.Validate())
+    ostream << AsReversePostOrder(function);
+  else
+    ostream << factory()->errors();
   return ostream.str();
 }
 
