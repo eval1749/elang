@@ -33,8 +33,6 @@ namespace optimizer {
   V(UInt8, "lit_u8", uint8_t)                       \
   V(UIntPtr, "lit_uptr", uintptr_t)
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_0(V) V(Entry, "entry")
-
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V) \
   V(DynamicCast, "dynamic_cast")                     \
   V(IfException, "if_exception")                     \
@@ -86,6 +84,7 @@ namespace optimizer {
   V(Tuple, "tuple")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
+  V(Entry, "entry")                           \
   V(FloatCmp, "fcmp")                         \
   V(FunctionReference, , "fn")                \
   V(Get, "get")                               \
@@ -101,7 +100,6 @@ namespace optimizer {
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V) \
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)    \
   FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V)          \
-  FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_0(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)   \
