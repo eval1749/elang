@@ -56,13 +56,13 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewIf(Node* control, Node* value);
   Node* NewParameter(Node* input0, size_t field);
   Node* NewPhiInput(Node* control, Node* value);
-  Node* NewRet(Node* control, Node* value);
   Node* NewShl(Node* input0, Node* input1);
   Node* NewShr(Node* input0, Node* input1);
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs
   Node* NewLoad(Node* effect, Node* base_pointer, Node* pointer);
+  Node* NewRet(Node* control, Node* effect, Node* value);
 
   // Four inputs
   Node* NewCall(Node* effect, Node* control, Node* callee, Node* arguments);

@@ -65,13 +65,13 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewIf(Node* control, Node* value);
   Node* NewParameter(Node* input0, size_t field);
   Node* NewPhiInput(Node* control, Node* value);
-  Node* NewRet(Node* control, Node* value);
   Node* NewShl(Node* input0, Node* input1);
   Node* NewShr(Node* input0, Node* input1);
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs
   Node* NewLoad(Node* effect, Node* base_pointer, Node* pointer);
+  Node* NewRet(Node* control, Node* effect, Node* data);
 
   // Four inputs
   Node* NewCall(Node* effect, Node* control, Node* callee, Node* arguments);
@@ -91,7 +91,8 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   SequenceIdSource* node_id_source() const { return node_id_source_.get(); }
 
   Node* NewEntry(Type* parameters_type);
-  Node* NewExit(Node* control, Node* effect);
+  Node* NewExit(Node* control);
+  Node* NewMerge();
 
   size_t NewNodeId();
 

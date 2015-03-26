@@ -35,6 +35,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V) \
   V(DynamicCast, "dynamic_cast")                     \
+  V(Exit, "exit")                                    \
   V(IfException, "if_exception")                     \
   V(IfFalse, "if_false")                             \
   V(IfSuccess, "if_success")                         \
@@ -45,10 +46,8 @@ namespace optimizer {
   V(Unreachable, "unreachable")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
-  V(Exit, "exit")                                    \
   V(If, "if")                                        \
   V(PhiInput, "phi_input")                           \
-  V(Ret, "ret")                                      \
   V(IntShl, "shl")                                   \
   V(IntShr, "shr")                                   \
   V(StackAlloc, "alloca")                            \
@@ -70,7 +69,9 @@ namespace optimizer {
   V(IntMul, "mul")                                     \
   V(IntSub, "sub")
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) V(Load, "load")
+#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) \
+  V(Load, "load")                                    \
+  V(Ret, "ret")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) \
   V(Call, "call")                                    \

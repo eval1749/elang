@@ -24,62 +24,76 @@ class EditorTest : public testing::OptimizerTest {
   DISALLOW_COPY_AND_ASSIGN(EditorTest);
 };
 
-TEST_F(EditorTest, BuildIf) {
+TEST_F(EditorTest, ChangeInput) {
+  auto const function = NewSampleFunction(int32_type(), int32_type());
+  Editor editor(factory(), function);
+
+  editor.Edit(function->entry_node());
+  editor.SetRet(NewInt32(42));
+
+  auto const ret_node = function->exit_node()->input(0)->input(0);
+  editor.ChangeInput(ret_node, 2, NewInt32(33));
+
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "0000: (control, effect, int32) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: control %c6 = ret(%c2, %e3, lit_i32(33))\n"
+      "0004: control %c4 = merge(%c6)\n"
+      "0005: void %r5 = exit(%c4)\n",
+      ToString(function));
+}
+
+TEST_F(EditorTest, SetIf) {
   auto const function = NewSampleFunction(int32_type(), bool_type());
   Editor editor(factory(), function);
+
+  editor.Edit(function->entry_node());
   auto const param0 = editor.EmitParameter(0);
-  editor.StartIf(param0);
+  auto const merge_control = editor.SetBranch(param0);
+  editor.Commit();
 
-  editor.StartThen();
-  editor.EndWithRet(NewInt32(42));
+  editor.Edit(merge_control->input(0));
+  editor.SetRet(NewInt32(42));
+  editor.Commit();
 
-  editor.StartElse();
-  editor.EndWithRet(NewInt32(33));
+  editor.Edit(merge_control->input(1));
+  editor.SetRet(NewInt32(33));
+  editor.Commit();
 
-  editor.EndIf();
-
-  // TODO(eval1749) Make |ExitNode| to take two inputs, control and effect.
-  // TODO(eval1749) Make |NewFunction| to populate |EntryNode| and |ExitNode|
-  // only.
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "0000: (control, effect, bool) %t1 = entry()\n"
-      "0001: bool %r3 = param(%t1, 0)\n"
-      "0002: control %c4 = if(%t1, %r3)\n"
-      "0003: control %c5 = if_true(%c4)\n"
-      "0004: control %c6 = ret(%c5, lit_i32(42))\n"
-      "0005: control %c8 = if_false(%c4)\n"
-      "0006: control %c9 = ret(%c8, lit_i32(33))\n"
-      "0007: control %c7 = merge(%t1, %c6, %c9)\n"
-      "0008: void %r2 = exit(%c7, %t1)\n",
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: bool %r6 = param(%t1, 0)\n"
+      "0003: control %c7 = if(%c2, %r6)\n"
+      "0004: control %c8 = if_true(%c7)\n"
+      "0005: effect %e3 = get(%t1, 1)\n"
+      "0006: control %c11 = ret(%c8, %e3, lit_i32(42))\n"
+      "0007: control %c9 = if_false(%c7)\n"
+      "0008: control %c12 = ret(%c9, %e3, lit_i32(33))\n"
+      "0009: control %c4 = merge(%c11, %c12)\n"
+      "0010: void %r5 = exit(%c4)\n",
       ToString(function));
 }
 
-TEST_F(EditorTest, EndWithRet) {
+TEST_F(EditorTest, SetRet) {
   auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
-  editor.EndWithRet(NewInt32(42));
+
+  editor.Edit(function->entry_node());
+  editor.SetRet(NewInt32(42));
+  editor.Commit();
 
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c3 = ret(%t1, lit_i32(42))\n"
-      "0002: void %r2 = exit(%c3, %t1)\n",
-      ToString(function));
-}
-
-TEST_F(EditorTest, SetInput) {
-  auto const function = NewSampleFunction(int32_type(), int32_type());
-  Editor editor(factory(), function);
-  editor.EndWithRet(NewInt32(42));
-  auto const ret_node = function->exit_node()->input(0);
-  editor.SetInput(ret_node, 1, NewInt32(33));
-
-  EXPECT_EQ(
-      "function1 int32(int32)\n"
-      "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c3 = ret(%t1, lit_i32(33))\n"
-      "0002: void %r2 = exit(%c3, %t1)\n",
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: control %c6 = ret(%c2, %e3, lit_i32(42))\n"
+      "0004: control %c4 = merge(%c6)\n"
+      "0005: void %r5 = exit(%c4)\n",
       ToString(function));
 }
 

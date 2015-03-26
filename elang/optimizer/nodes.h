@@ -453,6 +453,7 @@ class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
  public:
   Type* parameters_type() const;
   Type* parameter_type(size_t index) const;
+
   Type* CheckedParameterTypeAt(size_t index) const;
 
  private:

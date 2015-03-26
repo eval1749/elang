@@ -33,7 +33,7 @@ TEST_F(NodeTest, EntryNode) {
 TEST_F(NodeTest, ExitNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->exit_node();
-  EXPECT_EQ("void %r2 = exit(%t1, %t1)", ToString(node));
+  EXPECT_EQ("void %r5 = exit(%c4)", ToString(node));
 }
 
 TEST_F(NodeTest, GetNode) {
@@ -41,21 +41,22 @@ TEST_F(NodeTest, GetNode) {
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
   auto const node = NewGet(entry_node, 2);
-  EXPECT_EQ("(int32, int64) %t3 = get(%t1, 2)", ToString(node));
+  EXPECT_EQ("(int32, int64) %t6 = get(%t1, 2)", ToString(node));
 }
 
 TEST_F(NodeTest, RetNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
-  auto const node = NewRet(entry_node, void_value());
-  EXPECT_EQ("control %c3 = ret(%t1, void)", ToString(node));
+  auto const node = NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1),
+                           void_value());
+  EXPECT_EQ("control %c8 = ret(%c7, %e6, void)", ToString(node));
 }
 
 TEST_F(NodeTest, ParameterNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 0);
-  EXPECT_EQ("int32 %r3 = param(%t1, 0)", ToString(node));
+  EXPECT_EQ("int32 %r6 = param(%t1, 0)", ToString(node));
 }
 
 TEST_F(NodeTest, ParameterNode2) {
@@ -63,7 +64,7 @@ TEST_F(NodeTest, ParameterNode2) {
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 1);
-  EXPECT_EQ("int64 %r3 = param(%t1, 1)", ToString(node));
+  EXPECT_EQ("int64 %r6 = param(%t1, 1)", ToString(node));
 }
 
 }  // namespace optimizer

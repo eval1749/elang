@@ -221,10 +221,9 @@ Node* NodeFactory::NewEntry(Type* parameters_type) {
   return node;
 }
 
-Node* NodeFactory::NewExit(Node* control, Node* effect) {
+Node* NodeFactory::NewExit(Node* control) {
   DCHECK(control->IsValidControl()) << *control;
-  DCHECK(effect->IsValidEffect()) << *effect;
-  auto const node = new (zone()) ExitNode(void_type(), control, effect);
+  auto const node = new (zone()) ExitNode(void_type(), control);
   node->set_id(NewNodeId());
   return node;
 }
@@ -262,9 +261,14 @@ Node* NodeFactory::NewIfTrue(Node* control) {
 Node* NodeFactory::NewMerge(Node* control0, Node* control1) {
   DCHECK(control0->IsValidControl()) << *control0;
   DCHECK(control1->IsValidControl()) << *control1;
-  auto const node = new (zone()) MergeNode(control_type(), zone());
+  auto const node = NewMerge()->as<MergeNode>();
   node->AppendInput(control0);
   node->AppendInput(control1);
+  return node;
+}
+
+Node* NodeFactory::NewMerge() {
+  auto const node = new (zone()) MergeNode(control_type(), zone());
   node->set_id(NewNodeId());
   return node;
 }
@@ -278,10 +282,10 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   return node;
 }
 
-Node* NodeFactory::NewRet(Node* control, Node* value) {
+Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
-  DCHECK(value->IsValidData()) << *value;
-  auto const node = new (zone()) RetNode(control_type(), control, value);
+  DCHECK(data->IsValidData()) << *data;
+  auto const node = new (zone()) RetNode(control_type(), control, effect, data);
   node->set_id(NewNodeId());
   return node;
 }

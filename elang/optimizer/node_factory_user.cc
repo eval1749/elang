@@ -53,8 +53,8 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
 }
 
-Node* NodeFactoryUser::NewRet(Node* control, Node* data) {
-  return node_factory_->NewRet(control, data);
+Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
+  return node_factory_->NewRet(control, effect, data);
 }
 
 // Literal nodes

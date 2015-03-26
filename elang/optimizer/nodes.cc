@@ -224,11 +224,7 @@ void Node::InitInputAt(size_t index, Node* value) {
 }
 
 bool Node::IsControl() const {
-  if (output_type_->is<ControlType>())
-    return true;
-  if (auto const tuple_type = output_type_->as<TupleType>())
-    return tuple_type->get(0)->is<ControlType>();
-  return false;
+  return output_type_->is<ControlType>();
 }
 
 bool Node::IsData() const {
@@ -248,11 +244,7 @@ bool Node::IsData() const {
 }
 
 bool Node::IsEffect() const {
-  if (output_type_->is<EffectType>())
-    return true;
-  if (auto const tuple_type = output_type_->as<TupleType>())
-    return tuple_type->get(1)->is<EffectType>();
-  return false;
+  return output_type_->is<EffectType>();
 }
 
 bool Node::IsLiteral() const {

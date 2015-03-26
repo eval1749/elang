@@ -25,10 +25,12 @@ class FunctionTest : public testing::OptimizerTest {
 
 TEST_F(FunctionTest, Function) {
   auto const function = NewSampleFunction(void_type(), void_type());
+  // Note: There is no entry node in expected result, because
+  // |Factory::NewFunction()| doesn't connect entry and exit nodes.
   EXPECT_EQ(
       "function1 void(void)\n"
-      "0000: (control, effect, void) %t1 = entry()\n"
-      "0001: void %r2 = exit(%t1, %t1)\n",
+      "0000: control %c4 = merge()\n"
+      "0001: void %r5 = exit(%c4)\n",
       ToString(function));
 }
 
