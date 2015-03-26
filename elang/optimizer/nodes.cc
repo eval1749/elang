@@ -196,12 +196,12 @@ Node::Inputs Node::inputs() const {
 
 base::StringPiece Node::mnemonic() const {
   static const char* mnemonics[] = {
-#define V(Name, ...) #Name,
+#define V(Name, mnemonic, ...) mnemonic,
       FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
   };
   auto const it = std::begin(mnemonics) + static_cast<size_t>(opcode());
-  return it < std::end(mnemonics) ? *it : "INVALID";
+  return it < std::end(mnemonics) ? *it : "invalid_opcode";
 }
 
 #define V(Name, ...) \

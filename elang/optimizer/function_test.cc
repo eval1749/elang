@@ -27,9 +27,9 @@ TEST_F(FunctionTest, Function) {
   auto const function = NewSampleFunction(void_type(), void_type());
   EXPECT_EQ(
       "function1 void(void)\n"
-      "0000: (control, effect, void) %t1 = Entry()\n"
-      "0001: control %c2 = Ret(%t1, void)\n"
-      "0002: void %r3 = Exit(%c2, %t1)\n",
+      "0000: (control, effect, void) %t1 = entry()\n"
+      "0001: control %c2 = ret(%t1, void)\n"
+      "0002: void %r3 = exit(%c2, %t1)\n",
       ToString(function));
 }
 

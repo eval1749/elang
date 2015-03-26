@@ -50,7 +50,7 @@ namespace optimizer {
   V(Ret, "ret")                                      \
   V(IntShl, "shl")                                   \
   V(IntShr, "shr")                                   \
-  V(StackAlloc, "alloca" *)                          \
+  V(StackAlloc, "alloca")                            \
   V(Throw, "throw")
 
 // TODO(eval1749) How do we represent integer division-by-zero?
@@ -86,7 +86,7 @@ namespace optimizer {
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
   V(Entry, "entry")                           \
   V(FloatCmp, "fcmp")                         \
-  V(FunctionReference, , "fn")                \
+  V(FunctionReference, "fn")                  \
   V(Get, "get")                               \
   V(IntCmp, "cmp")                            \
   V(Null, "lit_null")                         \

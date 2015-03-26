@@ -43,15 +43,15 @@ TEST_F(EditorTest, BuildIf) {
   // only.
   EXPECT_EQ(
       "function1 int32(bool)\n"
-      "0000: (control, effect, bool) %t1 = Entry()\n"
-      "0001: control %c2 = Ret(%t1, Int32(0))\n"
-      "0002: bool %r4 = Parameter(%t1, 0)\n"
-      "0003: control %c5 = If(%t1, %r4)\n"
-      "0004: control %c6 = IfTrue(%c5)\n"
-      "0005: control %c7 = Ret(%c6, Int32(42))\n"
-      "0006: control %c8 = IfFalse(%c5)\n"
-      "0007: control %c9 = Ret(%c8, Int32(33))\n"
-      "0008: void %r3 = Exit(%c2, %t1, %c7, %c9)\n",
+      "0000: (control, effect, bool) %t1 = entry()\n"
+      "0001: control %c2 = ret(%t1, lit_i32(0))\n"
+      "0002: bool %r4 = param(%t1, 0)\n"
+      "0003: control %c5 = if(%t1, %r4)\n"
+      "0004: control %c6 = if_true(%c5)\n"
+      "0005: control %c7 = ret(%c6, lit_i32(42))\n"
+      "0006: control %c8 = if_false(%c5)\n"
+      "0007: control %c9 = ret(%c8, lit_i32(33))\n"
+      "0008: void %r3 = exit(%c2, %t1, %c7, %c9)\n",
       ToString(function));
 }
 
@@ -63,9 +63,9 @@ TEST_F(EditorTest, SetInput) {
 
   EXPECT_EQ(
       "function1 bool(int32)\n"
-      "0000: (control, effect, int32) %t1 = Entry()\n"
-      "0001: control %c2 = Ret(%t1, Bool(0))\n"
-      "0002: void %r3 = Exit(%c2, %t1)\n",
+      "0000: (control, effect, int32) %t1 = entry()\n"
+      "0001: control %c2 = ret(%t1, lit_bool(0))\n"
+      "0002: void %r3 = exit(%c2, %t1)\n",
       ToString(function));
 }
 
