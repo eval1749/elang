@@ -45,6 +45,7 @@ namespace optimizer {
   V(Unreachable, "unreachable")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
+  V(Exit, "exit")                                    \
   V(If, "if")                                        \
   V(PhiInput, "phi_input")                           \
   V(Ret, "ret")                                      \
@@ -77,7 +78,6 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case")                                    \
-  V(Exit, "exit")                                    \
   V(Loop, "loop")                                    \
   V(Merge, "merge")                                  \
   V(Phi, "phi")                                      \

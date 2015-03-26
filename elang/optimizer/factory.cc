@@ -44,9 +44,7 @@ AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
 Function* Factory::NewFunction(FunctionType* function_type) {
   auto const entry_node =
       node_factory()->NewEntry(function_type->parameters_type());
-  auto const ret_node = node_factory()->NewRet(
-      entry_node, node_factory()->DefaultValueOf(function_type->return_type()));
-  auto const exit_node = node_factory()->NewExit(ret_node, entry_node);
+  auto const exit_node = node_factory()->NewExit(entry_node, entry_node);
   auto const function = new (zone()) Function(
       node_factory()->node_id_source(), function_type, entry_node, exit_node);
   function->id_ = ++last_function_id_;

@@ -38,6 +38,8 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void StartThen();
 
   // Edit input edges
+  void SetControl(Node* node, size_t index, Node* new_control);
+  void SetEffect(Node* node, size_t index, Node* new_control);
   void SetInput(Node* node, size_t index, Node* new_value);
 
  private:

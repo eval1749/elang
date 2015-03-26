@@ -25,6 +25,10 @@ Node* NodeFactoryUser::true_value() const {
   return node_factory_->true_value();
 }
 
+Node* NodeFactoryUser::void_value() const {
+  return node_factory_->void_value();
+}
+
 Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
   return node_factory_->NewGet(input, field);
 }
@@ -39,6 +43,10 @@ Node* NodeFactoryUser::NewIfFalse(Node* control) {
 
 Node* NodeFactoryUser::NewIfTrue(Node* control) {
   return node_factory_->NewIfTrue(control);
+}
+
+Node* NodeFactoryUser::NewMerge(Node* control0, Node* control1) {
+  return node_factory_->NewMerge(control0, control1);
 }
 
 Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {

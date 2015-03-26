@@ -15,9 +15,6 @@ namespace optimizer {
   E(Validate, EntryNode, NoEffectOutput)    \
   E(Validate, EntryNode, NoUsers)           \
   E(Validate, EntryNode, InvalidOutput)     \
-  E(Validate, ExitNode, InvalidInput)       \
-  E(Validate, ExitNode, NoControlInput)     \
-  E(Validate, ExitNode, NoEffectInput)      \
   E(Validate, Node, InvalidField)           \
   E(Validate, Node, InvalidInput)           \
   E(Validate, Node, InvalidOutput)

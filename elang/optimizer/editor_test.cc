@@ -44,28 +44,42 @@ TEST_F(EditorTest, BuildIf) {
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "0000: (control, effect, bool) %t1 = entry()\n"
-      "0001: control %c2 = ret(%t1, lit_i32(0))\n"
-      "0002: bool %r4 = param(%t1, 0)\n"
-      "0003: control %c5 = if(%t1, %r4)\n"
-      "0004: control %c6 = if_true(%c5)\n"
-      "0005: control %c7 = ret(%c6, lit_i32(42))\n"
-      "0006: control %c8 = if_false(%c5)\n"
-      "0007: control %c9 = ret(%c8, lit_i32(33))\n"
-      "0008: void %r3 = exit(%c2, %t1, %c7, %c9)\n",
+      "0001: bool %r3 = param(%t1, 0)\n"
+      "0002: control %c4 = if(%t1, %r3)\n"
+      "0003: control %c5 = if_true(%c4)\n"
+      "0004: control %c6 = ret(%c5, lit_i32(42))\n"
+      "0005: control %c8 = if_false(%c4)\n"
+      "0006: control %c9 = ret(%c8, lit_i32(33))\n"
+      "0007: control %c7 = merge(%t1, %c6, %c9)\n"
+      "0008: void %r2 = exit(%c7, %t1)\n",
+      ToString(function));
+}
+
+TEST_F(EditorTest, EndWithRet) {
+  auto const function = NewSampleFunction(int32_type(), int32_type());
+  Editor editor(factory(), function);
+  editor.EndWithRet(NewInt32(42));
+
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "0000: (control, effect, int32) %t1 = entry()\n"
+      "0001: control %c3 = ret(%t1, lit_i32(42))\n"
+      "0002: void %r2 = exit(%c3, %t1)\n",
       ToString(function));
 }
 
 TEST_F(EditorTest, SetInput) {
-  auto const function = NewSampleFunction(bool_type(), int32_type());
+  auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
+  editor.EndWithRet(NewInt32(42));
   auto const ret_node = function->exit_node()->input(0);
-  editor.SetInput(ret_node, 1, false_value());
+  editor.SetInput(ret_node, 1, NewInt32(33));
 
   EXPECT_EQ(
-      "function1 bool(int32)\n"
+      "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = ret(%t1, lit_bool(0))\n"
-      "0002: void %r3 = exit(%c2, %t1)\n",
+      "0001: control %c3 = ret(%t1, lit_i32(33))\n"
+      "0002: void %r2 = exit(%c3, %t1)\n",
       ToString(function));
 }
 

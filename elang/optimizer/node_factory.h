@@ -34,6 +34,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   Node* false_value() const { return false_value_; }
   Node* true_value() const { return true_value_; }
+  Node* void_value() const { return void_value_; }
 
   Node* DefaultValueOf(Type* type);
   Node* NewNull(Type* type);

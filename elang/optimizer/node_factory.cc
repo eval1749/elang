@@ -224,9 +224,7 @@ Node* NodeFactory::NewEntry(Type* parameters_type) {
 Node* NodeFactory::NewExit(Node* control, Node* effect) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
-  auto const node = new (zone()) ExitNode(void_type(), zone());
-  node->AppendInput(control);
-  node->AppendInput(effect);
+  auto const node = new (zone()) ExitNode(void_type(), control, effect);
   node->set_id(NewNodeId());
   return node;
 }
@@ -257,6 +255,16 @@ Node* NodeFactory::NewIfFalse(Node* control) {
 Node* NodeFactory::NewIfTrue(Node* control) {
   DCHECK(control->IsValidControl()) << *control;
   auto const node = new (zone()) IfTrueNode(control_type(), control);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Node* NodeFactory::NewMerge(Node* control0, Node* control1) {
+  DCHECK(control0->IsValidControl()) << *control0;
+  DCHECK(control1->IsValidControl()) << *control1;
+  auto const node = new (zone()) MergeNode(control_type(), zone());
+  node->AppendInput(control0);
+  node->AppendInput(control1);
   node->set_id(NewNodeId());
   return node;
 }

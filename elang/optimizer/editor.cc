@@ -45,16 +45,25 @@ void Editor::EndIf() {
 
 void Editor::EndWithRet(Node* data) {
   auto const control = PopControl();
-  for (auto const input : exit_node()->inputs()) {
-    auto const ret_node = input->as<RetNode>();
-    if (!ret_node)
-      continue;
-    if (ret_node->input(0) == control) {
-      SetInput(ret_node, 1, data);
-      return;
+  auto const old_control = exit_node()->input(0);
+  if (auto const merge_node = old_control->as<MergeNode>()) {
+    for (auto const predecessor : merge_node->inputs()) {
+      auto const ret_node = predecessor->as<RetNode>();
+      if (!ret_node)
+        continue;
+      if (ret_node->input(0) == control) {
+        SetInput(ret_node, 1, data);
+        return;
+      }
     }
+    merge_node->AppendInput(NewRet(control, data));
+    return;
   }
-  exit_node()->as<ExitNode>()->AppendInput(NewRet(control, data));
+  if (control == old_control) {
+    SetControl(exit_node(), 0, NewRet(old_control, data));
+    return;
+  }
+  SetControl(exit_node(), 0, NewMerge(old_control, NewRet(control, data)));
 }
 
 Node* Editor::PopControl() {
@@ -62,6 +71,20 @@ Node* Editor::PopControl() {
   auto const control = control_stack_.top();
   control_stack_.pop();
   return control;
+}
+
+void Editor::SetControl(Node* node, size_t index, Node* new_value) {
+  DCHECK(new_value->IsValidControl()) << *new_value;
+  DCHECK_NE(node, new_value);
+  DCHECK_LE(new_value->id(), function_->max_node_id());
+  node->InputAt(index)->SetValue(new_value);
+}
+
+void Editor::SetEffect(Node* node, size_t index, Node* new_value) {
+  DCHECK(new_value->IsValidEffect()) << *new_value;
+  DCHECK_NE(node, new_value);
+  DCHECK_LE(new_value->id(), function_->max_node_id());
+  node->InputAt(index)->SetValue(new_value);
 }
 
 void Editor::SetInput(Node* node, size_t index, Node* new_value) {

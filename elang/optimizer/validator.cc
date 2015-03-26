@@ -84,30 +84,10 @@ void Validator::Context::VisitEntry(EntryNode* node) {
 }
 
 void Validator::Context::VisitExit(ExitNode* node) {
-  bool has_control = false;
-  bool has_effect = false;
-  auto index = -1;
-  for (auto const input : node->inputs()) {
-    ++index;
-    if (input->IsControl() && input->IsEffect()) {
-      has_control = true;
-      has_effect = true;
-      continue;
-    }
-    if (input->IsControl()) {
-      has_control = true;
-      continue;
-    }
-    if (input->IsEffect()) {
-      has_effect = true;
-      continue;
-    }
-    ErrorInInput(node, index);
-  }
-  if (!has_control)
-    Error(ErrorCode::ValidateExitNodeNoControlInput, node);
-  if (!has_effect)
-    Error(ErrorCode::ValidateExitNodeNoEffectInput, node);
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  if (!node->input(1)->IsValidEffect())
+    ErrorInInput(node, 1);
 }
 
 void Validator::Context::VisitGet(GetNode* node) {

@@ -33,6 +33,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* false_value() const;
   NodeFactory* node_factory() const { return node_factory_; }
   Node* true_value() const;
+  Node* void_value() const;
 
 // Literal nodes
 #define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
