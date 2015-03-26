@@ -27,7 +27,7 @@
 #endif
 
 // TODO(eval1749) Move disabling C4275 to ".gn" file.
-// C4275 non – DLL-interface classkey 'identifier' used as base for
+// C4275 non-DLL-interface classkey 'identifier' used as base for
 // DLL-interface classkey 'identifier'
 #pragma warning(disable : 4275)
 
