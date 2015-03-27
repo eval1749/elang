@@ -18,6 +18,10 @@ FactoryUser::FactoryUser(Factory* factory)
 FactoryUser::~FactoryUser() {
 }
 
+AtomicString* FactoryUser::NewAtomicString(base::StringPiece16 data) {
+  return factory_->NewAtomicString(data);
+}
+
 Function* FactoryUser::NewFunction(FunctionType* function_type) {
   return factory_->NewFunction(function_type);
 }
