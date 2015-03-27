@@ -295,6 +295,10 @@ ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
       << *output_type << " " << *input;
 }
 
+ReferenceNode::ReferenceNode(Type* output_type, AtomicString* name)
+    : NodeTemplate(output_type), name_(name) {
+}
+
 // Simple nodes
 #define V(Name, ...)                                      \
   Name##Node::Name##Node(Type* output_type, Node* input0) \

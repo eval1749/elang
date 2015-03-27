@@ -44,14 +44,6 @@ TEST_F(NodeTest, GetNode) {
   EXPECT_EQ("(int32, int64) %t6 = get(%t1, 2)", ToString(node));
 }
 
-TEST_F(NodeTest, RetNode) {
-  auto const function = NewSampleFunction(void_type(), void_type());
-  auto const entry_node = function->entry_node();
-  auto const node = NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1),
-                           void_value());
-  EXPECT_EQ("control %c8 = ret(%c7, %e6, void)", ToString(node));
-}
-
 TEST_F(NodeTest, ParameterNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
@@ -65,6 +57,20 @@ TEST_F(NodeTest, ParameterNode2) {
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 1);
   EXPECT_EQ("int64 %r6 = param(%t1, 1)", ToString(node));
+}
+
+TEST_F(NodeTest, ReferenceNode) {
+  auto const node = NewReference(NewFunctionType(void_type(), int32_type()),
+                                 NewAtomicString(L"Foo"));
+  EXPECT_EQ("void(int32) Foo", ToString(node));
+}
+
+TEST_F(NodeTest, RetNode) {
+  auto const function = NewSampleFunction(void_type(), void_type());
+  auto const entry_node = function->entry_node();
+  auto const node = NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1),
+                           void_value());
+  EXPECT_EQ("control %c8 = ret(%c7, %e6, void)", ToString(node));
 }
 
 }  // namespace optimizer

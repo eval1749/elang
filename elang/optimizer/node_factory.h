@@ -39,12 +39,13 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* DefaultValueOf(Type* type);
   Node* NewNull(Type* type);
 
-// Arithmetic nodes
+  // Arithmetic nodes
 #define V(Name, ...) Node* New##Name(Node* input0, Node* input1);
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 #undef V
 
-// Literal nodes
+  // Literal nodes
+  Node* NewReference(Type* type, AtomicString* name);
 #define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V

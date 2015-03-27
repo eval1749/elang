@@ -2,12 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <map>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 
 #include "elang/optimizer/node_factory.h"
 
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
+#include "elang/base/index_sequence.h"
 #include "elang/base/zone.h"
 #include "elang/base/zone_user.h"
 #include "elang/optimizer/function.h"
@@ -16,6 +20,57 @@
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 #include "elang/optimizer/type_visitor.h"
+
+namespace elang {
+namespace optimizer {
+
+template <typename... Keys>
+struct KeyTuple  {
+  std::tuple<Keys...> components;
+
+  KeyTuple(const Keys&... components)
+      : components(std::make_tuple(components...)) {}
+
+  bool operator<(const KeyTuple& other) const {
+    return less(*this, other, MakeIndexSequence<sizeof...(Keys)>());
+  }
+
+  template <size_t K>
+  static bool less(const KeyTuple& lhs, const KeyTuple& rhs,
+                   IndexSequence<K>) {
+    auto& lhs_component = std::get<K>(lhs.components);
+    auto& rhs_component = std::get<K>(rhs.components);
+    return lhs_component < rhs_component;
+  }
+
+  template <size_t K, size_t... Ks>
+  static bool less(const KeyTuple& lhs, const KeyTuple& rhs,
+                   IndexSequence<K, Ks...>) {
+    auto& lhs_component = std::get<K>(lhs.components);
+    auto& rhs_component = std::get<K>(rhs.components);
+    if (lhs_component != rhs_component)
+      return lhs_component < rhs_component;
+    return less(lhs, rhs, IndexSequence<Ks...>());
+  }
+};
+
+template <typename... Keys>
+KeyTuple<Keys...> make_key_tuple(const Keys&... params...) {
+  return KeyTuple<Keys...>(params...);
+}
+
+}  // namespace optimizer
+}  // namespace elang
+
+namespace std {
+template <typename... Keys>
+struct less<::elang::optimizer::KeyTuple<Keys...>> {
+  typedef ::elang::optimizer::KeyTuple<Keys...> KeyTuple;
+  bool operator()(const KeyTuple& lhs, const KeyTuple& rhs) {
+    return lhs < rhs;
+  }
+};
+}  // namespace std
 
 namespace elang {
 namespace optimizer {
@@ -37,6 +92,7 @@ class NodeFactory::LiteralNodeCache final : public ZoneUser {
 #undef V
   Node* NewFunctionReference(Type* output_type, Function* function);
   Node* NewNull(Type* type);
+  Node* NewReference(Type* type, AtomicString* name);
 
  private:
 #define V(Name, name, data_type, ...) \
@@ -45,6 +101,7 @@ class NodeFactory::LiteralNodeCache final : public ZoneUser {
 #undef V
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;
+  std::map<KeyTuple<Type*, AtomicString*>, Node*> reference_cache_;
   std::unordered_map<base::StringPiece16, Node*> string_cache_;
   TypeFactory* const type_factory_;
 
@@ -91,6 +148,17 @@ Node* NodeFactory::LiteralNodeCache::NewNull(Type* type) {
   auto const literal = new (zone()) NullNode(type);
   null_literal_cache_[type] = literal;
   return literal;
+}
+
+Node* NodeFactory::LiteralNodeCache::NewReference(Type* type,
+                                                  AtomicString* name) {
+  auto const key = make_key_tuple(type, name);
+  auto const it = reference_cache_.find(key);
+  if (it != reference_cache_.end())
+    return it->second;
+  auto const new_node = new (zone()) ReferenceNode(type, name);
+  reference_cache_[key] = new_node;
+  return new_node;
 }
 
 Node* NodeFactory::LiteralNodeCache::NewString(Type* type,
@@ -280,6 +348,10 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   auto const node = new (zone()) ParameterNode(output_type, input, field);
   node->set_id(NewNodeId());
   return node;
+}
+
+Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
+  return literal_node_cache_->NewReference(type, name);
 }
 
 Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {

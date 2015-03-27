@@ -53,6 +53,10 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
 }
 
+Node* NodeFactoryUser::NewReference(Type* type, AtomicString* name) {
+  return node_factory_->NewReference(type, name);
+}
+
 Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
   return node_factory_->NewRet(control, effect, data);
 }

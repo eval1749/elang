@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/atomic_string.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/types.h"
 
@@ -33,6 +34,7 @@ class NodePrinter final : public NodeVisitor {
  private:
   void DoDefaultVisit(Node* node) final;
   void VisitNull(NullNode* node) final;
+  void VisitReference(ReferenceNode* node) final;
   void VisitVoid(VoidNode* node) final;
 
 #define V(Name, ...) void Visit##Name(Name##Node* node) final;
@@ -81,6 +83,10 @@ void NodePrinter::DoDefaultVisit(Node* node) {
 
 void NodePrinter::VisitNull(NullNode* node) {
   ostream_ << "null";
+}
+
+void NodePrinter::VisitReference(ReferenceNode* node) {
+  ostream_ << *node->output_type() << " " << *node->name();
 }
 
 void NodePrinter::VisitVoid(VoidNode* node) {

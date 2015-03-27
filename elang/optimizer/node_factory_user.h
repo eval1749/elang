@@ -35,7 +35,8 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* true_value() const;
   Node* void_value() const;
 
-// Literal nodes
+  // Literal nodes
+  Node* NewReference(Type* type, AtomicString* name);
 #define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V

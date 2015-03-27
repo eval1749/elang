@@ -92,7 +92,7 @@ namespace optimizer {
   V(IntCmp, "cmp")                            \
   V(Null, "lit_null")                         \
   V(Parameter, "param")                       \
-  V(Reference, "lit")                         \
+  V(Reference, "ref")                         \
   V(SizeOf, "sizeof")                         \
   V(Void, "void")
 
