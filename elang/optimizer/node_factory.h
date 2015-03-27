@@ -20,6 +20,7 @@
 namespace elang {
 namespace optimizer {
 
+class NodeCache;
 class SequenceIdSource;
 
 //////////////////////////////////////////////////////////////////////
@@ -39,7 +40,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* DefaultValueOf(Type* type);
   Node* NewNull(Type* type);
 
-  // Arithmetic nodes
+// Arithmetic nodes
 #define V(Name, ...) Node* New##Name(Node* input0, Node* input1);
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 #undef V
@@ -97,10 +98,10 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   size_t NewNodeId();
 
-  const std::unique_ptr<LiteralNodeCache> literal_node_cache_;
+  const std::unique_ptr<NodeCache> node_cache_;
   const std::unique_ptr<SequenceIdSource> node_id_source_;
 
-  // |false_value_| and |true_value| depend on |literal_node_cache_|.
+  // |false_value_| and |true_value| depend on |node_cache_|.
   Node* const false_value_;
   Node* const true_value_;
   Node* const void_value_;

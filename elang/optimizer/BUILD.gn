@@ -29,6 +29,8 @@ component("optimizer") {
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
+    "node_cache.cc",
+    "node_cache.h",
     "node_factory.cc",
     "node_factory.h",
     "node_factory_user.cc",

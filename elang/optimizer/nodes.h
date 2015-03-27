@@ -31,6 +31,7 @@ class Type;
 #define DECLARE_OPTIMIZER_NODE_CLASS(self, super) \
   DECLARE_CASTABLE_CLASS(self, super);            \
   friend class Editor;                            \
+  friend class NodeCache;                         \
   friend class NodeFactory;                       \
                                                   \
  protected:                                       \
@@ -334,9 +335,6 @@ class VariableInputsNode : public Node {
 
  private:
   class InputAnchor;
-
-  friend class Editor;
-  friend class NodeFactory;
 
   void AppendInput(Node* value);
 

@@ -10,12 +10,10 @@
 #include "elang/optimizer/node_factory.h"
 
 #include "base/logging.h"
-#include "base/numerics/safe_conversions.h"
-#include "elang/base/index_sequence.h"
 #include "elang/base/zone.h"
-#include "elang/base/zone_user.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/node_cache.h"
 #include "elang/optimizer/sequence_id_source.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
@@ -24,165 +22,14 @@
 namespace elang {
 namespace optimizer {
 
-template <typename... Keys>
-struct KeyTuple  {
-  std::tuple<Keys...> components;
-
-  KeyTuple(const Keys&... components)
-      : components(std::make_tuple(components...)) {}
-
-  bool operator<(const KeyTuple& other) const {
-    return less(*this, other, MakeIndexSequence<sizeof...(Keys)>());
-  }
-
-  template <size_t K>
-  static bool less(const KeyTuple& lhs, const KeyTuple& rhs,
-                   IndexSequence<K>) {
-    auto& lhs_component = std::get<K>(lhs.components);
-    auto& rhs_component = std::get<K>(rhs.components);
-    return lhs_component < rhs_component;
-  }
-
-  template <size_t K, size_t... Ks>
-  static bool less(const KeyTuple& lhs, const KeyTuple& rhs,
-                   IndexSequence<K, Ks...>) {
-    auto& lhs_component = std::get<K>(lhs.components);
-    auto& rhs_component = std::get<K>(rhs.components);
-    if (lhs_component != rhs_component)
-      return lhs_component < rhs_component;
-    return less(lhs, rhs, IndexSequence<Ks...>());
-  }
-};
-
-template <typename... Keys>
-KeyTuple<Keys...> make_key_tuple(const Keys&... params...) {
-  return KeyTuple<Keys...>(params...);
-}
-
-}  // namespace optimizer
-}  // namespace elang
-
-namespace std {
-template <typename... Keys>
-struct less<::elang::optimizer::KeyTuple<Keys...>> {
-  typedef ::elang::optimizer::KeyTuple<Keys...> KeyTuple;
-  bool operator()(const KeyTuple& lhs, const KeyTuple& rhs) {
-    return lhs < rhs;
-  }
-};
-}  // namespace std
-
-namespace elang {
-namespace optimizer {
-
+namespace {
 //////////////////////////////////////////////////////////////////////
 //
-// NodeFactory::LiteralNodeCache
+// DefaultValueFactory
 //
-class NodeFactory::LiteralNodeCache final : public ZoneUser {
+class DefaultValueFactory : public TypeVisitor {
  public:
-  class DefaultValueFactory;
-
-  LiteralNodeCache(Zone* zone, TypeFactory* type_factory);
-  ~LiteralNodeCache();
-
-#define V(Name, mnemonic, data_type, ...) \
-  Node* New##Name(Type* type, data_type data);
-  FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
-#undef V
-  Node* NewFunctionReference(Type* output_type, Function* function);
-  Node* NewNull(Type* type);
-  Node* NewReference(Type* type, AtomicString* name);
-
- private:
-#define V(Name, name, data_type, ...) \
-  std::unordered_map<data_type, Node*> name##_cache_;
-  FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
-#undef V
-  std::unordered_map<Function*, Node*> function_literal_cache_;
-  std::unordered_map<Type*, Node*> null_literal_cache_;
-  std::map<KeyTuple<Type*, AtomicString*>, Node*> reference_cache_;
-  std::unordered_map<base::StringPiece16, Node*> string_cache_;
-  TypeFactory* const type_factory_;
-
-  DISALLOW_COPY_AND_ASSIGN(LiteralNodeCache);
-};
-
-NodeFactory::LiteralNodeCache::LiteralNodeCache(Zone* zone,
-                                                TypeFactory* type_factory)
-    : ZoneUser(zone), type_factory_(type_factory) {
-}
-
-NodeFactory::LiteralNodeCache::~LiteralNodeCache() {
-}
-
-#define V(Name, name, data_type, ...)                                          \
-  Node* NodeFactory::LiteralNodeCache::New##Name(Type* type, data_type data) { \
-    auto const it = name##_cache_.find(data);                                  \
-    if (it != name##_cache_.end())                                             \
-      return it->second;                                                       \
-    auto const literal = new (zone()) Name##Node(type, data);                  \
-    name##_cache_[data] = literal;                                             \
-    return literal;                                                            \
-  }
-FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
-#undef V
-
-Node* NodeFactory::LiteralNodeCache::NewFunctionReference(Type* output_type,
-                                                          Function* function) {
-  DCHECK_EQ(output_type->as<PointerType>()->pointee(),
-            function->function_type());
-  auto const it = function_literal_cache_.find(function);
-  if (it != function_literal_cache_.end())
-    return it->second;
-  auto const literal =
-      new (zone()) FunctionReferenceNode(output_type, function);
-  function_literal_cache_[function] = literal;
-  return literal;
-}
-
-Node* NodeFactory::LiteralNodeCache::NewNull(Type* type) {
-  auto const it = null_literal_cache_.find(type);
-  if (it != null_literal_cache_.end())
-    return it->second;
-  auto const literal = new (zone()) NullNode(type);
-  null_literal_cache_[type] = literal;
-  return literal;
-}
-
-Node* NodeFactory::LiteralNodeCache::NewReference(Type* type,
-                                                  AtomicString* name) {
-  auto const key = make_key_tuple(type, name);
-  auto const it = reference_cache_.find(key);
-  if (it != reference_cache_.end())
-    return it->second;
-  auto const new_node = new (zone()) ReferenceNode(type, name);
-  reference_cache_[key] = new_node;
-  return new_node;
-}
-
-Node* NodeFactory::LiteralNodeCache::NewString(Type* type,
-                                               base::StringPiece16 data) {
-  auto const it = string_cache_.find(data);
-  if (it != string_cache_.end())
-    return it->second;
-
-  auto const size = data.size() * sizeof(base::char16);
-  auto const chars = static_cast<base::char16*>(zone()->Allocate(size));
-  ::memcpy(chars, data.data(), size);
-  base::StringPiece16 saved_data(chars, data.size());
-  auto const literal = new (zone()) StringNode(type, saved_data);
-  string_cache_[saved_data] = literal;
-  return literal;
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// NodeFactory::LiteralNodeCache::DefaultValueFactory
-//
-class NodeFactory::LiteralNodeCache::DefaultValueFactory : public TypeVisitor {
- public:
-  explicit DefaultValueFactory(LiteralNodeCache* cache);
+  explicit DefaultValueFactory(NodeCache* cache);
   ~DefaultValueFactory() = default;
 
   Node* value() const {
@@ -200,29 +47,28 @@ class NodeFactory::LiteralNodeCache::DefaultValueFactory : public TypeVisitor {
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
-  LiteralNodeCache* const cache_;
+  NodeCache* const cache_;
 
   DISALLOW_COPY_AND_ASSIGN(DefaultValueFactory);
 };
 
-NodeFactory::LiteralNodeCache::DefaultValueFactory::DefaultValueFactory(
-    LiteralNodeCache* cache)
+DefaultValueFactory::DefaultValueFactory(NodeCache* cache)
     : cache_(cache), value_(nullptr) {
 }
 
-void NodeFactory::LiteralNodeCache::DefaultValueFactory::DoDefaultVisit(
-    Type* type) {
+void DefaultValueFactory::DoDefaultVisit(Type* type) {
   DCHECK(!type->is<PrimitiveValueType>());
   value_ = cache_->NewNull(type);
 }
 
-#define V(Name, name, data_type, ...)                                         \
-  void NodeFactory::LiteralNodeCache::DefaultValueFactory::Visit##Name##Type( \
-      Name##Type* type) {                                                     \
-    value_ = cache_->New##Name(type, static_cast<data_type>(0));              \
+#define V(Name, name, data_type, ...)                             \
+  void DefaultValueFactory::Visit##Name##Type(Name##Type* type) { \
+    value_ = cache_->New##Name(type, static_cast<data_type>(0));  \
   }
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
+
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -230,7 +76,7 @@ FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 //
 NodeFactory::NodeFactory(TypeFactory* type_factory)
     : TypeFactoryUser(type_factory),
-      literal_node_cache_(new LiteralNodeCache(zone(), type_factory)),
+      node_cache_(new NodeCache(zone(), type_factory)),
       node_id_source_(new SequenceIdSource()),
       false_value_(NewBool(false)),
       true_value_(NewBool(true)),
@@ -243,14 +89,14 @@ NodeFactory::~NodeFactory() {
 Node* NodeFactory::DefaultValueOf(Type* type) {
   if (type == void_type())
     return void_value_;
-  LiteralNodeCache::DefaultValueFactory factory(literal_node_cache_.get());
+  DefaultValueFactory factory(node_cache_.get());
   type->Accept(&factory);
   return factory.value();
 }
 
 Node* NodeFactory::NewFunctionReference(Function* function) {
   auto const output_type = NewPointerType(function->function_type());
-  return literal_node_cache_->NewFunctionReference(output_type, function);
+  return node_cache_->NewFunctionReference(output_type, function);
 }
 
 size_t NodeFactory::NewNodeId() {
@@ -258,7 +104,7 @@ size_t NodeFactory::NewNodeId() {
 }
 
 Node* NodeFactory::NewNull(Type* type) {
-  return literal_node_cache_->NewNull(type);
+  return node_cache_->NewNull(type);
 }
 
 // Arithmetic nodes
@@ -274,9 +120,9 @@ FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 #undef V
 
 // Literal nodes
-#define V(Name, name, data_type, ...)                           \
-  Node* NodeFactory::New##Name(data_type data) {                \
-    return literal_node_cache_->New##Name(name##_type(), data); \
+#define V(Name, name, data_type, ...)                   \
+  Node* NodeFactory::New##Name(data_type data) {        \
+    return node_cache_->New##Name(name##_type(), data); \
   }
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
@@ -351,7 +197,7 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
 }
 
 Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
-  return literal_node_cache_->NewReference(type, name);
+  return node_cache_->NewReference(type, name);
 }
 
 Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {
@@ -363,7 +209,7 @@ Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {
 }
 
 Node* NodeFactory::NewString(base::StringPiece16 data) {
-  return literal_node_cache_->NewString(string_type(), data);
+  return node_cache_->NewString(string_type(), data);
 }
 
 }  // namespace optimizer
