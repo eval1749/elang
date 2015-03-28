@@ -20,8 +20,6 @@ namespace optimizer {
 template <typename... Types>
 struct KeyTuple;
 
-class SequenceIdSource;
-
 //////////////////////////////////////////////////////////////////////
 //
 // NodeCache
@@ -31,15 +29,11 @@ class NodeCache final : public ZoneUser {
   NodeCache(Zone* zone, TypeFactory* type_factory);
   ~NodeCache();
 
-  size_t NewNodeId();
-
-  // Cached node construct functions.
 #define V(Name, mnemonic, data_type, ...) \
   Node* New##Name(Type* type, data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
   Node* NewFunctionReference(Type* output_type, Function* function);
-  Node* NewGet(Node* input, size_t field);
   Node* NewNull(Type* type);
   Node* NewReference(Type* type, AtomicString* name);
 
@@ -48,11 +42,9 @@ class NodeCache final : public ZoneUser {
   std::unordered_map<data_type, Node*> name##_cache_;
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
-  std::map<KeyTuple<Node*, size_t>, Node*> field_input_node_cache_;
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;
   std::map<KeyTuple<Type*, AtomicString*>, Node*> reference_cache_;
-  const std::unique_ptr<SequenceIdSource> node_id_source_;
   std::unordered_map<base::StringPiece16, Node*> string_cache_;
   TypeFactory* const type_factory_;
 

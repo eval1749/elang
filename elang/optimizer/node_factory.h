@@ -90,7 +90,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   friend class Factory;
   class LiteralNodeCache;
 
-  SequenceIdSource* node_id_source() const
+  SequenceIdSource* node_id_source() const { return node_id_source_.get(); }
 
   Node* NewEntry(Type* parameters_type);
   Node* NewExit(Node* control);
@@ -99,6 +99,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   size_t NewNodeId();
 
   const std::unique_ptr<NodeCache> node_cache_;
+  const std::unique_ptr<SequenceIdSource> node_id_source_;
 
   // |false_value_| and |true_value| depend on |node_cache_|.
   Node* const false_value_;

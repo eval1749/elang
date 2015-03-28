@@ -78,9 +78,7 @@ namespace optimizer {
 // NodeCache
 //
 NodeCache::NodeCache(Zone* zone, TypeFactory* type_factory)
-    : ZoneUser(zone),
-      node_id_source_(new SequenceIdSource()),
-      type_factory_(type_factory) {
+    : ZoneUser(zone), type_factory_(type_factory) {
 }
 
 NodeCache::~NodeCache() {
@@ -108,22 +106,6 @@ Node* NodeCache::NewFunctionReference(Type* output_type, Function* function) {
       new (zone()) FunctionReferenceNode(output_type, function);
   function_literal_cache_[function] = literal;
   return literal;
-}
-
-Node* NodeCache::NewGet(Node* input, size_t field) {
-  auto const key = make_key_tuple(input, field);
-  auto const it = field_input_node_cache_.find(key);
-  if (it != field_input_node_cache_.end())
-    return it->second;
-  auto const output_type = input->output_type()->as<TupleType>()->get(field);
-  auto const node = new (zone()) GetNode(output_type, input, field);
-  node->set_id(NewNodeId());
-  field_input_node_cache_[key] = node;
-  return node;
-}
-
-size_t NodeFactory::NewNodeId() {
-  return node_id_source_->NextId();
 }
 
 Node* NodeCache::NewNull(Type* type) {
