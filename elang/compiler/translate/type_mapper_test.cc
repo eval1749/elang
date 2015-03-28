@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "elang/compiler/translate/translator_test.h"
+#include "elang/compiler/translate/translate_test.h"
 
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
@@ -29,7 +29,7 @@ namespace {
 //
 // IrTypeMapperTest
 //
-class IrTypeMapperTest : public testing::TranslatorTest {
+class IrTypeMapperTest : public testing::TranslateTest {
  protected:
   IrTypeMapperTest();
   ~IrTypeMapperTest() override = default;

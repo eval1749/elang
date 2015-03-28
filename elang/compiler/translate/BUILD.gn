@@ -6,6 +6,9 @@ import("//testing/test.gni")
 
 static_library("translate") {
   sources = [
+    "translate.cc",
+    "translator.cc",
+    "translator.h",
     "type_mapper.cc",
     "type_mapper.h",
   ]
@@ -24,8 +27,8 @@ static_library("translate") {
 source_set("translate_testing") {
   testonly = true
   sources = [
-    "translator_test.cc",
-    "translator_test.h",
+    "translate_test.cc",
+    "translate_test.h",
   ]
   public_deps = [
     "//elang/compiler:compiler_testing",
@@ -35,6 +38,7 @@ source_set("translate_testing") {
 source_set("translate_test") {
   testonly = true
   sources = [
+    "translator_test.cc",
     "type_mapper_test.cc",
   ]
   public_deps = [

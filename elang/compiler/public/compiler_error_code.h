@@ -196,6 +196,10 @@ namespace compiler {
   E(Token, Real, TooManyDigits)                       \
   E(Token, String, HasNewline)                        \
   E(Token, String, Unclosed)                          \
+  /* Translator */                                    \
+  E(Translator, Expression, NotYetImplemented)        \
+  E(Translator, Return, None)                         \
+  E(Translator, Statement, NotYetImplemented)         \
   /* Type Resolver */                                 \
   E(TypeResolver, ArrayAccess, Array)                 \
   E(TypeResolver, ArrayAccess, Index)                 \

@@ -24,6 +24,11 @@ class Factory;
 class Function;
 }
 
+namespace optimizer {
+class Factory;
+class Function;
+}
+
 namespace compiler {
 namespace ast {
 class Class;
@@ -46,6 +51,8 @@ class SourceCodeRange;
 class Token;
 class TokenFactory;
 enum class TokenType;
+
+namespace ir = optimizer;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -80,9 +87,11 @@ class CompilationSession final : public ZoneOwner {
 
   // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
   bool Compile(NameResolver* name_resolver, hir::Factory* factory);
+  bool Compile(NameResolver* name_resolver, ir::Factory* factory);
 
   // Returns |hir::Function| of |method|.
   hir::Function* FunctionOf(ast::Method* method);
+  ir::Function* IrFunctionOf(ast::Method* method);
 
   ast::Class* GetPredefinedType(PredefinedName name);
   AtomicString* NewAtomicString(base::StringPiece16 string);
@@ -96,6 +105,7 @@ class CompilationSession final : public ZoneOwner {
   Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
 
   void RegisterFunction(ast::Method* method, hir::Function* function);
+  void RegisterFunction(ast::Method* method, ir::Function* function);
 
   // Returns |ast::Node| which qualified name is |qualified_name|.
   ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
@@ -111,6 +121,7 @@ class CompilationSession final : public ZoneOwner {
   std::vector<ErrorData*> errors_;
   // The result of compilation.
   std::unordered_map<ast::Method*, hir::Function*> function_map_;
+  std::unordered_map<ast::Method*, ir::Function*> ir_function_map_;
   const std::unique_ptr<TokenFactory> token_factory_;
   const std::unique_ptr<PredefinedNames> predefined_names_;
   const std::unique_ptr<Semantics> semantics_;
