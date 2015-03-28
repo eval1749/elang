@@ -5,6 +5,9 @@
 #ifndef ELANG_OPTIMIZER_FACTORY_USER_H_
 #define ELANG_OPTIMIZER_FACTORY_USER_H_
 
+#include <string>
+#include <vector>
+
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
 #include "elang/optimizer/node_factory_user.h"
@@ -16,6 +19,7 @@ class AtomicString;
 class Zone;
 namespace optimizer {
 
+class ErrorData;
 class Factory;
 
 //////////////////////////////////////////////////////////////////////
@@ -27,6 +31,7 @@ class ELANG_OPTIMIZER_EXPORT FactoryUser : public NodeFactoryUser,
  public:
   ~FactoryUser();
 
+  const std::vector<ErrorData*>& errors() const;
   Factory* factory() const { return factory_; }
   Zone* zone() const;
 

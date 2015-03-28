@@ -18,6 +18,10 @@ FactoryUser::FactoryUser(Factory* factory)
 FactoryUser::~FactoryUser() {
 }
 
+const std::vector<ErrorData*>& FactoryUser::errors() const {
+  return factory_->errors();
+}
+
 AtomicString* FactoryUser::NewAtomicString(base::StringPiece16 data) {
   return factory_->NewAtomicString(data);
 }
