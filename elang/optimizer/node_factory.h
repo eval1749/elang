@@ -84,6 +84,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewLoop(Node* control);
   Node* NewMerge(Node* control0, Node* control1);
   Node* NewPhi(Type* type);
+  Node* NewTuple(Node* input0, Node* input1);
   Node* NewTuple(Type* type);
 
  private:

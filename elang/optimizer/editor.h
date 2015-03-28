@@ -35,10 +35,9 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void SetRet(Node* data);
 
   // Edit input edge
-  void AppendInput(Node* node, size_t index, Node* new_value);
+  void AppendInput(Node* node, Node* new_value);
   void ChangeInput(Node* node, size_t index, Node* new_value);
   void ReplaceAllUses(Node* new_node, Node* old_node);
-
 
  private:
   Node* entry_node() const;

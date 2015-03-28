@@ -61,6 +61,14 @@ Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
   return node_factory_->NewRet(control, effect, data);
 }
 
+Node* NodeFactoryUser::NewTuple(Type* output_type) {
+  return node_factory_->NewTuple(output_type);
+}
+
+Node* NodeFactoryUser::NewTuple(Node* input0, Node* input1) {
+  return node_factory_->NewTuple(input0, input1);
+}
+
 // Literal nodes
 #define V(Name, mnemonic, data_type)                 \
   Node* NodeFactoryUser::New##Name(data_type data) { \
@@ -68,7 +76,6 @@ Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
   }
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
-
 
 }  // namespace optimizer
 }  // namespace elang

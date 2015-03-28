@@ -68,9 +68,20 @@ TEST_F(NodeTest, ReferenceNode) {
 TEST_F(NodeTest, RetNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
-  auto const node = NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1),
-                           void_value());
+  auto const node =
+      NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1), void_value());
   EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
+}
+
+TEST_F(NodeTest, TupleNode) {
+  auto const function = NewSampleFunction(
+      void_type(), NewTupleType({int32_type(), int64_type()}));
+  auto const entry_node = function->entry_node();
+  auto const parameters = NewGet(entry_node, 2);
+  auto const parameter0 = NewGet(parameters, 0);
+  auto const parameter1 = NewGet(parameters, 1);
+  auto const node = NewTuple(parameter1, parameter0);
+  EXPECT_EQ("(int64, int32) %t9 = tuple(%r8, %r7)", ToString(node));
 }
 
 }  // namespace optimizer
