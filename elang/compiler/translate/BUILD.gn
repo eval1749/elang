@@ -6,6 +6,8 @@ import("//testing/test.gni")
 
 static_library("translate") {
   sources = [
+    "editor.cc",
+    "editor.h",
     "translate.cc",
     "translator.cc",
     "translator.h",

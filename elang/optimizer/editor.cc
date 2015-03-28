@@ -24,16 +24,6 @@ Node* ControlOf(Node* node) {
   }
   return nullptr;
 }
-
-Node* EffectOf(Node* node) {
-  if (node->IsEffect())
-    return node;
-  for (auto user : node->users()) {
-    if (user->owner()->IsEffect())
-      return user->owner();
-  }
-  return nullptr;
-}
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -79,11 +69,6 @@ void Editor::Edit(Node* node) {
   DCHECK(!control_);
   control_ = ControlOf(node);
   DCHECK(control_) << *node;
-  effect_ = EffectOf(node);
-  if (effect_)
-    return;
-  effect_ = EffectOf(entry_node());
-  DCHECK(effect_);
 }
 
 Node* Editor::EmitParameter(size_t index) {
@@ -130,9 +115,8 @@ void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
   phi->AppendInput(NewPhiOperand(control, value));
 }
 
-void Editor::SetRet(Node* data) {
+void Editor::SetRet(Node* effect, Node* data) {
   DCHECK(control_);
-  DCHECK(effect_);
   auto const merge_node = exit_node()->input(0)->as<MergeNode>();
   for (auto const predecessor : merge_node->inputs()) {
     auto const ret_node = predecessor->as<RetNode>();
@@ -143,7 +127,7 @@ void Editor::SetRet(Node* data) {
       return;
     }
   }
-  merge_node->AppendInput(NewRet(control_, effect_, data));
+  merge_node->AppendInput(NewRet(control_, effect, data));
 }
 
 bool Editor::Validate() const {

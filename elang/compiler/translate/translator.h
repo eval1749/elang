@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "base/macros.h"
-#include "elang/base/zone_owner.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session_user.h"
 #include "elang/compiler/semantics/nodes_forward.h"
@@ -25,6 +24,7 @@ namespace compiler {
 
 namespace ir = optimizer;
 
+class Editor;
 class IrTypeMapper;
 
 //////////////////////////////////////////////////////////////////////
@@ -33,8 +33,7 @@ class IrTypeMapper;
 //
 class Translator final : public CompilationSessionUser,
                          public ast::Visitor,
-                         public ir::FactoryUser,
-                         public ZoneOwner {
+                         public ir::FactoryUser {
  public:
   Translator(CompilationSession* session, ir::Factory* factory);
   ~Translator();
@@ -42,15 +41,11 @@ class Translator final : public CompilationSessionUser,
   bool Run();
 
  private:
-  class BasicBlock;
-
-  ir::Editor* editor() const { return editor_; }
+  Editor* editor() const { return editor_; }
   IrTypeMapper* type_mapper() const { return type_mapper_.get(); }
 
-  // Basic block management
+  // Editor
   void Commit();
-  void Edit(ir::Node* control, ir::Node* effect);
-  BasicBlock* NewBasicBlock(ir::Node* control, ir::Node* effect);
 
   // Type management
   ir::Type* MapType(PredefinedName name) const;
@@ -87,10 +82,7 @@ class Translator final : public CompilationSessionUser,
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
 
-  BasicBlock* basic_block_;
-  // A mapping from IR control node to basic block
-  std::unordered_map<ir::Node*, BasicBlock*> basic_blocks_;
-  ir::Editor* editor_;
+  Editor* editor_;
   const std::unique_ptr<IrTypeMapper> type_mapper_;
   std::unordered_map<sm::Variable*, ir::Node*> variables_;
   ir::Node* visit_result_;

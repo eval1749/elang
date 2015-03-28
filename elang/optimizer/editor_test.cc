@@ -28,9 +28,11 @@ class EditorTest : public testing::OptimizerTest {
 TEST_F(EditorTest, ChangeInput) {
   auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGet(entry_node, 1);
 
-  editor.Edit(function->entry_node());
-  editor.SetRet(NewInt32(42));
+  editor.Edit(entry_node);
+  editor.SetRet(effect, NewInt32(42));
 
   auto const ret_node = function->exit_node()->input(0)->input(0);
   editor.ChangeInput(ret_node, 2, NewInt32(33));
@@ -49,18 +51,20 @@ TEST_F(EditorTest, ChangeInput) {
 TEST_F(EditorTest, SetBranch) {
   auto const function = NewSampleFunction(int32_type(), bool_type());
   Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGet(entry_node, 1);
 
-  editor.Edit(function->entry_node());
+  editor.Edit(entry_node);
   auto const param0 = editor.EmitParameter(0);
   auto const merge_control = editor.SetBranch(param0);
   editor.Commit();
 
   editor.Edit(merge_control->input(0));
-  editor.SetRet(NewInt32(42));
+  editor.SetRet(effect, NewInt32(42));
   editor.Commit();
 
   editor.Edit(merge_control->input(1));
-  editor.SetRet(NewInt32(33));
+  editor.SetRet(effect, NewInt32(33));
   editor.Commit();
 
   EXPECT_EQ(
@@ -84,6 +88,7 @@ TEST_F(EditorTest, SetBranchPhi) {
       int32_type(), NewTupleType({bool_type(), int32_type(), int32_type()}));
   Editor editor(factory(), function);
   auto const entry_node = function->entry_node();
+  auto const effect = NewGet(entry_node, 1);
 
   editor.Edit(entry_node);
   auto const merge_control = editor.SetBranch(NewParameter(entry_node, 0));
@@ -103,7 +108,7 @@ TEST_F(EditorTest, SetBranchPhi) {
   auto const phi = NewPhi(int32_type(), ret_control);
   editor.SetPhiInput(phi, ret_control->input(0), NewParameter(entry_node, 1));
   editor.SetPhiInput(phi, ret_control->input(1), NewParameter(entry_node, 2));
-  editor.SetRet(phi);
+  editor.SetRet(effect, phi);
   editor.Commit();
 
   EXPECT_EQ(
@@ -132,9 +137,11 @@ TEST_F(EditorTest, SetBranchPhi) {
 TEST_F(EditorTest, SetRet) {
   auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGet(entry_node, 1);
 
-  editor.Edit(function->entry_node());
-  editor.SetRet(NewInt32(42));
+  editor.Edit(entry_node);
+  editor.SetRet(effect, NewInt32(42));
   editor.Commit();
 
   EXPECT_EQ(
