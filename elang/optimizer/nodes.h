@@ -550,7 +550,9 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ParameterNode
+// |ParameterNode| extracts a data parameter at |field| from |EntryNode|.
+// Unique parameter nodes are appeared at most once in |Function|. Parameter
+// nodes must be scheduled followed by |EntryNode| continuously.
 //
 class ELANG_OPTIMIZER_EXPORT ParameterNode final : public FieldInputNode {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, FieldInputNode);
