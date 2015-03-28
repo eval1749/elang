@@ -77,13 +77,16 @@ FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 NodeFactory::NodeFactory(TypeFactory* type_factory)
     : TypeFactoryUser(type_factory),
       node_cache_(new NodeCache(zone(), type_factory)),
-      node_id_source_(new SequenceIdSource()),
       false_value_(NewBool(false)),
       true_value_(NewBool(true)),
       void_value_(new (zone()) VoidNode(void_type())) {
 }
 
 NodeFactory::~NodeFactory() {
+}
+
+SequenceIdSource* NodeFactory::node_id_source() const {
+  return node_cache_->node_id_source();
 }
 
 Node* NodeFactory::DefaultValueOf(Type* type) {
@@ -100,7 +103,7 @@ Node* NodeFactory::NewFunctionReference(Function* function) {
 }
 
 size_t NodeFactory::NewNodeId() {
-  return node_id_source_->NextId();
+  return node_cache_->NewNodeId();
 }
 
 Node* NodeFactory::NewNull(Type* type) {
@@ -144,10 +147,7 @@ Node* NodeFactory::NewExit(Node* control) {
 
 Node* NodeFactory::NewGet(Node* input, size_t field) {
   DCHECK(input->IsValidData()) << *input;
-  auto const output_type = input->output_type()->as<TupleType>()->get(field);
-  auto const node = new (zone()) GetNode(output_type, input, field);
-  node->set_id(NewNodeId());
-  return node;
+  return node_cache_->NewGet(input, field);
 }
 
 Node* NodeFactory::NewIf(Node* control, Node* data) {

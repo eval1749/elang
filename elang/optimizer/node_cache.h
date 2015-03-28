@@ -1,9 +1,13 @@
-// Copyright 2014-2015 Project Vogue. All rights reserved.
+// Copyright 2015 Project Vogue. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #ifndef ELANG_OPTIMIZER_NODE_CACHE_H_
 #define ELANG_OPTIMIZER_NODE_CACHE_H_
+
+#include <map>
+#include <memory>
+#include <tuple>
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
@@ -17,8 +21,7 @@ class AtomicString;
 class Zone;
 namespace optimizer {
 
-template <typename... Types>
-struct KeyTuple;
+class SequenceIdSource;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,11 +32,17 @@ class NodeCache final : public ZoneUser {
   NodeCache(Zone* zone, TypeFactory* type_factory);
   ~NodeCache();
 
+  SequenceIdSource* node_id_source() const { return node_id_source_.get(); }
+
+  size_t NewNodeId();
+
+  // Cached node construct functions.
 #define V(Name, mnemonic, data_type, ...) \
   Node* New##Name(Type* type, data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
   Node* NewFunctionReference(Type* output_type, Function* function);
+  Node* NewGet(Node* input, size_t field);
   Node* NewNull(Type* type);
   Node* NewReference(Type* type, AtomicString* name);
 
@@ -42,9 +51,11 @@ class NodeCache final : public ZoneUser {
   std::unordered_map<data_type, Node*> name##_cache_;
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
+  std::map<std::tuple<Node*, size_t>, Node*> field_input_node_cache_;
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;
-  std::map<KeyTuple<Type*, AtomicString*>, Node*> reference_cache_;
+  std::map<std::tuple<Type*, AtomicString*>, Node*> reference_cache_;
+  const std::unique_ptr<SequenceIdSource> node_id_source_;
   std::unordered_map<base::StringPiece16, Node*> string_cache_;
   TypeFactory* const type_factory_;
 

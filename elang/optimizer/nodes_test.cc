@@ -70,7 +70,7 @@ TEST_F(NodeTest, RetNode) {
   auto const entry_node = function->entry_node();
   auto const node = NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1),
                            void_value());
-  EXPECT_EQ("control %c8 = ret(%c7, %e6, void)", ToString(node));
+  EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
 }
 
 }  // namespace optimizer
