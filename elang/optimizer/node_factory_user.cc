@@ -57,6 +57,10 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
 }
 
+Node* NodeFactoryUser::NewPhiOperand(Node* control, Node* data) {
+  return node_factory_->NewPhiOperand(control, data);
+}
+
 Node* NodeFactoryUser::NewReference(Type* type, AtomicString* name) {
   return node_factory_->NewReference(type, name);
 }

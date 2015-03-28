@@ -210,6 +210,15 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   return node;
 }
 
+Node* NodeFactory::NewPhiOperand(Node* control, Node* data) {
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(data->IsValidData()) << *data;
+  auto const output_type = NewTupleType({control_type(), data->output_type()});
+  auto const node = new (zone()) PhiOperandNode(output_type, control, data);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
   return node_cache_->NewReference(type, name);
 }

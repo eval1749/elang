@@ -47,7 +47,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
   V(If, "if")                                        \
-  V(PhiInput, "phi_input")                           \
+  V(PhiOperand, "phi_operand")                       \
   V(IntShl, "shl")                                   \
   V(IntShr, "shr")                                   \
   V(StackAlloc, "alloca")                            \
