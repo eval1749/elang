@@ -347,6 +347,27 @@ class VariadicNode : public Node {
   DISALLOW_COPY_AND_ASSIGN(VariadicNode);
 };
 
+//////////////////////////////////////////////////////////////////////
+//
+// PhiOwnerNode
+//
+class ELANG_OPTIMIZER_EXPORT PhiOwnerNode : public VariadicNode {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, VariadicNode);
+
+ public:
+  typedef DoubleLinked<PhiNode, PhiOwnerNode> Phis;
+
+  const Phis& phi_nodes() const { return phi_nodes_; }
+
+ protected:
+  PhiOwnerNode(Type* output_type, Zone* zone);
+
+ private:
+  Phis phi_nodes_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiOwnerNode);
+};
+
 // Concrete classes
 
 //////////////////////////////////////////////////////////////////////
@@ -532,6 +553,32 @@ class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2> {
 
 //////////////////////////////////////////////////////////////////////
 //
+// LoopNode
+//
+class ELANG_OPTIMIZER_EXPORT LoopNode final : public PhiOwnerNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(LoopNode, PhiOwnerNode);
+
+ private:
+  LoopNode(Type* output_type, Zone* zone);
+
+  DISALLOW_COPY_AND_ASSIGN(LoopNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// MergeNode
+//
+class ELANG_OPTIMIZER_EXPORT MergeNode final : public PhiOwnerNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(MergeNode, PhiOwnerNode);
+
+ private:
+  MergeNode(Type* output_type, Zone* zone);
+
+  DISALLOW_COPY_AND_ASSIGN(MergeNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // NullNode
 //
 class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
@@ -556,6 +603,28 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final : public FieldInputNode {
   ParameterNode(Type* output_type, Node* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(ParameterNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// PhiNode
+//
+class ELANG_OPTIMIZER_EXPORT PhiNode final
+    : public VariadicNode,
+      public DoubleLinked<PhiNode, PhiOwnerNode>::Node {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, VariadicNode);
+
+ public:
+  typedef ::elang::optimizer::Node Node;
+
+  PhiOwnerNode* owner() const { return owner_; }
+
+ private:
+  PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* control);
+
+  PhiOwnerNode* owner_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiNode);
 };
 
 //////////////////////////////////////////////////////////////////////

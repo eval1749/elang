@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_set>
+
 #include "elang/optimizer/validator.h"
 
 #include "base/logging.h"
@@ -41,6 +43,7 @@ class Validator::Context : public NodeVisitor {
   void VisitIf(IfNode* node) final;
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
+  void VisitPhi(PhiNode* node) final;
   void VisitPhiOperand(PhiOperandNode* node) final;
   void VisitRet(RetNode* node) final;
   void VisitParameter(ParameterNode* node) final;
@@ -151,6 +154,56 @@ void Validator::Context::VisitIfTrue(IfTrueNode* node) {
     ErrorInInput(node, 0);
 }
 
+void Validator::Context::VisitParameter(ParameterNode* node) {
+  auto const entry_node = node->input(0)->as<EntryNode>();
+  if (!entry_node) {
+    ErrorInInput(node, 0);
+    return;
+  }
+  if (node->output_type() != entry_node->parameter_type(node->field())) {
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    return;
+  }
+}
+
+void Validator::Context::VisitPhi(PhiNode* node) {
+  if (!node->owner()->IsValidControl()) {
+    Error(ErrorCode::ValidatePhiNodeInvalidOwner, node, node->owner());
+    return;
+  }
+  std::unordered_set<Node*> predecessors;
+  for (auto predecessor : node->owner()->inputs())
+    predecessors.insert(predecessor);
+
+  std::unordered_set<Node*> controls;
+  auto index = 0;
+  for (auto const input : node->inputs()) {
+    auto const phi_operand = input->as<PhiOperandNode>();
+    if (!phi_operand) {
+      ErrorInInput(input, index);
+      ++index;
+      continue;
+    }
+    auto const data = phi_operand->input(1);
+    if (data->output_type() != node->output_type())
+      ErrorInInput(node, index);
+    if (!data->IsValidEffect() && !data->IsValidData())
+      ErrorInInput(node, index);
+    auto const control = phi_operand->input(0);
+    if (controls.count(control))
+      ErrorInInput(node, index);
+    if (!predecessors.count(control))
+      ErrorInInput(node, index);
+    controls.insert(control);
+    ++index;
+  }
+
+  for (auto predecessor : node->owner()->inputs()) {
+    if (!controls.count(predecessor))
+      Error(ErrorCode::ValidatePhiNodeMissing, node, predecessor);
+  }
+}
+
 void Validator::Context::VisitPhiOperand(PhiOperandNode* node) {
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
@@ -165,18 +218,6 @@ void Validator::Context::VisitRet(RetNode* node) {
     ErrorInInput(node, 1);
   if (!node->input(2)->IsValidData())
     ErrorInInput(node, 2);
-}
-
-void Validator::Context::VisitParameter(ParameterNode* node) {
-  auto const entry_node = node->input(0)->as<EntryNode>();
-  if (!entry_node) {
-    ErrorInInput(node, 0);
-    return;
-  }
-  if (node->output_type() != entry_node->parameter_type(node->field())) {
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
-    return;
-  }
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -181,6 +181,16 @@ base::StringPiece IntCmpNode::mnemonic() const {
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
+// LoopNode
+LoopNode::LoopNode(Type* output_type, Zone* zone)
+    : PhiOwnerNode(output_type, zone) {
+}
+
+// MergeNode
+MergeNode::MergeNode(Type* output_type, Zone* zone)
+    : PhiOwnerNode(output_type, zone) {
+}
+
 // Node
 Node::Node(Type* output_type) : id_(0), output_type_(output_type) {
 }
@@ -288,6 +298,16 @@ ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
   DCHECK(input->is<EntryNode>()) << *input;
   DCHECK_EQ(input->as<EntryNode>()->parameter_type(index), output_type)
       << *output_type << " " << *input;
+}
+
+// PhiNode
+PhiNode::PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
+    : VariadicNode(output_type, zone), owner_(owner) {
+}
+
+// PhiOwnerNode
+PhiOwnerNode::PhiOwnerNode(Type* output_type, Zone* zone)
+    : VariadicNode(output_type, zone) {
 }
 
 // ReferenceNode

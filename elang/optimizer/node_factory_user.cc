@@ -49,12 +49,20 @@ Node* NodeFactoryUser::NewIfTrue(Node* control) {
   return node_factory_->NewIfTrue(control);
 }
 
-Node* NodeFactoryUser::NewMerge(Node* control0, Node* control1) {
-  return node_factory_->NewMerge(control0, control1);
+Node* NodeFactoryUser::NewJump(Node* control) {
+  return node_factory_->NewJump(control);
+}
+
+Node* NodeFactoryUser::NewMerge(const std::vector<Node*>& inputs) {
+  return node_factory_->NewMerge(inputs);
 }
 
 Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
+}
+
+Node* NodeFactoryUser::NewPhi(Type* output_type, Node* owner) {
+  return node_factory_->NewPhi(output_type, owner);
 }
 
 Node* NodeFactoryUser::NewPhiOperand(Node* control, Node* data) {

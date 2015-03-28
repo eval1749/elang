@@ -17,7 +17,9 @@ namespace optimizer {
   E(Validate, EntryNode, InvalidOutput)     \
   E(Validate, Node, InvalidField)           \
   E(Validate, Node, InvalidInput)           \
-  E(Validate, Node, InvalidOutput)
+  E(Validate, Node, InvalidOutput)          \
+  E(Validate, PhiNode, InvalidOwner)        \
+  E(Validate, PhiNode, Missing)
 
 //////////////////////////////////////////////////////////////////////
 //

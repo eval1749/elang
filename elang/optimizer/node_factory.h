@@ -79,23 +79,22 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   // Four inputs
   Node* NewStore(Node* effect, Node* base_pointer, Node* pointer, Node* value);
 
-  // Variable inputs
+  // variadic inputs
   Node* NewCase(Node* control, Node* label_value);
   Node* NewLoop(Node* control);
-  Node* NewMerge(Node* control0, Node* control1);
-  Node* NewPhi(Type* type);
+  Node* NewMerge(const std::vector<Node*>& inputs);
+  Node* NewPhi(Type* type, Node* owner);
   Node* NewTuple(const std::vector<Node*>& inputs);
   Node* NewTuple(Type* type);
 
  private:
+  // For using |NewEntry()| and |NewExit()|.
   friend class Factory;
-  class LiteralNodeCache;
 
   SequenceIdSource* node_id_source() const;
 
   Node* NewEntry(Type* parameters_type);
   Node* NewExit(Node* control);
-  Node* NewMerge();
 
   size_t NewNodeId();
 

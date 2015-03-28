@@ -7,6 +7,7 @@
 #include "elang/optimizer/editor.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/types.h"
 
 namespace elang {
 namespace optimizer {
@@ -45,7 +46,7 @@ TEST_F(EditorTest, ChangeInput) {
       ToString(function));
 }
 
-TEST_F(EditorTest, SetIf) {
+TEST_F(EditorTest, SetBranch) {
   auto const function = NewSampleFunction(int32_type(), bool_type());
   Editor editor(factory(), function);
 
@@ -75,6 +76,56 @@ TEST_F(EditorTest, SetIf) {
       "0008: control %c12 = ret(%c9, %e3, 33)\n"
       "0009: control %c4 = merge(%c11, %c12)\n"
       "0010: void %r5 = exit(%c4)\n",
+      ToString(function));
+}
+
+TEST_F(EditorTest, SetBranchPhi) {
+  auto const function = NewSampleFunction(
+      int32_type(), NewTupleType({bool_type(), int32_type(), int32_type()}));
+  Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+
+  editor.Edit(entry_node);
+  auto const merge_control = editor.SetBranch(NewParameter(entry_node, 0));
+  editor.Commit();
+
+  auto const ret_control = NewMerge({});
+
+  editor.Edit(merge_control->input(0));
+  editor.SetJump(ret_control);
+  editor.Commit();
+
+  editor.Edit(merge_control->input(1));
+  editor.SetJump(ret_control);
+  editor.Commit();
+
+  editor.Edit(ret_control);
+  auto const phi = NewPhi(int32_type(), ret_control);
+  editor.SetPhiInput(phi, ret_control->input(0), NewParameter(entry_node, 1));
+  editor.SetPhiInput(phi, ret_control->input(1), NewParameter(entry_node, 2));
+  editor.SetRet(phi);
+  editor.Commit();
+
+  EXPECT_EQ(
+      "function1 int32(bool, int32, int32)\n"
+      "0000: (control, effect, (bool, int32, int32)) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: bool %r6 = param(%t1, 0)\n"
+      "0003: control %c7 = if(%c2, %r6)\n"
+      "0004: control %c8 = if_true(%c7)\n"
+      "0005: control %c12 = br(%c8)\n"
+      "0006: control %c9 = if_false(%c7)\n"
+      "0007: control %c13 = br(%c9)\n"
+      "0008: control %c11 = merge(%c12, %c13)\n"
+      "0009: effect %e3 = get(%t1, 1)\n"
+      "0010: int32 %r15 = param(%t1, 1)\n"
+      "0011: (control, int32) %t16 = phi_operand(%c12, %r15)\n"
+      "0012: int32 %r17 = param(%t1, 2)\n"
+      "0013: (control, int32) %t18 = phi_operand(%c13, %r17)\n"
+      "0014: int32 %r14 = phi(%t16, %t18)\n"
+      "0015: control %c19 = ret(%c11, %e3, %r14)\n"
+      "0016: control %c4 = merge(%c19)\n"
+      "0017: void %r5 = exit(%c4)\n",
       ToString(function));
 }
 

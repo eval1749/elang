@@ -133,6 +133,12 @@ TEST_F(NodeTest, Int64Node) {
             ToString(NewInt64(std::numeric_limits<int64_t>::min())));
 }
 
+TEST_F(NodeTest, JumpNode) {
+  auto const function = NewSampleFunction(void_type(), void_type());
+  auto const node = NewJump(NewGet(function->entry_node(), 0));
+  EXPECT_EQ("control %c6 = br(%c2)", ToString(node));
+}
+
 TEST_F(NodeTest, ParameterNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();

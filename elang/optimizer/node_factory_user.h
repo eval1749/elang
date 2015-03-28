@@ -47,7 +47,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewIfFalse(Node* input);
   Node* NewIfSuccess(Node* input);
   Node* NewIfTrue(Node* input);
-  Node* NewJump(Node* input);
+  Node* NewJump(Node* control);
   Node* NewStaticCast(Type* output_type, Node* input);
   Node* NewSwitch(Node* input);
   Node* NewUnreachable(Node* input);
@@ -72,8 +72,8 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   // Variable inputs
   Node* NewCase(Node* control, Node* label_value);
   Node* NewLoop(Node* control);
-  Node* NewMerge(Node* control0, Node* control1);
-  Node* NewPhi(Type* type);
+  Node* NewMerge(const std::vector<Node*>& inputs);
+  Node* NewPhi(Type* type, Node* owner);
   Node* NewTuple(const std::vector<Node*>& inputs);
   Node* NewTuple(Type* type);
 

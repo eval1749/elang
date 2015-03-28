@@ -186,18 +186,20 @@ Node* NodeFactory::NewIfTrue(Node* control) {
   return node;
 }
 
-Node* NodeFactory::NewMerge(Node* control0, Node* control1) {
-  DCHECK(control0->IsValidControl()) << *control0;
-  DCHECK(control1->IsValidControl()) << *control1;
-  auto const node = NewMerge()->as<MergeNode>();
-  node->AppendInput(control0);
-  node->AppendInput(control1);
+Node* NodeFactory::NewJump(Node* control) {
+  DCHECK(control->IsValidControl()) << *control;
+  auto const node = new (zone()) JumpNode(control_type(), control);
+  node->set_id(NewNodeId());
   return node;
 }
 
-Node* NodeFactory::NewMerge() {
+Node* NodeFactory::NewMerge(const std::vector<Node*>& controls) {
   auto const node = new (zone()) MergeNode(control_type(), zone());
   node->set_id(NewNodeId());
+  for (auto const control : controls) {
+    DCHECK(control->IsValidControl()) << *control;
+    node->AppendInput(control);
+  }
   return node;
 }
 
@@ -207,6 +209,16 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   auto const output_type = entry_node->parameter_type(field);
   auto const node = new (zone()) ParameterNode(output_type, input, field);
   node->set_id(NewNodeId());
+  return node;
+}
+
+Node* NodeFactory::NewPhi(Type* output_type, Node* control) {
+  DCHECK(control->IsValidControl()) << *control;
+  auto const owner = control->as<PhiOwnerNode>();
+  DCHECK(owner) << *control;
+  auto const node = new (zone()) PhiNode(output_type, zone(), owner);
+  node->set_id(NewNodeId());
+  owner->phi_nodes_.AppendNode(node);
   return node;
 }
 
@@ -236,16 +248,16 @@ Node* NodeFactory::NewString(base::StringPiece16 data) {
 }
 
 Node* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
-  for (auto const input : inputs)
-    DCHECK(input->IsValidData()) << *input;
   std::vector<Type*> types(inputs.size());
   types.resize(0);
   for (auto input : inputs)
     types.push_back(input->output_type());
   auto const output_type = NewTupleType(types);
   auto const node = new (zone()) TupleNode(output_type, zone());
-  for (auto input : inputs)
+  for (auto input : inputs) {
+    DCHECK(input->IsValidData()) << *input;
     node->AppendInput(input);
+  }
   node->set_id(NewNodeId());
   return node;
 }

@@ -14,7 +14,11 @@ namespace elang {
 namespace optimizer {
 
 // List of abstract C++ classes representing IR node.
-#define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) V(Node)
+#define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
+  V(FieldInputNode)                         \
+  V(Node)                                   \
+  V(PhiOwnerNode)                           \
+  V(VariadicNode)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V) \
   V(Bool, "lit_bool", bool)                         \
@@ -78,9 +82,6 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case")                                    \
-  V(Loop, "loop")                                    \
-  V(Merge, "merge")                                  \
-  V(Phi, "phi")                                      \
   V(Tuple, "tuple")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
@@ -89,8 +90,11 @@ namespace optimizer {
   V(FunctionReference, "fn")                  \
   V(Get, "get")                               \
   V(IntCmp, "cmp")                            \
+  V(Loop, "loop")                             \
+  V(Merge, "merge")                           \
   V(Null, "lit_null")                         \
   V(Parameter, "param")                       \
+  V(Phi, "phi")                               \
   V(Reference, "ref")                         \
   V(SizeOf, "sizeof")                         \
   V(Void, "void")

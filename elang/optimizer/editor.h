@@ -32,12 +32,16 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   // Emit control node
   Node* SetBranch(Node* condition);
+  void SetJump(Node* target);
   void SetRet(Node* data);
 
   // Edit input edge
   void AppendInput(Node* node, Node* new_value);
   void ChangeInput(Node* node, size_t index, Node* new_value);
   void ReplaceAllUses(Node* new_node, Node* old_node);
+
+  // Phi
+  void SetPhiInput(Node* phi, Node* control, Node* value);
 
  private:
   Node* entry_node() const;
