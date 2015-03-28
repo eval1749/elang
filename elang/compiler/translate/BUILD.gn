@@ -1,0 +1,43 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//testing/test.gni")
+
+static_library("translate") {
+  sources = [
+    "type_mapper.cc",
+    "type_mapper.h",
+  ]
+
+  defines = [ "TRANSLATOR_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/compiler/ast",
+    "//elang/compiler/semantics",
+    "//elang/optimizer",
+  ]
+}
+
+source_set("translate_testing") {
+  testonly = true
+  sources = [
+    "translator_test.cc",
+    "translator_test.h",
+  ]
+  public_deps = [
+    "//elang/compiler:compiler_testing",
+  ]
+}
+
+source_set("translate_test") {
+  testonly = true
+  sources = [
+    "type_mapper_test.cc",
+  ]
+  public_deps = [
+    ":translate_testing",
+  ]
+}

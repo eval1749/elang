@@ -61,10 +61,11 @@ static_library("compiler") {
     "//elang/compiler/analysis",
     "//elang/compiler/ast",
     "//elang/compiler/cg",
+    "//elang/compiler/translate",
   ]
 }
 
-source_set("compiler_test") {
+static_library("compiler_testing") {
   testonly = true
   sources = [
     "testing/analyzer_test.cc",
@@ -77,8 +78,8 @@ source_set("compiler_test") {
     "testing/namespace_builder.h",
   ]
   public_deps = [
-    ":compiler",
     "//testing/gtest",
+    ":compiler",
   ]
 }
 
@@ -94,6 +95,7 @@ test("elang_compiler_tests") {
     "//elang/compiler/analysis:compiler_analysis_test",
     "//elang/compiler/cg:compiler_cg_test",
     "//elang/compiler/semantics:compiler_semantics_test",
-    ":compiler_test",
+    "//elang/compiler/translate:translate_test",
+    ":compiler_testing",
   ]
 }
