@@ -177,8 +177,7 @@ base::StringPiece IntCmpNode::mnemonic() const {
   Name##Node::Name##Node(Type* output_type, data_type data) \
       : NodeTemplate(output_type), data_(data) {            \
     DCHECK(output_type->is<Name##Type>());                  \
-  }                                                         \
-  bool Name##Node::IsLiteral() const { return true; }
+  }
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
@@ -248,7 +247,7 @@ bool Node::IsEffect() const {
 }
 
 bool Node::IsLiteral() const {
-  return false;
+  return IsData() && !CountInputs() && opcode() != Opcode::EntryNode;
 }
 
 bool Node::IsValidControl() const {
@@ -256,7 +255,7 @@ bool Node::IsValidControl() const {
 }
 
 bool Node::IsValidData() const {
-  return IsLiteral() || (IsData() && id_);
+  return !CountInputs() || (IsData() && id_);
 }
 
 bool Node::IsValidEffect() const {
@@ -283,10 +282,6 @@ void Node::Unuse(Input* input) {
 NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 }
 
-bool NullNode::IsLiteral() const {
-  return true;
-}
-
 // ParameterNode
 ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
     : FieldInputNode(output_type, input, index) {
@@ -295,6 +290,7 @@ ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
       << *output_type << " " << *input;
 }
 
+// ReferenceNode
 ReferenceNode::ReferenceNode(Type* output_type, AtomicString* name)
     : NodeTemplate(output_type), name_(name) {
 }
@@ -380,10 +376,6 @@ Input* VariadicNode::InputAt(size_t index) const {
 // VoidNode
 VoidNode::VoidNode(Type* output_type) : NodeTemplate(output_type) {
   DCHECK(output_type->is<VoidType>());
-}
-
-bool VoidNode::IsLiteral() const {
-  return true;
 }
 
 }  // namespace optimizer

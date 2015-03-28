@@ -235,7 +235,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   bool IsControl() const;
   bool IsData() const;
   bool IsEffect() const;
-  virtual bool IsLiteral() const;
+  bool IsLiteral() const;
   bool IsValidControl() const;
   bool IsValidData() const;
   bool IsValidEffect() const;
@@ -363,8 +363,6 @@ class VariadicNode : public Node {
    private:                                                                \
     Name##Node(Type* output_type, data_type data);                         \
                                                                            \
-    bool IsLiteral() const final;                                          \
-                                                                           \
     data_type const data_;                                                 \
                                                                            \
     DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
@@ -429,14 +427,14 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 #undef V
 
-#define V(Name, ...)                                                          \
+#define V(Name, ...)                                                    \
   class ELANG_OPTIMIZER_EXPORT Name##Node final : public VariadicNode { \
     DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, VariadicNode);    \
-                                                                              \
-   private:                                                                   \
-    Name##Node(Type* output_type, Zone* zone);                                \
-                                                                              \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                     \
+                                                                        \
+   private:                                                             \
+    Name##Node(Type* output_type, Zone* zone);                          \
+                                                                        \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                               \
   };
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
@@ -542,9 +540,6 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
  private:
   explicit NullNode(Type* output_type);
 
-  // Node
-  bool IsLiteral() const final;
-
   DISALLOW_COPY_AND_ASSIGN(NullNode);
 };
 
@@ -608,9 +603,6 @@ class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0> {
 
  private:
   explicit VoidNode(Type* output_type);
-
-  // Node
-  bool IsLiteral() const final;
 
   DISALLOW_COPY_AND_ASSIGN(VoidNode);
 };
