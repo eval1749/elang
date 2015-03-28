@@ -325,13 +325,13 @@ class FieldInputNode : public NodeTemplate<1> {
 
 //////////////////////////////////////////////////////////////////////
 //
-// VaraibleInputNode
+// VariadicNode
 //
-class VariableInputsNode : public Node {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariableInputsNode, Node);
+class VariadicNode : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariadicNode, Node);
 
  protected:
-  VariableInputsNode(Type* output_type, Zone* zone);
+  VariadicNode(Type* output_type, Zone* zone);
 
  private:
   class InputAnchor;
@@ -344,7 +344,7 @@ class VariableInputsNode : public Node {
 
   ZoneDeque<InputAnchor*> inputs_;
 
-  DISALLOW_COPY_AND_ASSIGN(VariableInputsNode);
+  DISALLOW_COPY_AND_ASSIGN(VariadicNode);
 };
 
 // Concrete classes
@@ -430,8 +430,8 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 #undef V
 
 #define V(Name, ...)                                                          \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public VariableInputsNode { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, VariableInputsNode);    \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final : public VariadicNode { \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, VariadicNode);    \
                                                                               \
    private:                                                                   \
     Name##Node(Type* output_type, Zone* zone);                                \

@@ -344,12 +344,12 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 // Variable nodes
 #define V(Name, ...)                                    \
   Name##Node::Name##Node(Type* output_type, Zone* zone) \
-      : VariableInputsNode(output_type, zone) {}
+      : VariadicNode(output_type, zone) {}
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
 
-// VariableInputsNode::InputAnchor
-class VariableInputsNode::InputAnchor : public ZoneAllocated {
+// VariadicNode::InputAnchor
+class VariadicNode::InputAnchor : public ZoneAllocated {
  public:
   InputAnchor() = default;
   ~InputAnchor() = delete;
@@ -362,18 +362,18 @@ class VariableInputsNode::InputAnchor : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(InputAnchor);
 };
 
-// VariableInputsNode
-VariableInputsNode::VariableInputsNode(Type* output_type, Zone* zone)
+// VariadicNode
+VariadicNode::VariadicNode(Type* output_type, Zone* zone)
     : Node(output_type), inputs_(zone) {
 }
 
-void VariableInputsNode::AppendInput(Node* value) {
+void VariadicNode::AppendInput(Node* value) {
   auto const zone = inputs_.get_allocator().zone();
   inputs_.push_back(new (zone) InputAnchor());
   InitInputAt(inputs_.size() - 1, value);
 }
 
-Input* VariableInputsNode::InputAt(size_t index) const {
+Input* VariadicNode::InputAt(size_t index) const {
   return inputs_[index]->input();
 }
 

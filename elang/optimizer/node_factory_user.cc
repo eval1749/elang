@@ -65,8 +65,8 @@ Node* NodeFactoryUser::NewTuple(Type* output_type) {
   return node_factory_->NewTuple(output_type);
 }
 
-Node* NodeFactoryUser::NewTuple(Node* input0, Node* input1) {
-  return node_factory_->NewTuple(input0, input1);
+Node* NodeFactoryUser::NewTuple(const std::vector<Node*>& inputs) {
+  return node_factory_->NewTuple(inputs);
 }
 
 // Literal nodes

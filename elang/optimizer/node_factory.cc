@@ -212,14 +212,17 @@ Node* NodeFactory::NewString(base::StringPiece16 data) {
   return node_cache_->NewString(string_type(), data);
 }
 
-Node* NodeFactory::NewTuple(Node* input0, Node* input1) {
-  DCHECK(input0->IsValidData()) << *input0;
-  DCHECK(input1->IsValidData()) << *input1;
-  auto const output_type =
-      NewTupleType({input0->output_type(), input1->output_type()});
+Node* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
+  for (auto const input : inputs)
+    DCHECK(input->IsValidData()) << *input;
+  std::vector<Type*> types(inputs.size());
+  types.resize(0);
+  for (auto input : inputs)
+    types.push_back(input->output_type());
+  auto const output_type = NewTupleType(types);
   auto const node = new (zone()) TupleNode(output_type, zone());
-  node->AppendInput(input0);
-  node->AppendInput(input1);
+  for (auto input : inputs)
+    node->AppendInput(input);
   node->set_id(NewNodeId());
   return node;
 }

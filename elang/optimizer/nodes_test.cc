@@ -80,7 +80,7 @@ TEST_F(NodeTest, TupleNode) {
   auto const parameters = NewGet(entry_node, 2);
   auto const parameter0 = NewGet(parameters, 0);
   auto const parameter1 = NewGet(parameters, 1);
-  auto const node = NewTuple(parameter1, parameter0);
+  auto const node = NewTuple({parameter1, parameter0});
   EXPECT_EQ("(int64, int32) %t9 = tuple(%r8, %r7)", ToString(node));
 }
 

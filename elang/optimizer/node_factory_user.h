@@ -74,7 +74,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewLoop(Node* control);
   Node* NewMerge(Node* control0, Node* control1);
   Node* NewPhi(Type* type);
-  Node* NewTuple(Node* input0, Node* input1);
+  Node* NewTuple(const std::vector<Node*>& inputs);
   Node* NewTuple(Type* type);
 
  protected:
