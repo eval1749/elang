@@ -38,26 +38,107 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Translator::BasicBlock
+//
+class Translator::BasicBlock final : public ZoneAllocated {
+ public:
+  BasicBlock(ir::Node* control, ir::Node* effect);
+  ~BasicBlock() = delete;
+
+  ir::Node* control() const { return control_; }
+  ir::Node* effect() const { return effect_; }
+  void set_effect(ir::Node* effect);
+
+ private:
+  // Control value associated to this |BasicBlock|.
+  ir::Node* const control_;
+
+  // Effect value at the end of this |BasicBlock|.
+  ir::Node* effect_;
+
+  DISALLOW_COPY_AND_ASSIGN(BasicBlock);
+};
+
+Translator::BasicBlock::BasicBlock(ir::Node* control, ir::Node* effect)
+    : control_(control), effect_(effect) {
+  DCHECK(control_->IsValidControl());
+  DCHECK(effect_->IsValidEffect());
+}
+
+void Translator::BasicBlock::set_effect(ir::Node* effect) {
+  DCHECK(effect->IsValidEffect()) << *effect;
+  DCHECK_NE(effect_, effect) << *effect;
+  effect_ = effect;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Translator
 //
 Translator::Translator(CompilationSession* session, ir::Factory* factory)
     : CompilationSessionUser(session),
       FactoryUser(factory),
+      basic_block_(nullptr),
       editor_(nullptr),
-      output_(nullptr),
-      type_mapper_(new IrTypeMapper(session, factory->type_factory())) {
+      type_mapper_(new IrTypeMapper(session, factory->type_factory())),
+      visit_result_(nullptr) {
 }
 
 Translator::~Translator() {
 }
 
-void Translator::Commit() {
-  editor()->Commit();
+void Translator::BindParameters(ast::Method* method) {
+  if (method->parameters().empty())
+    return;
+  auto index = 0;
+  for (auto const parameter : method->parameters()) {
+    BindVariable(parameter, editor()->EmitParameter(index));
+    ++index;
+  }
 }
 
-void Translator::EmitOutput(ir::Node* node) {
-  DCHECK(!output_);
-  output_ = node;
+void Translator::BindVariable(ast::NamedNode* ast_node,
+                              ir::Node* variable_value) {
+  auto const variable = ValueOf(ast_node)->as<sm::Variable>();
+  DCHECK_EQ(MapType(variable->type()), variable_value->output_type());
+  if (variable->storage() == sm::StorageClass::Void)
+    return;
+  DCHECK(!variables_.count(variable));
+  if (variable->storage() == sm::StorageClass::ReadOnly) {
+    variables_[variable] = variable_value;
+    return;
+  }
+
+  // TODO(eval1749) We should introduce |sm::StorageClass::Register| and
+  // use here instead of |sm::StorageClass::Local|.
+  DCHECK_EQ(variable->storage(), sm::StorageClass::Local);
+  variables_[variable] = variable_value;
+}
+
+void Translator::Commit() {
+  DCHECK(editor()->control());
+  DCHECK_EQ(basic_block_, basic_blocks_[editor()->control()]);
+  editor()->Commit();
+  basic_block_ = nullptr;
+}
+
+void Translator::Edit(ir::Node* control, ir::Node* effect) {
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(effect->IsValidEffect()) << *effect;
+  DCHECK(!basic_block_);
+  editor()->Edit(control);
+  auto const it = basic_blocks_.find(control);
+  if (it == basic_blocks_.end()) {
+    basic_block_ = NewBasicBlock(control, effect);
+    return;
+  }
+  basic_block_ = it->second;
+  DCHECK_EQ(effect, basic_block_->effect());
+}
+
+void Translator::SetVisitorResult(ir::Node* node) {
+  DCHECK(!visit_result_);
+  visit_result_ = node;
 }
 
 ir::Type* Translator::MapType(PredefinedName name) const {
@@ -68,17 +149,29 @@ ir::Type* Translator::MapType(sm::Type* type) const {
   return type_mapper_->Map(type);
 }
 
+Translator::BasicBlock* Translator::NewBasicBlock(ir::Node* control,
+                                                  ir::Node* effect) {
+  DCHECK(control->IsValidControl()) << *control;
+  DCHECK(effect->IsValidEffect()) << *effect;
+  DCHECK(!basic_blocks_.count(control));
+  auto const basic_block = new (ZoneOwner::zone()) BasicBlock(control, effect);
+  basic_blocks_[control] = basic_block;
+  return basic_block;
+}
+
 // The entry point of |Translator::|.
 bool Translator::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
   return session()->errors().empty();
 }
 
-ir::Node* Translator::Translate(ast::Node* node) {
-  DCHECK(!output_);
+ir::Node* Translator::Translate(ast::Expression* node) {
+  DCHECK(!visit_result_);
   node->Accept(this);
-  DCHECK(output_);
-  return output_;
+  DCHECK(visit_result_) << *node;
+  auto const result = visit_result_;
+  visit_result_ = nullptr;
+  return result;
 }
 
 ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
@@ -122,6 +215,21 @@ ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
   return nullptr;
 }
 
+void Translator::TranslateStatement(ast::Statement* node) {
+  DCHECK(!visit_result_);
+  node->Accept(this);
+  DCHECK(!visit_result_);
+}
+
+ir::Node* Translator::TranslateVariable(ast::NamedNode* ast_variable) {
+  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+  DCHECK(variable);
+  auto const it = variables_.find(variable);
+  DCHECK(it != variables_.end()) << *variable << " isn't resolved";
+  DCHECK(it->second) << *variable << " has no value";
+  return it->second;
+}
+
 sm::Semantic* Translator::ValueOf(ast::Node* node) const {
   return semantics()->ValueOf(node);
 }
@@ -146,6 +254,7 @@ void Translator::DoDefaultVisit(ast::Node* node) {
 //
 
 void Translator::VisitMethod(ast::Method* ast_method) {
+  DCHECK(!basic_block_);
   DCHECK(!editor_);
   //  1 Convert ast::FunctionType to ir::FunctionType
   //  2 ir::NewFunction(function_type)
@@ -163,11 +272,12 @@ void Translator::VisitMethod(ast::Method* ast_method) {
 
   ir::Editor editor(factory(), function);
   TemporaryChangeValue<ir::Editor*> editor_scope(editor_, &editor);
-  editor.Edit(function->entry_node());
+  auto const entry_node = function->entry_node();
+  Edit(NewGet(entry_node, 0), NewGet(entry_node, 1));
 
-  // TODO(eval1749) emit parameter bindings
+  BindParameters(ast_method);
   // TODO(eval1749) handle body expression
-  Translate(ast_method_body);
+  TranslateStatement(ast_method_body->as<ast::Statement>());
   if (!editor.control())
     return;
   if (MapType(method->return_type()) != MapType(PredefinedName::Void) &&
@@ -184,7 +294,15 @@ void Translator::VisitMethod(ast::Method* ast_method) {
 
 void Translator::VisitLiteral(ast::Literal* node) {
   auto const value = ValueOf(node)->as<sm::Literal>();
-  EmitOutput(TranslateLiteral(MapType(value->type()), node->token()));
+  SetVisitorResult(TranslateLiteral(MapType(value->type()), node->token()));
+}
+
+void Translator::VisitParameterReference(ast::ParameterReference* node) {
+  SetVisitorResult(TranslateVariable(node->parameter()));
+}
+
+void Translator::VisitVariableReference(ast::VariableReference* node) {
+  SetVisitorResult(TranslateVariable(node->variable()));
 }
 
 //
@@ -197,7 +315,7 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
       // checking |statement|.
       break;
     }
-    Translate(statement);
+    TranslateStatement(statement);
   }
 }
 
@@ -207,7 +325,7 @@ void Translator::VisitExpressionList(ast::ExpressionList* node) {
 }
 
 void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
-  DCHECK(!output_);
+  DCHECK(!visit_result_);
   node->expression()->Accept(this);
 }
 

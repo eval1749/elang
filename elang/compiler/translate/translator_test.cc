@@ -57,6 +57,23 @@ TEST_F(TranslatorTest, ReturnLiteral) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, ReturnParameter) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int x) { return x; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "0000: (control, effect, int32) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: int32 %r6 = param(%t1, 0)\n"
+      "0004: control %c7 = ret(%c2, %e3, %r6)\n"
+      "0005: control %c4 = merge(%c7)\n"
+      "0006: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang
