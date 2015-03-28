@@ -24,6 +24,20 @@ class NodeTest : public testing::OptimizerTest {
   DISALLOW_COPY_AND_ASSIGN(NodeTest);
 };
 
+TEST_F(NodeTest, CallNode) {
+  auto const function = NewSampleFunction(
+      void_type(), NewTupleType({int32_type(), int64_type()}));
+  auto const entry_node = function->entry_node();
+  auto const callee = NewReference(
+      NewFunctionType(void_type(), NewTupleType({int32_type(), int64_type()})),
+      NewAtomicString(L"Foo"));
+  auto const arguments =
+      NewTuple({NewParameter(entry_node, 0), NewParameter(entry_node, 1)});
+  auto const node = NewCall(NewGet(entry_node, 1), callee, arguments);
+  EXPECT_EQ("(effect, void) %t9 = call(%e3, void(int32, int64) Foo, %t8)",
+            ToString(node));
+}
+
 TEST_F(NodeTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();

@@ -72,11 +72,11 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs
+  Node* NewCall(Node* effect, Node* callee, Node* arguments);
   Node* NewLoad(Node* effect, Node* base_pointer, Node* pointer);
   Node* NewRet(Node* control, Node* effect, Node* data);
 
   // Four inputs
-  Node* NewCall(Node* effect, Node* control, Node* callee, Node* arguments);
   Node* NewStore(Node* effect, Node* base_pointer, Node* pointer, Node* value);
 
   // Variable inputs

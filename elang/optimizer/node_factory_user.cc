@@ -29,6 +29,10 @@ Node* NodeFactoryUser::void_value() const {
   return node_factory_->void_value();
 }
 
+Node* NodeFactoryUser::NewCall(Node* effect, Node* callee, Node* arguments) {
+  return node_factory_->NewCall(effect, callee, arguments);
+}
+
 Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
   return node_factory_->NewGet(input, field);
 }

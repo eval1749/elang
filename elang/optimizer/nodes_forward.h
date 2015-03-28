@@ -70,12 +70,11 @@ namespace optimizer {
   V(IntSub, "sub")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) \
+  V(Call, "call")                                    \
   V(Load, "load")                                    \
   V(Ret, "ret")
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) \
-  V(Call, "call")                                    \
-  V(Store, "store")
+#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Store, "store")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case")                                    \

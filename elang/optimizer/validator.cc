@@ -34,6 +34,7 @@ class Validator::Context : public NodeVisitor {
 
   // NodeVisitor member functions
   void DoDefaultVisit(Node* node) final;
+  void VisitCall(CallNode* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
@@ -67,6 +68,29 @@ void Validator::Context::ErrorInInput(Node* node, int index) {
 }
 
 void Validator::Context::DoDefaultVisit(Node* node) {
+}
+
+void Validator::Context::VisitCall(CallNode* node) {
+  auto const tuple_type = node->output_type()->as<TupleType>();
+  if (!tuple_type || tuple_type->size() != 2) {
+    Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
+    return;
+  }
+  if (!tuple_type->get(0)->is<EffectType>()) {
+    Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
+    return;
+  }
+  if (!node->input(0)->output_type()->is<EffectType>())
+    ErrorInInput(node, 0);
+  auto const callee_type = node->input(1)->output_type()->as<FunctionType>();
+  if (!callee_type) {
+    ErrorInInput(node, 1);
+    return;
+  }
+  if (tuple_type->get(1) != callee_type->return_type())
+    ErrorInInput(node, 1);
+  if (node->input(1)->output_type() != callee_type->parameters_type())
+    ErrorInInput(node, 2);
 }
 
 void Validator::Context::VisitEntry(EntryNode* node) {

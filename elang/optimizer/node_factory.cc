@@ -97,6 +97,20 @@ Node* NodeFactory::DefaultValueOf(Type* type) {
   return factory.value();
 }
 
+Node* NodeFactory::NewCall(Node* effect, Node* callee, Node* arguments) {
+  DCHECK(effect->IsValidEffect()) << *effect;
+  DCHECK(callee->IsValidData()) << *callee;
+  DCHECK(callee->output_type()->is<FunctionType>()) << *callee;
+  DCHECK(arguments->IsValidData()) << *arguments;
+  auto const output_type =
+      NewTupleType({effect_type(),
+                    callee->output_type()->as<FunctionType>()->return_type()});
+  auto const node =
+      new (zone()) CallNode(output_type, effect, callee, arguments);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Node* NodeFactory::NewFunctionReference(Function* function) {
   auto const output_type = NewPointerType(function->function_type());
   return node_cache_->NewFunctionReference(output_type, function);
