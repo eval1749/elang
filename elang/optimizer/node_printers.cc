@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/types.h"
@@ -33,13 +34,24 @@ class NodePrinter final : public NodeVisitor {
 
  private:
   void DoDefaultVisit(Node* node) final;
+  void VisitBool(BoolNode* node) final;
+  void VisitChar(CharNode* node) final;
+  void VisitFloat32(Float32Node* node) final;
+  void VisitFloat64(Float64Node* node) final;
+  void VisitInt16(Int16Node* node) final;
+  void VisitInt32(Int32Node* node) final;
+  void VisitInt64(Int64Node* node) final;
+  void VisitInt8(Int8Node* node) final;
+  void VisitIntPtr(IntPtrNode* node) final;
   void VisitNull(NullNode* node) final;
   void VisitReference(ReferenceNode* node) final;
+  void VisitString(StringNode* node) final;
+  void VisitUInt16(UInt16Node* node) final;
+  void VisitUInt32(UInt32Node* node) final;
+  void VisitUInt64(UInt64Node* node) final;
+  void VisitUInt8(UInt8Node* node) final;
+  void VisitUIntPtr(UIntPtrNode* node) final;
   void VisitVoid(VoidNode* node) final;
-
-#define V(Name, ...) void Visit##Name(Name##Node* node) final;
-  FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
-#undef V
 
   std::ostream& ostream_;
 
@@ -81,6 +93,42 @@ void NodePrinter::DoDefaultVisit(Node* node) {
   ostream_ << ")";
 }
 
+void NodePrinter::VisitBool(BoolNode* node) {
+  ostream_ << std::boolalpha << node->data();
+}
+
+void NodePrinter::VisitChar(CharNode* node) {
+  ostream_ << '\'' << AsPrintable(node->data(), '\'') << '\'';
+}
+
+void NodePrinter::VisitFloat32(Float32Node* node) {
+  ostream_ << std::showpoint << node->data() << "f";
+}
+
+void NodePrinter::VisitFloat64(Float64Node* node) {
+  ostream_ << std::showpoint << node->data();
+}
+
+void NodePrinter::VisitInt16(Int16Node* node) {
+  ostream_ << "int16(" << node->data() << ")";
+}
+
+void NodePrinter::VisitInt32(Int32Node* node) {
+  ostream_ << node->data();
+}
+
+void NodePrinter::VisitInt64(Int64Node* node) {
+  ostream_ << node->data() << "l";
+}
+
+void NodePrinter::VisitInt8(Int8Node* node) {
+  ostream_ << "int8(" << static_cast<int>(node->data()) << ")";
+}
+
+void NodePrinter::VisitIntPtr(IntPtrNode* node) {
+  ostream_ << "intptr(" << node->data() << ")";
+}
+
 void NodePrinter::VisitNull(NullNode* node) {
   ostream_ << "null";
 }
@@ -89,16 +137,37 @@ void NodePrinter::VisitReference(ReferenceNode* node) {
   ostream_ << *node->output_type() << " " << *node->name();
 }
 
+void NodePrinter::VisitString(StringNode* node) {
+  ostream_ << '"';
+  for (auto ch : node->data())
+    ostream_ << AsPrintable(ch, '"');
+  ostream_ << '"';
+}
+
+void NodePrinter::VisitUInt16(UInt16Node* node) {
+  ostream_ << "uint16(" << node->data() << ")";
+}
+
+void NodePrinter::VisitUInt32(UInt32Node* node) {
+  ostream_ << node->data() << "u";
+}
+
+void NodePrinter::VisitUInt64(UInt64Node* node) {
+  ostream_ << node->data() << "ul";
+}
+
+void NodePrinter::VisitUInt8(UInt8Node* node) {
+  ostream_ << "uint8(" << static_cast<int>(node->data()) << ")";
+}
+
+void NodePrinter::VisitUIntPtr(UIntPtrNode* node) {
+  ostream_ << "uintptr(" << node->data() << ")";
+}
+
 void NodePrinter::VisitVoid(VoidNode* node) {
   ostream_ << "void";
 }
 
-#define V(Name, ...)                                                  \
-  void NodePrinter::Visit##Name(Name##Node* literal) {                \
-    ostream_ << literal->mnemonic() << "(" << literal->data() << ")"; \
-  }
-FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
-#undef V
 }  // namespace
 
 std::ostream& operator<<(std::ostream& ostream, FloatCondition condition) {

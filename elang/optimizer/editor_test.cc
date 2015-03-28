@@ -39,7 +39,7 @@ TEST_F(EditorTest, ChangeInput) {
       "0000: (control, effect, int32) %t1 = entry()\n"
       "0001: control %c2 = get(%t1, 0)\n"
       "0002: effect %e3 = get(%t1, 1)\n"
-      "0003: control %c6 = ret(%c2, %e3, lit_i32(33))\n"
+      "0003: control %c6 = ret(%c2, %e3, 33)\n"
       "0004: control %c4 = merge(%c6)\n"
       "0005: void %r5 = exit(%c4)\n",
       ToString(function));
@@ -70,9 +70,9 @@ TEST_F(EditorTest, SetIf) {
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
       "0005: effect %e3 = get(%t1, 1)\n"
-      "0006: control %c11 = ret(%c8, %e3, lit_i32(42))\n"
+      "0006: control %c11 = ret(%c8, %e3, 42)\n"
       "0007: control %c9 = if_false(%c7)\n"
-      "0008: control %c12 = ret(%c9, %e3, lit_i32(33))\n"
+      "0008: control %c12 = ret(%c9, %e3, 33)\n"
       "0009: control %c4 = merge(%c11, %c12)\n"
       "0010: void %r5 = exit(%c4)\n",
       ToString(function));
@@ -91,7 +91,7 @@ TEST_F(EditorTest, SetRet) {
       "0000: (control, effect, int32) %t1 = entry()\n"
       "0001: control %c2 = get(%t1, 0)\n"
       "0002: effect %e3 = get(%t1, 1)\n"
-      "0003: control %c6 = ret(%c2, %e3, lit_i32(42))\n"
+      "0003: control %c6 = ret(%c2, %e3, 42)\n"
       "0004: control %c4 = merge(%c6)\n"
       "0005: void %r5 = exit(%c4)\n",
       ToString(function));

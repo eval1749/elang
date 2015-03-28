@@ -228,11 +228,11 @@ void ValueFormatter::VisitCharLiteral(CharLiteral* literal) {
 }
 
 void ValueFormatter::VisitFloat32Literal(Float32Literal* literal) {
-  ostream_ << literal->data() << "f";
+  ostream_ << std::scientific << literal->data() << "f";
 }
 
 void ValueFormatter::VisitFloat64Literal(Float64Literal* literal) {
-  ostream_ << literal->data();
+  ostream_ << std::scientific << literal->data();
 }
 
 void ValueFormatter::VisitInt16Literal(Int16Literal* literal) {
