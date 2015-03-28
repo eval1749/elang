@@ -4,7 +4,7 @@
 
 #include "elang/optimizer/type_factory.h"
 
-#include <unordered_map>
+#include <map>
 #include <utility>
 
 #include "base/logging.h"
@@ -16,52 +16,6 @@ namespace elang {
 namespace optimizer {
 typedef std::pair<Type*, std::vector<int>> ArrayProperty;
 typedef std::pair<Type*, Type*> TypePair;
-}  // namespace optimizer
-}  // namespace elang
-
-namespace std {
-using elang::optimizer::ArrayProperty;
-using elang::optimizer::Type;
-using elang::optimizer::TypePair;
-
-template <>
-struct hash<ArrayProperty> {
-  size_t operator()(const ArrayProperty& pair) const {
-    auto hash_code = std::hash<Type*>()(pair.first);
-    for (auto const dimension : pair.second) {
-      auto const upper = hash_code >> (sizeof(hash_code) - 3);
-      hash_code <<= 3;
-      hash_code ^= std::hash<int>()(dimension);
-      hash_code ^= upper;
-    }
-    return hash_code;
-  }
-};
-
-template <>
-struct hash<std::vector<Type*>> {
-  size_t operator()(const std::vector<Type*>& types) const {
-    auto hash_code = 0;
-    for (auto const type : types) {
-      auto const upper = hash_code >> (sizeof(hash_code) - 3);
-      hash_code <<= 3;
-      hash_code ^= std::hash<Type*>()(type);
-      hash_code ^= upper;
-    }
-    return hash_code;
-  }
-};
-
-template <>
-struct hash<TypePair> {
-  size_t operator()(const TypePair& pair) const {
-    return std::hash<Type*>()(pair.first) ^ std::hash<Type*>()(pair.second);
-  }
-};
-}  // namespace std
-
-namespace elang {
-namespace optimizer {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -76,7 +30,7 @@ class TypeFactory::ArrayTypeFactory final {
                           const std::vector<int>& dimensions);
 
  private:
-  std::unordered_map<ArrayProperty, ArrayType*> map_;
+  std::map<ArrayProperty, ArrayType*> map_;
   Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayTypeFactory);
@@ -106,7 +60,7 @@ class TypeFactory::FunctionTypeFactory final {
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
 
  private:
-  std::unordered_map<TypePair, FunctionType*> map_;
+  std::map<TypePair, FunctionType*> map_;
   Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(FunctionTypeFactory);
@@ -136,7 +90,7 @@ class TypeFactory::TupleTypeFactory final {
   TupleType* NewTupleType(const std::vector<Type*>& members);
 
  private:
-  std::unordered_map<std::vector<Type*>, TupleType*> map_;
+  std::map<std::vector<Type*>, TupleType*> map_;
   Zone* const zone_;
 
   DISALLOW_COPY_AND_ASSIGN(TupleTypeFactory);
