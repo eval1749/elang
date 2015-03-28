@@ -23,6 +23,9 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   Editor(Factory* factory, Function* function);
   ~Editor();
 
+  Node* control() const { return control_; }
+  Function* function() const { return function_; }
+
   // Edit session
   void Commit();
   void Edit(Node* control);
@@ -42,6 +45,8 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   // Phi
   void SetPhiInput(Node* phi, Node* control, Node* value);
+
+  bool Validate() const;
 
  private:
   Node* entry_node() const;

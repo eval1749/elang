@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/validator.h"
 
 namespace elang {
 namespace optimizer {
@@ -143,6 +144,11 @@ void Editor::SetRet(Node* data) {
     }
   }
   merge_node->AppendInput(NewRet(control_, effect_, data));
+}
+
+bool Editor::Validate() const {
+  Validator validator(factory(), function());
+  return validator.Validate();
 }
 
 }  // namespace optimizer
