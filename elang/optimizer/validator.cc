@@ -38,6 +38,9 @@ class Validator::Context : public NodeVisitor {
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
+  void VisitIf(IfNode* node) final;
+  void VisitIfFalse(IfFalseNode* node) final;
+  void VisitIfTrue(IfTrueNode* node) final;
   void VisitPhiOperand(PhiOperandNode* node) final;
   void VisitRet(RetNode* node) final;
   void VisitParameter(ParameterNode* node) final;
@@ -123,6 +126,29 @@ void Validator::Context::VisitGet(GetNode* node) {
     ErrorInInput(node, 0);
     return;
   }
+}
+
+void Validator::Context::VisitIf(IfNode* node) {
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  if (!node->input(1)->IsValidData())
+    ErrorInInput(node, 1);
+  if (!node->input(1)->output_type()->is<BoolType>())
+    ErrorInInput(node, 1);
+}
+
+void Validator::Context::VisitIfFalse(IfFalseNode* node) {
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  if (!node->input(0)->is<IfNode>())
+    ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitIfTrue(IfTrueNode* node) {
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  if (!node->input(0)->is<IfNode>())
+    ErrorInInput(node, 0);
 }
 
 void Validator::Context::VisitPhiOperand(PhiOperandNode* node) {
