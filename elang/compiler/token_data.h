@@ -44,6 +44,7 @@ class TokenData {
   float32_t f32_data() const;
   float64_t f64_data() const;
   bool has_atomic_string() const;
+  int32_t int32_data() const;
   int64_t int64_data() const;
   bool is_contextual_keyword() const;
   bool is_keyword() const;
@@ -59,6 +60,8 @@ class TokenData {
   TokenType right_bracket() const;
   base::StringPiece16 string_data() const;
   TokenType type() const { return type_; }
+  uint32_t uint32_data() const;
+  uint64_t uint64_data() const;
 
  private:
   union Data {

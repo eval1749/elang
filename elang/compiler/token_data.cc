@@ -7,6 +7,7 @@
 #include "elang/compiler/token_data.h"
 
 #include "base/logging.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
@@ -133,6 +134,16 @@ base::char16 TokenData::char_data() const {
   return data_.ch;
 }
 
+float32_t TokenData::f32_data() const {
+  DCHECK_EQ(type_, TokenType::Float32Literal);
+  return data_.f32;
+}
+
+float64_t TokenData::f64_data() const {
+  DCHECK_EQ(type_, TokenType::Float64Literal);
+  return data_.f64;
+}
+
 bool TokenData::has_atomic_string() const {
   auto const detail = GetTokenDetails(type_)[0];
   return detail == 'N' || detail == 'K' || detail == 'C';
@@ -147,19 +158,12 @@ bool TokenData::has_string_data() const {
   return type_ == TokenType::StringLiteral;
 }
 
-float32_t TokenData::f32_data() const {
-  DCHECK_EQ(type_, TokenType::Float32Literal);
-  return data_.f32;
-}
-
-float64_t TokenData::f64_data() const {
-  DCHECK_EQ(type_, TokenType::Float64Literal);
-  return data_.f64;
+int32_t TokenData::int32_data() const {
+  return base::checked_cast<int32_t>(uint64_data());
 }
 
 int64_t TokenData::int64_data() const {
-  DCHECK(has_int_data());
-  return static_cast<int64_t>(data_.u64);
+  return base::checked_cast<int64_t>(uint64_data());
 }
 
 bool TokenData::is_contextual_keyword() const {
@@ -255,6 +259,15 @@ base::StringPiece16 TokenData::string_data() const {
   return *data_.str;
 }
 
+uint32_t TokenData::uint32_data() const {
+  return base::checked_cast<uint32_t>(uint64_data());
+}
+
+uint64_t TokenData::uint64_data() const {
+  DCHECK(has_int_data());
+  return data_.u64;
+}
+
 std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
   static const char* const kTokenTypeString[] = {
 #define V(name, string, details) string,
@@ -270,13 +283,13 @@ std::ostream& operator<<(std::ostream& ostream, const TokenData& token) {
     case TokenType::Float64Literal:
       return ostream << token.f64_data();
     case TokenType::Int32Literal:
-      return ostream << token.int64_data();
+      return ostream << token.int32_data();
     case TokenType::Int64Literal:
       return ostream << token.int64_data() << "l";
     case TokenType::UInt32Literal:
-      return ostream << token.int64_data() << "u";
+      return ostream << token.uint32_data() << "u";
     case TokenType::UInt64Literal:
-      return ostream << token.int64_data() << "lu";
+      return ostream << token.uint64_data() << "lu";
     case TokenType::StringLiteral:
       ostream << "\"";
       for (auto const ch : token.string_data())

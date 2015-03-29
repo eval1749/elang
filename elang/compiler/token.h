@@ -36,7 +36,10 @@ class Token final : public ZoneAllocated {
   float32_t f32_data() const { return data_.f32_data(); }
   float64_t f64_data() const { return data_.f64_data(); }
   bool has_atomic_string() const { return data_.has_atomic_string(); }
-  int64_t int64_data() const { return data_.int64_data(); }
+  int16_t int16_data() const;
+  int32_t int32_data() const;
+  int64_t int64_data() const;
+  int8_t int8_data() const;
   bool is_contextual_keyword() const { return data_.is_contextual_keyword(); }
   bool is_keyword() const { return data_.is_keyword(); }
   bool is_left_bracket() const { return data_.is_left_bracket(); }
@@ -52,6 +55,10 @@ class Token final : public ZoneAllocated {
   TokenType right_bracket() const { return data_.right_bracket(); }
   base::StringPiece16 string_data() const { return data_.string_data(); }
   TokenType type() const { return data_.type(); }
+  uint16_t uint16_data() const;
+  uint32_t uint32_data() const;
+  uint64_t uint64_data() const { return data_.uint64_data(); }
+  uint8_t uint8_data() const;
 
  private:
   friend class TokenFactory;

@@ -112,28 +112,28 @@ ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
     return NewFloat64(token->f64_data());
 
   if (type == MapType(PredefinedName::Int16))
-    return NewInt16(static_cast<int16_t>(token->int64_data()));
+    return NewInt16(token->int16_data());
 
   if (type == MapType(PredefinedName::Int32))
-    return NewInt32(static_cast<int32_t>(token->int64_data()));
+    return NewInt32(token->int32_data());
 
   if (type == MapType(PredefinedName::Int64))
     return NewInt64(token->int64_data());
 
   if (type == MapType(PredefinedName::Int8))
-    return NewInt8(static_cast<int8_t>(token->int64_data()));
+    return NewInt8(token->int8_data());
 
   if (type == MapType(PredefinedName::UInt16))
-    return NewUInt16(static_cast<uint16_t>(token->int64_data()));
+    return NewUInt16(token->uint16_data());
 
   if (type == MapType(PredefinedName::UInt32))
-    return NewUInt32(static_cast<uint32_t>(token->int64_data()));
+    return NewUInt32(token->uint32_data());
 
   if (type == MapType(PredefinedName::UInt64))
-    return NewUInt64(static_cast<uint64_t>(token->int64_data()));
+    return NewUInt64(token->uint64_data());
 
   if (type == MapType(PredefinedName::UInt8))
-    return NewUInt8(static_cast<uint8_t>(token->int64_data()));
+    return NewUInt8(token->int8_data());
 
   NOTREACHED() << "Bad literal token " << *token;
   return nullptr;

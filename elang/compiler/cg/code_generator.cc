@@ -406,42 +406,29 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
   if (type == MapType(PredefinedName::Float64))
     return factory()->NewFloat64Literal(token->f64_data());
 
-  if (type == MapType(PredefinedName::Int16)) {
-    return factory()->NewInt16Literal(
-        static_cast<int16_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::Int16))
+    return factory()->NewInt16Literal(token->int16_data());
 
-  if (type == MapType(PredefinedName::Int32)) {
-    return factory()->NewInt32Literal(
-        static_cast<int32_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::Int32))
+    return factory()->NewInt32Literal(token->int32_data());
 
   if (type == MapType(PredefinedName::Int64))
     return factory()->NewInt64Literal(token->int64_data());
 
-  if (type == MapType(PredefinedName::Int8)) {
-    return factory()->NewInt8Literal(static_cast<int8_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::Int8))
+    return factory()->NewInt8Literal(token->int8_data());
 
-  if (type == MapType(PredefinedName::UInt16)) {
-    return factory()->NewUInt16Literal(
-        static_cast<uint16_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::UInt16))
+    return factory()->NewUInt16Literal(token->uint16_data());
 
-  if (type == MapType(PredefinedName::UInt32)) {
-    return factory()->NewUInt32Literal(
-        static_cast<uint32_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::UInt32))
+    return factory()->NewUInt32Literal(token->uint32_data());
 
-  if (type == MapType(PredefinedName::UInt64)) {
-    return factory()->NewUInt64Literal(
-        static_cast<uint64_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::UInt64))
+    return factory()->NewUInt64Literal(token->uint64_data());
 
-  if (type == MapType(PredefinedName::UInt8)) {
-    return factory()->NewUInt8Literal(
-        static_cast<uint8_t>(token->int64_data()));
-  }
+  if (type == MapType(PredefinedName::UInt8))
+    return factory()->NewUInt8Literal(token->uint8_data());
 
   NOTREACHED() << "Bad literal token " << *token;
   return nullptr;
