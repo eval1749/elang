@@ -160,7 +160,7 @@ void Builder::EndBlock() {
 
 ir::Node* Builder::EndBlockWithBranch(ir::Node* condition) {
   DCHECK(editor_->control());
-  auto const if_node = editor_->NewIf(editor_->control(), condition);
+  auto const if_node = editor_->SetBranch(condition);
   basic_blocks_[if_node] = basic_block_;
   EndBlock();
   return if_node;
