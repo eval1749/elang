@@ -599,9 +599,9 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
     return;
   }
 
-  auto const ir_type = ValueOf(node)->as<sm::Class>();
-  DCHECK(ir_type) << "NYI user defined operator: " << *node;
-  auto const type = MapType(ir_type);
+  auto const sm_type = ValueOf(node)->as<sm::Class>();
+  DCHECK(sm_type) << "NYI user defined operator: " << *node;
+  auto const type = MapType(sm_type);
   auto const left = GenerateValueAs(node->left(), type);
   auto const right = GenerateValueAs(node->right(), type);
   auto const instr = NewInstructionFor(node, type, left, right);
