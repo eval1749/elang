@@ -205,9 +205,12 @@ void Validator::Context::VisitPhi(PhiNode* node) {
 }
 
 void Validator::Context::VisitPhiOperand(PhiOperandNode* node) {
+  // TODO(eval1749) We should check whether control operand is predecessor or
+  // not.
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
-  if (!node->input(1)->IsValidData())
+  // TODO(eval1749) We should check operand type equals to phi type.
+  if (!node->input(1)->IsValidData() && !node->input(1)->IsValidEffect())
     ErrorInInput(node, 1);
 }
 

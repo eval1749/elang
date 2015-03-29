@@ -100,7 +100,11 @@ void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
   auto const phi = node->as<PhiNode>();
   DCHECK(phi) << *node;
   DCHECK(control->IsValidControl()) << *control;
-  DCHECK(value->IsValidData()) << *value;
+  DCHECK_EQ(phi->output_type(), value->output_type()) << *phi << " " << *value;
+  if (phi->output_type() == effect_type())
+    DCHECK(value->IsValidEffect()) << *value;
+  else
+    DCHECK(value->IsValidData()) << *value;
   for (auto const input : node->inputs()) {
     auto const phi_input = input->as<PhiOperandNode>();
     DCHECK(phi_input) << *phi << " has invalid operand " << *input;

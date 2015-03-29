@@ -473,7 +473,7 @@ Node* NodeFactory::NewPhi(Type* output_type, Node* control) {
 
 Node* NodeFactory::NewPhiOperand(Node* control, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
-  DCHECK(data->IsValidData()) << *data;
+  DCHECK(data->IsValidData() || data->IsValidEffect()) << *data;
   auto const output_type = NewTupleType({control_type(), data->output_type()});
   auto const node = new (zone()) PhiOperandNode(output_type, control, data);
   node->set_id(NewNodeId());
