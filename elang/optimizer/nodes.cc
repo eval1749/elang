@@ -254,10 +254,9 @@ bool Node::IsData() const {
   if (auto const tuple_type = output_type_->as<TupleType>()) {
     for (auto const component : tuple_type->components()) {
       if (component->is<ControlType>() || component->is<EffectType>())
-        continue;
-      return true;
+        return false;
     }
-    return false;
+    return true;
   }
   return true;
 }
@@ -267,7 +266,7 @@ bool Node::IsEffect() const {
 }
 
 bool Node::IsLiteral() const {
-  return IsData() && !CountInputs() && opcode() != Opcode::Entry;
+  return IsData() && !CountInputs() && !is<VariadicNode>();
 }
 
 bool Node::IsValidControl() const {
