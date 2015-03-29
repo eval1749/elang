@@ -80,6 +80,48 @@ TEST_F(TranslatorTest, IntCmp) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, DoWhile) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int a, int b) {"
+      "    do { a = a + 1; } while (a < b);"
+      "    return a;"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32, int32)\n"
+      "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: control %c11 = br(%c2)\n"
+      "0003: control %c22 = if_true(%c21)\n"
+      "0004: control %c23 = br(%c22)\n"
+      "0005: control %c10 = merge(%c11, %c23)\n"
+      "0006: control %c19 = br(%c10)\n"
+      "0007: control %c9 = merge(%c19)\n"
+      "0008: int32 %r6 = param(%t1, 0)\n"
+      "0009: (control, int32) %t15 = phi_operand(%c11, %r6)\n"
+      "0010: (control, int32) %t25 = phi_operand(%c23, %r18)\n"
+      "0011: int32 %r14 = phi(%t15, %t25)\n"
+      "0012: int32 %r18 = add(%r14, 1)\n"
+      "0013: int32 %r7 = param(%t1, 1)\n"
+      "0014: (control, int32) %t17 = phi_operand(%c11, %r7)\n"
+      "0015: (control, int32) %t26 = phi_operand(%c23, %r16)\n"
+      "0016: int32 %r16 = phi(%t17, %t26)\n"
+      "0017: bool %r20 = cmp_le(%r18, %r16)\n"
+      "0018: control %c21 = if(%c9, %r20)\n"
+      "0019: control %c27 = if_false(%c21)\n"
+      "0020: control %c28 = br(%c27)\n"
+      "0021: control %c8 = merge(%c28)\n"
+      "0022: effect %e3 = get(%t1, 1)\n"
+      "0023: (control, effect) %t13 = phi_operand(%c11, %e3)\n"
+      "0024: (control, effect) %t24 = phi_operand(%c23, %e12)\n"
+      "0025: effect %e12 = phi(%t13, %t24)\n"
+      "0026: control %c29 = ret(%c8, %e12, %r18)\n"
+      "0027: control %c4 = merge(%c29)\n"
+      "0028: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, IfMerge) {
   Prepare(
       "class Sample {"

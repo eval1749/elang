@@ -41,14 +41,21 @@ class Builder final : public ZoneOwner {
 
   ir::Node* control() const;
 
-  void AssignVariable(sm::Variable* variable, ir::Node* value);
-  void BindVariable(sm::Variable* variable, ir::Node* value);
+  // Control flow
   ir::Node* EndBlockWithBranch(ir::Node* condition);
   void EndBlockWithJump(ir::Node* target);
   void EndBlockWithRet(ir::Node* data);
-  ir::Node* ParameterAt(size_t index);
+  void EndLoopBlock(ir::Node* condition,
+                    ir::Node* true_target,
+                    ir::Node* false_target);
   void StartIfBlock(ir::Node* control);
+  ir::Node* StartLoopBlock();
   void StartMergeBlock(ir::Node* control);
+
+  // Variable management
+  void AssignVariable(sm::Variable* variable, ir::Node* value);
+  void BindVariable(sm::Variable* variable, ir::Node* value);
+  ir::Node* ParameterAt(size_t index);
   void UnbindVariable(sm::Variable* variable);
   ir::Node* VariableValueOf(sm::Variable* variable) const;
 
@@ -57,10 +64,11 @@ class Builder final : public ZoneOwner {
   typedef std::unordered_map<sm::Variable*, ir::Node*> Variables;
 
   BasicBlock* BasicBlockOf(ir::Node* control);
-  void EndBlock();
+  void EndBlock(ir::Node* control);
   BasicBlock* NewBasicBlock(ir::Node* control,
                             ir::Node* effect,
                             const Variables& variables);
+  void PopulatePhiNodesIfNeeded(ir::Node* control, const BasicBlock* block);
 
   BasicBlock* basic_block_;
   // A mapping to basic block from IR control node, which starts or ends basic

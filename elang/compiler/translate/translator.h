@@ -41,6 +41,9 @@ class Translator final : public CompilationSessionUser,
   bool Run();
 
  private:
+  struct BreakContext;
+  class ScopedBreakContext;
+
   Builder* builder() const { return builder_; }
   IrTypeMapper* type_mapper() const { return type_mapper_.get(); }
 
@@ -87,11 +90,17 @@ class Translator final : public CompilationSessionUser,
 
   // ast::Visitor statement nodes
   void VisitBlockStatement(ast::BlockStatement* node) final;
+  void VisitBreakStatement(ast::BreakStatement* node) final;
+  void VisitContinueStatement(ast::ContinueStatement* node) final;
+  void VisitDoStatement(ast::DoStatement* node) final;
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
+
+  // Holds current |break| and |continue| targets.
+  const BreakContext* break_context_;
 
   // The |Builder|.
   Builder* builder_;

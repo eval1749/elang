@@ -45,11 +45,58 @@ bool IsUnsignedType(ir::Node* node) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Translator::BreakContext represents target blocks of |break| and
+// |continue| statements. |switch| statement also specify |continue_block|
+// from outer |BreakContext|.
+//
+struct Translator::BreakContext final {
+  ir::Node* break_block;
+  ir::Node* continue_block;
+  const BreakContext* outer;
+
+  BreakContext(const BreakContext* outer,
+               ir::Node* break_block,
+               ir::Node* continue_block)
+      : break_block(break_block),
+        continue_block(continue_block),
+        outer(outer) {}
+};
+
+class Translator::ScopedBreakContext final {
+ public:
+  ScopedBreakContext(Translator* generator,
+                     ir::Node* break_block,
+                     ir::Node* continue_block);
+  ~ScopedBreakContext();
+
+ private:
+  Translator* const translator_;
+  BreakContext const context_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScopedBreakContext);
+};
+
+Translator::ScopedBreakContext::ScopedBreakContext(Translator* generator,
+                                                   ir::Node* break_block,
+                                                   ir::Node* continue_block)
+    : translator_(generator),
+      context_(translator_->break_context_, break_block, continue_block) {
+  translator_->break_context_ = &context_;
+}
+
+Translator::ScopedBreakContext::~ScopedBreakContext() {
+  DCHECK_EQ(translator_->break_context_, &context_);
+  translator_->break_context_ = context_.outer;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Translator
 //
 Translator::Translator(CompilationSession* session, ir::Factory* factory)
     : CompilationSessionUser(session),
       FactoryUser(factory),
+      break_context_(nullptr),
       builder_(nullptr),
       type_mapper_(new IrTypeMapper(session, factory->type_factory())),
       visit_result_(nullptr) {
@@ -392,6 +439,37 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
 
   // Restore list of binding variables in this block.
   variables_.swap(variables);
+}
+
+void Translator::VisitBreakStatement(ast::BreakStatement* node) {
+  DCHECK(node);
+  DCHECK(break_context_);
+  builder_->EndBlockWithJump(break_context_->break_block);
+}
+
+void Translator::VisitContinueStatement(ast::ContinueStatement* node) {
+  DCHECK(node);
+  DCHECK(break_context_);
+  DCHECK(break_context_->continue_block);
+  builder_->EndBlockWithJump(break_context_->continue_block);
+}
+
+void Translator::VisitDoStatement(ast::DoStatement* node) {
+  auto const break_block = NewMerge({});
+  auto const continue_block = NewMerge({});
+
+  auto const loop_block = builder_->StartLoopBlock();
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    TranslateStatement(node->statement());
+  }
+  builder_->EndBlockWithJump(continue_block);
+
+  builder_->StartMergeBlock(continue_block);
+  auto const condition = TranslateBool(node->condition());
+  builder_->EndLoopBlock(condition, loop_block, break_block);
+
+  builder_->StartMergeBlock(break_block);
 }
 
 void Translator::VisitExpressionList(ast::ExpressionList* node) {
