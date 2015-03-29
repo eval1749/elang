@@ -36,6 +36,13 @@
 namespace elang {
 namespace compiler {
 
+namespace {
+bool IsUnsignedType(ir::Node* node) {
+  auto const type = node->output_type()->as<ir::PrimitiveValueType>();
+  return type && type->is_unsigned();
+}
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Translator
@@ -61,6 +68,96 @@ void Translator::BindParameters(ast::Method* method) {
     builder_->BindVariable(variable, builder()->ParameterAt(index));
     ++index;
   }
+}
+
+ir::Node* Translator::NewOperationFor(ast::Expression* node,
+                                      ir::Node* left,
+                                      ir::Node* right) {
+  if (left->output_type()->is_float()) {
+    switch (node->op()->type()) {
+      case TokenType::Add:
+        return NewFloatAdd(left, right);
+      case TokenType::Div:
+        return NewFloatDiv(left, right);
+      case TokenType::Eq:
+        return NewFloatCmp(ir::FloatCondition::OrderedEqual, left, right);
+      case TokenType::Ge:
+        return NewFloatCmp(ir::FloatCondition::OrderedGreaterThanOrEqual, left,
+                           right);
+      case TokenType::Gt:
+        return NewFloatCmp(ir::FloatCondition::OrderedGreaterThan, left, right);
+      case TokenType::Le:
+        return NewFloatCmp(ir::FloatCondition::OrderedLessThan, left, right);
+      case TokenType::Lt:
+        return NewFloatCmp(ir::FloatCondition::UnorderedLessThanOrEqual, left,
+                           right);
+      case TokenType::Mul:
+        return NewFloatMul(left, right);
+      case TokenType::Ne:
+        return NewFloatCmp(ir::FloatCondition::OrderedNotEqual, left, right);
+      case TokenType::Sub:
+        return NewFloatSub(left, right);
+    }
+    NOTREACHED() << "Unexpected AST node: " << *node;
+    Error(ErrorCode::TranslatorExpressionUnexpected, node);
+    return void_value();
+  }
+  if (left->output_type()->is_integer()) {
+    switch (node->op()->type()) {
+      case TokenType::Add:
+        return NewIntAdd(left, right);
+      case TokenType::BitAnd:
+        return NewIntBitAnd(left, right);
+      case TokenType::BitOr:
+        return NewIntBitOr(left, right);
+      case TokenType::BitXor:
+        return NewIntBitXor(left, right);
+      case TokenType::Div:
+        return NewIntDiv(left, right);
+      case TokenType::Eq:
+        return NewIntCmp(ir::IntCondition::Equal, left, right);
+      case TokenType::Ge:
+        if (IsUnsignedType(left)) {
+          return NewIntCmp(ir::IntCondition::UnsignedGreaterThanOrEqual, left,
+                           right);
+        }
+        return NewIntCmp(ir::IntCondition::SignedGreaterThanOrEqual, left,
+                         right);
+      case TokenType::Gt:
+        if (IsUnsignedType(left))
+          return NewIntCmp(ir::IntCondition::UnsignedGreaterThan, left, right);
+        return NewIntCmp(ir::IntCondition::SignedGreaterThan, left, right);
+      case TokenType::Le:
+        if (IsUnsignedType(left))
+          return NewIntCmp(ir::IntCondition::UnsignedLessThan, left, right);
+        return NewIntCmp(ir::IntCondition::SignedLessThan, left, right);
+      case TokenType::Lt:
+        if (IsUnsignedType(left)) {
+          return NewIntCmp(ir::IntCondition::UnsignedLessThanOrEqual, left,
+                           right);
+        }
+        return NewIntCmp(ir::IntCondition::SignedLessThanOrEqual, left, right);
+      case TokenType::Mul:
+        return NewIntMul(left, right);
+      case TokenType::Ne:
+        return NewIntCmp(ir::IntCondition::NotEqual, left, right);
+      case TokenType::Shl:
+        return NewIntShl(left, right);
+      case TokenType::Shr:
+        return NewIntShr(left, right);
+      case TokenType::Sub:
+        return NewIntSub(left, right);
+    }
+  }
+  switch (node->op()->type()) {
+    case TokenType::Eq:
+      return NewIntCmp(ir::IntCondition::Equal, left, right);
+    case TokenType::Ne:
+      return NewIntCmp(ir::IntCondition::NotEqual, left, right);
+  }
+  NOTREACHED() << "Unexpected AST node: " << *node;
+  Error(ErrorCode::TranslatorExpressionUnexpected, node);
+  return void_value();
 }
 
 void Translator::SetVisitorResult(ir::Node* node) {
@@ -89,6 +186,14 @@ ir::Node* Translator::Translate(ast::Expression* node) {
   auto const result = visit_result_;
   visit_result_ = nullptr;
   return result;
+}
+
+// Translate |expression| to produce |type|.
+ir::Node* Translator::TranslateAs(ast::Expression* expression, ir::Type* type) {
+  auto const node = Translate(expression);
+  if (node->output_type() == type)
+    return node;
+  return NewStaticCast(type, node);
 }
 
 ir::Node* Translator::TranslateBool(ast::Expression* expression) {
@@ -136,7 +241,7 @@ ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
     return NewUInt8(token->int8_data());
 
   NOTREACHED() << "Bad literal token " << *token;
-  return nullptr;
+  return void_value();
 }
 
 void Translator::TranslateStatement(ast::Statement* node) {
@@ -233,6 +338,19 @@ void Translator::VisitAssignment(ast::Assignment* node) {
     return;
   }
   Error(ErrorCode::TranslatorExpressionNotYetImplemented, node);
+}
+
+void Translator::VisitBinaryOperation(ast::BinaryOperation* node) {
+  if (node->is_conditional()) {
+    // TODO(eval1749) NYI conditional operation
+    DoDefaultVisit(node);
+  }
+  auto const sm_type = ValueOf(node)->as<sm::Class>();
+  DCHECK(sm_type) << "NYI user defined operator: " << *node;
+  auto const type = MapType(sm_type);
+  auto const lhs = TranslateAs(node->left(), type);
+  auto const rhs = TranslateAs(node->right(), type);
+  SetVisitorResult(NewOperationFor(node, lhs, rhs));
 }
 
 void Translator::VisitLiteral(ast::Literal* node) {

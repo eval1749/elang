@@ -52,11 +52,16 @@ class Translator final : public CompilationSessionUser,
   ir::Type* MapType(sm::Type* type) const;
 
   // Translate
+  ir::Node* NewOperationFor(ast::Expression* node,
+                            ir::Node* left,
+                            ir::Node* right);
   void SetVisitorResult(ir::Node* node);
+
+  ir::Node* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
+  ir::Node* TranslateBool(ast::Expression* expression);
   ir::Node* Translate(ast::Expression* node);
   ir::Node* TranslateLiteral(ir::Type* ir_type, const Token* token);
   void TranslateStatement(ast::Statement* node);
-  ir::Node* TranslateBool(ast::Expression* expression);
   void TranslateVariable(ast::NamedNode* ast_variable);
   void TranslateVariableAssignment(ast::NamedNode* ast_variable,
                                    ast::Expression* ast_value);
@@ -75,6 +80,7 @@ class Translator final : public CompilationSessionUser,
 
   // ast::Visitor expression nodes
   void VisitAssignment(ast::Assignment* node) final;
+  void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;

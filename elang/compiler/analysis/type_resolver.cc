@@ -367,6 +367,8 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     return;
   }
 
+  DCHECK(result->is<ts::Literal>());
+
   if (ast_node->is_arithmetic()) {
     ProduceSemantics(result, ast_node);
     return;
@@ -379,7 +381,19 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
       ProduceSemantics(result, ast_node);
       return;
     }
+    if (left_type.kind == NumericType::Kind::Float)
+      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
+    if (right_type.kind == NumericType::Kind::Float)
+      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->right());
+    return;
   }
+
+  if (ast_node->is_relational()) {
+    ProduceUnifiedResult(bool_value(), ast_node);
+    semantics()->SetValue(ast_node, result->as<ts::Literal>()->value());
+    return;
+  }
+
   NOTREACHED() << "Unknown binary operation: " << *ast_node;
 }
 

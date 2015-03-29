@@ -41,6 +41,45 @@ class TranslatorTest : public testing::TranslateTest {
 // tests...
 //
 
+TEST_F(TranslatorTest, IntMul) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int a, int16 b) { return a * b; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32, int16)\n"
+      "0000: (control, effect, (int32, int16)) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: int32 %r6 = param(%t1, 0)\n"
+      "0004: int16 %r7 = param(%t1, 1)\n"
+      "0005: int32 %r8 = static_cast(%r7)\n"
+      "0006: int32 %r9 = mul(%r6, %r8)\n"
+      "0007: control %c10 = ret(%c2, %e3, %r9)\n"
+      "0008: control %c4 = merge(%c10)\n"
+      "0009: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
+TEST_F(TranslatorTest, IntCmp) {
+  Prepare(
+      "class Sample {"
+      "  static bool Foo(int a, int b) { return a < b; }"
+      "}");
+  EXPECT_EQ(
+      "function1 bool(int32, int32)\n"
+      "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: int32 %r6 = param(%t1, 0)\n"
+      "0004: int32 %r7 = param(%t1, 1)\n"
+      "0005: bool %r8 = cmp_le(%r6, %r7)\n"
+      "0006: control %c9 = ret(%c2, %e3, %r8)\n"
+      "0007: control %c4 = merge(%c9)\n"
+      "0008: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, IfMerge) {
   Prepare(
       "class Sample {"

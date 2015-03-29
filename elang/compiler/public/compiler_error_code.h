@@ -198,6 +198,7 @@ namespace compiler {
   E(Token, String, Unclosed)                          \
   /* Translator */                                    \
   E(Translator, Expression, NotYetImplemented)        \
+  E(Translator, Expression, Unexpected)               \
   E(Translator, Return, None)                         \
   E(Translator, Statement, NotYetImplemented)         \
   /* Type Resolver */                                 \
