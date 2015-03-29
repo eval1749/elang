@@ -80,7 +80,7 @@ std::ostream& operator<<(std::ostream& ostream, const AsInput& input) {
 }
 
 void NodePrinter::DoDefaultVisit(Node* node) {
-  DCHECK(!node->IsLiteral());
+  DCHECK(!node->IsLiteral()) << *node;
   ostream_ << *node->output_type() << " " << AsInput(node) << " = "
            << node->mnemonic() << "(";
   auto separator = "";
