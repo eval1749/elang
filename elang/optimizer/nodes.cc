@@ -37,8 +37,13 @@ Type* EntryNode::CheckedParameterTypeAt(size_t index) const {
 }
 
 // FloatCmpNode
-FloatCmpNode::FloatCmpNode(Type* output_type, FloatCondition condition)
+FloatCmpNode::FloatCmpNode(Type* output_type,
+                           FloatCondition condition,
+                           Node* left,
+                           Node* right)
     : NodeTemplate(output_type), condition_(condition) {
+  InitInputAt(0, left);
+  InitInputAt(1, right);
 }
 
 base::StringPiece FloatCmpNode::mnemonic() const {
@@ -158,8 +163,13 @@ Node::InputIterator Node::Inputs::end() {
 }
 
 // IntCmpNode
-IntCmpNode::IntCmpNode(Type* output_type, IntCondition condition)
+IntCmpNode::IntCmpNode(Type* output_type,
+                       IntCondition condition,
+                       Node* left,
+                       Node* right)
     : NodeTemplate(output_type), condition_(condition) {
+  InitInputAt(0, left);
+  InitInputAt(1, right);
 }
 
 base::StringPiece IntCmpNode::mnemonic() const {

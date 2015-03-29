@@ -33,6 +33,12 @@ Node* NodeFactoryUser::NewCall(Node* effect, Node* callee, Node* arguments) {
   return node_factory_->NewCall(effect, callee, arguments);
 }
 
+Node* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
+                                   Node* left,
+                                   Node* right) {
+  return node_factory_->NewFloatCmp(condition, left, right);
+}
+
 Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
   return node_factory_->NewGet(input, field);
 }
@@ -47,6 +53,12 @@ Node* NodeFactoryUser::NewIfFalse(Node* control) {
 
 Node* NodeFactoryUser::NewIfTrue(Node* control) {
   return node_factory_->NewIfTrue(control);
+}
+
+Node* NodeFactoryUser::NewIntCmp(IntCondition condition,
+                                 Node* left,
+                                 Node* right) {
+  return node_factory_->NewIntCmp(condition, left, right);
 }
 
 Node* NodeFactoryUser::NewJump(Node* control) {
@@ -84,6 +96,16 @@ Node* NodeFactoryUser::NewTuple(Type* output_type) {
 Node* NodeFactoryUser::NewTuple(const std::vector<Node*>& inputs) {
   return node_factory_->NewTuple(inputs);
 }
+
+// Arithmetic nodes
+#define V(Name, ...)                                          \
+  Node* NodeFactoryUser::New##Name(Node* left, Node* right) { \
+    return node_factory_->New##Name(left, right);             \
+  }
+FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
+V(IntShl)
+V(IntShr)
+#undef V
 
 // Literal nodes
 #define V(Name, mnemonic, data_type)                 \

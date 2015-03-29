@@ -63,12 +63,14 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewUnreachable(Node* input);
 
   // Two inputs
+  Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
   Node* NewGet(Node* input0, size_t field);
   Node* NewIf(Node* control, Node* value);
+  Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
+  Node* NewIntShl(Node* left, Node* right);
+  Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
   Node* NewPhiOperand(Node* control, Node* value);
-  Node* NewShl(Node* input0, Node* input1);
-  Node* NewShr(Node* input0, Node* input1);
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs
@@ -79,7 +81,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   // Four inputs
   Node* NewStore(Node* effect, Node* base_pointer, Node* pointer, Node* value);
 
-  // variadic inputs
+  // Variadic inputs
   Node* NewCase(Node* control, Node* label_value);
   Node* NewLoop(Node* control);
   Node* NewMerge(const std::vector<Node*>& inputs);
@@ -92,6 +94,10 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   friend class Factory;
 
   SequenceIdSource* node_id_source() const;
+
+  // Node cache management
+  Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
+  void RememberBinaryNode(Node* node);
 
   Node* NewEntry(Type* parameters_type);
   Node* NewExit(Node* control);

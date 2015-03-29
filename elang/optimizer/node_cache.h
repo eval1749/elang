@@ -36,7 +36,11 @@ class NodeCache final : public ZoneUser {
 
   size_t NewNodeId();
 
-  // Cached node construct functions.
+  // Cached nodes
+  Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
+  void RememberBinaryNode(Node* node);
+
+// Cached node construct functions.
 #define V(Name, mnemonic, data_type, ...) \
   Node* New##Name(Type* type, data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
@@ -51,6 +55,7 @@ class NodeCache final : public ZoneUser {
   std::unordered_map<data_type, Node*> name##_cache_;
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
+  std::map<std::tuple<Opcode, Node*, Node*>, Node*> binary_node_cache_;
   std::map<std::tuple<Node*, size_t>, Node*> field_input_node_cache_;
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;

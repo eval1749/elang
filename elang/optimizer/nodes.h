@@ -490,7 +490,10 @@ class ELANG_OPTIMIZER_EXPORT FloatCmpNode final : public NodeTemplate<2> {
   FloatCondition condition() const { return condition_; }
 
  private:
-  FloatCmpNode(Type* output_type, FloatCondition condition);
+  FloatCmpNode(Type* output_type,
+               FloatCondition condition,
+               Node* left,
+               Node* right);
 
   base::StringPiece mnemonic() const final;
 
@@ -542,7 +545,10 @@ class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2> {
   IntCondition condition() const { return condition_; }
 
  private:
-  IntCmpNode(Type* output_type, IntCondition condition);
+  IntCmpNode(Type* output_type,
+             IntCondition condition,
+             Node* left,
+             Node* right);
 
   base::StringPiece mnemonic() const final;
 

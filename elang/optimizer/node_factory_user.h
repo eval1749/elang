@@ -35,6 +35,11 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* true_value() const;
   Node* void_value() const;
 
+// Arithmetic nodes
+#define V(Name, ...) Node* New##Name(Node* input0, Node* input1);
+  FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
+#undef V
+
   // Literal nodes
   Node* NewReference(Type* type, AtomicString* name);
 #define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
@@ -53,12 +58,14 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewUnreachable(Node* input);
 
   // Two inputs
+  Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
   Node* NewGet(Node* input0, size_t field);
   Node* NewIf(Node* control, Node* value);
+  Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
+  Node* NewIntShl(Node* left, Node* right);
+  Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
   Node* NewPhiOperand(Node* control, Node* value);
-  Node* NewShl(Node* input0, Node* input1);
-  Node* NewShr(Node* input0, Node* input1);
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs

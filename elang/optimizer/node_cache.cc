@@ -34,6 +34,11 @@ NodeCache::NodeCache(Zone* zone, TypeFactory* type_factory)
 NodeCache::~NodeCache() {
 }
 
+Node* NodeCache::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
+  auto const it = binary_node_cache_.find(std::make_tuple(opcode, left, right));
+  return it == binary_node_cache_.end() ? nullptr : it->second;
+}
+
 #define V(Name, name, data_type, ...)                         \
   Node* NodeCache::New##Name(Type* type, data_type data) {    \
     auto const it = name##_cache_.find(data);                 \
@@ -105,6 +110,13 @@ Node* NodeCache::NewString(Type* type, base::StringPiece16 data) {
   auto const literal = new (zone()) StringNode(type, saved_data);
   string_cache_[saved_data] = literal;
   return literal;
+}
+
+void NodeCache::RememberBinaryNode(Node* node) {
+  auto const key =
+      std::make_tuple(node->opcode(), node->input(0), node->input(1));
+  DCHECK(!binary_node_cache_.count(key));
+  binary_node_cache_[key] = node;
 }
 
 }  // namespace optimizer

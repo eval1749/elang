@@ -82,6 +82,41 @@ TEST_F(NodeTest, Float64Node) {
   EXPECT_EQ("3.14000", ToString(NewFloat64(3.14)));
 }
 
+#define V(Name, mnemonic)                                                  \
+  TEST_F(NodeTest, Float##Name##Node) {                                    \
+    auto const function = NewSampleFunction(                               \
+        void_type(),                                                       \
+        {float32_type(), float32_type(), float64_type(), float64_type()}); \
+    auto const entry_node = function->entry_node();                        \
+    auto const node32 = NewFloat##Name(NewParameter(entry_node, 0),        \
+                                       NewParameter(entry_node, 1));       \
+    EXPECT_EQ("float32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));   \
+    auto const node64 = NewFloat##Name(NewParameter(entry_node, 2),        \
+                                       NewParameter(entry_node, 3));       \
+    EXPECT_EQ("float64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64)); \
+  }
+V(Add, "fadd")
+V(Div, "fdiv")
+V(Mod, "fmod")
+V(Mul, "fmul")
+V(Sub, "fsub")
+#undef V
+
+TEST_F(NodeTest, FloatCmpNode) {
+  auto const function = NewSampleFunction(
+      void_type(),
+      {float32_type(), float32_type(), float64_type(), float64_type()});
+  auto const entry_node = function->entry_node();
+  auto const node32 =
+      NewFloatCmp(FloatCondition::OrderedEqual, NewParameter(entry_node, 0),
+                  NewParameter(entry_node, 1));
+  EXPECT_EQ("bool %r8 = fcmp_eq(%r7, %r6)", ToString(node32));
+  auto const node64 =
+      NewFloatCmp(FloatCondition::OrderedNotEqual, NewParameter(entry_node, 2),
+                  NewParameter(entry_node, 3));
+  EXPECT_EQ("bool %r11 = fcmp_ne(%r10, %r9)", ToString(node64));
+}
+
 TEST_F(NodeTest, GetNode) {
   auto const function = NewSampleFunction(
       void_type(), NewTupleType({int32_type(), int64_type()}));
@@ -132,6 +167,77 @@ TEST_F(NodeTest, Int64Node) {
   EXPECT_EQ("-9223372036854775808l",
             ToString(NewInt64(std::numeric_limits<int64_t>::min())));
 }
+
+#define V(Name, mnemonic)                                                   \
+  TEST_F(NodeTest, Int##Name##Node) {                                       \
+    auto const function = NewSampleFunction(void_type(), {int32_type(),     \
+                                                          int32_type(),     \
+                                                          int64_type(),     \
+                                                          int64_type(),     \
+                                                          uint32_type(),    \
+                                                          uint32_type(),    \
+                                                          uint64_type(),    \
+                                                          uint64_type()});  \
+    auto const entry_node = function->entry_node();                         \
+    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
+                                     NewParameter(entry_node, 1));          \
+    EXPECT_EQ("int32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));      \
+    auto const node64 = NewInt##Name(NewParameter(entry_node, 2),           \
+                                     NewParameter(entry_node, 3));          \
+    EXPECT_EQ("int64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64));    \
+    auto const node32u = NewInt##Name(NewParameter(entry_node, 4),          \
+                                      NewParameter(entry_node, 5));         \
+    EXPECT_EQ("uint32 %r14 = " mnemonic "(%r13, %r12)", ToString(node32u)); \
+    auto const node64u = NewInt##Name(NewParameter(entry_node, 6),          \
+                                      NewParameter(entry_node, 7));         \
+    EXPECT_EQ("uint64 %r17 = " mnemonic "(%r16, %r15)", ToString(node64u)); \
+  }
+V(Add, "add")
+V(BitAnd, "bit_and")
+V(BitOr, "bit_or")
+V(BitXor, "bit_xor")
+V(Div, "div")
+V(Mod, "mod")
+V(Mul, "mul")
+V(Sub, "sub")
+#undef V
+
+TEST_F(NodeTest, IntCmpNode) {
+  auto const function = NewSampleFunction(
+      void_type(), {int32_type(), int32_type(), int64_type(), int64_type()});
+  auto const entry_node = function->entry_node();
+  auto const node32 =
+      NewIntCmp(IntCondition::Equal, NewParameter(entry_node, 0),
+                NewParameter(entry_node, 1));
+  EXPECT_EQ("bool %r8 = cmp_eq(%r7, %r6)", ToString(node32));
+  auto const node64 =
+      NewIntCmp(IntCondition::NotEqual, NewParameter(entry_node, 2),
+                NewParameter(entry_node, 3));
+  EXPECT_EQ("bool %r11 = cmp_ne(%r10, %r9)", ToString(node64));
+}
+
+#define V(Name, mnemonic)                                                   \
+  TEST_F(NodeTest, Int##Name##Node) {                                       \
+    auto const function = NewSampleFunction(                                \
+        void_type(),                                                        \
+        {int32_type(), int64_type(), uint32_type(), uint64_type()});        \
+    auto const entry_node = function->entry_node();                         \
+    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
+                                     NewParameter(entry_node, 0));          \
+    EXPECT_EQ("int32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));      \
+    auto const node64 = NewInt##Name(NewParameter(entry_node, 1),           \
+                                     NewParameter(entry_node, 0));          \
+    EXPECT_EQ("int64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64));    \
+    auto const node32u = NewInt##Name(NewParameter(entry_node, 2),          \
+                                      NewParameter(entry_node, 0));         \
+    EXPECT_EQ("uint32 %r14 = " mnemonic "(%r13, %r12)", ToString(node32u)); \
+    auto const node64u = NewInt##Name(NewParameter(entry_node, 3),          \
+                                      NewParameter(entry_node, 0));         \
+    EXPECT_EQ("uint64 %r17 = " mnemonic "(%r16, %r15)", ToString(node64u)); \
+  }
+V(Shl, "shl")
+V(Shr, "shr")
+#undef V
 
 TEST_F(NodeTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
