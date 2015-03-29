@@ -56,14 +56,16 @@ TEST_F(EditorTest, SetBranch) {
 
   editor.Edit(entry_node);
   auto const param0 = editor.EmitParameter(0);
-  auto const merge_control = editor.SetBranch(param0);
+  auto const if_node = editor.SetBranch(param0);
+  auto const if_true = NewIfTrue(if_node);
+  auto const if_false = NewIfFalse(if_node);
   editor.Commit();
 
-  editor.Edit(merge_control->input(0));
+  editor.Edit(if_true);
   editor.SetRet(effect, NewInt32(42));
   editor.Commit();
 
-  editor.Edit(merge_control->input(1));
+  editor.Edit(if_false);
   editor.SetRet(effect, NewInt32(33));
   editor.Commit();
 
@@ -75,10 +77,10 @@ TEST_F(EditorTest, SetBranch) {
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
       "0005: effect %e3 = get(%t1, 1)\n"
-      "0006: control %c11 = ret(%c8, %e3, 42)\n"
+      "0006: control %c10 = ret(%c8, %e3, 42)\n"
       "0007: control %c9 = if_false(%c7)\n"
-      "0008: control %c12 = ret(%c9, %e3, 33)\n"
-      "0009: control %c4 = merge(%c11, %c12)\n"
+      "0008: control %c11 = ret(%c9, %e3, 33)\n"
+      "0009: control %c4 = merge(%c10, %c11)\n"
       "0010: void %r5 = exit(%c4)\n",
       ToString(function));
 }
@@ -91,16 +93,18 @@ TEST_F(EditorTest, SetBranchPhi) {
   auto const effect = NewGet(entry_node, 1);
 
   editor.Edit(entry_node);
-  auto const merge_control = editor.SetBranch(NewParameter(entry_node, 0));
+  auto const if_node = editor.SetBranch(NewParameter(entry_node, 0));
+  auto const if_true = NewIfTrue(if_node);
+  auto const if_false = NewIfFalse(if_node);
   editor.Commit();
 
   auto const ret_control = NewMerge({});
 
-  editor.Edit(merge_control->input(0));
+  editor.Edit(if_true);
   editor.SetJump(ret_control);
   editor.Commit();
 
-  editor.Edit(merge_control->input(1));
+  editor.Edit(if_false);
   editor.SetJump(ret_control);
   editor.Commit();
 
@@ -118,18 +122,18 @@ TEST_F(EditorTest, SetBranchPhi) {
       "0002: bool %r6 = param(%t1, 0)\n"
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
-      "0005: control %c12 = br(%c8)\n"
+      "0005: control %c11 = br(%c8)\n"
       "0006: control %c9 = if_false(%c7)\n"
-      "0007: control %c13 = br(%c9)\n"
-      "0008: control %c11 = merge(%c12, %c13)\n"
+      "0007: control %c12 = br(%c9)\n"
+      "0008: control %c10 = merge(%c11, %c12)\n"
       "0009: effect %e3 = get(%t1, 1)\n"
-      "0010: int32 %r15 = param(%t1, 1)\n"
-      "0011: (control, int32) %t16 = phi_operand(%c12, %r15)\n"
-      "0012: int32 %r17 = param(%t1, 2)\n"
-      "0013: (control, int32) %t18 = phi_operand(%c13, %r17)\n"
-      "0014: int32 %r14 = phi(%t16, %t18)\n"
-      "0015: control %c19 = ret(%c11, %e3, %r14)\n"
-      "0016: control %c4 = merge(%c19)\n"
+      "0010: int32 %r14 = param(%t1, 1)\n"
+      "0011: (control, int32) %t15 = phi_operand(%c11, %r14)\n"
+      "0012: int32 %r16 = param(%t1, 2)\n"
+      "0013: (control, int32) %t17 = phi_operand(%c12, %r16)\n"
+      "0014: int32 %r13 = phi(%t15, %t17)\n"
+      "0015: control %c18 = ret(%c10, %e3, %r13)\n"
+      "0016: control %c4 = merge(%c18)\n"
       "0017: void %r5 = exit(%c4)\n",
       ToString(function));
 }

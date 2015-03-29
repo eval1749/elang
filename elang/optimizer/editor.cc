@@ -85,11 +85,7 @@ void Editor::ReplaceAllUses(Node* new_node, Node* old_node) {
 
 Node* Editor::SetBranch(Node* condition) {
   DCHECK(control_);
-  auto const if_node = NewIf(control_, condition);
-  auto const if_true = NewIfTrue(if_node);
-  auto const if_false = NewIfFalse(if_node);
-  auto const merge = NewMerge({if_true, if_false});
-  return merge;
+  return NewIf(control_, condition);
 }
 
 Node* Editor::SetJump(Node* target) {
