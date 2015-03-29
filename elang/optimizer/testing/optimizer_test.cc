@@ -11,6 +11,7 @@
 #include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/optimizer/testing/optimizer_test.h"
 #include "elang/optimizer/thing.h"
+#include "elang/optimizer/types.h"
 #include "elang/optimizer/validator.h"
 
 namespace elang {
@@ -44,6 +45,12 @@ OptimizerTest::~OptimizerTest() {
 Function* OptimizerTest::NewSampleFunction(Type* return_type,
                                            Type* parameters_type) {
   return NewFunction(NewFunctionType(return_type, parameters_type));
+}
+
+Function* OptimizerTest::NewSampleFunction(
+    Type* return_type,
+    const std::vector<Type*>& parameter_types) {
+  return NewSampleFunction(return_type, NewTupleType(parameter_types));
 }
 
 std::string OptimizerTest::ToString(const Function* function) {

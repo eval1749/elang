@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/optimizer/factory_user.h"
@@ -30,6 +31,8 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
   ~OptimizerTest() override;
 
   Function* NewSampleFunction(Type* return_type, Type* parameters_type);
+  Function* NewSampleFunction(Type* return_type,
+                              const std::vector<Type*>& parameter_types);
 
   std::string ToString(const Function* function);
   std::string ToString(const Thing* thing);
