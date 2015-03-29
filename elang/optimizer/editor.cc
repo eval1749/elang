@@ -92,11 +92,12 @@ Node* Editor::SetBranch(Node* condition) {
   return merge;
 }
 
-void Editor::SetJump(Node* target) {
+Node* Editor::SetJump(Node* target) {
   DCHECK(control_);
   DCHECK(target->IsValidControl());
   auto const jump_node = NewJump(control_);
   AppendInput(target, jump_node);
+  return jump_node;
 }
 
 void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
