@@ -98,6 +98,8 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   // Node cache management
   Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
   void RememberBinaryNode(Node* node);
+  Node* FindUnaryNode(Opcode opcode, Type* type, Node* input);
+  void RememberUnaryNode(Node* node);
 
   Node* NewEntry(Type* parameters_type);
   Node* NewExit(Node* control);

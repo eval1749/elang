@@ -33,6 +33,10 @@ Node* NodeFactoryUser::NewCall(Node* effect, Node* callee, Node* arguments) {
   return node_factory_->NewCall(effect, callee, arguments);
 }
 
+Node* NodeFactoryUser::NewDynamicCast(Type* output_type, Node* input) {
+  return node_factory_->NewDynamicCast(output_type, input);
+}
+
 Node* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
                                    Node* left,
                                    Node* right) {
@@ -91,6 +95,10 @@ Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
 
 Node* NodeFactoryUser::NewTuple(Type* output_type) {
   return node_factory_->NewTuple(output_type);
+}
+
+Node* NodeFactoryUser::NewStaticCast(Type* output_type, Node* input) {
+  return node_factory_->NewStaticCast(output_type, input);
 }
 
 Node* NodeFactoryUser::NewTuple(const std::vector<Node*>& inputs) {

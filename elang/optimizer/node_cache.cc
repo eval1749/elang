@@ -39,6 +39,11 @@ Node* NodeCache::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return it == binary_node_cache_.end() ? nullptr : it->second;
 }
 
+Node* NodeCache::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
+  auto const it = unary_node_cache_.find(std::make_tuple(opcode, type, input));
+  return it == unary_node_cache_.end() ? nullptr : it->second;
+}
+
 #define V(Name, name, data_type, ...)                         \
   Node* NodeCache::New##Name(Type* type, data_type data) {    \
     auto const it = name##_cache_.find(data);                 \
@@ -117,6 +122,13 @@ void NodeCache::RememberBinaryNode(Node* node) {
       std::make_tuple(node->opcode(), node->input(0), node->input(1));
   DCHECK(!binary_node_cache_.count(key));
   binary_node_cache_[key] = node;
+}
+
+void NodeCache::RememberUnaryNode(Node* node) {
+  auto const key =
+      std::make_tuple(node->opcode(), node->output_type(), node->input(0));
+  DCHECK(!unary_node_cache_.count(key));
+  unary_node_cache_[key] = node;
 }
 
 }  // namespace optimizer

@@ -54,6 +54,13 @@ TEST_F(NodeTest, CharNode) {
   EXPECT_EQ("'\\''", ToString(NewChar('\'')));
 }
 
+TEST_F(NodeTest, DynamicCastNode) {
+  auto const function = NewSampleFunction(void_type(), int32_type());
+  auto const entry_node = function->entry_node();
+  auto const node = NewDynamicCast(int64_type(), NewParameter(entry_node, 0));
+  EXPECT_EQ("int64 %r7 = dynamic_cast(%r6)", ToString(node));
+}
+
 TEST_F(NodeTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();
@@ -279,6 +286,13 @@ TEST_F(NodeTest, RetNode) {
   auto const node =
       NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1), void_value());
   EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
+}
+
+TEST_F(NodeTest, StaticCastNode) {
+  auto const function = NewSampleFunction(void_type(), int32_type());
+  auto const entry_node = function->entry_node();
+  auto const node = NewStaticCast(int64_type(), NewParameter(entry_node, 0));
+  EXPECT_EQ("int64 %r7 = static_cast(%r6)", ToString(node));
 }
 
 TEST_F(NodeTest, StringNode) {

@@ -101,6 +101,10 @@ Node* NodeFactory::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return node_cache_->FindBinaryNode(opcode, left, right);
 }
 
+Node* NodeFactory::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
+  return node_cache_->FindUnaryNode(opcode, type, input);
+}
+
 Node* NodeFactory::NewCall(Node* effect, Node* callee, Node* arguments) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(callee->IsValidData()) << *callee;
@@ -115,26 +119,15 @@ Node* NodeFactory::NewCall(Node* effect, Node* callee, Node* arguments) {
   return node;
 }
 
-Node* NodeFactory::NewFunctionReference(Function* function) {
-  auto const output_type = NewPointerType(function->function_type());
-  return node_cache_->NewFunctionReference(output_type, function);
+Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
+  if (input->output_type() == type)
+    return input;
+  if (auto const present = FindUnaryNode(Opcode::DynamicCast, type, input))
+    return present;
+  auto const node = new (zone()) DynamicCastNode(type, input);
+  node->set_id(NewNodeId());
+  return node;
 }
-
-size_t NodeFactory::NewNodeId() {
-  return node_cache_->NewNodeId();
-}
-
-Node* NodeFactory::NewNull(Type* type) {
-  return node_cache_->NewNull(type);
-}
-
-// Literal nodes
-#define V(Name, name, data_type, ...)                   \
-  Node* NodeFactory::New##Name(data_type data) {        \
-    return node_cache_->New##Name(name##_type(), data); \
-  }
-FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
-#undef V
 
 Node* NodeFactory::NewEntry(Type* parameters_type) {
   auto const output_type =
@@ -226,6 +219,11 @@ Node* NodeFactory::NewFloatSub(Node* left, Node* right) {
   node->set_id(NewNodeId());
   RememberBinaryNode(node);
   return node;
+}
+
+Node* NodeFactory::NewFunctionReference(Function* function) {
+  auto const output_type = NewPointerType(function->function_type());
+  return node_cache_->NewFunctionReference(output_type, function);
 }
 
 Node* NodeFactory::NewGet(Node* input, size_t field) {
@@ -428,6 +426,22 @@ Node* NodeFactory::NewJump(Node* control) {
   return node;
 }
 
+// Literal nodes
+#define V(Name, name, data_type, ...)                   \
+  Node* NodeFactory::New##Name(data_type data) {        \
+    return node_cache_->New##Name(name##_type(), data); \
+  }
+FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
+#undef V
+
+size_t NodeFactory::NewNodeId() {
+  return node_cache_->NewNodeId();
+}
+
+Node* NodeFactory::NewNull(Type* type) {
+  return node_cache_->NewNull(type);
+}
+
 Node* NodeFactory::NewMerge(const std::vector<Node*>& controls) {
   auto const node = new (zone()) MergeNode(control_type(), zone());
   node->set_id(NewNodeId());
@@ -478,6 +492,16 @@ Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {
   return node;
 }
 
+Node* NodeFactory::NewStaticCast(Type* type, Node* input) {
+  if (input->output_type() == type)
+    return input;
+  if (auto const present = FindUnaryNode(Opcode::StaticCast, type, input))
+    return present;
+  auto const node = new (zone()) StaticCastNode(type, input);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Node* NodeFactory::NewString(base::StringPiece16 data) {
   return node_cache_->NewString(string_type(), data);
 }
@@ -505,6 +529,10 @@ Node* NodeFactory::NewTuple(Type* output_type) {
 
 void NodeFactory::RememberBinaryNode(Node* node) {
   return node_cache_->RememberBinaryNode(node);
+}
+
+void NodeFactory::RememberUnaryNode(Node* node) {
+  return node_cache_->RememberUnaryNode(node);
 }
 
 }  // namespace optimizer
