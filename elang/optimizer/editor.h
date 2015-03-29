@@ -36,7 +36,7 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   // Emit control node
   Node* SetBranch(Node* condition);
   Node* SetJump(Node* target);
-  void SetRet(Node* effect, Node* data);
+  Node* SetRet(Node* effect, Node* data);
 
   // Edit input edge
   void AppendInput(Node* node, Node* new_value);

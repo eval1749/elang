@@ -112,7 +112,7 @@ void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
   phi->AppendInput(NewPhiOperand(control, value));
 }
 
-void Editor::SetRet(Node* effect, Node* data) {
+Node* Editor::SetRet(Node* effect, Node* data) {
   DCHECK(control_);
   auto const merge_node = exit_node()->input(0)->as<MergeNode>();
   for (auto const predecessor : merge_node->inputs()) {
@@ -121,10 +121,12 @@ void Editor::SetRet(Node* effect, Node* data) {
       continue;
     if (ret_node->input(0) == control_) {
       ChangeInput(ret_node, 2, data);
-      return;
+      return ret_node;
     }
   }
-  merge_node->AppendInput(NewRet(control_, effect, data));
+  auto const new_ret_node = NewRet(control_, effect, data);
+  merge_node->AppendInput(new_ret_node);
+  return new_ret_node;
 }
 
 bool Editor::Validate() const {
