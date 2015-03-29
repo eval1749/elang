@@ -18,14 +18,13 @@
 
 namespace elang {
 namespace optimizer {
-class Editor;
 class TypeFactory;
 }
 namespace compiler {
 
 namespace ir = optimizer;
 
-class Editor;
+class Builder;
 class IrTypeMapper;
 
 //////////////////////////////////////////////////////////////////////
@@ -42,10 +41,10 @@ class Translator final : public CompilationSessionUser,
   bool Run();
 
  private:
-  Editor* editor() const { return editor_; }
+  Builder* builder() const { return builder_; }
   IrTypeMapper* type_mapper() const { return type_mapper_.get(); }
 
-  // Editor
+  // Builder
   void Commit();
 
   // Type management
@@ -88,8 +87,8 @@ class Translator final : public CompilationSessionUser,
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
 
-  // The |Editor|.
-  Editor* editor_;
+  // The |Builder|.
+  Builder* builder_;
 
   // The type mapper for mapping |sm::Type| to |ir::Type|.
   const std::unique_ptr<IrTypeMapper> type_mapper_;

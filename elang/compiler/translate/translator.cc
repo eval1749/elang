@@ -24,9 +24,8 @@
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
-#include "elang/compiler/translate/editor.h"
+#include "elang/compiler/translate/builder.h"
 #include "elang/compiler/translate/type_mapper.h"
-#include "elang/optimizer/editor.h"
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/function.h"
@@ -44,7 +43,7 @@ namespace compiler {
 Translator::Translator(CompilationSession* session, ir::Factory* factory)
     : CompilationSessionUser(session),
       FactoryUser(factory),
-      editor_(nullptr),
+      builder_(nullptr),
       type_mapper_(new IrTypeMapper(session, factory->type_factory())),
       visit_result_(nullptr) {
 }
@@ -59,7 +58,7 @@ void Translator::BindParameters(ast::Method* method) {
   for (auto const parameter : method->parameters()) {
     auto const variable = ValueOf(parameter)->as<sm::Variable>();
     DCHECK(variable);
-    editor_->BindVariable(variable, editor()->ParameterAt(index));
+    builder_->BindVariable(variable, builder()->ParameterAt(index));
     ++index;
   }
 }
@@ -149,14 +148,14 @@ void Translator::TranslateStatement(ast::Statement* node) {
 void Translator::TranslateVariable(ast::NamedNode* ast_variable) {
   auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
   DCHECK(variable);
-  SetVisitorResult(editor_->VariableValueOf(variable));
+  SetVisitorResult(builder_->VariableValueOf(variable));
 }
 
 void Translator::TranslateVariableAssignment(ast::NamedNode* ast_variable,
                                              ast::Expression* ast_value) {
   auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
   auto const value = Translate(ast_value);
-  editor_->AssignVariable(variable, value);
+  builder_->AssignVariable(variable, value);
   SetVisitorResult(value);
 }
 
@@ -184,7 +183,7 @@ void Translator::DoDefaultVisit(ast::Node* node) {
 //
 
 void Translator::VisitMethod(ast::Method* ast_method) {
-  DCHECK(!editor_);
+  DCHECK(!builder_);
   //  1 Convert ast::FunctionType to ir::FunctionType
   //  2 ir::NewFunction(function_type)
   auto const method = ValueOf(ast_method)->as<sm::Method>();
@@ -199,13 +198,13 @@ void Translator::VisitMethod(ast::Method* ast_method) {
       type_mapper()->Map(method->signature())->as<ir::FunctionType>());
   session()->RegisterFunction(ast_method, function);
 
-  auto const editor = std::make_unique<Editor>(factory(), function);
-  TemporaryChangeValue<Editor*> editor_scope(editor_, editor.get());
+  auto const builder = std::make_unique<Builder>(factory(), function);
+  TemporaryChangeValue<Builder*> builder_scope(builder_, builder.get());
 
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression
   TranslateStatement(ast_method_body->as<ast::Statement>());
-  if (!editor_->control())
+  if (!builder_->control())
     return;
   if (MapType(method->return_type()) != MapType(PredefinedName::Void) &&
       function->exit_node()->input(0)->CountInputs()) {
@@ -258,7 +257,7 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
   variables.swap(variables_);
 
   for (auto const statement : node->statements()) {
-    if (!editor()->control()) {
+    if (!builder()->control()) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
       // checking |statement|.
       break;
@@ -267,9 +266,9 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
   }
 
   // Unbind variables declared in this block.
-  if (editor_->control()) {
+  if (builder_->control()) {
     for (auto const variable : variables_)
-      editor_->UnbindVariable(variable);
+      builder_->UnbindVariable(variable);
   }
   variables_.clear();
 
@@ -288,33 +287,33 @@ void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
 
 void Translator::VisitIfStatement(ast::IfStatement* node) {
   auto const condition = TranslateBool(node->condition());
-  auto const if_node = editor_->EndBlockWithBranch(condition);
+  auto const if_node = builder_->EndBlockWithBranch(condition);
   auto const merge_node = NewMerge({});
 
-  editor_->StartIfBlock(NewIfTrue(if_node));
+  builder_->StartIfBlock(NewIfTrue(if_node));
   TranslateStatement(node->then_statement());
-  editor_->EndBlockWithJump(merge_node);
+  builder_->EndBlockWithJump(merge_node);
 
-  editor_->StartIfBlock(NewIfFalse(if_node));
+  builder_->StartIfBlock(NewIfFalse(if_node));
   if (node->else_statement())
     TranslateStatement(node->else_statement());
-  editor_->EndBlockWithJump(merge_node);
+  builder_->EndBlockWithJump(merge_node);
 
   if (!merge_node->CountInputs())
     return;
-  editor_->StartMergeBlock(merge_node);
+  builder_->StartMergeBlock(merge_node);
 }
 
 void Translator::VisitReturnStatement(ast::ReturnStatement* node) {
   auto const value = node->value();
-  editor()->EndBlockWithRet(value ? Translate(value) : void_value());
+  builder()->EndBlockWithRet(value ? Translate(value) : void_value());
 }
 
 void Translator::VisitVarStatement(ast::VarStatement* node) {
   for (auto const ast_variable : node->variables()) {
     auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
     DCHECK(variable);
-    editor_->BindVariable(variable, Translate(ast_variable->value()));
+    builder_->BindVariable(variable, Translate(ast_variable->value()));
     variables_.push_back(variable);
   }
 }

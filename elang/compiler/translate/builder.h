@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_TRANSLATE_EDITOR_H_
-#define ELANG_COMPILER_TRANSLATE_EDITOR_H_
+#ifndef ELANG_COMPILER_TRANSLATE_BUILDER_H_
+#define ELANG_COMPILER_TRANSLATE_BUILDER_H_
 
 #include <memory>
 #include <unordered_map>
@@ -32,12 +32,12 @@ class IrTypeMapper;
 
 //////////////////////////////////////////////////////////////////////
 //
-// Editor
+// Builder
 //
-class Editor final : public ZoneOwner {
+class Builder final : public ZoneOwner {
  public:
-  Editor(ir::Factory* factory, ir::Function* function);
-  ~Editor();
+  Builder(ir::Factory* factory, ir::Function* function);
+  ~Builder();
 
   ir::Node* control() const;
 
@@ -68,10 +68,10 @@ class Editor final : public ZoneOwner {
   std::unordered_map<ir::Node*, BasicBlock*> basic_blocks_;
   const std::unique_ptr<ir::Editor> editor_;
 
-  DISALLOW_COPY_AND_ASSIGN(Editor);
+  DISALLOW_COPY_AND_ASSIGN(Builder);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_TRANSLATE_EDITOR_H_
+#endif  // ELANG_COMPILER_TRANSLATE_BUILDER_H_

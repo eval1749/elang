@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "elang/compiler/translate/editor.h"
+#include "elang/compiler/translate/builder.h"
 
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/optimizer/editor.h"
@@ -21,9 +21,9 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Editor::BasicBlock
+// Builder::BasicBlock
 //
-class Editor::BasicBlock final : public ZoneAllocated {
+class Builder::BasicBlock final : public ZoneAllocated {
  public:
   BasicBlock(ir::Node* control, ir::Node* effect, const Variables& variables);
   ~BasicBlock() = delete;
@@ -53,7 +53,7 @@ class Editor::BasicBlock final : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-Editor::BasicBlock::BasicBlock(ir::Node* control,
+Builder::BasicBlock::BasicBlock(ir::Node* control,
                                ir::Node* effect,
                                const Variables& variables)
     : committed_(false),
@@ -64,20 +64,20 @@ Editor::BasicBlock::BasicBlock(ir::Node* control,
   DCHECK(effect_->IsValidEffect());
 }
 
-void Editor::BasicBlock::set_effect(ir::Node* effect) {
+void Builder::BasicBlock::set_effect(ir::Node* effect) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK_NE(effect_, effect) << *effect;
   DCHECK(!committed_);
   effect_ = effect;
 }
 
-void Editor::BasicBlock::AssignVariable(sm::Variable* variable,
+void Builder::BasicBlock::AssignVariable(sm::Variable* variable,
                                         ir::Node* value) {
   DCHECK(!committed_);
   variables_[variable] = value;
 }
 
-void Editor::BasicBlock::BindVariable(sm::Variable* variable,
+void Builder::BasicBlock::BindVariable(sm::Variable* variable,
                                       ir::Node* variable_value) {
   DCHECK(!committed_);
   if (variable->storage() == sm::StorageClass::Void)
@@ -94,18 +94,18 @@ void Editor::BasicBlock::BindVariable(sm::Variable* variable,
   variables_[variable] = variable_value;
 }
 
-void Editor::BasicBlock::Commit() {
+void Builder::BasicBlock::Commit() {
   DCHECK(!committed_);
   committed_ = true;
 }
 
-void Editor::BasicBlock::UnbindVariable(sm::Variable* variable) {
+void Builder::BasicBlock::UnbindVariable(sm::Variable* variable) {
   auto const it = variables_.find(variable);
   DCHECK(it != variables_.end()) << *variable;
   variables_.erase(it);
 }
 
-ir::Node* Editor::BasicBlock::VariableValueOf(sm::Variable* variable) const {
+ir::Node* Builder::BasicBlock::VariableValueOf(sm::Variable* variable) const {
   auto const it = variables_.find(variable);
   DCHECK(it != variables_.end()) << *variable << " isn't resolved";
   DCHECK(it->second) << *variable << " has no value";
@@ -116,7 +116,7 @@ ir::Node* Editor::BasicBlock::VariableValueOf(sm::Variable* variable) const {
 //
 // Editor
 //
-Editor::Editor(ir::Factory* factory, ir::Function* function)
+Builder::Builder(ir::Factory* factory, ir::Function* function)
     : basic_block_(nullptr), editor_(new ir::Editor(factory, function)) {
   auto const entry_node = function->entry_node();
   auto const control = editor_->NewGet(entry_node, 0);
@@ -124,33 +124,33 @@ Editor::Editor(ir::Factory* factory, ir::Function* function)
   basic_block_ = NewBasicBlock(control, editor_->NewGet(entry_node, 1), {});
 }
 
-Editor::~Editor() {
+Builder::~Builder() {
   DCHECK(!basic_block_);
   DCHECK(!editor_->control());
   DCHECK(editor_->Validate()) << editor_->errors();
 }
 
-ir::Node* Editor::control() const {
+ir::Node* Builder::control() const {
   return editor_->control();
 }
 
-void Editor::AssignVariable(sm::Variable* variable, ir::Node* value) {
+void Builder::AssignVariable(sm::Variable* variable, ir::Node* value) {
   DCHECK(basic_block_);
   basic_block_->AssignVariable(variable, value);
 }
 
-Editor::BasicBlock* Editor::BasicBlockOf(ir::Node* control) {
+Builder::BasicBlock* Builder::BasicBlockOf(ir::Node* control) {
   auto const it = basic_blocks_.find(control);
   DCHECK(it != basic_blocks_.end());
   return it->second;
 }
 
-void Editor::BindVariable(sm::Variable* variable, ir::Node* value) {
+void Builder::BindVariable(sm::Variable* variable, ir::Node* value) {
   DCHECK(basic_block_);
   basic_block_->BindVariable(variable, value);
 }
 
-void Editor::EndBlock() {
+void Builder::EndBlock() {
   DCHECK(editor_->control());
   DCHECK_EQ(basic_block_, basic_blocks_[editor_->control()]);
   editor_->Commit();
@@ -158,7 +158,7 @@ void Editor::EndBlock() {
   basic_block_ = nullptr;
 }
 
-ir::Node* Editor::EndBlockWithBranch(ir::Node* condition) {
+ir::Node* Builder::EndBlockWithBranch(ir::Node* condition) {
   DCHECK(editor_->control());
   auto const if_node = editor_->NewIf(editor_->control(), condition);
   basic_blocks_[if_node] = basic_block_;
@@ -166,7 +166,7 @@ ir::Node* Editor::EndBlockWithBranch(ir::Node* condition) {
   return if_node;
 }
 
-void Editor::EndBlockWithJump(ir::Node* target) {
+void Builder::EndBlockWithJump(ir::Node* target) {
   if (!editor_->control())
     return;
   auto const node = editor_->SetJump(target);
@@ -174,13 +174,13 @@ void Editor::EndBlockWithJump(ir::Node* target) {
   EndBlock();
 }
 
-void Editor::EndBlockWithRet(ir::Node* data) {
+void Builder::EndBlockWithRet(ir::Node* data) {
   DCHECK(basic_block_);
   editor_->SetRet(basic_block_->effect(), data);
   EndBlock();
 }
 
-Editor::BasicBlock* Editor::NewBasicBlock(ir::Node* control,
+Builder::BasicBlock* Builder::NewBasicBlock(ir::Node* control,
                                           ir::Node* effect,
                                           const Variables& variables) {
   DCHECK(control->IsValidControl()) << *control;
@@ -192,11 +192,11 @@ Editor::BasicBlock* Editor::NewBasicBlock(ir::Node* control,
   return basic_block;
 }
 
-ir::Node* Editor::ParameterAt(size_t index) {
+ir::Node* Builder::ParameterAt(size_t index) {
   return editor_->EmitParameter(index);
 }
 
-void Editor::StartIfBlock(ir::Node* control) {
+void Builder::StartIfBlock(ir::Node* control) {
   DCHECK(control->is<ir::IfTrueNode>() || control->is<ir::IfFalseNode>());
   DCHECK(!basic_block_);
   auto const if_node = control->input(0);
@@ -206,7 +206,7 @@ void Editor::StartIfBlock(ir::Node* control) {
       NewBasicBlock(control, predecessor->effect(), predecessor->variables());
 }
 
-void Editor::StartMergeBlock(ir::Node* control) {
+void Builder::StartMergeBlock(ir::Node* control) {
   DCHECK(control->is<ir::PhiOwnerNode>()) << *control;
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(!basic_block_);
@@ -268,12 +268,12 @@ void Editor::StartMergeBlock(ir::Node* control) {
   }
 }
 
-void Editor::UnbindVariable(sm::Variable* variable) {
+void Builder::UnbindVariable(sm::Variable* variable) {
   DCHECK(basic_block_);
   basic_block_->UnbindVariable(variable);
 }
 
-ir::Node* Editor::VariableValueOf(sm::Variable* variable) const {
+ir::Node* Builder::VariableValueOf(sm::Variable* variable) const {
   DCHECK(basic_block_);
   return basic_block_->VariableValueOf(variable);
 }
