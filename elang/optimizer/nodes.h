@@ -154,10 +154,10 @@ class ELANG_OPTIMIZER_EXPORT Input final
 // Opcode
 //
 enum class Opcode {
-#define V(Name, ...) Name##Node,
+#define V(Name, ...) Name,
   FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
-      Last,
+      NumberOfOpcodes,
 };
 
 //////////////////////////////////////////////////////////////////////

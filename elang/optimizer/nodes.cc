@@ -214,7 +214,7 @@ base::StringPiece Node::mnemonic() const {
 }
 
 #define V(Name, ...) \
-  Opcode Name##Node::opcode() const { return Opcode::Name##Node; }
+  Opcode Name##Node::opcode() const { return Opcode::Name; }
 FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
@@ -257,7 +257,7 @@ bool Node::IsEffect() const {
 }
 
 bool Node::IsLiteral() const {
-  return IsData() && !CountInputs() && opcode() != Opcode::EntryNode;
+  return IsData() && !CountInputs() && opcode() != Opcode::Entry;
 }
 
 bool Node::IsValidControl() const {
