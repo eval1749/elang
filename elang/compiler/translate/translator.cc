@@ -57,16 +57,11 @@ void Translator::BindParameters(ast::Method* method) {
     return;
   auto index = 0;
   for (auto const parameter : method->parameters()) {
-    BindVariable(parameter, editor()->ParameterAt(index));
+    auto const variable = ValueOf(parameter)->as<sm::Variable>();
+    DCHECK(variable);
+    editor_->BindVariable(variable, editor()->ParameterAt(index));
     ++index;
   }
-}
-
-void Translator::BindVariable(ast::NamedNode* ast_node,
-                              ir::Node* variable_value) {
-  auto const variable = ValueOf(ast_node)->as<sm::Variable>();
-  DCHECK(variable);
-  editor_->BindVariable(variable, variable_value);
 }
 
 void Translator::SetVisitorResult(ir::Node* node) {
@@ -95,6 +90,13 @@ ir::Node* Translator::Translate(ast::Expression* node) {
   auto const result = visit_result_;
   visit_result_ = nullptr;
   return result;
+}
+
+ir::Node* Translator::TranslateBool(ast::Expression* expression) {
+  // TOOD(eval1749) Convert |condition| to |bool|
+  auto const node = Translate(expression);
+  DCHECK_EQ(node->output_type(), bool_type()) << *node;
+  return node;
 }
 
 ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
@@ -144,10 +146,18 @@ void Translator::TranslateStatement(ast::Statement* node) {
   DCHECK(!visit_result_);
 }
 
-ir::Node* Translator::TranslateVariable(ast::NamedNode* ast_variable) {
+void Translator::TranslateVariable(ast::NamedNode* ast_variable) {
   auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
   DCHECK(variable);
-  return editor_->VariableValueOf(variable);
+  SetVisitorResult(editor_->VariableValueOf(variable));
+}
+
+void Translator::TranslateVariableAssignment(ast::NamedNode* ast_variable,
+                                             ast::Expression* ast_value) {
+  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+  auto const value = Translate(ast_value);
+  editor_->AssignVariable(variable, value);
+  SetVisitorResult(value);
 }
 
 sm::Semantic* Translator::ValueOf(ast::Node* node) const {
@@ -191,8 +201,6 @@ void Translator::VisitMethod(ast::Method* ast_method) {
 
   auto const editor = std::make_unique<Editor>(factory(), function);
   TemporaryChangeValue<Editor*> editor_scope(editor_, editor.get());
-  auto const entry_node = function->entry_node();
-  editor_->StartBlock(NewGet(entry_node, 0));
 
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression
@@ -208,6 +216,25 @@ void Translator::VisitMethod(ast::Method* ast_method) {
 //
 // ast::Visitor expression nodes
 //
+// There are five patterns:
+//  1. parameter = expression
+//  2. variable = expression
+//  3. array[index+] = expression
+//  5. name = expression; field or property assignment
+//  4. container.member = expression; member assignment
+void Translator::VisitAssignment(ast::Assignment* node) {
+  auto const lhs = node->left();
+  auto const rhs = node->right();
+  if (auto const reference = lhs->as<ast::ParameterReference>()) {
+    TranslateVariableAssignment(reference->parameter(), rhs);
+    return;
+  }
+  if (auto const reference = lhs->as<ast::VariableReference>()) {
+    TranslateVariableAssignment(reference->variable(), rhs);
+    return;
+  }
+  Error(ErrorCode::TranslatorExpressionNotYetImplemented, node);
+}
 
 void Translator::VisitLiteral(ast::Literal* node) {
   auto const value = ValueOf(node)->as<sm::Literal>();
@@ -215,17 +242,21 @@ void Translator::VisitLiteral(ast::Literal* node) {
 }
 
 void Translator::VisitParameterReference(ast::ParameterReference* node) {
-  SetVisitorResult(TranslateVariable(node->parameter()));
+  TranslateVariable(node->parameter());
 }
 
 void Translator::VisitVariableReference(ast::VariableReference* node) {
-  SetVisitorResult(TranslateVariable(node->variable()));
+  TranslateVariable(node->variable());
 }
 
 //
 // ast::Visitor statement nodes
 //
 void Translator::VisitBlockStatement(ast::BlockStatement* node) {
+  // Save list of variable bindings.
+  std::vector<sm::Variable*> variables;
+  variables.swap(variables_);
+
   for (auto const statement : node->statements()) {
     if (!editor()->control()) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
@@ -234,21 +265,58 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
     }
     TranslateStatement(statement);
   }
+
+  // Unbind variables declared in this block.
+  if (editor_->control()) {
+    for (auto const variable : variables_)
+      editor_->UnbindVariable(variable);
+  }
+  variables_.clear();
+
+  // Restore list of binding variables in this block.
+  variables_.swap(variables);
 }
 
 void Translator::VisitExpressionList(ast::ExpressionList* node) {
   for (auto const expression : node->expressions())
-    expression->Accept(this);
+    Translate(expression);
 }
 
 void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
-  DCHECK(!visit_result_);
-  node->expression()->Accept(this);
+  Translate(node->expression());
+}
+
+void Translator::VisitIfStatement(ast::IfStatement* node) {
+  auto const condition = TranslateBool(node->condition());
+  auto const if_node = editor_->EndBlockWithBranch(condition);
+  auto const merge_node = NewMerge({});
+
+  editor_->StartIfBlock(NewIfTrue(if_node));
+  TranslateStatement(node->then_statement());
+  editor_->EndBlockWithJump(merge_node);
+
+  editor_->StartIfBlock(NewIfFalse(if_node));
+  if (node->else_statement())
+    TranslateStatement(node->else_statement());
+  editor_->EndBlockWithJump(merge_node);
+
+  if (!merge_node->CountInputs())
+    return;
+  editor_->StartMergeBlock(merge_node);
 }
 
 void Translator::VisitReturnStatement(ast::ReturnStatement* node) {
   auto const value = node->value();
   editor()->EndBlockWithRet(value ? Translate(value) : void_value());
+}
+
+void Translator::VisitVarStatement(ast::VarStatement* node) {
+  for (auto const ast_variable : node->variables()) {
+    auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+    DCHECK(variable);
+    editor_->BindVariable(variable, Translate(ast_variable->value()));
+    variables_.push_back(variable);
+  }
 }
 
 }  // namespace compiler

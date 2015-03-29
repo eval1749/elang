@@ -41,25 +41,32 @@ class Editor final : public ZoneOwner {
 
   ir::Node* control() const;
 
-  void BindVariable(sm::Variable* variable, ir::Node* variable_value);
-  void Commit();
+  void AssignVariable(sm::Variable* variable, ir::Node* value);
+  void BindVariable(sm::Variable* variable, ir::Node* value);
+  ir::Node* EndBlockWithBranch(ir::Node* condition);
+  void EndBlockWithJump(ir::Node* target);
   void EndBlockWithRet(ir::Node* data);
   ir::Node* ParameterAt(size_t index);
-  void StartBlock(ir::Node* control);
+  void StartIfBlock(ir::Node* control);
+  void StartMergeBlock(ir::Node* control);
+  void UnbindVariable(sm::Variable* variable);
   ir::Node* VariableValueOf(sm::Variable* variable) const;
 
  private:
   class BasicBlock;
+  typedef std::unordered_map<sm::Variable*, ir::Node*> Variables;
 
   BasicBlock* BasicBlockOf(ir::Node* control);
-  BasicBlock* NewBasicBlock(ir::Node* control, ir::Node* effect);
+  void EndBlock();
+  BasicBlock* NewBasicBlock(ir::Node* control,
+                            ir::Node* effect,
+                            const Variables& variables);
 
   BasicBlock* basic_block_;
-  // A mapping from IR control node to basic block
+  // A mapping to basic block from IR control node, which starts or ends basic
+  // block.
   std::unordered_map<ir::Node*, BasicBlock*> basic_blocks_;
   const std::unique_ptr<ir::Editor> editor_;
-  ir::Node* effect_;
-  std::unordered_map<sm::Variable*, ir::Node*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

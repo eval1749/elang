@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include "elang/compiler/translate/editor.h"
 
 #include "elang/compiler/semantics/nodes.h"
@@ -22,25 +25,41 @@ namespace compiler {
 //
 class Editor::BasicBlock final : public ZoneAllocated {
  public:
-  BasicBlock(ir::Node* control, ir::Node* effect);
+  BasicBlock(ir::Node* control, ir::Node* effect, const Variables& variables);
   ~BasicBlock() = delete;
 
   ir::Node* control() const { return control_; }
   ir::Node* effect() const { return effect_; }
   void set_effect(ir::Node* effect);
+  const Variables& variables() const { return variables_; }
+
+  void AssignVariable(sm::Variable* variable, ir::Node* value);
+  void BindVariable(sm::Variable* variable, ir::Node* variable_value);
+  void Commit();
+  void UnbindVariable(sm::Variable* variable);
+  ir::Node* VariableValueOf(sm::Variable* variable) const;
 
  private:
+  bool committed_;
+
   // Control value associated to this |BasicBlock|.
   ir::Node* const control_;
 
   // Effect value at the end of this |BasicBlock|.
   ir::Node* effect_;
 
+  Variables variables_;
+
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-Editor::BasicBlock::BasicBlock(ir::Node* control, ir::Node* effect)
-    : control_(control), effect_(effect) {
+Editor::BasicBlock::BasicBlock(ir::Node* control,
+                               ir::Node* effect,
+                               const Variables& variables)
+    : committed_(false),
+      control_(control),
+      effect_(effect),
+      variables_(variables) {
   DCHECK(control_->IsValidControl());
   DCHECK(effect_->IsValidEffect());
 }
@@ -48,39 +67,19 @@ Editor::BasicBlock::BasicBlock(ir::Node* control, ir::Node* effect)
 void Editor::BasicBlock::set_effect(ir::Node* effect) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK_NE(effect_, effect) << *effect;
+  DCHECK(!committed_);
   effect_ = effect;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
-// Editor
-//
-Editor::Editor(ir::Factory* factory, ir::Function* function)
-    : basic_block_(nullptr),
-      editor_(new ir::Editor(factory, function)),
-      effect_(nullptr) {
-  auto const entry_node = function->entry_node();
-  NewBasicBlock(editor_->NewGet(entry_node, 0), editor_->NewGet(entry_node, 1));
+void Editor::BasicBlock::AssignVariable(sm::Variable* variable,
+                                        ir::Node* value) {
+  DCHECK(!committed_);
+  variables_[variable] = value;
 }
 
-Editor::~Editor() {
-  DCHECK(!basic_block_);
-  DCHECK(!editor_->control());
-  DCHECK(!effect_);
-  DCHECK(editor_->Validate()) << editor_->errors();
-}
-
-ir::Node* Editor::control() const {
-  return editor_->control();
-}
-
-Editor::BasicBlock* Editor::BasicBlockOf(ir::Node* control) {
-  auto const it = basic_blocks_.find(control);
-  DCHECK(it != basic_blocks_.end());
-  return it->second;
-}
-
-void Editor::BindVariable(sm::Variable* variable, ir::Node* variable_value) {
+void Editor::BasicBlock::BindVariable(sm::Variable* variable,
+                                      ir::Node* variable_value) {
+  DCHECK(!committed_);
   if (variable->storage() == sm::StorageClass::Void)
     return;
   DCHECK(!variables_.count(variable));
@@ -95,26 +94,100 @@ void Editor::BindVariable(sm::Variable* variable, ir::Node* variable_value) {
   variables_[variable] = variable_value;
 }
 
-void Editor::Commit() {
+void Editor::BasicBlock::Commit() {
+  DCHECK(!committed_);
+  committed_ = true;
+}
+
+void Editor::BasicBlock::UnbindVariable(sm::Variable* variable) {
+  auto const it = variables_.find(variable);
+  DCHECK(it != variables_.end()) << *variable;
+  variables_.erase(it);
+}
+
+ir::Node* Editor::BasicBlock::VariableValueOf(sm::Variable* variable) const {
+  auto const it = variables_.find(variable);
+  DCHECK(it != variables_.end()) << *variable << " isn't resolved";
+  DCHECK(it->second) << *variable << " has no value";
+  return it->second;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Editor
+//
+Editor::Editor(ir::Factory* factory, ir::Function* function)
+    : basic_block_(nullptr), editor_(new ir::Editor(factory, function)) {
+  auto const entry_node = function->entry_node();
+  auto const control = editor_->NewGet(entry_node, 0);
+  editor_->Edit(control);
+  basic_block_ = NewBasicBlock(control, editor_->NewGet(entry_node, 1), {});
+}
+
+Editor::~Editor() {
+  DCHECK(!basic_block_);
+  DCHECK(!editor_->control());
+  DCHECK(editor_->Validate()) << editor_->errors();
+}
+
+ir::Node* Editor::control() const {
+  return editor_->control();
+}
+
+void Editor::AssignVariable(sm::Variable* variable, ir::Node* value) {
+  DCHECK(basic_block_);
+  basic_block_->AssignVariable(variable, value);
+}
+
+Editor::BasicBlock* Editor::BasicBlockOf(ir::Node* control) {
+  auto const it = basic_blocks_.find(control);
+  DCHECK(it != basic_blocks_.end());
+  return it->second;
+}
+
+void Editor::BindVariable(sm::Variable* variable, ir::Node* value) {
+  DCHECK(basic_block_);
+  basic_block_->BindVariable(variable, value);
+}
+
+void Editor::EndBlock() {
   DCHECK(editor_->control());
   DCHECK_EQ(basic_block_, basic_blocks_[editor_->control()]);
   editor_->Commit();
+  basic_block_->Commit();
   basic_block_ = nullptr;
-  effect_ = nullptr;
+}
+
+ir::Node* Editor::EndBlockWithBranch(ir::Node* condition) {
+  DCHECK(editor_->control());
+  auto const if_node = editor_->NewIf(editor_->control(), condition);
+  basic_blocks_[if_node] = basic_block_;
+  EndBlock();
+  return if_node;
+}
+
+void Editor::EndBlockWithJump(ir::Node* target) {
+  if (!editor_->control())
+    return;
+  auto const node = editor_->SetJump(target);
+  basic_blocks_[node] = basic_block_;
+  EndBlock();
 }
 
 void Editor::EndBlockWithRet(ir::Node* data) {
   DCHECK(basic_block_);
-  DCHECK(effect_);
-  editor_->SetRet(effect_, data);
-  Commit();
+  editor_->SetRet(basic_block_->effect(), data);
+  EndBlock();
 }
 
-Editor::BasicBlock* Editor::NewBasicBlock(ir::Node* control, ir::Node* effect) {
+Editor::BasicBlock* Editor::NewBasicBlock(ir::Node* control,
+                                          ir::Node* effect,
+                                          const Variables& variables) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(!basic_blocks_.count(control));
-  auto const basic_block = new (ZoneOwner::zone()) BasicBlock(control, effect);
+  auto const basic_block =
+      new (ZoneOwner::zone()) BasicBlock(control, effect, variables);
   basic_blocks_[control] = basic_block;
   return basic_block;
 }
@@ -123,22 +196,86 @@ ir::Node* Editor::ParameterAt(size_t index) {
   return editor_->EmitParameter(index);
 }
 
-void Editor::StartBlock(ir::Node* control) {
+void Editor::StartIfBlock(ir::Node* control) {
+  DCHECK(control->is<ir::IfTrueNode>() || control->is<ir::IfFalseNode>());
+  DCHECK(!basic_block_);
+  auto const if_node = control->input(0);
+  auto const predecessor = BasicBlockOf(if_node->input(0));
+  editor_->Edit(control);
+  basic_block_ =
+      NewBasicBlock(control, predecessor->effect(), predecessor->variables());
+}
+
+void Editor::StartMergeBlock(ir::Node* control) {
+  DCHECK(control->is<ir::PhiOwnerNode>()) << *control;
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(!basic_block_);
-  DCHECK(!effect_);
+
+  auto effect = static_cast<ir::Node*>(nullptr);
+  auto effect_phi = static_cast<ir::Node*>(nullptr);
+  Variables variables;
+  std::unordered_map<sm::Variable*, ir::Node*> variable_phis;
+
+  // Figure out effect and variables in |control|.
+  for (auto const input : control->inputs()) {
+    auto const predecessor = BasicBlockOf(input);
+
+    if (!effect_phi) {
+      if (!effect) {
+        effect = predecessor->effect();
+      } else if (effect != predecessor->effect()) {
+        effect_phi = editor_->NewPhi(editor_->effect_type(), control);
+        effect = effect_phi;
+      }
+    }
+
+    for (auto const var_value : predecessor->variables()) {
+      auto const variable = var_value.first;
+      if (variable_phis.count(variable))
+        continue;
+      auto const value = var_value.second;
+      auto const it = variables.find(variable);
+      if (it == variables.end()) {
+        variables[variable] = value;
+        continue;
+      }
+      if (it->second == value)
+        continue;
+      auto const phi = editor_->NewPhi(value->output_type(), control);
+      variables[variable] = phi;
+      variable_phis[variable] = phi;
+    }
+  }
+
   editor_->Edit(control);
-  auto const it = basic_blocks_.find(control);
-  DCHECK(it != basic_blocks_.end());
-  basic_block_ = it->second;
-  effect_ = basic_block_->effect();
+  basic_block_ = NewBasicBlock(control, effect, variables);
+
+  if (!effect_phi && variable_phis.empty())
+    return;
+
+  // Populate 'phi` operands.
+  for (auto const input : control->inputs()) {
+    auto const predecessor = BasicBlockOf(input);
+
+    if (effect_phi)
+      editor_->SetPhiInput(effect_phi, input, predecessor->effect());
+
+    for (auto const var_phi : variable_phis) {
+      auto const it = predecessor->variables().find(var_phi.first);
+      DCHECK(it != predecessor->variables().end()) << *var_phi.first;
+      editor_->SetPhiInput(var_phi.second, input, it->second);
+    }
+  }
+}
+
+void Editor::UnbindVariable(sm::Variable* variable) {
+  DCHECK(basic_block_);
+  basic_block_->UnbindVariable(variable);
 }
 
 ir::Node* Editor::VariableValueOf(sm::Variable* variable) const {
-  auto const it = variables_.find(variable);
-  DCHECK(it != variables_.end()) << *variable << " isn't resolved";
-  DCHECK(it->second) << *variable << " has no value";
-  return it->second;
+  DCHECK(basic_block_);
+  return basic_block_->VariableValueOf(variable);
 }
 
 }  // namespace compiler

@@ -41,6 +41,36 @@ class TranslatorTest : public testing::TranslateTest {
 // tests...
 //
 
+TEST_F(TranslatorTest, IfMerge) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(bool a) {"
+      "    var b = 0;"
+      "    if (a) b = 1;"
+      "    return b;"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(bool)\n"
+      "0000: (control, effect, bool) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: bool %r6 = param(%t1, 0)\n"
+      "0003: control %c7 = if(%c2, %r6)\n"
+      "0004: control %c9 = if_true(%c7)\n"
+      "0005: control %c10 = br(%c9)\n"
+      "0006: control %c11 = if_false(%c7)\n"
+      "0007: control %c12 = br(%c11)\n"
+      "0008: control %c8 = merge(%c10, %c12)\n"
+      "0009: effect %e3 = get(%t1, 1)\n"
+      "0010: (control, int32) %t14 = phi_operand(%c10, 1)\n"
+      "0011: (control, int32) %t15 = phi_operand(%c12, 0)\n"
+      "0012: int32 %r13 = phi(%t14, %t15)\n"
+      "0013: control %c16 = ret(%c8, %e3, %r13)\n"
+      "0014: control %c4 = merge(%c16)\n"
+      "0015: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, ReturnLiteral) {
   Prepare(
       "class Sample {"

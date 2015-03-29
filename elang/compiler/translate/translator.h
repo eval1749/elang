@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/compiler/ast/visitor.h"
@@ -56,14 +57,16 @@ class Translator final : public CompilationSessionUser,
   ir::Node* Translate(ast::Expression* node);
   ir::Node* TranslateLiteral(ir::Type* ir_type, const Token* token);
   void TranslateStatement(ast::Statement* node);
-  ir::Node* TranslateVariable(ast::NamedNode* ast_variable);
+  ir::Node* TranslateBool(ast::Expression* expression);
+  void TranslateVariable(ast::NamedNode* ast_variable);
+  void TranslateVariableAssignment(ast::NamedNode* ast_variable,
+                                   ast::Expression* ast_value);
 
   // Shortcut for |semantics()->ValueOf()|
   sm::Semantic* ValueOf(ast::Node* node) const;
 
   // Variable management
   void BindParameters(ast::Method* method);
-  void BindVariable(ast::NamedNode* variable, ir::Node* variable_value);
 
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;
@@ -72,6 +75,7 @@ class Translator final : public CompilationSessionUser,
   void VisitMethod(ast::Method* ast_method) final;
 
   // ast::Visitor expression nodes
+  void VisitAssignment(ast::Assignment* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;
@@ -80,11 +84,20 @@ class Translator final : public CompilationSessionUser,
   void VisitBlockStatement(ast::BlockStatement* node) final;
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
+  void VisitVarStatement(ast::VarStatement* node) final;
 
+  // The |Editor|.
   Editor* editor_;
+
+  // The type mapper for mapping |sm::Type| to |ir::Type|.
   const std::unique_ptr<IrTypeMapper> type_mapper_;
-  std::unordered_map<sm::Variable*, ir::Node*> variables_;
+
+  // List of variables bound in current block scope.
+  std::vector<sm::Variable*> variables_;
+
+  // Holds the result of visiting.
   ir::Node* visit_result_;
 
   DISALLOW_COPY_AND_ASSIGN(Translator);
