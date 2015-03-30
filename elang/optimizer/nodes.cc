@@ -248,6 +248,10 @@ void Node::set_id(size_t id) {
 FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
+void Node::AppendInput(Node* node) {
+  NOTREACHED() << *node;
+}
+
 void Node::InitInputAt(size_t index, Node* value) {
   InputAt(index)->Init(this, value);
 }

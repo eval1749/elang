@@ -49,8 +49,7 @@ Node* Editor::exit_node() const {
 }
 
 void Editor::AppendInput(Node* node, Node* new_value) {
-  auto const variadic = node->as<VariadicNode>();
-  variadic->AppendInput(new_value);
+  node->AppendInput(new_value);
 }
 
 void Editor::ChangeInput(Node* node, size_t index, Node* new_value) {

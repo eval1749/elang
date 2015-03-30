@@ -241,6 +241,8 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   bool IsValidEffect() const;
   bool IsValidEffectAt(size_t field) const;
 
+  virtual void AppendInput(Node* value);
+
   // Number of input operands.
   virtual size_t CountInputs() const = 0;
 
@@ -337,9 +339,8 @@ class VariadicNode : public Node {
  private:
   class InputAnchor;
 
-  void AppendInput(Node* value);
-
   // Node input protocol
+  void AppendInput(Node* node) final;
   size_t CountInputs() const final { return inputs_.size(); }
   Input* InputAt(size_t index) const final;
 
