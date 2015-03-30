@@ -307,20 +307,6 @@ class NodeTemplate<0> : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Effect
-//
-class Effect : public Node {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Effect, Node);
-
- protected:
-  Effect(Type* output_type);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Effect);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // FieldInputNode
 //
 class FieldInputNode : public NodeTemplate<1> {
@@ -463,17 +449,11 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 //
 // EffectGetNode
 //
-class ELANG_OPTIMIZER_EXPORT EffectGetNode final
-    : public NodeTemplate<1, Effect> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, Effect);
-
- public:
-  size_t field() const { return field_; }
+class ELANG_OPTIMIZER_EXPORT EffectGetNode final : public FieldInputNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, FieldInputNode);
 
  private:
   EffectGetNode(Type* effect_type, Node* input, size_t field);
-
-  size_t const field_;
 
   DISALLOW_COPY_AND_ASSIGN(EffectGetNode);
 };

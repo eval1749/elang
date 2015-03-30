@@ -15,7 +15,6 @@ namespace optimizer {
 
 // List of abstract C++ classes representing IR node.
 #define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
-  V(Effect)                                 \
   V(FieldInputNode)                         \
   V(Node)                                   \
   V(PhiOwnerNode)                           \
@@ -119,6 +118,7 @@ FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V)
 FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
+using Effect = Node;
 class Factory;
 enum class FloatCondition;
 class Function;

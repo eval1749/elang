@@ -90,8 +90,6 @@ void NodePrinter::DoDefaultVisit(Node* node) {
   }
   if (auto const field_node = node->as<FieldInputNode>())
     ostream_ << separator << field_node->field();
-  if (auto const field_node = node->as<EffectGetNode>())
-    ostream_ << separator << field_node->field();
   ostream_ << ")";
 }
 
