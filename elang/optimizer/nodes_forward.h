@@ -15,7 +15,6 @@ namespace optimizer {
 
 // List of abstract C++ classes representing IR node.
 #define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
-  V(FieldInputNode)                         \
   V(Node)                                   \
   V(PhiOwnerNode)
 

@@ -16,7 +16,7 @@ namespace optimizer {
 
 // EffectGet
 EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
-    : FieldInputNode(output_type, input, field) {
+    : FieldNodeTemplate(output_type, input, field) {
 }
 
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
@@ -74,15 +74,9 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
             function->function_type());
 }
 
-// FieldInputNode
-FieldInputNode::FieldInputNode(Type* output_type, Node* input, size_t field)
-    : NodeTemplate(output_type), field_(field) {
-  InitInputAt(0, input);
-}
-
 // GetNode
 GetNode::GetNode(Type* output_type, Node* input, size_t field)
-    : FieldInputNode(output_type, input, field) {
+    : FieldNodeTemplate(output_type, input, field) {
 }
 
 // Input
@@ -320,6 +314,15 @@ void Node::Unuse(Input* input) {
 }
 
 // Node NodeLayout implementation
+size_t Node::field() const {
+  NOTREACHED() << *this;
+  return 0;
+}
+
+bool Node::has_field() const {
+  return false;
+}
+
 void Node::AppendInput(Node* node) {
   NOTREACHED() << *this << " " << *node;
 }
@@ -346,7 +349,7 @@ NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 
 // ParameterNode
 ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
-    : FieldInputNode(output_type, input, index) {
+    : FieldNodeTemplate(output_type, input, index) {
   DCHECK(input->is<EntryNode>()) << *input;
   DCHECK_EQ(input->as<EntryNode>()->parameter_type(index), output_type)
       << *output_type << " " << *input;

@@ -183,6 +183,9 @@ enum class Opcode {
 //
 class NodeLayout {
  public:
+  virtual size_t field() const = 0;
+  virtual bool has_field() const = 0;
+
   // Append input.
   virtual void AppendInput(Node* value) = 0;
 
@@ -284,6 +287,10 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   bool IsValidEffect() const;
   bool IsValidEffectAt(size_t field) const;
 
+  // NodeLayout
+  size_t field() const override;
+  bool has_field() const override;
+
  protected:
   // For calling |Use()| and |Unuse()|.
   friend class Input;
@@ -353,22 +360,32 @@ class NodeTemplate<0> : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
-// FieldInputNode
+// FieldNodeTemplate
 //
-class FieldInputNode : public NodeTemplate<1> {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(FieldInputNode, Node);
+template <typename Base>
+class FieldNodeTemplate : public NodeTemplate<1, Base> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(FieldNodeTemplate, Base);
 
  public:
-  size_t field() const { return field_; }
+  // NodeLayout
+  size_t field() const final { return field_; }
+  bool has_field() const final { return true; }
 
  protected:
-  FieldInputNode(Type* output_type, Node* input, size_t field);
+  FieldNodeTemplate(Type* output_type, Node* input, size_t field);
 
  private:
   size_t field_;
 
-  DISALLOW_COPY_AND_ASSIGN(FieldInputNode);
+  DISALLOW_COPY_AND_ASSIGN(FieldNodeTemplate);
 };
+
+template <typename Base>
+FieldNodeTemplate<Base>::FieldNodeTemplate(Type* output_type,
+                                           Node* input, size_t field)
+    : NodeTemplate(output_type), field_(field) {
+  InitInputAt(0, input);
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -515,8 +532,9 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 //
 // EffectGetNode
 //
-class ELANG_OPTIMIZER_EXPORT EffectGetNode final : public FieldInputNode {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, FieldInputNode);
+class ELANG_OPTIMIZER_EXPORT EffectGetNode final
+    : public FieldNodeTemplate<Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, FieldNodeTemplate);
 
  private:
   EffectGetNode(Type* effect_type, Node* input, size_t field);
@@ -589,8 +607,8 @@ class ELANG_OPTIMIZER_EXPORT FunctionReferenceNode final
 //
 // GetNode
 //
-class ELANG_OPTIMIZER_EXPORT GetNode final : public FieldInputNode {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, FieldInputNode);
+class ELANG_OPTIMIZER_EXPORT GetNode final : public FieldNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, FieldNodeTemplate);
 
  private:
   GetNode(Type* output_type, Node* input, size_t field);
@@ -666,8 +684,9 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
 // Unique parameter nodes are appeared at most once in |Function|. Parameter
 // nodes must be scheduled followed by |EntryNode| continuously.
 //
-class ELANG_OPTIMIZER_EXPORT ParameterNode final : public FieldInputNode {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, FieldInputNode);
+class ELANG_OPTIMIZER_EXPORT ParameterNode final
+    : public FieldNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, FieldNodeTemplate);
 
  private:
   ParameterNode(Type* output_type, Node* input, size_t field);
