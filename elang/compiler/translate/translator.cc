@@ -291,6 +291,23 @@ ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
   return void_value();
 }
 
+ir::Node* Translator::TranslateMethodReference(sm::Method* method) {
+  // TODO(eval1749) We should calculate key as |base::string16| from
+  // |sm::Method|.
+  std::stringstream ostream;
+  ostream << *method->return_type() << " "
+          << method->ast_method()->NewQualifiedName() << "(";
+  auto separator = "";
+  for (auto const parameter : method->parameters()) {
+    ostream << separator << *parameter->type();
+    separator = ", ";
+  }
+  ostream << ")";
+  auto const method_name =
+      factory()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));
+  return factory()->NewReference(MapType(method->signature()), method_name);
+}
+
 void Translator::TranslateStatement(ast::Statement* node) {
   DCHECK(!visit_result_);
   node->Accept(this);
@@ -362,6 +379,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
       function->exit_node()->input(0)->CountInputs()) {
     Error(ErrorCode::TranslatorReturnNone, ast_method);
   }
+  builder_->EndBlockWithRet(void_value());
 }
 
 //
@@ -398,6 +416,30 @@ void Translator::VisitBinaryOperation(ast::BinaryOperation* node) {
   auto const lhs = TranslateAs(node->left(), type);
   auto const rhs = TranslateAs(node->right(), type);
   SetVisitorResult(NewOperationFor(node, lhs, rhs));
+}
+
+// Translates function call by generating callee, arguments are translated from
+// left to right.
+void Translator::VisitCall(ast::Call* node) {
+  auto const sm_callee = ValueOf(node->callee())->as<sm::Method>();
+  DCHECK(sm_callee) << "Unresolved call" << *node;
+  auto const callee = TranslateMethodReference(sm_callee);
+  if (node->arguments().empty()) {
+    SetVisitorResult(builder_->Call(callee, void_value()));
+    return;
+  }
+  if (node->arguments().size() == 1u) {
+    auto const argument = Translate(node->arguments().front());
+    SetVisitorResult(builder_->Call(callee, argument));
+    return;
+  }
+  // Generate argument list.
+  std::vector<ir::Node*> arguments(node->arguments().size());
+  arguments.resize(0);
+  for (auto const argument : node->arguments())
+    arguments.push_back(Translate(argument));
+  auto const argument = NewTuple(arguments);
+  SetVisitorResult(builder_->Call(callee, argument));
 }
 
 void Translator::VisitLiteral(ast::Literal* node) {

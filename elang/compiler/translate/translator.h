@@ -64,6 +64,7 @@ class Translator final : public CompilationSessionUser,
   ir::Node* TranslateBool(ast::Expression* expression);
   ir::Node* Translate(ast::Expression* node);
   ir::Node* TranslateLiteral(ir::Type* ir_type, const Token* token);
+  ir::Node* TranslateMethodReference(sm::Method* method);
   void TranslateStatement(ast::Statement* node);
   void TranslateVariable(ast::NamedNode* ast_variable);
   void TranslateVariableAssignment(ast::NamedNode* ast_variable,
@@ -84,6 +85,7 @@ class Translator final : public CompilationSessionUser,
   // ast::Visitor expression nodes
   void VisitAssignment(ast::Assignment* node) final;
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
+  void VisitCall(ast::Call* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;

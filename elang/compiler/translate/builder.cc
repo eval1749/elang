@@ -153,7 +153,7 @@ Builder::~Builder() {
 }
 
 ir::Node* Builder::control() const {
-  return editor_->control();
+  return basic_block_ ? basic_block_->start_node() : nullptr;
 }
 
 void Builder::AssignVariable(sm::Variable* variable, ir::Node* value) {
@@ -170,6 +170,13 @@ Builder::BasicBlock* Builder::BasicBlockOf(ir::Node* control) {
 void Builder::BindVariable(sm::Variable* variable, ir::Node* value) {
   DCHECK(basic_block_);
   basic_block_->BindVariable(variable, value);
+}
+
+ir::Node* Builder::Call(ir::Node* callee, ir::Node* arguments) {
+  DCHECK(basic_block_) << *callee;
+  auto const call = editor_->NewCall(basic_block_->effect(), callee, arguments);
+  basic_block_->set_effect(editor_->NewGet(call, 0));
+  return call;
 }
 
 void Builder::EndBlock(ir::Node* control) {

@@ -41,6 +41,34 @@ class TranslatorTest : public testing::TranslateTest {
 // tests...
 //
 
+TEST_F(TranslatorTest, Calls) {
+  Prepare(
+      "class Sample {"
+      "  static void Foo(int a, int b) { Fn0(); Fn1(a); Fn2(a, b); }"
+      "  static void Fn0() {}"
+      "  static int Fn1(int a) { return a; }"
+      "  static int Fn2(int a, int b) {return a + b; }"
+      "}");
+  EXPECT_EQ(
+      "function1 void(int32, int32)\n"
+      "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
+      "0001: control %c2 = get(%t1, 0)\n"
+      "0002: effect %e3 = get(%t1, 1)\n"
+      "0003: (effect, void) %t8 = call(%e3, void(void) System.Void Sample.Fn0(), void)\n"
+      "0004: effect %e9 = get(%t8, 0)\n"
+      "0005: int32 %r6 = param(%t1, 0)\n"
+      "0006: (effect, int32) %t10 = call(%e9, int32(int32) System.Int32 Sample.Fn1(System.Int32), %r6)\n"
+      "0007: effect %e11 = get(%t10, 0)\n"
+      "0008: int32 %r7 = param(%t1, 1)\n"
+      "0009: (int32, int32) %t12 = tuple(%r6, %r7)\n"
+      "0010: (effect, int32) %t13 = call(%e11, int32(int32, int32) System.Int32 Sample.Fn2(System.Int32, System.Int32), %t12)\n"
+      "0011: effect %e14 = get(%t13, 0)\n"
+      "0012: control %c15 = ret(%c2, %e14, void)\n"
+      "0013: control %c4 = merge(%c15)\n"
+      "0014: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, IntMul) {
   Prepare(
       "class Sample {"

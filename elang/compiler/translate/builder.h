@@ -52,6 +52,9 @@ class Builder final : public ZoneOwner {
   ir::Node* StartLoopBlock();
   void StartMergeBlock(ir::Node* control);
 
+  // Effects
+  ir::Node* Call(ir::Node* callee, ir::Node* arguments);
+
   // Variable management
   void AssignVariable(sm::Variable* variable, ir::Node* value);
   void BindVariable(sm::Variable* variable, ir::Node* value);
