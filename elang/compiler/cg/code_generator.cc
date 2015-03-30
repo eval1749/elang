@@ -610,9 +610,9 @@ void CodeGenerator::VisitBinaryOperation(ast::BinaryOperation* node) {
 
 // Generate function call by generating callee, arguments from left to right.
 void CodeGenerator::VisitCall(ast::Call* node) {
-  auto const ir_callee = ValueOf(node->callee())->as<sm::Method>();
-  DCHECK(ir_callee) << "Unresolved call" << *node;
-  auto const callee = NewMethodReference(ir_callee);
+  auto const sm_callee = ValueOf(node->callee())->as<sm::Method>();
+  DCHECK(sm_callee) << "Unresolved call" << *node;
+  auto const callee = NewMethodReference(sm_callee);
   if (node->arguments().empty()) {
     EmitOutputInstruction(factory()->NewCallInstruction(callee, void_value()));
     return;
