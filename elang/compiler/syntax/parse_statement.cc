@@ -372,17 +372,25 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         auto const variable = factory()->NewVariable(for_keyword, type, name);
         declaration_space_->AddMember(variable);
         variables.push_back(variable);
-        auto const init = AdvanceIf(TokenType::Assign) && ParseExpression()
-                              ? ConsumeExpression()
-                              : static_cast<ast::Expression*>(nullptr);
-        variable->Bind(init);
-
         if (PeekToken() == TokenType::Colon) {
-          if (init)
-            Error(ErrorCode::SyntaxForColon);
+          // Bind 'for-each' variable to dummy expression to avoid unbound
+          // variable error.
+          variable->Bind(factory()->NewVariableReference(name, variable));
           state = State::Colon;
           continue;
         }
+
+        if (!AdvanceIf(TokenType::Assign)) {
+          Error(ErrorCode::SyntaxForInit);
+          continue;
+        }
+
+        if (!ParseExpression()) {
+          ProduceType(type);
+          continue;
+        }
+
+        variable->Bind(ConsumeExpression());
 
         if (PeekToken() == TokenType::SemiColon) {
           state = State::SemiColon;
