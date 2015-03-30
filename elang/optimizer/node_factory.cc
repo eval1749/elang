@@ -140,6 +140,7 @@ Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
     return present;
   auto const node = new (zone()) DynamicCastNode(type, input);
   node->set_id(NewNodeId());
+  RememberUnaryNode(node);
   return node;
 }
 
@@ -526,6 +527,7 @@ Node* NodeFactory::NewStaticCast(Type* type, Node* input) {
     return present;
   auto const node = new (zone()) StaticCastNode(type, input);
   node->set_id(NewNodeId());
+  RememberUnaryNode(node);
   return node;
 }
 
