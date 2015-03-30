@@ -22,6 +22,10 @@ const std::vector<ErrorData*>& FactoryUser::errors() const {
   return factory_->errors();
 }
 
+Zone* FactoryUser::zone() const {
+  return factory_->zone();
+}
+
 AtomicString* FactoryUser::NewAtomicString(base::StringPiece16 data) {
   return factory_->NewAtomicString(data);
 }
