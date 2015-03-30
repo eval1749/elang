@@ -84,6 +84,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
   V(EffectGet, "effect_get")                  \
+  V(EffectPhi, "effect_phi")                  \
   V(Entry, "entry")                           \
   V(FloatCmp, "fcmp")                         \
   V(FunctionReference, "fn")                  \

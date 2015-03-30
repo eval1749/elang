@@ -67,6 +67,12 @@ TEST_F(NodeTest, EffectGet) {
   EXPECT_EQ("effect %e6 = effect_get(%t1, 1)", ToString(node));
 }
 
+TEST_F(NodeTest, EffectPhi) {
+  auto const merge_node = NewMerge({});
+  auto const node = NewEffectPhi(merge_node);
+  EXPECT_EQ("effect %e2 = effect_phi()", ToString(node));
+}
+
 TEST_F(NodeTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();

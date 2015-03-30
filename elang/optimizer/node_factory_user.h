@@ -79,6 +79,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
 
   // Variable inputs
   Node* NewCase(Node* control, Node* label_value);
+  Effect* NewEffectPhi(Node* owner);
   Node* NewLoop(Node* control);
   Node* NewMerge(const std::vector<Node*>& inputs);
   Node* NewPhi(Type* type, Node* owner);

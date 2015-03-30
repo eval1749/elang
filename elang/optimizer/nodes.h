@@ -358,12 +358,15 @@ class ELANG_OPTIMIZER_EXPORT PhiOwnerNode : public VariadicNode {
  public:
   typedef DoubleLinked<PhiNode, PhiOwnerNode> Phis;
 
+  EffectPhiNode* effect_phi() const { return effect_phi_; }
+  void set_effect_phi(EffectPhiNode* effect_phi);
   const Phis& phi_nodes() const { return phi_nodes_; }
 
  protected:
   PhiOwnerNode(Type* output_type, Zone* zone);
 
  private:
+  EffectPhiNode* effect_phi_;
   Phis phi_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiOwnerNode);
@@ -629,6 +632,24 @@ class ELANG_OPTIMIZER_EXPORT PhiNode final
   PhiOwnerNode* owner_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// EffectPhiNode
+//
+class ELANG_OPTIMIZER_EXPORT EffectPhiNode final : public VariadicNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, VariadicNode);
+
+ public:
+  PhiOwnerNode* owner() const { return owner_; }
+
+ private:
+  EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* control);
+
+  PhiOwnerNode* owner_;
+
+  DISALLOW_COPY_AND_ASSIGN(EffectPhiNode);
 };
 
 //////////////////////////////////////////////////////////////////////

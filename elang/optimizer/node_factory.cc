@@ -149,6 +149,16 @@ Effect* NodeFactory::NewEffectGet(Node* input, size_t field) {
   return node;
 }
 
+Effect* NodeFactory::NewEffectPhi(Node* control) {
+  DCHECK(control->IsValidControl()) << *control;
+  auto const owner = control->as<PhiOwnerNode>();
+  DCHECK(owner) << *control;
+  auto const node = new (zone()) EffectPhiNode(effect_type(), zone(), owner);
+  node->set_id(NewNodeId());
+  owner->set_effect_phi(node);
+  return node;
+}
+
 Node* NodeFactory::NewEntry(Type* parameters_type) {
   auto const output_type =
       NewTupleType({control_type(), effect_type(), parameters_type});

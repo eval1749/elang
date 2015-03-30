@@ -41,6 +41,10 @@ Effect* NodeFactoryUser::NewEffectGet(Node* input, size_t field) {
   return node_factory_->NewEffectGet(input, field);
 }
 
+Effect* NodeFactoryUser::NewEffectPhi(Node* owner) {
+  return node_factory_->NewEffectPhi(owner);
+}
+
 Node* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
                                    Node* left,
                                    Node* right) {

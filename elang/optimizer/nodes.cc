@@ -19,6 +19,11 @@ EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
     : FieldInputNode(output_type, input, field) {
 }
 
+EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
+    : VariadicNode(output_type, zone), owner_(owner) {
+  DCHECK(output_type->is<EffectType>());
+}
+
 // EntryNode
 EntryNode::EntryNode(Type* output_type) : NodeTemplate(output_type) {
   DCHECK_EQ(3, output_type->as<TupleType>()->size()) << *output_type;
@@ -326,7 +331,13 @@ PhiNode::PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
 
 // PhiOwnerNode
 PhiOwnerNode::PhiOwnerNode(Type* output_type, Zone* zone)
-    : VariadicNode(output_type, zone) {
+    : VariadicNode(output_type, zone), effect_phi_(nullptr) {
+}
+
+void PhiOwnerNode::set_effect_phi(EffectPhiNode* effect_phi) {
+  DCHECK(!effect_phi_);
+  DCHECK(effect_phi);
+  effect_phi_ = effect_phi;
 }
 
 // ReferenceNode
