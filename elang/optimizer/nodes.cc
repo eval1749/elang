@@ -20,7 +20,7 @@ EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
 }
 
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
-    : VariadicNode(output_type, zone), owner_(owner) {
+    : VariadicNodeTemplate(output_type, zone), owner_(owner) {
   DCHECK(output_type->is<EffectType>());
 }
 
@@ -255,17 +255,8 @@ void Node::set_id(size_t id) {
 FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
-void Node::AppendInput(Node* node) {
-  NOTREACHED() << *this << " " << *node;
-}
-
 void Node::InitInputAt(size_t index, Node* value) {
   InputAt(index)->Init(this, value);
-}
-
-Input* Node::InputAt(size_t index) const {
-  NOTREACHED() << *this << " " << index;
-  return nullptr;
 }
 
 bool Node::IsControl() const {
@@ -292,7 +283,7 @@ bool Node::IsEffect() const {
 }
 
 bool Node::IsLiteral() const {
-  return IsData() && !CountInputs() && !is<VariadicNode>();
+  return IsData() && !CountInputs() && !IsVariadic();
 }
 
 bool Node::IsValidControl() const {
@@ -328,6 +319,20 @@ void Node::Unuse(Input* input) {
   use_def_list_.RemoveNode(input);
 }
 
+// Node NodeLayout implementation
+void Node::AppendInput(Node* node) {
+  NOTREACHED() << *this << " " << *node;
+}
+
+Input* Node::InputAt(size_t index) const {
+  NOTREACHED() << *this << " " << index;
+  return nullptr;
+}
+
+bool Node::IsVariadic() const {
+  return false;
+}
+
 // NodeLayout
 NodeLayout::NodeLayout() {
 }
@@ -349,12 +354,12 @@ ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
 
 // PhiNode
 PhiNode::PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
-    : VariadicNode(output_type, zone), owner_(owner) {
+    : VariadicNodeTemplate(output_type, zone), owner_(owner) {
 }
 
 // PhiOwnerNode
 PhiOwnerNode::PhiOwnerNode(Type* output_type, Zone* zone)
-    : VariadicNode(output_type, zone), effect_phi_(nullptr) {
+    : VariadicNodeTemplate(output_type, zone), effect_phi_(nullptr) {
 }
 
 void PhiOwnerNode::set_effect_phi(EffectPhiNode* effect_phi) {
@@ -401,24 +406,9 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 // Variable nodes
 #define V(Name, ...)                                    \
   Name##Node::Name##Node(Type* output_type, Zone* zone) \
-      : VariadicNode(output_type, zone) {}
+      : VariadicNodeTemplate(output_type, zone) {}
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
-
-// VariadicNode
-VariadicNode::VariadicNode(Type* output_type, Zone* zone)
-    : Node(output_type), inputs_(zone) {
-}
-
-void VariadicNode::AppendInput(Node* value) {
-  auto const zone = inputs_.get_allocator().zone();
-  inputs_.push_back(new (zone) InputHolder());
-  InitInputAt(inputs_.size() - 1, value);
-}
-
-Input* VariadicNode::InputAt(size_t index) const {
-  return inputs_[index]->input();
-}
 
 // VoidNode
 VoidNode::VoidNode(Type* output_type) : NodeTemplate(output_type) {

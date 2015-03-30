@@ -192,6 +192,9 @@ class NodeLayout {
   // Access to |Input|
   virtual Input* InputAt(size_t index) const = 0;
 
+  // Is variadic?
+  virtual bool IsVariadic() const = 0;
+
  protected:
   NodeLayout();
   virtual ~NodeLayout();
@@ -298,6 +301,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   // NodeLayout
   void AppendInput(Node* value) override;
   Input* InputAt(size_t index) const override;
+  bool IsVariadic() const override;
 
  private:
   uint32_t id_;
@@ -368,31 +372,50 @@ class FieldInputNode : public NodeTemplate<1> {
 
 //////////////////////////////////////////////////////////////////////
 //
-// VariadicNode
+// VariadicNodeTemplate
 //
-class VariadicNode : public Node {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariadicNode, Node);
+template <typename Base>
+class VariadicNodeTemplate : public Base {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariadicNodeTemplate, Base);
 
  protected:
-  VariadicNode(Type* output_type, Zone* zone);
+  VariadicNodeTemplate(Type* output_type, Zone* zone);
 
  private:
   // Node input protocol
   void AppendInput(Node* node) final;
   size_t CountInputs() const final { return inputs_.size(); }
   Input* InputAt(size_t index) const final;
+  bool IsVariadic() const final { return true; }
 
   ZoneDeque<InputHolder*> inputs_;
 
-  DISALLOW_COPY_AND_ASSIGN(VariadicNode);
+  DISALLOW_COPY_AND_ASSIGN(VariadicNodeTemplate);
 };
+
+template <typename Base>
+VariadicNodeTemplate<Base>::VariadicNodeTemplate(Type* output_type, Zone* zone)
+    : Node(output_type), inputs_(zone) {
+}
+
+template <typename Base>
+void VariadicNodeTemplate<Base>::AppendInput(Node* value) {
+  auto const zone = inputs_.get_allocator().zone();
+  inputs_.push_back(new (zone) InputHolder());
+  InitInputAt(inputs_.size() - 1, value);
+}
+
+template <typename Base>
+Input* VariadicNodeTemplate<Base>::InputAt(size_t index) const {
+  return inputs_[index]->input();
+}
 
 //////////////////////////////////////////////////////////////////////
 //
 // PhiOwnerNode
 //
-class ELANG_OPTIMIZER_EXPORT PhiOwnerNode : public VariadicNode {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, VariadicNode);
+class ELANG_OPTIMIZER_EXPORT PhiOwnerNode : public VariadicNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, Node);
 
  public:
   typedef DoubleLinked<PhiNode, PhiOwnerNode> Phis;
@@ -475,14 +498,15 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 #undef V
 
-#define V(Name, ...)                                                    \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public VariadicNode { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, VariadicNode);    \
-                                                                        \
-   private:                                                             \
-    Name##Node(Type* output_type, Zone* zone);                          \
-                                                                        \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                               \
+#define V(Name, ...)                                         \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final              \
+      : public VariadicNodeTemplate<Node> {                  \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node); \
+                                                             \
+   private:                                                  \
+    Name##Node(Type* output_type, Zone* zone);               \
+                                                             \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                    \
   };
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
@@ -656,9 +680,9 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final : public FieldInputNode {
 // PhiNode
 //
 class ELANG_OPTIMIZER_EXPORT PhiNode final
-    : public VariadicNode,
+    : public VariadicNodeTemplate<Node>,
       public DoubleLinked<PhiNode, PhiOwnerNode>::Node {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, VariadicNode);
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, Node);
 
  public:
   typedef ::elang::optimizer::Node Node;
@@ -677,8 +701,9 @@ class ELANG_OPTIMIZER_EXPORT PhiNode final
 //
 // EffectPhiNode
 //
-class ELANG_OPTIMIZER_EXPORT EffectPhiNode final : public VariadicNode {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, VariadicNode);
+class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
+    : public VariadicNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, Node);
 
  public:
   PhiOwnerNode* owner() const { return owner_; }

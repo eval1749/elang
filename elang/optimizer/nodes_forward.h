@@ -17,8 +17,7 @@ namespace optimizer {
 #define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
   V(FieldInputNode)                         \
   V(Node)                                   \
-  V(PhiOwnerNode)                           \
-  V(VariadicNode)
+  V(PhiOwnerNode)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V) \
   V(Bool, "lit_bool", bool)                         \
