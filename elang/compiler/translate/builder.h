@@ -69,7 +69,7 @@ class Builder final : public ZoneOwner {
   BasicBlock* BasicBlockOf(ir::Node* control);
   void EndBlock(ir::Node* control);
   BasicBlock* NewBasicBlock(ir::Node* control,
-                            ir::Node* effect,
+                            ir::Effect* effect,
                             const Variables& variables);
   void PopulatePhiNodesIfNeeded(ir::Node* control, const BasicBlock* block);
 

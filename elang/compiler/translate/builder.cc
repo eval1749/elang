@@ -27,12 +27,12 @@ typedef std::unordered_map<ir::PhiNode*, sm::Variable*> PhiMap;
 //
 class Builder::BasicBlock final : public ZoneAllocated {
  public:
-  BasicBlock(ir::Node* control, ir::Node* effect, const Variables& variables);
+  BasicBlock(ir::Node* control, ir::Effect* effect, const Variables& variables);
   ~BasicBlock() = delete;
 
   ir::Node* end_node() const;
-  ir::Node* effect() const { return effect_; }
-  void set_effect(ir::Node* effect);
+  ir::Effect* effect() const { return effect_; }
+  void set_effect(ir::Effect* effect);
   const PhiMap& phi_map() const { return phi_map_; }
   ir::Node* start_node() const { return start_node_; }
   const Variables& variables() const { return variables_; }
@@ -46,7 +46,7 @@ class Builder::BasicBlock final : public ZoneAllocated {
 
  private:
   // Effect value at the end of this |BasicBlock|.
-  ir::Node* effect_;
+  ir::Effect* effect_;
   ir::Node* end_node_;
 
   // A mapping from |sm::Variable| to |ir::PhiNode| at start of block.
@@ -61,7 +61,7 @@ class Builder::BasicBlock final : public ZoneAllocated {
 };
 
 Builder::BasicBlock::BasicBlock(ir::Node* start_node,
-                                ir::Node* effect,
+                                ir::Effect* effect,
                                 const Variables& variables)
     : effect_(effect),
       end_node_(nullptr),
@@ -84,7 +84,7 @@ ir::Node* Builder::BasicBlock::end_node() const {
   return end_node_;
 }
 
-void Builder::BasicBlock::set_effect(ir::Node* effect) {
+void Builder::BasicBlock::set_effect(ir::Effect* effect) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK_NE(effect_, effect) << *effect;
   DCHECK(!end_node_);
@@ -143,7 +143,7 @@ Builder::Builder(ir::Factory* factory, ir::Function* function)
   auto const entry_node = function->entry_node();
   auto const control = editor_->NewGet(entry_node, 0);
   editor_->Edit(control);
-  basic_block_ = NewBasicBlock(control, editor_->NewGet(entry_node, 1), {});
+  basic_block_ = NewBasicBlock(control, editor_->NewEffectGet(entry_node, 1), {});
 }
 
 Builder::~Builder() {
@@ -171,7 +171,7 @@ void Builder::BindVariable(sm::Variable* variable, ir::Node* value) {
 ir::Node* Builder::Call(ir::Node* callee, ir::Node* arguments) {
   DCHECK(basic_block_) << *callee;
   auto const call = editor_->NewCall(basic_block_->effect(), callee, arguments);
-  basic_block_->set_effect(editor_->NewGet(call, 0));
+  basic_block_->set_effect(editor_->NewEffectGet(call, 0));
   return call;
 }
 
@@ -223,7 +223,7 @@ void Builder::EndLoopBlock(ir::Node* condition,
 }
 
 Builder::BasicBlock* Builder::NewBasicBlock(ir::Node* control,
-                                            ir::Node* effect,
+                                            ir::Effect* effect,
                                             const Variables& variables) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
@@ -280,7 +280,7 @@ ir::Node* Builder::StartLoopBlock() {
   editor_->Edit(loop_control);
 
   // We assume all variables are changed in the loop.
-  auto const effect_phi = editor_->NewPhi(editor_->effect_type(), loop_control);
+  auto const effect_phi = editor_->NewEffectPhi(loop_control);
   editor_->SetPhiInput(effect_phi, jump_node, predecessor->effect());
 
   Variables variables;
@@ -303,8 +303,8 @@ void Builder::StartMergeBlock(ir::Node* control) {
   if (!control->CountInputs())
     return;
 
-  auto effect = static_cast<ir::Node*>(nullptr);
-  auto effect_phi = static_cast<ir::Node*>(nullptr);
+  auto effect = static_cast<ir::Effect*>(nullptr);
+  auto effect_phi = static_cast<ir::Effect*>(nullptr);
   Variables variables;
   std::unordered_map<sm::Variable*, ir::Node*> variable_phis;
 
@@ -316,7 +316,7 @@ void Builder::StartMergeBlock(ir::Node* control) {
       if (!effect) {
         effect = predecessor->effect();
       } else if (effect != predecessor->effect()) {
-        effect_phi = editor_->NewPhi(editor_->effect_type(), control);
+        effect_phi = editor_->NewEffectPhi(control);
         effect = effect_phi;
       }
     }

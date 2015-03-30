@@ -14,6 +14,10 @@
 namespace elang {
 namespace optimizer {
 
+// Effect
+Effect::Effect(Type* output_type) : Node(output_type) {
+}
+
 // EffectGet
 EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
     : FieldNodeTemplate(output_type, input, field) {

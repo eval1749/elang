@@ -29,7 +29,7 @@ TEST_F(EditorTest, ChangeInput) {
   auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
   auto const entry_node = function->entry_node();
-  auto const effect = NewGet(entry_node, 1);
+  auto const effect = NewEffectGet(entry_node, 1);
 
   editor.Edit(entry_node);
   editor.SetRet(effect, NewInt32(42));
@@ -41,7 +41,7 @@ TEST_F(EditorTest, ChangeInput) {
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
       "0001: control %c2 = get(%t1, 0)\n"
-      "0002: effect %e3 = get(%t1, 1)\n"
+      "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c2, %e3, 33)\n"
       "0004: control %c4 = merge(%c6)\n"
       "0005: void %r5 = exit(%c4)\n",
@@ -52,7 +52,7 @@ TEST_F(EditorTest, SetBranch) {
   auto const function = NewSampleFunction(int32_type(), bool_type());
   Editor editor(factory(), function);
   auto const entry_node = function->entry_node();
-  auto const effect = NewGet(entry_node, 1);
+  auto const effect = NewEffectGet(entry_node, 1);
 
   editor.Edit(entry_node);
   auto const param0 = editor.EmitParameter(0);
@@ -76,7 +76,7 @@ TEST_F(EditorTest, SetBranch) {
       "0002: bool %r6 = param(%t1, 0)\n"
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
-      "0005: effect %e3 = get(%t1, 1)\n"
+      "0005: effect %e3 = effect_get(%t1, 1)\n"
       "0006: control %c10 = ret(%c8, %e3, 42)\n"
       "0007: control %c9 = if_false(%c7)\n"
       "0008: control %c11 = ret(%c9, %e3, 33)\n"
@@ -90,7 +90,7 @@ TEST_F(EditorTest, SetBranchPhi) {
       int32_type(), NewTupleType({bool_type(), int32_type(), int32_type()}));
   Editor editor(factory(), function);
   auto const entry_node = function->entry_node();
-  auto const effect = NewGet(entry_node, 1);
+  auto const effect = NewEffectGet(entry_node, 1);
 
   editor.Edit(entry_node);
   auto const if_node = editor.SetBranch(NewParameter(entry_node, 0));
@@ -126,7 +126,7 @@ TEST_F(EditorTest, SetBranchPhi) {
       "0006: control %c9 = if_false(%c7)\n"
       "0007: control %c12 = br(%c9)\n"
       "0008: control %c10 = merge(%c11, %c12)\n"
-      "0009: effect %e3 = get(%t1, 1)\n"
+      "0009: effect %e3 = effect_get(%t1, 1)\n"
       "0010: int32 %r14 = param(%t1, 1)\n"
       "0011: (control, int32) %t15 = phi_operand(%c11, %r14)\n"
       "0012: int32 %r16 = param(%t1, 2)\n"
@@ -142,7 +142,7 @@ TEST_F(EditorTest, SetRet) {
   auto const function = NewSampleFunction(int32_type(), int32_type());
   Editor editor(factory(), function);
   auto const entry_node = function->entry_node();
-  auto const effect = NewGet(entry_node, 1);
+  auto const effect = NewEffectGet(entry_node, 1);
 
   editor.Edit(entry_node);
   editor.SetRet(effect, NewInt32(42));
@@ -152,7 +152,7 @@ TEST_F(EditorTest, SetRet) {
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
       "0001: control %c2 = get(%t1, 0)\n"
-      "0002: effect %e3 = get(%t1, 1)\n"
+      "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c2, %e3, 42)\n"
       "0004: control %c4 = merge(%c6)\n"
       "0005: void %r5 = exit(%c4)\n",

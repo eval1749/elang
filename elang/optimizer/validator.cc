@@ -104,7 +104,7 @@ void Validator::Context::VisitCall(CallNode* node) {
 void Validator::Context::VisitEffectGet(EffectGetNode* node) {
   if (!node->output_type()->is<EffectType>())
     Error(ErrorCode::ValidateNodeInvalidOutput, node);
-  if (node->input(0)->IsValidEffectAt(node->field()))
+  if (!node->input(0)->IsValidEffectAt(node->field()))
     ErrorInInput(node, 0);
 }
 

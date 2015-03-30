@@ -115,7 +115,7 @@ void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
   phi->AppendInput(NewPhiOperand(control, value));
 }
 
-Node* Editor::SetRet(Node* effect, Node* data) {
+Node* Editor::SetRet(Effect* effect, Node* data) {
   DCHECK(control_);
   auto const merge_node = exit_node()->input(0)->as<MergeNode>();
   for (auto const predecessor : merge_node->inputs()) {

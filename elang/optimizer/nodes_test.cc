@@ -42,7 +42,7 @@ TEST_F(NodeTest, CallNode) {
       NewAtomicString(L"Foo"));
   auto const arguments =
       NewTuple({NewParameter(entry_node, 0), NewParameter(entry_node, 1)});
-  auto const node = NewCall(NewGet(entry_node, 1), callee, arguments);
+  auto const node = NewCall(NewEffectGet(entry_node, 1), callee, arguments);
   EXPECT_EQ("(effect, void) %t9 = call(%e3, void(int32, int64) Foo, %t8)",
             ToString(node));
 }
@@ -64,7 +64,7 @@ TEST_F(NodeTest, DynamicCastNode) {
 TEST_F(NodeTest, EffectGet) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewEffectGet(function->entry_node(), 1);
-  EXPECT_EQ("effect %e6 = effect_get(%t1, 1)", ToString(node));
+  EXPECT_EQ("effect %e3 = effect_get(%t1, 1)", ToString(node));
 }
 
 TEST_F(NodeTest, EffectPhi) {
@@ -296,7 +296,7 @@ TEST_F(NodeTest, RetNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
   auto const node =
-      NewRet(NewGet(entry_node, 0), NewGet(entry_node, 1), void_value());
+      NewRet(NewGet(entry_node, 0), NewEffectGet(entry_node, 1), void_value());
   EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
 }
 

@@ -70,12 +70,13 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewThrow(Node* control, Node* value);
 
   // Three inputs
-  Node* NewCall(Node* effect, Node* callee, Node* arguments);
-  Node* NewLoad(Node* effect, Node* base_pointer, Node* pointer);
-  Node* NewRet(Node* control, Node* effect, Node* value);
+  Node* NewCall(Effect* effect, Node* callee, Node* arguments);
+  Node* NewLoad(Effect* effect, Node* base_pointer, Node* pointer);
+  Node* NewRet(Node* control, Effect* effect, Node* value);
 
   // Four inputs
-  Node* NewStore(Node* effect, Node* base_pointer, Node* pointer, Node* value);
+  Effect* NewStore(Effect* effect, Node* base_pointer, Node* pointer,
+                   Node* value);
 
   // Variable inputs
   Node* NewCase(Node* control, Node* label_value);

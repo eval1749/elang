@@ -109,7 +109,7 @@ Node* NodeFactory::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
   return node_cache_->FindUnaryNode(opcode, type, input);
 }
 
-Node* NodeFactory::NewCall(Node* effect, Node* callee, Node* arguments) {
+Node* NodeFactory::NewCall(Effect* effect, Node* callee, Node* arguments) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(callee->IsValidData()) << *callee;
   DCHECK(callee->output_type()->is<FunctionType>()) << *callee;
@@ -135,17 +135,11 @@ Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
 
 Effect* NodeFactory::NewEffectGet(Node* input, size_t field) {
   DCHECK(input->IsValidEffectAt(field)) << *input;
-// TODO(eval1749) Temporary disable node cache for |EffectGet| until we
-// update tests.
-#if 0
   if (auto const present = FindFieldNode(input, field))
     return present->as<EffectGetNode>();
-#endif
   auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
   node->set_id(NewNodeId());
-#if 0
   RememberFieldNode(node, input, field);
-#endif
   return node;
 }
 
@@ -520,7 +514,7 @@ Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
   return node_cache_->NewReference(type, name);
 }
 
-Node* NodeFactory::NewRet(Node* control, Node* effect, Node* data) {
+Node* NodeFactory::NewRet(Node* control, Effect* effect, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(data->IsValidData()) << *data;
   auto const node = new (zone()) RetNode(control_type(), control, effect, data);

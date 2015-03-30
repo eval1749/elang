@@ -320,6 +320,20 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Effect
+//
+class ELANG_OPTIMIZER_EXPORT Effect : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Effect, Node);
+
+ protected:
+  explicit Effect(Type* output_type);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Effect);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Node template
 //
 template <size_t kNumberOfInputs, typename Base = Node>
@@ -412,7 +426,7 @@ class VariadicNodeTemplate : public Base {
 
 template <typename Base>
 VariadicNodeTemplate<Base>::VariadicNodeTemplate(Type* output_type, Zone* zone)
-    : Node(output_type), inputs_(zone) {
+    : Base(output_type), inputs_(zone) {
 }
 
 template <typename Base>
@@ -721,8 +735,8 @@ class ELANG_OPTIMIZER_EXPORT PhiNode final
 // EffectPhiNode
 //
 class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
-    : public VariadicNodeTemplate<Node> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, Node);
+    : public VariadicNodeTemplate<Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, Effect);
 
  public:
   PhiOwnerNode* owner() const { return owner_; }

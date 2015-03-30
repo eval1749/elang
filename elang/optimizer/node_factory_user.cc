@@ -29,7 +29,7 @@ Node* NodeFactoryUser::void_value() const {
   return node_factory_->void_value();
 }
 
-Node* NodeFactoryUser::NewCall(Node* effect, Node* callee, Node* arguments) {
+Node* NodeFactoryUser::NewCall(Effect* effect, Node* callee, Node* arguments) {
   return node_factory_->NewCall(effect, callee, arguments);
 }
 
@@ -97,7 +97,7 @@ Node* NodeFactoryUser::NewReference(Type* type, AtomicString* name) {
   return node_factory_->NewReference(type, name);
 }
 
-Node* NodeFactoryUser::NewRet(Node* control, Node* effect, Node* data) {
+Node* NodeFactoryUser::NewRet(Node* control, Effect* effect, Node* data) {
   return node_factory_->NewRet(control, effect, data);
 }
 
