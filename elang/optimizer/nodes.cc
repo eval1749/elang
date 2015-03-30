@@ -256,11 +256,16 @@ FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
 void Node::AppendInput(Node* node) {
-  NOTREACHED() << *node;
+  NOTREACHED() << *this << " " << *node;
 }
 
 void Node::InitInputAt(size_t index, Node* value) {
   InputAt(index)->Init(this, value);
+}
+
+Input* Node::InputAt(size_t index) const {
+  NOTREACHED() << *this << " " << index;
+  return nullptr;
 }
 
 bool Node::IsControl() const {
@@ -321,6 +326,13 @@ void Node::Use(Input* input) {
 
 void Node::Unuse(Input* input) {
   use_def_list_.RemoveNode(input);
+}
+
+// NodeLayout
+NodeLayout::NodeLayout() {
+}
+
+NodeLayout::~NodeLayout() {
 }
 
 // NullNode

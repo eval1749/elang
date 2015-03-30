@@ -179,9 +179,32 @@ enum class Opcode {
 
 //////////////////////////////////////////////////////////////////////
 //
+// NodeLayout
+//
+class NodeLayout {
+ public:
+  // Append input.
+  virtual void AppendInput(Node* value) = 0;
+
+  // Number of input operands.
+  virtual size_t CountInputs() const = 0;
+
+  // Access to |Input|
+  virtual Input* InputAt(size_t index) const = 0;
+
+ protected:
+  NodeLayout();
+  virtual ~NodeLayout();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NodeLayout);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Node
 //
-class ELANG_OPTIMIZER_EXPORT Node : public Thing {
+class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Node, Thing);
 
  public:
@@ -258,11 +281,6 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   bool IsValidEffect() const;
   bool IsValidEffectAt(size_t field) const;
 
-  virtual void AppendInput(Node* value);
-
-  // Number of input operands.
-  virtual size_t CountInputs() const = 0;
-
  protected:
   // For calling |Use()| and |Unuse()|.
   friend class Input;
@@ -271,12 +289,15 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
 
   void set_id(size_t id);
 
-  virtual Input* InputAt(size_t index) const = 0;
   void InitInputAt(size_t index, Node* value);
   void ResetInputAt(size_t index);
   void SetInputAt(size_t index, Node* new_value);
   void Unuse(Input* input);
   void Use(Input* input);
+
+  // NodeLayout
+  void AppendInput(Node* value) override;
+  Input* InputAt(size_t index) const override;
 
  private:
   uint32_t id_;
@@ -297,6 +318,7 @@ class NodeTemplate : public Base {
   ~NodeTemplate() override = default;
 
  private:
+  // NodeLayout protocol
   size_t CountInputs() const final { return kNumberOfInputs; }
 
   Input* InputAt(size_t index) const {
@@ -315,6 +337,7 @@ class NodeTemplate<0> : public Node {
   explicit NodeTemplate(Type* output_type) : Node(output_type) {}
 
  private:
+  // NodeLayout protocol
   size_t CountInputs() const final { return 0; }
   Input* InputAt(size_t index) const final {
     NOTREACHED();
