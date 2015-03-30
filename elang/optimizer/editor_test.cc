@@ -31,7 +31,7 @@ TEST_F(EditorTest, ChangeInput) {
   auto const entry_node = function->entry_node();
   auto const effect = NewEffectGet(entry_node, 1);
 
-  editor.Edit(entry_node);
+  editor.Edit(NewControlGet(entry_node, 0));
   editor.SetRet(effect, NewInt32(42));
 
   auto const ret_node = function->exit_node()->input(0)->input(0);
@@ -54,7 +54,7 @@ TEST_F(EditorTest, SetBranch) {
   auto const entry_node = function->entry_node();
   auto const effect = NewEffectGet(entry_node, 1);
 
-  editor.Edit(entry_node);
+  editor.Edit(NewControlGet(entry_node, 0));
   auto const param0 = editor.EmitParameter(0);
   auto const if_node = editor.SetBranch(param0);
   auto const if_true = NewIfTrue(if_node);
@@ -92,7 +92,7 @@ TEST_F(EditorTest, SetBranchPhi) {
   auto const entry_node = function->entry_node();
   auto const effect = NewEffectGet(entry_node, 1);
 
-  editor.Edit(entry_node);
+  editor.Edit(NewControlGet(entry_node, 0));
   auto const if_node = editor.SetBranch(NewParameter(entry_node, 0));
   auto const if_true = NewIfTrue(if_node);
   auto const if_false = NewIfFalse(if_node);
@@ -142,7 +142,7 @@ TEST_F(EditorTest, SetRet) {
   auto const entry_node = function->entry_node();
   auto const effect = NewEffectGet(entry_node, 1);
 
-  editor.Edit(entry_node);
+  editor.Edit(NewControlGet(entry_node, 0));
   editor.SetRet(effect, NewInt32(42));
   editor.Commit();
 

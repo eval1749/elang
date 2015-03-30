@@ -14,18 +14,6 @@
 namespace elang {
 namespace optimizer {
 
-namespace {
-Control* ControlOf(Node* node) {
-  if (auto const control = node->as<Control>())
-    return control;
-  for (auto user : node->users()) {
-    if (auto const control = user->owner()->as<Control>())
-      return control;
-  }
-  return nullptr;
-}
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // Editor
@@ -64,10 +52,10 @@ void Editor::Commit() {
   control_ = nullptr;
 }
 
-void Editor::Edit(Node* node) {
+void Editor::Edit(Control* control) {
   DCHECK(!control_);
-  control_ = ControlOf(node);
-  DCHECK(control_) << *node;
+  DCHECK(control);
+  control_ = control;
 }
 
 Node* Editor::EmitParameter(size_t index) {

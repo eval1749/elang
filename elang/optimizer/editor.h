@@ -28,7 +28,7 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   // Edit session
   void Commit();
-  void Edit(Node* node);
+  void Edit(Control* control);
 
   // Emit data node
   Node* EmitParameter(size_t index);
