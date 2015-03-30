@@ -85,9 +85,9 @@ static_library("compiler_testing") {
 
 test("elang_compiler_tests") {
   sources = [
-    "syntax/lexer_unittest.cc",
-    "syntax/parser_unittest.cc",
-    "token_unittest.cc",
+    "syntax/lexer_test.cc",
+    "syntax/parser_test.cc",
+    "token_test.cc",
   ]
 
   deps = [
