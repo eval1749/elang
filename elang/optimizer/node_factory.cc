@@ -127,7 +127,7 @@ Control* NodeFactory::NewControlGet(Node* input, size_t field) {
   DCHECK(input->IsValidControlAt(field)) << *input;
   if (auto const present = FindFieldNode(input, field)->as<ControlGetNode>())
     return present;
-  auto const node = new (zone()) ControlGetNode(effect_type(), input, field);
+  auto const node = new (zone()) ControlGetNode(control_type(), input, field);
   node->set_id(NewNodeId());
   RememberFieldNode(node, input, field);
   return node;
@@ -153,7 +153,7 @@ Effect* NodeFactory::NewEffectGet(Node* input, size_t field) {
   return node;
 }
 
-Effect* NodeFactory::NewEffectPhi(PhiOwnerNode* owner) {
+EffectPhiNode* NodeFactory::NewEffectPhi(PhiOwnerNode* owner) {
   DCHECK(owner->IsValidControl()) << *owner;
   auto const node = new (zone()) EffectPhiNode(effect_type(), zone(), owner);
   node->set_id(NewNodeId());
@@ -499,7 +499,7 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   return node;
 }
 
-Node* NodeFactory::NewPhi(Type* output_type, PhiOwnerNode* owner) {
+PhiNode* NodeFactory::NewPhi(Type* output_type, PhiOwnerNode* owner) {
   DCHECK(owner->IsValidControl()) << *owner;
   auto const node = new (zone()) PhiNode(output_type, zone(), owner);
   node->set_id(NewNodeId());

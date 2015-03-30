@@ -93,6 +93,8 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
 // GetNode
 GetNode::GetNode(Type* output_type, Node* input, size_t field)
     : FieldNodeTemplate(output_type, input, field) {
+  DCHECK(!output_type->is<ControlType>());
+  DCHECK(!output_type->is<EffectType>());
 }
 
 // Input

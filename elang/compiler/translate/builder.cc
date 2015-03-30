@@ -306,9 +306,9 @@ void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
     return;
 
   auto effect = static_cast<ir::Effect*>(nullptr);
-  auto effect_phi = static_cast<ir::Effect*>(nullptr);
+  auto effect_phi = static_cast<ir::EffectPhiNode*>(nullptr);
   Variables variables;
-  std::unordered_map<sm::Variable*, ir::Node*> variable_phis;
+  std::unordered_map<sm::Variable*, ir::PhiNode*> variable_phis;
 
   // Figure out effect and variables in |control|.
   for (auto const input : control->inputs()) {

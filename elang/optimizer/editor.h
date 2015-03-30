@@ -44,7 +44,8 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void ReplaceAllUses(Node* new_node, Node* old_node);
 
   // Phi
-  void SetPhiInput(Node* phi, Control* control, Node* value);
+  void SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect);
+  void SetPhiInput(PhiNode* phi, Control* control, Node* value);
 
   bool Validate() const;
 

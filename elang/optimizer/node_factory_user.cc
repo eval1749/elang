@@ -45,7 +45,7 @@ Effect* NodeFactoryUser::NewEffectGet(Node* input, size_t field) {
   return node_factory_->NewEffectGet(input, field);
 }
 
-Effect* NodeFactoryUser::NewEffectPhi(PhiOwnerNode* owner) {
+EffectPhiNode* NodeFactoryUser::NewEffectPhi(PhiOwnerNode* owner) {
   return node_factory_->NewEffectPhi(owner);
 }
 
@@ -89,7 +89,7 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
 }
 
-Node* NodeFactoryUser::NewPhi(Type* output_type, PhiOwnerNode* owner) {
+PhiNode* NodeFactoryUser::NewPhi(Type* output_type, PhiOwnerNode* owner) {
   return node_factory_->NewPhi(output_type, owner);
 }
 

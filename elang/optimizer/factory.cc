@@ -44,7 +44,7 @@ AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
 Function* Factory::NewFunction(FunctionType* function_type) {
   auto const entry_node =
       node_factory()->NewEntry(function_type->parameters_type());
-  node_factory()->NewGet(entry_node, 0);
+  node_factory()->NewControlGet(entry_node, 0);
   node_factory()->NewEffectGet(entry_node, 1);
   auto const control = node_factory()->NewMerge({});
   auto const exit_node = node_factory()->NewExit(control);

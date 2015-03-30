@@ -52,20 +52,64 @@ TEST_F(TranslatorTest, Calls) {
   EXPECT_EQ(
       "function1 void(int32, int32)\n"
       "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
-      "0003: (effect, void) %t8 = call(%e3, void(void) System.Void Sample.Fn0(), void)\n"
+      "0003: (effect, void) %t8 = call(%e3, void(void) System.Void "
+      "Sample.Fn0(), void)\n"
       "0004: effect %e9 = effect_get(%t8, 0)\n"
       "0005: int32 %r6 = param(%t1, 0)\n"
-      "0006: (effect, int32) %t10 = call(%e9, int32(int32) System.Int32 Sample.Fn1(System.Int32), %r6)\n"
+      "0006: (effect, int32) %t10 = call(%e9, int32(int32) System.Int32 "
+      "Sample.Fn1(System.Int32), %r6)\n"
       "0007: effect %e11 = effect_get(%t10, 0)\n"
       "0008: int32 %r7 = param(%t1, 1)\n"
       "0009: (int32, int32) %t12 = tuple(%r6, %r7)\n"
-      "0010: (effect, int32) %t13 = call(%e11, int32(int32, int32) System.Int32 Sample.Fn2(System.Int32, System.Int32), %t12)\n"
+      "0010: (effect, int32) %t13 = call(%e11, int32(int32, int32) "
+      "System.Int32 Sample.Fn2(System.Int32, System.Int32), %t12)\n"
       "0011: effect %e14 = effect_get(%t13, 0)\n"
       "0012: control %c15 = ret(%c2, %e14, void)\n"
       "0013: control %c4 = merge(%c15)\n"
       "0014: void %r5 = exit(%c4)\n",
+      Translate("Sample.Foo"));
+}
+
+TEST_F(TranslatorTest, DoWhile) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int a, int b) {"
+      "    do { a = a + 1; } while (a < b);"
+      "    return a;"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32, int32)\n"
+      "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
+      "0002: control %c11 = br(%c2)\n"
+      "0003: control %c22 = if_true(%c21)\n"
+      "0004: control %c23 = br(%c22)\n"
+      "0005: control %c10 = merge(%c11, %c23)\n"
+      "0006: control %c19 = br(%c10)\n"
+      "0007: control %c9 = merge(%c19)\n"
+      "0008: int32 %r6 = param(%t1, 0)\n"
+      "0009: (control, int32) %t15 = phi_operand(%c11, %r6)\n"
+      "0010: (control, int32) %t24 = phi_operand(%c23, %r18)\n"
+      "0011: int32 %r14 = phi(%t15, %t24)\n"
+      "0012: int32 %r18 = add(%r14, 1)\n"
+      "0013: int32 %r7 = param(%t1, 1)\n"
+      "0014: (control, int32) %t17 = phi_operand(%c11, %r7)\n"
+      "0015: (control, int32) %t25 = phi_operand(%c23, %r16)\n"
+      "0016: int32 %r16 = phi(%t17, %t25)\n"
+      "0017: bool %r20 = cmp_le(%r18, %r16)\n"
+      "0018: control %c21 = if(%c9, %r20)\n"
+      "0019: control %c26 = if_false(%c21)\n"
+      "0020: control %c27 = br(%c26)\n"
+      "0021: control %c8 = merge(%c27)\n"
+      "0022: effect %e3 = effect_get(%t1, 1)\n"
+      "0023: (control, effect) %t13 = phi_operand(%c11, %e3)\n"
+      "0024: effect %e12 = effect_phi(%t13)\n"
+      "0025: control %c28 = ret(%c8, %e12, %r18)\n"
+      "0026: control %c4 = merge(%c28)\n"
+      "0027: void %r5 = exit(%c4)\n",
       Translate("Sample.Foo"));
 }
 
@@ -77,7 +121,7 @@ TEST_F(TranslatorTest, IntMul) {
   EXPECT_EQ(
       "function1 int32(int32, int16)\n"
       "0000: (control, effect, (int32, int16)) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: int32 %r6 = param(%t1, 0)\n"
       "0004: int16 %r7 = param(%t1, 1)\n"
@@ -97,7 +141,7 @@ TEST_F(TranslatorTest, IntCmp) {
   EXPECT_EQ(
       "function1 bool(int32, int32)\n"
       "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: int32 %r6 = param(%t1, 0)\n"
       "0004: int32 %r7 = param(%t1, 1)\n"
@@ -105,48 +149,6 @@ TEST_F(TranslatorTest, IntCmp) {
       "0006: control %c9 = ret(%c2, %e3, %r8)\n"
       "0007: control %c4 = merge(%c9)\n"
       "0008: void %r5 = exit(%c4)\n",
-      Translate("Sample.Foo"));
-}
-
-TEST_F(TranslatorTest, DoWhile) {
-  Prepare(
-      "class Sample {"
-      "  static int Foo(int a, int b) {"
-      "    do { a = a + 1; } while (a < b);"
-      "    return a;"
-      "  }"
-      "}");
-  EXPECT_EQ(
-      "function1 int32(int32, int32)\n"
-      "0000: (control, effect, (int32, int32)) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
-      "0002: control %c11 = br(%c2)\n"
-      "0003: control %c22 = if_true(%c21)\n"
-      "0004: control %c23 = br(%c22)\n"
-      "0005: control %c10 = merge(%c11, %c23)\n"
-      "0006: control %c19 = br(%c10)\n"
-      "0007: control %c9 = merge(%c19)\n"
-      "0008: int32 %r6 = param(%t1, 0)\n"
-      "0009: (control, int32) %t15 = phi_operand(%c11, %r6)\n"
-      "0010: (control, int32) %t25 = phi_operand(%c23, %r18)\n"
-      "0011: int32 %r14 = phi(%t15, %t25)\n"
-      "0012: int32 %r18 = add(%r14, 1)\n"
-      "0013: int32 %r7 = param(%t1, 1)\n"
-      "0014: (control, int32) %t17 = phi_operand(%c11, %r7)\n"
-      "0015: (control, int32) %t26 = phi_operand(%c23, %r16)\n"
-      "0016: int32 %r16 = phi(%t17, %t26)\n"
-      "0017: bool %r20 = cmp_le(%r18, %r16)\n"
-      "0018: control %c21 = if(%c9, %r20)\n"
-      "0019: control %c27 = if_false(%c21)\n"
-      "0020: control %c28 = br(%c27)\n"
-      "0021: control %c8 = merge(%c28)\n"
-      "0022: effect %e3 = effect_get(%t1, 1)\n"
-      "0023: (control, effect) %t13 = phi_operand(%c11, %e3)\n"
-      "0024: (control, effect) %t24 = phi_operand(%c23, %e12)\n"
-      "0025: effect %e12 = phi(%t13, %t24)\n"
-      "0026: control %c29 = ret(%c8, %e12, %r18)\n"
-      "0027: control %c4 = merge(%c29)\n"
-      "0028: void %r5 = exit(%c4)\n",
       Translate("Sample.Foo"));
 }
 
@@ -162,7 +164,7 @@ TEST_F(TranslatorTest, IfMerge) {
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "0000: (control, effect, bool) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: bool %r6 = param(%t1, 0)\n"
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c9 = if_true(%c7)\n"
@@ -188,7 +190,7 @@ TEST_F(TranslatorTest, ReturnLiteral) {
   EXPECT_EQ(
       "function1 int32(void)\n"
       "0000: (control, effect, void) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c2, %e3, 123)\n"
       "0004: control %c4 = merge(%c6)\n"
@@ -204,7 +206,7 @@ TEST_F(TranslatorTest, ReturnParameter) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: int32 %r6 = param(%t1, 0)\n"
       "0004: control %c7 = ret(%c2, %e3, %r6)\n"

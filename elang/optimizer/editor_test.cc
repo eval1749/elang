@@ -40,7 +40,7 @@ TEST_F(EditorTest, ChangeInput) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c2, %e3, 33)\n"
       "0004: control %c4 = merge(%c6)\n"
@@ -72,7 +72,7 @@ TEST_F(EditorTest, SetBranch) {
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "0000: (control, effect, bool) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: bool %r6 = param(%t1, 0)\n"
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
@@ -118,7 +118,7 @@ TEST_F(EditorTest, SetBranchPhi) {
   EXPECT_EQ(
       "function1 int32(bool, int32, int32)\n"
       "0000: (control, effect, (bool, int32, int32)) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: bool %r6 = param(%t1, 0)\n"
       "0003: control %c7 = if(%c2, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
@@ -151,7 +151,7 @@ TEST_F(EditorTest, SetRet) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = get(%t1, 0)\n"
+      "0001: control %c2 = control_get(%t1, 0)\n"
       "0002: effect %e3 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c2, %e3, 42)\n"
       "0004: control %c4 = merge(%c6)\n"
