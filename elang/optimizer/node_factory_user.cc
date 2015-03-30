@@ -37,6 +37,10 @@ Node* NodeFactoryUser::NewDynamicCast(Type* output_type, Node* input) {
   return node_factory_->NewDynamicCast(output_type, input);
 }
 
+Effect* NodeFactoryUser::NewEffectGet(Node* input, size_t field) {
+  return node_factory_->NewEffectGet(input, field);
+}
+
 Node* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
                                    Node* left,
                                    Node* right) {

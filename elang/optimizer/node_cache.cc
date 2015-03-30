@@ -39,6 +39,11 @@ Node* NodeCache::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return it == binary_node_cache_.end() ? nullptr : it->second;
 }
 
+Node* NodeCache::FindFieldNode(Node* input, size_t field) {
+  auto const it = field_node_cache_.find(std::make_tuple(input, field));
+  return it == field_node_cache_.end() ? nullptr : it->second;
+}
+
 Node* NodeCache::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
   auto const it = unary_node_cache_.find(std::make_tuple(opcode, type, input));
   return it == unary_node_cache_.end() ? nullptr : it->second;
@@ -66,18 +71,6 @@ Node* NodeCache::NewFunctionReference(Type* output_type, Function* function) {
       new (zone()) FunctionReferenceNode(output_type, function);
   function_literal_cache_[function] = literal;
   return literal;
-}
-
-Node* NodeCache::NewGet(Node* input, size_t field) {
-  auto const key = std::make_tuple(input, field);
-  auto const it = field_input_node_cache_.find(key);
-  if (it != field_input_node_cache_.end())
-    return it->second;
-  auto const output_type = input->output_type()->as<TupleType>()->get(field);
-  auto const node = new (zone()) GetNode(output_type, input, field);
-  node->set_id(NewNodeId());
-  field_input_node_cache_[key] = node;
-  return node;
 }
 
 size_t NodeCache::NewNodeId() {
@@ -122,6 +115,12 @@ void NodeCache::RememberBinaryNode(Node* node) {
       std::make_tuple(node->opcode(), node->input(0), node->input(1));
   DCHECK(!binary_node_cache_.count(key));
   binary_node_cache_[key] = node;
+}
+
+void NodeCache::RememberFieldNode(Node* node, Node* input, size_t field) {
+  auto const key = std::make_tuple(input, field);
+  DCHECK(!field_node_cache_.count(key));
+  field_node_cache_[key] = node;
 }
 
 void NodeCache::RememberUnaryNode(Node* node) {

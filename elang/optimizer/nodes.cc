@@ -14,6 +14,16 @@
 namespace elang {
 namespace optimizer {
 
+// Effect
+Effect::Effect(Type* output_type) : Node(output_type) {
+}
+
+// EffectGet
+EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
+    : NodeTemplate(output_type), field_(field) {
+  InitInputAt(0, input);
+}
+
 // EntryNode
 EntryNode::EntryNode(Type* output_type) : NodeTemplate(output_type) {
   DCHECK_EQ(3, output_type->as<TupleType>()->size()) << *output_type;
@@ -281,6 +291,11 @@ bool Node::IsValidEffect() const {
   return IsEffect() && id_;
 }
 
+bool Node::IsValidEffectAt(size_t field) const {
+  auto const type = output_type_->as<TupleType>();
+  return id_ && type && type->get(field)->is<EffectType>();
+}
+
 void Node::ResetInputAt(size_t index) {
   InputAt(index)->Reset();
 }
@@ -352,18 +367,6 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
     InitInputAt(2, input2);                                             \
   }
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
-#undef V
-
-#define V(Name, ...)                                                    \
-  Name##Node::Name##Node(Type* output_type, Node* input0, Node* input1, \
-                         Node* input2, Node* input3)                    \
-      : NodeTemplate(output_type) {                                     \
-    InitInputAt(0, input0);                                             \
-    InitInputAt(1, input1);                                             \
-    InitInputAt(2, input2);                                             \
-    InitInputAt(3, input3);                                             \
-  }
-FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 #undef V
 
 // Variable nodes

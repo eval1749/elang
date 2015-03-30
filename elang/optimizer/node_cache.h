@@ -38,8 +38,10 @@ class NodeCache final : public ZoneUser {
 
   // Cached nodes
   Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
-  void RememberBinaryNode(Node* node);
+  Node* FindFieldNode(Node* input, size_t field);
   Node* FindUnaryNode(Opcode opcode, Type* type, Node* input);
+  void RememberBinaryNode(Node* node);
+  void RememberFieldNode(Node* node, Node* input, size_t field);
   void RememberUnaryNode(Node* node);
 
 // Cached node construct functions.
@@ -57,14 +59,14 @@ class NodeCache final : public ZoneUser {
   std::unordered_map<data_type, Node*> name##_cache_;
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
-  std::map<std::tuple<Opcode, Type*, Node*>, Node*> unary_node_cache_;
   std::map<std::tuple<Opcode, Node*, Node*>, Node*> binary_node_cache_;
-  std::map<std::tuple<Node*, size_t>, Node*> field_input_node_cache_;
+  std::map<std::tuple<Node*, size_t>, Node*> field_node_cache_;
   std::unordered_map<Function*, Node*> function_literal_cache_;
   std::unordered_map<Type*, Node*> null_literal_cache_;
   std::map<std::tuple<Type*, AtomicString*>, Node*> reference_cache_;
   const std::unique_ptr<SequenceIdSource> node_id_source_;
   std::unordered_map<base::StringPiece16, Node*> string_cache_;
+  std::map<std::tuple<Opcode, Type*, Node*>, Node*> unary_node_cache_;
   TypeFactory* const type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeCache);

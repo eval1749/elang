@@ -239,6 +239,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
   bool IsValidControl() const;
   bool IsValidData() const;
   bool IsValidEffect() const;
+  bool IsValidEffectAt(size_t field) const;
 
   // Number of input operands.
   virtual size_t CountInputs() const = 0;
@@ -270,10 +271,10 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing {
 //
 // Node template
 //
-template <size_t kNumberOfInputs>
-class NodeTemplate : public Node {
+template <size_t kNumberOfInputs, typename Base = Node>
+class NodeTemplate : public Base {
  protected:
-  explicit NodeTemplate(Type* output_type) : Node(output_type) {}
+  explicit NodeTemplate(Type* output_type) : Base(output_type) {}
   ~NodeTemplate() override = default;
 
  private:
@@ -302,6 +303,20 @@ class NodeTemplate<0> : public Node {
   }
 
   DISALLOW_COPY_AND_ASSIGN(NodeTemplate);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Effect
+//
+class Effect : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Effect, Node);
+
+ protected:
+  Effect(Type* output_type);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Effect);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -432,22 +447,6 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 #undef V
 
-#define V(Name, ...)                                                       \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<3> { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
-                                                                           \
-   private:                                                                \
-    Name##Node(Type* output_type,                                          \
-               Node* input0,                                               \
-               Node* input1,                                               \
-               Node* input2,                                               \
-               Node* input3);                                              \
-                                                                           \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
-  };
-FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
-#undef V
-
 #define V(Name, ...)                                                    \
   class ELANG_OPTIMIZER_EXPORT Name##Node final : public VariadicNode { \
     DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, VariadicNode);    \
@@ -459,6 +458,25 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
   };
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// EffectGetNode
+//
+class ELANG_OPTIMIZER_EXPORT EffectGetNode final
+    : public NodeTemplate<1, Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, Effect);
+
+ public:
+  size_t field() const { return field_; }
+
+ private:
+  EffectGetNode(Type* effect_type, Node* input, size_t field);
+
+  size_t const field_;
+
+  DISALLOW_COPY_AND_ASSIGN(EffectGetNode);
+};
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -667,6 +685,19 @@ class ELANG_OPTIMIZER_EXPORT SizeOfNode final : public NodeTemplate<0> {
   Type* const type_operand_;
 
   DISALLOW_COPY_AND_ASSIGN(SizeOfNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// StoreNode - effect %new_effect = store %effect, %base, %pointer, %value
+//
+class ELANG_OPTIMIZER_EXPORT StoreNode final : public NodeTemplate<4, Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(StoreNode, Effect);
+
+ private:
+  StoreNode(Type* effect_type, Node* input, size_t field);
+
+  DISALLOW_COPY_AND_ASSIGN(StoreNode);
 };
 
 //////////////////////////////////////////////////////////////////////

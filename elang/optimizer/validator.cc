@@ -37,6 +37,7 @@ class Validator::Context : public NodeVisitor {
   // NodeVisitor member functions
   void DoDefaultVisit(Node* node) final;
   void VisitCall(CallNode* node) final;
+  void VisitEffectGet(EffectGetNode* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
@@ -98,6 +99,13 @@ void Validator::Context::VisitCall(CallNode* node) {
     ErrorInInput(node, 1);
   if (node->input(2)->output_type() != callee_type->parameters_type())
     ErrorInInput(node, 2);
+}
+
+void Validator::Context::VisitEffectGet(EffectGetNode* node) {
+  if (!node->output_type()->is<EffectType>())
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+  if (node->input(0)->IsValidEffectAt(node->field()))
+    ErrorInInput(node, 0);
 }
 
 void Validator::Context::VisitEntry(EntryNode* node) {

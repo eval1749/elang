@@ -15,6 +15,7 @@ namespace optimizer {
 
 // List of abstract C++ classes representing IR node.
 #define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
+  V(Effect)                                 \
   V(FieldInputNode)                         \
   V(Node)                                   \
   V(PhiOwnerNode)                           \
@@ -78,13 +79,12 @@ namespace optimizer {
   V(Load, "load")                                    \
   V(Ret, "ret")
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Store, "store")
-
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case")                                    \
   V(Tuple, "tuple")
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
+  V(EffectGet, "effect_get")                  \
   V(Entry, "entry")                           \
   V(FloatCmp, "fcmp")                         \
   V(FunctionReference, "fn")                  \
@@ -97,6 +97,7 @@ namespace optimizer {
   V(Phi, "phi")                               \
   V(Reference, "ref")                         \
   V(SizeOf, "sizeof")                         \
+  V(Store, "store")                           \
   V(Void, "void")
 
 // List of concrete C++ classes representing IR node.
@@ -107,7 +108,6 @@ namespace optimizer {
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)   \
-  FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
 // Forward declarations

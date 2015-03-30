@@ -61,6 +61,12 @@ TEST_F(NodeTest, DynamicCastNode) {
   EXPECT_EQ("int64 %r7 = dynamic_cast(%r6)", ToString(node));
 }
 
+TEST_F(NodeTest, EffectGet) {
+  auto const function = NewSampleFunction(void_type(), void_type());
+  auto const node = NewEffectGet(function->entry_node(), 1);
+  EXPECT_EQ("effect %e6 = effect_get(%t1, 1)", ToString(node));
+}
+
 TEST_F(NodeTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();

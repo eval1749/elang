@@ -47,7 +47,9 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
 #undef V
 
   // Single input
+  Effect* NewEffectGet(Node* input, size_t field);
   Node* NewDynamicCast(Type* output_type, Node* input);
+  Node* NewGet(Node* input0, size_t field);
   Node* NewFunctionReference(Function* function);
   Node* NewIfFalse(Node* input);
   Node* NewIfSuccess(Node* input);
@@ -59,7 +61,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
 
   // Two inputs
   Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Node* NewGet(Node* input0, size_t field);
   Node* NewIf(Node* control, Node* value);
   Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
   Node* NewIntShl(Node* left, Node* right);

@@ -101,6 +101,10 @@ Node* NodeFactory::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return node_cache_->FindBinaryNode(opcode, left, right);
 }
 
+Node* NodeFactory::FindFieldNode(Node* input, size_t field) {
+  return node_cache_->FindFieldNode(input, field);
+}
+
 Node* NodeFactory::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
   return node_cache_->FindUnaryNode(opcode, type, input);
 }
@@ -126,6 +130,22 @@ Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
     return present;
   auto const node = new (zone()) DynamicCastNode(type, input);
   node->set_id(NewNodeId());
+  return node;
+}
+
+Effect* NodeFactory::NewEffectGet(Node* input, size_t field) {
+  DCHECK(input->IsValidEffectAt(field)) << *input;
+// TODO(eval1749) Temporary disable node cache for |EffectGet| until we
+// update tests.
+#if 0
+  if (auto const present = FindFieldNode(input, field))
+    return present->as<EffectGetNode>();
+#endif
+  auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
+  node->set_id(NewNodeId());
+#if 0
+  RememberFieldNode(node, input, field);
+#endif
   return node;
 }
 
@@ -228,7 +248,13 @@ Node* NodeFactory::NewFunctionReference(Function* function) {
 
 Node* NodeFactory::NewGet(Node* input, size_t field) {
   DCHECK(input->id() || input->IsLiteral()) << *input << " " << field;
-  return node_cache_->NewGet(input, field);
+  if (auto const present = FindFieldNode(input, field))
+    return present;
+  auto const output_type = input->output_type()->as<TupleType>()->get(field);
+  auto const node = new (zone()) GetNode(output_type, input, field);
+  node->set_id(NewNodeId());
+  RememberFieldNode(node, input, field);
+  return node;
 }
 
 Node* NodeFactory::NewIf(Node* control, Node* data) {
@@ -529,6 +555,10 @@ Node* NodeFactory::NewTuple(Type* output_type) {
 
 void NodeFactory::RememberBinaryNode(Node* node) {
   return node_cache_->RememberBinaryNode(node);
+}
+
+void NodeFactory::RememberFieldNode(Node* node, Node* input, size_t field) {
+  return node_cache_->RememberFieldNode(node, input, field);
 }
 
 void NodeFactory::RememberUnaryNode(Node* node) {

@@ -53,7 +53,9 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   // Single input
   Node* NewDynamicCast(Type* output_type, Node* input);
+  Effect* NewEffectGet(Node* input, size_t field);
   Node* NewFunctionReference(Function* function);
+  Node* NewGet(Node* input, size_t field);
   Node* NewIfFalse(Node* input);
   Node* NewIfSuccess(Node* input);
   Node* NewIfTrue(Node* input);
@@ -64,7 +66,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   // Two inputs
   Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Node* NewGet(Node* input0, size_t field);
   Node* NewIf(Node* control, Node* value);
   Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
   Node* NewIntShl(Node* left, Node* right);
@@ -97,8 +98,10 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   // Node cache management
   Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
-  void RememberBinaryNode(Node* node);
+  Node* FindFieldNode(Node* input, size_t field);
   Node* FindUnaryNode(Opcode opcode, Type* type, Node* input);
+  void RememberBinaryNode(Node* node);
+  void RememberFieldNode(Node* node, Node* input, size_t field);
   void RememberUnaryNode(Node* node);
 
   Node* NewEntry(Type* parameters_type);
