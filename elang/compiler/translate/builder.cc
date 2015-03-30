@@ -249,12 +249,13 @@ void Builder::PopulatePhiNodesIfNeeded(ir::Control* control,
   auto const it = basic_blocks_.find(phi_owner);
   if (it == basic_blocks_.end())
     return;
+
   auto const phi_block = it->second;
+
+  if (auto const phi = phi_owner->effect_phi())
+    editor_->SetPhiInput(phi, predecessor->end_node(), predecessor->effect());
+
   for (auto const phi : phi_owner->phi_nodes()) {
-    if (phi->output_type()->is<ir::EffectType>()) {
-      editor_->SetPhiInput(phi, predecessor->end_node(), predecessor->effect());
-      continue;
-    }
     auto const phi_var = phi_block->phi_map().find(phi);
     DCHECK(phi_var != phi_block->phi_map().end());
     auto const value = predecessor->ValueOf(phi_var->second);

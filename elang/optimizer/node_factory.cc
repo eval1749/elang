@@ -507,15 +507,6 @@ PhiNode* NodeFactory::NewPhi(Type* output_type, PhiOwnerNode* owner) {
   return node;
 }
 
-Node* NodeFactory::NewPhiOperand(Control* control, Node* data) {
-  DCHECK(control->IsValidControl()) << *control;
-  DCHECK(data->IsValidData() || data->IsValidEffect()) << *data;
-  auto const output_type = NewTupleType({control_type(), data->output_type()});
-  auto const node = new (zone()) PhiOperandNode(output_type, control, data);
-  node->set_id(NewNodeId());
-  return node;
-}
-
 Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
   return node_cache_->NewReference(type, name);
 }

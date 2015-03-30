@@ -66,7 +66,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Node* NewIntShl(Node* left, Node* right);
   Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
-  Node* NewPhiOperand(Control* control, Node* value);
   Control* NewSwitch(Control* control, Node* value);
   Node* NewThrow(Control* control, Node* value);
 

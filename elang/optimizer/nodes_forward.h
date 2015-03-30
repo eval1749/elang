@@ -50,7 +50,6 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
   V(If, "if", Control)                               \
-  V(PhiOperand, "phi_operand", Node)                 \
   V(IntShl, "shl", Node)                             \
   V(IntShr, "shr", Node)                             \
   V(StackAlloc, "alloca", Node)                      \

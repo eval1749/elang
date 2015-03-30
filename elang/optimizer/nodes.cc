@@ -36,7 +36,7 @@ EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
 
 // EffectPhiNode
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
-    : VariadicNodeTemplate(output_type, zone), owner_(owner) {
+    : PhiNodeTemplate(output_type, zone, owner) {
   DCHECK(output_type->is<EffectType>());
 }
 
@@ -384,9 +384,16 @@ ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
       << *output_type << " " << *input;
 }
 
+// PhiInputHolder
+PhiInputHolder::PhiInputHolder(Control* control) : control_(control) {
+}
+
+PhiInputHolder::~PhiInputHolder() {
+}
+
 // PhiNode
 PhiNode::PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
-    : VariadicNodeTemplate(output_type, zone), owner_(owner) {
+    : PhiNodeTemplate(output_type, zone, owner) {
 }
 
 // PhiOwnerNode

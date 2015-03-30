@@ -93,10 +93,6 @@ PhiNode* NodeFactoryUser::NewPhi(Type* output_type, PhiOwnerNode* owner) {
   return node_factory_->NewPhi(output_type, owner);
 }
 
-Node* NodeFactoryUser::NewPhiOperand(Control* control, Node* data) {
-  return node_factory_->NewPhiOperand(control, data);
-}
-
 Node* NodeFactoryUser::NewReference(Type* type, AtomicString* name) {
   return node_factory_->NewReference(type, name);
 }

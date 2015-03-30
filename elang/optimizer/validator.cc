@@ -34,10 +34,15 @@ class Validator::Context : public NodeVisitor {
   void Error(ErrorCode error_code, Node* node);
   void ErrorInInput(Node* node, int index);
 
+  void ValidatePhiInputs(Node* node,
+                         PhiOwnerNode* owner,
+                         const ZoneDeque<PhiInputHolder*>& phi_inputs);
+
   // NodeVisitor member functions
   void DoDefaultVisit(Node* node) final;
   void VisitCall(CallNode* node) final;
   void VisitEffectGet(EffectGetNode* node) final;
+  void VisitEffectPhi(EffectPhiNode* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
@@ -45,7 +50,6 @@ class Validator::Context : public NodeVisitor {
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
   void VisitPhi(PhiNode* node) final;
-  void VisitPhiOperand(PhiOperandNode* node) final;
   void VisitRet(RetNode* node) final;
   void VisitParameter(ParameterNode* node) final;
 
@@ -75,6 +79,39 @@ void Validator::Context::ErrorInInput(Node* node, int index) {
   Error(ErrorCode::ValidateNodeInvalidInput, node, validator_->NewInt32(index));
 }
 
+void Validator::Context::ValidatePhiInputs(
+    Node* node,
+    PhiOwnerNode* owner,
+    const ZoneDeque<PhiInputHolder*>& phi_inputs) {
+  std::unordered_set<Node*> predecessors;
+  for (auto predecessor : owner->inputs())
+    predecessors.insert(predecessor);
+
+  std::unordered_set<Node*> controls;
+  auto index = 0;
+  for (auto const phi_input : phi_inputs) {
+    auto const input = phi_input->value();
+    if (input->output_type() != node->output_type())
+      ErrorInInput(node, index);
+    if (!input->IsValidEffect() && !input->IsValidData())
+      ErrorInInput(node, index);
+    auto const control = phi_input->control();
+    if (controls.count(control))
+      ErrorInInput(node, index);
+    if (!predecessors.count(control))
+      ErrorInInput(node, index);
+    controls.insert(control);
+    ++index;
+  }
+
+  for (auto predecessor : owner->inputs()) {
+    if (controls.count(predecessor))
+      continue;
+    Error(ErrorCode::ValidatePhiNodeMissing, node, predecessor);
+  }
+}
+
+// NodeVisitor functions
 void Validator::Context::DoDefaultVisit(Node* node) {
 }
 
@@ -106,6 +143,14 @@ void Validator::Context::VisitEffectGet(EffectGetNode* node) {
     Error(ErrorCode::ValidateNodeInvalidOutput, node);
   if (!node->input(0)->IsValidEffectAt(node->field()))
     ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitEffectPhi(EffectPhiNode* node) {
+  if (!node->owner()->IsValidControl()) {
+    Error(ErrorCode::ValidatePhiNodeInvalidOwner, node, node->owner());
+    return;
+  }
+  ValidatePhiInputs(node, node->owner(), node->phi_inputs());
 }
 
 void Validator::Context::VisitEntry(EntryNode* node) {
@@ -179,47 +224,7 @@ void Validator::Context::VisitPhi(PhiNode* node) {
     Error(ErrorCode::ValidatePhiNodeInvalidOwner, node, node->owner());
     return;
   }
-  std::unordered_set<Node*> predecessors;
-  for (auto predecessor : node->owner()->inputs())
-    predecessors.insert(predecessor);
-
-  std::unordered_set<Node*> controls;
-  auto index = 0;
-  for (auto const input : node->inputs()) {
-    auto const phi_operand = input->as<PhiOperandNode>();
-    if (!phi_operand) {
-      ErrorInInput(input, index);
-      ++index;
-      continue;
-    }
-    auto const data = phi_operand->input(1);
-    if (data->output_type() != node->output_type())
-      ErrorInInput(node, index);
-    if (!data->IsValidEffect() && !data->IsValidData())
-      ErrorInInput(node, index);
-    auto const control = phi_operand->input(0);
-    if (controls.count(control))
-      ErrorInInput(node, index);
-    if (!predecessors.count(control))
-      ErrorInInput(node, index);
-    controls.insert(control);
-    ++index;
-  }
-
-  for (auto predecessor : node->owner()->inputs()) {
-    if (!controls.count(predecessor))
-      Error(ErrorCode::ValidatePhiNodeMissing, node, predecessor);
-  }
-}
-
-void Validator::Context::VisitPhiOperand(PhiOperandNode* node) {
-  // TODO(eval1749) We should check whether control operand is predecessor or
-  // not.
-  if (!node->input(0)->IsValidControl())
-    ErrorInInput(node, 0);
-  // TODO(eval1749) We should check operand type equals to phi type.
-  if (!node->input(1)->IsValidData() && !node->input(1)->IsValidEffect())
-    ErrorInInput(node, 1);
+  ValidatePhiInputs(node, node->owner(), node->phi_inputs());
 }
 
 void Validator::Context::VisitRet(RetNode* node) {

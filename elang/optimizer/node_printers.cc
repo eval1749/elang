@@ -84,12 +84,26 @@ void NodePrinter::DoDefaultVisit(Node* node) {
   ostream_ << *node->output_type() << " " << AsInput(node) << " = "
            << node->mnemonic() << "(";
   auto separator = "";
-  for (auto const input : node->inputs()) {
-    ostream_ << separator << AsInput(input);
-    separator = ", ";
+  if (auto const effect_phi = node->as<EffectPhiNode>()) {
+    for (auto const phi_input : effect_phi->phi_inputs()) {
+      ostream_ << separator << AsInput(phi_input->control()) << ": "
+               << AsInput(phi_input->value());
+      separator = ", ";
+    }
+  } else if (auto const phi = node->as<PhiNode>()) {
+    for (auto const phi_input : phi->phi_inputs()) {
+      ostream_ << separator << AsInput(phi_input->control()) << ": "
+               << AsInput(phi_input->value());
+      separator = ", ";
+    }
+  } else {
+    for (auto const input : node->inputs()) {
+      ostream_ << separator << AsInput(input);
+      separator = ", ";
+    }
+    if (node->has_field())
+      ostream_ << separator << node->field();
   }
-  if (node->has_field())
-    ostream_ << separator << node->field();
   ostream_ << ")";
 }
 

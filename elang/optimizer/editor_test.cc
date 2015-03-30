@@ -128,13 +128,11 @@ TEST_F(EditorTest, SetBranchPhi) {
       "0008: control %c10 = merge(%c11, %c12)\n"
       "0009: effect %e3 = effect_get(%t1, 1)\n"
       "0010: int32 %r14 = param(%t1, 1)\n"
-      "0011: (control, int32) %t15 = phi_operand(%c11, %r14)\n"
-      "0012: int32 %r16 = param(%t1, 2)\n"
-      "0013: (control, int32) %t17 = phi_operand(%c12, %r16)\n"
-      "0014: int32 %r13 = phi(%t15, %t17)\n"
-      "0015: control %c18 = ret(%c10, %e3, %r13)\n"
-      "0016: control %c4 = merge(%c18)\n"
-      "0017: void %r5 = exit(%c4)\n",
+      "0011: int32 %r15 = param(%t1, 2)\n"
+      "0012: int32 %r13 = phi(%c11: %r14, %c12: %r15)\n"
+      "0013: control %c16 = ret(%c10, %e3, %r13)\n"
+      "0014: control %c4 = merge(%c16)\n"
+      "0015: void %r5 = exit(%c4)\n",
       ToString(function));
 }
 

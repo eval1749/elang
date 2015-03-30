@@ -98,15 +98,15 @@ Control* Editor::SetJump(Control* target) {
 void Editor::SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
-  for (auto const input : phi->inputs()) {
-    auto const phi_input = input->as<PhiOperandNode>();
-    DCHECK(phi_input) << *phi << " has invalid operand " << *input;
-    if (phi_input->input(0) == control) {
-      static_cast<Node*>(phi_input)->InputAt(1)->SetValue(effect);
+  for (auto const phi_input : phi->phi_inputs()) {
+    if (phi_input->control() == control) {
+      phi_input->input()->SetValue(effect);
       return;
     }
   }
-  phi->AppendInput(NewPhiOperand(control, effect));
+  auto const phi_input = new (zone()) PhiInputHolder(control);
+  phi->phi_inputs_.push_back(phi_input);
+  phi_input->input()->Init(phi, effect);
 }
 
 void Editor::SetPhiInput(PhiNode* phi, Control* control, Node* value) {
@@ -114,15 +114,15 @@ void Editor::SetPhiInput(PhiNode* phi, Control* control, Node* value) {
   DCHECK_EQ(phi->output_type(), value->output_type()) << *phi << " " << *value;
   DCHECK(value->IsValidData()) << *value;
   DCHECK(!value->IsEffect()) << *value;
-  for (auto const input : phi->inputs()) {
-    auto const phi_input = input->as<PhiOperandNode>();
-    DCHECK(phi_input) << *phi << " has invalid operand " << *input;
-    if (phi_input->input(0) == control) {
-      ChangeInput(phi_input, 1, value);
+  for (auto const phi_input : phi->phi_inputs()) {
+    if (phi_input->control() == control) {
+      phi_input->input()->SetValue(value);
       return;
     }
   }
-  phi->AppendInput(NewPhiOperand(control, value));
+  auto const phi_input = new (zone()) PhiInputHolder(control);
+  phi->phi_inputs_.push_back(phi_input);
+  phi_input->input()->Init(phi, value);
 }
 
 Control* Editor::SetRet(Effect* effect, Node* data) {

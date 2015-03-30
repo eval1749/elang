@@ -279,13 +279,6 @@ TEST_F(NodeTest, ParameterNode2) {
   EXPECT_EQ("int64 %r6 = param(%t1, 1)", ToString(node));
 }
 
-TEST_F(NodeTest, PhiOperandNode) {
-  auto const function = NewSampleFunction(void_type(), void_type());
-  auto const entry_node = function->entry_node();
-  auto const node = NewPhiOperand(NewControlGet(entry_node, 0), NewBool(false));
-  EXPECT_EQ("(control, bool) %t6 = phi_operand(%c2, false)", ToString(node));
-}
-
 TEST_F(NodeTest, ReferenceNode) {
   auto const node = NewReference(NewFunctionType(void_type(), int32_type()),
                                  NewAtomicString(L"Foo"));

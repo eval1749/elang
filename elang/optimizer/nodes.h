@@ -153,7 +153,7 @@ class ELANG_OPTIMIZER_EXPORT Input final
 //
 // InputHolder
 //
-class InputHolder : public ZoneAllocated {
+class InputHolder final : public ZoneAllocated {
  public:
   InputHolder();
   ~InputHolder();
@@ -175,6 +175,29 @@ enum class Opcode {
   FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
       NumberOfOpcodes,
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// PhiInputHolder
+//
+class PhiInputHolder final : public ZoneAllocated {
+ public:
+  ~PhiInputHolder();
+
+  Control* control() const { return control_; }
+  Input* input() { return &input_; }
+  Node* value() const { return input_.value(); }
+
+ private:
+  friend class Editor;
+
+  explicit PhiInputHolder(Control* control);
+
+  Input input_;
+  Control* control_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiInputHolder);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -420,6 +443,45 @@ FieldNodeTemplate<Base>::FieldNodeTemplate(Type* output_type,
 
 //////////////////////////////////////////////////////////////////////
 //
+// PhiNodeTemplate
+//
+template <typename Base>
+class PhiNodeTemplate : public Base {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiNodeTemplate, Base);
+
+ public:
+  const ZoneDeque<PhiInputHolder*> phi_inputs() const { return phi_inputs_; }
+  PhiOwnerNode* owner() const { return owner_; }
+
+ protected:
+  PhiNodeTemplate(Type* output_type, Zone* zone, PhiOwnerNode* owner);
+
+ private:
+  // NodeLayout
+  size_t CountInputs() const final { return phi_inputs_.size(); }
+  Input* InputAt(size_t index) const final;
+  bool IsVariadic() const final { return true; }
+
+  PhiOwnerNode* owner_;
+  ZoneDeque<PhiInputHolder*> phi_inputs_;
+
+  DISALLOW_COPY_AND_ASSIGN(PhiNodeTemplate);
+};
+
+template <typename Base>
+PhiNodeTemplate<Base>::PhiNodeTemplate(Type* output_type,
+                                       Zone* zone,
+                                       PhiOwnerNode* owner)
+    : Base(output_type), owner_(owner), phi_inputs_(zone) {
+}
+
+template <typename Base>
+Input* PhiNodeTemplate<Base>::InputAt(size_t index) const {
+  return phi_inputs_[index]->input();
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // VariadicNodeTemplate
 //
 template <typename Base>
@@ -427,7 +489,7 @@ class VariadicNodeTemplate : public Base {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariadicNodeTemplate, Base);
 
  public:
-  // Node input protocol
+  // NodeLayout
   void AppendInput(Node* node) final;
   size_t CountInputs() const final { return inputs_.size(); }
 
@@ -435,7 +497,7 @@ class VariadicNodeTemplate : public Base {
   VariadicNodeTemplate(Type* output_type, Zone* zone);
 
  private:
-  // Node input protocol
+  // NodeLayout
   Input* InputAt(size_t index) const final;
   bool IsVariadic() const final { return true; }
 
@@ -596,6 +658,20 @@ class ELANG_OPTIMIZER_EXPORT EffectGetNode final
 
 //////////////////////////////////////////////////////////////////////
 //
+// EffectPhiNode
+//
+class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
+    : public PhiNodeTemplate<Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, Effect);
+
+ private:
+  EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* control);
+
+  DISALLOW_COPY_AND_ASSIGN(EffectPhiNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // EntryNode
 //
 class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
@@ -751,40 +827,17 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final
 // PhiNode
 //
 class ELANG_OPTIMIZER_EXPORT PhiNode final
-    : public VariadicNodeTemplate<Node>,
+    : public PhiNodeTemplate<Node>,
       public DoubleLinked<PhiNode, PhiOwnerNode>::Node {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, Node);
 
  public:
   typedef ::elang::optimizer::Node Node;
 
-  PhiOwnerNode* owner() const { return owner_; }
-
  private:
   PhiNode(Type* output_type, Zone* zone, PhiOwnerNode* control);
 
-  PhiOwnerNode* owner_;
-
   DISALLOW_COPY_AND_ASSIGN(PhiNode);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// EffectPhiNode
-//
-class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
-    : public VariadicNodeTemplate<Effect> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectPhiNode, Effect);
-
- public:
-  PhiOwnerNode* owner() const { return owner_; }
-
- private:
-  EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* control);
-
-  PhiOwnerNode* owner_;
-
-  DISALLOW_COPY_AND_ASSIGN(EffectPhiNode);
 };
 
 //////////////////////////////////////////////////////////////////////

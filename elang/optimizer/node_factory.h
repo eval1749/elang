@@ -72,7 +72,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Node* NewIntShl(Node* left, Node* right);
   Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
-  Node* NewPhiOperand(Control* control, Node* value);
   Node* NewThrow(Control* control, Node* value);
 
   // Three inputs
