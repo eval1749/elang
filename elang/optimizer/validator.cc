@@ -96,7 +96,7 @@ void Validator::Context::VisitCall(CallNode* node) {
   }
   if (tuple_type->get(1) != callee_type->return_type())
     ErrorInInput(node, 1);
-  if (node->input(1)->output_type() != callee_type->parameters_type())
+  if (node->input(2)->output_type() != callee_type->parameters_type())
     ErrorInInput(node, 2);
 }
 

@@ -227,7 +227,7 @@ Node* NodeFactory::NewFunctionReference(Function* function) {
 }
 
 Node* NodeFactory::NewGet(Node* input, size_t field) {
-  DCHECK(input->IsValidData()) << *input;
+  DCHECK(input->id() || input->IsLiteral()) << *input << " " << field;
   return node_cache_->NewGet(input, field);
 }
 
