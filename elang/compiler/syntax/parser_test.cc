@@ -770,6 +770,14 @@ TEST_F(ParserTest, MethodBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, MethodErrorParameter) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(a) { return a; }"
+      "}");
+  EXPECT_EQ("Syntax.Method.Parameter(32) )\n", Format());
+}
+
 TEST_F(ParserTest, MethodErrorTypeArg) {
   Prepare(
       "class A {\n"

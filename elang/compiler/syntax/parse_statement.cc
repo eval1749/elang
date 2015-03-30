@@ -464,6 +464,8 @@ void Parser::ParseMethod(Modifiers method_modifiers,
     auto position = 0;
     for (;;) {
       auto const param_type = ParseType() ? ConsumeType() : nullptr;
+      if (!PeekToken()->is_name())
+        Error(ErrorCode::SyntaxMethodParameter);
       auto const param_name =
           PeekToken()->is_name() ? ConsumeToken() : NewUniqueNameToken(L"@p%d");
       if (method_space.FindMember(param_name))

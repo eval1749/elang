@@ -131,6 +131,7 @@ namespace compiler {
   E(Syntax, Method, Comma)                            \
   E(Syntax, Method, LeftCurryBracket)                 \
   E(Syntax, Method, NameDuplicate)                    \
+  E(Syntax, Method, Parameter)                        \
   E(Syntax, Method, RightCurryBracket)                \
   /* ';' without |extern| modifier. */                \
   E(Syntax, Method, SemiColon)                        \
