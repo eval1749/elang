@@ -33,6 +33,10 @@ Node* NodeFactoryUser::NewCall(Effect* effect, Node* callee, Node* arguments) {
   return node_factory_->NewCall(effect, callee, arguments);
 }
 
+Control* NodeFactoryUser::NewControlGet(Node* input, size_t field) {
+  return node_factory_->NewControlGet(input, field);
+}
+
 Node* NodeFactoryUser::NewDynamicCast(Type* output_type, Node* input) {
   return node_factory_->NewDynamicCast(output_type, input);
 }
@@ -41,7 +45,7 @@ Effect* NodeFactoryUser::NewEffectGet(Node* input, size_t field) {
   return node_factory_->NewEffectGet(input, field);
 }
 
-Effect* NodeFactoryUser::NewEffectPhi(Node* owner) {
+Effect* NodeFactoryUser::NewEffectPhi(PhiOwnerNode* owner) {
   return node_factory_->NewEffectPhi(owner);
 }
 
@@ -55,15 +59,15 @@ Node* NodeFactoryUser::NewGet(Node* input, size_t field) {
   return node_factory_->NewGet(input, field);
 }
 
-Node* NodeFactoryUser::NewIf(Node* control, Node* data) {
+Control* NodeFactoryUser::NewIf(Control* control, Node* data) {
   return node_factory_->NewIf(control, data);
 }
 
-Node* NodeFactoryUser::NewIfFalse(Node* control) {
+Control* NodeFactoryUser::NewIfFalse(Control* control) {
   return node_factory_->NewIfFalse(control);
 }
 
-Node* NodeFactoryUser::NewIfTrue(Node* control) {
+Control* NodeFactoryUser::NewIfTrue(Control* control) {
   return node_factory_->NewIfTrue(control);
 }
 
@@ -73,11 +77,11 @@ Node* NodeFactoryUser::NewIntCmp(IntCondition condition,
   return node_factory_->NewIntCmp(condition, left, right);
 }
 
-Node* NodeFactoryUser::NewJump(Node* control) {
+Control* NodeFactoryUser::NewJump(Control* control) {
   return node_factory_->NewJump(control);
 }
 
-Node* NodeFactoryUser::NewMerge(const std::vector<Node*>& inputs) {
+PhiOwnerNode* NodeFactoryUser::NewMerge(const std::vector<Control*>& inputs) {
   return node_factory_->NewMerge(inputs);
 }
 
@@ -85,11 +89,11 @@ Node* NodeFactoryUser::NewParameter(Node* input, size_t field) {
   return node_factory_->NewParameter(input, field);
 }
 
-Node* NodeFactoryUser::NewPhi(Type* output_type, Node* owner) {
+Node* NodeFactoryUser::NewPhi(Type* output_type, PhiOwnerNode* owner) {
   return node_factory_->NewPhi(output_type, owner);
 }
 
-Node* NodeFactoryUser::NewPhiOperand(Node* control, Node* data) {
+Node* NodeFactoryUser::NewPhiOperand(Control* control, Node* data) {
   return node_factory_->NewPhiOperand(control, data);
 }
 
@@ -97,7 +101,7 @@ Node* NodeFactoryUser::NewReference(Type* type, AtomicString* name) {
   return node_factory_->NewReference(type, name);
 }
 
-Node* NodeFactoryUser::NewRet(Node* control, Effect* effect, Node* data) {
+Control* NodeFactoryUser::NewRet(Control* control, Effect* effect, Node* data) {
   return node_factory_->NewRet(control, effect, data);
 }
 

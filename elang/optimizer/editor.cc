@@ -15,12 +15,12 @@ namespace elang {
 namespace optimizer {
 
 namespace {
-Node* ControlOf(Node* node) {
-  if (node->IsControl())
-    return node;
+Control* ControlOf(Node* node) {
+  if (auto const control = node->as<Control>())
+    return control;
   for (auto user : node->users()) {
-    if (user->owner()->IsControl())
-      return user->owner();
+    if (auto const control = user->owner()->as<Control>())
+      return control;
   }
   return nullptr;
 }
@@ -82,12 +82,12 @@ void Editor::ReplaceAllUses(Node* new_node, Node* old_node) {
     user->SetValue(new_node);
 }
 
-Node* Editor::SetBranch(Node* condition) {
+Control* Editor::SetBranch(Node* condition) {
   DCHECK(control_);
   return NewIf(control_, condition);
 }
 
-Node* Editor::SetJump(Node* target) {
+Control* Editor::SetJump(Control* target) {
   DCHECK(control_);
   DCHECK(target->IsValidControl());
   auto const jump_node = NewJump(control_);
@@ -95,7 +95,7 @@ Node* Editor::SetJump(Node* target) {
   return jump_node;
 }
 
-void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
+void Editor::SetPhiInput(Node* node, Control* control, Node* value) {
   auto const phi = node->as<PhiNode>();
   DCHECK(phi) << *node;
   DCHECK(control->IsValidControl()) << *control;
@@ -115,7 +115,7 @@ void Editor::SetPhiInput(Node* node, Node* control, Node* value) {
   phi->AppendInput(NewPhiOperand(control, value));
 }
 
-Node* Editor::SetRet(Effect* effect, Node* data) {
+Control* Editor::SetRet(Effect* effect, Node* data) {
   DCHECK(control_);
   auto const merge_node = exit_node()->input(0)->as<MergeNode>();
   for (auto const predecessor : merge_node->inputs()) {

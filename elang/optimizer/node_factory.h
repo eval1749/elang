@@ -52,43 +52,46 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 #undef V
 
   // Single input
+  Control* NewControlGet(Node* input, size_t field);
   Node* NewDynamicCast(Type* output_type, Node* input);
   Effect* NewEffectGet(Node* input, size_t field);
   Node* NewFunctionReference(Function* function);
   Node* NewGet(Node* input, size_t field);
-  Node* NewIfFalse(Node* input);
-  Node* NewIfSuccess(Node* input);
-  Node* NewIfTrue(Node* input);
-  Node* NewJump(Node* input);
+  Control* NewIfFalse(Control* input);
+  Control* NewIfSuccess(Control* input);
+  Control* NewIfTrue(Control* input);
+  Control* NewJump(Control* input);
   Node* NewStaticCast(Type* output_type, Node* input);
-  Node* NewSwitch(Node* input);
-  Node* NewUnreachable(Node* input);
+  Control* NewSwitch(Control* control, Node* value);
+  Control* NewUnreachable(Control* input);
 
   // Two inputs
   Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Node* NewIf(Node* control, Node* value);
+  Control* NewIf(Control* control, Node* value);
   Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
   Node* NewIntShl(Node* left, Node* right);
   Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
-  Node* NewPhiOperand(Node* control, Node* value);
-  Node* NewThrow(Node* control, Node* value);
+  Node* NewPhiOperand(Control* control, Node* value);
+  Node* NewThrow(Control* control, Node* value);
 
   // Three inputs
   Node* NewCall(Effect* effect, Node* callee, Node* arguments);
   Node* NewLoad(Effect* effect, Node* base_pointer, Node* pointer);
-  Node* NewRet(Node* control, Effect* effect, Node* data);
+  Control* NewRet(Control* control, Effect* effect, Node* data);
 
   // Four inputs
-  Effect* NewStore(Effect* effect, Node* base_pointer, Node* pointer,
+  Effect* NewStore(Effect* effect,
+                   Node* base_pointer,
+                   Node* pointer,
                    Node* value);
 
   // Variadic inputs
-  Node* NewCase(Node* control, Node* label_value);
-  Effect* NewEffectPhi(Node* owner);
-  Node* NewLoop(Node* control);
-  Node* NewMerge(const std::vector<Node*>& inputs);
-  Node* NewPhi(Type* type, Node* owner);
+  Node* NewCase(Control* control, Node* label_value);
+  Effect* NewEffectPhi(PhiOwnerNode* owner);
+  Node* NewLoop(Control* control);
+  PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
+  Node* NewPhi(Type* type, PhiOwnerNode* owner);
   Node* NewTuple(const std::vector<Node*>& inputs);
   Node* NewTuple(Type* type);
 
@@ -107,7 +110,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   void RememberUnaryNode(Node* node);
 
   Node* NewEntry(Type* parameters_type);
-  Node* NewExit(Node* control);
+  Node* NewExit(Control* control);
 
   size_t NewNodeId();
 

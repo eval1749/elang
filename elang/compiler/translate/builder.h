@@ -42,15 +42,15 @@ class Builder final : public ZoneOwner {
   bool has_control() const { return basic_block_ != nullptr; }
 
   // Control flow
-  ir::Node* EndBlockWithBranch(ir::Node* condition);
-  void EndBlockWithJump(ir::Node* target);
+  ir::Control* EndBlockWithBranch(ir::Node* condition);
+  void EndBlockWithJump(ir::Control* target);
   void EndBlockWithRet(ir::Node* data);
   void EndLoopBlock(ir::Node* condition,
-                    ir::Node* true_target,
-                    ir::Node* false_target);
-  void StartIfBlock(ir::Node* control);
-  ir::Node* StartLoopBlock();
-  void StartMergeBlock(ir::Node* control);
+                    ir::Control* true_target,
+                    ir::Control* false_target);
+  void StartIfBlock(ir::Control* control);
+  ir::Control* StartLoopBlock();
+  void StartMergeBlock(ir::PhiOwnerNode* control);
 
   // Effects
   ir::Node* Call(ir::Node* callee, ir::Node* arguments);
@@ -66,12 +66,12 @@ class Builder final : public ZoneOwner {
   class BasicBlock;
   typedef std::unordered_map<sm::Variable*, ir::Node*> Variables;
 
-  BasicBlock* BasicBlockOf(ir::Node* control);
-  void EndBlock(ir::Node* control);
-  BasicBlock* NewBasicBlock(ir::Node* control,
+  BasicBlock* BasicBlockOf(ir::Control* control);
+  void EndBlock(ir::Control* control);
+  BasicBlock* NewBasicBlock(ir::Control* control,
                             ir::Effect* effect,
                             const Variables& variables);
-  void PopulatePhiNodesIfNeeded(ir::Node* control, const BasicBlock* block);
+  void PopulatePhiNodesIfNeeded(ir::Control* control, const BasicBlock* block);
 
   BasicBlock* basic_block_;
   // A mapping to basic block from IR control node, which starts or ends basic

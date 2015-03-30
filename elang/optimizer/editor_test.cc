@@ -110,8 +110,8 @@ TEST_F(EditorTest, SetBranchPhi) {
 
   editor.Edit(ret_control);
   auto const phi = NewPhi(int32_type(), ret_control);
-  editor.SetPhiInput(phi, ret_control->input(0), NewParameter(entry_node, 1));
-  editor.SetPhiInput(phi, ret_control->input(1), NewParameter(entry_node, 2));
+  editor.SetPhiInput(phi, ret_control->control(0), NewParameter(entry_node, 1));
+  editor.SetPhiInput(phi, ret_control->control(1), NewParameter(entry_node, 2));
   editor.SetRet(effect, phi);
   editor.Commit();
 

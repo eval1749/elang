@@ -123,6 +123,16 @@ Node* NodeFactory::NewCall(Effect* effect, Node* callee, Node* arguments) {
   return node;
 }
 
+Control* NodeFactory::NewControlGet(Node* input, size_t field) {
+  DCHECK(input->IsValidControlAt(field)) << *input;
+  if (auto const present = FindFieldNode(input, field)->as<ControlGetNode>())
+    return present;
+  auto const node = new (zone()) ControlGetNode(effect_type(), input, field);
+  node->set_id(NewNodeId());
+  RememberFieldNode(node, input, field);
+  return node;
+}
+
 Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
   if (input->output_type() == type)
     return input;
@@ -135,18 +145,16 @@ Node* NodeFactory::NewDynamicCast(Type* type, Node* input) {
 
 Effect* NodeFactory::NewEffectGet(Node* input, size_t field) {
   DCHECK(input->IsValidEffectAt(field)) << *input;
-  if (auto const present = FindFieldNode(input, field))
-    return present->as<EffectGetNode>();
+  if (auto const present = FindFieldNode(input, field)->as<EffectGetNode>())
+    return present;
   auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
   node->set_id(NewNodeId());
   RememberFieldNode(node, input, field);
   return node;
 }
 
-Effect* NodeFactory::NewEffectPhi(Node* control) {
-  DCHECK(control->IsValidControl()) << *control;
-  auto const owner = control->as<PhiOwnerNode>();
-  DCHECK(owner) << *control;
+Effect* NodeFactory::NewEffectPhi(PhiOwnerNode* owner) {
+  DCHECK(owner->IsValidControl()) << *owner;
   auto const node = new (zone()) EffectPhiNode(effect_type(), zone(), owner);
   node->set_id(NewNodeId());
   owner->set_effect_phi(node);
@@ -161,7 +169,7 @@ Node* NodeFactory::NewEntry(Type* parameters_type) {
   return node;
 }
 
-Node* NodeFactory::NewExit(Node* control) {
+Node* NodeFactory::NewExit(Control* control) {
   DCHECK(control->IsValidControl()) << *control;
   auto const node = new (zone()) ExitNode(void_type(), control);
   node->set_id(NewNodeId());
@@ -261,7 +269,7 @@ Node* NodeFactory::NewGet(Node* input, size_t field) {
   return node;
 }
 
-Node* NodeFactory::NewIf(Node* control, Node* data) {
+Control* NodeFactory::NewIf(Control* control, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(data->IsValidData()) << *data;
   auto const node = new (zone()) IfNode(control_type(), control, data);
@@ -269,14 +277,14 @@ Node* NodeFactory::NewIf(Node* control, Node* data) {
   return node;
 }
 
-Node* NodeFactory::NewIfFalse(Node* control) {
+Control* NodeFactory::NewIfFalse(Control* control) {
   DCHECK(control->IsValidControl()) << *control;
   auto const node = new (zone()) IfFalseNode(control_type(), control);
   node->set_id(NewNodeId());
   return node;
 }
 
-Node* NodeFactory::NewIfTrue(Node* control) {
+Control* NodeFactory::NewIfTrue(Control* control) {
   DCHECK(control->IsValidControl()) << *control;
   auto const node = new (zone()) IfTrueNode(control_type(), control);
   node->set_id(NewNodeId());
@@ -449,7 +457,7 @@ Node* NodeFactory::NewIntSub(Node* left, Node* right) {
   return node;
 }
 
-Node* NodeFactory::NewJump(Node* control) {
+Control* NodeFactory::NewJump(Control* control) {
   DCHECK(control->IsValidControl()) << *control;
   auto const node = new (zone()) JumpNode(control_type(), control);
   node->set_id(NewNodeId());
@@ -472,7 +480,7 @@ Node* NodeFactory::NewNull(Type* type) {
   return node_cache_->NewNull(type);
 }
 
-Node* NodeFactory::NewMerge(const std::vector<Node*>& controls) {
+PhiOwnerNode* NodeFactory::NewMerge(const std::vector<Control*>& controls) {
   auto const node = new (zone()) MergeNode(control_type(), zone());
   node->set_id(NewNodeId());
   for (auto const control : controls) {
@@ -491,17 +499,15 @@ Node* NodeFactory::NewParameter(Node* input, size_t field) {
   return node;
 }
 
-Node* NodeFactory::NewPhi(Type* output_type, Node* control) {
-  DCHECK(control->IsValidControl()) << *control;
-  auto const owner = control->as<PhiOwnerNode>();
-  DCHECK(owner) << *control;
+Node* NodeFactory::NewPhi(Type* output_type, PhiOwnerNode* owner) {
+  DCHECK(owner->IsValidControl()) << *owner;
   auto const node = new (zone()) PhiNode(output_type, zone(), owner);
   node->set_id(NewNodeId());
   owner->phi_nodes_.AppendNode(node);
   return node;
 }
 
-Node* NodeFactory::NewPhiOperand(Node* control, Node* data) {
+Node* NodeFactory::NewPhiOperand(Control* control, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(data->IsValidData() || data->IsValidEffect()) << *data;
   auto const output_type = NewTupleType({control_type(), data->output_type()});
@@ -514,7 +520,7 @@ Node* NodeFactory::NewReference(Type* type, AtomicString* name) {
   return node_cache_->NewReference(type, name);
 }
 
-Node* NodeFactory::NewRet(Node* control, Effect* effect, Node* data) {
+Control* NodeFactory::NewRet(Control* control, Effect* effect, Node* data) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(data->IsValidData()) << *data;
   auto const node = new (zone()) RetNode(control_type(), control, effect, data);

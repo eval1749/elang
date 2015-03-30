@@ -14,8 +14,19 @@
 namespace elang {
 namespace optimizer {
 
+// Control
+Control::Control(Type* output_type) : Node(output_type) {
+  DCHECK(output_type->is<ControlType>());
+}
+
+// ControlGet
+ControlGetNode::ControlGetNode(Type* output_type, Node* input, size_t field)
+    : FieldNodeTemplate(output_type, input, field) {
+}
+
 // Effect
 Effect::Effect(Type* output_type) : Node(output_type) {
+  DCHECK(output_type->is<EffectType>());
 }
 
 // EffectGet
@@ -23,6 +34,7 @@ EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
     : FieldNodeTemplate(output_type, input, field) {
 }
 
+// EffectPhiNode
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
     : VariadicNodeTemplate(output_type, zone), owner_(owner) {
   DCHECK(output_type->is<EffectType>());
@@ -220,6 +232,12 @@ MergeNode::MergeNode(Type* output_type, Zone* zone)
 Node::Node(Type* output_type) : id_(0), output_type_(output_type) {
 }
 
+Control* Node::control(size_t index) const {
+  auto const control = input(index)->as<Control>();
+  DCHECK(control) << *this << " " << index;
+  return control;
+}
+
 Node* Node::input(size_t index) const {
   return InputAt(index)->value();
 }
@@ -286,6 +304,11 @@ bool Node::IsLiteral() const {
 
 bool Node::IsValidControl() const {
   return IsControl() && id_;
+}
+
+bool Node::IsValidControlAt(size_t field) const {
+  auto const type = output_type_->as<TupleType>();
+  return id_ && type && type->get(field)->is<ControlType>();
 }
 
 bool Node::IsValidData() const {

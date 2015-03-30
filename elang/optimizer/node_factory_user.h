@@ -47,43 +47,46 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
 #undef V
 
   // Single input
+  Control* NewControlGet(Node* input, size_t field);
   Effect* NewEffectGet(Node* input, size_t field);
   Node* NewDynamicCast(Type* output_type, Node* input);
-  Node* NewGet(Node* input0, size_t field);
+  Node* NewGet(Node* input, size_t field);
   Node* NewFunctionReference(Function* function);
-  Node* NewIfFalse(Node* input);
-  Node* NewIfSuccess(Node* input);
-  Node* NewIfTrue(Node* input);
-  Node* NewJump(Node* control);
+  Control* NewIfFalse(Control* control);
+  Control* NewIfSuccess(Control* control);
+  Control* NewIfTrue(Control* control);
+  Control* NewJump(Control* control);
   Node* NewStaticCast(Type* output_type, Node* input);
-  Node* NewSwitch(Node* input);
-  Node* NewUnreachable(Node* input);
+  Control* NewUnreachable(Control* control);
 
   // Two inputs
   Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Node* NewIf(Node* control, Node* value);
+  Control* NewIf(Control* control, Node* value);
   Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
   Node* NewIntShl(Node* left, Node* right);
   Node* NewIntShr(Node* left, Node* right);
   Node* NewParameter(Node* input0, size_t field);
-  Node* NewPhiOperand(Node* control, Node* value);
-  Node* NewThrow(Node* control, Node* value);
+  Node* NewPhiOperand(Control* control, Node* value);
+  Control* NewSwitch(Control* control, Node* value);
+  Node* NewThrow(Control* control, Node* value);
 
   // Three inputs
   Node* NewCall(Effect* effect, Node* callee, Node* arguments);
   Node* NewLoad(Effect* effect, Node* base_pointer, Node* pointer);
-  Node* NewRet(Node* control, Effect* effect, Node* value);
+  Control* NewRet(Control* control, Effect* effect, Node* value);
 
   // Four inputs
-  Effect* NewStore(Effect* effect, Node* base_pointer, Node* pointer,
+  Effect* NewStore(Effect* effect,
+                   Node* base_pointer,
+                   Node* pointer,
                    Node* value);
 
   // Variable inputs
-  Node* NewCase(Node* control, Node* label_value);
-  Effect* NewEffectPhi(Node* owner);
-  Node* NewLoop(Node* control);
-  Node* NewMerge(const std::vector<Node*>& inputs);
-  Node* NewPhi(Type* type, Node* owner);
+  Node* NewCase(Control* control, Node* label_value);
+  Effect* NewEffectPhi(PhiOwnerNode* owner);
+  Node* NewLoop(Control* control);
+  PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
+  Node* NewPhi(Type* type, PhiOwnerNode* owner);
   Node* NewTuple(const std::vector<Node*>& inputs);
   Node* NewTuple(Type* type);
 

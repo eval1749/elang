@@ -50,13 +50,13 @@ bool IsUnsignedType(ir::Node* node) {
 // from outer |BreakContext|.
 //
 struct Translator::BreakContext final {
-  ir::Node* break_block;
-  ir::Node* continue_block;
+  ir::Control* break_block;
+  ir::Control* continue_block;
   const BreakContext* outer;
 
   BreakContext(const BreakContext* outer,
-               ir::Node* break_block,
-               ir::Node* continue_block)
+               ir::Control* break_block,
+               ir::Control* continue_block)
       : break_block(break_block),
         continue_block(continue_block),
         outer(outer) {}
@@ -65,8 +65,8 @@ struct Translator::BreakContext final {
 class Translator::ScopedBreakContext final {
  public:
   ScopedBreakContext(Translator* generator,
-                     ir::Node* break_block,
-                     ir::Node* continue_block);
+                     ir::Control* break_block,
+                     ir::Control* continue_block);
   ~ScopedBreakContext();
 
  private:
@@ -77,8 +77,8 @@ class Translator::ScopedBreakContext final {
 };
 
 Translator::ScopedBreakContext::ScopedBreakContext(Translator* generator,
-                                                   ir::Node* break_block,
-                                                   ir::Node* continue_block)
+                                                   ir::Control* break_block,
+                                                   ir::Control* continue_block)
     : translator_(generator),
       context_(translator_->break_context_, break_block, continue_block) {
   translator_->break_context_ = &context_;

@@ -23,20 +23,20 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   Editor(Factory* factory, Function* function);
   ~Editor();
 
-  Node* control() const { return control_; }
+  Control* control() const { return control_; }
   Function* function() const { return function_; }
 
   // Edit session
   void Commit();
-  void Edit(Node* control);
+  void Edit(Node* node);
 
   // Emit data node
   Node* EmitParameter(size_t index);
 
   // Emit control node
-  Node* SetBranch(Node* condition);
-  Node* SetJump(Node* target);
-  Node* SetRet(Effect* effect, Node* data);
+  Control* SetBranch(Node* condition);
+  Control* SetJump(Control* target);
+  Control* SetRet(Effect* effect, Node* data);
 
   // Edit input edge
   void AppendInput(Node* node, Node* new_value);
@@ -44,7 +44,7 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void ReplaceAllUses(Node* new_node, Node* old_node);
 
   // Phi
-  void SetPhiInput(Node* phi, Node* control, Node* value);
+  void SetPhiInput(Node* phi, Control* control, Node* value);
 
   bool Validate() const;
 
@@ -52,7 +52,7 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   Node* entry_node() const;
   Node* exit_node() const;
 
-  Node* control_;
+  Control* control_;
   Function* const function_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);

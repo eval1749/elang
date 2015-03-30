@@ -27,19 +27,21 @@ typedef std::unordered_map<ir::PhiNode*, sm::Variable*> PhiMap;
 //
 class Builder::BasicBlock final : public ZoneAllocated {
  public:
-  BasicBlock(ir::Node* control, ir::Effect* effect, const Variables& variables);
+  BasicBlock(ir::Control* control,
+             ir::Effect* effect,
+             const Variables& variables);
   ~BasicBlock() = delete;
 
-  ir::Node* end_node() const;
+  ir::Control* end_node() const;
   ir::Effect* effect() const { return effect_; }
   void set_effect(ir::Effect* effect);
   const PhiMap& phi_map() const { return phi_map_; }
-  ir::Node* start_node() const { return start_node_; }
+  ir::Control* start_node() const { return start_node_; }
   const Variables& variables() const { return variables_; }
 
   void AssignVariable(sm::Variable* variable, ir::Node* value);
   void BindVariable(sm::Variable* variable, ir::Node* variable_value);
-  void Commit(ir::Node* end_node);
+  void Commit(ir::Control* end_node);
   void PopulatePhiNodes(const BasicBlock* predecessor);
   void UnbindVariable(sm::Variable* variable);
   ir::Node* ValueOf(sm::Variable* variable) const;
@@ -47,12 +49,12 @@ class Builder::BasicBlock final : public ZoneAllocated {
  private:
   // Effect value at the end of this |BasicBlock|.
   ir::Effect* effect_;
-  ir::Node* end_node_;
+  ir::Control* end_node_;
 
   // A mapping from |sm::Variable| to |ir::PhiNode| at start of block.
   PhiMap phi_map_;
 
-  ir::Node* start_node_;
+  ir::Control* start_node_;
 
   // A mapping from |sm::Variable| to |ir::Node| at end of block.
   Variables variables_;
@@ -60,7 +62,7 @@ class Builder::BasicBlock final : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-Builder::BasicBlock::BasicBlock(ir::Node* start_node,
+Builder::BasicBlock::BasicBlock(ir::Control* start_node,
                                 ir::Effect* effect,
                                 const Variables& variables)
     : effect_(effect),
@@ -79,7 +81,7 @@ Builder::BasicBlock::BasicBlock(ir::Node* start_node,
   }
 }
 
-ir::Node* Builder::BasicBlock::end_node() const {
+ir::Control* Builder::BasicBlock::end_node() const {
   DCHECK(end_node_);
   return end_node_;
 }
@@ -114,7 +116,7 @@ void Builder::BasicBlock::BindVariable(sm::Variable* variable,
   variables_[variable] = variable_value;
 }
 
-void Builder::BasicBlock::Commit(ir::Node* end_node) {
+void Builder::BasicBlock::Commit(ir::Control* end_node) {
   DCHECK(!end_node_);
   DCHECK_NE(start_node_, end_node) << "start=" << *start_node_
                                    << " end=" << *end_node;
@@ -141,9 +143,10 @@ ir::Node* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
 Builder::Builder(ir::Factory* factory, ir::Function* function)
     : basic_block_(nullptr), editor_(new ir::Editor(factory, function)) {
   auto const entry_node = function->entry_node();
-  auto const control = editor_->NewGet(entry_node, 0);
+  auto const control = editor_->NewControlGet(entry_node, 0);
   editor_->Edit(control);
-  basic_block_ = NewBasicBlock(control, editor_->NewEffectGet(entry_node, 1), {});
+  basic_block_ =
+      NewBasicBlock(control, editor_->NewEffectGet(entry_node, 1), {});
 }
 
 Builder::~Builder() {
@@ -157,7 +160,7 @@ void Builder::AssignVariable(sm::Variable* variable, ir::Node* value) {
   basic_block_->AssignVariable(variable, value);
 }
 
-Builder::BasicBlock* Builder::BasicBlockOf(ir::Node* control) {
+Builder::BasicBlock* Builder::BasicBlockOf(ir::Control* control) {
   auto const it = basic_blocks_.find(control);
   DCHECK(it != basic_blocks_.end()) << *control;
   return it->second;
@@ -175,7 +178,7 @@ ir::Node* Builder::Call(ir::Node* callee, ir::Node* arguments) {
   return call;
 }
 
-void Builder::EndBlock(ir::Node* control) {
+void Builder::EndBlock(ir::Control* control) {
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, basic_blocks_[editor_->control()]);
   basic_blocks_[control] = basic_block_;
@@ -184,14 +187,14 @@ void Builder::EndBlock(ir::Node* control) {
   basic_block_ = nullptr;
 }
 
-ir::Node* Builder::EndBlockWithBranch(ir::Node* condition) {
+ir::Control* Builder::EndBlockWithBranch(ir::Node* condition) {
   DCHECK(basic_block_);
   auto const if_node = editor_->SetBranch(condition);
   EndBlock(if_node);
   return if_node;
 }
 
-void Builder::EndBlockWithJump(ir::Node* target_node) {
+void Builder::EndBlockWithJump(ir::Control* target_node) {
   if (!basic_block_)
     return;
   auto const jump_node = editor_->SetJump(target_node);
@@ -207,8 +210,8 @@ void Builder::EndBlockWithRet(ir::Node* data) {
 }
 
 void Builder::EndLoopBlock(ir::Node* condition,
-                           ir::Node* true_target_node,
-                           ir::Node* false_target_node) {
+                           ir::Control* true_target_node,
+                           ir::Control* false_target_node) {
   DCHECK(false_target_node->is<ir::PhiOwnerNode>()) << *false_target_node;
   DCHECK(true_target_node->is<ir::PhiOwnerNode>()) << *true_target_node;
   DCHECK(basic_block_);
@@ -222,7 +225,7 @@ void Builder::EndLoopBlock(ir::Node* condition,
   EndBlockWithJump(false_target_node);
 }
 
-Builder::BasicBlock* Builder::NewBasicBlock(ir::Node* control,
+Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* control,
                                             ir::Effect* effect,
                                             const Variables& variables) {
   DCHECK(control->IsValidControl()) << *control;
@@ -238,7 +241,7 @@ ir::Node* Builder::ParameterAt(size_t index) {
   return editor_->EmitParameter(index);
 }
 
-void Builder::PopulatePhiNodesIfNeeded(ir::Node* control,
+void Builder::PopulatePhiNodesIfNeeded(ir::Control* control,
                                        const BasicBlock* predecessor) {
   auto const phi_owner = control->as<ir::PhiOwnerNode>();
   if (!phi_owner)
@@ -259,18 +262,18 @@ void Builder::PopulatePhiNodesIfNeeded(ir::Node* control,
   }
 }
 
-void Builder::StartIfBlock(ir::Node* control) {
+void Builder::StartIfBlock(ir::Control* control) {
   DCHECK(control->is<ir::IfTrueNode>() || control->is<ir::IfFalseNode>());
   DCHECK(!basic_block_);
   auto const if_node = control->input(0);
-  auto const predecessor = BasicBlockOf(if_node->input(0));
+  auto const predecessor = BasicBlockOf(if_node->control(0));
   editor_->Edit(control);
   basic_block_ =
       NewBasicBlock(control, predecessor->effect(), predecessor->variables());
 }
 
 // Start loop block and populate variable table with phi nodes.
-ir::Node* Builder::StartLoopBlock() {
+ir::Control* Builder::StartLoopBlock() {
   DCHECK(basic_block_);
   auto const loop_control = editor_->NewMerge({});
   auto const jump_node = editor_->SetJump(loop_control);
@@ -295,8 +298,7 @@ ir::Node* Builder::StartLoopBlock() {
   return loop_control;
 }
 
-void Builder::StartMergeBlock(ir::Node* control) {
-  DCHECK(control->is<ir::PhiOwnerNode>()) << *control;
+void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(!basic_block_);
 
@@ -310,7 +312,7 @@ void Builder::StartMergeBlock(ir::Node* control) {
 
   // Figure out effect and variables in |control|.
   for (auto const input : control->inputs()) {
-    auto const predecessor = BasicBlockOf(input);
+    auto const predecessor = BasicBlockOf(input->as<ir::Control>());
 
     if (!effect_phi) {
       if (!effect) {
@@ -347,15 +349,16 @@ void Builder::StartMergeBlock(ir::Node* control) {
 
   // Populate 'phi` operands.
   for (auto const input : control->inputs()) {
-    auto const predecessor = BasicBlockOf(input);
+    auto const control = input->as<ir::Control>();
+    auto const predecessor = BasicBlockOf(control);
 
     if (effect_phi)
-      editor_->SetPhiInput(effect_phi, input, predecessor->effect());
+      editor_->SetPhiInput(effect_phi, control, predecessor->effect());
 
     for (auto const var_phi : variable_phis) {
       auto const it = predecessor->variables().find(var_phi.first);
       DCHECK(it != predecessor->variables().end()) << *var_phi.first;
-      editor_->SetPhiInput(var_phi.second, input, it->second);
+      editor_->SetPhiInput(var_phi.second, control, it->second);
     }
   }
 }

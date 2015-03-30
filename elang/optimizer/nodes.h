@@ -271,6 +271,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   size_t id() const { return id_; }
 
   // A value of |index|th input operand.
+  Control* control(size_t index) const;
   Node* input(size_t index) const;
   Inputs inputs() const;
   const Users& users() const { return use_def_list_; }
@@ -283,6 +284,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   bool IsEffect() const;
   bool IsLiteral() const;
   bool IsValidControl() const;
+  bool IsValidControlAt(size_t field) const;
   bool IsValidData() const;
   bool IsValidEffect() const;
   bool IsValidEffectAt(size_t field) const;
@@ -316,6 +318,20 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   Users use_def_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Control
+//
+class ELANG_OPTIMIZER_EXPORT Control : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Control, Node);
+
+ protected:
+  explicit Control(Type* output_type);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Control);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -396,7 +412,8 @@ class FieldNodeTemplate : public NodeTemplate<1, Base> {
 
 template <typename Base>
 FieldNodeTemplate<Base>::FieldNodeTemplate(Type* output_type,
-                                           Node* input, size_t field)
+                                           Node* input,
+                                           size_t field)
     : NodeTemplate(output_type), field_(field) {
   InitInputAt(0, input);
 }
@@ -409,13 +426,16 @@ template <typename Base>
 class VariadicNodeTemplate : public Base {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(VariadicNodeTemplate, Base);
 
+ public:
+  // Node input protocol
+  void AppendInput(Node* node) final;
+  size_t CountInputs() const final { return inputs_.size(); }
+
  protected:
   VariadicNodeTemplate(Type* output_type, Zone* zone);
 
  private:
   // Node input protocol
-  void AppendInput(Node* node) final;
-  size_t CountInputs() const final { return inputs_.size(); }
   Input* InputAt(size_t index) const final;
   bool IsVariadic() const final { return true; }
 
@@ -445,8 +465,9 @@ Input* VariadicNodeTemplate<Base>::InputAt(size_t index) const {
 //
 // PhiOwnerNode
 //
-class ELANG_OPTIMIZER_EXPORT PhiOwnerNode : public VariadicNodeTemplate<Node> {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, Node);
+class ELANG_OPTIMIZER_EXPORT PhiOwnerNode
+    : public VariadicNodeTemplate<Control> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, Control);
 
  public:
   typedef DoubleLinked<PhiNode, PhiOwnerNode> Phis;
@@ -492,34 +513,37 @@ FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 //
 // Simple nodes
 //
-#define V(Name, ...)                                                       \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<1> { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
-                                                                           \
-   private:                                                                \
-    Name##Node(Type* output_type, Node* input0);                           \
-                                                                           \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
+#define V(Name, mnemonic, Base)                              \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final              \
+      : public NodeTemplate<1, Base> {                       \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base); \
+                                                             \
+   private:                                                  \
+    Name##Node(Type* output_type, Node* input0);             \
+                                                             \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                    \
   };
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V)
 #undef V
 
-#define V(Name, ...)                                                       \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<2> { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
-                                                                           \
-   private:                                                                \
-    Name##Node(Type* output_type, Node* input0, Node* input1);             \
-                                                                           \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
+#define V(Name, mnemonic, Base)                                \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final                \
+      : public NodeTemplate<2, Base> {                         \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base);   \
+                                                               \
+   private:                                                    \
+    Name##Node(Type* output_type, Node* input0, Node* input1); \
+                                                               \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                      \
   };
 FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
 #undef V
 
-#define V(Name, ...)                                                         \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<3> {   \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);                 \
+#define V(Name, mnemonic, Base)                                              \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final                              \
+      : public NodeTemplate<3, Base> {                                       \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base);                 \
                                                                              \
    private:                                                                  \
     Name##Node(Type* output_type, Node* input0, Node* input1, Node* input2); \
@@ -529,10 +553,10 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 #undef V
 
-#define V(Name, ...)                                         \
+#define V(Name, mnemonic, Base)                              \
   class ELANG_OPTIMIZER_EXPORT Name##Node final              \
-      : public VariadicNodeTemplate<Node> {                  \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node); \
+      : public VariadicNodeTemplate<Base> {                  \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base); \
                                                              \
    private:                                                  \
     Name##Node(Type* output_type, Zone* zone);               \
@@ -541,6 +565,20 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
   };
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
+
+//////////////////////////////////////////////////////////////////////
+//
+// ControlGetNode
+//
+class ELANG_OPTIMIZER_EXPORT ControlGetNode final
+    : public FieldNodeTemplate<Control> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ControlGetNode, FieldNodeTemplate);
+
+ private:
+  ControlGetNode(Type* effect_type, Node* input, size_t field);
+
+  DISALLOW_COPY_AND_ASSIGN(ControlGetNode);
+};
 
 //////////////////////////////////////////////////////////////////////
 //

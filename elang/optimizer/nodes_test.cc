@@ -260,7 +260,7 @@ V(Shr, "shr")
 
 TEST_F(NodeTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
-  auto const node = NewJump(NewGet(function->entry_node(), 0));
+  auto const node = NewJump(NewControlGet(function->entry_node(), 0));
   EXPECT_EQ("control %c6 = br(%c2)", ToString(node));
 }
 
@@ -282,7 +282,7 @@ TEST_F(NodeTest, ParameterNode2) {
 TEST_F(NodeTest, PhiOperandNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
-  auto const node = NewPhiOperand(NewGet(entry_node, 0), NewBool(false));
+  auto const node = NewPhiOperand(NewControlGet(entry_node, 0), NewBool(false));
   EXPECT_EQ("(control, bool) %t6 = phi_operand(%c2, false)", ToString(node));
 }
 
@@ -295,8 +295,8 @@ TEST_F(NodeTest, ReferenceNode) {
 TEST_F(NodeTest, RetNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
-  auto const node =
-      NewRet(NewGet(entry_node, 0), NewEffectGet(entry_node, 1), void_value());
+  auto const node = NewRet(NewControlGet(entry_node, 0),
+                           NewEffectGet(entry_node, 1), void_value());
   EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
 }
 

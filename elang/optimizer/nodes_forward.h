@@ -15,6 +15,7 @@ namespace optimizer {
 
 // List of abstract C++ classes representing IR node.
 #define FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V) \
+  V(Control)                                \
   V(Effect)                                 \
   V(Node)                                   \
   V(PhiOwnerNode)
@@ -37,67 +38,68 @@ namespace optimizer {
   V(UIntPtr, "lit_uptr", uintptr_t)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V) \
-  V(DynamicCast, "dynamic_cast")                     \
-  V(Exit, "exit")                                    \
-  V(IfException, "if_exception")                     \
-  V(IfFalse, "if_false")                             \
-  V(IfSuccess, "if_success")                         \
-  V(IfTrue, "if_true")                               \
-  V(Jump, "br")                                      \
-  V(StaticCast, "static_cast")                       \
-  V(Switch, "switch")                                \
-  V(Unreachable, "unreachable")
+  V(DynamicCast, "dynamic_cast", Node)               \
+  V(Exit, "exit", Control)                           \
+  V(IfException, "if_exception", Control)            \
+  V(IfFalse, "if_false", Control)                    \
+  V(IfSuccess, "if_success", Control)                \
+  V(IfTrue, "if_true", Control)                      \
+  V(Jump, "br", Control)                             \
+  V(StaticCast, "static_cast", Node)                 \
+  V(Unreachable, "unreachable", Control)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
-  V(If, "if")                                        \
-  V(PhiOperand, "phi_operand")                       \
-  V(IntShl, "shl")                                   \
-  V(IntShr, "shr")                                   \
-  V(StackAlloc, "alloca")                            \
-  V(Throw, "throw")
+  V(If, "if", Control)                               \
+  V(PhiOperand, "phi_operand", Node)                 \
+  V(IntShl, "shl", Node)                             \
+  V(IntShr, "shr", Node)                             \
+  V(StackAlloc, "alloca", Node)                      \
+  V(Switch, "switch", Control)                       \
+  V(Throw, "throw", Control)
 
 // TODO(eval1749) How do we represent integer division-by-zero?
 #define FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V) \
-  V(FloatAdd, "fadd")                                  \
-  V(FloatDiv, "fdiv")                                  \
-  V(FloatMod, "fmod")                                  \
-  V(FloatMul, "fmul")                                  \
-  V(FloatSub, "fsub")                                  \
-  V(IntBitAnd, "bit_and")                              \
-  V(IntBitOr, "bit_or")                                \
-  V(IntBitXor, "bit_xor")                              \
-  V(IntAdd, "add")                                     \
-  V(IntDiv, "div")                                     \
-  V(IntMod, "mod")                                     \
-  V(IntMul, "mul")                                     \
-  V(IntSub, "sub")
+  V(FloatAdd, "fadd", Node)                            \
+  V(FloatDiv, "fdiv", Node)                            \
+  V(FloatMod, "fmod", Node)                            \
+  V(FloatMul, "fmul", Node)                            \
+  V(FloatSub, "fsub", Node)                            \
+  V(IntBitAnd, "bit_and", Node)                        \
+  V(IntBitOr, "bit_or", Node)                          \
+  V(IntBitXor, "bit_xor", Node)                        \
+  V(IntAdd, "add", Node)                               \
+  V(IntDiv, "div", Node)                               \
+  V(IntMod, "mod", Node)                               \
+  V(IntMul, "mul", Node)                               \
+  V(IntSub, "sub", Node)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) \
-  V(Call, "call")                                    \
-  V(Load, "load")                                    \
-  V(Ret, "ret")
+  V(Call, "call", Node)                              \
+  V(Load, "load", Node)                              \
+  V(Ret, "ret", Control)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
-  V(Case, "case")                                    \
-  V(Tuple, "tuple")
+  V(Case, "case", Control)                           \
+  V(Tuple, "tuple", Node)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
-  V(EffectGet, "effect_get")                  \
-  V(EffectPhi, "effect_phi")                  \
-  V(Entry, "entry")                           \
-  V(FloatCmp, "fcmp")                         \
-  V(FunctionReference, "fn")                  \
-  V(Get, "get")                               \
-  V(IntCmp, "cmp")                            \
-  V(Loop, "loop")                             \
-  V(Merge, "merge")                           \
-  V(Null, "lit_null")                         \
-  V(Parameter, "param")                       \
-  V(Phi, "phi")                               \
-  V(Reference, "ref")                         \
-  V(SizeOf, "sizeof")                         \
-  V(Store, "store")                           \
-  V(Void, "void")
+  V(ControlGet, "control_get", Control)       \
+  V(EffectGet, "effect_get", Effect)          \
+  V(EffectPhi, "effect_phi", Node)            \
+  V(Entry, "entry", Node)                     \
+  V(FloatCmp, "fcmp", Node)                   \
+  V(FunctionReference, "fn", Node)            \
+  V(Get, "get", Node)                         \
+  V(IntCmp, "cmp", Node)                      \
+  V(Loop, "loop", Control)                    \
+  V(Merge, "merge", Control)                  \
+  V(Null, "lit_null", Node)                   \
+  V(Parameter, "param", Node)                 \
+  V(Phi, "phi", Node)                         \
+  V(Reference, "ref", Node)                   \
+  V(SizeOf, "sizeof", Node)                   \
+  V(Store, "store", Node)                     \
+  V(Void, "void", Node)
 
 // List of concrete C++ classes representing IR node.
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)      \
