@@ -470,18 +470,18 @@ class ELANG_OPTIMIZER_EXPORT PhiOwnerNode
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiOwnerNode, Control);
 
  public:
-  typedef DoubleLinked<PhiNode, PhiOwnerNode> Phis;
+  typedef DoubleLinked<PhiNode, PhiOwnerNode> PhiNodes;
 
   EffectPhiNode* effect_phi() const { return effect_phi_; }
   void set_effect_phi(EffectPhiNode* effect_phi);
-  const Phis& phi_nodes() const { return phi_nodes_; }
+  const PhiNodes& phi_nodes() const { return phi_nodes_; }
 
  protected:
   PhiOwnerNode(Type* output_type, Zone* zone);
 
  private:
   EffectPhiNode* effect_phi_;
-  Phis phi_nodes_;
+  PhiNodes phi_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiOwnerNode);
 };
