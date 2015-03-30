@@ -198,6 +198,8 @@ bool Parser::ParsePrimaryExpression() {
     if (auto const local_member = FindLocalMember(name)) {
       // Local name reference
       if (auto const var = local_member->as<ast::Variable>()) {
+        if (!var->is_bound())
+          Error(ErrorCode::SyntaxExpressionUnboundVariable, name);
         ProduceVariableReference(name, var);
       } else if (auto const param = local_member->as<ast::Parameter>()) {
         ProduceVariableReference(name, param);

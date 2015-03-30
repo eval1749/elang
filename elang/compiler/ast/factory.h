@@ -158,10 +158,7 @@ class Factory final {
                           Type* type,
                           Token* name,
                           Expression* expression);
-  Variable* NewVariable(Token* keyword,
-                        Type* type,
-                        Token* name,
-                        Expression* expression);
+  Variable* NewVariable(Token* keyword, Type* type, Token* name);
 
  private:
   Node* RememberNode(Node* node);

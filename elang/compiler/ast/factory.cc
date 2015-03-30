@@ -356,11 +356,8 @@ Parameter* Factory::NewParameter(Method* owner,
   return new (zone_) Parameter(owner, kind, position, type, name, value);
 }
 
-Variable* Factory::NewVariable(Token* keyword,
-                               Type* type,
-                               Token* name,
-                               Expression* value) {
-  return new (zone_) Variable(keyword, type, name, value);
+Variable* Factory::NewVariable(Token* keyword, Type* type, Token* name) {
+  return new (zone_) Variable(keyword, type, name);
 }
 
 //////////////////////////////////////////////////////////////////////

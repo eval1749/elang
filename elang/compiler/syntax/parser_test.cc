@@ -1050,6 +1050,14 @@ TEST_F(ParserTest, VarErrorDuplicate) {
   EXPECT_EQ("Syntax.Var.Duplicate(34) x\n", Format(source_code));
 }
 
+TEST_F(ParserTest, VarErrorForwardReference) {
+  Prepare(
+      "class A {"
+      "  static int Foo() { var x = x + 1; return x; }"
+      "}");
+  EXPECT_EQ("Syntax.Expression.UnboundVariable(38) x\n", Format());
+}
+
 TEST_F(ParserTest, VarErrorName) {
   auto const source_code =
       "class A {\n"

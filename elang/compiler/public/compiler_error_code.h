@@ -110,6 +110,7 @@ namespace compiler {
   E(Syntax, Expression, RightParenthesis)             \
   E(Syntax, Expression, RightSquareBracket)           \
   E(Syntax, Expression, Type)                         \
+  E(Syntax, Expression, UnboundVariable)              \
   /* Finally */                                       \
   E(Syntax, Finally, LeftCurryBracket)                \
   /* For */                                           \

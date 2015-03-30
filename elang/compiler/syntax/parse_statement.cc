@@ -369,14 +369,13 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         }
         auto const type = ConsumeType();
         auto const name = ConsumeToken();
+        auto const variable = factory()->NewVariable(for_keyword, type, name);
+        declaration_space_->AddMember(variable);
+        variables.push_back(variable);
         auto const init = AdvanceIf(TokenType::Assign) && ParseExpression()
                               ? ConsumeExpression()
                               : static_cast<ast::Expression*>(nullptr);
-
-        auto const variable =
-            factory()->NewVariable(for_keyword, type, name, init);
-        declaration_space_->AddMember(variable);
-        variables.push_back(variable);
+        variable->Bind(init);
 
         if (PeekToken() == TokenType::Colon) {
           if (init)
@@ -569,8 +568,7 @@ bool Parser::ParseTryStatement(Token* try_keyword) {
     LocalDeclarationSpace catch_var_scope(this, catch_keyword);
     if (PeekToken()->is_name()) {
       auto const catch_name = ConsumeToken();
-      catch_var = factory()->NewVariable(catch_keyword, catch_type, catch_name,
-                                         nullptr);
+      catch_var = factory()->NewVariable(catch_keyword, catch_type, catch_name);
       catch_var_scope.AddMember(catch_var);
     }
     if (!AdvanceIf(TokenType::RightParenthesis))
@@ -620,9 +618,10 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
 
     LocalDeclarationSpace using_scope(this, using_keyword);
     auto const var_type = NewTypeNameReference(var_keyword);
-    auto const variable = factory()->NewVariable(using_keyword, var_type,
-                                                 var_name, ConsumeExpression());
+    auto const variable =
+        factory()->NewVariable(using_keyword, var_type, var_name);
     using_scope.AddMember(variable);
+    variable->Bind(ConsumeExpression());
     if (!ParseStatement())
       return false;
     ProduceStatement(factory()->NewUsingStatement(
@@ -648,20 +647,20 @@ void Parser::ParseVariables(Token* keyword, ast::Type* type) {
   while (PeekToken()->is_name()) {
     auto const name = ConsumeToken();
     auto const assign = ConsumeTokenIf(TokenType::Assign);
-    auto const init =
-        assign && ParseExpression() ? ConsumeExpression() : nullptr;
-    if (!init) {
-      if (assign)
-        Error(ErrorCode::SyntaxVarAssign);
-      else if (keyword == TokenType::Const)
-        Error(ErrorCode::SyntaxVarConst);
-    }
-    auto const variable = factory()->NewVariable(keyword, type, name, init);
+    auto const variable = factory()->NewVariable(keyword, type, name);
     if (FindLocalMember(name))
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
       declaration_space_->AddMember(variable);
     variables.push_back(variable);
+    auto const init =
+        assign && ParseExpression() ? ConsumeExpression() : nullptr;
+    if (init)
+      variable->Bind(init);
+    else if (assign)
+      Error(ErrorCode::SyntaxVarAssign);
+    else if (keyword == TokenType::Const)
+      Error(ErrorCode::SyntaxVarConst);
     if (!AdvanceIf(TokenType::Comma))
       break;
     if (!PeekToken()->is_name())
