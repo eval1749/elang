@@ -152,10 +152,6 @@ Builder::~Builder() {
   DCHECK(editor_->Validate()) << editor_->errors();
 }
 
-ir::Node* Builder::control() const {
-  return basic_block_ ? basic_block_->start_node() : nullptr;
-}
-
 void Builder::AssignVariable(sm::Variable* variable, ir::Node* value) {
   DCHECK(basic_block_);
   basic_block_->AssignVariable(variable, value);

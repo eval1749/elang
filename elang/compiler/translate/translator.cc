@@ -373,7 +373,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression
   TranslateStatement(ast_method_body->as<ast::Statement>());
-  if (!builder_->control())
+  if (!builder_->has_control())
     return;
   if (MapType(method->return_type()) != MapType(PredefinedName::Void) &&
       function->exit_node()->input(0)->CountInputs()) {
@@ -464,7 +464,7 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
   variables.swap(variables_);
 
   for (auto const statement : node->statements()) {
-    if (!builder()->control()) {
+    if (!builder()->has_control()) {
       // TODO(eval1749) Since, we may have labeled statement, we should continue
       // checking |statement|.
       break;
@@ -473,7 +473,7 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
   }
 
   // Unbind variables declared in this block.
-  if (builder_->control()) {
+  if (builder_->has_control()) {
     for (auto const variable : variables_)
       builder_->UnbindVariable(variable);
   }

@@ -39,7 +39,7 @@ class Builder final : public ZoneOwner {
   Builder(ir::Factory* factory, ir::Function* function);
   ~Builder();
 
-  ir::Node* control() const;
+  bool has_control() const { return basic_block_ != nullptr; }
 
   // Control flow
   ir::Node* EndBlockWithBranch(ir::Node* condition);
