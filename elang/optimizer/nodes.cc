@@ -112,6 +112,13 @@ void Input::SetValue(Node* new_value) {
   value_ = new_value;
 }
 
+// InputHolder
+InputHolder::InputHolder() {
+}
+
+InputHolder::~InputHolder() {
+}
+
 // Node::InputIterator
 Node::InputIterator::InputIterator(const Node* node, size_t current)
     : current_(current), node_(node) {
@@ -386,20 +393,6 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 #undef V
 
-// VariadicNode::InputAnchor
-class VariadicNode::InputAnchor : public ZoneAllocated {
- public:
-  InputAnchor() = default;
-  ~InputAnchor() = delete;
-
-  Input* input() { return &input_; }
-
- private:
-  Input input_;
-
-  DISALLOW_COPY_AND_ASSIGN(InputAnchor);
-};
-
 // VariadicNode
 VariadicNode::VariadicNode(Type* output_type, Zone* zone)
     : Node(output_type), inputs_(zone) {
@@ -407,7 +400,7 @@ VariadicNode::VariadicNode(Type* output_type, Zone* zone)
 
 void VariadicNode::AppendInput(Node* value) {
   auto const zone = inputs_.get_allocator().zone();
-  inputs_.push_back(new (zone) InputAnchor());
+  inputs_.push_back(new (zone) InputHolder());
   InitInputAt(inputs_.size() - 1, value);
 }
 

@@ -151,6 +151,23 @@ class ELANG_OPTIMIZER_EXPORT Input final
 
 //////////////////////////////////////////////////////////////////////
 //
+// InputHolder
+//
+class InputHolder : public ZoneAllocated {
+ public:
+  InputHolder();
+  ~InputHolder();
+
+  Input* input() { return &input_; }
+
+ private:
+  Input input_;
+
+  DISALLOW_COPY_AND_ASSIGN(InputHolder);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Opcode
 //
 enum class Opcode {
@@ -337,14 +354,12 @@ class VariadicNode : public Node {
   VariadicNode(Type* output_type, Zone* zone);
 
  private:
-  class InputAnchor;
-
   // Node input protocol
   void AppendInput(Node* node) final;
   size_t CountInputs() const final { return inputs_.size(); }
   Input* InputAt(size_t index) const final;
 
-  ZoneDeque<InputAnchor*> inputs_;
+  ZoneDeque<InputHolder*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(VariadicNode);
 };
