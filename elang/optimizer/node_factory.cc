@@ -552,12 +552,6 @@ Tuple* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
   return node;
 }
 
-Tuple* NodeFactory::NewTuple(Type* output_type) {
-  auto const node = new (zone()) TupleNode(output_type, zone());
-  node->set_id(NewNodeId());
-  return node;
-}
-
 void NodeFactory::RememberBinaryNode(Node* node) {
   return node_cache_->RememberBinaryNode(node);
 }

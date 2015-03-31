@@ -87,7 +87,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
   Tuple* NewTuple(const std::vector<Node*>& inputs);
-  Tuple* NewTuple(Type* type);
 
  protected:
   explicit NodeFactoryUser(NodeFactory* node_factory);

@@ -92,7 +92,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
   Tuple* NewTuple(const std::vector<Node*>& inputs);
-  Tuple* NewTuple(Type* type);
 
  private:
   // For using |NewEntry()| and |NewExit()|.

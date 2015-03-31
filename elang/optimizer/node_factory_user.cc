@@ -109,10 +109,6 @@ Tuple* NodeFactoryUser::NewTuple(const std::vector<Node*>& inputs) {
   return node_factory_->NewTuple(inputs);
 }
 
-Tuple* NodeFactoryUser::NewTuple(Type* output_type) {
-  return node_factory_->NewTuple(output_type);
-}
-
 // Arithmetic nodes
 #define V(Name, ...)                                          \
   Data* NodeFactoryUser::New##Name(Data* left, Data* right) { \
