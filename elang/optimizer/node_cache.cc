@@ -40,8 +40,8 @@ Node* NodeCache::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
 }
 
 Node* NodeCache::FindProjectionNode(Node* input, size_t field) {
-  auto const it = field_node_cache_.find(std::make_tuple(input, field));
-  return it == field_node_cache_.end() ? nullptr : it->second;
+  auto const it = projection_node_cache_.find(std::make_tuple(input, field));
+  return it == projection_node_cache_.end() ? nullptr : it->second;
 }
 
 Node* NodeCache::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
@@ -119,8 +119,8 @@ void NodeCache::RememberBinaryNode(Node* node) {
 
 void NodeCache::RememberProjectionNode(Node* node, Node* input, size_t field) {
   auto const key = std::make_tuple(input, field);
-  DCHECK(!field_node_cache_.count(key));
-  field_node_cache_[key] = node;
+  DCHECK(!projection_node_cache_.count(key));
+  projection_node_cache_[key] = node;
 }
 
 void NodeCache::RememberUnaryNode(Node* node) {

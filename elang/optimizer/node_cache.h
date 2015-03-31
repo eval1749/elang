@@ -60,11 +60,11 @@ class NodeCache final : public ZoneUser {
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
   std::map<std::tuple<Opcode, Node*, Node*>, Node*> binary_node_cache_;
-  std::map<std::tuple<Node*, size_t>, Node*> field_node_cache_;
   std::unordered_map<Function*, Data*> function_literal_cache_;
   std::unordered_map<Type*, Data*> null_literal_cache_;
-  std::map<std::tuple<Type*, AtomicString*>, Data*> reference_cache_;
   const std::unique_ptr<SequenceIdSource> node_id_source_;
+  std::map<std::tuple<Node*, size_t>, Node*> projection_node_cache_;
+  std::map<std::tuple<Type*, AtomicString*>, Data*> reference_cache_;
   std::unordered_map<base::StringPiece16, Data*> string_cache_;
   std::map<std::tuple<Opcode, Type*, Node*>, Node*> unary_node_cache_;
   TypeFactory* const type_factory_;
