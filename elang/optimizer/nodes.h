@@ -413,36 +413,6 @@ class NodeTemplate<0> : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
-// FieldNodeTemplate
-//
-template <typename Base>
-class FieldNodeTemplate : public NodeTemplate<1, Base> {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(FieldNodeTemplate, Base);
-
- public:
-  // NodeLayout
-  size_t field() const final { return field_; }
-  bool has_field() const final { return true; }
-
- protected:
-  FieldNodeTemplate(Type* output_type, Node* input, size_t field);
-
- private:
-  size_t field_;
-
-  DISALLOW_COPY_AND_ASSIGN(FieldNodeTemplate);
-};
-
-template <typename Base>
-FieldNodeTemplate<Base>::FieldNodeTemplate(Type* output_type,
-                                           Node* input,
-                                           size_t field)
-    : NodeTemplate(output_type), field_(field) {
-  InitInputAt(0, input);
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // PhiNodeTemplate
 //
 template <typename Base>
@@ -478,6 +448,36 @@ PhiNodeTemplate<Base>::PhiNodeTemplate(Type* output_type,
 template <typename Base>
 Input* PhiNodeTemplate<Base>::InputAt(size_t index) const {
   return phi_inputs_[index]->input();
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ProjectionNodeTemplate
+//
+template <typename Base>
+class ProjectionNodeTemplate : public NodeTemplate<1, Base> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(ProjectionNodeTemplate, Base);
+
+ public:
+  // NodeLayout
+  size_t field() const final { return field_; }
+  bool has_field() const final { return true; }
+
+ protected:
+  ProjectionNodeTemplate(Type* output_type, Node* input, size_t field);
+
+ private:
+  size_t field_;
+
+  DISALLOW_COPY_AND_ASSIGN(ProjectionNodeTemplate);
+};
+
+template <typename Base>
+ProjectionNodeTemplate<Base>::ProjectionNodeTemplate(Type* output_type,
+                                                     Node* input,
+                                                     size_t field)
+    : NodeTemplate(output_type), field_(field) {
+  InitInputAt(0, input);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -633,8 +633,8 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 // ControlGetNode
 //
 class ELANG_OPTIMIZER_EXPORT ControlGetNode final
-    : public FieldNodeTemplate<Control> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ControlGetNode, FieldNodeTemplate);
+    : public ProjectionNodeTemplate<Control> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ControlGetNode, ProjectionNodeTemplate);
 
  private:
   ControlGetNode(Type* effect_type, Node* input, size_t field);
@@ -647,8 +647,8 @@ class ELANG_OPTIMIZER_EXPORT ControlGetNode final
 // EffectGetNode
 //
 class ELANG_OPTIMIZER_EXPORT EffectGetNode final
-    : public FieldNodeTemplate<Effect> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, FieldNodeTemplate);
+    : public ProjectionNodeTemplate<Effect> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, ProjectionNodeTemplate);
 
  private:
   EffectGetNode(Type* effect_type, Node* input, size_t field);
@@ -735,8 +735,9 @@ class ELANG_OPTIMIZER_EXPORT FunctionReferenceNode final
 //
 // GetNode
 //
-class ELANG_OPTIMIZER_EXPORT GetNode final : public FieldNodeTemplate<Node> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, FieldNodeTemplate);
+class ELANG_OPTIMIZER_EXPORT GetNode final
+    : public ProjectionNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, ProjectionNodeTemplate);
 
  private:
   GetNode(Type* output_type, Node* input, size_t field);
@@ -813,8 +814,8 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
 // nodes must be scheduled followed by |EntryNode| continuously.
 //
 class ELANG_OPTIMIZER_EXPORT ParameterNode final
-    : public FieldNodeTemplate<Node> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, FieldNodeTemplate);
+    : public ProjectionNodeTemplate<Node> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, ProjectionNodeTemplate);
 
  private:
   ParameterNode(Type* output_type, Node* input, size_t field);

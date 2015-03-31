@@ -21,7 +21,7 @@ Control::Control(Type* output_type) : Node(output_type) {
 
 // ControlGet
 ControlGetNode::ControlGetNode(Type* output_type, Node* input, size_t field)
-    : FieldNodeTemplate(output_type, input, field) {
+    : ProjectionNodeTemplate(output_type, input, field) {
 }
 
 // Effect
@@ -31,7 +31,7 @@ Effect::Effect(Type* output_type) : Node(output_type) {
 
 // EffectGet
 EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
-    : FieldNodeTemplate(output_type, input, field) {
+    : ProjectionNodeTemplate(output_type, input, field) {
 }
 
 // EffectPhiNode
@@ -92,7 +92,7 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
 
 // GetNode
 GetNode::GetNode(Type* output_type, Node* input, size_t field)
-    : FieldNodeTemplate(output_type, input, field) {
+    : ProjectionNodeTemplate(output_type, input, field) {
   DCHECK(!output_type->is<ControlType>());
   DCHECK(!output_type->is<EffectType>());
 }
@@ -378,7 +378,7 @@ NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 
 // ParameterNode
 ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
-    : FieldNodeTemplate(output_type, input, index) {
+    : ProjectionNodeTemplate(output_type, input, index) {
   DCHECK(input->is<EntryNode>()) << *input;
   DCHECK_EQ(input->as<EntryNode>()->parameter_type(index), output_type)
       << *output_type << " " << *input;
