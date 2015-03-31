@@ -19,14 +19,30 @@ Control::Control(Type* output_type) : Node(output_type) {
   DCHECK(output_type->is<ControlType>());
 }
 
+bool Control::IsControl() const {
+  return true;
+}
+
 // ControlGet
 ControlGetNode::ControlGetNode(Type* output_type, Node* input, size_t field)
     : ProjectionNodeTemplate(output_type, input, field) {
 }
 
+// Data
+Data::Data(Type* output_type) : Node(output_type) {
+}
+
+bool Data::IsData() const {
+  return true;
+}
+
 // Effect
 Effect::Effect(Type* output_type) : Node(output_type) {
   DCHECK(output_type->is<EffectType>());
+}
+
+bool Effect::IsEffect() const {
+  return true;
 }
 
 // EffectGet
@@ -129,6 +145,14 @@ InputHolder::InputHolder() {
 }
 
 InputHolder::~InputHolder() {
+}
+
+// Literal
+Literal::Literal(Type* output_type) : Data(output_type) {
+}
+
+bool Literal::IsLiteral() const {
+  return true;
 }
 
 // Node::InputIterator
@@ -278,30 +302,23 @@ void Node::InitInputAt(size_t index, Node* value) {
 }
 
 bool Node::IsControl() const {
-  return output_type_->is<ControlType>();
+  return false;
 }
 
 bool Node::IsData() const {
-  if (output_type_->is<ControlType>())
-    return false;
-  if (output_type_->is<EffectType>())
-    return false;
-  if (auto const tuple_type = output_type_->as<TupleType>()) {
-    for (auto const component : tuple_type->components()) {
-      if (component->is<ControlType>() || component->is<EffectType>())
-        return false;
-    }
-    return true;
-  }
-  return true;
+  return false;
 }
 
 bool Node::IsEffect() const {
-  return output_type_->is<EffectType>();
+  return false;
 }
 
 bool Node::IsLiteral() const {
-  return IsData() && !CountInputs() && !IsVariadic();
+  return false;
+}
+
+bool Node::IsTuple() const {
+  return false;
 }
 
 bool Node::IsValidControl() const {
@@ -441,6 +458,24 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
   }
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 #undef V
+
+// Tuple
+Tuple::Tuple(Type* output_type) : Node(output_type) {
+  DCHECK(output_type->is<TupleType>());
+}
+
+bool Tuple::IsData() const {
+  auto const tuple_type = output_type()->as<TupleType>();
+  for (auto const component : tuple_type->components()) {
+    if (component->is<ControlType>() || component->is<EffectType>())
+      return false;
+  }
+  return true;
+}
+
+bool Tuple::IsTuple() const {
+  return true;
+}
 
 // Variable nodes
 #define V(Name, ...)                                    \

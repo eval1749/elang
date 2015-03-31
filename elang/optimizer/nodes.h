@@ -302,10 +302,11 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   // Visitor pattern
   virtual void Accept(NodeVisitor* visitor) = 0;
 
-  bool IsControl() const;
-  bool IsData() const;
-  bool IsEffect() const;
-  bool IsLiteral() const;
+  virtual bool IsControl() const;
+  virtual bool IsData() const;
+  virtual bool IsEffect() const;
+  virtual bool IsLiteral() const;
+  virtual bool IsTuple() const;
   bool IsValidControl() const;
   bool IsValidControlAt(size_t field) const;
   bool IsValidData() const;
@@ -354,7 +355,25 @@ class ELANG_OPTIMIZER_EXPORT Control : public Node {
   explicit Control(Type* output_type);
 
  private:
+  bool IsControl() const final;
+
   DISALLOW_COPY_AND_ASSIGN(Control);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Data
+//
+class ELANG_OPTIMIZER_EXPORT Data : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Data, Node);
+
+ protected:
+  explicit Data(Type* output_type);
+
+ private:
+  bool IsData() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(Data);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -368,7 +387,42 @@ class ELANG_OPTIMIZER_EXPORT Effect : public Node {
   explicit Effect(Type* output_type);
 
  private:
+  bool IsEffect() const final;
+
   DISALLOW_COPY_AND_ASSIGN(Effect);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Literal
+//
+class ELANG_OPTIMIZER_EXPORT Literal : public Data {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Literal, Node);
+
+ protected:
+  explicit Literal(Type* output_type);
+
+ private:
+  bool IsLiteral() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(Literal);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// Tuple
+//
+class ELANG_OPTIMIZER_EXPORT Tuple : public Node {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Tuple, Node);
+
+ protected:
+  explicit Tuple(Type* output_type);
+
+ private:
+  bool IsData() const final;
+  bool IsTuple() const final;
+
+  DISALLOW_COPY_AND_ASSIGN(Tuple);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -395,10 +449,10 @@ class NodeTemplate : public Base {
   DISALLOW_COPY_AND_ASSIGN(NodeTemplate);
 };
 
-template <>
-class NodeTemplate<0> : public Node {
+template <typename Base>
+class NodeTemplate<0, Base> : public Base {
  protected:
-  explicit NodeTemplate(Type* output_type) : Node(output_type) {}
+  explicit NodeTemplate(Type* output_type) : Base(output_type) {}
 
  private:
   // NodeLayout protocol
@@ -416,8 +470,8 @@ class NodeTemplate<0> : public Node {
 // LiteralNodeTemplate
 //
 template <typename DataType>
-class LiteralNodeTemplate final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(LiteralNodeTemplate, Node);
+class LiteralNodeTemplate final : public NodeTemplate<0, Literal> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(LiteralNodeTemplate, Literal);
 
  public:
   DataType data() const { return data_; }
@@ -691,8 +745,8 @@ class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
 //
 // EntryNode
 //
-class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EntryNode, Node);
+class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0, Data> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EntryNode, Data);
 
  public:
   Type* parameters_type() const;
@@ -710,8 +764,8 @@ class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0> {
 //
 // FloatCmpNode
 //
-class ELANG_OPTIMIZER_EXPORT FloatCmpNode final : public NodeTemplate<2> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FloatCmpNode, Node);
+class ELANG_OPTIMIZER_EXPORT FloatCmpNode final : public NodeTemplate<2, Data> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FloatCmpNode, Data);
 
  public:
   FloatCondition condition() const { return condition_; }
@@ -734,8 +788,8 @@ class ELANG_OPTIMIZER_EXPORT FloatCmpNode final : public NodeTemplate<2> {
 // FunctionReferenceNode
 //
 class ELANG_OPTIMIZER_EXPORT FunctionReferenceNode final
-    : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FunctionReferenceNode, Node);
+    : public NodeTemplate<0, Data> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(FunctionReferenceNode, Data);
 
  public:
   Function* function() const { return function_; }
@@ -753,7 +807,7 @@ class ELANG_OPTIMIZER_EXPORT FunctionReferenceNode final
 // GetNode
 //
 class ELANG_OPTIMIZER_EXPORT GetNode final
-    : public ProjectionNodeTemplate<Node> {
+    : public ProjectionNodeTemplate<Data> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, ProjectionNodeTemplate);
 
  private:
@@ -766,8 +820,8 @@ class ELANG_OPTIMIZER_EXPORT GetNode final
 //
 // IntCmpNode
 //
-class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(IntCmpNode, Node);
+class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2, Data> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(IntCmpNode, Data);
 
  public:
   IntCondition condition() const { return condition_; }
@@ -815,8 +869,8 @@ class ELANG_OPTIMIZER_EXPORT MergeNode final : public PhiOwnerNode {
 //
 // NullNode
 //
-class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(NullNode, Node);
+class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0, Literal> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(NullNode, Literal);
 
  private:
   explicit NullNode(Type* output_type);
@@ -831,7 +885,7 @@ class ELANG_OPTIMIZER_EXPORT NullNode final : public NodeTemplate<0> {
 // nodes must be scheduled followed by |EntryNode| continuously.
 //
 class ELANG_OPTIMIZER_EXPORT ParameterNode final
-    : public ProjectionNodeTemplate<Node> {
+    : public ProjectionNodeTemplate<Data> {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, ProjectionNodeTemplate);
 
  private:
@@ -845,9 +899,9 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final
 // PhiNode
 //
 class ELANG_OPTIMIZER_EXPORT PhiNode final
-    : public PhiNodeTemplate<Node>,
+    : public PhiNodeTemplate<Data>,
       public DoubleLinked<PhiNode, PhiOwnerNode>::Node {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, Node);
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, Data);
 
  public:
   typedef ::elang::optimizer::Node Node;
@@ -862,8 +916,9 @@ class ELANG_OPTIMIZER_EXPORT PhiNode final
 //
 // ReferenceNode
 //
-class ELANG_OPTIMIZER_EXPORT ReferenceNode final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ReferenceNode, Node);
+class ELANG_OPTIMIZER_EXPORT ReferenceNode final
+    : public NodeTemplate<0, Literal> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ReferenceNode, Literal);
 
  public:
   AtomicString* name() const { return name_; }
@@ -880,8 +935,9 @@ class ELANG_OPTIMIZER_EXPORT ReferenceNode final : public NodeTemplate<0> {
 //
 // SizeOfNode
 //
-class ELANG_OPTIMIZER_EXPORT SizeOfNode final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(SizeOfNode, Node);
+class ELANG_OPTIMIZER_EXPORT SizeOfNode final
+    : public NodeTemplate<0, Literal> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(SizeOfNode, Literal);
 
  public:
   Type* type_operand() const { return type_operand_; }
@@ -911,8 +967,8 @@ class ELANG_OPTIMIZER_EXPORT StoreNode final : public NodeTemplate<4, Effect> {
 //
 // VoidNode
 //
-class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(VoidNode, Node);
+class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0, Literal> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(VoidNode, Literal);
 
  private:
   explicit VoidNode(Type* output_type);
