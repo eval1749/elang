@@ -13,8 +13,8 @@ namespace optimizer {
 // Function
 Function::Function(SequenceIdSource* node_id_source,
                    FunctionType* function_type,
-                   Node* entry_node,
-                   Node* exit_node)
+                   EntryNode* entry_node,
+                   ExitNode* exit_node)
     : entry_node_(entry_node),
       function_type_(function_type),
       exit_node_(exit_node),

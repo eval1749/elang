@@ -117,9 +117,9 @@ void Translator::BindParameters(ast::Method* method) {
   }
 }
 
-ir::Node* Translator::NewOperationFor(ast::Expression* node,
-                                      ir::Node* left,
-                                      ir::Node* right) {
+ir::Data* Translator::NewOperationFor(ast::Expression* node,
+                                      ir::Data* left,
+                                      ir::Data* right) {
   if (left->output_type()->is_float()) {
     switch (node->op()->type()) {
       case TokenType::Add:
@@ -226,31 +226,33 @@ bool Translator::Run() {
   return session()->errors().empty();
 }
 
-ir::Node* Translator::Translate(ast::Expression* node) {
+ir::Data* Translator::Translate(ast::Expression* node) {
   DCHECK(!visit_result_);
   node->Accept(this);
   DCHECK(visit_result_) << *node;
   auto const result = visit_result_;
   visit_result_ = nullptr;
-  return result;
+  auto const data = result->as<ir::Data>();
+  DCHECK(data) << *result;
+  return data;
 }
 
 // Translate |expression| to produce |type|.
-ir::Node* Translator::TranslateAs(ast::Expression* expression, ir::Type* type) {
+ir::Data* Translator::TranslateAs(ast::Expression* expression, ir::Type* type) {
   auto const node = Translate(expression);
   if (node->output_type() == type)
     return node;
   return NewStaticCast(type, node);
 }
 
-ir::Node* Translator::TranslateBool(ast::Expression* expression) {
+ir::Data* Translator::TranslateBool(ast::Expression* expression) {
   // TOOD(eval1749) Convert |condition| to |bool|
   auto const node = Translate(expression);
   DCHECK_EQ(node->output_type(), bool_type()) << *node;
   return node;
 }
 
-ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
+ir::Data* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
   if (type == MapType(PredefinedName::Bool))
     return NewBool(token->bool_data());
 
@@ -291,7 +293,7 @@ ir::Node* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
   return void_value();
 }
 
-ir::Node* Translator::TranslateMethodReference(sm::Method* method) {
+ir::Data* Translator::TranslateMethodReference(sm::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
   // |sm::Method|.
   std::stringstream ostream;

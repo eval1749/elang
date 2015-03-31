@@ -30,49 +30,49 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
  public:
   ~NodeFactoryUser();
 
-  Node* false_value() const;
+  Data* false_value() const;
   NodeFactory* node_factory() const { return node_factory_; }
-  Node* true_value() const;
-  Node* void_value() const;
+  Data* true_value() const;
+  Data* void_value() const;
 
 // Arithmetic nodes
-#define V(Name, ...) Node* New##Name(Node* input0, Node* input1);
+#define V(Name, ...) Data* New##Name(Data* input0, Data* input1);
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 #undef V
 
   // Literal nodes
-  Node* NewReference(Type* type, AtomicString* name);
-#define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
+  Data* NewReference(Type* type, AtomicString* name);
+#define V(Name, mnemonic, data_type) Data* New##Name(data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
   // Single input
-  Control* NewControlGet(Node* input, size_t field);
-  Effect* NewEffectGet(Node* input, size_t field);
-  Node* NewDynamicCast(Type* output_type, Node* input);
-  Node* NewGet(Node* input, size_t field);
-  Node* NewFunctionReference(Function* function);
+  Control* NewControlGet(Tuple* input, size_t field);
+  Effect* NewEffectGet(Tuple* input, size_t field);
+  Data* NewDynamicCast(Type* output_type, Data* input);
+  Data* NewGet(Tuple* input, size_t field);
+  Data* NewFunctionReference(Function* function);
   Control* NewIfFalse(Control* control);
   Control* NewIfSuccess(Control* control);
   Control* NewIfTrue(Control* control);
   Control* NewJump(Control* control);
-  Node* NewStaticCast(Type* output_type, Node* input);
+  Data* NewStaticCast(Type* output_type, Data* input);
   Control* NewUnreachable(Control* control);
 
   // Two inputs
-  Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Control* NewIf(Control* control, Node* value);
-  Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
-  Node* NewIntShl(Node* left, Node* right);
-  Node* NewIntShr(Node* left, Node* right);
-  Node* NewParameter(Node* input0, size_t field);
-  Control* NewSwitch(Control* control, Node* value);
-  Node* NewThrow(Control* control, Node* value);
+  Data* NewFloatCmp(FloatCondition condition, Data* left, Data* right);
+  Control* NewIf(Control* control, Data* value);
+  Data* NewIntCmp(IntCondition condition, Data* left, Data* right);
+  Data* NewIntShl(Data* left, Data* right);
+  Data* NewIntShr(Data* left, Data* right);
+  Data* NewParameter(EntryNode* entry_node, size_t field);
+  Control* NewSwitch(Control* control, Data* value);
+  Control* NewThrow(Control* control, Data* value);
 
   // Three inputs
-  Node* NewCall(Effect* effect, Node* callee, Node* arguments);
-  Node* NewLoad(Effect* effect, Node* base_pointer, Node* pointer);
-  Control* NewRet(Control* control, Effect* effect, Node* value);
+  Tuple* NewCall(Effect* effect, Data* callee, Node* arguments);
+  Data* NewLoad(Effect* effect, Data* base_pointer, Data* pointer);
+  Control* NewRet(Control* control, Effect* effect, Data* value);
 
   // Four inputs
   Effect* NewStore(Effect* effect,
@@ -81,13 +81,13 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
                    Node* value);
 
   // Variable inputs
-  Node* NewCase(Control* control, Node* label_value);
+  Control* NewCase(Control* control, Data* label);
   EffectPhiNode* NewEffectPhi(PhiOwnerNode* owner);
-  Node* NewLoop(Control* control);
+  Control* NewLoop(Control* control);
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
-  Node* NewTuple(const std::vector<Node*>& inputs);
-  Node* NewTuple(Type* type);
+  Tuple* NewTuple(const std::vector<Node*>& inputs);
+  Tuple* NewTuple(Type* type);
 
  protected:
   explicit NodeFactoryUser(NodeFactory* node_factory);

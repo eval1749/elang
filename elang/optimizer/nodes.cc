@@ -24,7 +24,7 @@ bool Control::IsControl() const {
 }
 
 // ControlGet
-ControlGetNode::ControlGetNode(Type* output_type, Node* input, size_t field)
+ControlGetNode::ControlGetNode(Type* output_type, Tuple* input, size_t field)
     : ProjectionNodeTemplate(output_type, input, field) {
 }
 
@@ -46,7 +46,7 @@ bool Effect::IsEffect() const {
 }
 
 // EffectGet
-EffectGetNode::EffectGetNode(Type* output_type, Node* input, size_t field)
+EffectGetNode::EffectGetNode(Type* output_type, Tuple* input, size_t field)
     : ProjectionNodeTemplate(output_type, input, field) {
 }
 
@@ -107,7 +107,7 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
 }
 
 // GetNode
-GetNode::GetNode(Type* output_type, Node* input, size_t field)
+GetNode::GetNode(Type* output_type, Tuple* input, size_t field)
     : ProjectionNodeTemplate(output_type, input, field) {
   DCHECK(!output_type->is<ControlType>());
   DCHECK(!output_type->is<EffectType>());
@@ -394,11 +394,10 @@ NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 }
 
 // ParameterNode
-ParameterNode::ParameterNode(Type* output_type, Node* input, size_t index)
+ParameterNode::ParameterNode(Type* output_type, EntryNode* input, size_t index)
     : ProjectionNodeTemplate(output_type, input, index) {
-  DCHECK(input->is<EntryNode>()) << *input;
-  DCHECK_EQ(input->as<EntryNode>()->parameter_type(index), output_type)
-      << *output_type << " " << *input;
+  DCHECK_EQ(input->parameter_type(index), output_type) << *output_type << " "
+                                                       << *input;
 }
 
 // PhiInputHolder
@@ -475,6 +474,11 @@ bool Tuple::IsData() const {
 
 bool Tuple::IsTuple() const {
   return true;
+}
+
+// TupleGet
+TupleGetNode::TupleGetNode(Type* output_type, Tuple* input, size_t field)
+    : ProjectionNodeTemplate(output_type, input, field) {
 }
 
 // Variable nodes

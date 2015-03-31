@@ -55,16 +55,16 @@ class Translator final : public CompilationSessionUser,
   ir::Type* MapType(sm::Type* type) const;
 
   // Translate
-  ir::Node* NewOperationFor(ast::Expression* node,
-                            ir::Node* left,
-                            ir::Node* right);
+  ir::Data* NewOperationFor(ast::Expression* node,
+                            ir::Data* left,
+                            ir::Data* right);
   void SetVisitorResult(ir::Node* node);
 
-  ir::Node* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
-  ir::Node* TranslateBool(ast::Expression* expression);
-  ir::Node* Translate(ast::Expression* node);
-  ir::Node* TranslateLiteral(ir::Type* ir_type, const Token* token);
-  ir::Node* TranslateMethodReference(sm::Method* method);
+  ir::Data* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
+  ir::Data* TranslateBool(ast::Expression* expression);
+  ir::Data* Translate(ast::Expression* node);
+  ir::Data* TranslateLiteral(ir::Type* ir_type, const Token* token);
+  ir::Data* TranslateMethodReference(sm::Method* method);
   void TranslateStatement(ast::Statement* node);
   void TranslateVariable(ast::NamedNode* ast_variable);
   void TranslateVariableAssignment(ast::NamedNode* ast_variable,

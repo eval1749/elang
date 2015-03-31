@@ -42,29 +42,29 @@ class Builder final : public ZoneOwner {
   bool has_control() const { return basic_block_ != nullptr; }
 
   // Control flow
-  ir::Control* EndBlockWithBranch(ir::Node* condition);
+  ir::Control* EndBlockWithBranch(ir::Data* condition);
   void EndBlockWithJump(ir::Control* target);
-  void EndBlockWithRet(ir::Node* data);
-  void EndLoopBlock(ir::Node* condition,
+  void EndBlockWithRet(ir::Data* data);
+  void EndLoopBlock(ir::Data* condition,
                     ir::Control* true_target,
                     ir::Control* false_target);
   void StartIfBlock(ir::Control* control);
   ir::Control* StartLoopBlock();
   void StartMergeBlock(ir::PhiOwnerNode* control);
 
-  // Effects
-  ir::Node* Call(ir::Node* callee, ir::Node* arguments);
+  // Effect consumer/producer
+  ir::Tuple* Call(ir::Data* callee, ir::Node* arguments);
 
   // Variable management
-  void AssignVariable(sm::Variable* variable, ir::Node* value);
-  void BindVariable(sm::Variable* variable, ir::Node* value);
-  ir::Node* ParameterAt(size_t index);
+  void AssignVariable(sm::Variable* variable, ir::Data* value);
+  void BindVariable(sm::Variable* variable, ir::Data* value);
+  ir::Data* ParameterAt(size_t index);
   void UnbindVariable(sm::Variable* variable);
-  ir::Node* VariableValueOf(sm::Variable* variable) const;
+  ir::Data* VariableValueOf(sm::Variable* variable) const;
 
  private:
   class BasicBlock;
-  typedef std::unordered_map<sm::Variable*, ir::Node*> Variables;
+  typedef std::unordered_map<sm::Variable*, ir::Data*> Variables;
 
   BasicBlock* BasicBlockOf(ir::Control* control);
   void EndBlock(ir::Control* control);
@@ -76,7 +76,7 @@ class Builder final : public ZoneOwner {
   BasicBlock* basic_block_;
   // A mapping to basic block from IR control node, which starts or ends basic
   // block.
-  std::unordered_map<ir::Node*, BasicBlock*> basic_blocks_;
+  std::unordered_map<ir::Control*, BasicBlock*> basic_blocks_;
   const std::unique_ptr<ir::Editor> editor_;
 
   DISALLOW_COPY_AND_ASSIGN(Builder);

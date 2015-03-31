@@ -539,7 +539,7 @@ class ProjectionNodeTemplate : public NodeTemplate<1, Base> {
   bool has_field() const final { return true; }
 
  protected:
-  ProjectionNodeTemplate(Type* output_type, Node* input, size_t field);
+  ProjectionNodeTemplate(Type* output_type, Tuple* input, size_t field);
 
  private:
   size_t field_;
@@ -549,7 +549,7 @@ class ProjectionNodeTemplate : public NodeTemplate<1, Base> {
 
 template <typename Base>
 ProjectionNodeTemplate<Base>::ProjectionNodeTemplate(Type* output_type,
-                                                     Node* input,
+                                                     Tuple* input,
                                                      size_t field)
     : NodeTemplate(output_type), field_(field) {
   InitInputAt(0, input);
@@ -708,7 +708,7 @@ class ELANG_OPTIMIZER_EXPORT ControlGetNode final
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ControlGetNode, ProjectionNodeTemplate);
 
  private:
-  ControlGetNode(Type* effect_type, Node* input, size_t field);
+  ControlGetNode(Type* control_type, Tuple* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(ControlGetNode);
 };
@@ -722,7 +722,7 @@ class ELANG_OPTIMIZER_EXPORT EffectGetNode final
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EffectGetNode, ProjectionNodeTemplate);
 
  private:
-  EffectGetNode(Type* effect_type, Node* input, size_t field);
+  EffectGetNode(Type* effect_type, Tuple* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(EffectGetNode);
 };
@@ -745,8 +745,8 @@ class ELANG_OPTIMIZER_EXPORT EffectPhiNode final
 //
 // EntryNode
 //
-class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0, Data> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EntryNode, Data);
+class ELANG_OPTIMIZER_EXPORT EntryNode final : public NodeTemplate<0, Tuple> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(EntryNode, Tuple);
 
  public:
   Type* parameters_type() const;
@@ -811,7 +811,7 @@ class ELANG_OPTIMIZER_EXPORT GetNode final
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(GetNode, ProjectionNodeTemplate);
 
  private:
-  GetNode(Type* output_type, Node* input, size_t field);
+  GetNode(Type* output_type, Tuple* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(GetNode);
 };
@@ -889,7 +889,7 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(ParameterNode, ProjectionNodeTemplate);
 
  private:
-  ParameterNode(Type* output_type, Node* input, size_t field);
+  ParameterNode(Type* output_type, EntryNode* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(ParameterNode);
 };
@@ -961,6 +961,20 @@ class ELANG_OPTIMIZER_EXPORT StoreNode final : public NodeTemplate<4, Effect> {
   StoreNode(Type* effect_type, Node* input, size_t field);
 
   DISALLOW_COPY_AND_ASSIGN(StoreNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// TupleGetNode
+//
+class ELANG_OPTIMIZER_EXPORT TupleGetNode final
+    : public ProjectionNodeTemplate<Tuple> {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(TupleGetNode, ProjectionNodeTemplate);
+
+ private:
+  TupleGetNode(Type* tuple_type, Tuple* input, size_t field);
+
+  DISALLOW_COPY_AND_ASSIGN(TupleGetNode);
 };
 
 //////////////////////////////////////////////////////////////////////

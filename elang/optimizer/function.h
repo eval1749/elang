@@ -12,6 +12,8 @@
 namespace elang {
 namespace optimizer {
 
+class EntryNode;
+class ExitNode;
 class FunctionType;
 class Node;
 class SequenceIdSource;
@@ -23,8 +25,8 @@ class Type;
 //
 class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
  public:
-  Node* entry_node() const { return entry_node_; }
-  Node* exit_node() const { return exit_node_; }
+  EntryNode* entry_node() const { return entry_node_; }
+  ExitNode* exit_node() const { return exit_node_; }
   FunctionType* function_type() const { return function_type_; }
   size_t id() const { return id_; }
   size_t max_node_id() const;
@@ -36,12 +38,12 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
 
   explicit Function(SequenceIdSource* node_id_source,
                     FunctionType* function_type,
-                    Node* entry_node,
-                    Node* exit_node);
+                    EntryNode* entry_node,
+                    ExitNode* exit_node);
 
-  Node* const entry_node_;
+  EntryNode* const entry_node_;
   FunctionType* function_type_;
-  Node* const exit_node_;
+  ExitNode* const exit_node_;
   size_t id_;
   SequenceIdSource* const node_id_source_;
 

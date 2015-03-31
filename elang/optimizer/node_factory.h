@@ -33,66 +33,66 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   explicit NodeFactory(TypeFactory* type_factory);
   ~NodeFactory();
 
-  Node* false_value() const { return false_value_; }
-  Node* true_value() const { return true_value_; }
-  Node* void_value() const { return void_value_; }
+  Data* false_value() const { return false_value_; }
+  Data* true_value() const { return true_value_; }
+  Data* void_value() const { return void_value_; }
 
-  Node* DefaultValueOf(Type* type);
-  Node* NewNull(Type* type);
+  Data* DefaultValueOf(Type* type);
+  Data* NewNull(Type* type);
 
 // Arithmetic nodes
-#define V(Name, ...) Node* New##Name(Node* input0, Node* input1);
+#define V(Name, ...) Data* New##Name(Data* input0, Data* input1);
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)
 #undef V
 
   // Literal nodes
-  Node* NewReference(Type* type, AtomicString* name);
-#define V(Name, mnemonic, data_type) Node* New##Name(data_type data);
+  Data* NewReference(Type* type, AtomicString* name);
+#define V(Name, mnemonic, data_type) Data* New##Name(data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
   // Single input
-  Control* NewControlGet(Node* input, size_t field);
-  Node* NewDynamicCast(Type* output_type, Node* input);
-  Effect* NewEffectGet(Node* input, size_t field);
-  Node* NewFunctionReference(Function* function);
-  Node* NewGet(Node* input, size_t field);
+  Control* NewControlGet(Tuple* input, size_t field);
+  Data* NewDynamicCast(Type* output_type, Data* input);
+  Effect* NewEffectGet(Tuple* input, size_t field);
+  Data* NewFunctionReference(Function* function);
+  Data* NewGet(Tuple* input, size_t field);
   Control* NewIfFalse(Control* input);
   Control* NewIfSuccess(Control* input);
   Control* NewIfTrue(Control* input);
   Control* NewJump(Control* input);
-  Node* NewStaticCast(Type* output_type, Node* input);
-  Control* NewSwitch(Control* control, Node* value);
+  Data* NewStaticCast(Type* output_type, Data* input);
+  Control* NewSwitch(Control* control, Data* value);
   Control* NewUnreachable(Control* input);
 
   // Two inputs
-  Node* NewFloatCmp(FloatCondition condition, Node* left, Node* right);
-  Control* NewIf(Control* control, Node* value);
-  Node* NewIntCmp(IntCondition condition, Node* left, Node* right);
-  Node* NewIntShl(Node* left, Node* right);
-  Node* NewIntShr(Node* left, Node* right);
-  Node* NewParameter(Node* input0, size_t field);
-  Node* NewThrow(Control* control, Node* value);
+  Data* NewFloatCmp(FloatCondition condition, Data* left, Data* right);
+  Control* NewIf(Control* control, Data* value);
+  Data* NewIntCmp(IntCondition condition, Data* left, Data* right);
+  Data* NewIntShl(Data* left, Data* right);
+  Data* NewIntShr(Data* left, Data* right);
+  Data* NewParameter(EntryNode* entry_node, size_t field);
+  Data* NewThrow(Control* control, Data* value);
 
   // Three inputs
-  Node* NewCall(Effect* effect, Node* callee, Node* arguments);
-  Node* NewLoad(Effect* effect, Node* base_pointer, Node* pointer);
-  Control* NewRet(Control* control, Effect* effect, Node* data);
+  Tuple* NewCall(Effect* effect, Data* callee, Node* arguments);
+  Data* NewLoad(Effect* effect, Data* base_pointer, Data* pointer);
+  Control* NewRet(Control* control, Effect* effect, Data* data);
 
   // Four inputs
   Effect* NewStore(Effect* effect,
-                   Node* base_pointer,
-                   Node* pointer,
-                   Node* value);
+                   Data* base_pointer,
+                   Data* pointer,
+                   Data* value);
 
   // Variadic inputs
-  Node* NewCase(Control* control, Node* label_value);
+  Data* NewCase(Control* control, Data* label_value);
   EffectPhiNode* NewEffectPhi(PhiOwnerNode* owner);
-  Node* NewLoop(Control* control);
+  Data* NewLoop(Control* control);
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
-  Node* NewTuple(const std::vector<Node*>& inputs);
-  Node* NewTuple(Type* type);
+  Tuple* NewTuple(const std::vector<Node*>& inputs);
+  Tuple* NewTuple(Type* type);
 
  private:
   // For using |NewEntry()| and |NewExit()|.
@@ -108,17 +108,17 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   void RememberFieldNode(Node* node, Node* input, size_t field);
   void RememberUnaryNode(Node* node);
 
-  Node* NewEntry(Type* parameters_type);
-  Node* NewExit(Control* control);
+  EntryNode* NewEntry(Type* parameters_type);
+  ExitNode* NewExit(Control* control);
 
   size_t NewNodeId();
 
   const std::unique_ptr<NodeCache> node_cache_;
 
   // |false_value_| and |true_value| depend on |node_cache_|.
-  Node* const false_value_;
-  Node* const true_value_;
-  Node* const void_value_;
+  Data* const false_value_;
+  Data* const true_value_;
+  Data* const void_value_;
 
   DISALLOW_COPY_AND_ASSIGN(NodeFactory);
 };

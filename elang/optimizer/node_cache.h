@@ -46,26 +46,26 @@ class NodeCache final : public ZoneUser {
 
 // Cached node construct functions.
 #define V(Name, mnemonic, data_type, ...) \
-  Node* New##Name(Type* type, data_type data);
+  Data* New##Name(Type* type, data_type data);
   FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
-  Node* NewFunctionReference(Type* output_type, Function* function);
+  Data* NewFunctionReference(Type* output_type, Function* function);
   Node* NewGet(Node* input, size_t field);
-  Node* NewNull(Type* type);
-  Node* NewReference(Type* type, AtomicString* name);
+  Data* NewNull(Type* type);
+  Data* NewReference(Type* type, AtomicString* name);
 
  private:
 #define V(Name, name, data_type, ...) \
-  std::unordered_map<data_type, Node*> name##_cache_;
+  std::unordered_map<data_type, Data*> name##_cache_;
   FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
   std::map<std::tuple<Opcode, Node*, Node*>, Node*> binary_node_cache_;
   std::map<std::tuple<Node*, size_t>, Node*> field_node_cache_;
-  std::unordered_map<Function*, Node*> function_literal_cache_;
-  std::unordered_map<Type*, Node*> null_literal_cache_;
-  std::map<std::tuple<Type*, AtomicString*>, Node*> reference_cache_;
+  std::unordered_map<Function*, Data*> function_literal_cache_;
+  std::unordered_map<Type*, Data*> null_literal_cache_;
+  std::map<std::tuple<Type*, AtomicString*>, Data*> reference_cache_;
   const std::unique_ptr<SequenceIdSource> node_id_source_;
-  std::unordered_map<base::StringPiece16, Node*> string_cache_;
+  std::unordered_map<base::StringPiece16, Data*> string_cache_;
   std::map<std::tuple<Opcode, Type*, Node*>, Node*> unary_node_cache_;
   TypeFactory* const type_factory_;
 

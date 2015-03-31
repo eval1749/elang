@@ -39,12 +39,12 @@ class Builder::BasicBlock final : public ZoneAllocated {
   ir::Control* start_node() const { return start_node_; }
   const Variables& variables() const { return variables_; }
 
-  void AssignVariable(sm::Variable* variable, ir::Node* value);
-  void BindVariable(sm::Variable* variable, ir::Node* variable_value);
+  void AssignVariable(sm::Variable* variable, ir::Data* value);
+  void BindVariable(sm::Variable* variable, ir::Data* value);
   void Commit(ir::Control* end_node);
   void PopulatePhiNodes(const BasicBlock* predecessor);
   void UnbindVariable(sm::Variable* variable);
-  ir::Node* ValueOf(sm::Variable* variable) const;
+  ir::Data* ValueOf(sm::Variable* variable) const;
 
  private:
   // Effect value at the end of this |BasicBlock|.
@@ -94,26 +94,26 @@ void Builder::BasicBlock::set_effect(ir::Effect* effect) {
 }
 
 void Builder::BasicBlock::AssignVariable(sm::Variable* variable,
-                                         ir::Node* value) {
+                                         ir::Data* value) {
   DCHECK(!end_node_);
   variables_[variable] = value;
 }
 
 void Builder::BasicBlock::BindVariable(sm::Variable* variable,
-                                       ir::Node* variable_value) {
+                                       ir::Data* value) {
   DCHECK(!end_node_);
   if (variable->storage() == sm::StorageClass::Void)
     return;
   DCHECK(!variables_.count(variable));
   if (variable->storage() == sm::StorageClass::ReadOnly) {
-    variables_[variable] = variable_value;
+    variables_[variable] = value;
     return;
   }
 
   // TODO(eval1749) We should introduce |sm::StorageClass::Register| and
   // use here instead of |sm::StorageClass::Local|.
   DCHECK_EQ(variable->storage(), sm::StorageClass::Local);
-  variables_[variable] = variable_value;
+  variables_[variable] = value;
 }
 
 void Builder::BasicBlock::Commit(ir::Control* end_node) {
@@ -129,7 +129,7 @@ void Builder::BasicBlock::UnbindVariable(sm::Variable* variable) {
   variables_.erase(it);
 }
 
-ir::Node* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
+ir::Data* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
   auto const it = variables_.find(variable);
   DCHECK(it != variables_.end()) << *variable << " isn't in " << *start_node_;
   DCHECK(it->second) << *variable << " has no value in " << *start_node_;
@@ -155,7 +155,7 @@ Builder::~Builder() {
   DCHECK(editor_->Validate()) << editor_->errors();
 }
 
-void Builder::AssignVariable(sm::Variable* variable, ir::Node* value) {
+void Builder::AssignVariable(sm::Variable* variable, ir::Data* value) {
   DCHECK(basic_block_);
   basic_block_->AssignVariable(variable, value);
 }
@@ -166,12 +166,12 @@ Builder::BasicBlock* Builder::BasicBlockOf(ir::Control* control) {
   return it->second;
 }
 
-void Builder::BindVariable(sm::Variable* variable, ir::Node* value) {
+void Builder::BindVariable(sm::Variable* variable, ir::Data* value) {
   DCHECK(basic_block_);
   basic_block_->BindVariable(variable, value);
 }
 
-ir::Node* Builder::Call(ir::Node* callee, ir::Node* arguments) {
+ir::Tuple* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   DCHECK(basic_block_) << *callee;
   auto const call = editor_->NewCall(basic_block_->effect(), callee, arguments);
   basic_block_->set_effect(editor_->NewEffectGet(call, 0));
@@ -187,7 +187,7 @@ void Builder::EndBlock(ir::Control* control) {
   basic_block_ = nullptr;
 }
 
-ir::Control* Builder::EndBlockWithBranch(ir::Node* condition) {
+ir::Control* Builder::EndBlockWithBranch(ir::Data* condition) {
   DCHECK(basic_block_);
   auto const if_node = editor_->SetBranch(condition);
   EndBlock(if_node);
@@ -203,13 +203,13 @@ void Builder::EndBlockWithJump(ir::Control* target_node) {
   PopulatePhiNodesIfNeeded(target_node, basic_block);
 }
 
-void Builder::EndBlockWithRet(ir::Node* data) {
+void Builder::EndBlockWithRet(ir::Data* data) {
   DCHECK(basic_block_);
   auto const ret_node = editor_->SetRet(basic_block_->effect(), data);
   EndBlock(ret_node);
 }
 
-void Builder::EndLoopBlock(ir::Node* condition,
+void Builder::EndLoopBlock(ir::Data* condition,
                            ir::Control* true_target_node,
                            ir::Control* false_target_node) {
   DCHECK(false_target_node->is<ir::PhiOwnerNode>()) << *false_target_node;
@@ -237,7 +237,7 @@ Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* control,
   return basic_block;
 }
 
-ir::Node* Builder::ParameterAt(size_t index) {
+ir::Data* Builder::ParameterAt(size_t index) {
   return editor_->EmitParameter(index);
 }
 
@@ -369,7 +369,7 @@ void Builder::UnbindVariable(sm::Variable* variable) {
   basic_block_->UnbindVariable(variable);
 }
 
-ir::Node* Builder::VariableValueOf(sm::Variable* variable) const {
+ir::Data* Builder::VariableValueOf(sm::Variable* variable) const {
   DCHECK(basic_block_);
   return basic_block_->ValueOf(variable);
 }

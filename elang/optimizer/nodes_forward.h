@@ -101,6 +101,7 @@ namespace optimizer {
   V(Reference, "ref", Literal)                \
   V(SizeOf, "sizeof", Literal)                \
   V(Store, "store", Literal)                  \
+  V(TupleGet, "tuple_get", Tuple)             \
   V(Void, "void", Literal)
 
 // List of concrete C++ classes representing IR node.

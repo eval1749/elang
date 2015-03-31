@@ -50,7 +50,7 @@ Node* NodeCache::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
 }
 
 #define V(Name, name, data_type, ...)                         \
-  Node* NodeCache::New##Name(Type* type, data_type data) {    \
+  Data* NodeCache::New##Name(Type* type, data_type data) {    \
     auto const it = name##_cache_.find(data);                 \
     if (it != name##_cache_.end())                            \
       return it->second;                                      \
@@ -61,7 +61,7 @@ Node* NodeCache::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
-Node* NodeCache::NewFunctionReference(Type* output_type, Function* function) {
+Data* NodeCache::NewFunctionReference(Type* output_type, Function* function) {
   DCHECK_EQ(output_type->as<PointerType>()->pointee(),
             function->function_type());
   auto const it = function_literal_cache_.find(function);
@@ -77,7 +77,7 @@ size_t NodeCache::NewNodeId() {
   return node_id_source_->NextId();
 }
 
-Node* NodeCache::NewNull(Type* type) {
+Data* NodeCache::NewNull(Type* type) {
   auto const it = null_literal_cache_.find(type);
   if (it != null_literal_cache_.end())
     return it->second;
@@ -86,7 +86,7 @@ Node* NodeCache::NewNull(Type* type) {
   return literal;
 }
 
-Node* NodeCache::NewReference(Type* type, AtomicString* name) {
+Data* NodeCache::NewReference(Type* type, AtomicString* name) {
   auto const key = std::make_tuple(type, name);
   auto const it = reference_cache_.find(key);
   if (it != reference_cache_.end())
@@ -96,7 +96,7 @@ Node* NodeCache::NewReference(Type* type, AtomicString* name) {
   return new_node;
 }
 
-Node* NodeCache::NewString(Type* type, base::StringPiece16 data) {
+Data* NodeCache::NewString(Type* type, base::StringPiece16 data) {
   auto const it = string_cache_.find(data);
   if (it != string_cache_.end())
     return it->second;

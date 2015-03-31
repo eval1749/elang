@@ -28,11 +28,11 @@ Editor::Editor(Factory* factory, Function* function)
 Editor::~Editor() {
 }
 
-Node* Editor::entry_node() const {
+EntryNode* Editor::entry_node() const {
   return function_->entry_node();
 }
 
-Node* Editor::exit_node() const {
+ExitNode* Editor::exit_node() const {
   return function_->exit_node();
 }
 
@@ -58,7 +58,7 @@ void Editor::Edit(Control* control) {
   control_ = control;
 }
 
-Node* Editor::EmitParameter(size_t index) {
+Data* Editor::EmitParameter(size_t index) {
   DCHECK(control_);
   DCHECK_EQ(control_->input(0), entry_node());
   return NewParameter(entry_node(), index);
@@ -70,7 +70,7 @@ void Editor::ReplaceAllUses(Node* new_node, Node* old_node) {
     user->SetValue(new_node);
 }
 
-Control* Editor::SetBranch(Node* condition) {
+Control* Editor::SetBranch(Data* condition) {
   DCHECK(control_);
   return NewIf(control_, condition);
 }
@@ -97,7 +97,7 @@ void Editor::SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect) {
   phi_input->input()->Init(phi, effect);
 }
 
-void Editor::SetPhiInput(PhiNode* phi, Control* control, Node* value) {
+void Editor::SetPhiInput(PhiNode* phi, Control* control, Data* value) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK_EQ(phi->output_type(), value->output_type()) << *phi << " " << *value;
   DCHECK(value->IsValidData()) << *value;
@@ -113,7 +113,7 @@ void Editor::SetPhiInput(PhiNode* phi, Control* control, Node* value) {
   phi_input->input()->Init(phi, value);
 }
 
-Control* Editor::SetRet(Effect* effect, Node* data) {
+Control* Editor::SetRet(Effect* effect, Data* data) {
   DCHECK(control_);
   auto const merge_node = exit_node()->input(0)->as<MergeNode>();
   for (auto const predecessor : merge_node->inputs()) {

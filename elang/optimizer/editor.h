@@ -31,12 +31,12 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void Edit(Control* control);
 
   // Emit data node
-  Node* EmitParameter(size_t index);
+  Data* EmitParameter(size_t index);
 
   // Emit control node
-  Control* SetBranch(Node* condition);
+  Control* SetBranch(Data* condition);
   Control* SetJump(Control* target);
-  Control* SetRet(Effect* effect, Node* data);
+  Control* SetRet(Effect* effect, Data* data);
 
   // Edit input edge
   void AppendInput(Node* node, Node* new_value);
@@ -45,13 +45,13 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   // Phi
   void SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect);
-  void SetPhiInput(PhiNode* phi, Control* control, Node* value);
+  void SetPhiInput(PhiNode* phi, Control* control, Data* value);
 
   bool Validate() const;
 
  private:
-  Node* entry_node() const;
-  Node* exit_node() const;
+  EntryNode* entry_node() const;
+  ExitNode* exit_node() const;
 
   Control* control_;
   Function* const function_;
