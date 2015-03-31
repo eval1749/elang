@@ -397,7 +397,7 @@ class ELANG_OPTIMIZER_EXPORT Effect : public Node {
 // Literal
 //
 class ELANG_OPTIMIZER_EXPORT Literal : public Data {
-  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Literal, Node);
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Literal, Data);
 
  protected:
   explicit Literal(Type* output_type);
