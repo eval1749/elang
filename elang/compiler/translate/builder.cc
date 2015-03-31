@@ -238,7 +238,7 @@ Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* control,
 }
 
 ir::Data* Builder::ParameterAt(size_t index) {
-  return editor_->EmitParameter(index);
+  return editor_->ParameterAt(index);
 }
 
 void Builder::PopulatePhiNodesIfNeeded(ir::Control* control,

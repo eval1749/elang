@@ -58,7 +58,7 @@ void Editor::Edit(Control* control) {
   control_ = control;
 }
 
-Data* Editor::EmitParameter(size_t index) {
+Data* Editor::ParameterAt(size_t index) {
   DCHECK(control_);
   DCHECK_EQ(control_->input(0), entry_node());
   return NewParameter(entry_node(), index);

@@ -55,7 +55,7 @@ TEST_F(EditorTest, SetBranch) {
   auto const effect = NewEffectGet(entry_node, 1);
 
   editor.Edit(NewControlGet(entry_node, 0));
-  auto const param0 = editor.EmitParameter(0);
+  auto const param0 = editor.ParameterAt(0);
   auto const if_node = editor.SetBranch(param0);
   auto const if_true = NewIfTrue(if_node);
   auto const if_false = NewIfFalse(if_node);

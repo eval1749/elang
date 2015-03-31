@@ -30,8 +30,8 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   void Commit();
   void Edit(Control* control);
 
-  // Emit data node
-  Data* EmitParameter(size_t index);
+  // Data node constructor
+  Data* ParameterAt(size_t index);
 
   // Emit control node
   Control* SetBranch(Data* condition);
