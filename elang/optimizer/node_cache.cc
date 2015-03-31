@@ -39,7 +39,7 @@ Node* NodeCache::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return it == binary_node_cache_.end() ? nullptr : it->second;
 }
 
-Node* NodeCache::FindFieldNode(Node* input, size_t field) {
+Node* NodeCache::FindProjectionNode(Node* input, size_t field) {
   auto const it = field_node_cache_.find(std::make_tuple(input, field));
   return it == field_node_cache_.end() ? nullptr : it->second;
 }
@@ -117,7 +117,7 @@ void NodeCache::RememberBinaryNode(Node* node) {
   binary_node_cache_[key] = node;
 }
 
-void NodeCache::RememberFieldNode(Node* node, Node* input, size_t field) {
+void NodeCache::RememberProjectionNode(Node* node, Node* input, size_t field) {
   auto const key = std::make_tuple(input, field);
   DCHECK(!field_node_cache_.count(key));
   field_node_cache_[key] = node;

@@ -38,10 +38,10 @@ class NodeCache final : public ZoneUser {
 
   // Cached nodes
   Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
-  Node* FindFieldNode(Node* input, size_t field);
+  Node* FindProjectionNode(Node* input, size_t field);
   Node* FindUnaryNode(Opcode opcode, Type* type, Node* input);
   void RememberBinaryNode(Node* node);
-  void RememberFieldNode(Node* node, Node* input, size_t field);
+  void RememberProjectionNode(Node* node, Node* input, size_t field);
   void RememberUnaryNode(Node* node);
 
 // Cached node construct functions.

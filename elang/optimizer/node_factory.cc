@@ -101,8 +101,8 @@ Node* NodeFactory::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
   return node_cache_->FindBinaryNode(opcode, left, right);
 }
 
-Node* NodeFactory::FindFieldNode(Node* input, size_t field) {
-  return node_cache_->FindFieldNode(input, field);
+Node* NodeFactory::FindProjectionNode(Node* input, size_t field) {
+  return node_cache_->FindProjectionNode(input, field);
 }
 
 Node* NodeFactory::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
@@ -125,11 +125,12 @@ Tuple* NodeFactory::NewCall(Effect* effect, Data* callee, Node* arguments) {
 
 Control* NodeFactory::NewControlGet(Tuple* input, size_t field) {
   DCHECK(input->IsValidControlAt(field)) << *input;
-  if (auto const present = FindFieldNode(input, field)->as<ControlGetNode>())
+  if (auto const present =
+          FindProjectionNode(input, field)->as<ControlGetNode>())
     return present->as<Control>();
   auto const node = new (zone()) ControlGetNode(control_type(), input, field);
   node->set_id(NewNodeId());
-  RememberFieldNode(node, input, field);
+  RememberProjectionNode(node, input, field);
   return node;
 }
 
@@ -146,11 +147,12 @@ Data* NodeFactory::NewDynamicCast(Type* type, Data* input) {
 
 Effect* NodeFactory::NewEffectGet(Tuple* input, size_t field) {
   DCHECK(input->IsValidEffectAt(field)) << *input;
-  if (auto const present = FindFieldNode(input, field)->as<EffectGetNode>())
+  if (auto const present =
+          FindProjectionNode(input, field)->as<EffectGetNode>())
     return present->as<Effect>();
   auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
   node->set_id(NewNodeId());
-  RememberFieldNode(node, input, field);
+  RememberProjectionNode(node, input, field);
   return node;
 }
 
@@ -261,12 +263,12 @@ Data* NodeFactory::NewFunctionReference(Function* function) {
 
 Data* NodeFactory::NewGet(Tuple* input, size_t field) {
   DCHECK(input->id() || input->IsLiteral()) << *input << " " << field;
-  if (auto const present = FindFieldNode(input, field))
+  if (auto const present = FindProjectionNode(input, field))
     return present->as<Data>();
   auto const output_type = input->output_type()->as<TupleType>()->get(field);
   auto const node = new (zone()) GetNode(output_type, input, field);
   node->set_id(NewNodeId());
-  RememberFieldNode(node, input, field);
+  RememberProjectionNode(node, input, field);
   return node;
 }
 
@@ -560,8 +562,10 @@ void NodeFactory::RememberBinaryNode(Node* node) {
   return node_cache_->RememberBinaryNode(node);
 }
 
-void NodeFactory::RememberFieldNode(Node* node, Node* input, size_t field) {
-  return node_cache_->RememberFieldNode(node, input, field);
+void NodeFactory::RememberProjectionNode(Node* node,
+                                         Node* input,
+                                         size_t field) {
+  return node_cache_->RememberProjectionNode(node, input, field);
 }
 
 void NodeFactory::RememberUnaryNode(Node* node) {
