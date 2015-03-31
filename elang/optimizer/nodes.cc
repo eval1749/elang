@@ -214,7 +214,7 @@ base::StringPiece IntCmpNode::mnemonic() const {
 // Literals
 #define V(Name, mnemonic, data_type)                        \
   Name##Node::Name##Node(Type* output_type, data_type data) \
-      : NodeTemplate(output_type), data_(data) {            \
+      : LiteralNodeTemplate(output_type, data) {            \
     DCHECK(output_type->is<Name##Type>());                  \
   }
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)

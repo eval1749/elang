@@ -413,6 +413,27 @@ class NodeTemplate<0> : public Node {
 
 //////////////////////////////////////////////////////////////////////
 //
+// LiteralNodeTemplate
+//
+template <typename DataType>
+class LiteralNodeTemplate final : public NodeTemplate<0> {
+  DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(LiteralNodeTemplate, Node);
+
+ public:
+  DataType data() const { return data_; }
+
+ protected:
+  LiteralNodeTemplate(Type* output_type, DataType data)
+      : NodeTemplate(output_type), data_(data) {}
+
+ private:
+  DataType const data_;
+
+  DISALLOW_COPY_AND_ASSIGN(LiteralNodeTemplate);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // PhiNodeTemplate
 //
 template <typename Base>
@@ -552,21 +573,17 @@ class ELANG_OPTIMIZER_EXPORT PhiOwnerNode
 
 //////////////////////////////////////////////////////////////////////
 //
-// Literals
+// LiteralNodeTemplate
 //
-#define V(Name, mnemonic, data_type)                                       \
-  class ELANG_OPTIMIZER_EXPORT Name##Node final : public NodeTemplate<0> { \
-    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Node);               \
-                                                                           \
-   public:                                                                 \
-    data_type data() const { return data_; }                               \
-                                                                           \
-   private:                                                                \
-    Name##Node(Type* output_type, data_type data);                         \
-                                                                           \
-    data_type const data_;                                                 \
-                                                                           \
-    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                  \
+#define V(Name, mnemonic, data_type)                                        \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final                             \
+      : public LiteralNodeTemplate<data_type> {                             \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, LiteralNodeTemplate); \
+                                                                            \
+   private:                                                                 \
+    Name##Node(Type* output_type, data_type data);                          \
+                                                                            \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                                   \
   };
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
