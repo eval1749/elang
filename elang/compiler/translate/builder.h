@@ -53,7 +53,7 @@ class Builder final : public ZoneOwner {
   void StartMergeBlock(ir::PhiOwnerNode* control);
 
   // Effect consumer/producer
-  ir::Tuple* Call(ir::Data* callee, ir::Node* arguments);
+  ir::Data* Call(ir::Data* callee, ir::Node* arguments);
 
   // Variable management
   void AssignVariable(sm::Variable* variable, ir::Data* value);

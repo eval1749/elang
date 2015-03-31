@@ -171,11 +171,11 @@ void Builder::BindVariable(sm::Variable* variable, ir::Data* value) {
   basic_block_->BindVariable(variable, value);
 }
 
-ir::Tuple* Builder::Call(ir::Data* callee, ir::Node* arguments) {
+ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   DCHECK(basic_block_) << *callee;
   auto const call = editor_->NewCall(basic_block_->effect(), callee, arguments);
   basic_block_->set_effect(editor_->NewEffectGet(call, 0));
-  return call;
+  return editor_->NewGet(call, 1);
 }
 
 void Builder::EndBlock(ir::Control* control) {
