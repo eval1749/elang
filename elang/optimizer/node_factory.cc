@@ -169,6 +169,15 @@ Data* NodeFactory::NewElement(Data* array, Node* indexes) {
   DCHECK(array_pointer_type) << *array->output_type();
   auto const array_type = array_pointer_type->pointee()->as<ArrayType>();
   DCHECK(array_type) << *array->output_type();
+#ifndef NDEBUG
+  if (array_type->rank() == 1) {
+    DCHECK_EQ(int32_type(), indexes->output_type());
+  } else if (auto const indexes_type = indexes->as<TupleType>()) {
+    DCHECK_EQ(array_type->rank(), indexes_type->size());
+    for (auto const type : indexes_type->components())
+      DCHECK_EQ(int32_type(), type);
+  }
+#endif
   if (auto const present = FindBinaryNode(Opcode::Element, array, indexes))
     return present->as<Data>();
   auto const output_type = NewPointerType(array_type->element_type());

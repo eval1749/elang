@@ -43,6 +43,7 @@ class Validator::Context : public NodeVisitor {
   void VisitCall(CallNode* node) final;
   void VisitEffectGet(EffectGetNode* node) final;
   void VisitEffectPhi(EffectPhiNode* node) final;
+  void VisitElement(ElementNode* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
@@ -151,6 +152,40 @@ void Validator::Context::VisitEffectPhi(EffectPhiNode* node) {
     return;
   }
   ValidatePhiInputs(node, node->owner(), node->phi_inputs());
+}
+
+void Validator::Context::VisitElement(ElementNode* node) {
+  auto const pointer_type = node->input(0)->output_type()->as<PointerType>();
+  if (!pointer_type) {
+    ErrorInInput(node, 0);
+    return;
+  }
+  auto const array_type = pointer_type->pointee()->as<ArrayType>();
+  if (!array_type) {
+    ErrorInInput(node, 0);
+    return;
+  }
+  if (node->output_type() != array_type->element_type()) {
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    return;
+  }
+  if (array_type->rank() == 1) {
+    if (!node->input(1)->output_type()->is<Int32Type>())
+      ErrorInInput(node, 1);
+    return;
+  }
+
+  auto const indexes_type = node->input(1)->output_type()->as<TupleType>();
+  if (!indexes_type || array_type->rank() != indexes_type->size()) {
+    ErrorInInput(node, 1);
+    return;
+  }
+  for (auto const type : indexes_type->components()) {
+    if (!type->is<Int32Type>()) {
+      ErrorInInput(node, 1);
+      return;
+    }
+  }
 }
 
 void Validator::Context::VisitEntry(EntryNode* node) {
