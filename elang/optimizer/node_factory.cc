@@ -164,6 +164,20 @@ EffectPhiNode* NodeFactory::NewEffectPhi(PhiOwnerNode* owner) {
   return node;
 }
 
+Data* NodeFactory::NewElement(Data* array, Node* indexes) {
+  auto const array_pointer_type = array->output_type()->as<PointerType>();
+  DCHECK(array_pointer_type) << *array->output_type();
+  auto const array_type = array_pointer_type->pointee()->as<ArrayType>();
+  DCHECK(array_type) << *array->output_type();
+  if (auto const present = FindBinaryNode(Opcode::Element, array, indexes))
+    return present->as<Data>();
+  auto const output_type = NewPointerType(array_type->element_type());
+  auto const node = new (zone()) ElementNode(output_type, array, indexes);
+  node->set_id(NewNodeId());
+  RememberBinaryNode(node);
+  return node;
+}
+
 EntryNode* NodeFactory::NewEntry(Type* parameters_type) {
   auto const output_type =
       NewTupleType({control_type(), effect_type(), parameters_type});

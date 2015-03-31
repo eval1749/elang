@@ -49,6 +49,10 @@ EffectPhiNode* NodeFactoryUser::NewEffectPhi(PhiOwnerNode* owner) {
   return node_factory_->NewEffectPhi(owner);
 }
 
+Data* NodeFactoryUser::NewElement(Data* array, Node* indexes) {
+  return node_factory_->NewElement(array, indexes);
+}
+
 Data* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
                                    Data* left,
                                    Data* right) {

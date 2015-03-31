@@ -66,6 +66,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Control* NewUnreachable(Control* input);
 
   // Two inputs
+  Data* NewElement(Data* array, Node* indexes);
   Data* NewFloatCmp(FloatCondition condition, Data* left, Data* right);
   Control* NewIf(Control* control, Data* value);
   Data* NewIntCmp(IntCondition condition, Data* left, Data* right);

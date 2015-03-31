@@ -73,6 +73,14 @@ TEST_F(NodeTest, EffectPhi) {
   EXPECT_EQ("effect %e2 = effect_phi()", ToString(node));
 }
 
+TEST_F(NodeTest, ElementNode) {
+  auto const array_pointer =
+      NewReference(NewPointerType(NewArrayType(int32_type(), {-1})),
+                   NewAtomicString(L"Sample.array_"));
+  auto const node = NewElement(array_pointer, NewInt32(3));
+  EXPECT_EQ("int32* %r1 = element(int32[]* Sample.array_, 3)", ToString(node));
+}
+
 TEST_F(NodeTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();
