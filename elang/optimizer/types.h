@@ -103,7 +103,7 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
  public:
   Type* element_type() const { return element_type_; }
   const ZoneVector<int> dimensions() const { return dimensions_; }
-  int rank() const { return static_cast<int>(dimensions_.size()); }
+  size_t rank() const { return dimensions_.size(); }
 
  private:
   explicit ArrayType(Zone* zone,
