@@ -179,6 +179,7 @@ namespace compiler {
   E(Syntax, Var, Comma)                               \
   E(Syntax, Var, Const)                               \
   E(Syntax, Var, Duplicate)                           \
+  E(Syntax, Var, Initializer)                         \
   E(Syntax, Var, Name)                                \
   E(Syntax, Var, SemiColon)                           \
   E(Syntax, Var, Type)                                \

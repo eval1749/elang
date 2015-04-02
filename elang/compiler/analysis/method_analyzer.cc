@@ -55,7 +55,7 @@ class MethodBodyAnalyzer final : public Analyzer,
   ts::Value* Analyze(ast::Expression* expressions, ts::Value* value);
   void Analyze(ast::Statement* statement);
   void AnalyzeAsBool(ast::Expression* expression);
-  void AnalyzeVariable(ast::Variable* variable, ts::Value* super);
+  ts::Value* AnalyzeVariable(ast::Variable* variable, ts::Value* super);
   ts::Value* NewLiteral(sm::Type* type);
   void RegisterParameters();
 
@@ -124,30 +124,24 @@ void MethodBodyAnalyzer::AnalyzeAsBool(ast::Expression* expression) {
   type_resolver()->ResolveAsBool(expression);
 }
 
-void MethodBodyAnalyzer::AnalyzeVariable(ast::Variable* variable,
-                                         ts::Value* super) {
+ts::Value* MethodBodyAnalyzer::AnalyzeVariable(ast::Variable* variable,
+                                               ts::Value* super) {
   if (variable->type()->name() == TokenType::Var) {
     // Assign type variable for variable declared with `var`.
     auto const type_variable = type_factory()->NewVariable(variable, super);
     variable_tracker_->RegisterVariable(variable, type_variable);
-    if (!variable->value())
-      return;
-    Analyze(variable->value(), type_variable);
-    return;
+    return type_variable;
   }
   auto const type = ResolveTypeReference(variable->type(), method_);
   if (!type) {
     variable_tracker_->RegisterVariable(variable, empty_value());
-    return;
+    return nullptr;
   }
   auto const var_value = NewLiteral(type);
   if (type_resolver()->Unify(var_value, super) == empty_value())
     Error(ErrorCode::TypeResolverForEachElementType, variable);
   variable_tracker_->RegisterVariable(variable, var_value);
-  if (!variable->value())
-    return;
-  // Check initial value expression matches variable type.
-  Analyze(variable->value(), var_value);
+  return var_value;
 }
 
 ts::Value* MethodBodyAnalyzer::NewLiteral(sm::Type* type) {
@@ -258,19 +252,18 @@ void MethodBodyAnalyzer::VisitExpressionStatement(
 void MethodBodyAnalyzer::VisitForEachStatement(ast::ForEachStatement* node) {
   auto const type = Analyze(node->enumerable(), type_factory()->any_value());
   auto const literal = type->as<ts::Literal>();
+  auto const variable = node->variable();
   if (!literal) {
     Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
-    AnalyzeVariable(node->variable(), empty_value());
     return;
   }
   auto const array_type = literal->value()->as<sm::ArrayType>();
   if (!array_type) {
     Error(ErrorCode::TypeResolverStatementNotYetImplemented, node);
-    AnalyzeVariable(node->variable(), empty_value());
     return;
   }
   auto const element_type = NewLiteral(array_type->element_type());
-  AnalyzeVariable(node->variable(), element_type);
+  AnalyzeVariable(variable, element_type);
   Analyze(node->statement());
 }
 
@@ -303,8 +296,14 @@ void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
-  for (auto const variable : node->variables())
-    AnalyzeVariable(variable, type_factory()->any_value());
+  for (auto const var_decl : node->variables()) {
+    auto const variable_type =
+        AnalyzeVariable(var_decl->variable(), type_factory()->any_value());
+    if (!variable_type)
+      continue;
+    // Check initial value expression matches variable type.
+    Analyze(var_decl->value(), variable_type);
+  }
 }
 
 void MethodBodyAnalyzer::VisitWhileStatement(ast::WhileStatement* node) {

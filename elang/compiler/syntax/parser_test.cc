@@ -519,6 +519,8 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
   EXPECT_EQ(
       "Syntax.Type.NotType(34) x\n"
       "Syntax.Expression.LeftAngleBracket(35) <\n"
+      "Syntax.Var.Assign(37) >\n"
+      "Syntax.Var.Initializer(37) >\n"
       "Syntax.Var.SemiColon(37) >\n"
       "Syntax.Type.Name(37) >\n"
       "Syntax.Class.RightCurryBracket(37) >\n",
@@ -1014,40 +1016,30 @@ TEST_F(ParserTest, VarBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
-      "    var a, b = 3;\n"
+      "    var a = 2, b = 3;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
-}
-
-TEST_F(ParserTest, VarErrorAssign) {
-  auto const source_code =
-      "class A {\n"
-      "  void F() {\n"
-      "    int x = ;\n"
-      "  }\n"
-      "}\n";
-  EXPECT_EQ("Syntax.Var.Assign(35) ;\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorComma) {
   auto const source_code =
       "class A {\n"
       "  void F() {\n"
-      "    int x, ;\n"
+      "    int x = 0, ;\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Var.Comma(34) ;\n", Format(source_code));
+  EXPECT_EQ("Syntax.Var.Comma(38) ;\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorDuplicate) {
   auto const source_code =
       "class A {\n"
       "  void F() {\n"
-      "    int x, x;\n"
+      "    int x = 1, x = 1;\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Var.Duplicate(34) x\n", Format(source_code));
+  EXPECT_EQ("Syntax.Var.Duplicate(38) x\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorForwardReference) {
@@ -1056,6 +1048,16 @@ TEST_F(ParserTest, VarErrorForwardReference) {
       "  static int Foo() { var x = x + 1; return x; }"
       "}");
   EXPECT_EQ("Syntax.Expression.UnboundVariable(38) x\n", Format());
+}
+
+TEST_F(ParserTest, VarErrorInitializer) {
+  auto const source_code =
+      "class A {\n"
+      "  void F() {\n"
+      "    int x = ;\n"
+      "  }\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Var.Initializer(35) ;\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorName) {
@@ -1082,9 +1084,9 @@ TEST_F(ParserTest, VarType) {
   auto const source_code =
       "class A {\n"
       "  void F() {\n"
-      "    int x = 0, y;\n"
-      "    char[] a;\n"
-      "    Object[][,,] b;\n"
+      "    int x = 0, y = 1;\n"
+      "    char[] a = null;\n"
+      "    Object[][,,] b = null;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));

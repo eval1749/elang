@@ -930,8 +930,9 @@ void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
 }
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
-  for (auto const ast_variable : node->variables())
-    EmitVariableBinding(ast_variable, GenerateValue(ast_variable->value()));
+  for (auto const var_decl : node->variables()) {
+    EmitVariableBinding(var_decl->variable(), GenerateValue(var_decl->value()));
+  }
 }
 
 void CodeGenerator::VisitWhileStatement(ast::WhileStatement* node) {

@@ -263,7 +263,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
 
   LocalDeclarationSpace for_var_scope(this, for_keyword);
   std::vector<ast::Expression*> initializers;
-  std::vector<ast::Variable*> variables;
+  std::vector<ast::VarDeclaration*> variables;
 
   for (;;) {
     switch (state) {
@@ -283,7 +283,8 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         if (!ParseStatement())
           ProduceStatement(factory()->NewInvalidStatement(colon));
         ProduceStatement(factory()->NewForEachStatement(
-            for_keyword, variables.front(), enumerable, ConsumeStatement()));
+            for_keyword, variables.front()->variable(), enumerable,
+            ConsumeStatement()));
         return true;
       }
 
@@ -371,10 +372,12 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         auto const name = ConsumeToken();
         auto const variable = factory()->NewVariable(for_keyword, type, name);
         declaration_space_->AddMember(variable);
-        variables.push_back(variable);
-        if (PeekToken() == TokenType::Colon) {
+        auto const assign_token = PeekToken();
+        if (assign_token == TokenType::Colon) {
           // Bind 'for-each' variable to dummy expression to avoid unbound
           // variable error.
+          variables.push_back(factory()->NewVarDeclaration(
+              assign_token, variable, NewInvalidExpression(assign_token)));
           variable->Bind(factory()->NewVariableReference(name, variable));
           state = State::Colon;
           continue;
@@ -390,7 +393,10 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           continue;
         }
 
-        variable->Bind(ConsumeExpression());
+        auto const init = ConsumeExpression();
+        variables.push_back(
+            factory()->NewVarDeclaration(assign_token, variable, init));
+        variable->Bind(init);
 
         if (PeekToken() == TokenType::SemiColon) {
           state = State::SemiColon;
@@ -651,31 +657,31 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
 
 // |keyword| is 'const', 'var' or token of |type|.
 void Parser::ParseVariables(Token* keyword, ast::Type* type) {
-  std::vector<ast::Variable*> variables;
+  if (!PeekToken()->is_name())
+    Error(ErrorCode::SyntaxVarName);
+  std::vector<ast::VarDeclaration*> variables;
   while (PeekToken()->is_name()) {
     auto const name = ConsumeToken();
     auto const assign = ConsumeTokenIf(TokenType::Assign);
+    if (!assign)
+      Error(ErrorCode::SyntaxVarAssign);
     auto const variable = factory()->NewVariable(keyword, type, name);
     if (FindLocalMember(name))
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
       declaration_space_->AddMember(variable);
-    variables.push_back(variable);
-    auto const init =
-        assign && ParseExpression() ? ConsumeExpression() : nullptr;
-    if (init)
+    auto const init = ParseExpression() ? ConsumeExpression() : nullptr;
+    if (assign && init) {
+      variables.push_back(factory()->NewVarDeclaration(assign, variable, init));
       variable->Bind(init);
-    else if (assign)
-      Error(ErrorCode::SyntaxVarAssign);
-    else if (keyword == TokenType::Const)
-      Error(ErrorCode::SyntaxVarConst);
+    }
+    if (!init)
+      Error(ErrorCode::SyntaxVarInitializer);
     if (!AdvanceIf(TokenType::Comma))
       break;
     if (!PeekToken()->is_name())
       Error(ErrorCode::SyntaxVarComma);
   }
-  if (variables.empty())
-    Error(ErrorCode::SyntaxVarName);
   ProduceStatement(factory()->NewVarStatement(keyword, variables));
 }
 

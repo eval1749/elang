@@ -550,10 +550,10 @@ void Translator::VisitReturnStatement(ast::ReturnStatement* node) {
 }
 
 void Translator::VisitVarStatement(ast::VarStatement* node) {
-  for (auto const ast_variable : node->variables()) {
-    auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+  for (auto const declaration : node->variables()) {
+    auto const variable = ValueOf(declaration->variable())->as<sm::Variable>();
     DCHECK(variable);
-    builder_->BindVariable(variable, Translate(ast_variable->value()));
+    builder_->BindVariable(variable, Translate(declaration->value()));
     variables_.push_back(variable);
   }
 }

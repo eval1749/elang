@@ -561,23 +561,24 @@ void Formatter::VisitUsingStatement(ast::UsingStatement* using_statement) {
   }
 }
 
+void Formatter::VisitVarDeclaration(ast::VarDeclaration* node) {
+  ostream_ << node->name() << " = ";
+  Visit(node->value());
+}
+
 void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
   if (var_statement->keyword() == TokenType::Const)
     ostream_ << "const ";
   auto is_first = true;
-  for (auto const var : var_statement->variables()) {
+  for (auto const variable : var_statement->variables()) {
     if (is_first) {
-      Visit(var->type());
+      Visit(variable->type());
       ostream_ << " ";
       is_first = false;
     } else {
       ostream_ << ", ";
     }
-    ostream_ << var->name();
-    if (auto const value = var->value()) {
-      ostream_ << " = ";
-      Visit(value);
-    }
+    Visit(variable);
   }
   ostream_ << ";";
 }
