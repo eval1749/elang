@@ -100,14 +100,6 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   SequenceIdSource* node_id_source() const;
 
-  // Node cache management
-  Node* FindBinaryNode(Opcode opcode, Node* left, Node* right);
-  Node* FindProjectionNode(Node* input, size_t field);
-  Node* FindUnaryNode(Opcode opcode, Type* type, Node* input);
-  void RememberBinaryNode(Node* node);
-  void RememberProjectionNode(Node* node, Node* input, size_t field);
-  void RememberUnaryNode(Node* node);
-
   EntryNode* NewEntry(Type* parameters_type);
   ExitNode* NewExit(Control* control);
 

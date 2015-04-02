@@ -40,11 +40,11 @@ TEST_F(EditorTest, ChangeInput) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = control_get(%t1, 0)\n"
-      "0002: effect %e3 = effect_get(%t1, 1)\n"
-      "0003: control %c6 = ret(%c2, %e3, 33)\n"
-      "0004: control %c4 = merge(%c6)\n"
-      "0005: void %r5 = exit(%c4)\n",
+      "0001: control %c5 = control_get(%t1, 0)\n"
+      "0002: effect %e4 = effect_get(%t1, 1)\n"
+      "0003: control %c6 = ret(%c5, %e4, 33)\n"
+      "0004: control %c2 = merge(%c6)\n"
+      "0005: void %r3 = exit(%c2)\n",
       ToString(function));
 }
 
@@ -72,16 +72,16 @@ TEST_F(EditorTest, SetBranch) {
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "0000: (control, effect, bool) %t1 = entry()\n"
-      "0001: control %c2 = control_get(%t1, 0)\n"
+      "0001: control %c5 = control_get(%t1, 0)\n"
       "0002: bool %r6 = param(%t1, 0)\n"
-      "0003: control %c7 = if(%c2, %r6)\n"
+      "0003: control %c7 = if(%c5, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
-      "0005: effect %e3 = effect_get(%t1, 1)\n"
-      "0006: control %c10 = ret(%c8, %e3, 42)\n"
+      "0005: effect %e4 = effect_get(%t1, 1)\n"
+      "0006: control %c10 = ret(%c8, %e4, 42)\n"
       "0007: control %c9 = if_false(%c7)\n"
-      "0008: control %c11 = ret(%c9, %e3, 33)\n"
-      "0009: control %c4 = merge(%c10, %c11)\n"
-      "0010: void %r5 = exit(%c4)\n",
+      "0008: control %c11 = ret(%c9, %e4, 33)\n"
+      "0009: control %c2 = merge(%c10, %c11)\n"
+      "0010: void %r3 = exit(%c2)\n",
       ToString(function));
 }
 
@@ -118,21 +118,21 @@ TEST_F(EditorTest, SetBranchPhi) {
   EXPECT_EQ(
       "function1 int32(bool, int32, int32)\n"
       "0000: (control, effect, (bool, int32, int32)) %t1 = entry()\n"
-      "0001: control %c2 = control_get(%t1, 0)\n"
+      "0001: control %c5 = control_get(%t1, 0)\n"
       "0002: bool %r6 = param(%t1, 0)\n"
-      "0003: control %c7 = if(%c2, %r6)\n"
+      "0003: control %c7 = if(%c5, %r6)\n"
       "0004: control %c8 = if_true(%c7)\n"
       "0005: control %c11 = br(%c8)\n"
       "0006: control %c9 = if_false(%c7)\n"
       "0007: control %c12 = br(%c9)\n"
       "0008: control %c10 = merge(%c11, %c12)\n"
-      "0009: effect %e3 = effect_get(%t1, 1)\n"
+      "0009: effect %e4 = effect_get(%t1, 1)\n"
       "0010: int32 %r14 = param(%t1, 1)\n"
       "0011: int32 %r15 = param(%t1, 2)\n"
       "0012: int32 %r13 = phi(%c11: %r14, %c12: %r15)\n"
-      "0013: control %c16 = ret(%c10, %e3, %r13)\n"
-      "0014: control %c4 = merge(%c16)\n"
-      "0015: void %r5 = exit(%c4)\n",
+      "0013: control %c16 = ret(%c10, %e4, %r13)\n"
+      "0014: control %c2 = merge(%c16)\n"
+      "0015: void %r3 = exit(%c2)\n",
       ToString(function));
 }
 
@@ -149,11 +149,11 @@ TEST_F(EditorTest, SetRet) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "0000: (control, effect, int32) %t1 = entry()\n"
-      "0001: control %c2 = control_get(%t1, 0)\n"
-      "0002: effect %e3 = effect_get(%t1, 1)\n"
-      "0003: control %c6 = ret(%c2, %e3, 42)\n"
-      "0004: control %c4 = merge(%c6)\n"
-      "0005: void %r5 = exit(%c4)\n",
+      "0001: control %c5 = control_get(%t1, 0)\n"
+      "0002: effect %e4 = effect_get(%t1, 1)\n"
+      "0003: control %c6 = ret(%c5, %e4, 42)\n"
+      "0004: control %c2 = merge(%c6)\n"
+      "0005: void %r3 = exit(%c2)\n",
       ToString(function));
 }
 

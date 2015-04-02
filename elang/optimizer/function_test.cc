@@ -29,8 +29,8 @@ TEST_F(FunctionTest, Function) {
   // |Factory::NewFunction()| doesn't connect entry and exit nodes.
   EXPECT_EQ(
       "function1 void(void)\n"
-      "0000: control %c4 = merge()\n"
-      "0001: void %r5 = exit(%c4)\n",
+      "0000: control %c2 = merge()\n"
+      "0001: void %r3 = exit(%c2)\n",
       ToString(function));
 }
 

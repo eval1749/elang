@@ -43,7 +43,7 @@ TEST_F(NodeTest, CallNode) {
   auto const arguments =
       NewTuple({NewParameter(entry_node, 0), NewParameter(entry_node, 1)});
   auto const node = NewCall(NewEffectGet(entry_node, 1), callee, arguments);
-  EXPECT_EQ("(effect, void) %t9 = call(%e3, void(int32, int64) Foo, %t8)",
+  EXPECT_EQ("(effect, void) %t8 = call(%e7, void(int32, int64) Foo, %t6)",
             ToString(node));
 }
 
@@ -58,13 +58,13 @@ TEST_F(NodeTest, DynamicCastNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
   auto const node = NewDynamicCast(int64_type(), NewParameter(entry_node, 0));
-  EXPECT_EQ("int64 %r7 = dynamic_cast(%r6)", ToString(node));
+  EXPECT_EQ("int64 %r5 = dynamic_cast(%r4)", ToString(node));
 }
 
 TEST_F(NodeTest, EffectGet) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewEffectGet(function->entry_node(), 1);
-  EXPECT_EQ("effect %e3 = effect_get(%t1, 1)", ToString(node));
+  EXPECT_EQ("effect %e4 = effect_get(%t1, 1)", ToString(node));
 }
 
 TEST_F(NodeTest, EffectPhi) {
@@ -90,7 +90,7 @@ TEST_F(NodeTest, EntryNode) {
 TEST_F(NodeTest, ExitNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->exit_node();
-  EXPECT_EQ("void %r5 = exit(%c4)", ToString(node));
+  EXPECT_EQ("void %r3 = exit(%c2)", ToString(node));
 }
 
 TEST_F(NodeTest, Float32Node) {
@@ -117,10 +117,10 @@ TEST_F(NodeTest, Float64Node) {
     auto const entry_node = function->entry_node();                        \
     auto const node32 = NewFloat##Name(NewParameter(entry_node, 0),        \
                                        NewParameter(entry_node, 1));       \
-    EXPECT_EQ("float32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));   \
+    EXPECT_EQ("float32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));   \
     auto const node64 = NewFloat##Name(NewParameter(entry_node, 2),        \
                                        NewParameter(entry_node, 3));       \
-    EXPECT_EQ("float64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64)); \
+    EXPECT_EQ("float64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));   \
   }
 V(Add, "fadd")
 V(Div, "fdiv")
@@ -137,11 +137,11 @@ TEST_F(NodeTest, FloatCmpNode) {
   auto const node32 =
       NewFloatCmp(FloatCondition::OrderedEqual, NewParameter(entry_node, 0),
                   NewParameter(entry_node, 1));
-  EXPECT_EQ("bool %r8 = fcmp_eq(%r7, %r6)", ToString(node32));
+  EXPECT_EQ("bool %r6 = fcmp_eq(%r5, %r4)", ToString(node32));
   auto const node64 =
       NewFloatCmp(FloatCondition::OrderedNotEqual, NewParameter(entry_node, 2),
                   NewParameter(entry_node, 3));
-  EXPECT_EQ("bool %r11 = fcmp_ne(%r10, %r9)", ToString(node64));
+  EXPECT_EQ("bool %r9 = fcmp_ne(%r8, %r7)", ToString(node64));
 }
 
 TEST_F(NodeTest, GetNode) {
@@ -149,7 +149,7 @@ TEST_F(NodeTest, GetNode) {
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
   auto const node = NewGet(entry_node, 2);
-  EXPECT_EQ("(int32, int64) %t6 = get(%t1, 2)", ToString(node));
+  EXPECT_EQ("(int32, int64) %t4 = get(%t1, 2)", ToString(node));
 }
 
 TEST_F(NodeTest, Int8Node) {
@@ -208,16 +208,16 @@ TEST_F(NodeTest, Int64Node) {
     auto const entry_node = function->entry_node();                         \
     auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
                                      NewParameter(entry_node, 1));          \
-    EXPECT_EQ("int32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));      \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));      \
     auto const node64 = NewInt##Name(NewParameter(entry_node, 2),           \
                                      NewParameter(entry_node, 3));          \
-    EXPECT_EQ("int64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64));    \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));      \
     auto const node32u = NewInt##Name(NewParameter(entry_node, 4),          \
                                       NewParameter(entry_node, 5));         \
-    EXPECT_EQ("uint32 %r14 = " mnemonic "(%r13, %r12)", ToString(node32u)); \
+    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u)); \
     auto const node64u = NewInt##Name(NewParameter(entry_node, 6),          \
                                       NewParameter(entry_node, 7));         \
-    EXPECT_EQ("uint64 %r17 = " mnemonic "(%r16, %r15)", ToString(node64u)); \
+    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u)); \
   }
 V(Add, "add")
 V(BitAnd, "bit_and")
@@ -236,11 +236,11 @@ TEST_F(NodeTest, IntCmpNode) {
   auto const node32 =
       NewIntCmp(IntCondition::Equal, NewParameter(entry_node, 0),
                 NewParameter(entry_node, 1));
-  EXPECT_EQ("bool %r8 = cmp_eq(%r7, %r6)", ToString(node32));
+  EXPECT_EQ("bool %r6 = cmp_eq(%r5, %r4)", ToString(node32));
   auto const node64 =
       NewIntCmp(IntCondition::NotEqual, NewParameter(entry_node, 2),
                 NewParameter(entry_node, 3));
-  EXPECT_EQ("bool %r11 = cmp_ne(%r10, %r9)", ToString(node64));
+  EXPECT_EQ("bool %r9 = cmp_ne(%r8, %r7)", ToString(node64));
 }
 
 #define V(Name, mnemonic)                                                   \
@@ -251,16 +251,16 @@ TEST_F(NodeTest, IntCmpNode) {
     auto const entry_node = function->entry_node();                         \
     auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
                                      NewParameter(entry_node, 0));          \
-    EXPECT_EQ("int32 %r8 = " mnemonic "(%r7, %r6)", ToString(node32));      \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));      \
     auto const node64 = NewInt##Name(NewParameter(entry_node, 1),           \
                                      NewParameter(entry_node, 0));          \
-    EXPECT_EQ("int64 %r11 = " mnemonic "(%r10, %r9)", ToString(node64));    \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));      \
     auto const node32u = NewInt##Name(NewParameter(entry_node, 2),          \
                                       NewParameter(entry_node, 0));         \
-    EXPECT_EQ("uint32 %r14 = " mnemonic "(%r13, %r12)", ToString(node32u)); \
+    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u)); \
     auto const node64u = NewInt##Name(NewParameter(entry_node, 3),          \
                                       NewParameter(entry_node, 0));         \
-    EXPECT_EQ("uint64 %r17 = " mnemonic "(%r16, %r15)", ToString(node64u)); \
+    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u)); \
   }
 V(Shl, "shl")
 V(Shr, "shr")
@@ -269,14 +269,14 @@ V(Shr, "shr")
 TEST_F(NodeTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewJump(NewControlGet(function->entry_node(), 0));
-  EXPECT_EQ("control %c6 = br(%c2)", ToString(node));
+  EXPECT_EQ("control %c5 = br(%c4)", ToString(node));
 }
 
 TEST_F(NodeTest, ParameterNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 0);
-  EXPECT_EQ("int32 %r6 = param(%t1, 0)", ToString(node));
+  EXPECT_EQ("int32 %r4 = param(%t1, 0)", ToString(node));
 }
 
 TEST_F(NodeTest, ParameterNode2) {
@@ -284,7 +284,7 @@ TEST_F(NodeTest, ParameterNode2) {
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 1);
-  EXPECT_EQ("int64 %r6 = param(%t1, 1)", ToString(node));
+  EXPECT_EQ("int64 %r4 = param(%t1, 1)", ToString(node));
 }
 
 TEST_F(NodeTest, ReferenceNode) {
@@ -298,14 +298,14 @@ TEST_F(NodeTest, RetNode) {
   auto const entry_node = function->entry_node();
   auto const node = NewRet(NewControlGet(entry_node, 0),
                            NewEffectGet(entry_node, 1), void_value());
-  EXPECT_EQ("control %c6 = ret(%c2, %e3, void)", ToString(node));
+  EXPECT_EQ("control %c6 = ret(%c5, %e4, void)", ToString(node));
 }
 
 TEST_F(NodeTest, StaticCastNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
   auto const node = NewStaticCast(int64_type(), NewParameter(entry_node, 0));
-  EXPECT_EQ("int64 %r7 = static_cast(%r6)", ToString(node));
+  EXPECT_EQ("int64 %r5 = static_cast(%r4)", ToString(node));
 }
 
 TEST_F(NodeTest, StringNode) {
@@ -321,7 +321,7 @@ TEST_F(NodeTest, TupleNode) {
   auto const parameter0 = NewParameter(entry_node, 0);
   auto const parameter1 = NewParameter(entry_node, 1);
   auto const node = NewTuple({parameter1, parameter0});
-  EXPECT_EQ("(int64, int32) %t8 = tuple(%r7, %r6)", ToString(node));
+  EXPECT_EQ("(int64, int32) %t6 = tuple(%r5, %r4)", ToString(node));
 }
 
 TEST_F(NodeTest, UInt8Node) {

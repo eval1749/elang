@@ -97,18 +97,6 @@ Data* NodeFactory::DefaultValueOf(Type* type) {
   return factory.value();
 }
 
-Node* NodeFactory::FindBinaryNode(Opcode opcode, Node* left, Node* right) {
-  return node_cache_->FindBinaryNode(opcode, left, right);
-}
-
-Node* NodeFactory::FindProjectionNode(Node* input, size_t field) {
-  return node_cache_->FindProjectionNode(input, field);
-}
-
-Node* NodeFactory::FindUnaryNode(Opcode opcode, Type* type, Node* input) {
-  return node_cache_->FindUnaryNode(opcode, type, input);
-}
-
 Tuple* NodeFactory::NewCall(Effect* effect, Data* callee, Node* arguments) {
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(callee->IsValidData()) << *callee;
@@ -125,34 +113,23 @@ Tuple* NodeFactory::NewCall(Effect* effect, Data* callee, Node* arguments) {
 
 Control* NodeFactory::NewControlGet(Tuple* input, size_t field) {
   DCHECK(input->IsValidControlAt(field)) << *input;
-  if (auto const present =
-          FindProjectionNode(input, field)->as<ControlGetNode>())
-    return present->as<Control>();
   auto const node = new (zone()) ControlGetNode(control_type(), input, field);
   node->set_id(NewNodeId());
-  RememberProjectionNode(node, input, field);
   return node;
 }
 
 Data* NodeFactory::NewDynamicCast(Type* type, Data* input) {
   if (input->output_type() == type)
     return input;
-  if (auto const present = FindUnaryNode(Opcode::DynamicCast, type, input))
-    return present->as<Data>();
   auto const node = new (zone()) DynamicCastNode(type, input);
   node->set_id(NewNodeId());
-  RememberUnaryNode(node);
   return node;
 }
 
 Effect* NodeFactory::NewEffectGet(Tuple* input, size_t field) {
   DCHECK(input->IsValidEffectAt(field)) << *input;
-  if (auto const present =
-          FindProjectionNode(input, field)->as<EffectGetNode>())
-    return present->as<Effect>();
   auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
   node->set_id(NewNodeId());
-  RememberProjectionNode(node, input, field);
   return node;
 }
 
@@ -178,12 +155,9 @@ Data* NodeFactory::NewElement(Data* array, Node* indexes) {
       DCHECK_EQ(int32_type(), type);
   }
 #endif
-  if (auto const present = FindBinaryNode(Opcode::Element, array, indexes))
-    return present->as<Data>();
   auto const output_type = NewPointerType(array_type->element_type());
   auto const node = new (zone()) ElementNode(output_type, array, indexes);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
@@ -205,14 +179,11 @@ ExitNode* NodeFactory::NewExit(Control* control) {
 Data* NodeFactory::NewFloatAdd(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewFloatAdd(right, left);
-  if (auto const present = FindBinaryNode(Opcode::FloatAdd, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_float());
   auto const node = new (zone()) FloatAddNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
@@ -225,57 +196,44 @@ Data* NodeFactory::NewFloatCmp(FloatCondition condition,
   auto const node =
       new (zone()) FloatCmpNode(bool_type(), condition, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewFloatDiv(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::FloatDiv, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_float());
   auto const node = new (zone()) FloatDivNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewFloatMul(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewFloatAdd(right, left);
-  if (auto const present = FindBinaryNode(Opcode::FloatMul, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_float());
   auto const node = new (zone()) FloatMulNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewFloatMod(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::FloatMod, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_float());
   auto const node = new (zone()) FloatModNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewFloatSub(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::FloatSub, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_float());
   auto const node = new (zone()) FloatSubNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
@@ -286,12 +244,9 @@ Data* NodeFactory::NewFunctionReference(Function* function) {
 
 Data* NodeFactory::NewGet(Tuple* input, size_t field) {
   DCHECK(input->id() || input->IsLiteral()) << *input << " " << field;
-  if (auto const present = FindProjectionNode(input, field))
-    return present->as<Data>();
   auto const output_type = input->output_type()->as<TupleType>()->get(field);
   auto const node = new (zone()) GetNode(output_type, input, field);
   node->set_id(NewNodeId());
-  RememberProjectionNode(node, input, field);
   return node;
 }
 
@@ -320,8 +275,6 @@ Control* NodeFactory::NewIfTrue(Control* control) {
 Data* NodeFactory::NewIntAdd(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewIntAdd(right, left);
-  if (auto const present = FindBinaryNode(Opcode::IntAdd, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -329,15 +282,12 @@ Data* NodeFactory::NewIntAdd(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntAddNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntBitAnd(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewIntBitAnd(right, left);
-  if (auto const present = FindBinaryNode(Opcode::IntBitAnd, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -349,15 +299,12 @@ Data* NodeFactory::NewIntBitAnd(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntBitAndNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntBitOr(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewIntBitOr(right, left);
-  if (auto const present = FindBinaryNode(Opcode::IntBitOr, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -367,15 +314,12 @@ Data* NodeFactory::NewIntBitOr(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntBitOrNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntBitXor(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewIntBitXor(right, left);
-  if (auto const present = FindBinaryNode(Opcode::IntBitXor, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -383,7 +327,6 @@ Data* NodeFactory::NewIntBitXor(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntBitXorNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
@@ -398,22 +341,17 @@ Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
 }
 
 Data* NodeFactory::NewIntDiv(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::IntDiv, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
   auto const node = new (zone()) IntDivNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntMul(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewIntAdd(right, left);
-  if (auto const present = FindBinaryNode(Opcode::IntMul, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -425,25 +363,19 @@ Data* NodeFactory::NewIntMul(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntMulNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntMod(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::IntMod, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
   auto const node = new (zone()) IntModNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntShl(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::IntShl, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK(type->is_integer()) << *left;
   DCHECK_EQ(right->output_type(), int32_type()) << *right;
@@ -451,13 +383,10 @@ Data* NodeFactory::NewIntShl(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntShlNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntShr(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::IntShr, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK(type->is_integer()) << *left;
   DCHECK_EQ(right->output_type(), int32_type()) << *right;
@@ -465,13 +394,10 @@ Data* NodeFactory::NewIntShr(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntShrNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
 Data* NodeFactory::NewIntSub(Data* left, Data* right) {
-  if (auto const present = FindBinaryNode(Opcode::IntSub, left, right))
-    return present->as<Data>();
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer());
@@ -479,7 +405,6 @@ Data* NodeFactory::NewIntSub(Data* left, Data* right) {
     return left;
   auto const node = new (zone()) IntSubNode(type, left, right);
   node->set_id(NewNodeId());
-  RememberBinaryNode(node);
   return node;
 }
 
@@ -548,11 +473,8 @@ Control* NodeFactory::NewRet(Control* control, Effect* effect, Data* data) {
 Data* NodeFactory::NewStaticCast(Type* type, Data* input) {
   if (input->output_type() == type)
     return input;
-  if (auto const present = FindUnaryNode(Opcode::StaticCast, type, input))
-    return present->as<Data>();
   auto const node = new (zone()) StaticCastNode(type, input);
   node->set_id(NewNodeId());
-  RememberUnaryNode(node);
   return node;
 }
 
@@ -573,20 +495,6 @@ Tuple* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
   }
   node->set_id(NewNodeId());
   return node;
-}
-
-void NodeFactory::RememberBinaryNode(Node* node) {
-  return node_cache_->RememberBinaryNode(node);
-}
-
-void NodeFactory::RememberProjectionNode(Node* node,
-                                         Node* input,
-                                         size_t field) {
-  return node_cache_->RememberProjectionNode(node, input, field);
-}
-
-void NodeFactory::RememberUnaryNode(Node* node) {
-  return node_cache_->RememberUnaryNode(node);
 }
 
 }  // namespace optimizer
