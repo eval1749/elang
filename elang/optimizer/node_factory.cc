@@ -10,6 +10,7 @@
 #include "elang/optimizer/node_factory.h"
 
 #include "base/logging.h"
+#include "base/numerics/safe_conversions.h"
 #include "elang/base/zone.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
@@ -429,6 +430,18 @@ size_t NodeFactory::NewNodeId() {
 
 Data* NodeFactory::NewNull(Type* type) {
   return node_cache_->NewNull(type);
+}
+
+Data* NodeFactory::NewLength(Data* array, size_t rank) {
+  auto const array_pointer_type = array->output_type()->as<PointerType>();
+  DCHECK(array_pointer_type) << *array->output_type();
+  auto const array_type = array_pointer_type->pointee()->as<ArrayType>();
+  DCHECK(array_type) << *array->output_type();
+  DCHECK_LT(rank, array_type->rank());
+  auto const rank_node = NewInt32(base::checked_cast<int32_t>(rank));
+  auto const node = new (zone()) LengthNode(int32_type(), array, rank_node);
+  node->set_id(NewNodeId());
+  return node;
 }
 
 PhiOwnerNode* NodeFactory::NewMerge(const std::vector<Control*>& controls) {

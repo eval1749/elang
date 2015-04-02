@@ -66,6 +66,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Data* NewIntCmp(IntCondition condition, Data* left, Data* right);
   Data* NewIntShl(Data* left, Data* right);
   Data* NewIntShr(Data* left, Data* right);
+  Data* NewLength(Data* array, size_t rank);
   Data* NewParameter(EntryNode* entry_node, size_t field);
   Control* NewSwitch(Control* control, Data* value);
   Control* NewThrow(Control* control, Data* value);

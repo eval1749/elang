@@ -56,6 +56,7 @@ namespace optimizer {
   V(If, "if", Control)                               \
   V(IntShl, "shl", Data)                             \
   V(IntShr, "shr", Data)                             \
+  V(Length, "length", Data)                          \
   V(StackAlloc, "alloca", Data)                      \
   V(Switch, "switch", Control)                       \
   V(Throw, "throw", Control)

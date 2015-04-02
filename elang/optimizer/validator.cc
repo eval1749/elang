@@ -7,6 +7,7 @@
 #include "elang/optimizer/validator.h"
 
 #include "base/logging.h"
+#include "base/numerics/safe_conversions.h"
 #include "elang/optimizer/depth_first_traversal.h"
 #include "elang/optimizer/error_code.h"
 #include "elang/optimizer/factory.h"
@@ -50,6 +51,7 @@ class Validator::Context : public NodeVisitor {
   void VisitIf(IfNode* node) final;
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
+  void VisitLength(LengthNode* node) final;
   void VisitPhi(PhiNode* node) final;
   void VisitRet(RetNode* node) final;
   void VisitParameter(ParameterNode* node) final;
@@ -240,6 +242,23 @@ void Validator::Context::VisitIfTrue(IfTrueNode* node) {
     ErrorInInput(node, 0);
   if (!node->input(0)->is<IfNode>())
     ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitLength(LengthNode* node) {
+  auto const pointer_type = node->input(0)->output_type()->as<PointerType>();
+  if (!pointer_type)
+    return ErrorInInput(node, 0);
+  auto const array_type = pointer_type->pointee()->as<ArrayType>();
+  if (!array_type)
+    return ErrorInInput(node, 0);
+  if (node->output_type() != array_type->element_type())
+    return Error(ErrorCode::ValidateNodeInvalidOutput, node);
+
+  auto const rank_node = node->input(1)->as<Int32Node>();
+  if (!rank_node)
+    return ErrorInInput(node, 1);
+  if (rank_node->data() >= base::checked_cast<int>(array_type->rank()))
+    return ErrorInInput(node, 1);
 }
 
 void Validator::Context::VisitParameter(ParameterNode* node) {

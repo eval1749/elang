@@ -85,6 +85,10 @@ Control* NodeFactoryUser::NewJump(Control* control) {
   return node_factory_->NewJump(control);
 }
 
+Data* NodeFactoryUser::NewLength(Data* array, size_t rank) {
+  return node_factory_->NewLength(array, rank);
+}
+
 PhiOwnerNode* NodeFactoryUser::NewMerge(const std::vector<Control*>& inputs) {
   return node_factory_->NewMerge(inputs);
 }

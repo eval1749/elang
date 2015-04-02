@@ -266,6 +266,14 @@ V(Shl, "shl")
 V(Shr, "shr")
 #undef V
 
+TEST_F(NodeTest, LengthNode) {
+  auto const array_pointer =
+      NewReference(NewPointerType(NewArrayType(char_type(), {-1})),
+                   NewAtomicString(L"Sample.array_"));
+  auto const node = NewLength(array_pointer, 0);
+  EXPECT_EQ("int32 %r1 = length(char[]* Sample.array_, 0)", ToString(node));
+}
+
 TEST_F(NodeTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewJump(NewControlGet(function->entry_node(), 0));
