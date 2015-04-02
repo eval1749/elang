@@ -98,16 +98,21 @@ Data* NodeFactory::DefaultValueOf(Type* type) {
   return factory.value();
 }
 
-Tuple* NodeFactory::NewCall(Effect* effect, Data* callee, Node* arguments) {
+Tuple* NodeFactory::NewCall(Control* control,
+                            Effect* effect,
+                            Data* callee,
+                            Node* arguments) {
+  DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(callee->IsValidData()) << *callee;
   DCHECK(callee->output_type()->is<FunctionType>()) << *callee;
   DCHECK(arguments->IsValidData()) << *arguments;
   auto const output_type =
-      NewTupleType({effect_type(),
+      NewTupleType({control_type(),
+                    effect_type(),
                     callee->output_type()->as<FunctionType>()->return_type()});
   auto const node =
-      new (zone()) CallNode(output_type, effect, callee, arguments);
+      new (zone()) CallNode(output_type, control, effect, callee, arguments);
   node->set_id(NewNodeId());
   return node;
 }

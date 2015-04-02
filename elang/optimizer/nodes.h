@@ -688,6 +688,23 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 
 #define V(Name, mnemonic, Base)                              \
   class ELANG_OPTIMIZER_EXPORT Name##Node final              \
+      : public NodeTemplate<4, Base> {                       \
+    DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base); \
+                                                             \
+   private:                                                  \
+    Name##Node(Type* output_type,                            \
+               Node* input0,                                 \
+               Node* input1,                                 \
+               Node* input2,                                 \
+               Node* input3);                                \
+                                                             \
+    DISALLOW_COPY_AND_ASSIGN(Name##Node);                    \
+  };
+FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
+#undef V
+
+#define V(Name, mnemonic, Base)                              \
+  class ELANG_OPTIMIZER_EXPORT Name##Node final              \
       : public VariadicNodeTemplate<Base> {                  \
     DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(Name##Node, Base); \
                                                              \

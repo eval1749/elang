@@ -173,9 +173,10 @@ void Builder::BindVariable(sm::Variable* variable, ir::Data* value) {
 
 ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   DCHECK(basic_block_) << *callee;
-  auto const call = editor_->NewCall(basic_block_->effect(), callee, arguments);
-  basic_block_->set_effect(editor_->NewEffectGet(call, 0));
-  return editor_->NewGet(call, 1);
+  auto const call = editor_->NewCall(editor_->control(), basic_block_->effect(),
+                                     callee, arguments);
+  basic_block_->set_effect(editor_->NewEffectGet(call, 1));
+  return editor_->NewGet(call, 2);
 }
 
 void Builder::EndBlock(ir::Control* control) {

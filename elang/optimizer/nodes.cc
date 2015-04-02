@@ -458,6 +458,18 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 #undef V
 
+#define V(Name, ...)                                                    \
+  Name##Node::Name##Node(Type* output_type, Node* input0, Node* input1, \
+                         Node* input2, Node* input3)                    \
+      : NodeTemplate(output_type) {                                     \
+    InitInputAt(0, input0);                                             \
+    InitInputAt(1, input1);                                             \
+    InitInputAt(2, input2);                                             \
+    InitInputAt(3, input3);                                             \
+  }
+FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
+#undef V
+
 // Tuple
 Tuple::Tuple(Type* output_type) : Node(output_type) {
   DCHECK(output_type->is<TupleType>());

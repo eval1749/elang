@@ -72,11 +72,14 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Control* NewThrow(Control* control, Data* value);
 
   // Three inputs
-  Tuple* NewCall(Effect* effect, Data* callee, Node* arguments);
   Data* NewLoad(Effect* effect, Data* base_pointer, Data* pointer);
   Control* NewRet(Control* control, Effect* effect, Data* value);
 
   // Four inputs
+  Tuple* NewCall(Control* control,
+                 Effect* effect,
+                 Data* callee,
+                 Node* arguments);
   Effect* NewStore(Effect* effect,
                    Node* base_pointer,
                    Node* pointer,

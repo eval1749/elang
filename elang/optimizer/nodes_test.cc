@@ -37,14 +37,18 @@ TEST_F(NodeTest, CallNode) {
   auto const function = NewSampleFunction(
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
+  auto const control = NewControlGet(entry_node, 0);
+  auto const effect = NewEffectGet(entry_node, 1);
   auto const callee = NewReference(
       NewFunctionType(void_type(), NewTupleType({int32_type(), int64_type()})),
       NewAtomicString(L"Foo"));
   auto const arguments =
       NewTuple({NewParameter(entry_node, 0), NewParameter(entry_node, 1)});
-  auto const node = NewCall(NewEffectGet(entry_node, 1), callee, arguments);
-  EXPECT_EQ("(effect, void) %t8 = call(%e7, void(int32, int64) Foo, %t6)",
-            ToString(node));
+  auto const node = NewCall(control, effect, callee, arguments);
+  EXPECT_EQ(
+      "(control, effect, void) %t9 = call(%c4, %e5, void(int32, int64) Foo, "
+      "%t8)",
+      ToString(node));
 }
 
 TEST_F(NodeTest, CharNode) {

@@ -78,9 +78,10 @@ namespace optimizer {
   V(IntSub, "sub", Data)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) \
-  V(Call, "call", Tuple)                             \
   V(Load, "load", Data)                              \
   V(Ret, "ret", Control)
+
+#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Call, "call", Tuple)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case", Control)                           \
@@ -114,6 +115,7 @@ namespace optimizer {
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)   \
+  FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
 // Forward declarations

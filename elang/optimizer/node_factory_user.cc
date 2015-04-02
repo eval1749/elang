@@ -29,8 +29,11 @@ Data* NodeFactoryUser::void_value() const {
   return node_factory_->void_value();
 }
 
-Tuple* NodeFactoryUser::NewCall(Effect* effect, Data* callee, Node* arguments) {
-  return node_factory_->NewCall(effect, callee, arguments);
+Tuple* NodeFactoryUser::NewCall(Control* control,
+                                Effect* effect,
+                                Data* callee,
+                                Node* arguments) {
+  return node_factory_->NewCall(control, effect, callee, arguments);
 }
 
 Control* NodeFactoryUser::NewControlGet(Tuple* input, size_t field) {
