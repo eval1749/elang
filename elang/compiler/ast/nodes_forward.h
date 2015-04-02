@@ -82,7 +82,8 @@ namespace ast {
   V(Parameter)                        \
   V(Variable)                         \
   V(MethodGroup)                      \
-  V(NamespaceBody)
+  V(NamespaceBody)                    \
+  V(VarDeclaration)
 
 #define FOR_EACH_ABSTRACT_AST_NODE(V) \
   V(BodyNode)                         \

@@ -297,9 +297,15 @@ UsingStatement* Factory::NewUsingStatement(Token* keyword,
   return new (zone_) UsingStatement(keyword, variable, resource, statement);
 }
 
+VarDeclaration* Factory::NewVarDeclaration(Token* token,
+                                           Variable* variable,
+                                           Expression* expression) {
+  return new (zone_) VarDeclaration(token, variable, expression);
+}
+
 VarStatement* Factory::NewVarStatement(
     Token* keyword,
-    const std::vector<ast::Variable*>& variables) {
+    const std::vector<VarDeclaration*>& variables) {
   return new (zone_) VarStatement(zone_, keyword, variables);
 }
 

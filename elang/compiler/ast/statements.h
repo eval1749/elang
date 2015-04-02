@@ -354,22 +354,42 @@ class UsingStatement final : public Statement {
   DISALLOW_COPY_AND_ASSIGN(UsingStatement);
 };
 
+// Represents variable declaration
+//  VarDecl ::= Name '=' Expression
+// Note: A |value| of a variable declared in 'for-each' statement contains
+// invalid value. We can't use it.
+class VarDeclaration final : public NamedNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(VarDeclaration, NamedNode);
+
+ public:
+  Expression* value() const { return value_; }
+  Variable* variable() const { return variable_; }
+  Type* type() const;
+
+ private:
+  VarDeclaration(Token* token, Variable* variable, Expression* value);
+
+  Expression* const value_;
+  Variable* const variable_;
+
+  DISALLOW_COPY_AND_ASSIGN(VarDeclaration);
+};
+
 // Represents 'var' statement:
 //  'var' VarDecl (',' VarDecl)* ';'
-//  VarDecl ::= Name ('=' Expression)
 class VarStatement final : public Statement {
   DECLARE_CONCRETE_AST_NODE_CLASS(VarStatement, Statement);
 
  public:
-  const ZoneVector<Variable*>& variables() const { return variables_; }
+  const ZoneVector<VarDeclaration*>& variables() const { return variables_; }
 
  private:
   // |type_token| comes from variable type node.
   VarStatement(Zone* zone,
                Token* type_token,
-               const std::vector<Variable*>& variables);
+               const std::vector<VarDeclaration*>& variables);
 
-  const ZoneVector<Variable*> variables_;
+  const ZoneVector<VarDeclaration*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(VarStatement);
 };

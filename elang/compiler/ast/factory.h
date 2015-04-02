@@ -134,8 +134,11 @@ class Factory final {
                                     Variable* variable,
                                     Expression* resource,
                                     Statement* statement);
+  VarDeclaration* NewVarDeclaration(Token* token,
+                                    Variable* variable,
+                                    Expression* expression);
   VarStatement* NewVarStatement(Token* keyword,
-                                const std::vector<Variable*>& variables);
+                                const std::vector<VarDeclaration*>& variables);
   WhileStatement* NewWhileStatement(Token* keyword,
                                     Expression* condition,
                                     Statement* statement);

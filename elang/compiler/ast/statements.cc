@@ -174,9 +174,24 @@ UsingStatement::UsingStatement(Token* keyword,
   DCHECK(!variable_ || variable_->value() == resource_);
 }
 
+VarDeclaration::VarDeclaration(Token* token,
+                               Variable* variable,
+                               Expression* value)
+    : NamedNode(nullptr, token, variable->name()),
+      value_(value),
+      variable_(variable) {
+  DCHECK(token == TokenType::Assign || token == TokenType::Colon);
+  DCHECK(value_);
+  DCHECK(variable_);
+}
+
+Type* VarDeclaration::type() const {
+  return variable_->type();
+}
+
 VarStatement::VarStatement(Zone* zone,
                            Token* type_token,
-                           const std::vector<Variable*>& variables)
+                           const std::vector<VarDeclaration*>& variables)
     : Statement(type_token), variables_(zone, variables) {
 }
 
