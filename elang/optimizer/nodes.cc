@@ -9,6 +9,7 @@
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_visitor.h"
+#include "elang/optimizer/opcode.h"
 #include "elang/optimizer/types.h"
 
 namespace elang {

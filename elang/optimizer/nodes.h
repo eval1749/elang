@@ -168,17 +168,6 @@ class InputHolder final : public ZoneAllocated {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Opcode
-//
-enum class Opcode {
-#define V(Name, ...) Name,
-  FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
-#undef V
-      NumberOfOpcodes,
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // PhiInputHolder
 //
 class PhiInputHolder final : public ZoneAllocated {

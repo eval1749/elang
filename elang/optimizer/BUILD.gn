@@ -39,6 +39,7 @@ component("optimizer") {
     "node_printers.h",
     "node_visitor.cc",
     "node_visitor.h",
+    "opcode.h",
     "optimizer_export.h",
     "sequence_id_source.cc",
     "sequence_id_source.h",
