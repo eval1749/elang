@@ -53,6 +53,7 @@ class NodeCache final : public ZoneUser {
   Node* NewGet(Node* input, size_t field);
   Data* NewNull(Type* type);
   Data* NewReference(Type* type, AtomicString* name);
+  Data* NewSizeOf(Type* type);
 
  private:
 #define V(Name, name, data_type, ...) \
@@ -65,6 +66,7 @@ class NodeCache final : public ZoneUser {
   const std::unique_ptr<SequenceIdSource> node_id_source_;
   std::map<std::tuple<Node*, size_t>, Node*> projection_node_cache_;
   std::map<std::tuple<Type*, AtomicString*>, Data*> reference_cache_;
+  std::unordered_map<Type*, Data*> sizeof_cache_;
   std::unordered_map<base::StringPiece16, Data*> string_cache_;
   std::map<std::tuple<Opcode, Type*, Node*>, Node*> unary_node_cache_;
   TypeFactory* const type_factory_;

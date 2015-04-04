@@ -45,6 +45,7 @@ class NodePrinter final : public NodeVisitor {
   void VisitIntPtr(IntPtrNode* node) final;
   void VisitNull(NullNode* node) final;
   void VisitReference(ReferenceNode* node) final;
+  void VisitSizeOf(SizeOfNode* node) final;
   void VisitString(StringNode* node) final;
   void VisitUInt16(UInt16Node* node) final;
   void VisitUInt32(UInt32Node* node) final;
@@ -149,6 +150,10 @@ void NodePrinter::VisitNull(NullNode* node) {
 
 void NodePrinter::VisitReference(ReferenceNode* node) {
   ostream_ << *node->output_type() << " " << *node->name();
+}
+
+void NodePrinter::VisitSizeOf(SizeOfNode* node) {
+  ostream_ << "sizeof(" << *node->type_operand() << ")";
 }
 
 void NodePrinter::VisitString(StringNode* node) {

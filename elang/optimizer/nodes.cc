@@ -471,6 +471,12 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V)
 FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 #undef V
 
+// SizeOf
+SizeOfNode::SizeOfNode(Type* uintptr_type, Type* type)
+    : NodeTemplate(uintptr_type), type_operand_(type) {
+  DCHECK(output_type()->is<UIntPtrType>());
+}
+
 // Tuple
 Tuple::Tuple(Type* output_type) : Node(output_type) {
   DCHECK(output_type->is<TupleType>());

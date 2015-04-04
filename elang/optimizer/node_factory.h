@@ -39,6 +39,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   Data* DefaultValueOf(Type* type);
   Data* NewNull(Type* type);
+  Data* NewSizeOf(Type* type);
 
 // Arithmetic nodes
 #define V(Name, ...) Data* New##Name(Data* input0, Data* input1);

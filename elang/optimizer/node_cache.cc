@@ -96,6 +96,16 @@ Data* NodeCache::NewReference(Type* type, AtomicString* name) {
   return new_node;
 }
 
+Data* NodeCache::NewSizeOf(Type* type) {
+  auto const it = sizeof_cache_.find(type);
+  if (it != sizeof_cache_.end())
+    return it->second;
+  auto const new_node =
+      new (zone()) SizeOfNode(type_factory_->uintptr_type(), type);
+  sizeof_cache_[type] = new_node;
+  return new_node;
+}
+
 Data* NodeCache::NewString(Type* type, base::StringPiece16 data) {
   auto const it = string_cache_.find(data);
   if (it != string_cache_.end())

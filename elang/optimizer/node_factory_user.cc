@@ -112,6 +112,10 @@ Control* NodeFactoryUser::NewRet(Control* control, Effect* effect, Data* data) {
   return node_factory_->NewRet(control, effect, data);
 }
 
+Data* NodeFactoryUser::NewSizeOf(Type* type) {
+  return node_factory_->NewSizeOf(type);
+}
+
 Data* NodeFactoryUser::NewStaticCast(Type* output_type, Data* input) {
   return node_factory_->NewStaticCast(output_type, input);
 }

@@ -488,6 +488,10 @@ Control* NodeFactory::NewRet(Control* control, Effect* effect, Data* data) {
   return node;
 }
 
+Data* NodeFactory::NewSizeOf(Type* type) {
+  return node_cache_->NewSizeOf(type);
+}
+
 Data* NodeFactory::NewStaticCast(Type* type, Data* input) {
   if (input->output_type() == type)
     return input;

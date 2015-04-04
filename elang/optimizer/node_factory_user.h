@@ -35,6 +35,8 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Data* true_value() const;
   Data* void_value() const;
 
+  Data* NewSizeOf(Type* type);
+
 // Arithmetic nodes
 #define V(Name, ...) Data* New##Name(Data* input0, Data* input1);
   FOR_EACH_OPTIMIZER_CONCRETE_ARITHMETIC_NODE(V)

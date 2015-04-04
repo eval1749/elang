@@ -313,6 +313,13 @@ TEST_F(NodeTest, RetNode) {
   EXPECT_EQ("control %c6 = ret(%c5, %e4, void)", ToString(node));
 }
 
+TEST_F(NodeTest, SizeOfNode) {
+  auto const node = NewSizeOf(intptr_type());
+  auto const node2 = NewSizeOf(intptr_type());
+  EXPECT_EQ(node, node2);
+  EXPECT_EQ("sizeof(intptr)", ToString(node));
+}
+
 TEST_F(NodeTest, StaticCastNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
