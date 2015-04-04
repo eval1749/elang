@@ -114,7 +114,7 @@ TEST_F(NodesTest, Float64Node) {
 }
 
 #define V(Name, mnemonic)                                                  \
-  TEST_F(NodesTest, Float##Name##Node) {                                    \
+  TEST_F(NodesTest, Float##Name##Node) {                                   \
     auto const function = NewSampleFunction(                               \
         void_type(),                                                       \
         {float32_type(), float32_type(), float64_type(), float64_type()}); \
@@ -200,7 +200,7 @@ TEST_F(NodesTest, Int64Node) {
 }
 
 #define V(Name, mnemonic)                                                   \
-  TEST_F(NodesTest, Int##Name##Node) {                                       \
+  TEST_F(NodesTest, Int##Name##Node) {                                      \
     auto const function = NewSampleFunction(void_type(), {int32_type(),     \
                                                           int32_type(),     \
                                                           int64_type(),     \
@@ -248,7 +248,7 @@ TEST_F(NodesTest, IntCmpNode) {
 }
 
 #define V(Name, mnemonic)                                                   \
-  TEST_F(NodesTest, Int##Name##Node) {                                       \
+  TEST_F(NodesTest, Int##Name##Node) {                                      \
     auto const function = NewSampleFunction(                                \
         void_type(),                                                        \
         {int32_type(), int64_type(), uint32_type(), uint64_type()});        \
@@ -292,6 +292,11 @@ TEST_F(NodesTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewJump(NewControlGet(function->entry_node(), 0));
   EXPECT_EQ("control %c5 = br(%c4)", ToString(node));
+}
+
+TEST_F(NodesTest, LoopNode) {
+  auto const node = NewLoop();
+  EXPECT_EQ("control %c1 = loop()", ToString(node));
 }
 
 TEST_F(NodesTest, ParameterNode) {

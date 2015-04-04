@@ -847,19 +847,6 @@ class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2, Data> {
 
 //////////////////////////////////////////////////////////////////////
 //
-// LoopNode
-//
-class ELANG_OPTIMIZER_EXPORT LoopNode final : public PhiOwnerNode {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(LoopNode, PhiOwnerNode);
-
- private:
-  LoopNode(Type* output_type, Zone* zone);
-
-  DISALLOW_COPY_AND_ASSIGN(LoopNode);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // MergeNode
 //
 class ELANG_OPTIMIZER_EXPORT MergeNode final : public PhiOwnerNode {

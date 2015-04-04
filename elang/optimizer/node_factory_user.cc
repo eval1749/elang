@@ -98,6 +98,10 @@ Data* NodeFactoryUser::NewLoad(Effect* effect,
   return node_factory_->NewLoad(effect, base_pointer, pointer);
 }
 
+Control* NodeFactoryUser::NewLoop() {
+  return node_factory_->NewLoop();
+}
+
 PhiOwnerNode* NodeFactoryUser::NewMerge(const std::vector<Control*>& inputs) {
   return node_factory_->NewMerge(inputs);
 }

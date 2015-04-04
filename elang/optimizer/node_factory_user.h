@@ -90,7 +90,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   // Variable inputs
   Control* NewCase(Control* control, Data* label);
   EffectPhiNode* NewEffectPhi(PhiOwnerNode* owner);
-  Control* NewLoop(Control* control);
+  Control* NewLoop();
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
   Tuple* NewTuple(const std::vector<Node*>& inputs);

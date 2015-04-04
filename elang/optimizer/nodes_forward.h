@@ -85,6 +85,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case", Control)                           \
+  V(Loop, "loop", Control)                           \
   V(Tuple, "tuple", Tuple)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
@@ -96,7 +97,6 @@ namespace optimizer {
   V(FunctionReference, "fn", Data)            \
   V(Get, "get", Data)                         \
   V(IntCmp, "cmp", Data)                      \
-  V(Loop, "loop", Control)                    \
   V(Merge, "merge", Control)                  \
   V(Null, "lit_null", Literal)                \
   V(Parameter, "param", Data)                 \

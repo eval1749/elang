@@ -429,6 +429,12 @@ Control* NodeFactory::NewJump(Control* control) {
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
+Control* NodeFactory::NewLoop() {
+  auto const node = new (zone()) LoopNode(control_type(), zone());
+  node->set_id(NewNodeId());
+  return node;
+}
+
 size_t NodeFactory::NewNodeId() {
   return node_cache_->NewNodeId();
 }
