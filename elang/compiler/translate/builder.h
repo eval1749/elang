@@ -42,18 +42,22 @@ class Builder final : public ZoneOwner {
   bool has_control() const { return basic_block_ != nullptr; }
 
   // Control flow
+  void AppendPhiInput(ir::PhiNode* phi, ir::Control* control, ir::Data* data);
   ir::Control* EndBlockWithBranch(ir::Data* condition);
-  void EndBlockWithJump(ir::Control* target);
+  ir::Control* EndBlockWithJump(ir::Control* target);
   void EndBlockWithRet(ir::Data* data);
   void EndLoopBlock(ir::Data* condition,
                     ir::Control* true_target,
                     ir::Control* false_target);
+  ir::PhiOwnerNode* NewMergeBlock();
   void StartIfBlock(ir::Control* control);
-  ir::Control* StartLoopBlock();
+  ir::Control* StartLoopBlock(ir::PhiOwnerNode* control);
   void StartMergeBlock(ir::PhiOwnerNode* control);
+  ir::Control* StartMergeLoopBlock();
 
   // Effect consumer/producer
   ir::Data* Call(ir::Data* callee, ir::Node* arguments);
+  ir::Data* NewLoad(ir::Data* base_pointer, ir::Data* pointer);
 
   // Variable management
   void AssignVariable(sm::Variable* variable, ir::Data* value);

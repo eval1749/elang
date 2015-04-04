@@ -155,6 +155,13 @@ Builder::~Builder() {
   DCHECK(editor_->Validate()) << editor_->errors();
 }
 
+void Builder::AppendPhiInput(ir::PhiNode* phi,
+                             ir::Control* control,
+                             ir::Data* data) {
+  DCHECK_EQ(editor_->control(), phi->owner());
+  editor_->SetPhiInput(phi, control, data);
+}
+
 void Builder::AssignVariable(sm::Variable* variable, ir::Data* value) {
   DCHECK(basic_block_);
   basic_block_->AssignVariable(variable, value);
@@ -176,6 +183,10 @@ ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   auto const call = editor_->NewCall(editor_->control(), basic_block_->effect(),
                                      callee, arguments);
   basic_block_->set_effect(editor_->NewEffectGet(call, 1));
+  auto const control = editor_->NewControlGet(call, 0);
+  basic_blocks_[control] = basic_block_;
+  editor_->Commit();
+  editor_->Edit(control);
   return editor_->NewGet(call, 2);
 }
 
@@ -195,13 +206,14 @@ ir::Control* Builder::EndBlockWithBranch(ir::Data* condition) {
   return if_node;
 }
 
-void Builder::EndBlockWithJump(ir::Control* target_node) {
+ir::Control* Builder::EndBlockWithJump(ir::Control* target_node) {
   if (!basic_block_)
-    return;
+    return nullptr;
   auto const jump_node = editor_->SetJump(target_node);
   auto const basic_block = basic_block_;
   EndBlock(jump_node);
   PopulatePhiNodesIfNeeded(target_node, basic_block);
+  return jump_node;
 }
 
 void Builder::EndBlockWithRet(ir::Data* data) {
@@ -214,7 +226,6 @@ void Builder::EndLoopBlock(ir::Data* condition,
                            ir::Control* true_target_node,
                            ir::Control* false_target_node) {
   DCHECK(false_target_node->is<ir::PhiOwnerNode>()) << *false_target_node;
-  DCHECK(true_target_node->is<ir::PhiOwnerNode>()) << *true_target_node;
   DCHECK(basic_block_);
 
   auto const if_node = EndBlockWithBranch(condition);
@@ -236,6 +247,15 @@ Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* control,
       new (ZoneOwner::zone()) BasicBlock(control, effect, variables);
   basic_blocks_[control] = basic_block;
   return basic_block;
+}
+
+ir::Data* Builder::NewLoad(ir::Data* base_pointer, ir::Data* pointer) {
+  DCHECK(basic_block_);
+  return editor_->NewLoad(basic_block_->effect(), base_pointer, pointer);
+}
+
+ir::PhiOwnerNode* Builder::NewMergeBlock() {
+  return editor_->NewMerge({});
 }
 
 ir::Data* Builder::ParameterAt(size_t index) {
@@ -274,8 +294,17 @@ void Builder::StartIfBlock(ir::Control* control) {
       NewBasicBlock(control, predecessor->effect(), predecessor->variables());
 }
 
+ir::Control* Builder::StartLoopBlock(ir::PhiOwnerNode* loop_end) {
+  DCHECK(!basic_block_);
+  auto const effect_phi = editor_->NewEffectPhi(loop_end);
+  auto const loop_control = editor_->NewLoop();
+  basic_block_ = NewBasicBlock(loop_control, effect_phi, {});
+  editor_->Edit(loop_control);
+  return loop_control;
+}
+
 // Start loop block and populate variable table with phi nodes.
-ir::Control* Builder::StartLoopBlock() {
+ir::Control* Builder::StartMergeLoopBlock() {
   DCHECK(basic_block_);
   auto const loop_control = editor_->NewMerge({});
   auto const jump_node = editor_->SetJump(loop_control);
@@ -307,8 +336,8 @@ void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
   if (!control->CountInputs())
     return;
 
-  auto effect = static_cast<ir::Effect*>(nullptr);
-  auto effect_phi = static_cast<ir::EffectPhiNode*>(nullptr);
+  auto effect_phi = control->effect_phi();
+  auto effect = static_cast<ir::Effect*>(effect_phi);
   Variables variables;
   std::unordered_map<sm::Variable*, ir::PhiNode*> variable_phis;
 

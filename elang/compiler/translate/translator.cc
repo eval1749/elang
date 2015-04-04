@@ -502,7 +502,7 @@ void Translator::VisitDoStatement(ast::DoStatement* node) {
   auto const break_block = NewMerge({});
   auto const continue_block = NewMerge({});
 
-  auto const loop_block = builder_->StartLoopBlock();
+  auto const loop_block = builder_->StartMergeLoopBlock();
   {
     ScopedBreakContext scope(this, break_block, continue_block);
     TranslateStatement(node->statement());
@@ -523,6 +523,95 @@ void Translator::VisitExpressionList(ast::ExpressionList* node) {
 
 void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   Translate(node->expression());
+}
+
+//    for (var element : array)
+//      use(element);
+//
+//    head:
+//      ...
+//      element elty* %start = %array, 0
+//      length int32 %length = %array, 0
+//      element elty* %end = %array, %length
+//      br while
+//    loop:
+//      load elty %element = %array, %ptr,
+//      call $"use", %element
+//      br continue
+//    continue:
+//      static_cast uintptr %ptrint, %ptr
+//      add elty* %ptrint2 = %ptrint, sizeof(elty)
+//      static_cast elty* %ptr2 = %ptrint2
+//      br while
+//    while:
+//      phi elty* %ptr = start: %start, continue: %ptr2
+//      static_cast uintptr %1 = %ptr
+//      static_cast uintptr %2 = %end
+//      lt %cmp = %1, %2
+//      br %cmp, loop, break
+//    break:
+//      ...
+void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
+  auto const array = Translate(node->enumerable());
+  if (!array->output_type()->is<ir::PointerType>()) {
+    Error(ErrorCode::CodeGeneratorStatementNotYetImplemented, node);
+    return;
+  }
+  auto const array_type = array->output_type()
+                              ->as<ir::PointerType>()
+                              ->pointee()
+                              ->as<ir::ArrayType>();
+  if (!array_type) {
+    Error(ErrorCode::CodeGeneratorStatementNotYetImplemented, node);
+    return;
+  }
+
+  auto const continue_block = builder_->NewMergeBlock();
+  auto const while_block = builder_->NewMergeBlock();
+  auto const break_block = builder_->NewMergeBlock();
+
+  auto const element_type = array_type->as<ir::ArrayType>()->element_type();
+
+  auto const element_pointer_type = NewPointerType(element_type);
+  auto const start_element_pointer = NewElement(array, NewInt32(0));
+  auto const end_element_pointer = NewElement(array, NewLength(array, 0));
+  auto const head_end = builder_->EndBlockWithJump(while_block);
+
+  auto const element_pointer_phi = NewPhi(element_pointer_type, while_block);
+
+  auto const loop_block = builder_->StartLoopBlock(while_block);
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    auto const element_value = builder_->NewLoad(array, element_pointer_phi);
+    auto const variable = ValueOf(node->variable())->as<sm::Variable>();
+    DCHECK(variable);
+    variables_.push_back(variable);
+    builder_->BindVariable(variable, element_value);
+    TranslateStatement(node->statement());
+    builder_->UnbindVariable(variable);
+    variables_.pop_back();
+  }
+  builder_->EndBlockWithJump(continue_block);
+
+  builder_->StartMergeBlock(continue_block);
+  auto const pointer_int = NewStaticCast(uintptr_type(), element_pointer_phi);
+  auto const pointer_add = NewIntAdd(pointer_int, NewSizeOf(element_type));
+  auto const element_pointer = NewStaticCast(element_pointer_type, pointer_add);
+  auto const continue_end = builder_->EndBlockWithJump(while_block);
+
+  builder_->StartMergeBlock(while_block);
+  builder_->AppendPhiInput(element_pointer_phi, head_end,
+                           start_element_pointer);
+  builder_->AppendPhiInput(element_pointer_phi, continue_end, element_pointer);
+  auto const left = NewStaticCast(uintptr_type(), element_pointer_phi);
+  auto const right = NewStaticCast(uintptr_type(), end_element_pointer);
+  auto const compare =
+      NewIntCmp(ir::IntCondition::UnsignedLessThan, left, right);
+  builder_->EndLoopBlock(compare, loop_block, break_block);
+
+  if (!break_block->CountInputs())
+    return;
+  builder_->StartMergeBlock(break_block);
 }
 
 void Translator::VisitIfStatement(ast::IfStatement* node) {

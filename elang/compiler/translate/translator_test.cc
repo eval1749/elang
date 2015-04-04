@@ -56,19 +56,22 @@ TEST_F(TranslatorTest, Calls) {
       "0002: effect %e5 = effect_get(%t1, 1)\n"
       "0003: (control, effect, void) %t8 = call(%c4, %e5, void(void) "
       "System.Void Sample.Fn0(), void)\n"
-      "0004: effect %e9 = effect_get(%t8, 1)\n"
-      "0005: int32 %r6 = param(%t1, 0)\n"
-      "0006: (control, effect, int32) %t11 = call(%c4, %e9, int32(int32) "
+      "0004: control %c10 = control_get(%t8, 0)\n"
+      "0005: effect %e9 = effect_get(%t8, 1)\n"
+      "0006: int32 %r6 = param(%t1, 0)\n"
+      "0007: (control, effect, int32) %t12 = call(%c10, %e9, int32(int32) "
       "System.Int32 Sample.Fn1(System.Int32), %r6)\n"
-      "0007: effect %e12 = effect_get(%t11, 1)\n"
-      "0008: int32 %r7 = param(%t1, 1)\n"
-      "0009: (int32, int32) %t14 = tuple(%r6, %r7)\n"
-      "0010: (control, effect, int32) %t15 = call(%c4, %e12, int32(int32, "
-      "int32) System.Int32 Sample.Fn2(System.Int32, System.Int32), %t14)\n"
-      "0011: effect %e16 = effect_get(%t15, 1)\n"
-      "0012: control %c18 = ret(%c4, %e16, void)\n"
-      "0013: control %c2 = merge(%c18)\n"
-      "0014: void %r3 = exit(%c2)\n",
+      "0008: control %c14 = control_get(%t12, 0)\n"
+      "0009: effect %e13 = effect_get(%t12, 1)\n"
+      "0010: int32 %r7 = param(%t1, 1)\n"
+      "0011: (int32, int32) %t16 = tuple(%r6, %r7)\n"
+      "0012: (control, effect, int32) %t17 = call(%c14, %e13, int32(int32, "
+      "int32) System.Int32 Sample.Fn2(System.Int32, System.Int32), %t16)\n"
+      "0013: control %c19 = control_get(%t17, 0)\n"
+      "0014: effect %e18 = effect_get(%t17, 1)\n"
+      "0015: control %c21 = ret(%c19, %e18, void)\n"
+      "0016: control %c2 = merge(%c21)\n"
+      "0017: void %r3 = exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -105,6 +108,55 @@ TEST_F(TranslatorTest, DoWhile) {
       "0020: control %c23 = ret(%c8, %e12, %r15)\n"
       "0021: control %c2 = merge(%c23)\n"
       "0022: void %r3 = exit(%c2)\n",
+      Translate("Sample.Foo"));
+}
+
+TEST_F(TranslatorTest, ForEach) {
+  Prepare(
+      "class Sample {"
+      "  static void Foo(char[] args) {"
+      "    for (var arg : args)"
+      "      Use(arg);"
+      "  }"
+      "  static extern void Use(char x);"
+      "}");
+  EXPECT_EQ(
+      "function1 void(char[]*)\n"
+      "0000: (control, effect, char[]*) %t1 = entry()\n"
+      "0001: control %c4 = control_get(%t1, 0)\n"
+      "0002: control %c13 = br(%c4)\n"
+      "0003: control %c31 = if_true(%c30)\n"
+      "0004: control %c32 = br(%c31)\n"
+      "0005: control %c16 = loop(%c32)\n"
+      "0006: effect %e5 = effect_get(%t1, 1)\n"
+      "0007: effect %e19 = effect_get(%t18, 1)\n"
+      "0008: effect %e15 = effect_phi(%c13: %e5, %c26: %e19)\n"
+      "0009: char[]* %r6 = param(%t1, 0)\n"
+      "0010: char* %r10 = element(%r6, 0)\n"
+      "0011: uintptr %r23 = static_cast(%r14)\n"
+      "0012: uintptr %r24 = add(%r23, sizeof(char))\n"
+      "0013: char* %r25 = static_cast(%r24)\n"
+      "0014: char* %r14 = phi(%c13: %r10, %c26: %r25)\n"
+      "0015: char %r17 = load(%e15, %r6, %r14)\n"
+      "0016: (control, effect, void) %t18 = call(%c16, %e15, void(char) "
+      "System.Void Sample.Use(System.Char), %r17)\n"
+      "0017: control %c20 = control_get(%t18, 0)\n"
+      "0018: control %c22 = br(%c20)\n"
+      "0019: control %c7 = merge(%c22)\n"
+      "0020: control %c26 = br(%c7)\n"
+      "0021: control %c8 = merge(%c13, %c26)\n"
+      "0022: uintptr %r27 = static_cast(%r14)\n"
+      "0023: int32 %r11 = length(%r6, 0)\n"
+      "0024: char* %r12 = element(%r6, %r11)\n"
+      "0025: uintptr %r28 = static_cast(%r12)\n"
+      "0026: bool %r29 = cmp_ult(%r27, %r28)\n"
+      "0027: control %c30 = if(%c8, %r29)\n"
+      "0028: control %c33 = if_false(%c30)\n"
+      "0029: control %c34 = br(%c33)\n"
+      "0030: control %c9 = merge(%c34)\n"
+      "0031: control %c35 = ret(%c9, %e15, void)\n"
+      "0032: control %c2 = merge(%c35)\n"
+      "0033: void %r3 = exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
