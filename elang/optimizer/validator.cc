@@ -158,14 +158,18 @@ void Validator::Context::VisitEffectPhi(EffectPhiNode* node) {
 }
 
 void Validator::Context::VisitElement(ElementNode* node) {
-  auto const pointer_type = node->input(0)->output_type()->as<PointerType>();
-  if (!pointer_type)
+  auto const array_pointer_type =
+      node->input(0)->output_type()->as<PointerType>();
+  if (!array_pointer_type)
     return ErrorInInput(node, 0);
-  auto const array_type = pointer_type->pointee()->as<ArrayType>();
+  auto const array_type = array_pointer_type->pointee()->as<ArrayType>();
   if (!array_type)
     return ErrorInInput(node, 0);
-  if (node->output_type() != array_type->element_type())
+
+  auto const pointer_type = node->output_type()->as<PointerType>();
+  if (pointer_type && (pointer_type->pointee() != array_type->element_type()))
     return Error(ErrorCode::ValidateNodeInvalidOutput, node);
+
   if (array_type->rank() == 1) {
     if (!node->input(1)->output_type()->is<Int32Type>())
       ErrorInInput(node, 1);
@@ -236,8 +240,6 @@ void Validator::Context::VisitLength(LengthNode* node) {
   auto const array_type = pointer_type->pointee()->as<ArrayType>();
   if (!array_type)
     return ErrorInInput(node, 0);
-  if (node->output_type() != array_type->element_type())
-    return Error(ErrorCode::ValidateNodeInvalidOutput, node);
 
   auto const rank_node = node->input(1)->as<Int32Node>();
   if (!rank_node)
