@@ -278,6 +278,16 @@ TEST_F(NodeTest, LengthNode) {
   EXPECT_EQ("int32 %r1 = length(char[]* Sample.array_, 0)", ToString(node));
 }
 
+TEST_F(NodeTest, LoadNode) {
+  auto const function =
+      NewSampleFunction(void_type(), NewPointerType(char_type()));
+  auto const entry_node = function->entry_node();
+  auto const effect = NewEffectGet(entry_node, 1);
+  auto const param = NewParameter(entry_node, 0);
+  auto const node = NewLoad(effect, param, param);
+  EXPECT_EQ("char %r6 = load(%e4, %r5, %r5)", ToString(node));
+}
+
 TEST_F(NodeTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = NewJump(NewControlGet(function->entry_node(), 0));

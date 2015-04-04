@@ -92,6 +92,12 @@ Data* NodeFactoryUser::NewLength(Data* array, size_t rank) {
   return node_factory_->NewLength(array, rank);
 }
 
+Data* NodeFactoryUser::NewLoad(Effect* effect,
+                               Data* base_pointer,
+                               Data* pointer) {
+  return node_factory_->NewLoad(effect, base_pointer, pointer);
+}
+
 PhiOwnerNode* NodeFactoryUser::NewMerge(const std::vector<Control*>& inputs) {
   return node_factory_->NewMerge(inputs);
 }

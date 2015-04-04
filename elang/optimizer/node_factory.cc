@@ -449,6 +449,15 @@ Data* NodeFactory::NewLength(Data* array, size_t rank) {
   return node;
 }
 
+Data* NodeFactory::NewLoad(Effect* effect, Data* base_pointer, Data* pointer) {
+  auto const pointer_type = pointer->output_type()->as<PointerType>();
+  DCHECK(pointer_type) << *pointer;
+  auto const node = new (zone())
+      LoadNode(pointer_type->pointee(), effect, base_pointer, pointer);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 PhiOwnerNode* NodeFactory::NewMerge(const std::vector<Control*>& controls) {
   auto const node = new (zone()) MergeNode(control_type(), zone());
   node->set_id(NewNodeId());

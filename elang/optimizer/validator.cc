@@ -52,6 +52,7 @@ class Validator::Context : public NodeVisitor {
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
   void VisitLength(LengthNode* node) final;
+  void VisitLoad(LoadNode* node) final;
   void VisitPhi(PhiNode* node) final;
   void VisitRet(RetNode* node) final;
   void VisitParameter(ParameterNode* node) final;
@@ -243,6 +244,20 @@ void Validator::Context::VisitLength(LengthNode* node) {
     return ErrorInInput(node, 1);
   if (rank_node->data() >= base::checked_cast<int>(array_type->rank()))
     return ErrorInInput(node, 1);
+}
+
+void Validator::Context::VisitLoad(LoadNode* node) {
+  if (!node->input(0)->IsValidEffect())
+    ErrorInInput(node, 0);
+  if (!node->input(1)->IsValidData())
+    ErrorInInput(node, 1);
+  if (!node->input(1)->output_type()->is<PointerType>())
+    ErrorInInput(node, 1);
+  if (!node->input(2)->IsValidData())
+    ErrorInInput(node, 2);
+  auto const pointer_type = node->input(2)->output_type()->as<PointerType>();
+  if (!pointer_type || node->output_type() != pointer_type->pointee())
+    ErrorInInput(node, 1);
 }
 
 void Validator::Context::VisitParameter(ParameterNode* node) {
