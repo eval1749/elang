@@ -212,10 +212,14 @@ void NameResolver::ReferenceResolver::VisitTypeNameReference(
 // NameResolver
 //
 NameResolver::NameResolver(CompilationSession* session)
-    : CompilationSessionUser(session), factory_(new sm::Factory()) {
+    : CompilationSessionUser(session) {
 }
 
 NameResolver::~NameResolver() {
+}
+
+sm::Factory* NameResolver::factory() const {
+  return session()->semantics_factory();
 }
 
 void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Semantic* node) {

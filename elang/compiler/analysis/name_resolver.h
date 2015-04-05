@@ -43,7 +43,7 @@ class NameResolver final : public CompilationSessionUser {
   explicit NameResolver(CompilationSession* session);
   ~NameResolver();
 
-  sm::Factory* factory() const { return factory_.get(); }
+  sm::Factory* factory() const;
 
   // Registering functions.
   void DidResolve(ast::NamedNode* ast_node, sm::Semantic* node);
@@ -62,8 +62,6 @@ class NameResolver final : public CompilationSessionUser {
 
   // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
   ast::ContainerNode* GetUsingReference(ast::NamedNode* node);
-
-  const std::unique_ptr<sm::Factory> factory_;
 
   // Mapping from |Alias| or |Import| to |ContainerNode|.
   std::unordered_map<ast::NamedNode*, ast::ContainerNode*> using_map_;

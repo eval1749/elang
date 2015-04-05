@@ -13,6 +13,7 @@
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
+#include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/token_data.h"
 
 namespace elang {
@@ -37,6 +38,10 @@ class Method;
 class NamedNode;
 class Namespace;
 class NamespaceBody;
+}
+
+namespace sm {
+class Factory;
 }
 
 class CompilationUnit;
@@ -74,6 +79,7 @@ class CompilationSession final : public ZoneOwner {
     return global_namespace_body_;
   }
   Semantics* semantics() const { return semantics_.get(); }
+  sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   ast::NamespaceBody* system_namespace_body() const {
     return system_namespace_body_;
@@ -122,9 +128,10 @@ class CompilationSession final : public ZoneOwner {
   // The result of compilation.
   std::unordered_map<ast::Method*, hir::Function*> function_map_;
   std::unordered_map<ast::Method*, ir::Function*> ir_function_map_;
-  const std::unique_ptr<TokenFactory> token_factory_;
   const std::unique_ptr<PredefinedNames> predefined_names_;
   const std::unique_ptr<Semantics> semantics_;
+  const std::unique_ptr<sm::Factory> semantics_factory_;
+  const std::unique_ptr<TokenFactory> token_factory_;
   std::vector<ErrorData*> warnings_;
 
   const std::unique_ptr<SourceCode> source_code_;
