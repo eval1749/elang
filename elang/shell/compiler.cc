@@ -310,7 +310,7 @@ void Compiler::AddSourceFile(const base::FilePath& file_path) {
 }
 
 int Compiler::CompileAndGo() {
-  if (!session()->errors().empty())
+  if (ReportErrors())
     return 1;
 
   auto const command_line = base::CommandLine::ForCurrentProcess();
@@ -425,9 +425,9 @@ int Compiler::CompileAndGo() {
   return mc_function->Call<int, vm::impl::Vector<vm::impl::String*>*>(args);
 }
 
-void Compiler::ReportErrors() {
+bool Compiler::ReportErrors() {
   if (session()->errors().empty())
-    return;
+    return false;
 
   for (auto const error : session()->errors()) {
     auto const& location = error->location();
@@ -435,6 +435,7 @@ void Compiler::ReportErrors() {
               << location.start().line() + 1
               << "): " << ReadableErrorData(*error) << std::endl;
   }
+  return false;
 }
 
 }  // namespace shell

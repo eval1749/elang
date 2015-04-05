@@ -36,13 +36,13 @@ class Compiler final {
   // Run |Main| method with command line arguments.
   int CompileAndGo();
 
-  // Report compilation errors so far.
-  void ReportErrors();
-
  private:
   typedef CompilationSession CompilationSession;
 
   CompilationSession* session() { return session_.get(); }
+
+  // Report compilation errors so far.
+  bool ReportErrors();
 
   const std::vector<base::string16> args_;
   std::unique_ptr<CompilationSession> session_;

@@ -39,11 +39,7 @@ extern "C" int main() {
     base::FilePath file_path(file_name);
     compiler.AddSourceFile(base::MakeAbsoluteFilePath(file_path));
   }
-  auto exit_code = compiler.CompileAndGo();
-  if (!exit_code)
-    return 0;
-  compiler.ReportErrors();
-  return exit_code;
+  return compiler.CompileAndGo();
 }
 
 }  // namespace shell
