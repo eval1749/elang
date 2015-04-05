@@ -53,6 +53,10 @@ struct TypeResolver::NumericType {
   int size;
 
   NumericType(Kind kind, int size) : kind(kind), size(size) {}
+
+  bool is_float() const { return kind == Kind::Float; }
+  bool is_int() const { return kind == Kind::Int || kind == Kind::UInt; }
+  bool is_none() const { return kind == Kind::None; }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -179,6 +183,18 @@ ts::Value* TypeResolver::PromoteNumericType(NumericType left_type,
                                                          : uint32_value();
   return left_type.size == 64 || right_type.size == 64 ? int64_value()
                                                        : int32_value();
+}
+
+ts::Value* TypeResolver::PromoteNumericType(NumericType type) const {
+  switch (type.kind) {
+    case NumericType::Kind::Float:
+      return type.size == 64 ? float64_value() : float32_value();
+    case NumericType::Kind::Int:
+      return type.size == 64 ? int64_value() : int32_value();
+    case NumericType::Kind::UInt:
+      return type.size == 64 ? uint64_value() : uint32_value();
+  }
+  return empty_value();
 }
 
 void TypeResolver::ProduceSemantics(ts::Value* value, ast::Node* ast_node) {
@@ -482,6 +498,25 @@ void TypeResolver::VisitConditional(ast::Conditional* ast_node) {
   ProduceUnifiedResult(Unify(false_value, true_value), ast_node);
 }
 
+// Post/pre decrement/increment
+//
+void TypeResolver::VisitIncrementExpression(ast::IncrementExpression* node) {
+  auto const place = node->expression();
+  ts::Evaluator evaluator(type_factory());
+  auto const operand = evaluator.Evaluate(Resolve(place, any_value()));
+  auto const numeric_type = NumericTypeOf(operand);
+  if (numeric_type.is_none()) {
+    Error(ErrorCode::TypeResolverIncrementExpressionType, node->expression());
+    return;
+  }
+  if (!place->is<ast::VariableReference>()) {
+    // TODO(eval1749) NYI: checking field access and property access
+    Error(ErrorCode::TypeResolverIncrementExpressionPlace, node->expression());
+    return;
+  }
+  ProduceSemantics(PromoteNumericType(numeric_type), node);
+}
+
 // `null` => |NullValue(context_->value)|
 // others => |LiteralValue(type of literal data)|
 void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
@@ -513,6 +548,27 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
 void TypeResolver::VisitParameterReference(ast::ParameterReference* reference) {
   auto const value = variable_tracker_->RecordGet(reference->parameter());
   ProduceUnifiedResult(value, reference);
+}
+
+//  '!' bool
+//  '~' int|uint
+//  '+' numeric
+//  '-' numeric
+void TypeResolver::VisitUnaryOperation(ast::UnaryOperation* node) {
+  if (node->op() == TokenType::Not)
+    return ProduceUnifiedResult(ResolveAsBool(node->expression()), node);
+
+  auto const operand = Resolve(node->expression(), any_value());
+  auto const numeric_type = NumericTypeOf(operand);
+  if (numeric_type.is_none()) {
+    Error(ErrorCode::TypeResolverUnaryOperationType, node->expression());
+    return;
+  }
+  if (node->op() == TokenType::BitNot && numeric_type.is_float()) {
+    Error(ErrorCode::TypeResolverUnaryOperationType, node->expression());
+    return;
+  }
+  ProduceSemantics(PromoteNumericType(numeric_type), node);
 }
 
 void TypeResolver::VisitVariableReference(ast::VariableReference* reference) {

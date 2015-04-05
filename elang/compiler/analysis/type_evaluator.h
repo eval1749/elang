@@ -27,7 +27,7 @@ class Evaluator final : public FactoryUser {
   explicit Evaluator(Factory* factory);
   ~Evaluator();
 
-  // Returns atomic type if possible, otherwise specify value.
+  // Returns atomic type if possible, otherwise passed |value|.
   Value* Evaluate(Value* value);
 
   // The entry point of |Evaluator|.

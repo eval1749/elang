@@ -489,6 +489,17 @@ TEST_F(MethodAnalyzerTest, IfErrorCondition) {
   EXPECT_EQ("TypeResolver.Expression.NotBool(36) Foo\n", Analyze());
 }
 
+// Increment
+TEST_F(MethodAnalyzerTest, Increment) {
+  Prepare(
+      "class Sample {"
+      "  void Foo() { var x = 0; ++x; x++; }"
+      "}");
+  EXPECT_EQ("", Analyze());
+  EXPECT_EQ("System.Int32\n", QuerySemantics(TokenType::Increment));
+  EXPECT_EQ("System.Int32\n", QuerySemantics(TokenType::PostIncrement));
+}
+
 // Method resolution
 TEST_F(MethodAnalyzerTest, Method) {
   Prepare(

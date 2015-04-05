@@ -64,6 +64,7 @@ class TypeResolver final : public Analyzer,
 
   ts::Value* PromoteNumericType(NumericType left_type,
                                 NumericType right_type) const;
+  ts::Value* PromoteNumericType(NumericType type) const;
 
   void ProduceResolved(ast::Expression* expression,
                        ts::Value* value,
@@ -84,8 +85,10 @@ class TypeResolver final : public Analyzer,
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitConditional(ast::Conditional* node) final;
+  void VisitIncrementExpression(ast::IncrementExpression* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
+  void VisitUnaryOperation(ast::UnaryOperation* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;
 
   Context* context_;
