@@ -252,6 +252,16 @@ TEST_F(NodesTest, IntCmpNode) {
   EXPECT_EQ("bool %r9 = cmp_ne(%r8, %r7)", ToString(node64));
 }
 
+TEST_F(NodesTest, IntCmpNodePointerType) {
+  auto const function = NewSampleFunction(
+      void_type(),
+      {NewPointerType(int32_type()), NewPointerType(int32_type())});
+  auto const entry_node = function->entry_node();
+  auto const node = NewIntCmp(IntCondition::Equal, NewParameter(entry_node, 0),
+                              NewParameter(entry_node, 1));
+  EXPECT_EQ("bool %r6 = cmp_eq(%r5, %r4)", ToString(node));
+}
+
 #define V(Name, mnemonic)                                                   \
   TEST_F(NodesTest, Int##Name##Node) {                                      \
     auto const function = NewSampleFunction(                                \

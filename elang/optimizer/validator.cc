@@ -51,6 +51,7 @@ class Validator::Context : public NodeVisitor {
   void VisitIf(IfNode* node) final;
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
+  void VisitIntCmp(IntCmpNode* node) final;
   void VisitLength(LengthNode* node) final;
   void VisitLoad(LoadNode* node) final;
   void VisitPhi(PhiNode* node) final;
@@ -231,6 +232,17 @@ void Validator::Context::VisitIfTrue(IfTrueNode* node) {
     ErrorInInput(node, 0);
   if (!node->input(0)->is<IfNode>())
     ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitIntCmp(IntCmpNode* node) {
+  if (!node->output_type()->is<BoolType>())
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+  auto const operand_type = node->input(0)->output_type();
+  if (operand_type != node->input(1)->output_type())
+    ErrorInInput(node, 1);
+  if (!operand_type->is_integer() && !operand_type->is<PointerType>())
+    ErrorInInput(node, 0);
+  // TODO(eval1749) We should check signedness for |IntCmp|.
 }
 
 void Validator::Context::VisitLength(LengthNode* node) {

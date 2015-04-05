@@ -339,7 +339,8 @@ Data* NodeFactory::NewIntBitXor(Data* left, Data* right) {
 Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer());
+  DCHECK(type->is_integer() || type->is<PointerType>());
+  // TODO(eval1749) We should check signedness for |IntCmp|.
   auto const node =
       new (zone()) IntCmpNode(bool_type(), condition, left, right);
   node->set_id(NewNodeId());
