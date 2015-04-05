@@ -98,7 +98,7 @@ Data* NodeFactoryUser::NewLoad(Effect* effect,
   return node_factory_->NewLoad(effect, base_pointer, pointer);
 }
 
-Control* NodeFactoryUser::NewLoop() {
+LoopNode* NodeFactoryUser::NewLoop() {
   return node_factory_->NewLoop();
 }
 

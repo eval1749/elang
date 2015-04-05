@@ -245,6 +245,11 @@ base::StringPiece IntCmpNode::mnemonic() const {
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
 
+// LoopNode
+LoopNode::LoopNode(Type* output_type, Zone* zone)
+    : PhiOwnerNode(output_type, zone) {
+}
+
 // MergeNode
 MergeNode::MergeNode(Type* output_type, Zone* zone)
     : PhiOwnerNode(output_type, zone) {

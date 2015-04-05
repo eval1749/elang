@@ -51,9 +51,11 @@ class Builder final : public ZoneOwner {
                     ir::Control* false_target);
   ir::PhiOwnerNode* NewMergeBlock();
   void StartIfBlock(ir::Control* control);
-  ir::Control* StartLoopBlock(ir::PhiOwnerNode* control);
   void StartMergeBlock(ir::PhiOwnerNode* control);
-  ir::Control* StartMergeLoopBlock();
+  ir::Control* StartDoLoop(ir::LoopNode* loop_block);
+  void StartWhileLoop(ir::Data* condition,
+                      ir::LoopNode* loop_block,
+                      ir::PhiOwnerNode* break_block);
 
   // Effect consumer/producer
   ir::Data* Call(ir::Data* callee, ir::Node* arguments);

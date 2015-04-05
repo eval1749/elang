@@ -21,6 +21,7 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
@@ -499,10 +500,11 @@ void Translator::VisitContinueStatement(ast::ContinueStatement* node) {
 }
 
 void Translator::VisitDoStatement(ast::DoStatement* node) {
+  auto const loop_block = NewLoop();
   auto const break_block = NewMerge({});
   auto const continue_block = NewMerge({});
 
-  auto const loop_block = builder_->StartMergeLoopBlock();
+  builder_->StartDoLoop(loop_block);
   {
     ScopedBreakContext scope(this, break_block, continue_block);
     TranslateStatement(node->statement());
@@ -533,8 +535,12 @@ void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
 //      element elty* %start = %array, 0
 //      length int32 %length = %array, 0
 //      element elty* %end = %array, %length
-//      br while
+//      static_cast uintptr %1 = %ptr
+//      static_cast uintptr %2 = %end
+//      lt %cmp = %1, %2
+//      br %cmp, loop, break
 //    loop:
+//      phi %ptr = head: %ptr, continue: %ptr2
 //      load elty %element = %array, %ptr,
 //      call $"use", %element
 //      br continue
@@ -542,10 +548,7 @@ void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
 //      static_cast uintptr %ptrint, %ptr
 //      add elty* %ptrint2 = %ptrint, sizeof(elty)
 //      static_cast elty* %ptr2 = %ptrint2
-//      br while
-//    while:
-//      phi elty* %ptr = start: %start, continue: %ptr2
-//      static_cast uintptr %1 = %ptr
+//      static_cast uintptr %1 = %ptr2
 //      static_cast uintptr %2 = %end
 //      lt %cmp = %1, %2
 //      br %cmp, loop, break
@@ -566,23 +569,32 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
     return;
   }
 
+  auto const loop_block = NewLoop();
   auto const continue_block = builder_->NewMergeBlock();
-  auto const while_block = builder_->NewMergeBlock();
   auto const break_block = builder_->NewMergeBlock();
 
-  auto const element_type = array_type->as<ir::ArrayType>()->element_type();
+  // Loop head
+  auto const pointer_variable = session()->semantics_factory()->NewVariable(
+      semantics()->ValueOf(node->variable())->as<sm::Variable>()->type(),
+      sm::StorageClass::Local, node->variable());
 
+  auto const element_type = array_type->as<ir::ArrayType>()->element_type();
   auto const element_pointer_type = NewPointerType(element_type);
   auto const start_element_pointer = NewElement(array, NewInt32(0));
   auto const end_element_pointer = NewElement(array, NewLength(array, 0));
-  auto const head_end = builder_->EndBlockWithJump(while_block);
 
-  auto const element_pointer_phi = NewPhi(element_pointer_type, while_block);
+  builder_->BindVariable(pointer_variable, start_element_pointer);
+  auto const head_compare =
+      NewIntCmp(ir::IntCondition::UnsignedLessThan,
+                NewStaticCast(uintptr_type(), start_element_pointer),
+                NewStaticCast(uintptr_type(), end_element_pointer));
+  builder_->StartWhileLoop(head_compare, loop_block, break_block);
 
-  auto const loop_block = builder_->StartLoopBlock(while_block);
+  // Loop body
+  auto const element_pointer_0 = builder_->VariableValueOf(pointer_variable);
   {
     ScopedBreakContext scope(this, break_block, continue_block);
-    auto const element_value = builder_->NewLoad(array, element_pointer_phi);
+    auto const element_value = builder_->NewLoad(array, element_pointer_0);
     auto const variable = ValueOf(node->variable())->as<sm::Variable>();
     DCHECK(variable);
     variables_.push_back(variable);
@@ -593,24 +605,19 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
   }
   builder_->EndBlockWithJump(continue_block);
 
+  // Continue block
   builder_->StartMergeBlock(continue_block);
-  auto const pointer_int = NewStaticCast(uintptr_type(), element_pointer_phi);
+  auto const pointer_int = NewStaticCast(uintptr_type(), element_pointer_0);
   auto const pointer_add = NewIntAdd(pointer_int, NewSizeOf(element_type));
-  auto const element_pointer = NewStaticCast(element_pointer_type, pointer_add);
-  auto const continue_end = builder_->EndBlockWithJump(while_block);
+  auto const element_pointer_1 =
+      NewStaticCast(element_pointer_type, pointer_add);
+  builder_->AssignVariable(pointer_variable, element_pointer_1);
+  auto const continue_compare =
+      NewIntCmp(ir::IntCondition::UnsignedLessThan,
+                NewStaticCast(uintptr_type(), element_pointer_1),
+                NewStaticCast(uintptr_type(), end_element_pointer));
+  builder_->EndLoopBlock(continue_compare, loop_block, break_block);
 
-  builder_->StartMergeBlock(while_block);
-  builder_->AppendPhiInput(element_pointer_phi, head_end,
-                           start_element_pointer);
-  builder_->AppendPhiInput(element_pointer_phi, continue_end, element_pointer);
-  auto const left = NewStaticCast(uintptr_type(), element_pointer_phi);
-  auto const right = NewStaticCast(uintptr_type(), end_element_pointer);
-  auto const compare =
-      NewIntCmp(ir::IntCondition::UnsignedLessThan, left, right);
-  builder_->EndLoopBlock(compare, loop_block, break_block);
-
-  if (!break_block->CountInputs())
-    return;
   builder_->StartMergeBlock(break_block);
 }
 
@@ -628,8 +635,6 @@ void Translator::VisitIfStatement(ast::IfStatement* node) {
     TranslateStatement(node->else_statement());
   builder_->EndBlockWithJump(merge_node);
 
-  if (!merge_node->CountInputs())
-    return;
   builder_->StartMergeBlock(merge_node);
 }
 

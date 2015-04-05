@@ -599,13 +599,14 @@ class ELANG_OPTIMIZER_EXPORT PhiOwnerNode
   typedef DoubleLinked<PhiNode, PhiOwnerNode> PhiNodes;
 
   EffectPhiNode* effect_phi() const { return effect_phi_; }
-  void set_effect_phi(EffectPhiNode* effect_phi);
   const PhiNodes& phi_nodes() const { return phi_nodes_; }
 
  protected:
   PhiOwnerNode(Type* output_type, Zone* zone);
 
  private:
+  void set_effect_phi(EffectPhiNode* effect_phi);
+
   EffectPhiNode* effect_phi_;
   PhiNodes phi_nodes_;
 
@@ -843,6 +844,19 @@ class ELANG_OPTIMIZER_EXPORT IntCmpNode final : public NodeTemplate<2, Data> {
   IntCondition condition_;
 
   DISALLOW_COPY_AND_ASSIGN(IntCmpNode);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// LoopNode
+//
+class ELANG_OPTIMIZER_EXPORT LoopNode final : public PhiOwnerNode {
+  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(LoopNode, PhiOwnerNode);
+
+ private:
+  LoopNode(Type* output_type, Zone* zone);
+
+  DISALLOW_COPY_AND_ASSIGN(LoopNode);
 };
 
 //////////////////////////////////////////////////////////////////////

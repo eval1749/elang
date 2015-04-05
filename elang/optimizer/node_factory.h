@@ -94,7 +94,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   // Variadic inputs
   Data* NewCase(Control* control, Data* label_value);
   EffectPhiNode* NewEffectPhi(PhiOwnerNode* owner);
-  Control* NewLoop();
+  LoopNode* NewLoop();
   PhiOwnerNode* NewMerge(const std::vector<Control*>& inputs);
   PhiNode* NewPhi(Type* type, PhiOwnerNode* owner);
   Tuple* NewTuple(const std::vector<Node*>& inputs);

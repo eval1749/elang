@@ -226,6 +226,7 @@ void Builder::EndLoopBlock(ir::Data* condition,
                            ir::Control* true_target_node,
                            ir::Control* false_target_node) {
   DCHECK(false_target_node->is<ir::PhiOwnerNode>()) << *false_target_node;
+  DCHECK(true_target_node->is<ir::PhiOwnerNode>()) << *true_target_node;
   DCHECK(basic_block_);
 
   auto const if_node = EndBlockWithBranch(condition);
@@ -284,6 +285,30 @@ void Builder::PopulatePhiNodesIfNeeded(ir::Control* control,
   }
 }
 
+// Start loop block and populate variable table with phi nodes.
+ir::Control* Builder::StartDoLoop(ir::LoopNode* loop_block) {
+  DCHECK(basic_block_);
+  auto const jump_node = editor_->SetJump(loop_block);
+  auto const predecessor = basic_block_;
+  EndBlock(jump_node);
+
+  editor_->Edit(loop_block);
+
+  // We assume all variables are changed in the loop.
+  auto const effect_phi = editor_->NewEffectPhi(loop_block);
+  editor_->SetPhiInput(effect_phi, jump_node, predecessor->effect());
+
+  Variables variables;
+  for (auto var_val : predecessor->variables()) {
+    auto const phi = editor_->NewPhi(var_val.second->output_type(), loop_block);
+    variables[var_val.first] = phi;
+    editor_->SetPhiInput(phi, jump_node, var_val.second);
+  }
+
+  basic_block_ = NewBasicBlock(loop_block, effect_phi, variables);
+  return loop_block;
+}
+
 void Builder::StartIfBlock(ir::Control* control) {
   DCHECK(control->is<ir::IfTrueNode>() || control->is<ir::IfFalseNode>());
   DCHECK(!basic_block_);
@@ -292,41 +317,6 @@ void Builder::StartIfBlock(ir::Control* control) {
   editor_->Edit(control);
   basic_block_ =
       NewBasicBlock(control, predecessor->effect(), predecessor->variables());
-}
-
-ir::Control* Builder::StartLoopBlock(ir::PhiOwnerNode* loop_end) {
-  DCHECK(!basic_block_);
-  auto const effect_phi = editor_->NewEffectPhi(loop_end);
-  auto const loop_control = editor_->NewLoop();
-  basic_block_ = NewBasicBlock(loop_control, effect_phi, {});
-  editor_->Edit(loop_control);
-  return loop_control;
-}
-
-// Start loop block and populate variable table with phi nodes.
-ir::Control* Builder::StartMergeLoopBlock() {
-  DCHECK(basic_block_);
-  auto const loop_control = editor_->NewMerge({});
-  auto const jump_node = editor_->SetJump(loop_control);
-  auto const predecessor = basic_block_;
-  EndBlock(jump_node);
-
-  editor_->Edit(loop_control);
-
-  // We assume all variables are changed in the loop.
-  auto const effect_phi = editor_->NewEffectPhi(loop_control);
-  editor_->SetPhiInput(effect_phi, jump_node, predecessor->effect());
-
-  Variables variables;
-  for (auto var_val : predecessor->variables()) {
-    auto const phi =
-        editor_->NewPhi(var_val.second->output_type(), loop_control);
-    variables[var_val.first] = phi;
-    editor_->SetPhiInput(phi, jump_node, var_val.second);
-  }
-
-  basic_block_ = NewBasicBlock(loop_control, effect_phi, variables);
-  return loop_control;
 }
 
 void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
@@ -392,6 +382,18 @@ void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
       editor_->SetPhiInput(var_phi.second, control, it->second);
     }
   }
+}
+
+void Builder::StartWhileLoop(ir::Data* condition,
+                             ir::LoopNode* loop_block,
+                             ir::PhiOwnerNode* break_block) {
+  auto const if_node = EndBlockWithBranch(condition);
+
+  StartIfBlock(editor_->NewIfFalse(if_node));
+  EndBlockWithJump(break_block);
+
+  StartIfBlock(editor_->NewIfTrue(if_node));
+  StartDoLoop(loop_block);
 }
 
 void Builder::UnbindVariable(sm::Variable* variable) {
