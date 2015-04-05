@@ -78,7 +78,7 @@ bool MethodQuery::Match(QueryContext* context, ast::Node* node) const {
   if (return_type_ && method->return_type() != return_type_)
     return false;
   if (parameters_.empty())
-    return true;
+    return method->parameters().empty();
   if (parameters_.size() != method->parameters().size())
     return false;
   auto it = parameters_.begin();

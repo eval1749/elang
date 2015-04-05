@@ -218,9 +218,9 @@ std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
   auto const void_type =
       semantics->ValueOf(session->QueryAstNode(L"System.Void"))->as<sm::Type>();
 
-  MethodQuery query1(name_main, void_type, {ParameterQuery(void_type)});
+  MethodQuery query1(name_main, void_type, {});
   MethodQuery query2(name_main, void_type, {ParameterQuery(string_array_type)});
-  MethodQuery query3(name_main, int32_type, {ParameterQuery(void_type)});
+  MethodQuery query3(name_main, int32_type, {});
   MethodQuery query4(name_main, int32_type,
                      {ParameterQuery(string_array_type)});
   OrQuery query({&query1, &query2, &query3, &query4});
