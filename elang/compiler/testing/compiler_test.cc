@@ -9,6 +9,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/query/node_queries.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
@@ -99,6 +100,10 @@ void CompilerTest::Prepare(base::StringPiece16 source_text) {
 
 void CompilerTest::Prepare(base::StringPiece source_text) {
   Prepare(base::UTF8ToUTF16(source_text));
+}
+
+std::vector<ast::Node*> CompilerTest::QueryAstNodes(TokenType token_type) {
+  return session()->QueryAstNodes(ast::TokenTypeQuery(token_type));
 }
 
 }  // namespace testing

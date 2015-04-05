@@ -38,6 +38,7 @@ class Method;
 class NamedNode;
 class Namespace;
 class NamespaceBody;
+class NodeQuery;
 }
 
 namespace sm {
@@ -115,6 +116,9 @@ class CompilationSession final : public ZoneOwner {
 
   // Returns |ast::Node| which qualified name is |qualified_name|.
   ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
+
+  // Returns list of |ast::Node| matched to |query|.
+  std::vector<ast::Node*> QueryAstNodes(const ast::NodeQuery& query);
 
  private:
   void AddError(const SourceCodeRange& location,

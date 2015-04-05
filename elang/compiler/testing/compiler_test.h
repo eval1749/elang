@@ -18,6 +18,7 @@ namespace compiler {
 
 namespace ast {
 class Class;
+class Node;
 class NamedNode;
 }
 
@@ -28,6 +29,7 @@ class Class;
 class CompilationSession;
 class SourceCode;
 class StringSourceCode;
+enum class TokenType;
 
 namespace testing {
 
@@ -55,6 +57,7 @@ class CompilerTest : public ::testing::Test {
   bool Parse();
   void Prepare(base::StringPiece16 source_code);
   void Prepare(base::StringPiece source_code);
+  std::vector<ast::Node*> QueryAstNodes(TokenType token_type);
 
  private:
   const std::unique_ptr<CompilationSession> session_;

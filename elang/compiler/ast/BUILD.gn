@@ -23,6 +23,8 @@ static_library("ast") {
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
+    "query/node_queries.cc",
+    "query/node_queries.h",
     "statements.cc",
     "statements.h",
     "types.cc",
