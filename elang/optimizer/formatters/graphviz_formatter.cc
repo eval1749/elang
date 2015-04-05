@@ -137,11 +137,11 @@ void EdgePrinter::DoDefaultVisit(Node* node) {
   if (node->IsLiteral())
     return;
   if (auto const phi = node->as<PhiNode>()) {
-    ostream_ << "  node" << node->id() << ":n -> node" << phi->owner()->id()
-             << ":s [style=dashed]" << std::endl;
+    ostream_ << "  node" << node->id() << " -> node" << phi->owner()->id()
+             << " [style=dashed]" << std::endl;
   } else if (auto const phi = node->as<EffectPhiNode>()) {
-    ostream_ << "  node" << node->id() << ":n -> node" << phi->owner()->id()
-             << ":s [style=dashed]" << std::endl;
+    ostream_ << "  node" << node->id() << " -> node" << phi->owner()->id()
+             << " [style=dashed]" << std::endl;
   }
 
   auto index = 0;
@@ -151,14 +151,14 @@ void EdgePrinter::DoDefaultVisit(Node* node) {
       continue;
     }
     ostream_ << "  ";
-    ostream_ << "node" << node->id() << ":i" << index << ":n -> "
+    ostream_ << "node" << node->id() << ":i" << index << " -> "
              << "node" << input->id() << " ["
-             << (node->opcode() == Opcode::Loop ? " color=red constraint=false"
-                                                : "")
-             << (input->IsControl() ? " style=bold" : "")
+             << (node->opcode() == Opcode::Loop && index
+                     ? " color=red constraint=false"
+                     : "") << (input->IsControl() ? " style=bold" : "")
              << (input->IsData() ? " color=transparent" : "")
-             << (input->IsEffect() ? " style=dotted constraint=false" : "")
-             << "]" << std::endl;
+             << (node->IsEffect() ? " style=dotted constraint=false" : "")
+             << (input->IsEffect() ? " style=dotted" : "") << "]" << std::endl;
     ++index;
   }
 }
