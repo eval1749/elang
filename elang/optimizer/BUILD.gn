@@ -22,6 +22,8 @@ component("optimizer") {
     "factory.h",
     "factory_user.cc",
     "factory_user.h",
+    "formatters/graphviz_formatter.cc",
+    "formatters/graphviz_formatter.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
     "function.cc",
