@@ -340,7 +340,19 @@ Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer() || type->is<PointerType>());
-  // TODO(eval1749) We should check signedness for |IntCmp|.
+#if NDEBUG
+  if (type->is_signed()) {
+    DCHECK(condition != IntCondition::UnsignedGreaterThan &&
+           condition != IntCondition::UnsignedGreaterThanOrEqual &&
+           condition != IntCondition::UnsignedLessThan &&
+           condition != IntCondition::UnsignedLessThanOrEqual);
+  } else {
+    DCHECK(condition != IntCondition::SignedGreaterThan &&
+           condition != IntCondition::SignedGreaterThanOrEqual &&
+           condition != IntCondition::SignedLessThan &&
+           condition != IntCondition::SignedLessThanOrEqual);
+  }
+#endif
   auto const node =
       new (zone()) IntCmpNode(bool_type(), condition, left, right);
   node->set_id(NewNodeId());

@@ -242,7 +242,23 @@ void Validator::Context::VisitIntCmp(IntCmpNode* node) {
     ErrorInInput(node, 1);
   if (!operand_type->is_integer() && !operand_type->is<PointerType>())
     ErrorInInput(node, 0);
-  // TODO(eval1749) We should check signedness for |IntCmp|.
+
+  auto const condition = node->condition();
+  if (operand_type->is_signed()) {
+    if (condition == IntCondition::UnsignedGreaterThan ||
+        condition == IntCondition::UnsignedGreaterThanOrEqual ||
+        condition == IntCondition::UnsignedLessThan ||
+        condition == IntCondition::UnsignedLessThanOrEqual) {
+      ErrorInInput(node, 0);
+    }
+  } else {
+    if (condition == IntCondition::SignedGreaterThan ||
+        condition == IntCondition::SignedGreaterThanOrEqual ||
+        condition == IntCondition::SignedLessThan ||
+        condition == IntCondition::SignedLessThanOrEqual) {
+      ErrorInInput(node, 0);
+    }
+  }
 }
 
 void Validator::Context::VisitLength(LengthNode* node) {
