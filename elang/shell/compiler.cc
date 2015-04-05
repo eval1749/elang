@@ -8,6 +8,7 @@
 
 #include "elang/shell/compiler.h"
 
+#include "base/command_line.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/logging.h"
@@ -40,6 +41,10 @@
 #include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/formatters/text_formatter.h"
+#include "elang/optimizer/error_data.h"
+#include "elang/optimizer/factory.h"
+#include "elang/optimizer/formatters/graphviz_formatter.h"
+#include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/source_file_stream.h"
@@ -54,6 +59,8 @@ namespace compiler {
 namespace shell {
 
 namespace {
+
+namespace ir = optimizer;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -114,6 +121,14 @@ FileSourceCode::FileSourceCode(const base::FilePath& file_path)
 std::unique_ptr<hir::FactoryConfig> NewFactoryConfig(
     CompilationSession* session) {
   auto config = std::make_unique<hir::FactoryConfig>();
+  config->atomic_string_factory = session->atomic_string_factory();
+  config->string_type_name = session->NewAtomicString(L"System.String");
+  return config;
+}
+
+std::unique_ptr<ir::FactoryConfig> NewIrFactoryConfig(
+    CompilationSession* session) {
+  auto config = std::make_unique<ir::FactoryConfig>();
   config->atomic_string_factory = session->atomic_string_factory();
   config->string_type_name = session->NewAtomicString(L"System.String");
   return config;
@@ -212,6 +227,22 @@ std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
   return QueryAllNodes(session, &query);
 }
 
+ast::Method* FindMainMethod(CompilationSession* session,
+                            NameResolver* name_resolver) {
+  auto const main_methods = CollectMainMethods(session, name_resolver);
+  if (main_methods.empty()) {
+    std::cerr << "No Main method." << std::endl;
+    return nullptr;
+  }
+  if (main_methods.size() > 1u) {
+    std::cerr << "More than one main methods:" << std::endl;
+    for (auto const method : main_methods)
+      std::cerr << "  " << *method << std::endl;
+    return nullptr;
+  }
+  return main_methods.front()->as<ast::Method>();
+}
+
 lir::Function* Generate(lir::Factory* factory, hir::Function* hir_function) {
   ::elang::cg::Generator generator(factory, hir_function);
   return generator.Generate();
@@ -233,6 +264,14 @@ bool ReportHirError(const hir::Factory* factory) {
   return true;
 }
 
+bool ReportIrError(const ir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
 bool ReportLirError(const lir::Factory* factory) {
   if (factory->errors().empty())
     return false;
@@ -241,13 +280,15 @@ bool ReportLirError(const lir::Factory* factory) {
   return true;
 }
 
+const char kDumpHir[] = "dump_hir";
+const char kDumpLir[] = "dump_lir";
+const char kUseGraphviz[] = "use_gv";
+const char kUseHir[] = "use_hir";
+
 }  // namespace
 
 Compiler::Compiler(const std::vector<base::string16>& args)
-    : args_(args),
-      is_dump_hir_(false),
-      is_dump_lir_(false),
-      session_(new CompilationSession()) {
+    : args_(args), session_(new CompilationSession()) {
 }
 
 Compiler::~Compiler() {
@@ -272,12 +313,45 @@ int Compiler::CompileAndGo() {
   if (!session()->errors().empty())
     return 1;
 
-  std::unique_ptr<hir::FactoryConfig> factory_config(
-      NewFactoryConfig(session()));
-  std::unique_ptr<hir::Factory> factory(new hir::Factory(*factory_config));
+  auto const command_line = base::CommandLine::ForCurrentProcess();
 
   NameResolver name_resolver(session());
   PopulateNamespace(&name_resolver);
+
+  if (!command_line->HasSwitch(kUseHir)) {
+    //////////////////////////////////////////////////////////////
+    //
+    // Compile to Optimizer-IR
+    //
+    std::unique_ptr<ir::FactoryConfig> factory_config(
+        NewIrFactoryConfig(session()));
+    std::unique_ptr<ir::Factory> factory(new ir::Factory(*factory_config));
+    if (!session()->Compile(&name_resolver, factory.get()))
+      return 1;
+    if (ReportIrError(factory.get()))
+      return 1;
+    auto const main_method = FindMainMethod(session(), &name_resolver);
+    if (!main_method)
+      return 1;
+    auto const main_function = session()->IrFunctionOf(main_method);
+    if (!main_function) {
+      std::cerr << "No function for main method." << *main_method;
+      return 1;
+    }
+    if (command_line->HasSwitch(kUseGraphviz))
+      std::cout << ir::AsGraphviz(main_function);
+    else
+      std::cout << ir::AsReversePostOrder(main_function);
+    return 0;
+  }
+
+  //////////////////////////////////////////////////////////////
+  //
+  // Compile to HIR
+  //
+  std::unique_ptr<hir::FactoryConfig> factory_config(
+      NewFactoryConfig(session()));
+  std::unique_ptr<hir::Factory> factory(new hir::Factory(*factory_config));
 
   if (!session()->Compile(&name_resolver, factory.get()))
     return 1;
@@ -285,25 +359,16 @@ int Compiler::CompileAndGo() {
   if (ReportHirError(factory.get()))
     return 1;
 
-  // Find entry point.
-  auto const main_methods = CollectMainMethods(session(), &name_resolver);
-  if (main_methods.empty()) {
-    std::cerr << "No Main method." << std::endl;
+  // Find main method
+  auto const main_method = FindMainMethod(session(), &name_resolver);
+  if (!main_method)
     return 1;
-  }
-  if (main_methods.size() > 1u) {
-    std::cerr << "More than one main methods:" << std::endl;
-    for (auto const method : main_methods)
-      std::cerr << "  " << *method << std::endl;
-    return 1;
-  }
-  auto const main_method = main_methods.front()->as<ast::Method>();
   auto const main_function = session()->FunctionOf(main_method);
   if (!main_function) {
     std::cerr << "No function for main method." << *main_method;
     return 1;
   }
-  if (is_dump_hir_) {
+  if (command_line->HasSwitch(kDumpHir)) {
     hir::TextFormatter formatter(&std::cout);
     formatter.FormatFunction(main_function);
   }
@@ -317,7 +382,7 @@ int Compiler::CompileAndGo() {
 
   factory.release();
 
-  if (is_dump_lir_) {
+  if (command_line->HasSwitch(kDumpLir)) {
     lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
     formatter.FormatFunction(lir_function);
   }

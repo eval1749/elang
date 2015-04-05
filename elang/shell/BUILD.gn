@@ -14,6 +14,7 @@ executable("elang_shell") {
     "//elang/api",
     "//elang/compiler",
     "//elang/cg",
+    "//elang/optimizer",
     "//elang/vm",
     ":shell_library",
   ]

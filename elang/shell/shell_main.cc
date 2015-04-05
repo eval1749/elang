@@ -34,10 +34,6 @@ extern "C" int main() {
 
   auto const command_line = base::CommandLine::ForCurrentProcess();
   Compiler compiler(command_line->GetArgs());
-  if (command_line->HasSwitch("dump_hir"))
-    compiler.set_dump_hir(true);
-  if (command_line->HasSwitch("dump_lir"))
-    compiler.set_dump_lir(true);
 
   for (auto file_name : command_line->GetArgs()) {
     base::FilePath file_path(file_name);
