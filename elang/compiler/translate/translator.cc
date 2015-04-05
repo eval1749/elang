@@ -585,9 +585,8 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
 
   builder_->BindVariable(pointer_variable, start_element_pointer);
   auto const head_compare =
-      NewIntCmp(ir::IntCondition::UnsignedLessThan,
-                NewStaticCast(uintptr_type(), start_element_pointer),
-                NewStaticCast(uintptr_type(), end_element_pointer));
+      NewIntCmp(ir::IntCondition::UnsignedLessThan, start_element_pointer,
+                end_element_pointer);
   builder_->StartWhileLoop(head_compare, loop_block, break_block);
 
   // Loop body
@@ -613,9 +612,8 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
       NewStaticCast(element_pointer_type, pointer_add);
   builder_->AssignVariable(pointer_variable, element_pointer_1);
   auto const continue_compare =
-      NewIntCmp(ir::IntCondition::UnsignedLessThan,
-                NewStaticCast(uintptr_type(), element_pointer_1),
-                NewStaticCast(uintptr_type(), end_element_pointer));
+      NewIntCmp(ir::IntCondition::UnsignedLessThan, element_pointer_1,
+                end_element_pointer);
   builder_->EndLoopBlock(continue_compare, loop_block, break_block);
 
   builder_->StartMergeBlock(break_block);
