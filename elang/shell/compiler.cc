@@ -256,7 +256,7 @@ vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
   return mc_builder.NewMachineCodeFunction();
 }
 
-bool ReportHirError(const hir::Factory* factory) {
+bool ReportHirErrors(const hir::Factory* factory) {
   if (factory->errors().empty())
     return false;
   for (auto const error : factory->errors())
@@ -264,7 +264,7 @@ bool ReportHirError(const hir::Factory* factory) {
   return true;
 }
 
-bool ReportIrError(const ir::Factory* factory) {
+bool ReportIrErrors(const ir::Factory* factory) {
   if (factory->errors().empty())
     return false;
   for (auto const error : factory->errors())
@@ -272,7 +272,7 @@ bool ReportIrError(const ir::Factory* factory) {
   return true;
 }
 
-bool ReportLirError(const lir::Factory* factory) {
+bool ReportLirErrors(const lir::Factory* factory) {
   if (factory->errors().empty())
     return false;
   for (auto const error : factory->errors())
@@ -310,7 +310,7 @@ void Compiler::AddSourceFile(const base::FilePath& file_path) {
 }
 
 int Compiler::CompileAndGo() {
-  if (ReportErrors())
+  if (ReportCompileErrors())
     return 1;
 
   auto const command_line = base::CommandLine::ForCurrentProcess();
@@ -326,9 +326,10 @@ int Compiler::CompileAndGo() {
     std::unique_ptr<ir::FactoryConfig> factory_config(
         NewIrFactoryConfig(session()));
     std::unique_ptr<ir::Factory> factory(new ir::Factory(*factory_config));
-    if (!session()->Compile(&name_resolver, factory.get()))
+    session()->Compile(&name_resolver, factory.get());
+    if (ReportCompileErrors())
       return 1;
-    if (ReportIrError(factory.get()))
+    if (ReportIrErrors(factory.get()))
       return 1;
     auto const main_method = FindMainMethod(session(), &name_resolver);
     if (!main_method)
@@ -353,10 +354,11 @@ int Compiler::CompileAndGo() {
       NewFactoryConfig(session()));
   std::unique_ptr<hir::Factory> factory(new hir::Factory(*factory_config));
 
-  if (!session()->Compile(&name_resolver, factory.get()))
+  session()->Compile(&name_resolver, factory.get());
+  if (ReportCompileErrors())
     return 1;
 
-  if (ReportHirError(factory.get()))
+  if (ReportHirErrors(factory.get()))
     return 1;
 
   // Find main method
@@ -377,7 +379,7 @@ int Compiler::CompileAndGo() {
   std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
   auto const lir_function = Generate(lir_factory.get(), main_function);
 
-  if (ReportLirError(lir_factory.get()))
+  if (ReportLirErrors(lir_factory.get()))
     return 1;
 
   factory.release();
@@ -425,7 +427,7 @@ int Compiler::CompileAndGo() {
   return mc_function->Call<int, vm::impl::Vector<vm::impl::String*>*>(args);
 }
 
-bool Compiler::ReportErrors() {
+bool Compiler::ReportCompileErrors() {
   if (session()->errors().empty())
     return false;
 

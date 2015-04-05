@@ -42,7 +42,7 @@ class Compiler final {
   CompilationSession* session() { return session_.get(); }
 
   // Report compilation errors so far.
-  bool ReportErrors();
+  bool ReportCompileErrors();
 
   const std::vector<base::string16> args_;
   std::unique_ptr<CompilationSession> session_;
