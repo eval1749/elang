@@ -26,6 +26,8 @@ class NodesTest : public testing::OptimizerTest {
   DISALLOW_COPY_AND_ASSIGN(NodesTest);
 };
 
+// Test cases...
+
 TEST_F(NodesTest, BoolNode) {
   EXPECT_EQ(false_value(), false_value());
   EXPECT_EQ(true_value(), true_value());
@@ -88,7 +90,9 @@ TEST_F(NodesTest, ElementNode) {
 TEST_F(NodesTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();
-  EXPECT_EQ("(control, effect, void) %t1 = entry()", ToString(node));
+  EXPECT_EQ(
+      "Validate.EntryNode.NoUsers((control, effect, void) %t1 = entry())\n",
+      ToString(node));
 }
 
 TEST_F(NodesTest, ExitNode) {
@@ -241,6 +245,7 @@ TEST_F(NodesTest, IntCmpNode) {
       NewIntCmp(IntCondition::Equal, NewParameter(entry_node, 0),
                 NewParameter(entry_node, 1));
   EXPECT_EQ("bool %r6 = cmp_eq(%r5, %r4)", ToString(node32));
+
   auto const node64 =
       NewIntCmp(IntCondition::NotEqual, NewParameter(entry_node, 2),
                 NewParameter(entry_node, 3));

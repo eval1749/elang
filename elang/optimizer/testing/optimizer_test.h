@@ -35,11 +35,13 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
                               const std::vector<Type*>& parameter_types);
 
   std::string ToString(const Function* function);
-  std::string ToString(const Thing* thing);
+  std::string ToString(const Node* node);
+  std::string ToString(const Type* type);
 
  private:
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   const std::unique_ptr<Factory> factory_;
+  Function* function_;
 
   DISALLOW_COPY_AND_ASSIGN(OptimizerTest);
 };

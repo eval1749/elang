@@ -4,13 +4,15 @@
 
 #include <sstream>
 
+#include "elang/optimizer/testing/optimizer_test.h"
+
+#include "base/logging.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/factory_config.h"
 #include "elang/optimizer/formatters/text_formatter.h"
-#include "elang/optimizer/testing/optimizer_test.h"
-#include "elang/optimizer/thing.h"
+#include "elang/optimizer/nodes.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/validator.h"
 
@@ -36,7 +38,8 @@ Factory* NewFactory() {
 OptimizerTest::OptimizerTest()
     : FactoryUser(NewFactory()),
       atomic_string_factory_(factory()->config().atomic_string_factory),
-      factory_(factory()) {
+      factory_(factory()),
+      function_(nullptr) {
 }
 
 OptimizerTest::~OptimizerTest() {
@@ -44,7 +47,9 @@ OptimizerTest::~OptimizerTest() {
 
 Function* OptimizerTest::NewSampleFunction(Type* return_type,
                                            Type* parameters_type) {
-  return NewFunction(NewFunctionType(return_type, parameters_type));
+  DCHECK(!function_);
+  function_ = NewFunction(NewFunctionType(return_type, parameters_type));
+  return function_;
 }
 
 Function* OptimizerTest::NewSampleFunction(
@@ -63,9 +68,25 @@ std::string OptimizerTest::ToString(const Function* function) {
   return ostream.str();
 }
 
-std::string OptimizerTest::ToString(const Thing* thing) {
+std::string OptimizerTest::ToString(const Node* node) {
+  if (function_) {
+    Validator validator(factory(), function_);
+    // TODO(eval1749) We should make |Validator::Validate()| to take
+    // |const Node*|.
+    if (!validator.Validate(const_cast<Node*>(node))) {
+      std::stringstream ostream;
+      ostream << factory()->errors();
+      return ostream.str();
+    }
+  }
   std::stringstream ostream;
-  ostream << *thing;
+  ostream << *node;
+  return ostream.str();
+}
+
+std::string OptimizerTest::ToString(const Type* type) {
+  std::stringstream ostream;
+  ostream << *type;
   return ostream.str();
 }
 
