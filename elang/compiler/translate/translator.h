@@ -97,6 +97,7 @@ class Translator final : public CompilationSessionUser,
   void VisitDoStatement(ast::DoStatement* node) final;
   void VisitExpressionList(ast::ExpressionList* node) final;
   void VisitExpressionStatement(ast::ExpressionStatement* node) final;
+  void VisitForStatement(ast::ForStatement* node) final;
   void VisitForEachStatement(ast::ForEachStatement* node) final;
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;

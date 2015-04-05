@@ -111,6 +111,20 @@ TEST_F(TranslatorTest, DoWhile) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, For) {
+  Prepare(
+      "class Sample {"
+      "  static void Foo() {"
+      "    for (var a = 0; Cond(a); a = Step(a))"
+      "      Use(a);"
+      "  }"
+      "  static extern bool Cond(int x);"
+      "  static extern int Step(int x);"
+      "  static extern void Use(int x);"
+      "}");
+  EXPECT_EQ("foo", Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, ForEach) {
   Prepare(
       "class Sample {"

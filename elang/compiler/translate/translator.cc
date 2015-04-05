@@ -527,6 +527,32 @@ void Translator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   Translate(node->expression());
 }
 
+void Translator::VisitForStatement(ast::ForStatement* node) {
+  auto const loop_block = NewLoop();
+  auto const continue_block = builder_->NewMergeBlock();
+  auto const break_block = builder_->NewMergeBlock();
+
+  // Loop head
+  TranslateStatement(node->initializer());
+  auto const head_compare = Translate(node->condition());
+  builder_->StartWhileLoop(head_compare, loop_block, break_block);
+
+  // Loop body
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    TranslateStatement(node->statement());
+  }
+  builder_->EndBlockWithJump(continue_block);
+
+  // Continue block
+  builder_->StartMergeBlock(continue_block);
+  TranslateStatement(node->step());
+  auto const continue_compare = Translate(node->condition());
+  builder_->EndLoopBlock(continue_compare, loop_block, break_block);
+
+  builder_->StartMergeBlock(break_block);
+}
+
 //    for (var element : array)
 //      use(element);
 //
