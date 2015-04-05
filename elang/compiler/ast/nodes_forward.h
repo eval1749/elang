@@ -35,6 +35,7 @@ namespace ast {
   V(Call)                           \
   V(Conditional)                    \
   V(ConstructedName)                \
+  V(IncrementExpression)            \
   V(InvalidExpression)              \
   V(Literal)                        \
   V(MemberAccess)                   \

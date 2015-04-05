@@ -99,6 +99,11 @@ ConstructedName::ConstructedName(Zone* zone,
   DCHECK(!arguments_.empty());
 }
 
+// IncrementExpression
+IncrementExpression::IncrementExpression(Token* op, Expression* expression)
+    : Expression(op), expression_(expression) {
+}
+
 // InvalidExpression
 InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
   // We should have non-null |token| for source code location.

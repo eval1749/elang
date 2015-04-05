@@ -158,6 +158,25 @@ class ConstructedName final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(ConstructedName);
 };
 
+// Represents unary expression:
+//  '--' UnaryExpression |
+//  '++' UnaryExpression |
+//  UnaryExpression '--' |
+//  UnaryExpression '++'
+class IncrementExpression final : public Expression {
+  DECLARE_CONCRETE_AST_NODE_CLASS(IncrementExpression, Expression);
+
+ public:
+  Expression* expression() const { return expression_; }
+
+ private:
+  IncrementExpression(Token* op, Expression* expression);
+
+  Expression* const expression_;
+
+  DISALLOW_COPY_AND_ASSIGN(IncrementExpression);
+};
+
 // Represents invalid expression. This expression is used for continuing parsing
 // after syntax error.
 class InvalidExpression final : public Expression {

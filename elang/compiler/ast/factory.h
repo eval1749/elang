@@ -80,6 +80,7 @@ class Factory final {
                               Expression* else_expr);
   ConstructedName* NewConstructedName(NameReference* name,
                                       const std::vector<Type*>& arguments);
+  IncrementExpression* NewIncrementExpression(Token* op, Expression* expr);
   InvalidExpression* NewInvalidExpression(Token* token);
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,

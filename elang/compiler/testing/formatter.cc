@@ -372,6 +372,22 @@ void Formatter::VisitImport(ast::Import* import) {
   ostream_ << ";" << std::endl;
 }
 
+void Formatter::VisitIncrementExpression(ast::IncrementExpression* node) {
+  switch (node->token()->type()) {
+    case TokenType::Decrement:
+    case TokenType::Increment:
+      ostream_ << node->token();
+      Visit(node->expression());
+      return;
+    case TokenType::PostDecrement:
+    case TokenType::PostIncrement:
+      Visit(node->expression());
+      ostream_ << node->token();
+      return;
+  }
+  NOTREACHED() << node->token();
+}
+
 void Formatter::VisitInvalidExpression(ast::InvalidExpression* expression) {
   ostream_ << "INVALID('" << expression->token() << "')";
 }

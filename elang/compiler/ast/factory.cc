@@ -162,6 +162,11 @@ ConstructedName* Factory::NewConstructedName(
   return new (zone_) ConstructedName(zone_, reference, arguments);
 }
 
+IncrementExpression* Factory::NewIncrementExpression(Token* op,
+                                                     Expression* expr) {
+  return new (zone_) IncrementExpression(op, expr);
+}
+
 InvalidExpression* Factory::NewInvalidExpression(Token* token) {
   return new (zone_) InvalidExpression(token);
 }
