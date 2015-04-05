@@ -82,10 +82,13 @@ class ELANG_OPTIMIZER_EXPORT Type : public Thing,
   bool is_general() const { return register_class() == RegisterClass::General; }
   bool is_integer() const { return register_class() == RegisterClass::Integer; }
   bool is_numeric() const { return is_integer() || is_float(); }
+  bool is_signed() const { return signedness() == Signedness::Signed; }
+  bool is_unsigned() const { return signedness() == Signedness::Unsigned; }
   bool is_void() const { return register_class() == RegisterClass::Void; }
 
   // Which type of register holds a value of this type.
   virtual RegisterClass register_class() const;
+  virtual Signedness signedness() const;
 
  protected:
   Type() = default;
@@ -205,14 +208,8 @@ class ELANG_OPTIMIZER_EXPORT PrimitiveType : public Type {
 class ELANG_OPTIMIZER_EXPORT PrimitiveValueType : public PrimitiveType {
   DECLARE_OPTIMIZER_TYPE_ABSTRACT_CLASS(PrimitiveValueType, PrimitiveType);
 
- public:
-  bool is_signed() const { return signedness() == Signedness::Signed; }
-  bool is_unsigned() const { return signedness() == Signedness::Unsigned; }
-
  protected:
   PrimitiveValueType() = default;
-
-  virtual Signedness signedness() const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(PrimitiveValueType);

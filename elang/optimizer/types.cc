@@ -102,6 +102,10 @@ Type::RegisterClass Type::register_class() const {
   return RegisterClass::Void;
 }
 
+Signedness Type::signedness() const {
+  return Signedness::Unsigned;
+}
+
 // VoidType
 VoidType::VoidType() {
 }
