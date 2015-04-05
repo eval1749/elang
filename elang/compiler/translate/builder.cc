@@ -402,7 +402,7 @@ void Builder::UnbindVariable(sm::Variable* variable) {
 }
 
 ir::Data* Builder::VariableValueOf(sm::Variable* variable) const {
-  DCHECK(basic_block_);
+  DCHECK(basic_block_) << *variable;
   return basic_block_->ValueOf(variable);
 }
 

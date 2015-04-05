@@ -101,6 +101,7 @@ class Translator final : public CompilationSessionUser,
   void VisitIfStatement(ast::IfStatement* node) final;
   void VisitReturnStatement(ast::ReturnStatement* node) final;
   void VisitVarStatement(ast::VarStatement* node) final;
+  void VisitWhileStatement(ast::WhileStatement* node) final;
 
   // Holds current |break| and |continue| targets.
   const BreakContext* break_context_;

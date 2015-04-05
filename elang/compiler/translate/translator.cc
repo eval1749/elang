@@ -650,5 +650,29 @@ void Translator::VisitVarStatement(ast::VarStatement* node) {
   }
 }
 
+void Translator::VisitWhileStatement(ast::WhileStatement* node) {
+  auto const loop_block = NewLoop();
+  auto const continue_block = builder_->NewMergeBlock();
+  auto const break_block = builder_->NewMergeBlock();
+
+  // Loop head
+  auto const head_compare = Translate(node->condition());
+  builder_->StartWhileLoop(head_compare, loop_block, break_block);
+
+  // Loop body
+  {
+    ScopedBreakContext scope(this, break_block, continue_block);
+    TranslateStatement(node->statement());
+  }
+  builder_->EndBlockWithJump(continue_block);
+
+  // Continue block
+  builder_->StartMergeBlock(continue_block);
+  auto const continue_compare = Translate(node->condition());
+  builder_->EndLoopBlock(continue_compare, loop_block, break_block);
+
+  builder_->StartMergeBlock(break_block);
+}
+
 }  // namespace compiler
 }  // namespace elang

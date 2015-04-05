@@ -262,6 +262,57 @@ TEST_F(TranslatorTest, ReturnParameter) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, While) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int x) {"
+      "    var i = 0;"
+      "    var a = x;"
+      "    var c = 0;"
+      "    while (i < 10) {"
+      "      var b = a + 1;"
+      "      i = i + b;"
+      "      c = i * 2;"
+      "    }"
+      "    return c;"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32)\n"
+      "0000: (control, effect, int32) %t1 = entry()\n"
+      "0001: control %c4 = control_get(%t1, 0)\n"
+      "0002: bool %r10 = cmp_le(0, 10)\n"
+      "0003: control %c11 = if(%c4, %r10)\n"
+      "0004: control %c12 = if_false(%c11)\n"
+      "0005: control %c13 = br(%c12)\n"
+      "0006: control %c14 = if_true(%c11)\n"
+      "0007: control %c15 = br(%c14)\n"
+      "0008: control %c27 = if_true(%c26)\n"
+      "0009: control %c28 = br(%c27)\n"
+      "0010: control %c7 = loop(%c15, %c28)\n"
+      "0011: control %c24 = br(%c7)\n"
+      "0012: control %c8 = merge(%c24)\n"
+      "0013: int32 %r18 = phi(%c15: 0, %c28: %r22)\n"
+      "0014: int32 %r6 = param(%t1, 0)\n"
+      "0015: int32 %r19 = phi(%c15: %r6, %c28: %r19)\n"
+      "0016: int32 %r21 = add(%r19, 1)\n"
+      "0017: int32 %r22 = add(%r18, %r21)\n"
+      "0018: bool %r25 = cmp_le(%r22, 10)\n"
+      "0019: control %c26 = if(%c8, %r25)\n"
+      "0020: control %c29 = if_false(%c26)\n"
+      "0021: control %c30 = br(%c29)\n"
+      "0022: control %c9 = merge(%c13, %c30)\n"
+      "0023: effect %e5 = effect_get(%t1, 1)\n"
+      "0024: effect %e16 = effect_phi(%c15: %e5, %c28: %e16)\n"
+      "0025: effect %e31 = effect_phi(%c13: %e5, %c30: %e16)\n"
+      "0026: int32 %r23 = mul(%r22, 2)\n"
+      "0027: int32 %r35 = phi(%c13: 0, %c30: %r23)\n"
+      "0028: control %c36 = ret(%c9, %e31, %r35)\n"
+      "0029: control %c2 = merge(%c36)\n"
+      "0030: void %r3 = exit(%c2)\n",
+      Translate("Sample.Foo"));
+}
+
 }  // namespace
 }  // namespace compiler
 }  // namespace elang
