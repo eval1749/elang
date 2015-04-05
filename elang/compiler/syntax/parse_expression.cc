@@ -323,7 +323,7 @@ void Parser::ParsePrimaryExpressionPost() {
       // PostIncrementExpression ::=
       //    PrimeryExpression '++'
       auto const op_token = ConsumeTokenAs(TokenType::PostIncrement);
-      ProduceUnaryOperation(op_token, ConsumeExpression());
+      ProduceIncrementExpression(op_token, ConsumeExpression());
       continue;
     }
 
@@ -331,7 +331,7 @@ void Parser::ParsePrimaryExpressionPost() {
       // PostDecrementExpression ::=
       //    PrimeryExpression '--'
       auto const op_token = ConsumeTokenAs(TokenType::PostDecrement);
-      ProduceUnaryOperation(op_token, ConsumeExpression());
+      ProduceIncrementExpression(op_token, ConsumeExpression());
       continue;
     }
 
@@ -390,6 +390,10 @@ bool Parser::ParseUnaryExpression() {
     return ParsePrimaryExpression();
   if (!ParseUnaryExpression())
     return false;
+  if (op_token == TokenType::Decrement || op_token == TokenType::Increment) {
+    ProduceIncrementExpression(op_token, ConsumeExpression());
+    return true;
+  }
   ProduceUnaryOperation(op_token, ConsumeExpression());
   return true;
 }
@@ -421,6 +425,11 @@ ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
 
 ast::Expression* Parser::ProduceNameReference(Token* token) {
   return ProduceExpression(factory()->NewNameReference(token));
+}
+
+ast::Expression* Parser::ProduceIncrementExpression(Token* op_token,
+                                                    ast::Expression* place) {
+  return ProduceExpression(factory()->NewIncrementExpression(op_token, place));
 }
 
 ast::Expression* Parser::ProduceUnaryOperation(Token* op_token,
