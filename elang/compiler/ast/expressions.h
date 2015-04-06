@@ -274,7 +274,6 @@ class Variable final : public NamedNode {
   bool is_bound() const { return value_ != nullptr; }
   bool is_const() const;
   Type* type() const { return type_; }
-  Expression* value() const { return value_; }
 
   void Bind(Expression* value);
 

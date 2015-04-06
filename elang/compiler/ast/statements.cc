@@ -171,7 +171,7 @@ UsingStatement::UsingStatement(Token* keyword,
       statement_(statement),
       variable_(variable) {
   DCHECK_EQ(keyword, TokenType::Using);
-  DCHECK(!variable_ || variable_->value() == resource_);
+  DCHECK(resource_);
 }
 
 VarDeclaration::VarDeclaration(Token* token,

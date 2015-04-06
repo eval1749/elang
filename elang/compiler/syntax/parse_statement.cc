@@ -635,11 +635,12 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
     auto const variable =
         factory()->NewVariable(using_keyword, var_type, var_name);
     using_scope.AddMember(variable);
-    variable->Bind(ConsumeExpression());
+    auto const resource = ConsumeExpression();
+    variable->Bind(resource);
     if (!ParseStatement())
       return false;
     ProduceStatement(factory()->NewUsingStatement(
-        using_keyword, variable, variable->value(), ConsumeStatement()));
+        using_keyword, variable, resource, ConsumeStatement()));
     return true;
   }
 
