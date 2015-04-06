@@ -24,11 +24,11 @@ Visitor::~Visitor() {
 // We implement |DoDefaultVisit()| and "VisitorXXX()" in "factory.cc" to avoid
 // include AST node include files in this file for improve compilation speed.
 
-void Visitor::Visit(const Node* node) {
+void Visitor::Traverse(const Node* node) {
   const_cast<Node*>(node)->Accept(this);
 }
 
-void Visitor::Visit(Node* node) {
+void Visitor::Traverse(Node* node) {
   node->Accept(this);
 }
 

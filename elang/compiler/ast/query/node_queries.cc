@@ -38,7 +38,7 @@ struct QueryContext : Visitor {
 
  private:
   // Visitor
-  void DoDefaultVisit(Node* node);
+  void DoDefaultTraverse(Node* node);
   void VisitMethodGroup(MethodGroup* node);
   void VisitMethod(Method* node);
 
@@ -49,53 +49,53 @@ struct QueryContext : Visitor {
   void VisitVarStatement(VarStatement* node);
 };
 
-void QueryContext::DoDefaultVisit(Node* node) {
+void QueryContext::DoDefaultTraverse(Node* node) {
   if (query->Match(this, node))
     nodes.push_back(node);
   auto const container = node->as<ContainerNode>();
   if (!container)
     return;
   for (auto const it : container->named_members())
-    Visit(it.second);
+    Traverse(it.second);
 }
 
 void QueryContext::VisitMethodGroup(MethodGroup* node) {
-  DoDefaultVisit(node);
+  DoDefaultTraverse(node);
   for (auto const method : node->methods())
-    Visit(method);
+    Traverse(method);
 }
 
 void QueryContext::VisitMethod(Method* node) {
-  DoDefaultVisit(node);
-  Visit(node->return_type());
+  DoDefaultTraverse(node);
+  Traverse(node->return_type());
   for (auto const parameter : node->parameters())
-    Visit(parameter);
+    Traverse(parameter);
   if (!node->body())
     return;
-  Visit(node->body());
+  Traverse(node->body());
 }
 
 // Visitor statements
 void QueryContext::VisitBlockStatement(BlockStatement* node) {
-  DoDefaultVisit(node);
+  DoDefaultTraverse(node);
   for (auto const statement : node->statements())
-    Visit(statement);
+    Traverse(statement);
 }
 
 void QueryContext::VisitExpressionList(ExpressionList* node) {
   for (auto const expression : node->expressions())
-    Visit(expression);
+    Traverse(expression);
 }
 
 void QueryContext::VisitExpressionStatement(ExpressionStatement* node) {
-  Visit(node->expression());
+  Traverse(node->expression());
 }
 
 void QueryContext::VisitVarStatement(VarStatement* node) {
-  DoDefaultVisit(node);
+  DoDefaultTraverse(node);
   for (auto const var_decl : node->variables()) {
-    Visit(var_decl->variable());
-    Visit(var_decl->value());
+    Traverse(var_decl->variable());
+    Traverse(var_decl->value());
   }
 }
 
@@ -153,7 +153,7 @@ std::vector<ast::Node*> CompilationSession::QueryAstNodes(
   ast::QueryContext context;
   context.query = &query;
   context.session = this;
-  context.Visit(global_namespace());
+  context.Traverse(global_namespace());
   return context.nodes;
 }
 

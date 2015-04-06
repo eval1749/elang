@@ -22,8 +22,8 @@ class Visitor {
 
   // Helper functions to start visiting to allow declaring |Accept()| with
   // private accessibility.
-  void Visit(const Node* node);
-  void Visit(Node* node);
+  void Traverse(const Node* node);
+  void Traverse(Node* node);
 
 #define DEF_VISIT(type) virtual void Visit##type(type* node);
   FOR_EACH_CONCRETE_AST_NODE(DEF_VISIT)
