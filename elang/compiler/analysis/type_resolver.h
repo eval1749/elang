@@ -76,7 +76,7 @@ class TypeResolver final : public Analyzer,
   ast::NamedNode* ResolveReference(ast::Expression* expression);
 
   // Shortcut function.
-  sm::Semantic* ValueOf(ast::Node* node);
+  sm::Semantic* SemanticOf(ast::Node* node);
 
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;

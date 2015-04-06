@@ -244,7 +244,7 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
   return result;
 }
 
-sm::Semantic* TypeResolver::ValueOf(ast::Node* node) {
+sm::Semantic* TypeResolver::SemanticOf(ast::Node* node) {
   return semantics()->ValueOf(node);
 }
 
@@ -297,12 +297,12 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
     return;
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
-    auto const value = ValueOf(ResolveReference(reference));
+    auto const value = SemanticOf(ResolveReference(reference));
     DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
-    auto const value = ValueOf(ResolveReference(reference));
+    auto const value = SemanticOf(ResolveReference(reference));
     DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
@@ -531,7 +531,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
 
   // Other than |null| literal, the type of literal is predefined.
   auto const ast_type = session()->PredefinedTypeOf(token->literal_type());
-  auto const literal_type = ValueOf(ast_type)->as<sm::Type>();
+  auto const literal_type = SemanticOf(ast_type)->as<sm::Type>();
   if (!literal_type) {
     // Predefined type isn't defined.
     return;
@@ -540,7 +540,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   auto const result_literal = result->as<ts::Literal>();
   if (!result_literal)
     return;
-  DCHECK(!ValueOf(ast_literal));
+  DCHECK(!SemanticOf(ast_literal));
   semantics()->SetValue(
       ast_literal,
       ir_factory()->NewLiteral(result_literal->value(), ast_literal->token()));
