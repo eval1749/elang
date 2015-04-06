@@ -156,10 +156,11 @@ void TypeResolver::ProduceUnifiedResult(ts::Value* result,
 
 ts::Value* TypeResolver::PromoteNumericType(NumericType left_type,
                                             NumericType right_type) const {
-  if (left_type.kind == NumericType::Kind::None ||
-      right_type.kind == NumericType::Kind::None) {
-    return empty_value();
-  }
+  if (left_type.is_none())
+    return PromoteNumericType(right_type);
+
+  if (right_type.is_none())
+    return PromoteNumericType(left_type);
 
   // Promote to Float
   if (left_type.kind == NumericType::Kind::Float &&
@@ -347,6 +348,12 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
   auto const left_type = NumericTypeOf(left);
   auto const right_type = NumericTypeOf(right);
 
+  if (left_type.is_none() && right_type.is_none()) {
+    Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
+    Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->right());
+    return;
+  }
+
   if (ast_node->is_bitwise_shift()) {
     // int32 operator<<(int32, int32)
     // int64 operator<<(int64, int64)
@@ -374,17 +381,6 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
   // On arithmetic and bitwise operation, both operands should be promoted
   // to same numeric type.
   auto const result = PromoteNumericType(left_type, right_type);
-
-  if (result == empty_value()) {
-    if (left_type.kind == NumericType::Kind::None)
-      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
-    if (right_type.kind == NumericType::Kind::None)
-      Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->right());
-    return;
-  }
-
-  DCHECK(result->is<ts::Literal>());
-
   if (ast_node->is_arithmetic()) {
     ProduceSemantics(result, ast_node);
     return;
