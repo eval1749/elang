@@ -117,7 +117,7 @@ ts::Value* MethodBodyAnalyzer::Analyze(ast::Expression* expression,
 void MethodBodyAnalyzer::Analyze(ast::Statement* statement) {
   if (!statement)
     return;
-  statement->Accept(this);
+  Traverse(statement);
 }
 
 void MethodBodyAnalyzer::AnalyzeAsBool(ast::Expression* expression) {

@@ -210,7 +210,7 @@ ts::Value* TypeResolver::Resolve(ast::Expression* expression,
                                  ts::Value* upper_bound) {
   auto const value = upper_bound == empty_value() ? any_value() : upper_bound;
   ScopedContext context(this, value, expression);
-  expression->Accept(this);
+  Traverse(expression);
   auto const result = context_->result;
   if (!result)
     return NewInvalidValue(expression);
