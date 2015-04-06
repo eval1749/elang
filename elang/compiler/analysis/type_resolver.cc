@@ -265,7 +265,11 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
   if (array_type->rank() != static_cast<int>(node->indexes().size()))
     Error(ErrorCode::TypeResolverArrayAccessRank, node);
   for (auto index : node->indexes()) {
-    auto const result = NumericTypeOf(Resolve(index, any_value()));
+    ts::Evaluator evaluator(type_factory());
+    // TODO(eval1749) We should try to unify type of |index| with integral
+    // type rather than evaluate type expression.
+    auto const index_type = evaluator.Evaluate(Resolve(index, any_value()));
+    auto const result = NumericTypeOf(index_type);
     if (result.is_int() || result.is_uint()) {
       continue;
     }
@@ -330,6 +334,8 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     return;
   }
 
+    // TODO(eval1749) We should try to unify type of |index| with numeric
+    // type rather than evaluate type expression.
   ts::Evaluator evaluator(type_factory());
   auto const left = evaluator.Evaluate(Resolve(ast_node->left(), any_value()));
   auto const right =
@@ -497,6 +503,8 @@ void TypeResolver::VisitConditional(ast::Conditional* ast_node) {
 void TypeResolver::VisitIncrementExpression(ast::IncrementExpression* node) {
   auto const place = node->expression();
   ts::Evaluator evaluator(type_factory());
+  // TODO(eval1749) We should try to unify type of |index| with numeric
+  // type rather than evaluate type expression.
   auto const operand = evaluator.Evaluate(Resolve(place, any_value()));
   auto const numeric_type = NumericTypeOf(operand);
   if (numeric_type.is_none()) {
