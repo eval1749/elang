@@ -236,7 +236,7 @@ void NameResolver::DidResolveUsing(ast::NamedNode* node,
   using_map_[node] = container;
 }
 
-sm::Type* NameResolver::GetPredefinedType(PredefinedName name) {
+sm::Type* NameResolver::PredefinedTypeOf(PredefinedName name) {
   auto const type_name = session()->name_for(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
   DCHECK(ast_type) << *type_name;

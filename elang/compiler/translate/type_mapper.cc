@@ -22,7 +22,7 @@ namespace compiler {
 namespace {
 sm::Type* ValueOfPredefinedType(cm::CompilationSession* session,
                                 cm::PredefinedName name) {
-  auto const ast_class = session->GetPredefinedType(name);
+  auto const ast_class = session->PredefinedTypeOf(name);
   DCHECK(ast_class) << "Not in System namespace " << name;
   auto const sm_class = session->semantics()->ValueOf(ast_class);
   DCHECK(sm_class) << "Not resolved " << name;

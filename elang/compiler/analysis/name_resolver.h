@@ -50,7 +50,7 @@ class NameResolver final : public CompilationSessionUser {
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.
-  sm::Type* GetPredefinedType(PredefinedName name);
+  sm::Type* PredefinedTypeOf(PredefinedName name);
   sm::Semantic* Resolve(ast::NamedNode* ast_node) const;
   // Resolve to |sm::Type| named |name| for |token|.
   sm::Type* ResolvePredefinedType(Token* token, PredefinedName name);

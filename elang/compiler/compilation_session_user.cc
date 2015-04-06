@@ -40,8 +40,8 @@ void CompilationSessionUser::Error(ErrorCode error_code,
   session()->AddError(error_code, node->name(), node2->name());
 }
 
-ast::Class* CompilationSessionUser::GetPredefinedType(PredefinedName name) {
-  return session()->GetPredefinedType(name);
+ast::Class* CompilationSessionUser::PredefinedTypeOf(PredefinedName name) {
+  return session()->PredefinedTypeOf(name);
 }
 
 }  // namespace compiler

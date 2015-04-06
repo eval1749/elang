@@ -74,7 +74,7 @@ IrTypeMapperTest::IrTypeMapperTest()
 
 sm::Type* IrTypeMapperTest::GetIr(cm::PredefinedName name) {
   return semantics()
-      ->ValueOf(session()->GetPredefinedType(name))
+      ->ValueOf(session()->PredefinedTypeOf(name))
       ->as<sm::Type>();
 }
 

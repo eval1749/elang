@@ -100,7 +100,6 @@ class CompilationSession final : public ZoneOwner {
   hir::Function* FunctionOf(ast::Method* method);
   ir::Function* IrFunctionOf(ast::Method* method);
 
-  ast::Class* GetPredefinedType(PredefinedName name);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   CompilationUnit* NewCompilationUnit(SourceCode* source_code);
   // Allocate |base::StringPiece16| object in zone used for string backing
@@ -110,6 +109,9 @@ class CompilationSession final : public ZoneOwner {
                             const base::char16* format);
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
   Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
+
+  // Returns predefined type as |ast::Class| of |name|.
+  ast::Class* PredefinedTypeOf(PredefinedName name);
 
   void RegisterFunction(ast::Method* method, hir::Function* function);
   void RegisterFunction(ast::Method* method, ir::Function* function);

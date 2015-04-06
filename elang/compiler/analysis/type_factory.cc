@@ -77,7 +77,7 @@ Value* Factory::NewNullValue(Value* base_value) {
 }
 
 Value* Factory::NewPredefinedValue(PredefinedName name) {
-  auto const ast_type = session()->GetPredefinedType(name);
+  auto const ast_type = session()->PredefinedTypeOf(name);
   auto const type = semantics()->ValueOf(ast_type)->as<sm::Type>();
   return NewLiteral(type);
 }

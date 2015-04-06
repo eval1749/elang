@@ -334,8 +334,8 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     return;
   }
 
-    // TODO(eval1749) We should try to unify type of |index| with numeric
-    // type rather than evaluate type expression.
+  // TODO(eval1749) We should try to unify type of |index| with numeric
+  // type rather than evaluate type expression.
   ts::Evaluator evaluator(type_factory());
   auto const left = evaluator.Evaluate(Resolve(ast_node->left(), any_value()));
   auto const right =
@@ -530,7 +530,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   }
 
   // Other than |null| literal, the type of literal is predefined.
-  auto const ast_type = session()->GetPredefinedType(token->literal_type());
+  auto const ast_type = session()->PredefinedTypeOf(token->literal_type());
   auto const literal_type = ValueOf(ast_type)->as<sm::Type>();
   if (!literal_type) {
     // Predefined type isn't defined.

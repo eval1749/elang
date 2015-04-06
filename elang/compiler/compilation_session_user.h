@@ -43,7 +43,7 @@ class CompilationSessionUser {
   ast::Namespace* system_namespace();
   ast::NamespaceBody* system_namespace_body();
 
-  ast::Class* GetPredefinedType(PredefinedName name);
+  ast::Class* PredefinedTypeOf(PredefinedName name);
 
  private:
   CompilationSession* const session_;

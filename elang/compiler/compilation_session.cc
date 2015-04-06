@@ -113,17 +113,10 @@ void CompilationSession::AddError(const SourceCodeRange& location,
   std::vector<ErrorData*>* list =
       error_code > ErrorCode::WarningCodeZero ? &warnings_ : &errors_;
   list->push_back(new (zone()) ErrorData(zone(), location, error_code, tokens));
-  std::sort(list->begin(), list->end(),
-            [](const ErrorData* a, const ErrorData* b) {
-    return a->location().start_offset() < b->location().start_offset();
-  });
-}
-
-ast::Class* CompilationSession::GetPredefinedType(PredefinedName name) {
-  auto const name_token = name_for(name);
-  auto const ast_node = system_namespace()->FindMember(name_token);
-  DCHECK(ast_node) << "Not found predefined type " << *name_token;
-  return ast_node->as<ast::Class>();
+  std::sort(
+      list->begin(), list->end(), [](const ErrorData* a, const ErrorData* b) {
+        return a->location().start_offset() < b->location().start_offset();
+      });
 }
 
 AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
@@ -160,9 +153,15 @@ Token* CompilationSession::NewToken(const SourceCodeRange& location,
   return token_factory_->NewToken(location, TokenData(name));
 }
 
+ast::Class* CompilationSession::PredefinedTypeOf(PredefinedName name) {
+  auto const name_token = name_for(name);
+  auto const ast_node = system_namespace()->FindMember(name_token);
+  DCHECK(ast_node) << "Not found predefined type " << *name_token;
+  return ast_node->as<ast::Class>();
+}
+
 ast::NamedNode* CompilationSession::QueryAstNode(base::StringPiece16 name) {
-  auto enclosing =
-      static_cast<ast::ContainerNode*>(global_namespace());
+  auto enclosing = static_cast<ast::ContainerNode*>(global_namespace());
   auto found = static_cast<ast::NamedNode*>(nullptr);
   for (size_t pos = 0u; pos < name.length(); ++pos) {
     auto dot_pos = name.find('.', pos);
