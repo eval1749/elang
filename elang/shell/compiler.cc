@@ -437,7 +437,7 @@ bool Compiler::ReportCompileErrors() {
               << location.start().line() + 1
               << "): " << ReadableErrorData(*error) << std::endl;
   }
-  return false;
+  return true;
 }
 
 }  // namespace shell
