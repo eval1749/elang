@@ -55,8 +55,9 @@ struct TypeResolver::NumericType {
   NumericType(Kind kind, int size) : kind(kind), size(size) {}
 
   bool is_float() const { return kind == Kind::Float; }
-  bool is_int() const { return kind == Kind::Int || kind == Kind::UInt; }
+  bool is_int() const { return kind == Kind::Int; }
   bool is_none() const { return kind == Kind::None; }
+  bool is_uint() const { return kind == Kind::UInt; }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -163,23 +164,22 @@ ts::Value* TypeResolver::PromoteNumericType(NumericType left_type,
     return PromoteNumericType(left_type);
 
   // Promote to Float
-  if (left_type.kind == NumericType::Kind::Float &&
-      right_type.kind == NumericType::Kind::Float) {
+  if (left_type.is_float() && right_type.is_float()) {
     return left_type.size == 64 || right_type.size == 64 ? float64_value()
                                                          : float32_value();
   }
 
-  if (left_type.kind == NumericType::Kind::Float)
+  if (left_type.is_float())
     return left_type.size == 64 ? float64_value() : float32_value();
 
-  if (right_type.kind == NumericType::Kind::Float)
+  if (right_type.is_float())
     return right_type.size == 64 ? float64_value() : float32_value();
 
   // Promote to 64-bit or 32-bit integer.
   if (left_type.kind != right_type.kind)
     return empty_value();
 
-  if (left_type.kind == NumericType::Kind::UInt)
+  if (left_type.is_uint())
     return left_type.size == 64 || right_type.size == 64 ? uint64_value()
                                                          : uint32_value();
   return left_type.size == 64 || right_type.size == 64 ? int64_value()
@@ -266,8 +266,7 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
     Error(ErrorCode::TypeResolverArrayAccessRank, node);
   for (auto index : node->indexes()) {
     auto const result = NumericTypeOf(Resolve(index, any_value()));
-    if (result.kind == NumericType::Kind::Int ||
-        result.kind == NumericType::Kind::UInt) {
+    if (result.is_int() || result.is_uint()) {
       continue;
     }
     Error(ErrorCode::TypeResolverArrayAccessIndex, index);
@@ -359,16 +358,16 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     // int64 operator<<(int64, int64)
     // uint32 operator<<(uint32, uint32)
     // uint64 operator<<(uint64, uint64)
-    if (right_type.kind != NumericType::Kind::Int && right_type.size != 32) {
+    if (!right_type.is_int() && right_type.size != 32) {
       Error(ErrorCode::TypeResolverBinaryOperationShift, ast_node->right());
       return;
     }
-    if (left_type.kind == NumericType::Kind::Int) {
+    if (left_type.is_int()) {
       auto const result = left_type.size == 64 ? int64_value() : int32_value();
       ProduceSemantics(result, ast_node);
       return;
     }
-    if (left_type.kind == NumericType::Kind::UInt) {
+    if (left_type.is_uint()) {
       auto const result =
           left_type.size == 64 ? uint64_value() : uint32_value();
       ProduceSemantics(result, ast_node);
@@ -388,14 +387,13 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
 
   if (ast_node->is_bitwise()) {
     auto const result_type = NumericTypeOf(result);
-    if (result_type.kind == NumericType::Kind::Int ||
-        result_type.kind == NumericType::Kind::UInt) {
+    if (result_type.is_int() || result_type.is_uint()) {
       ProduceSemantics(result, ast_node);
       return;
     }
-    if (left_type.kind == NumericType::Kind::Float)
+    if (left_type.is_float())
       Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->left());
-    if (right_type.kind == NumericType::Kind::Float)
+    if (right_type.is_float())
       Error(ErrorCode::TypeResolverBinaryOperationNumeric, ast_node->right());
     return;
   }
