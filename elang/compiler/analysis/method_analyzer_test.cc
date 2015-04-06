@@ -298,6 +298,17 @@ TEST_F(MethodAnalyzerTest, ArrayAccessErrorRank) {
   ASSERT_EQ("TypeResolver.ArrayAccess.Rank(85) [\n", Analyze());
 }
 
+// Assignment
+TEST_F(MethodAnalyzerTest, AssignVoid) {
+  Prepare(
+      "class Sample {"
+      "  static void Foo() { int x = 0; x = Bar(); }"
+      "  static void Bar() {}"
+      "}");
+  // TODO(eval1749) We should have specific error code for void binding.
+  EXPECT_EQ("TypeResolver.Expression.Invalid(51) Bar\n", Analyze());
+}
+
 // Binary operations
 TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat64) {
   Prepare(
@@ -464,7 +475,8 @@ TEST_F(MethodAnalyzerTest, ForEachError) {
       "      Console.WriteLine(arg);"
       "  }"
       "}");
-  EXPECT_EQ("TypeResolver.ForEach.ElementType(75) arg\n",
+  EXPECT_EQ("TypeResolver.ForEach.ElementType(75) arg\n"
+            "TypeResolver.Expression.Invalid(110) arg\n",
             VariablesOf("Sample.Main"));
 }
 
@@ -573,6 +585,17 @@ TEST_F(MethodAnalyzerTest, TypeVariable) {
       "System.Char Sample.Foo(System.Char x)\n"
       "System.Char Sample.Foo(System.Char x)\n",
       GetCalls("Sample.Main"));
+}
+
+// 'var' statement
+TEST_F(MethodAnalyzerTest, VarVoid) {
+  Prepare(
+      "class Sample {"
+      "  static void Foo() { int x = Bar(); }"
+      "  static void Bar() {}"
+      "}");
+  // TODO(eval1749) We should have specific error code for void binding.
+  EXPECT_EQ("TypeResolver.Expression.Invalid(44) Bar\n", Analyze());
 }
 
 // 'while' statement

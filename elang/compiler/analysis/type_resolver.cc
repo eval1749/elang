@@ -146,7 +146,13 @@ void TypeResolver::ProduceResult(ts::Value* result, ast::Node* producer) {
   DCHECK(!context_->result);
   DCHECK(producer);
   context_->result = result;
-  // TODO(eval1749) If |result| is |EmptyValue|, report error with |producer|.
+  if (result != empty_value())
+    return;
+  context_->result = NewInvalidValue(producer);
+  if (context_->value == bool_value())
+    Error(ErrorCode::TypeResolverExpressionNotBool, producer);
+  else
+    Error(ErrorCode::TypeResolverExpressionInvalid, producer);
 }
 
 // Set unified value as result.
@@ -212,22 +218,18 @@ ts::Value* TypeResolver::Resolve(ast::Expression* expression,
   ScopedContext context(this, value, expression);
   Traverse(expression);
   auto const result = context_->result;
-  if (!result)
+  if (!result || result == empty_value())
     return NewInvalidValue(expression);
-  if (result == empty_value() && !expression->as<ast::VariableReference>()) {
-    // Since, we've already reported empty value |VaraibleReference| at
-    // variable declaration, we don't report again.
-    Error(ErrorCode::TypeResolverExpressionInvalid, expression);
-  }
   return result;
 }
 
 ts::Value* TypeResolver::ResolveAsBool(ast::Expression* expression) {
   auto const result = Resolve(expression, bool_value());
-  if (result != bool_value())
-    Error(ErrorCode::TypeResolverExpressionNotBool, expression);
-  // TODO(eval1749) Looking for |implicit operator bool()| and
-  // |static bool operator true(Ty)|
+  if (result != bool_value()) {
+    // TODO(eval1749) Looking for |implicit operator bool()| and
+    // |static bool operator true(Ty)|
+    return empty_value();
+  }
   return result;
 }
 
@@ -447,7 +449,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
       if (!parameter->is_rest())
         ++parameters;
     }
-    ProduceResult(NewLiteral(method->return_type()), call);
+    ProduceUnifiedResult(NewLiteral(method->return_type()), call);
     return;
   }
 
