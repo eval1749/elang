@@ -295,6 +295,8 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   // Visitor pattern
   virtual void Accept(NodeVisitor* visitor) = 0;
 
+  bool IsBlockEnd() const;
+  bool IsBlockStart() const;
   virtual bool IsControl() const;
   virtual bool IsData() const;
   virtual bool IsEffect() const;

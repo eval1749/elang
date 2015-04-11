@@ -302,6 +302,26 @@ void Node::InitInputAt(size_t index, Node* value) {
   InputAt(index)->Init(this, value);
 }
 
+bool Node::IsBlockStart() const {
+  static bool block_start[static_cast<size_t>(Opcode::NumberOfOpcodes)];
+  if (!block_start[static_cast<size_t>(Opcode::Entry)]) {
+#define V(Name) block_start[static_cast<size_t>(Opcode::Name)] = true;
+    FOR_EACH_OPTIMIZER_BLOCK_START_NODE(V)
+#undef V
+  }
+  return block_start[static_cast<size_t>(opcode())];
+}
+
+bool Node::IsBlockEnd() const {
+  static bool block_end[static_cast<size_t>(Opcode::NumberOfOpcodes)];
+  if (!block_end[static_cast<size_t>(Opcode::Entry)]) {
+#define V(Name) block_end[static_cast<size_t>(Opcode::Name)] = true;
+    FOR_EACH_OPTIMIZER_BLOCK_END_NODE(V)
+#undef V
+  }
+  return block_end[static_cast<size_t>(opcode())];
+}
+
 bool Node::IsControl() const {
   return false;
 }

@@ -118,6 +118,25 @@ namespace optimizer {
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)   \
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
+#define FOR_EACH_OPTIMIZER_BLOCK_START_NODE(V) \
+  V(Entry)                                     \
+  V(Loop)                                      \
+  V(Merge)
+
+#define FOR_EACH_OPTIMIZER_EDGE_NODE(V) \
+  V(Case)                               \
+  V(IfException)                        \
+  V(IfFalse)                            \
+  V(IfSuccess)                          \
+  V(IfTrue)
+
+#define FOR_EACH_OPTIMIZER_BLOCK_END_NODE(V) \
+  V(Exit)                                    \
+  V(If)                                      \
+  V(Ret)                                     \
+  V(Switch)                                  \
+  V(Throw)
+
 // Forward declarations
 #define V(Name) class Name;
 FOR_EACH_OPTIMIZER_ABSTRACT_NODE(V)
