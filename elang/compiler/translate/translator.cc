@@ -37,13 +37,6 @@
 namespace elang {
 namespace compiler {
 
-namespace {
-bool IsUnsignedType(ir::Node* node) {
-  auto const type = node->output_type()->as<ir::PrimitiveValueType>();
-  return type && type->is_unsigned();
-}
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // Translator::BreakContext represents target blocks of |break| and
@@ -121,7 +114,8 @@ void Translator::BindParameters(ast::Method* method) {
 ir::Data* Translator::NewOperationFor(ast::Expression* node,
                                       ir::Data* left,
                                       ir::Data* right) {
-  if (left->output_type()->is_float()) {
+  auto const left_type = left->output_type();
+  if (left_type->is_float()) {
     switch (node->op()->type()) {
       case TokenType::Add:
         return NewFloatAdd(left, right);
@@ -150,7 +144,7 @@ ir::Data* Translator::NewOperationFor(ast::Expression* node,
     Error(ErrorCode::TranslatorExpressionUnexpected, node);
     return void_value();
   }
-  if (left->output_type()->is_integer()) {
+  if (left_type->is_integer()) {
     switch (node->op()->type()) {
       case TokenType::Add:
         return NewIntAdd(left, right);
@@ -165,22 +159,22 @@ ir::Data* Translator::NewOperationFor(ast::Expression* node,
       case TokenType::Eq:
         return NewIntCmp(ir::IntCondition::Equal, left, right);
       case TokenType::Ge:
-        if (IsUnsignedType(left)) {
+        if (left_type->is_unsigned()) {
           return NewIntCmp(ir::IntCondition::UnsignedGreaterThanOrEqual, left,
                            right);
         }
         return NewIntCmp(ir::IntCondition::SignedGreaterThanOrEqual, left,
                          right);
       case TokenType::Gt:
-        if (IsUnsignedType(left))
+        if (left_type->is_unsigned())
           return NewIntCmp(ir::IntCondition::UnsignedGreaterThan, left, right);
         return NewIntCmp(ir::IntCondition::SignedGreaterThan, left, right);
       case TokenType::Le:
-        if (IsUnsignedType(left))
+        if (left_type->is_unsigned())
           return NewIntCmp(ir::IntCondition::UnsignedLessThan, left, right);
         return NewIntCmp(ir::IntCondition::SignedLessThan, left, right);
       case TokenType::Lt:
-        if (IsUnsignedType(left)) {
+        if (left_type->is_unsigned()) {
           return NewIntCmp(ir::IntCondition::UnsignedLessThanOrEqual, left,
                            right);
         }
