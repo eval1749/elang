@@ -117,7 +117,7 @@ inline IntCondition CommuteCondition(IntCondition condition) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Input
+// Input, aka use edge
 //
 class ELANG_OPTIMIZER_EXPORT Input final
     : public DoubleLinked<Input, Node>::Node {
@@ -127,13 +127,17 @@ class ELANG_OPTIMIZER_EXPORT Input final
   Input();
   ~Input() = default;
 
-  Node* owner() const { return owner_; }
-  Node* value() const { return value_; }
+  Node* from() const { return from_; }
+  Node* to() const { return to_; }
+
+  // TODO(eval1749) We should replace |owner()| and |value()|.
+  Node* owner() const { return from(); }
+  Node* value() const { return to(); }
 
  protected:
-  void Init(Node* owner, Node* value);
+  void Init(Node* from, Node* to);
   void Reset();
-  void SetValue(Node* new_value);
+  void SetTo(Node* new_to);
 
  private:
   friend class Editor;
@@ -141,13 +145,15 @@ class ELANG_OPTIMIZER_EXPORT Input final
   // |Node| calls |Init| during construction of |Node|.
   friend class Node;
 
-  Node* value_;
-
-  // Owner of this |Input| using |value_|.
-  Node* owner_;
+  Node* from_;
+  Node* to_;
 
   DISALLOW_COPY_AND_ASSIGN(Input);
 };
+
+// TODO(eval1749) We should rename |Input| to |UseEdge|.
+using UseEdge = Input;
+using UseEdges = DoubleLinked<Input, Node>;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -267,8 +273,6 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
     const Node* node_;
   };
 
-  typedef DoubleLinked<Input, Node> Users;
-
   // A mnemonic string pf this node used in printer.
   virtual base::StringPiece mnemonic() const;
 
@@ -286,7 +290,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
   Control* control(size_t index) const;
   Node* input(size_t index) const;
   Inputs inputs() const;
-  const Users& users() const { return use_def_list_; }
+  const UseEdges& use_edges() const { return use_edges_; }
 
   // Visitor pattern
   virtual void Accept(NodeVisitor* visitor) = 0;
@@ -328,7 +332,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
  private:
   uint32_t id_;
   Type* output_type_;
-  Users use_def_list_;
+  UseEdges use_edges_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);
 };

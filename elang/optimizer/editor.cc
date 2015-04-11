@@ -44,7 +44,7 @@ void Editor::ChangeInput(Node* node, size_t index, Node* new_value) {
   DCHECK(new_value->id() || new_value->IsLiteral()) << *new_value;
   DCHECK_NE(node, new_value);
   DCHECK_LE(new_value->id(), function_->max_node_id());
-  node->InputAt(index)->SetValue(new_value);
+  node->InputAt(index)->SetTo(new_value);
 }
 
 void Editor::Commit() {
@@ -65,9 +65,10 @@ Data* Editor::ParameterAt(size_t index) {
 }
 
 void Editor::ReplaceAllUses(Node* new_node, Node* old_node) {
-  std::vector<Input*> users(old_node->users().begin(), old_node->users().end());
-  for (auto const user : users)
-    user->SetValue(new_node);
+  std::vector<UseEdge*> edges(old_node->use_edges().begin(),
+                              old_node->use_edges().end());
+  for (auto const edge : edges)
+    edge->SetTo(new_node);
 }
 
 Control* Editor::SetBranch(Data* condition) {
@@ -88,7 +89,7 @@ void Editor::SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect) {
   DCHECK(effect->IsValidEffect()) << *effect;
   for (auto const phi_input : phi->phi_inputs()) {
     if (phi_input->control() == control) {
-      phi_input->input()->SetValue(effect);
+      phi_input->input()->SetTo(effect);
       return;
     }
   }
@@ -104,7 +105,7 @@ void Editor::SetPhiInput(PhiNode* phi, Control* control, Data* value) {
   DCHECK(!value->IsEffect()) << *value;
   for (auto const phi_input : phi->phi_inputs()) {
     if (phi_input->control() == control) {
-      phi_input->input()->SetValue(value);
+      phi_input->input()->SetTo(value);
       return;
     }
   }

@@ -53,9 +53,9 @@ Node* OnUseEdge::StartNodeOf(const Function* function) {
   return function->entry_node();
 }
 
-const Node::Users& OnUseEdge::SuccessorsOf(const Function* function,
+const UseEdges& OnUseEdge::SuccessorsOf(const Function* function,
                                            Node* node) {
-  return node->users();
+  return node->use_edges();
 }
 
 }  // namespace optimizer

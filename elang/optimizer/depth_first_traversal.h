@@ -98,7 +98,7 @@ struct OnEffectEdge : OnInputEdge {
 struct OnUseEdge {
   static bool ShouldVisit(const Function* function, Node* node);
   static Node* StartNodeOf(const Function* function);
-  static const Node::Users& SuccessorsOf(const Function* function, Node* node);
+  static const UseEdges& SuccessorsOf(const Function* function, Node* node);
 };
 
 }  // namespace optimizer

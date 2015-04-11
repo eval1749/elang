@@ -194,7 +194,7 @@ void Validator::Context::VisitEntry(EntryNode* node) {
     Error(ErrorCode::ValidateEntryNodeNoControlOutput, node);
   if (!tuple_type->get(1)->is<EffectType>())
     Error(ErrorCode::ValidateEntryNodeNoEffectOutput, node);
-  if (node->users().empty())
+  if (node->use_edges().empty())
     Error(ErrorCode::ValidateEntryNodeNoUsers, node);
 }
 

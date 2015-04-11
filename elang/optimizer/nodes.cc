@@ -115,30 +115,30 @@ GetNode::GetNode(Type* output_type, Tuple* input, size_t field)
 }
 
 // Input
-Input::Input() : owner_(nullptr), value_(nullptr) {
+Input::Input() : from_(nullptr), to_(nullptr) {
 }
 
-void Input::Init(Node* owner, Node* value) {
-  DCHECK(owner);
-  DCHECK(value);
-  DCHECK(!owner_);
-  DCHECK(!value_);
-  owner_ = owner;
-  value_ = value;
-  value_->Use(this);
+void Input::Init(Node* from, Node* to) {
+  DCHECK(from);
+  DCHECK(to);
+  DCHECK(!from_);
+  DCHECK(!to_);
+  from_ = from;
+  to_ = to;
+  to_->Use(this);
 }
 
 void Input::Reset() {
-  DCHECK(!value_) << "Already reset";
-  value_->Unuse(this);
-  value_ = nullptr;
+  DCHECK(!to_) << "Already reset";
+  to_->Unuse(this);
+  to_ = nullptr;
 }
 
-void Input::SetValue(Node* new_value) {
-  DCHECK(value_);
-  value_->Unuse(this);
-  new_value->Use(this);
-  value_ = new_value;
+void Input::SetTo(Node* new_to) {
+  DCHECK(to_);
+  to_->Unuse(this);
+  new_to->Use(this);
+  to_ = new_to;
 }
 
 // InputHolder
@@ -349,15 +349,15 @@ void Node::ResetInputAt(size_t index) {
 }
 
 void Node::SetInputAt(size_t index, Node* value) {
-  InputAt(index)->SetValue(value);
+  InputAt(index)->SetTo(value);
 }
 
 void Node::Use(Input* input) {
-  use_def_list_.AppendNode(input);
+  use_edges_.AppendNode(input);
 }
 
 void Node::Unuse(Input* input) {
-  use_def_list_.RemoveNode(input);
+  use_edges_.RemoveNode(input);
 }
 
 // Node NodeLayout implementation
