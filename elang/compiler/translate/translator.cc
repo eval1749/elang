@@ -456,9 +456,7 @@ void Translator::VisitVariableReference(ast::VariableReference* node) {
 // ast::Visitor statement nodes
 //
 void Translator::VisitBlockStatement(ast::BlockStatement* node) {
-  // Save list of variable bindings.
-  std::vector<sm::Variable*> variables;
-  variables.swap(variables_);
+  builder_->StartVariableScope();
 
   for (auto const statement : node->statements()) {
     if (!builder()->has_control()) {
@@ -469,15 +467,7 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
     TranslateStatement(statement);
   }
 
-  // Unbind variables declared in this block.
-  if (builder_->has_control()) {
-    for (auto const variable : variables_)
-      builder_->UnbindVariable(variable);
-  }
-  variables_.clear();
-
-  // Restore list of binding variables in this block.
-  variables_.swap(variables);
+  builder_->EndVariableScope();
 }
 
 void Translator::VisitBreakStatement(ast::BreakStatement* node) {
@@ -616,11 +606,10 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
     auto const element_value = builder_->NewLoad(array, element_pointer_0);
     auto const variable = ValueOf(node->variable())->as<sm::Variable>();
     DCHECK(variable);
-    variables_.push_back(variable);
+    builder_->StartVariableScope();
     builder_->BindVariable(variable, element_value);
     TranslateStatement(node->statement());
-    builder_->UnbindVariable(variable);
-    variables_.pop_back();
+    builder_->EndVariableScope();
   }
   builder_->EndBlockWithJump(continue_block);
 
@@ -666,7 +655,6 @@ void Translator::VisitVarStatement(ast::VarStatement* node) {
     auto const variable = ValueOf(declaration->variable())->as<sm::Variable>();
     DCHECK(variable);
     builder_->BindVariable(variable, Translate(declaration->value()));
-    variables_.push_back(variable);
   }
 }
 

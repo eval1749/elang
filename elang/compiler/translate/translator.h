@@ -113,9 +113,6 @@ class Translator final : public CompilationSessionUser,
   // The type mapper for mapping |sm::Type| to |ir::Type|.
   const std::unique_ptr<IrTypeMapper> type_mapper_;
 
-  // List of variables bound in current block scope.
-  std::vector<sm::Variable*> variables_;
-
   // Holds the result of visiting.
   ir::Node* visit_result_;
 

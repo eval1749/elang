@@ -2,24 +2,106 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 #include "elang/compiler/translate/builder.h"
 
+#include "elang/base/zone_unordered_map.h"
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/optimizer/editor.h"
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/opcode.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 
 namespace elang {
 namespace compiler {
 
-typedef std::unordered_map<ir::PhiNode*, sm::Variable*> PhiMap;
+namespace {
+
+using VariableMap = std::unordered_map<sm::Variable*, ir::Data*>;
+
+//////////////////////////////////////////////////////////////////////
+//
+// VariableScope represents lexical variable scope.
+//
+class VariableScope final {
+ public:
+  explicit VariableScope(VariableScope* outer);
+  ~VariableScope();
+
+  VariableScope* outer() const { return outer_; }
+  const VariableMap& map() const { return map_; }
+  const std::vector<sm::Variable*>& variables() const { return list_; }
+
+  void Assign(sm::Variable* variable, ir::Data* data);
+  void Bind(sm::Variable* variable, ir::Data* data);
+  ir::Data* ValueOf(sm::Variable* variable) const;
+
+ private:
+  ir::Data* ValueFor(sm::Variable* variable) const;
+
+  std::vector<sm::Variable*> list_;
+  VariableMap map_;
+  VariableScope* const outer_;
+
+  DISALLOW_COPY_AND_ASSIGN(VariableScope);
+};
+
+VariableScope::VariableScope(VariableScope* outer) : outer_(outer) {
+  if (!outer)
+    return;
+  list_.insert(list_.end(), outer->list_.begin(), outer->list_.end());
+}
+
+VariableScope::~VariableScope() {
+}
+
+void VariableScope::Assign(sm::Variable* variable, ir::Data* data) {
+  for (auto runner = this; runner; runner = runner->outer()) {
+    auto const it = runner->map_.find(variable);
+    if (it != runner->map_.end()) {
+      it->second = data;
+      return;
+    }
+  }
+  NOTREACHED() << *variable;
+}
+
+void VariableScope::Bind(sm::Variable* variable, ir::Data* data) {
+  DCHECK(!ValueFor(variable));
+  if (variable->storage() == sm::StorageClass::Void)
+    return;
+  DCHECK(variable->storage() == sm::StorageClass::Local ||
+         variable->storage() == sm::StorageClass::ReadOnly);
+  // TODO(eval1749) We should introduce |sm::StorageClass::Register| and
+  // use here instead of |sm::StorageClass::Local|.
+  map_.insert(std::make_pair(variable, data));
+  if (variable->storage() == sm::StorageClass::ReadOnly)
+    return;
+  list_.push_back(variable);
+}
+
+ir::Data* VariableScope::ValueFor(sm::Variable* variable) const {
+  for (auto runner = this; runner; runner = runner->outer()) {
+    auto const it = runner->map_.find(variable);
+    if (it != runner->map_.end())
+      return it->second;
+  }
+  return nullptr;
+}
+
+ir::Data* VariableScope::ValueOf(sm::Variable* variable) const {
+  auto const value = ValueFor(variable);
+  DCHECK(value);
+  return value;
+}
+
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -27,23 +109,19 @@ typedef std::unordered_map<ir::PhiNode*, sm::Variable*> PhiMap;
 //
 class Builder::BasicBlock final : public ZoneAllocated {
  public:
-  BasicBlock(ir::Control* control,
-             ir::Effect* effect,
-             const Variables& variables);
+  BasicBlock(Zone* zone, ir::Control* control, ir::Effect* effect);
   ~BasicBlock() = delete;
 
   ir::Control* end_node() const;
   ir::Effect* effect() const { return effect_; }
   void set_effect(ir::Effect* effect);
-  const PhiMap& phi_map() const { return phi_map_; }
   ir::Control* start_node() const { return start_node_; }
-  const Variables& variables() const { return variables_; }
+  const ZoneVector<sm::Variable*>& variables() const;
 
-  void AssignVariable(sm::Variable* variable, ir::Data* value);
-  void BindVariable(sm::Variable* variable, ir::Data* value);
-  void Commit(ir::Control* end_node);
-  void PopulatePhiNodes(const BasicBlock* predecessor);
-  void UnbindVariable(sm::Variable* variable);
+  void AddPhiVariable(sm::Variable* variable, ir::PhiNode* phi);
+  void Commit(ir::Control* end_node, const VariableScope* var_map);
+  bool HasPhiFor(sm::Variable* variable) const;
+  sm::Variable* PhiVariableOf(ir::PhiNode* phi) const;
   ir::Data* ValueOf(sm::Variable* variable) const;
 
  private:
@@ -51,34 +129,36 @@ class Builder::BasicBlock final : public ZoneAllocated {
   ir::Effect* effect_;
   ir::Control* end_node_;
 
-  // A mapping from |sm::Variable| to |ir::PhiNode| at start of block.
-  PhiMap phi_map_;
+  ZoneUnorderedMap<ir::PhiNode*, sm::Variable*> phi_map_;
+  ZoneUnorderedMap<sm::Variable*, ir::PhiNode*> phi_var_map_;
 
   ir::Control* start_node_;
 
-  // A mapping from |sm::Variable| to |ir::Node| at end of block.
-  Variables variables_;
+  // Variables at the end of this |BasicBlock|.
+  ZoneVector<sm::Variable*> variables_;
+  ZoneUnorderedMap<sm::Variable*, ir::Data*> value_map_;
 
   DISALLOW_COPY_AND_ASSIGN(BasicBlock);
 };
 
-Builder::BasicBlock::BasicBlock(ir::Control* start_node,
-                                ir::Effect* effect,
-                                const Variables& variables)
+Builder::BasicBlock::BasicBlock(Zone* zone,
+                                ir::Control* start_node,
+                                ir::Effect* effect)
     : effect_(effect),
       end_node_(nullptr),
+      phi_map_(zone),
+      phi_var_map_(zone),
       start_node_(start_node),
-      variables_(variables) {
-  DCHECK(start_node_->IsValidControl());
-  DCHECK(effect_->IsValidEffect());
-  if (!start_node->is<ir::PhiOwnerNode>())
-    return;
-  for (auto const var_val : variables_) {
-    auto const phi = var_val.second->as<ir::PhiNode>();
-    if (!phi || phi->owner() != start_node)
-      continue;
-    phi_map_[phi] = var_val.first;
-  }
+      variables_(zone),
+      value_map_(zone) {
+  DCHECK(start_node_->IsValidControl()) << *start_node_;
+  DCHECK(start_node_->IsBlockStart()) << *start_node_;
+  DCHECK(effect_->IsValidEffect()) << *effect_;
+}
+
+const ZoneVector<sm::Variable*>& Builder::BasicBlock::variables() const {
+  DCHECK(end_node_);
+  return variables_;
 }
 
 ir::Control* Builder::BasicBlock::end_node() const {
@@ -93,47 +173,123 @@ void Builder::BasicBlock::set_effect(ir::Effect* effect) {
   effect_ = effect;
 }
 
-void Builder::BasicBlock::AssignVariable(sm::Variable* variable,
-                                         ir::Data* value) {
-  DCHECK(!end_node_);
-  variables_[variable] = value;
+void Builder::BasicBlock::AddPhiVariable(sm::Variable* variable,
+                                         ir::PhiNode* phi) {
+  DCHECK(!phi_map_.count(phi)) << *variable;
+  DCHECK(!phi_var_map_.count(variable)) << *variable;
+  phi_map_.insert(std::make_pair(phi, variable));
+  phi_var_map_.insert(std::make_pair(variable, phi));
 }
 
-void Builder::BasicBlock::BindVariable(sm::Variable* variable,
-                                       ir::Data* value) {
+void Builder::BasicBlock::Commit(ir::Control* end_node,
+                                 const VariableScope* var_scope) {
   DCHECK(!end_node_);
-  if (variable->storage() == sm::StorageClass::Void)
-    return;
-  DCHECK(!variables_.count(variable));
-  if (variable->storage() == sm::StorageClass::ReadOnly) {
-    variables_[variable] = value;
+  DCHECK(end_node->IsBlockEnd()) << *end_node;
+  DCHECK(value_map_.empty());
+  DCHECK(variables_.empty());
+  end_node_ = end_node;
+  if (end_node->opcode() == ir::Opcode::Ret ||
+      end_node->opcode() == ir::Opcode::Throw) {
+    // Since |RetNode| and |ThrowNode| terminate normal control flow, we don't
+    // need to merge variables in successor.
     return;
   }
-
-  // TODO(eval1749) We should introduce |sm::StorageClass::Register| and
-  // use here instead of |sm::StorageClass::Local|.
-  DCHECK_EQ(variable->storage(), sm::StorageClass::Local);
-  variables_[variable] = value;
+  variables_.insert(variables_.end(), var_scope->variables().begin(),
+                    var_scope->variables().end());
+  for (auto const variable : variables_)
+    value_map_.insert(std::make_pair(variable, var_scope->ValueOf(variable)));
 }
 
-void Builder::BasicBlock::Commit(ir::Control* end_node) {
-  DCHECK(!end_node_);
-  DCHECK_NE(start_node_, end_node) << "start=" << *start_node_
-                                   << " end=" << *end_node;
-  end_node_ = end_node;
+bool Builder::BasicBlock::HasPhiFor(sm::Variable* variable) const {
+  return phi_var_map_.count(variable) != 0;
 }
 
-void Builder::BasicBlock::UnbindVariable(sm::Variable* variable) {
-  auto const it = variables_.find(variable);
-  DCHECK(it != variables_.end()) << *variable;
-  variables_.erase(it);
+sm::Variable* Builder::BasicBlock::PhiVariableOf(ir::PhiNode* phi) const {
+  auto const it = phi_map_.find(phi);
+  DCHECK(it != phi_map_.end());
+  return it->second;
 }
 
 ir::Data* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
-  auto const it = variables_.find(variable);
-  DCHECK(it != variables_.end()) << *variable << " isn't in " << *start_node_;
-  DCHECK(it->second) << *variable << " has no value in " << *start_node_;
+  DCHECK(end_node_);
+  auto const it = value_map_.find(variable);
+  DCHECK(it != value_map_.end());
   return it->second;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// Builder::VariableTracker
+//
+class Builder::VariableTracker final {
+ public:
+  VariableTracker();
+  ~VariableTracker();
+
+  const VariableScope* scope() const { return scope_.get(); }
+
+  void Assign(sm::Variable* variable, ir::Data* new_value);
+  void Bind(sm::Variable* variable, ir::Data* value);
+  void EndBlock();
+  void EndScope();
+  void StartBlock();
+  void StartScope();
+  ir::Data* ValueOf(sm::Variable* variable) const;
+
+ private:
+  VariableMap map_;
+  std::unique_ptr<VariableScope> scope_;
+
+  DISALLOW_COPY_AND_ASSIGN(VariableTracker);
+};
+
+Builder::VariableTracker::VariableTracker()
+    : scope_(new VariableScope(nullptr)) {
+}
+
+Builder::VariableTracker::~VariableTracker() {
+  while (scope_)
+    scope_.reset(scope_->outer());
+}
+
+void Builder::VariableTracker::Assign(sm::Variable* variable,
+                                      ir::Data* new_value) {
+  if (!map_.count(variable))
+    map_.insert(std::make_pair(variable, scope_->ValueOf(variable)));
+  scope_->Assign(variable, new_value);
+}
+
+void Builder::VariableTracker::Bind(sm::Variable* variable, ir::Data* value) {
+  scope_->Bind(variable, value);
+}
+
+// Restores values of variables modified in the block.
+void Builder::VariableTracker::EndBlock() {
+  for (auto var_val : map_)
+    scope_->Assign(var_val.first, var_val.second);
+  map_.clear();
+}
+
+void Builder::VariableTracker::EndScope() {
+  for (auto var_val : scope_->map()) {
+    auto const it = map_.find(var_val.first);
+    if (it == map_.end())
+      continue;
+    map_.erase(it);
+  }
+  scope_.reset(scope_->outer());
+}
+
+void Builder::VariableTracker::StartBlock() {
+  DCHECK(map_.empty());
+}
+
+void Builder::VariableTracker::StartScope() {
+  scope_.reset(new VariableScope(scope_.release()));
+}
+
+ir::Data* Builder::VariableTracker::ValueOf(sm::Variable* variable) const {
+  return scope_->ValueOf(variable);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -141,11 +297,11 @@ ir::Data* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
 // Builder
 //
 Builder::Builder(ir::Factory* factory, ir::Function* function)
-    : basic_block_(nullptr), editor_(new ir::Editor(factory, function)) {
+    : basic_block_(nullptr),
+      editor_(new ir::Editor(factory, function)),
+      variable_tracker_(new VariableTracker()) {
   auto const entry_node = function->entry_node();
-  editor_->Edit(entry_node);
-  basic_block_ =
-      NewBasicBlock(entry_node, editor_->NewGetEffect(entry_node), {});
+  StartBlock(NewBasicBlock(entry_node, editor_->NewGetEffect(entry_node)));
 }
 
 Builder::~Builder() {
@@ -154,16 +310,9 @@ Builder::~Builder() {
   DCHECK(editor_->Validate()) << editor_->errors();
 }
 
-void Builder::AppendPhiInput(ir::PhiNode* phi,
-                             ir::Control* control,
-                             ir::Data* data) {
-  DCHECK_EQ(editor_->control(), phi->owner());
-  editor_->SetPhiInput(phi, control, data);
-}
-
 void Builder::AssignVariable(sm::Variable* variable, ir::Data* value) {
   DCHECK(basic_block_);
-  basic_block_->AssignVariable(variable, value);
+  variable_tracker_->Assign(variable, value);
 }
 
 Builder::BasicBlock* Builder::BasicBlockOf(ir::Control* control) {
@@ -174,7 +323,7 @@ Builder::BasicBlock* Builder::BasicBlockOf(ir::Control* control) {
 
 void Builder::BindVariable(sm::Variable* variable, ir::Data* value) {
   DCHECK(basic_block_);
-  basic_block_->BindVariable(variable, value);
+  variable_tracker_->Bind(variable, value);
 }
 
 ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
@@ -192,12 +341,15 @@ ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   return editor_->NewGetData(call);
 }
 
-void Builder::EndBlock(ir::Control* control) {
+void Builder::EndBlock(ir::Control* end_node) {
+  DCHECK(end_node->IsBlockEnd());
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, basic_blocks_[editor_->control()]);
-  basic_blocks_[control] = basic_block_;
+  DCHECK(!basic_blocks_.count(end_node));
+  basic_blocks_.insert(std::make_pair(end_node, basic_block_));
   editor_->Commit();
-  basic_block_->Commit(control);
+  basic_block_->Commit(end_node, variable_tracker_->scope());
+  variable_tracker_->EndBlock();
   basic_block_ = nullptr;
 }
 
@@ -209,6 +361,7 @@ ir::Control* Builder::EndBlockWithBranch(ir::Data* condition) {
 }
 
 ir::Control* Builder::EndBlockWithJump(ir::Control* target_node) {
+  DCHECK(target_node->IsBlockStart());
   if (!basic_block_)
     return nullptr;
   auto const jump_node = editor_->SetJump(target_node);
@@ -240,15 +393,19 @@ void Builder::EndLoopBlock(ir::Data* condition,
   EndBlockWithJump(false_target_node);
 }
 
-Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* control,
-                                            ir::Effect* effect,
-                                            const Variables& variables) {
-  DCHECK(control->IsValidControl()) << *control;
+void Builder::EndVariableScope() {
+  variable_tracker_->EndScope();
+}
+
+Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* start_node,
+                                            ir::Effect* effect) {
+  DCHECK(start_node->IsBlockStart()) << *start_node;
+  DCHECK(start_node->IsValidControl()) << *start_node;
   DCHECK(effect->IsValidEffect()) << *effect;
-  DCHECK(!basic_blocks_.count(control));
-  auto const basic_block =
-      new (ZoneOwner::zone()) BasicBlock(control, effect, variables);
-  basic_blocks_[control] = basic_block;
+  DCHECK(!basic_blocks_.count(start_node)) << *start_node;
+  auto const zone = ZoneOwner::zone();
+  auto const basic_block = new (zone) BasicBlock(zone, start_node, effect);
+  basic_blocks_.insert(std::make_pair(start_node, basic_block));
   return basic_block;
 }
 
@@ -273,18 +430,22 @@ void Builder::PopulatePhiNodesIfNeeded(ir::Control* control,
   auto const it = basic_blocks_.find(phi_owner);
   if (it == basic_blocks_.end())
     return;
-
+  auto const end_node = predecessor->end_node();
+  if (auto const effect_phi = phi_owner->effect_phi())
+    editor_->SetPhiInput(effect_phi, end_node, predecessor->effect());
   auto const phi_block = it->second;
-
-  if (auto const phi = phi_owner->effect_phi())
-    editor_->SetPhiInput(phi, predecessor->end_node(), predecessor->effect());
-
   for (auto const phi : phi_owner->phi_nodes()) {
-    auto const phi_var = phi_block->phi_map().find(phi);
-    DCHECK(phi_var != phi_block->phi_map().end());
-    auto const value = predecessor->ValueOf(phi_var->second);
-    editor_->SetPhiInput(phi, predecessor->end_node(), value);
+    auto const variable = phi_block->PhiVariableOf(phi);
+    auto const value = predecessor->ValueOf(variable);
+    editor_->SetPhiInput(phi, end_node, value);
   }
+}
+
+void Builder::StartBlock(BasicBlock* block) {
+  DCHECK(!basic_block_);
+  editor_->Edit(block->start_node());
+  basic_block_ = block;
+  variable_tracker_->StartBlock();
 }
 
 // Start loop block and populate variable table with phi nodes.
@@ -294,20 +455,19 @@ ir::Control* Builder::StartDoLoop(ir::LoopNode* loop_block) {
   auto const predecessor = basic_block_;
   EndBlock(jump_node);
 
-  editor_->Edit(loop_block);
-
   // We assume all variables are changed in the loop.
   auto const effect_phi = editor_->NewEffectPhi(loop_block);
   editor_->SetPhiInput(effect_phi, jump_node, predecessor->effect());
 
-  Variables variables;
-  for (auto var_val : predecessor->variables()) {
-    auto const phi = editor_->NewPhi(var_val.second->output_type(), loop_block);
-    variables[var_val.first] = phi;
-    editor_->SetPhiInput(phi, jump_node, var_val.second);
+  StartBlock(NewBasicBlock(loop_block, effect_phi));
+  for (auto variable : predecessor->variables()) {
+    auto const value = predecessor->ValueOf(variable);
+    auto const phi = editor_->NewPhi(value->output_type(), loop_block);
+    basic_block_->AddPhiVariable(variable, phi);
+    AssignVariable(variable, phi);
+    editor_->SetPhiInput(phi, jump_node, value);
   }
 
-  basic_block_ = NewBasicBlock(loop_block, effect_phi, variables);
   return loop_block;
 }
 
@@ -316,72 +476,69 @@ void Builder::StartIfBlock(ir::Control* control) {
   DCHECK(!basic_block_);
   auto const if_node = control->input(0);
   auto const predecessor = BasicBlockOf(if_node->control(0));
-  editor_->Edit(control);
-  basic_block_ =
-      NewBasicBlock(control, predecessor->effect(), predecessor->variables());
+  StartBlock(NewBasicBlock(control, predecessor->effect()));
 }
 
-void Builder::StartMergeBlock(ir::PhiOwnerNode* control) {
-  DCHECK(control->IsValidControl()) << *control;
+void Builder::StartMergeBlock(ir::PhiOwnerNode* phi_owner) {
+  DCHECK(phi_owner->IsValidControl()) << *phi_owner;
+  DCHECK(phi_owner->CountInputs());
   DCHECK(!basic_block_);
 
-  if (!control->CountInputs())
-    return;
-
-  auto effect_phi = control->effect_phi();
+  auto effect_phi = phi_owner->effect_phi();
   auto effect = static_cast<ir::Effect*>(effect_phi);
-  Variables variables;
-  std::unordered_map<sm::Variable*, ir::PhiNode*> variable_phis;
 
-  // Figure out effect and variables in |control|.
-  for (auto const input : control->inputs()) {
-    auto const predecessor = BasicBlockOf(input->as<ir::Control>());
-
-    if (!effect_phi) {
+  if (!effect) {
+    for (auto const input : phi_owner->inputs()) {
+      auto const predecessor = BasicBlockOf(input->as<ir::Control>());
       if (!effect) {
         effect = predecessor->effect();
       } else if (effect != predecessor->effect()) {
-        effect_phi = editor_->NewEffectPhi(control);
+        effect_phi = editor_->NewEffectPhi(phi_owner);
         effect = effect_phi;
+        break;
       }
     }
+  }
 
-    for (auto const var_value : predecessor->variables()) {
-      auto const variable = var_value.first;
-      if (variable_phis.count(variable))
+  StartBlock(NewBasicBlock(phi_owner, effect));
+
+  VariableMap var_map;
+
+  // Figure out effect and variables in |control|.
+  for (auto const input : phi_owner->inputs()) {
+    auto const predecessor = BasicBlockOf(input->as<ir::Control>());
+    for (auto const variable : predecessor->variables()) {
+      if (basic_block_->HasPhiFor(variable))
         continue;
-      auto const value = var_value.second;
-      auto const it = variables.find(variable);
-      if (it == variables.end()) {
-        variables[variable] = value;
+      auto const value = predecessor->ValueOf(variable);
+      auto const it = var_map.find(variable);
+      if (it == var_map.end()) {
+        var_map.insert(std::make_pair(variable, value));
+        AssignVariable(variable, value);
         continue;
       }
       if (it->second == value)
         continue;
-      auto const phi = editor_->NewPhi(value->output_type(), control);
-      variables[variable] = phi;
-      variable_phis[variable] = phi;
+      auto const phi = editor_->NewPhi(value->output_type(), phi_owner);
+      basic_block_->AddPhiVariable(variable, phi);
+      AssignVariable(variable, phi);
     }
   }
 
-  editor_->Edit(control);
-  basic_block_ = NewBasicBlock(control, effect, variables);
-
-  if (!effect_phi && variable_phis.empty())
+  if (!effect_phi && phi_owner->phi_nodes().empty())
     return;
 
   // Populate 'phi` operands.
-  for (auto const input : control->inputs()) {
+  for (auto const input : phi_owner->inputs()) {
     auto const control = input->as<ir::Control>();
     auto const predecessor = BasicBlockOf(control);
 
     if (effect_phi)
       editor_->SetPhiInput(effect_phi, control, predecessor->effect());
 
-    for (auto const var_phi : variable_phis) {
-      auto const it = predecessor->variables().find(var_phi.first);
-      DCHECK(it != predecessor->variables().end()) << *var_phi.first;
-      editor_->SetPhiInput(var_phi.second, control, it->second);
+    for (auto const phi : phi_owner->phi_nodes()) {
+      auto const variable = basic_block_->PhiVariableOf(phi);
+      editor_->SetPhiInput(phi, control, predecessor->ValueOf(variable));
     }
   }
 }
@@ -398,14 +555,13 @@ void Builder::StartWhileLoop(ir::Data* condition,
   StartDoLoop(loop_block);
 }
 
-void Builder::UnbindVariable(sm::Variable* variable) {
-  DCHECK(basic_block_);
-  basic_block_->UnbindVariable(variable);
+void Builder::StartVariableScope() {
+  variable_tracker_->StartScope();
 }
 
 ir::Data* Builder::VariableValueOf(sm::Variable* variable) const {
   DCHECK(basic_block_) << *variable;
-  return basic_block_->ValueOf(variable);
+  return variable_tracker_->ValueOf(variable);
 }
 
 }  // namespace compiler

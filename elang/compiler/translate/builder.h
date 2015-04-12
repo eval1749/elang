@@ -42,7 +42,6 @@ class Builder final : public ZoneOwner {
   bool has_control() const { return basic_block_ != nullptr; }
 
   // Control flow
-  void AppendPhiInput(ir::PhiNode* phi, ir::Control* control, ir::Data* data);
   ir::Control* EndBlockWithBranch(ir::Data* condition);
   ir::Control* EndBlockWithJump(ir::Control* target);
   void EndBlockWithRet(ir::Data* data);
@@ -64,26 +63,29 @@ class Builder final : public ZoneOwner {
   // Variable management
   void AssignVariable(sm::Variable* variable, ir::Data* value);
   void BindVariable(sm::Variable* variable, ir::Data* value);
-  ir::Data* ParameterAt(size_t index);
+  void EndVariableScope();
+  void StartVariableScope();
   void UnbindVariable(sm::Variable* variable);
   ir::Data* VariableValueOf(sm::Variable* variable) const;
 
+  ir::Data* ParameterAt(size_t index);
+
  private:
   class BasicBlock;
-  typedef std::unordered_map<sm::Variable*, ir::Data*> Variables;
+  class VariableTracker;
 
   BasicBlock* BasicBlockOf(ir::Control* control);
   void EndBlock(ir::Control* control);
-  BasicBlock* NewBasicBlock(ir::Control* control,
-                            ir::Effect* effect,
-                            const Variables& variables);
+  BasicBlock* NewBasicBlock(ir::Control* control, ir::Effect* effect);
   void PopulatePhiNodesIfNeeded(ir::Control* control, const BasicBlock* block);
+  void StartBlock(BasicBlock* block);
 
   BasicBlock* basic_block_;
   // A mapping to basic block from IR control node, which starts or ends basic
   // block.
   std::unordered_map<ir::Control*, BasicBlock*> basic_blocks_;
   const std::unique_ptr<ir::Editor> editor_;
+  std::unique_ptr<VariableTracker> variable_tracker_;
 
   DISALLOW_COPY_AND_ASSIGN(Builder);
 };
