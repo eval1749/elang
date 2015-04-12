@@ -85,6 +85,30 @@ Node* ClusterOf(Node* node) {
   return nullptr;
 }
 
+base::StringPiece EdgeColorOf(Node* from, Node* to, int index) {
+  if (from->opcode() == Opcode::Loop && index)
+    return " color=red";
+  if (to->IsData())
+    return " color=transparent";
+  return "";
+}
+
+base::StringPiece EdgeConstraintOf(Node* from, Node* to, int index) {
+  if (from->opcode() == Opcode::Loop && index)
+    return " constraint=false";
+  if (from->opcode() == Opcode::Phi || from->opcode() == Opcode::EffectPhi)
+    return " constraint=false";
+  return "";
+}
+
+base::StringPiece EdgeStyleOf(Node* from, Node* to, int index) {
+  if (from->IsControl() && to->IsControl())
+    return " style=bold";
+  if (to->IsEffect())
+    return " style=dotted";
+  return "";
+}
+
 base::StringPiece NodeStyleOf(Node* node) {
   switch (node->opcode()) {
     case Opcode::Entry:
@@ -153,13 +177,9 @@ void EdgePrinter::DoDefaultVisit(Node* node) {
     }
     ostream_ << "  ";
     ostream_ << "node" << node->id() << ":i" << index << " -> "
-             << "node" << input->id() << " ["
-             << (node->opcode() == Opcode::Loop && index
-                     ? " color=red constraint=true"
-                     : "") << (input->IsControl() ? " style=bold" : "")
-             << (input->IsData() ? " color=transparent" : "")
-             << (node->IsEffect() ? " style=dotted constraint=true" : "")
-             << (input->IsEffect() ? " style=dotted" : "") << "]" << std::endl;
+             << "node" << input->id() << " [" << EdgeColorOf(node, input, index)
+             << EdgeConstraintOf(node, input, index)
+             << EdgeStyleOf(node, input, index) << "]" << std::endl;
     ++index;
   }
 }
