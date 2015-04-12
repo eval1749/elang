@@ -42,12 +42,14 @@ class Validator::Context : public NodeVisitor {
   // NodeVisitor member functions
   void DoDefaultVisit(Node* node) final;
   void VisitCall(CallNode* node) final;
-  void VisitEffectGet(EffectGetNode* node) final;
   void VisitEffectPhi(EffectPhiNode* node) final;
   void VisitElement(ElementNode* node) final;
   void VisitEntry(EntryNode* node) final;
   void VisitExit(ExitNode* node) final;
   void VisitGet(GetNode* node) final;
+  void VisitGetData(GetDataNode* node) final;
+  void VisitGetEffect(GetEffectNode* node) final;
+  void VisitGetTuple(GetTupleNode* node) final;
   void VisitIf(IfNode* node) final;
   void VisitIfFalse(IfFalseNode* node) final;
   void VisitIfTrue(IfTrueNode* node) final;
@@ -121,13 +123,9 @@ void Validator::Context::DoDefaultVisit(Node* node) {
 }
 
 void Validator::Context::VisitCall(CallNode* node) {
-  auto const tuple_type = node->output_type()->as<TupleType>();
-  if (!tuple_type || tuple_type->size() != 3)
-    return Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
-  if (!tuple_type->get(0)->is<ControlType>())
-    return Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
-  if (!tuple_type->get(1)->is<EffectType>())
-    return Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
+  auto const output_type = node->output_type()->as<ControlType>();
+  if (!output_type)
+    return Error(ErrorCode::ValidateNodeInvalidOutput, node);
 
   if (!node->input(0)->output_type()->is<ControlType>())
     ErrorInInput(node, 0);
@@ -138,18 +136,11 @@ void Validator::Context::VisitCall(CallNode* node) {
   auto const callee_type = node->input(2)->output_type()->as<FunctionType>();
   if (!callee_type)
     return ErrorInInput(node, 2);
-  if (tuple_type->get(2) != callee_type->return_type())
+  if (output_type->data_type() != callee_type->return_type())
     ErrorInInput(node, 2);
 
   if (node->input(3)->output_type() != callee_type->parameters_type())
     ErrorInInput(node, 3);
-}
-
-void Validator::Context::VisitEffectGet(EffectGetNode* node) {
-  if (!node->output_type()->is<EffectType>())
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
-  if (!node->input(0)->IsValidEffectAt(node->field()))
-    ErrorInInput(node, 0);
 }
 
 void Validator::Context::VisitEffectPhi(EffectPhiNode* node) {
@@ -187,13 +178,9 @@ void Validator::Context::VisitElement(ElementNode* node) {
 }
 
 void Validator::Context::VisitEntry(EntryNode* node) {
-  auto const tuple_type = node->output_type()->as<TupleType>();
-  if (!tuple_type || tuple_type->size() != 3)
-    return Error(ErrorCode::ValidateEntryNodeInvalidOutput, node);
-  if (!tuple_type->get(0)->is<ControlType>())
-    Error(ErrorCode::ValidateEntryNodeNoControlOutput, node);
-  if (!tuple_type->get(1)->is<EffectType>())
-    Error(ErrorCode::ValidateEntryNodeNoEffectOutput, node);
+  auto const output_type = node->output_type()->as<ControlType>();
+  if (!output_type)
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
   if (node->use_edges().empty())
     Error(ErrorCode::ValidateEntryNodeNoUsers, node);
 }
@@ -209,6 +196,39 @@ void Validator::Context::VisitGet(GetNode* node) {
     return ErrorInInput(node, 0);
   if (node->field() >= tuple_type->size())
     return ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitGetData(GetDataNode* node) {
+  auto const output_type = node->output_type();
+  if (output_type->is_void())
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  auto const data_type =
+      node->input(0)->output_type()->as<ControlType>()->data_type();
+  if (data_type != output_type)
+    ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitGetEffect(GetEffectNode* node) {
+  if (!node->output_type()->is<EffectType>())
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  if (!node->input(0)->IsControlEffect())
+    ErrorInInput(node, 0);
+}
+
+void Validator::Context::VisitGetTuple(GetTupleNode* node) {
+  auto const output_type = node->output_type();
+  if (!output_type->is<TupleType>())
+    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+  if (!node->input(0)->IsValidControl())
+    ErrorInInput(node, 0);
+  auto const data_type =
+      node->input(0)->output_type()->as<ControlType>()->data_type();
+  if (data_type != output_type)
+    ErrorInInput(node, 0);
 }
 
 void Validator::Context::VisitIf(IfNode* node) {

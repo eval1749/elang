@@ -76,8 +76,9 @@ Node* ClusterOf(Node* node) {
   if (auto const phi = node->as<EffectPhiNode>())
     return phi->owner();
   if (IsBasicBlockEnd(node) || node->opcode() == Opcode::Call ||
-      node->opcode() == Opcode::ControlGet ||
-      node->opcode() == Opcode::EffectGet || node->opcode() == Opcode::Load ||
+      node->opcode() == Opcode::GetData ||
+      node->opcode() == Opcode::GetEffect ||
+      node->opcode() == Opcode::GetTuple || node->opcode() == Opcode::Load ||
       node->opcode() == Opcode::Store || node->opcode() == Opcode::Parameter) {
     return ClusterOf(node->input(0));
   }
@@ -154,10 +155,10 @@ void EdgePrinter::DoDefaultVisit(Node* node) {
     ostream_ << "node" << node->id() << ":i" << index << " -> "
              << "node" << input->id() << " ["
              << (node->opcode() == Opcode::Loop && index
-                     ? " color=red constraint=false"
+                     ? " color=red constraint=true"
                      : "") << (input->IsControl() ? " style=bold" : "")
              << (input->IsData() ? " color=transparent" : "")
-             << (node->IsEffect() ? " style=dotted constraint=false" : "")
+             << (node->IsEffect() ? " style=dotted constraint=true" : "")
              << (input->IsEffect() ? " style=dotted" : "") << "]" << std::endl;
     ++index;
   }
@@ -259,7 +260,9 @@ std::ostream& operator<<(std::ostream& ostream, const AsGraphvizNode& wrapper) {
 
 std::ostream& operator<<(std::ostream& ostream, const AsGraphviz& wrapper) {
   ostream << "digraph IR {" << std::endl
-          << "  concentrate=true" << std::endl
+          // Node: when we set |concentrate| to true, "dot" is crashed with
+          // "samples/statements/for.e".
+          << "  concentrate=false" << std::endl
           << "  node [fontname=monospace fontsize=8, hieght=0.25]" << std::endl
           << "  overlap=false" << std::endl
           << "  rankdir=\"BT\"" << std::endl

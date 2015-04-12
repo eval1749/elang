@@ -24,11 +24,6 @@ bool Control::IsControl() const {
   return true;
 }
 
-// ControlGet
-ControlGetNode::ControlGetNode(Type* output_type, Tuple* input, size_t field)
-    : ProjectionNodeTemplate(output_type, input, field) {
-}
-
 // Data
 Data::Data(Type* output_type) : Node(output_type) {
 }
@@ -46,11 +41,6 @@ bool Effect::IsEffect() const {
   return true;
 }
 
-// EffectGet
-EffectGetNode::EffectGetNode(Type* output_type, Tuple* input, size_t field)
-    : ProjectionNodeTemplate(output_type, input, field) {
-}
-
 // EffectPhiNode
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
     : PhiNodeTemplate(output_type, zone, owner) {
@@ -59,11 +49,11 @@ EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
 
 // EntryNode
 EntryNode::EntryNode(Type* output_type) : NodeTemplate(output_type) {
-  DCHECK_EQ(3, output_type->as<TupleType>()->size()) << *output_type;
+  DCHECK(output_type->is<ControlType>());
 }
 
 Type* EntryNode::parameters_type() const {
-  return output_type()->as<TupleType>()->get(2);
+  return output_type()->as<ControlType>()->data_type();
 }
 
 Type* EntryNode::parameter_type(size_t index) const {
@@ -326,6 +316,11 @@ bool Node::IsControl() const {
   return false;
 }
 
+bool Node::IsControlEffect() const {
+  auto const opcode = this->opcode();
+  return opcode == Opcode::Call || opcode == Opcode::Entry;
+}
+
 bool Node::IsData() const {
   return false;
 }
@@ -415,10 +410,11 @@ NullNode::NullNode(Type* output_type) : NodeTemplate(output_type) {
 }
 
 // ParameterNode
-ParameterNode::ParameterNode(Type* output_type, EntryNode* input, size_t index)
-    : ProjectionNodeTemplate(output_type, input, index) {
-  DCHECK_EQ(input->parameter_type(index), output_type) << *output_type << " "
+ParameterNode::ParameterNode(Type* output_type, EntryNode* input, size_t field)
+    : NodeTemplate(output_type), field_(field) {
+  DCHECK_EQ(input->parameter_type(field), output_type) << *output_type << " "
                                                        << *input;
+  InitInputAt(0, input);
 }
 
 // PhiInputHolder
@@ -513,11 +509,6 @@ bool Tuple::IsData() const {
 
 bool Tuple::IsTuple() const {
   return true;
-}
-
-// TupleGet
-TupleGetNode::TupleGetNode(Type* output_type, Tuple* input, size_t field)
-    : ProjectionNodeTemplate(output_type, input, field) {
 }
 
 // Variable nodes

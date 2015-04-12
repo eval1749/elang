@@ -98,28 +98,19 @@ Data* NodeFactory::DefaultValueOf(Type* type) {
   return factory.value();
 }
 
-Tuple* NodeFactory::NewCall(Control* control,
-                            Effect* effect,
-                            Data* callee,
-                            Node* arguments) {
+Control* NodeFactory::NewCall(Control* control,
+                              Effect* effect,
+                              Data* callee,
+                              Node* arguments) {
   DCHECK(control->IsValidControl()) << *control;
   DCHECK(effect->IsValidEffect()) << *effect;
   DCHECK(callee->IsValidData()) << *callee;
   DCHECK(callee->output_type()->is<FunctionType>()) << *callee;
   DCHECK(arguments->IsValidData()) << *arguments;
   auto const output_type =
-      NewTupleType({control_type(),
-                    effect_type(),
-                    callee->output_type()->as<FunctionType>()->return_type()});
+      NewControlType(callee->output_type()->as<FunctionType>()->return_type());
   auto const node =
       new (zone()) CallNode(output_type, control, effect, callee, arguments);
-  node->set_id(NewNodeId());
-  return node;
-}
-
-Control* NodeFactory::NewControlGet(Tuple* input, size_t field) {
-  DCHECK(input->IsValidControlAt(field)) << *input;
-  auto const node = new (zone()) ControlGetNode(control_type(), input, field);
   node->set_id(NewNodeId());
   return node;
 }
@@ -128,13 +119,6 @@ Data* NodeFactory::NewDynamicCast(Type* type, Data* input) {
   if (input->output_type() == type)
     return input;
   auto const node = new (zone()) DynamicCastNode(type, input);
-  node->set_id(NewNodeId());
-  return node;
-}
-
-Effect* NodeFactory::NewEffectGet(Tuple* input, size_t field) {
-  DCHECK(input->IsValidEffectAt(field)) << *input;
-  auto const node = new (zone()) EffectGetNode(effect_type(), input, field);
   node->set_id(NewNodeId());
   return node;
 }
@@ -168,8 +152,7 @@ Data* NodeFactory::NewElement(Data* array, Node* indexes) {
 }
 
 EntryNode* NodeFactory::NewEntry(Type* parameters_type) {
-  auto const output_type =
-      NewTupleType({control_type(), effect_type(), parameters_type});
+  auto const output_type = NewControlType(parameters_type);
   auto const node = new (zone()) EntryNode(output_type);
   node->set_id(NewNodeId());
   return node;
@@ -252,6 +235,28 @@ Data* NodeFactory::NewGet(Tuple* input, size_t field) {
   DCHECK(input->id() || input->IsLiteral()) << *input << " " << field;
   auto const output_type = input->output_type()->as<TupleType>()->get(field);
   auto const node = new (zone()) GetNode(output_type, input, field);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Data* NodeFactory::NewGetData(Control* input) {
+  auto const data_type = input->output_type()->as<ControlType>()->data_type();
+  DCHECK(!data_type->is<VoidType>()) << *data_type;
+  auto const node = new (zone()) GetDataNode(data_type, input);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Effect* NodeFactory::NewGetEffect(Control* input) {
+  auto const node = new (zone()) GetEffectNode(effect_type(), input);
+  node->set_id(NewNodeId());
+  return node;
+}
+
+Tuple* NodeFactory::NewGetTuple(Control* input) {
+  auto const data_type = input->output_type()->as<ControlType>()->data_type();
+  DCHECK(data_type->is<TupleType>());
+  auto const node = new (zone()) GetTupleNode(data_type, input);
   node->set_id(NewNodeId());
   return node;
 }

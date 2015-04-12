@@ -143,10 +143,9 @@ ir::Data* Builder::BasicBlock::ValueOf(sm::Variable* variable) const {
 Builder::Builder(ir::Factory* factory, ir::Function* function)
     : basic_block_(nullptr), editor_(new ir::Editor(factory, function)) {
   auto const entry_node = function->entry_node();
-  auto const control = editor_->NewControlGet(entry_node, 0);
-  editor_->Edit(control);
+  editor_->Edit(entry_node);
   basic_block_ =
-      NewBasicBlock(control, editor_->NewEffectGet(entry_node, 1), {});
+      NewBasicBlock(entry_node, editor_->NewGetEffect(entry_node), {});
 }
 
 Builder::~Builder() {
@@ -180,14 +179,17 @@ void Builder::BindVariable(sm::Variable* variable, ir::Data* value) {
 
 ir::Data* Builder::Call(ir::Data* callee, ir::Node* arguments) {
   DCHECK(basic_block_) << *callee;
+  auto const callee_type = callee->output_type()->as<ir::FunctionType>();
+  DCHECK(callee_type) << *callee;
   auto const call = editor_->NewCall(editor_->control(), basic_block_->effect(),
                                      callee, arguments);
-  basic_block_->set_effect(editor_->NewEffectGet(call, 1));
-  auto const control = editor_->NewControlGet(call, 0);
-  basic_blocks_[control] = basic_block_;
+  basic_block_->set_effect(editor_->NewGetEffect(call));
+  basic_blocks_[call] = basic_block_;
   editor_->Commit();
-  editor_->Edit(control);
-  return editor_->NewGet(call, 2);
+  editor_->Edit(call);
+  if (callee_type->return_type()->is<ir::VoidType>())
+    return editor_->void_value();
+  return editor_->NewGetData(call);
 }
 
 void Builder::EndBlock(ir::Control* control) {

@@ -11,10 +11,7 @@ namespace optimizer {
 #define IGNORE_OPTIMIZER_ERROR(category, subcategory, name)
 
 #define FOR_EACH_OPTIMIZER_ERROR_CODE(E, W) \
-  E(Validate, EntryNode, NoControlOutput)   \
-  E(Validate, EntryNode, NoEffectOutput)    \
   E(Validate, EntryNode, NoUsers)           \
-  E(Validate, EntryNode, InvalidOutput)     \
   E(Validate, Node, InvalidField)           \
   E(Validate, Node, InvalidInput)           \
   E(Validate, Node, InvalidOutput)          \

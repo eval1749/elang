@@ -39,18 +39,15 @@ TEST_F(NodesTest, CallNode) {
   auto const function = NewSampleFunction(
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
-  auto const control = NewControlGet(entry_node, 0);
-  auto const effect = NewEffectGet(entry_node, 1);
+  auto const effect = NewGetEffect(entry_node);
   auto const callee = NewReference(
       NewFunctionType(void_type(), NewTupleType({int32_type(), int64_type()})),
       NewAtomicString(L"Foo"));
   auto const arguments =
       NewTuple({NewParameter(entry_node, 0), NewParameter(entry_node, 1)});
-  auto const node = NewCall(control, effect, callee, arguments);
-  EXPECT_EQ(
-      "(control, effect, void) %t9 = call(%c4, %e5, void(int32, int64) Foo, "
-      "%t8)",
-      ToString(node));
+  auto const node = NewCall(entry_node, effect, callee, arguments);
+  EXPECT_EQ("control %c8 = call(%c1, %e4, void(int32, int64) Foo, %t7)",
+            ToString(node));
 }
 
 TEST_F(NodesTest, CharNode) {
@@ -65,12 +62,6 @@ TEST_F(NodesTest, DynamicCastNode) {
   auto const entry_node = function->entry_node();
   auto const node = NewDynamicCast(int64_type(), NewParameter(entry_node, 0));
   EXPECT_EQ("int64 %r5 = dynamic_cast(%r4)", ToString(node));
-}
-
-TEST_F(NodesTest, EffectGet) {
-  auto const function = NewSampleFunction(void_type(), void_type());
-  auto const node = NewEffectGet(function->entry_node(), 1);
-  EXPECT_EQ("effect %e4 = effect_get(%t1, 1)", ToString(node));
 }
 
 TEST_F(NodesTest, EffectPhi) {
@@ -90,9 +81,8 @@ TEST_F(NodesTest, ElementNode) {
 TEST_F(NodesTest, EntryNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const node = function->entry_node();
-  EXPECT_EQ(
-      "Validate.EntryNode.NoUsers((control, effect, void) %t1 = entry())\n",
-      ToString(node));
+  EXPECT_EQ("Validate.EntryNode.NoUsers(control %c1 = entry())\n",
+            ToString(node));
 }
 
 TEST_F(NodesTest, ExitNode) {
@@ -159,8 +149,28 @@ TEST_F(NodesTest, GetNode) {
   auto const function = NewSampleFunction(
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
-  auto const node = NewGet(entry_node, 2);
-  EXPECT_EQ("(int32, int64) %t4 = get(%t1, 2)", ToString(node));
+  auto const tuple = NewGetTuple(entry_node);
+  auto const node = NewGet(tuple, 1);
+  EXPECT_EQ("int64 %r5 = get(%t4, 1)", ToString(node));
+}
+
+TEST_F(NodesTest, GetData) {
+  auto const function = NewSampleFunction(void_type(), int32_type());
+  auto const node = NewGetData(function->entry_node());
+  EXPECT_EQ("int32 %r4 = get_data(%c1)", ToString(node));
+}
+
+TEST_F(NodesTest, GetEffect) {
+  auto const function = NewSampleFunction(void_type(), void_type());
+  auto const node = NewGetEffect(function->entry_node());
+  EXPECT_EQ("effect %e4 = get_effect(%c1)", ToString(node));
+}
+
+TEST_F(NodesTest, GetTuple) {
+  auto const function = NewSampleFunction(
+      void_type(), NewTupleType({int32_type(), int64_type()}));
+  auto const node = NewGetTuple(function->entry_node());
+  EXPECT_EQ("(int32, int64) %t4 = get_tuple(%c1)", ToString(node));
 }
 
 TEST_F(NodesTest, Int8Node) {
@@ -300,7 +310,7 @@ TEST_F(NodesTest, LoadNode) {
   auto const function =
       NewSampleFunction(void_type(), NewPointerType(char_type()));
   auto const entry_node = function->entry_node();
-  auto const effect = NewEffectGet(entry_node, 1);
+  auto const effect = NewGetEffect(entry_node);
   auto const param = NewParameter(entry_node, 0);
   auto const node = NewLoad(effect, param, param);
   EXPECT_EQ("char %r6 = load(%e4, %r5, %r5)", ToString(node));
@@ -308,8 +318,8 @@ TEST_F(NodesTest, LoadNode) {
 
 TEST_F(NodesTest, JumpNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
-  auto const node = NewJump(NewControlGet(function->entry_node(), 0));
-  EXPECT_EQ("control %c5 = br(%c4)", ToString(node));
+  auto const node = NewJump(function->entry_node());
+  EXPECT_EQ("control %c4 = br(%c1)", ToString(node));
 }
 
 TEST_F(NodesTest, LoopNode) {
@@ -321,7 +331,7 @@ TEST_F(NodesTest, ParameterNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 0);
-  EXPECT_EQ("int32 %r4 = param(%t1, 0)", ToString(node));
+  EXPECT_EQ("int32 %r4 = param(%c1, 0)", ToString(node));
 }
 
 TEST_F(NodesTest, ParameterNode2) {
@@ -329,7 +339,7 @@ TEST_F(NodesTest, ParameterNode2) {
       void_type(), NewTupleType({int32_type(), int64_type()}));
   auto const entry_node = function->entry_node();
   auto const node = NewParameter(entry_node, 1);
-  EXPECT_EQ("int64 %r4 = param(%t1, 1)", ToString(node));
+  EXPECT_EQ("int64 %r4 = param(%c1, 1)", ToString(node));
 }
 
 TEST_F(NodesTest, ReferenceNode) {
@@ -341,9 +351,8 @@ TEST_F(NodesTest, ReferenceNode) {
 TEST_F(NodesTest, RetNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
   auto const entry_node = function->entry_node();
-  auto const node = NewRet(NewControlGet(entry_node, 0),
-                           NewEffectGet(entry_node, 1), void_value());
-  EXPECT_EQ("control %c6 = ret(%c5, %e4, void)", ToString(node));
+  auto const node = NewRet(entry_node, NewGetEffect(entry_node), void_value());
+  EXPECT_EQ("control %c5 = ret(%c1, %e4, void)", ToString(node));
 }
 
 TEST_F(NodesTest, SizeOfNode) {

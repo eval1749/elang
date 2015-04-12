@@ -49,10 +49,11 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
 #undef V
 
   // Single input
-  Control* NewControlGet(Tuple* input, size_t field);
-  Effect* NewEffectGet(Tuple* input, size_t field);
   Data* NewDynamicCast(Type* output_type, Data* input);
   Data* NewGet(Tuple* input, size_t field);
+  Data* NewGetData(Control* input);
+  Effect* NewGetEffect(Control* input);
+  Tuple* NewGetTuple(Control* input);
   Data* NewFunctionReference(Function* function);
   Control* NewIfFalse(Control* control);
   Control* NewIfSuccess(Control* control);
@@ -78,10 +79,10 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
   Control* NewRet(Control* control, Effect* effect, Data* value);
 
   // Four inputs
-  Tuple* NewCall(Control* control,
-                 Effect* effect,
-                 Data* callee,
-                 Node* arguments);
+  Control* NewCall(Control* control,
+                   Effect* effect,
+                   Data* callee,
+                   Node* arguments);
   Effect* NewStore(Effect* effect,
                    Node* base_pointer,
                    Node* pointer,

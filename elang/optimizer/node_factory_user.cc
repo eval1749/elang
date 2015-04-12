@@ -29,23 +29,15 @@ Data* NodeFactoryUser::void_value() const {
   return node_factory_->void_value();
 }
 
-Tuple* NodeFactoryUser::NewCall(Control* control,
-                                Effect* effect,
-                                Data* callee,
-                                Node* arguments) {
+Control* NodeFactoryUser::NewCall(Control* control,
+                                  Effect* effect,
+                                  Data* callee,
+                                  Node* arguments) {
   return node_factory_->NewCall(control, effect, callee, arguments);
-}
-
-Control* NodeFactoryUser::NewControlGet(Tuple* input, size_t field) {
-  return node_factory_->NewControlGet(input, field);
 }
 
 Data* NodeFactoryUser::NewDynamicCast(Type* output_type, Data* input) {
   return node_factory_->NewDynamicCast(output_type, input);
-}
-
-Effect* NodeFactoryUser::NewEffectGet(Tuple* input, size_t field) {
-  return node_factory_->NewEffectGet(input, field);
 }
 
 EffectPhiNode* NodeFactoryUser::NewEffectPhi(PhiOwnerNode* owner) {
@@ -64,6 +56,18 @@ Data* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
 
 Data* NodeFactoryUser::NewGet(Tuple* input, size_t field) {
   return node_factory_->NewGet(input, field);
+}
+
+Data* NodeFactoryUser::NewGetData(Control* input) {
+  return node_factory_->NewGetData(input);
+}
+
+Effect* NodeFactoryUser::NewGetEffect(Control* input) {
+  return node_factory_->NewGetEffect(input);
+}
+
+Tuple* NodeFactoryUser::NewGetTuple(Control* input) {
+  return node_factory_->NewGetTuple(input);
 }
 
 Control* NodeFactoryUser::NewIf(Control* control, Data* data) {

@@ -43,6 +43,9 @@ namespace optimizer {
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V) \
   V(DynamicCast, "dynamic_cast", Data)               \
   V(Exit, "exit", Control)                           \
+  V(GetData, "get_data", Data)                       \
+  V(GetEffect, "get_effect", Effect)                 \
+  V(GetTuple, "get_tuple", Tuple)                    \
   V(IfException, "if_exception", Control)            \
   V(IfFalse, "if_false", Control)                    \
   V(IfSuccess, "if_success", Control)                \
@@ -81,17 +84,15 @@ namespace optimizer {
   V(Load, "load", Data)                              \
   V(Ret, "ret", Control)
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Call, "call", Tuple)
+#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Call, "call", Control)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case", Control)                           \
   V(Tuple, "tuple", Tuple)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_NODE_X(V) \
-  V(ControlGet, "control_get", Control)       \
-  V(EffectGet, "effect_get", Effect)          \
   V(EffectPhi, "effect_phi", Effect)          \
-  V(Entry, "entry", Tuple)                    \
+  V(Entry, "entry", Control)                  \
   V(FloatCmp, "fcmp", Data)                   \
   V(FunctionReference, "fn", Data)            \
   V(Get, "get", Data)                         \
@@ -104,7 +105,6 @@ namespace optimizer {
   V(Reference, "ref", Literal)                \
   V(SizeOf, "sizeof", Literal)                \
   V(Store, "store", Literal)                  \
-  V(TupleGet, "tuple_get", Tuple)             \
   V(Void, "void", Literal)
 
 // List of concrete C++ classes representing IR node.
