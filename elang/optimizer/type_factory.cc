@@ -111,15 +111,15 @@ TupleType* TypeFactory::TupleTypeFactory::NewTupleType(
 // TypeFactory
 //
 TypeFactory::TypeFactory(const FactoryConfig& config)
-    : control_type_(new (zone()) ControlType()),
-      effect_type_(new (zone()) EffectType()),
+    : effect_type_(new (zone()) EffectType()),
       string_type_(new (zone()) StringType(config.string_type_name)),
 #define V(Name, name, ...) name##_type_(new (zone()) Name##Type()),
       FOR_EACH_OPTIMIZER_PRIMITIVE_TYPE(V)
 #undef V
           array_type_factory_(new ArrayTypeFactory(zone())),
       function_type_factory_(new FunctionTypeFactory(zone())),
-      tuple_type_factory_(new TupleTypeFactory(zone())) {
+      tuple_type_factory_(new TupleTypeFactory(zone())),
+      control_type_(NewControlType(void_type_)) {
 }
 
 TypeFactory::~TypeFactory() {
@@ -139,6 +139,15 @@ ArrayType* TypeFactory::NewArrayType(Type* element_type,
   }
 #endif
   return array_type_factory_->NewArrayType(element_type, dimensions);
+}
+
+ControlType* TypeFactory::NewControlType(Type* data_type) {
+  auto it = control_type_map_.find(data_type);
+  if (it != control_type_map_.end())
+    return it->second;
+  auto const new_control_type = new (zone()) ControlType(data_type);
+  control_type_map_[data_type] = new_control_type;
+  return new_control_type;
 }
 
 ExternalType* TypeFactory::NewExternalType(AtomicString* name) {

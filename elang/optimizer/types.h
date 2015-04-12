@@ -26,6 +26,7 @@ namespace optimizer {
 //  Type
 //    ArrayType
 //    ControlType
+//    ControlTupleType
 //    EffectType
 //    FunctionType
 //    PointerType
@@ -126,8 +127,13 @@ class ELANG_OPTIMIZER_EXPORT ArrayType final : public Type {
 class ELANG_OPTIMIZER_EXPORT ControlType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(ControlType, Type);
 
+ public:
+  Type* data_type() const { return data_type_; }
+
  private:
-  ControlType();
+  explicit ControlType(Type* data_type);
+
+  Type* const data_type_;
 
   DISALLOW_COPY_AND_ASSIGN(ControlType);
 };

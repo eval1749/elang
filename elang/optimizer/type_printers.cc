@@ -45,6 +45,10 @@ void TypePrinter::VisitArrayType(ArrayType* type) {
 
 void TypePrinter::VisitControlType(ControlType* type) {
   ostream_ << "control";
+  auto const data_type = type->data_type();
+  if (data_type->is<VoidType>())
+    return;
+  ostream_ << "(" << *data_type << ")";
 }
 
 void TypePrinter::VisitEffectType(EffectType* type) {

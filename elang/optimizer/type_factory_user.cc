@@ -41,6 +41,10 @@ ArrayType* TypeFactoryUser::NewArrayType(Type* element_type,
   return type_factory_->NewArrayType(element_type, dimensions);
 }
 
+ControlType* TypeFactoryUser::NewControlType(Type* data_type) {
+  return type_factory_->NewControlType(data_type);
+}
+
 ExternalType* TypeFactoryUser::NewExternalType(AtomicString* name) {
   return type_factory_->NewExternalType(name);
 }

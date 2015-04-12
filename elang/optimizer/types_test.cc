@@ -64,7 +64,7 @@ TEST_F(TypeTest, CharType) {
   EXPECT_EQ(16, char_type()->as<PrimitiveType>()->bit_size());
 }
 
-TEST_F(TypeTest, ControlType) {
+TEST_F(TypeTest, ControlTypeVoid) {
   auto const type = control_type();
   EXPECT_EQ("control", ToString(type));
   EXPECT_FALSE(type->is_float());
@@ -75,6 +75,22 @@ TEST_F(TypeTest, ControlType) {
   EXPECT_TRUE(type->is_unsigned());
   EXPECT_TRUE(type->is_void());
   EXPECT_EQ(Type::RegisterClass::Void, type->register_class());
+}
+
+TEST_F(TypeTest, ControlTypeData) {
+  auto const type1 = NewControlType(int32_type());
+  auto const type2 = NewControlType(int32_type());
+  EXPECT_EQ(type1, type2);
+  EXPECT_EQ(int32_type(), type1->data_type());
+  EXPECT_EQ("control(int32)", ToString(type1));
+  EXPECT_FALSE(type1->is_float());
+  EXPECT_FALSE(type1->is_general());
+  EXPECT_FALSE(type1->is_integer());
+  EXPECT_FALSE(type1->is_numeric());
+  EXPECT_FALSE(type1->is_signed());
+  EXPECT_TRUE(type1->is_unsigned());
+  EXPECT_TRUE(type1->is_void());
+  EXPECT_EQ(Type::RegisterClass::Void, type1->register_class());
 }
 
 TEST_F(TypeTest, EffectType) {

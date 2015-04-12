@@ -40,6 +40,7 @@ class ELANG_OPTIMIZER_EXPORT TypeFactory final : public ZoneOwner {
 
   ArrayType* NewArrayType(Type* element_type,
                           const std::vector<int>& dimensions);
+  ControlType* NewControlType(Type* data_type);
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
   PointerType* NewPointerType(Type* pointee);
@@ -50,7 +51,6 @@ class ELANG_OPTIMIZER_EXPORT TypeFactory final : public ZoneOwner {
   class FunctionTypeFactory;
   class TupleTypeFactory;
 
-  Type* const control_type_;
   Type* const effect_type_;
   Type* const string_type_;
 #define V(Name, name, ...) Name##Type* const name##_type_;
@@ -58,9 +58,13 @@ class ELANG_OPTIMIZER_EXPORT TypeFactory final : public ZoneOwner {
 #undef V
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
+  std::unordered_map<Type*, ControlType*> control_type_map_;
   std::unique_ptr<FunctionTypeFactory> function_type_factory_;
   std::unordered_map<Type*, PointerType*> pointer_type_map_;
   std::unique_ptr<TupleTypeFactory> tuple_type_factory_;
+
+  // Cache of NewControlType(void_type())
+  Type* const control_type_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeFactory);
 };

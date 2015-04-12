@@ -34,7 +34,7 @@ ArrayType::ArrayType(Zone* zone,
 }
 
 // ControlType
-ControlType::ControlType() {
+ControlType::ControlType(Type* data_type) : data_type_(data_type) {
 }
 
 // EffectType

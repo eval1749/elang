@@ -37,6 +37,7 @@ class ELANG_OPTIMIZER_EXPORT TypeFactoryUser {
 
   ArrayType* NewArrayType(Type* element_type,
                           const std::vector<int>& dimensions);
+  ControlType* NewControlType(Type* data_type);
   ExternalType* NewExternalType(AtomicString* name);
   FunctionType* NewFunctionType(Type* return_type, Type* parameters_type);
   PointerType* NewPointerType(Type* pointee);
