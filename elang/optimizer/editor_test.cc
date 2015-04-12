@@ -44,7 +44,7 @@ TEST_F(EditorTest, ChangeInput) {
       "0002: effect %e4 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c5, %e4, 33)\n"
       "0004: control %c2 = merge(%c6)\n"
-      "0005: void %r3 = exit(%c2)\n",
+      "0005: exit(%c2)\n",
       ToString(function));
 }
 
@@ -81,7 +81,7 @@ TEST_F(EditorTest, SetBranch) {
       "0007: control %c9 = if_false(%c7)\n"
       "0008: control %c11 = ret(%c9, %e4, 33)\n"
       "0009: control %c2 = merge(%c10, %c11)\n"
-      "0010: void %r3 = exit(%c2)\n",
+      "0010: exit(%c2)\n",
       ToString(function));
 }
 
@@ -132,7 +132,7 @@ TEST_F(EditorTest, SetBranchPhi) {
       "0012: int32 %r13 = phi(%c11: %r14, %c12: %r15)\n"
       "0013: control %c16 = ret(%c10, %e4, %r13)\n"
       "0014: control %c2 = merge(%c16)\n"
-      "0015: void %r3 = exit(%c2)\n",
+      "0015: exit(%c2)\n",
       ToString(function));
 }
 
@@ -153,7 +153,7 @@ TEST_F(EditorTest, SetRet) {
       "0002: effect %e4 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c5, %e4, 42)\n"
       "0004: control %c2 = merge(%c6)\n"
-      "0005: void %r3 = exit(%c2)\n",
+      "0005: exit(%c2)\n",
       ToString(function));
 }
 

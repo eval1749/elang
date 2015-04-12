@@ -71,7 +71,7 @@ TEST_F(TranslatorTest, Calls) {
       "0014: effect %e18 = effect_get(%t17, 1)\n"
       "0015: control %c21 = ret(%c19, %e18, void)\n"
       "0016: control %c2 = merge(%c21)\n"
-      "0017: void %r3 = exit(%c2)\n",
+      "0017: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -107,7 +107,7 @@ TEST_F(TranslatorTest, DoWhile) {
       "0019: effect %e12 = effect_phi(%c11: %e5, %c20: %e12)\n"
       "0020: control %c23 = ret(%c9, %e12, %r15)\n"
       "0021: control %c2 = merge(%c23)\n"
-      "0022: void %r3 = exit(%c2)\n",
+      "0022: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -165,7 +165,7 @@ TEST_F(TranslatorTest, For) {
       "0034: effect %e38 = effect_phi(%c15: %e10, %c37: %e30)\n"
       "0035: control %c40 = ret(%c8, %e38, void)\n"
       "0036: control %c2 = merge(%c40)\n"
-      "0037: void %r3 = exit(%c2)\n",
+      "0037: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -216,7 +216,7 @@ TEST_F(TranslatorTest, ForEach) {
       "0032: effect %e37 = effect_phi(%c16: %e5, %c36: %e24)\n"
       "0033: control %c40 = ret(%c9, %e37, void)\n"
       "0034: control %c2 = merge(%c40)\n"
-      "0035: void %r3 = exit(%c2)\n",
+      "0035: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -236,7 +236,7 @@ TEST_F(TranslatorTest, IntMul) {
       "0006: int32 %r9 = mul(%r6, %r8)\n"
       "0007: control %c10 = ret(%c4, %e5, %r9)\n"
       "0008: control %c2 = merge(%c10)\n"
-      "0009: void %r3 = exit(%c2)\n",
+      "0009: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -255,7 +255,7 @@ TEST_F(TranslatorTest, IntCmp) {
       "0005: bool %r8 = cmp_le(%r6, %r7)\n"
       "0006: control %c9 = ret(%c4, %e5, %r8)\n"
       "0007: control %c2 = merge(%c9)\n"
-      "0008: void %r3 = exit(%c2)\n",
+      "0008: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -283,7 +283,7 @@ TEST_F(TranslatorTest, IfMerge) {
       "0010: int32 %r13 = phi(%c10: 1, %c12: 0)\n"
       "0011: control %c14 = ret(%c8, %e5, %r13)\n"
       "0012: control %c2 = merge(%c14)\n"
-      "0013: void %r3 = exit(%c2)\n",
+      "0013: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -299,7 +299,7 @@ TEST_F(TranslatorTest, ReturnLiteral) {
       "0002: effect %e5 = effect_get(%t1, 1)\n"
       "0003: control %c6 = ret(%c4, %e5, 123)\n"
       "0004: control %c2 = merge(%c6)\n"
-      "0005: void %r3 = exit(%c2)\n",
+      "0005: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -316,7 +316,7 @@ TEST_F(TranslatorTest, ReturnParameter) {
       "0003: int32 %r6 = param(%t1, 0)\n"
       "0004: control %c7 = ret(%c4, %e5, %r6)\n"
       "0005: control %c2 = merge(%c7)\n"
-      "0006: void %r3 = exit(%c2)\n",
+      "0006: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 
@@ -367,7 +367,7 @@ TEST_F(TranslatorTest, While) {
       "0027: int32 %r35 = phi(%c13: 0, %c30: %r23)\n"
       "0028: control %c36 = ret(%c9, %e31, %r35)\n"
       "0029: control %c2 = merge(%c36)\n"
-      "0030: void %r3 = exit(%c2)\n",
+      "0030: exit(%c2)\n",
       Translate("Sample.Foo"));
 }
 

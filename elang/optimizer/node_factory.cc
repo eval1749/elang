@@ -177,7 +177,7 @@ EntryNode* NodeFactory::NewEntry(Type* parameters_type) {
 
 ExitNode* NodeFactory::NewExit(Control* control) {
   DCHECK(control->IsValidControl()) << *control;
-  auto const node = new (zone()) ExitNode(void_type(), control);
+  auto const node = new (zone()) ExitNode(control_type(), control);
   node->set_id(NewNodeId());
   return node;
 }

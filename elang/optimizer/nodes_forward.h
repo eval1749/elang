@@ -42,7 +42,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_1(V) \
   V(DynamicCast, "dynamic_cast", Data)               \
-  V(Exit, "exit", Node)                              \
+  V(Exit, "exit", Control)                           \
   V(IfException, "if_exception", Control)            \
   V(IfFalse, "if_false", Control)                    \
   V(IfSuccess, "if_success", Control)                \

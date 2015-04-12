@@ -8,6 +8,7 @@
 #include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/opcode.h"
 #include "elang/optimizer/types.h"
 
 namespace base {
@@ -82,8 +83,9 @@ std::ostream& operator<<(std::ostream& ostream, const AsInput& input) {
 
 void NodePrinter::DoDefaultVisit(Node* node) {
   DCHECK(!node->IsLiteral()) << *node;
-  ostream_ << *node->output_type() << " " << AsInput(node) << " = "
-           << node->mnemonic() << "(";
+  if (node->opcode() != Opcode::Exit)
+    ostream_ << *node->output_type() << " " << AsInput(node) << " = ";
+  ostream_ << node->mnemonic() << "(";
   auto separator = "";
   if (auto const effect_phi = node->as<EffectPhiNode>()) {
     for (auto const phi_input : effect_phi->phi_inputs()) {

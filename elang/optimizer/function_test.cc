@@ -30,7 +30,7 @@ TEST_F(FunctionTest, Function) {
   EXPECT_EQ(
       "function1 void(void)\n"
       "0000: control %c2 = merge()\n"
-      "0001: void %r3 = exit(%c2)\n",
+      "0001: exit(%c2)\n",
       ToString(function));
 }
 

@@ -97,8 +97,11 @@ TEST_F(NodesTest, EntryNode) {
 
 TEST_F(NodesTest, ExitNode) {
   auto const function = NewSampleFunction(void_type(), void_type());
-  auto const node = function->exit_node();
-  EXPECT_EQ("void %r3 = exit(%c2)", ToString(node));
+  auto const node = static_cast<Node*>(function->exit_node());
+  EXPECT_TRUE(node->IsControl());
+  EXPECT_FALSE(node->IsData());
+  EXPECT_FALSE(node->IsEffect());
+  EXPECT_EQ("exit(%c2)", ToString(node));
 }
 
 TEST_F(NodesTest, Float32Node) {
