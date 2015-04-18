@@ -60,6 +60,7 @@ struct PrintableBlocks {
 
 std::ostream& operator<<(std::ostream& ostream, const PrintableBlocks& blocks);
 std::ostream& operator<<(std::ostream& ostream, const Block& block);
+std::ostream& operator<<(std::ostream& ostream, const Block* block);
 std::ostream& operator<<(std::ostream& ostream, const Function& function);
 
 //////////////////////////////////////////////////////////////////////

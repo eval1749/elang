@@ -44,6 +44,12 @@ std::ostream& operator<<(std::ostream& ostream, const Block& block) {
   return ostream;
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Block* block) {
+  if (!block)
+    return ostream << "(null)";
+  return ostream << "block" << block->id();
+}
+
 std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   for (auto const block : function.nodes())
     ostream << *block << std::endl;
