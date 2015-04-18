@@ -37,6 +37,7 @@ component("base") {
     "ordered_list.h",
     "simple_directed_graph.h",
     "temporary_change_value.h",
+    "tree_algorithm.h",
     "visitable.h",
     "work_list.h",
     "zone.cc",
@@ -94,6 +95,7 @@ source_set("base_tests") {
     "ordered_list_unittest.cc",
     "simple_directed_graph_unittest.cc",
     "temporary_change_value_unittest.cc",
+    "tree_algorithm_test.cc",
     "work_list_unittest.cc",
   ]
 
