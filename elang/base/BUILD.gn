@@ -69,8 +69,8 @@ component("base") {
 source_set("test_support") {
   testonly = true
   sources = [
-    "graphs/graph_test.cc",
-    "graphs/graph_test.h",
+    "graphs/graph_test_support.cc",
+    "graphs/graph_test_support.h",
   ]
   public_deps = [
     "//testing/gtest",
@@ -81,22 +81,23 @@ source_set("test_support") {
 source_set("base_tests") {
   testonly = true
   sources = [
-    "analysis/data_flow_solver_unittest.cc",
-    "analysis/liveness_builder_unittest.cc",
-    "as_printable_unittest.cc",
-    "atomic_string_unittest.cc",
-    "bits_unittest.cc",
-    "bit_set_unittest.cc",
-    "castable_unittest.cc",
-    "disjoint_sets_unittest.cc",
-    "double_linked_unittest.cc",
-    "graphs/graph_unittest.cc",
-    "iterator_on_iterator_unittest.cc",
-    "ordered_list_unittest.cc",
-    "simple_directed_graph_unittest.cc",
-    "temporary_change_value_unittest.cc",
+    "analysis/data_flow_solver_test.cc",
+    "analysis/dominator_tree_test.cc",
+    "analysis/liveness_builder_test.cc",
+    "as_printable_test.cc",
+    "atomic_string_test.cc",
+    "bits_test.cc",
+    "bit_set_test.cc",
+    "castable_test.cc",
+    "disjoint_sets_test.cc",
+    "double_linked_test.cc",
+    "graphs/graph_test.cc",
+    "iterator_on_iterator_test.cc",
+    "ordered_list_test.cc",
+    "simple_directed_graph_test.cc",
+    "temporary_change_value_test.cc",
     "tree_algorithm_test.cc",
-    "work_list_unittest.cc",
+    "work_list_test.cc",
   ]
 
   public_deps = [

@@ -3,150 +3,150 @@
 // found in the LICENSE file.
 
 #include <algorithm>
-#include <array>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "elang/base/graphs/graph_editor.h"
-#include "elang/base/graphs/graph_test.h"
+#include "elang/base/graphs/graph_sorter.h"
+#include "elang/base/graphs/graph_test_support.h"
 
 namespace elang {
-namespace testing {
+namespace {
 
-// Function
-std::string Function::ToString() const {
-  std::stringstream ostream;
-  ostream << *this;
-  return ostream.str();
-}
+using testing::Block;
+using testing::Function;
 
-// PrintableBlocks
-PrintableBlocks::PrintableBlocks(const ZoneUnorderedSet<Block*>& block_set)
-    : blocks(block_set.begin(), block_set.end()) {
-  std::sort(blocks.begin(), blocks.end(),
-            [](Block* a, Block* b) { return a->id() < b->id(); });
-}
+//////////////////////////////////////////////////////////////////////
+//
+// GraphTest
+//
+class GraphTest : public testing::GraphTestBase {
+ protected:
+  GraphTest() = default;
+  ~GraphTest() = default;
 
-std::ostream& operator<<(std::ostream& ostream, const PrintableBlocks& blocks) {
-  ostream << "{";
-  auto separator = "";
-  for (auto const block : blocks.blocks) {
-    ostream << separator << block->id();
-    separator = ", ";
-  }
-  ostream << "}";
-  return ostream;
-}
+  // ::testing::Test
+  void SetUp() override;
 
-std::ostream& operator<<(std::ostream& ostream, const Block& block) {
-  ostream << "{id:" << block.id()
-          << " predecessors:" << PrintableBlocks(block.predecessors())
-          << " successors:" << PrintableBlocks(block.successors()) << "}";
-  return ostream;
-}
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GraphTest);
+};
 
-std::ostream& operator<<(std::ostream& ostream, const Function& function) {
-  for (auto const block : function.nodes())
-    ostream << *block << std::endl;
-  return ostream;
-}
-
-Block* GraphTestBase::NewBlock(int id) {
-  auto const block = new (zone()) Block(zone(), id);
-  blocks_.push_back(block);
-  return block;
-}
-
-std::string GraphTestBase::ToString(const OrderedList<Block*>& list) {
-  std::stringstream ostream;
-  ostream << "[";
-  auto separator = "";
-  for (auto const block : list) {
-    ostream << separator << block->id();
-    separator = ", ";
-  }
-  ostream << "]";
-  return ostream.str();
-}
-
-// Build graph
+// Use diamond graph for test cases.
 //      1
 //     / \
 //     2  3
 //     \  /
 //      4
-void GraphTestBase::MakeDiamondGraph() {
-  Function::Editor editor(function());
-  auto const block1 = NewBlock(1);
-  auto const block2 = NewBlock(2);
-  auto const block3 = NewBlock(3);
-  auto const block4 = NewBlock(4);
-
-  editor.AppendNode(block1);
-  editor.AppendNode(block2);
-  editor.AppendNode(block3);
-  editor.AppendNode(block4);
-  editor.AddEdge(block1, block2);
-  editor.AddEdge(block1, block3);
-  editor.AddEdge(block2, block4);
-  editor.AddEdge(block3, block4);
+void GraphTest::SetUp() {
+  MakeDiamondGraph();
 }
 
-//      B0---------+    B0 -> B1, B5
-//      |          |
-//      B1<------+ |    B1 -> B2, B4
-//      |        | |
-//   +->B2-->B5  | |    B2 -> B3, B6
-//   |  |    |   | |
-//   +--B3<--+   | |    B3 -> B2, B4
-//      |        | |
-//      B4<------+ |    B4 -> B1, B6
-//      |          |    B5 -> B3
-//      B6<--------+    B6
-//
-//  B0: parent=ENTRY children=[B1, B5]
-//  B1: parent=B0    children=[B2, B4]
-//  B2: parent=B1    children=[B2, B3]
-//  B3: parent=B2    children=[]
-//  B4: parent=B1    children=[]
-//  B5: parent=B2    children=[]
-//  B6: parent=B0    children=[EXIT]
-void GraphTestBase::MakeSampleGraph1() {
-  Function::Editor editor(function());
+// Test cases...
 
-  auto const entry_block = NewBlock(-1);
-  auto const exit_block = NewBlock(-2);
+TEST_F(GraphTest, AddEdge) {
+  std::stringstream ostream;
+  ostream << *function();
+  EXPECT_EQ(
+      "{id:1 predecessors:{} successors:{2, 3}}\n"
+      "{id:2 predecessors:{1} successors:{4}}\n"
+      "{id:3 predecessors:{1} successors:{4}}\n"
+      "{id:4 predecessors:{2, 3} successors:{}}\n",
+      function()->ToString());
+  auto const block1 = block_at(0);
+  auto const block2 = block_at(1);
+  auto const block3 = block_at(2);
+  auto const block4 = block_at(3);
 
-  editor.AppendNode(entry_block);
-  std::array<Block*, 7> blocks;
-  auto id = 0;
-  for (auto& ref : blocks) {
-    ref = NewBlock(id);
-    editor.AppendNode(blocks[id]);
-    ++id;
-  }
-  editor.AppendNode(exit_block);
+  EXPECT_TRUE(function()->HasEdge(block1, block2));
+  EXPECT_TRUE(function()->HasEdge(block1, block3));
+  EXPECT_TRUE(function()->HasEdge(block2, block4));
+  EXPECT_TRUE(function()->HasEdge(block3, block4));
 
-  editor.AddEdge(entry_block, blocks[0]);
+  EXPECT_FALSE(function()->HasEdge(block2, block1));
+  EXPECT_FALSE(function()->HasEdge(block3, block1));
 
-  editor.AddEdge(blocks[0], blocks[1]);
-  editor.AddEdge(blocks[0], blocks[6]);
+  EXPECT_FALSE(block1->HasPredecessor());
+  EXPECT_TRUE(block1->HasSuccessor());
+  EXPECT_FALSE(block1->HasMoreThanOnePredecessor());
+  EXPECT_TRUE(block1->HasMoreThanOneSuccessor());
+  EXPECT_TRUE(block2->HasPredecessor());
+  EXPECT_TRUE(block2->HasSuccessor());
+  EXPECT_FALSE(block2->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block2->HasMoreThanOneSuccessor());
 
-  editor.AddEdge(blocks[1], blocks[2]);
-  editor.AddEdge(blocks[1], blocks[4]);
+  EXPECT_TRUE(block3->HasPredecessor());
+  EXPECT_TRUE(block3->HasSuccessor());
+  EXPECT_FALSE(block3->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block3->HasMoreThanOneSuccessor());
 
-  editor.AddEdge(blocks[2], blocks[3]);
-  editor.AddEdge(blocks[2], blocks[5]);
-
-  editor.AddEdge(blocks[3], blocks[2]);
-  editor.AddEdge(blocks[3], blocks[4]);
-
-  editor.AddEdge(blocks[4], blocks[1]);
-  editor.AddEdge(blocks[4], blocks[6]);
-
-  editor.AddEdge(blocks[5], blocks[3]);
-
-  editor.AddEdge(blocks[6], exit_block);
+  EXPECT_TRUE(block4->HasPredecessor());
+  EXPECT_FALSE(block4->HasSuccessor());
+  EXPECT_TRUE(block4->HasMoreThanOnePredecessor());
+  EXPECT_FALSE(block4->HasMoreThanOneSuccessor());
 }
 
-}  // namespace testing
+TEST_F(GraphTest, InsertNode) {
+  Function::Editor editor(function());
+  auto const block2 = block_at(1);
+  auto const block4 = block_at(3);
+
+  // Move |block2| before |block4|.
+  editor.RemoveNode(block2);
+  editor.InsertNode(block2, block4);
+  EXPECT_EQ(
+      "{id:1 predecessors:{} successors:{2, 3}}\n"
+      "{id:3 predecessors:{1} successors:{4}}\n"
+      "{id:2 predecessors:{1} successors:{4}}\n"
+      "{id:4 predecessors:{2, 3} successors:{}}\n",
+      function()->ToString());
+}
+
+// Since predecessors and successors are represented by unordered map,
+// iterations in sorter don't produce same result.
+TEST_F(GraphTest, FLAKY_OrderedList) {
+  EXPECT_EQ("[1, 2, 4, 3]",
+            ToString(Function::Sorter::SortByPreOrder(function())));
+  EXPECT_EQ("[4, 2, 3, 1]",
+            ToString(Function::Sorter::SortByPostOrder(function())));
+  EXPECT_EQ("[3, 4, 2, 1]",
+            ToString(Function::Sorter::SortByReversePreOrder(function())));
+  EXPECT_EQ("[1, 3, 2, 4]",
+            ToString(Function::Sorter::SortByReversePostOrder(function())));
+}
+
+TEST_F(GraphTest, RemoveEdge) {
+  Function::Editor editor(function());
+  auto const block1 = block_at(0);
+  auto const block2 = block_at(1);
+  auto const block3 = block_at(2);
+  auto const block4 = block_at(3);
+  editor.RemoveEdge(block1, block2);
+  editor.RemoveEdge(block2, block4);
+  EXPECT_EQ(
+      "{id:1 predecessors:{} successors:{3}}\n"
+      "{id:2 predecessors:{} successors:{}}\n"
+      "{id:3 predecessors:{1} successors:{4}}\n"
+      "{id:4 predecessors:{3} successors:{}}\n",
+      function()->ToString());
+
+  EXPECT_FALSE(block1->HasPredecessor());
+  EXPECT_TRUE(block1->HasSuccessor());
+  EXPECT_FALSE(block1->HasMoreThanOnePredecessor());
+
+  EXPECT_FALSE(block2->HasPredecessor());
+  EXPECT_FALSE(block2->HasSuccessor());
+  EXPECT_FALSE(block2->HasMoreThanOnePredecessor());
+
+  EXPECT_TRUE(block3->HasPredecessor());
+  EXPECT_TRUE(block3->HasSuccessor());
+  EXPECT_FALSE(block3->HasMoreThanOnePredecessor());
+
+  EXPECT_TRUE(block4->HasPredecessor());
+  EXPECT_FALSE(block4->HasSuccessor());
+  EXPECT_FALSE(block4->HasMoreThanOnePredecessor());
+}
+
+}  // namespace
 }  // namespace elang

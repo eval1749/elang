@@ -10,7 +10,7 @@
 #include "elang/base/analysis/dominator_tree_builder.h"
 #include "elang/base/graphs/flow_graph.h"
 #include "elang/base/graphs/graph_editor.h"
-#include "elang/base/graphs/graph_test.h"
+#include "elang/base/graphs/graph_test_support.h"
 
 namespace elang {
 namespace {

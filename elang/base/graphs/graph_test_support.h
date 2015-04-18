@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_BASE_GRAPHS_GRAPH_TEST_H_
-#define ELANG_BASE_GRAPHS_GRAPH_TEST_H_
+#ifndef ELANG_BASE_GRAPHS_GRAPH_TEST_SUPPORT_H_
+#define ELANG_BASE_GRAPHS_GRAPH_TEST_SUPPORT_H_
 
 #include <ostream>
 #include <string>
@@ -98,4 +98,4 @@ struct hash<elang::testing::Block> {
 };
 }  // namespace std
 
-#endif  // ELANG_BASE_GRAPHS_GRAPH_TEST_H_
+#endif  // ELANG_BASE_GRAPHS_GRAPH_TEST_SUPPORT_H_
