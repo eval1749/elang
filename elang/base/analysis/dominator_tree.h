@@ -7,7 +7,7 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "elang/base/base_export.h"
+#include "elang/base/tree_algorithm.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
 #include "elang/base/zone_unordered_map.h"
@@ -30,7 +30,7 @@ class DominatorTree final : public ZoneOwner {
   class Node;
   typedef ZoneVector<Node*> Nodes;
 
-  class Node : public ZoneAllocated {
+  class Node final : public ZoneAllocated {
    public:
     ~Node() = delete;
 
@@ -57,18 +57,25 @@ class DominatorTree final : public ZoneOwner {
 
   ~DominatorTree() = default;
 
+  // Returns least common ancestor of |nodeA| and |nodeB|.
+  GraphNode* CommonAncestorOf(const GraphNode* nodeA,
+                              const GraphNode* nodeB) const;
+
   // Returns true if |dominator| dominates |dominatee|.
   bool Dominates(GraphNode* dominator, GraphNode* dominatee) const;
 
   // Returns |Node| associated to |graph_node|
-  Node* TreeNodeOf(GraphNode* graph_node) const;
+  Node* TreeNodeOf(const GraphNode* graph_node) const;
+
+  // Functions for |TreeAlgorithm<Traversal>|.
+  static Node* parentOf(const Node* node) { return node->parent(); }
 
  private:
   friend class DominatorTreeEditor<Graph>;
 
   DominatorTree();
 
-  ZoneUnorderedMap<GraphNode*, Node*> node_map_;
+  ZoneUnorderedMap<const GraphNode*, Node*> node_map_;
 
   DISALLOW_COPY_AND_ASSIGN(DominatorTree);
 };
@@ -96,6 +103,15 @@ DominatorTree<Graph>::DominatorTree()
 }
 
 template <typename Graph>
+typename DominatorTree<Graph>::GraphNode*
+DominatorTree<Graph>::CommonAncestorOf(const GraphNode* nodeA,
+                                       const GraphNode* nodeB) const {
+  auto const ancestor = TreeAlgorithm<DominatorTree>::CommonAncestorOf(
+      TreeNodeOf(nodeA), TreeNodeOf(nodeB));
+  return ancestor ? ancestor->value() : nullptr;
+}
+
+template <typename Graph>
 bool DominatorTree<Graph>::Dominates(GraphNode* dominator,
                                      GraphNode* dominatee) const {
   auto const dominator_node = TreeNodeOf(dominator);
@@ -109,7 +125,7 @@ bool DominatorTree<Graph>::Dominates(GraphNode* dominator,
 
 template <typename Graph>
 typename DominatorTree<Graph>::Node* DominatorTree<Graph>::TreeNodeOf(
-    GraphNode* graph_node) const {
+    const GraphNode* graph_node) const {
   auto const it = node_map_.find(graph_node);
   DCHECK(it != node_map_.end());
   return it->second;

@@ -26,8 +26,8 @@ struct PrintableNodes {
       : nodes(node_list.begin(), node_list.end()) {
     std::sort(nodes.begin(), nodes.end(),
               [](MyDominatorTree::Node* a, MyDominatorTree::Node* b) {
-      return a->value()->id() < b->value()->id();
-    });
+                return a->value()->id() < b->value()->id();
+              });
   }
 };
 
@@ -131,12 +131,25 @@ TEST_F(DominatorTreeTest, SampleFunction) {
   auto const entry_block = function()->first_node();
   auto const exit_block = function()->last_node();
 
+  std::vector<Block*> blocks;
   std::vector<MyDominatorTree::Node*> nodes;
   for (auto block : function()->nodes()) {
     if (block == entry_block || block == exit_block)
       continue;
+    blocks.push_back(block);
     nodes.push_back(dom->TreeNodeOf(block));
   }
+
+  // Dominator tree of sample graph1:
+  //  entry
+  //    |
+  //    B0
+  //    / \
+  //   B1  B6
+  //   / \  \
+  //  B2 B4  exit
+  //  / \
+  //  B3 B5
 
   // TODO(eval1749) Until we have pseudo edge from entry to exit, we don't
   // have DF(B0)=[exit].
@@ -157,6 +170,10 @@ TEST_F(DominatorTreeTest, SampleFunction) {
   EXPECT_EQ("{parent: 1, children: [], frontiers: [1, 6]}", ToString(nodes[4]));
   EXPECT_EQ("{parent: 2, children: [], frontiers: [3]}", ToString(nodes[5]));
   EXPECT_EQ("{parent: 0, children: [-2], frontiers: []}", ToString(nodes[6]));
+
+  EXPECT_EQ(blocks[2], dom->CommonAncestorOf(blocks[3], blocks[5]));
+  EXPECT_EQ(blocks[1], dom->CommonAncestorOf(blocks[3], blocks[4]));
+  EXPECT_EQ(blocks[0], dom->CommonAncestorOf(blocks[3], blocks[6]));
 }
 
 TEST_F(DominatorTreeTest, SampleFunctionReverse) {
@@ -168,12 +185,25 @@ TEST_F(DominatorTreeTest, SampleFunctionReverse) {
   auto const entry_block = function()->first_node();
   auto const exit_block = function()->last_node();
 
+  std::vector<Block*> blocks;
   std::vector<MyDominatorTree::Node*> nodes;
   for (auto block : function()->nodes()) {
     if (block == entry_block || block == exit_block)
       continue;
+    blocks.push_back(block);
     nodes.push_back(dom->TreeNodeOf(block));
   }
+
+  // Post dominator tree of sample graph1:
+  //    exit
+  //     |
+  //     B6
+  //    /  \
+  //   B0   B4
+  //   |     /\
+  //  entry B1 B3
+  //           |
+  //           B5
 
   // TODO(eval1749) Until we have pseudo edge from entry to exit, we don't
   // have DF(B0)=[exit].
@@ -194,6 +224,10 @@ TEST_F(DominatorTreeTest, SampleFunctionReverse) {
   EXPECT_EQ("{parent: 3, children: [], frontiers: [2]}", ToString(nodes[5]));
   EXPECT_EQ("{parent: -2, children: [0, 4], frontiers: []}",
             ToString(nodes[6]));
+
+  EXPECT_EQ(blocks[6], dom->CommonAncestorOf(blocks[3], blocks[6]));
+  EXPECT_EQ(blocks[4], dom->CommonAncestorOf(blocks[3], blocks[1]));
+  EXPECT_EQ(blocks[6], dom->CommonAncestorOf(blocks[3], entry_block));
 }
 
 }  // namespace
