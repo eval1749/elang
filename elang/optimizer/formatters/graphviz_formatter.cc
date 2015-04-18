@@ -25,37 +25,10 @@ namespace optimizer {
 
 namespace {
 
-bool IsBasicBlockBegin(Node* node) {
-  switch (node->opcode()) {
-    case Opcode::Case:
-    case Opcode::Entry:
-    case Opcode::IfException:
-    case Opcode::IfFalse:
-    case Opcode::IfSuccess:
-    case Opcode::IfTrue:
-    case Opcode::Loop:
-    case Opcode::Merge:
-      return true;
-  }
-  return false;
-}
-
-bool IsBasicBlockEnd(Node* node) {
-  switch (node->opcode()) {
-    case Opcode::Exit:
-    case Opcode::Jump:
-    case Opcode::If:
-    case Opcode::Ret:
-    case Opcode::Throw:
-      return true;
-  }
-  return false;
-}
-
 bool HasConstraint(Node* from, Node* to) {
   if (from->opcode() == Opcode::Loop)
     return false;
-  return IsBasicBlockEnd(from) || IsBasicBlockBegin(from);
+  return from->IsBlockEnd() || from->IsBlockStart();
 }
 
 base::StringPiece PrefixOf(Node* node) {
@@ -69,13 +42,13 @@ base::StringPiece PrefixOf(Node* node) {
 }
 
 Node* ClusterOf(Node* node) {
-  if (IsBasicBlockBegin(node))
+  if (node->IsBlockStart())
     return node;
   if (auto const phi = node->as<PhiNode>())
     return phi->owner();
   if (auto const phi = node->as<EffectPhiNode>())
     return phi->owner();
-  if (IsBasicBlockEnd(node) || node->opcode() == Opcode::Call ||
+  if (node->IsBlockEnd() || node->opcode() == Opcode::Call ||
       node->opcode() == Opcode::GetData ||
       node->opcode() == Opcode::GetEffect ||
       node->opcode() == Opcode::GetTuple || node->opcode() == Opcode::Load ||
