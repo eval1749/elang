@@ -12,7 +12,7 @@
 #include "elang/base/graphs/graph_editor.h"
 #include "elang/lir/error_reporter.h"
 #include "elang/lir/lir_export.h"
-#include "elang/lir/literals_forward.h"
+#include "elang/lir/literals.h"
 
 namespace elang {
 
@@ -173,7 +173,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   mutable std::unique_ptr<ConflictMap> conflict_map_;
   mutable std::unique_ptr<LivenessData> liveness_data_;
 
-  GraphEditor<Function, BasicBlock> graph_editor_;
+  GraphEditor<Function> graph_editor_;
   bool is_index_valid_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);

@@ -16,19 +16,19 @@ namespace elang {
 //
 // Editor edits a Graph.
 //
-template <typename Owner, typename Derived>
+template <typename Graph>
 class GraphEditor {
  public:
-  typedef Graph<Owner, Derived> Graph;
+  using GraphNode = typename Graph::GraphNode;
 
   explicit GraphEditor(Graph* graph) : graph_(graph) {}
   ~GraphEditor() = default;
 
-  void AppendNode(Derived* new_node);
-  void AddEdge(Derived* from, Derived* to);
-  void InsertNode(Derived* new_node, Derived* ref_node);
-  void RemoveEdge(Derived* from, Derived* to);
-  void RemoveNode(Derived* ref_node);
+  void AppendNode(GraphNode* new_node);
+  void AddEdge(GraphNode* from, GraphNode* to);
+  void InsertNode(GraphNode* new_node, GraphNode* ref_node);
+  void RemoveEdge(GraphNode* from, GraphNode* to);
+  void RemoveNode(GraphNode* ref_node);
 
  private:
   Graph* const graph_;
@@ -36,30 +36,33 @@ class GraphEditor {
   DISALLOW_COPY_AND_ASSIGN(GraphEditor);
 };
 
-template <typename Owner, typename T>
-void GraphEditor<Owner, T>::AppendNode(T* new_node) {
+template <typename Graph>
+void GraphEditor<Graph>::AppendNode(typename Graph::GraphNode* new_node) {
   graph_->nodes_.AppendNode(new_node);
 }
 
-template <typename Owner, typename T>
-void GraphEditor<Owner, T>::AddEdge(T* from, T* to) {
+template <typename Graph>
+void GraphEditor<Graph>::AddEdge(typename Graph::GraphNode* from,
+                                 typename Graph::GraphNode* to) {
   from->successors_.insert(to);
   to->predecessors_.insert(from);
 }
 
-template <typename Owner, typename T>
-void GraphEditor<Owner, T>::InsertNode(T* new_node, T* ref_node) {
+template <typename Graph>
+void GraphEditor<Graph>::InsertNode(typename Graph::GraphNode* new_node,
+                                    typename Graph::GraphNode* ref_node) {
   graph_->nodes_.InsertBefore(new_node, ref_node);
 }
 
-template <typename Owner, typename T>
-void GraphEditor<Owner, T>::RemoveEdge(T* from, T* to) {
+template <typename Graph>
+void GraphEditor<Graph>::RemoveEdge(typename Graph::GraphNode* from,
+                                    typename Graph::GraphNode* to) {
   from->successors_.erase(to);
   to->predecessors_.erase(from);
 }
 
-template <typename Owner, typename T>
-void GraphEditor<Owner, T>::RemoveNode(T* old_node) {
+template <typename Graph>
+void GraphEditor<Graph>::RemoveNode(typename Graph::GraphNode* old_node) {
   graph_->nodes_.RemoveNode(old_node);
 }
 

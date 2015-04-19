@@ -15,7 +15,7 @@ namespace elang {
 template <typename Graph>
 struct ForwardFlowGraph;
 
-template <typename Owner, typename GraphNode>
+template <typename Graph>
 class GraphEditor;
 
 template <typename Graph, typename Direction>
@@ -29,7 +29,7 @@ template <typename Owner, typename Node>
 class Graph {
  public:
   using GraphNode = Node;
-  using Editor = GraphEditor<Owner, GraphNode>;
+  using Editor = GraphEditor<Owner>;
   using NodeSet = ZoneUnorderedSet<GraphNode*>;
   using Nodes = DoubleLinked<GraphNode, Owner>;
   using Sorter = GraphSorter<Graph, ForwardFlowGraph<Graph>>;
