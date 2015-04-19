@@ -12,10 +12,10 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_ERROR_CODE(E, W) \
   E(Validate, EntryNode, NoUsers)           \
-  E(Validate, Node, InvalidField)           \
-  E(Validate, Node, InvalidInput)           \
-  E(Validate, Node, InvalidOutput)          \
-  E(Validate, PhiNode, InvalidOwner)        \
+  E(Validate, Node, Field)                  \
+  E(Validate, Node, Input)                  \
+  E(Validate, Node, Output)                 \
+  E(Validate, PhiNode, Owner)               \
   E(Validate, PhiNode, Missing)
 
 //////////////////////////////////////////////////////////////////////

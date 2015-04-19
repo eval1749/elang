@@ -83,7 +83,7 @@ void Validator::Context::Error(ErrorCode error_code, Node* node) {
 }
 
 void Validator::Context::ErrorInInput(Node* node, int index) {
-  Error(ErrorCode::ValidateNodeInvalidInput, node, validator_->NewInt32(index));
+  Error(ErrorCode::ValidateNodeInput, node, validator_->NewInt32(index));
 }
 
 void Validator::Context::ValidatePhiInputs(
@@ -125,7 +125,7 @@ void Validator::Context::DoDefaultVisit(Node* node) {
 void Validator::Context::VisitCall(CallNode* node) {
   auto const output_type = node->output_type()->as<ControlType>();
   if (!output_type)
-    return Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    return Error(ErrorCode::ValidateNodeOutput, node);
 
   if (!node->input(0)->output_type()->is<ControlType>())
     ErrorInInput(node, 0);
@@ -145,7 +145,7 @@ void Validator::Context::VisitCall(CallNode* node) {
 
 void Validator::Context::VisitEffectPhi(EffectPhiNode* node) {
   if (!node->owner()->IsValidControl())
-    return Error(ErrorCode::ValidatePhiNodeInvalidOwner, node, node->owner());
+    return Error(ErrorCode::ValidatePhiNodeOwner, node, node->owner());
   ValidatePhiInputs(node, node->owner(), node->phi_inputs());
 }
 
@@ -160,7 +160,7 @@ void Validator::Context::VisitElement(ElementNode* node) {
 
   auto const pointer_type = node->output_type()->as<PointerType>();
   if (pointer_type && (pointer_type->pointee() != array_type->element_type()))
-    return Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    return Error(ErrorCode::ValidateNodeOutput, node);
 
   if (array_type->rank() == 1) {
     if (!node->input(1)->output_type()->is<Int32Type>())
@@ -180,7 +180,7 @@ void Validator::Context::VisitElement(ElementNode* node) {
 void Validator::Context::VisitEntry(EntryNode* node) {
   auto const output_type = node->output_type()->as<ControlType>();
   if (!output_type)
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
   if (node->use_edges().empty())
     Error(ErrorCode::ValidateEntryNodeNoUsers, node);
 }
@@ -201,7 +201,7 @@ void Validator::Context::VisitGet(GetNode* node) {
 void Validator::Context::VisitGetData(GetDataNode* node) {
   auto const output_type = node->output_type();
   if (output_type->is_void())
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
   auto const data_type =
@@ -212,7 +212,7 @@ void Validator::Context::VisitGetData(GetDataNode* node) {
 
 void Validator::Context::VisitGetEffect(GetEffectNode* node) {
   if (!node->output_type()->is<EffectType>())
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
   if (!node->input(0)->IsControlEffect())
@@ -222,7 +222,7 @@ void Validator::Context::VisitGetEffect(GetEffectNode* node) {
 void Validator::Context::VisitGetTuple(GetTupleNode* node) {
   auto const output_type = node->output_type();
   if (!output_type->is<TupleType>())
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
   if (!node->input(0)->IsValidControl())
     ErrorInInput(node, 0);
   auto const data_type =
@@ -256,7 +256,7 @@ void Validator::Context::VisitIfTrue(IfTrueNode* node) {
 
 void Validator::Context::VisitIntCmp(IntCmpNode* node) {
   if (!node->output_type()->is<BoolType>())
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
   auto const operand_type = node->input(0)->output_type();
   if (operand_type != node->input(1)->output_type())
     ErrorInInput(node, 1);
@@ -317,14 +317,14 @@ void Validator::Context::VisitParameter(ParameterNode* node) {
     return;
   }
   if (node->output_type() != entry_node->parameter_type(node->field())) {
-    Error(ErrorCode::ValidateNodeInvalidOutput, node);
+    Error(ErrorCode::ValidateNodeOutput, node);
     return;
   }
 }
 
 void Validator::Context::VisitPhi(PhiNode* node) {
   if (!node->owner()->IsValidControl())
-    return Error(ErrorCode::ValidatePhiNodeInvalidOwner, node, node->owner());
+    return Error(ErrorCode::ValidatePhiNodeOwner, node, node->owner());
   ValidatePhiInputs(node, node->owner(), node->phi_inputs());
 }
 
