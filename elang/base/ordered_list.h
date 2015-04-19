@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "base/macros.h"
 #include "base/logging.h"
 
 namespace elang {
@@ -20,14 +21,14 @@ namespace elang {
 template <typename Element>
 class OrderedList {
  public:
+  using const_iterator = typename std::vector<Element>::const_iterator;
+
   class Builder {
    public:
     Builder() = default;
     ~Builder() = default;
 
-    void Add(Element element) {
-      list_.vector_.push_back(element);
-    }
+    void Add(Element element) { list_.vector_.push_back(element); }
 
     OrderedList Get() {
       auto position = 0;
@@ -39,9 +40,7 @@ class OrderedList {
       return std::move(list_);
     }
 
-    void Reverse() {
-      std::reverse(list_.vector_.begin(), list_.vector_.end());
-    }
+    void Reverse() { std::reverse(list_.vector_.begin(), list_.vector_.end()); }
 
    private:
     OrderedList list_;
@@ -49,13 +48,10 @@ class OrderedList {
     DISALLOW_COPY_AND_ASSIGN(Builder);
   };
 
-  OrderedList(const OrderedList& other) = delete;
   OrderedList(OrderedList&& other)
       : map_(std::move(other.map_)), vector_(std::move(other.vector_)) {}
   OrderedList() = default;
   ~OrderedList() = default;
-
-  OrderedList& operator=(const OrderedList& other) = delete;
 
   OrderedList& operator=(OrderedList&& other) {
     map_ = std::move(other.map_);
@@ -63,17 +59,15 @@ class OrderedList {
     return *this;
   }
 
-  typename std::vector<Element>::const_iterator begin() const {
-    return vector_.cbegin();
-  }
-
-  typename std::vector<Element>::const_iterator end() const {
-    return vector_.cend();
-  }
+  Element back() const { return vector_.back(); }
+  const_iterator begin() const { return vector_.cbegin(); }
+  const_iterator end() const { return vector_.cend(); }
+  Element front() const { return vector_.front(); }
 
   int position_of(Element value) const {
     auto const it = map_.find(value);
-    return it == map_.end() ? -1 : it->second;
+    DCHECK(it != map_.end());
+    return it->second;
   }
 
   int size() const { return static_cast<int>(vector_.size()); }
@@ -81,6 +75,8 @@ class OrderedList {
  private:
   std::unordered_map<Element, int> map_;
   std::vector<Element> vector_;
+
+  DISALLOW_COPY_AND_ASSIGN(OrderedList);
 };
 
 }  // namespace elang

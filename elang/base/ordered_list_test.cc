@@ -20,7 +20,6 @@ TEST(OrderedList, Basic) {
   EXPECT_EQ(0, list.position_of("A"));
   EXPECT_EQ(1, list.position_of("B"));
   EXPECT_EQ(2, list.position_of("C"));
-  EXPECT_EQ(-1, list.position_of("D"));
 
   std::string result;
   for (auto const element : list) {
@@ -40,7 +39,6 @@ TEST(OrderedList, Reverse) {
   EXPECT_EQ(2, list.position_of("A"));
   EXPECT_EQ(1, list.position_of("B"));
   EXPECT_EQ(0, list.position_of("C"));
-  EXPECT_EQ(-1, list.position_of("D"));
 
   std::string result;
   for (auto const element : list) {
