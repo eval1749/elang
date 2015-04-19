@@ -15,7 +15,7 @@ namespace elang {
 template <typename Graph>
 struct ForwardFlowGraph;
 
-template <typename Owner, typename Derived>
+template <typename Owner, typename GraphNode>
 class GraphEditor;
 
 template <typename Graph, typename Direction>
@@ -25,18 +25,17 @@ class GraphSorter;
 //
 // Represents directed graph. It is OK to have cycle.
 //
-template <typename Owner, typename Derived>
+template <typename Owner, typename Node>
 class Graph {
  public:
-  using Editor = GraphEditor<Owner, Derived>;
-  using NodeSet = ZoneUnorderedSet<Derived*>;
-  using Nodes = DoubleLinked<Derived, Owner>;
+  using GraphNode = Node;
+  using Editor = GraphEditor<Owner, GraphNode>;
+  using NodeSet = ZoneUnorderedSet<GraphNode*>;
+  using Nodes = DoubleLinked<GraphNode, Owner>;
   using Sorter = GraphSorter<Graph, ForwardFlowGraph<Graph>>;
 
-  typedef Derived Derived;
-
   // |NodeBase| represents graph node having edges.
-  class GraphNodeBase : public DoubleLinked<Derived, Owner>::Node {
+  class GraphNodeBase : public DoubleLinked<GraphNode, Owner>::Node {
    public:
     const NodeSet& predecessors() const { return predecessors_; }
     const NodeSet& successors() const { return successors_; }
@@ -65,13 +64,13 @@ class Graph {
   };
 
   // Returns first block.
-  Derived* first_node() const { return nodes_.first_node(); }
-  Derived* last_node() const { return nodes_.last_node(); }
+  GraphNode* first_node() const { return nodes_.first_node(); }
+  GraphNode* last_node() const { return nodes_.last_node(); }
 
   // Returns a list of graph node.
   const Nodes& nodes() const { return nodes_; }
 
-  bool HasEdge(Derived* from, Derived* to) const;
+  bool HasEdge(GraphNode* from, GraphNode* to) const;
 
  protected:
   Graph() = default;

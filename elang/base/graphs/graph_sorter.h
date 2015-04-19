@@ -18,7 +18,7 @@ namespace elang {
 template <typename Graph, typename Direction = ForwardFlowGraph<Graph>>
 class GraphSorter final {
  public:
-  typedef typename Graph::Derived GraphNode;
+  typedef typename Graph::GraphNode GraphNode;
   typedef OrderedList<GraphNode*> OrderedList;
 
   static OrderedList SortByPreOrder(const Graph* graph);
@@ -62,7 +62,7 @@ GraphSorter<Graph, Direction>::GraphSorter(const Graph* graph,
 }
 
 template <typename Graph, typename Direction>
-OrderedList<typename Graph::Derived*> GraphSorter<Graph, Direction>::Sort() {
+OrderedList<typename Graph::GraphNode*> GraphSorter<Graph, Direction>::Sort() {
   OrderedList::Builder builder;
   Visit(&builder, Direction::EntryOf(graph_));
   if (reverse_ == Reverse::Yes)
@@ -86,25 +86,25 @@ void GraphSorter<Graph, Direction>::Visit(
 }
 
 template <typename Graph, typename Direction>
-OrderedList<typename Graph::Derived*>
+OrderedList<typename Graph::GraphNode*>
 GraphSorter<Graph, Direction>::SortByPreOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::No).Sort();
 }
 
 template <typename Graph, typename Direction>
-OrderedList<typename Graph::Derived*>
+OrderedList<typename Graph::GraphNode*>
 GraphSorter<Graph, Direction>::SortByPostOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::No).Sort();
 }
 
 template <typename Graph, typename Direction>
-OrderedList<typename Graph::Derived*>
+OrderedList<typename Graph::GraphNode*>
 GraphSorter<Graph, Direction>::SortByReversePreOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PreOrder, Reverse::Yes).Sort();
 }
 
 template <typename Graph, typename Direction>
-OrderedList<typename Graph::Derived*>
+OrderedList<typename Graph::GraphNode*>
 GraphSorter<Graph, Direction>::SortByReversePostOrder(const Graph* graph) {
   return GraphSorter(graph, Order::PostOrder, Reverse::Yes).Sort();
 }

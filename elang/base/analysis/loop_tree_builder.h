@@ -143,7 +143,7 @@ class LoopTreeBuilder final : public ZoneOwner {
   std::unique_ptr<LoopTree> Build();
 
  private:
-  using GraphNode = typename Graph::Derived;
+  using GraphNode = typename Graph::GraphNode;
   using GraphNodeSet = std::unordered_set<const GraphNode*>;
   using LoopTreeNode = typename LoopTree::TreeNode;
   using LoopTreeNodeKind = typename LoopTreeNode::Kind;

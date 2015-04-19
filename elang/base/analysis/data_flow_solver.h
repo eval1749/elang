@@ -21,9 +21,9 @@ namespace elang {
 //
 template <typename Graph, typename Variable>
 class DataFlowSolver final
-    : public LivenessEditor<typename Graph::Derived*, Variable> {
+    : public LivenessEditor<typename Graph::GraphNode*, Variable> {
  public:
-  typedef typename Graph::Derived GraphNode;
+  typedef typename Graph::GraphNode GraphNode;
   typedef LivenessCollection<GraphNode*, Variable> Collection;
 
   DataFlowSolver(const Graph* graph, Collection* collection)

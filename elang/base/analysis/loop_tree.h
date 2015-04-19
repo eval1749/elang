@@ -26,7 +26,7 @@ class LoopTreeEditor;
 template <typename Graph>
 class LoopTree final : public ZoneOwner {
  public:
-  using GraphNode = typename Graph::Derived;
+  using GraphNode = typename Graph::GraphNode;
 
   // See "loop_tree_builder.h" for implementation of |Editor|.
   class Editor;

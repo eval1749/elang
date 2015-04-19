@@ -10,7 +10,7 @@ namespace elang {
 // BackwardFlowGraph is used for computing post-dominator tree
 template <typename Graph>
 struct BackwardFlowGraph {
-  typedef typename Graph::Derived GraphNode;
+  typedef typename Graph::GraphNode GraphNode;
 
   static GraphNode* EntryOf(const Graph* graph) { return graph->last_node(); }
 
@@ -34,7 +34,7 @@ struct BackwardFlowGraph {
 // ForwardFlowGraph is used for computing dominator tree
 template <typename Graph>
 struct ForwardFlowGraph {
-  typedef typename Graph::Derived GraphNode;
+  typedef typename Graph::GraphNode GraphNode;
 
   static GraphNode* EntryOf(const Graph* graph) { return graph->first_node(); }
 

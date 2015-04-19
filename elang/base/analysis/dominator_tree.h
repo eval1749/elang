@@ -26,9 +26,10 @@ class DominatorTreeEditor;
 template <typename Graph>
 class DominatorTree final : public ZoneOwner {
  public:
-  typedef typename Graph::Derived GraphNode;
   class Node;
-  typedef ZoneVector<Node*> Nodes;
+
+  using GraphNode = typename Graph::GraphNode;
+  using Nodes = ZoneVector<Node*>;
 
   class Node final : public ZoneAllocated {
    public:

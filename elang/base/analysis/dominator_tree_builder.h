@@ -27,7 +27,7 @@ template <typename Graph>
 class DominatorTreeEditor final : public ZoneOwner {
  public:
   typedef DominatorTree<Graph> DominatorTree;
-  typedef typename Graph::Derived GraphNode;
+  typedef typename Graph::GraphNode GraphNode;
 
  protected:
   typedef typename DominatorTree::Node TreeNode;
