@@ -78,7 +78,6 @@ class GraphTestBase : public ::testing::Test, public ZoneOwner {
   void MakeDiamondGraph();
   void MakeSampleGraph1();
   Block* NewBlock(int id);
-  static std::string ToString(const OrderedList<Block*>& list);
 
  private:
   Function function_;
@@ -86,6 +85,8 @@ class GraphTestBase : public ::testing::Test, public ZoneOwner {
 
   DISALLOW_COPY_AND_ASSIGN(GraphTestBase);
 };
+
+std::string ToString(const OrderedList<Block*>& list);
 
 }  // namespace testing
 }  // namespace elang

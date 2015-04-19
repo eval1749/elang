@@ -46,8 +46,12 @@ std::ostream& operator<<(std::ostream& ostream, const Block& block) {
 
 std::ostream& operator<<(std::ostream& ostream, const Block* block) {
   if (!block)
-    return ostream << "(null)";
-  return ostream << "block" << block->id();
+    return ostream << "nil";
+  if (block->id() == -1)
+    return ostream << "ENTRY";
+  if (block->id() == -2)
+    return ostream << "EXIT";
+  return ostream << "B" << block->id();
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Function& function) {
@@ -60,18 +64,6 @@ Block* GraphTestBase::NewBlock(int id) {
   auto const block = new (zone()) Block(zone(), id);
   blocks_.push_back(block);
   return block;
-}
-
-std::string GraphTestBase::ToString(const OrderedList<Block*>& list) {
-  std::stringstream ostream;
-  ostream << "[";
-  auto separator = "";
-  for (auto const block : list) {
-    ostream << separator << block->id();
-    separator = ", ";
-  }
-  ostream << "]";
-  return ostream.str();
 }
 
 // Build graph
@@ -152,6 +144,18 @@ void GraphTestBase::MakeSampleGraph1() {
   editor.AddEdge(blocks[5], blocks[3]);
 
   editor.AddEdge(blocks[6], exit_block);
+}
+
+std::string ToString(const OrderedList<Block*>& list) {
+  std::stringstream ostream;
+  ostream << "[";
+  auto separator = "";
+  for (auto const block : list) {
+    ostream << separator << block->id();
+    separator = ", ";
+  }
+  ostream << "]";
+  return ostream.str();
 }
 
 }  // namespace testing

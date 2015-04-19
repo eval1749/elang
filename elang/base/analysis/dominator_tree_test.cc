@@ -36,11 +36,18 @@ PrintableNodes Printable(const MyDominatorTree::Nodes& nodes) {
 }
 
 std::ostream& operator<<(std::ostream& ostream,
+                         const MyDominatorTree::Node* node) {
+  if (!node)
+    return ostream << "nil";
+  return ostream << node->value();
+}
+
+std::ostream& operator<<(std::ostream& ostream,
                          const PrintableNodes& printable) {
   ostream << "[";
   auto separator = "";
   for (auto const node : printable.nodes) {
-    ostream << separator << node->value()->id();
+    ostream << separator << node;
     separator = ", ";
   }
   return ostream << "]";
@@ -48,13 +55,9 @@ std::ostream& operator<<(std::ostream& ostream,
 
 std::ostream& operator<<(std::ostream& ostream,
                          const MyDominatorTree::Node& node) {
-  ostream << "{parent: ";
-  if (node.parent())
-    ostream << node.parent()->value()->id();
-  else
-    ostream << "none";
-  ostream << ", children: " << Printable(node.children())
-          << ", frontiers: " << Printable(node.frontiers()) << "}";
+  ostream << "{parent: " << node.parent() << ","
+          << " children: " << Printable(node.children()) << ","
+          << " frontiers: " << Printable(node.frontiers()) << "}";
   return ostream;
 }
 
@@ -96,9 +99,10 @@ TEST_F(DominatorTreeTest, Basic) {
   auto const entry_node = dominator_tree->TreeNodeOf(entry_block);
   auto const exit_node = dominator_tree->TreeNodeOf(exit_block);
 
-  EXPECT_EQ("{parent: none, children: [-2], frontiers: []}",
+  EXPECT_EQ("{parent: nil, children: [EXIT], frontiers: []}",
             ToString(entry_node));
-  EXPECT_EQ("{parent: -1, children: [], frontiers: []}", ToString(exit_node));
+  EXPECT_EQ("{parent: ENTRY, children: [], frontiers: []}",
+            ToString(exit_node));
 }
 
 TEST_F(DominatorTreeTest, BasicReverse) {
@@ -117,8 +121,9 @@ TEST_F(DominatorTreeTest, BasicReverse) {
   auto const entry_node = dominator_tree->TreeNodeOf(entry_block);
   auto const exit_node = dominator_tree->TreeNodeOf(exit_block);
 
-  EXPECT_EQ("{parent: -2, children: [], frontiers: []}", ToString(entry_node));
-  EXPECT_EQ("{parent: none, children: [-1], frontiers: []}",
+  EXPECT_EQ("{parent: EXIT, children: [], frontiers: []}",
+            ToString(entry_node));
+  EXPECT_EQ("{parent: nil, children: [ENTRY], frontiers: []}",
             ToString(exit_node));
 }
 
@@ -141,13 +146,13 @@ TEST_F(DominatorTreeTest, SampleFunction) {
   }
 
   // Dominator tree of sample graph1:
-  //  entry
+  //  ENTRY
   //    |
   //    B0
   //    / \
   //   B1  B6
   //   / \  \
-  //  B2 B4  exit
+  //  B2 B4  EXIT
   //  / \
   //  B3 B5
 
@@ -155,21 +160,24 @@ TEST_F(DominatorTreeTest, SampleFunction) {
   // have DF(B0)=[exit].
   // TODO(eval1749) Until we have pseudo edge from entry to exit, we don't
   // have DF(B5)=[exit].
-  EXPECT_EQ("{parent: none, children: [0], frontiers: []}",
+  EXPECT_EQ("{parent: nil, children: [B0], frontiers: []}",
             ToString(dom->TreeNodeOf(entry_block)));
-  EXPECT_EQ("{parent: 6, children: [], frontiers: []}",
+  EXPECT_EQ("{parent: B6, children: [], frontiers: []}",
             ToString(dom->TreeNodeOf(exit_block)));
 
-  EXPECT_EQ("{parent: -1, children: [1, 6], frontiers: []}",
+  EXPECT_EQ("{parent: ENTRY, children: [B1, B6], frontiers: []}",
             ToString(nodes[0]));
-  EXPECT_EQ("{parent: 0, children: [2, 4], frontiers: [1, 6]}",
+  EXPECT_EQ("{parent: B0, children: [B2, B4], frontiers: [B1, B6]}",
             ToString(nodes[1]));
-  EXPECT_EQ("{parent: 1, children: [3, 5], frontiers: [2, 4]}",
+  EXPECT_EQ("{parent: B1, children: [B3, B5], frontiers: [B2, B4]}",
             ToString(nodes[2]));
-  EXPECT_EQ("{parent: 2, children: [], frontiers: [2, 4]}", ToString(nodes[3]));
-  EXPECT_EQ("{parent: 1, children: [], frontiers: [1, 6]}", ToString(nodes[4]));
-  EXPECT_EQ("{parent: 2, children: [], frontiers: [3]}", ToString(nodes[5]));
-  EXPECT_EQ("{parent: 0, children: [-2], frontiers: []}", ToString(nodes[6]));
+  EXPECT_EQ("{parent: B2, children: [], frontiers: [B2, B4]}",
+            ToString(nodes[3]));
+  EXPECT_EQ("{parent: B1, children: [], frontiers: [B1, B6]}",
+            ToString(nodes[4]));
+  EXPECT_EQ("{parent: B2, children: [], frontiers: [B3]}", ToString(nodes[5]));
+  EXPECT_EQ("{parent: B0, children: [EXIT], frontiers: []}",
+            ToString(nodes[6]));
 
   EXPECT_EQ(blocks[2], dom->CommonAncestorOf(blocks[3], blocks[5]));
   EXPECT_EQ(blocks[1], dom->CommonAncestorOf(blocks[3], blocks[4]));
@@ -195,13 +203,13 @@ TEST_F(DominatorTreeTest, SampleFunctionReverse) {
   }
 
   // Post dominator tree of sample graph1:
-  //    exit
+  //    EXIT
   //     |
   //     B6
   //    /  \
   //   B0   B4
   //   |     /\
-  //  entry B1 B3
+  //  ENTRY B1 B3
   //           |
   //           B5
 
@@ -209,20 +217,23 @@ TEST_F(DominatorTreeTest, SampleFunctionReverse) {
   // have DF(B0)=[exit].
   // TODO(eval1749) Until we have pseudo edge from entry to exit, we don't
   // have DF(B5)=[exit].
-  EXPECT_EQ("{parent: 0, children: [], frontiers: []}",
+  EXPECT_EQ("{parent: B0, children: [], frontiers: []}",
             ToString(dom->TreeNodeOf(entry_block)));
-  EXPECT_EQ("{parent: none, children: [6], frontiers: []}",
+  EXPECT_EQ("{parent: nil, children: [B6], frontiers: []}",
             ToString(dom->TreeNodeOf(exit_block)));
 
-  EXPECT_EQ("{parent: 6, children: [-1], frontiers: []}", ToString(nodes[0]));
-  EXPECT_EQ("{parent: 4, children: [], frontiers: [0, 4]}", ToString(nodes[1]));
-  EXPECT_EQ("{parent: 3, children: [], frontiers: [1, 3]}", ToString(nodes[2]));
-  EXPECT_EQ("{parent: 4, children: [2, 5], frontiers: [1, 3]}",
+  EXPECT_EQ("{parent: B6, children: [ENTRY], frontiers: []}",
+            ToString(nodes[0]));
+  EXPECT_EQ("{parent: B4, children: [], frontiers: [B0, B4]}",
+            ToString(nodes[1]));
+  EXPECT_EQ("{parent: B3, children: [], frontiers: [B1, B3]}",
+            ToString(nodes[2]));
+  EXPECT_EQ("{parent: B4, children: [B2, B5], frontiers: [B1, B3]}",
             ToString(nodes[3]));
-  EXPECT_EQ("{parent: 6, children: [1, 3], frontiers: [0, 4]}",
+  EXPECT_EQ("{parent: B6, children: [B1, B3], frontiers: [B0, B4]}",
             ToString(nodes[4]));
-  EXPECT_EQ("{parent: 3, children: [], frontiers: [2]}", ToString(nodes[5]));
-  EXPECT_EQ("{parent: -2, children: [0, 4], frontiers: []}",
+  EXPECT_EQ("{parent: B3, children: [], frontiers: [B2]}", ToString(nodes[5]));
+  EXPECT_EQ("{parent: EXIT, children: [B0, B4], frontiers: []}",
             ToString(nodes[6]));
 
   EXPECT_EQ(blocks[6], dom->CommonAncestorOf(blocks[3], blocks[6]));
