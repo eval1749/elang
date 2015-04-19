@@ -38,18 +38,23 @@ class DominatorTree final : public ZoneOwner {
     int depth() const { return depth_; }
     const Nodes& frontiers() const { return frontiers_; }
     Node* parent() const { return parent_; }
+    // Returns reverse post-order number.
+    int position() const { return position_; }
     GraphNode* value() const { return value_; }
 
    private:
     // DominatorTreeEditor uses |Node| constructor.
     friend class DominatorTreeEditor<Graph>;
 
-    Node(Zone* zone, GraphNode* value);
+    Node(Zone* zone, GraphNode* value, int position);
 
     Nodes children_;
     int depth_;
     Nodes frontiers_;
     Node* parent_;
+    // Holds reverse post-order number. This is by-product of building dominator
+    // tree.
+    int const position_;
     GraphNode* const value_;
 
     DISALLOW_COPY_AND_ASSIGN(Node);
@@ -85,11 +90,14 @@ class DominatorTree final : public ZoneOwner {
 // DominatorTree::Node
 //
 template <typename Graph>
-DominatorTree<Graph>::Node::Node(Zone* zone, GraphNode* graph_node)
+DominatorTree<Graph>::Node::Node(Zone* zone,
+                                 GraphNode* graph_node,
+                                 int position)
     : children_(zone),
       depth_(0),
       frontiers_(zone),
       parent_(nullptr),
+      position_(position),
       value_(graph_node) {
 }
 

@@ -72,9 +72,11 @@ template <typename Graph>
 void DominatorTreeEditor<Graph>::InitializeDominatorTree(
     const OrderedList<GraphNode*>& graph_nodes) {
   DCHECK(dominator_tree_);
+  auto position = 0;
   for (auto const node : graph_nodes) {
-    dominator_tree_->node_map_[node] =
-        new (dominator_tree_->zone()) TreeNode(dominator_tree_->zone(), node);
+    dominator_tree_->node_map_[node] = new (dominator_tree_->zone())
+        TreeNode(dominator_tree_->zone(), node, position);
+    ++position;
   }
 }
 
@@ -88,6 +90,13 @@ typename DominatorTree<Graph>::Node* DominatorTreeEditor<Graph>::TreeNodeOf(
 //
 // DominatorTreeBuilder
 //
+// Constructs dominator tree and dominance frontiers for a given |Graph| with
+// |Direction| based on the algorithm described in:
+//
+// A Simple, Fast Dominance Algorithm,
+// Keith D. Cooper, Timothy J. Havery, // and Ken Kennedy
+// Rice Computer Science, TR-06-33870.
+//
 template <typename Graph, typename Direction>
 class DominatorTreeBuilder final : public DominatorTreeEditor<Graph> {
  public:
@@ -98,8 +107,6 @@ class DominatorTreeBuilder final : public DominatorTreeEditor<Graph> {
   std::unique_ptr<DominatorTree> Build();
 
  private:
-  int dfs_position_of(TreeNode* node) const;
-
   void ComputeChildren();
   void ComputeFrontiers();
   void ComputeParentForAll();
@@ -119,12 +126,6 @@ DominatorTreeBuilder<Graph, Direction>::DominatorTreeBuilder(const Graph* graph)
       graph_(graph),
       graph_nodes_(
           GraphSorter<Graph, Direction>::SortByReversePostOrder(graph)) {
-}
-
-template <typename Graph, typename Direction>
-int DominatorTreeBuilder<Graph, Direction>::dfs_position_of(
-    TreeNode* node) const {
-  return graph_nodes_.position_of(node->value());
 }
 
 template <typename Graph, typename Direction>
@@ -214,9 +215,9 @@ typename DominatorTree<Graph>::Node*
 DominatorTreeBuilder<Graph, Direction>::Intersect(TreeNode* finger1,
                                                   TreeNode* finger2) {
   while (finger1 != finger2) {
-    while (dfs_position_of(finger1) > dfs_position_of(finger2))
+    while (finger1->position() > finger2->position())
       finger1 = finger1->parent();
-    while (dfs_position_of(finger2) > dfs_position_of(finger1))
+    while (finger2->position() > finger1->position())
       finger2 = finger2->parent();
   }
   return finger1;
