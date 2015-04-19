@@ -28,14 +28,15 @@ class GraphSorter;
 template <typename Owner, typename Derived>
 class Graph {
  public:
-  typedef GraphEditor<Owner, Derived> Editor;
-  typedef Derived Derived;
-  typedef ZoneUnorderedSet<Derived*> NodeSet;
-  typedef DoubleLinked<Derived, Owner> Nodes;
-  typedef GraphSorter<Graph, ForwardFlowGraph<Graph>> Sorter;
+  using Editor = GraphEditor<Owner, Derived>;
+  using NodeSet = ZoneUnorderedSet<Derived*>;
+  using Nodes = DoubleLinked<Derived, Owner>;
+  using Sorter = GraphSorter<Graph, ForwardFlowGraph<Graph>>;
 
-  // Node represents graph node having edges.
-  class Node : public DoubleLinked<Derived, Owner>::Node {
+  typedef Derived Derived;
+
+  // |NodeBase| represents graph node having edges.
+  class GraphNodeBase : public DoubleLinked<Derived, Owner>::Node {
    public:
     const NodeSet& predecessors() const { return predecessors_; }
     const NodeSet& successors() const { return successors_; }
@@ -46,8 +47,8 @@ class Graph {
     bool HasSuccessor() const { return !successors_.empty(); }
 
    protected:
-    explicit Node(Zone* zone);
-    ~Node() = default;
+    explicit GraphNodeBase(Zone* zone);
+    ~GraphNodeBase() = default;
 
    private:
     friend class Editor;
@@ -60,7 +61,7 @@ class Graph {
     NodeSet predecessors_;
     NodeSet successors_;
 
-    DISALLOW_COPY_AND_ASSIGN(Node);
+    DISALLOW_COPY_AND_ASSIGN(GraphNodeBase);
   };
 
   // Returns first block.
@@ -95,9 +96,9 @@ bool Graph<Owner, T>::HasEdge(T* from, T* to) const {
   return false;
 }
 
-// Graph::Node
+// Graph::GraphNodeBase
 template <typename Owner, typename T>
-Graph<Owner, T>::Node::Node(Zone* zone)
+Graph<Owner, T>::GraphNodeBase::GraphNodeBase(Zone* zone)
     : predecessors_(zone), successors_(zone) {
 }
 

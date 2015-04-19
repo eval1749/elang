@@ -37,9 +37,10 @@ class Function : public Graph<Function, Block> {
 //
 // Represents graph node.
 //
-class Block : public Graph<Function, Block>::Node, public ZoneAllocated {
+class Block : public Graph<Function, Block>::GraphNodeBase,
+              public ZoneAllocated {
  public:
-  Block(Zone* zone, int id) : Node(zone), id_(id) {}
+  Block(Zone* zone, int id) : GraphNodeBase(zone), id_(id) {}
   ~Block() = default;
 
   int id() const { return id_; }

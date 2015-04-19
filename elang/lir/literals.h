@@ -85,7 +85,7 @@ typedef DoubleLinked<Instruction, BasicBlock> InstructionList;
 //
 class ELANG_LIR_EXPORT BasicBlock final
     : public Literal,
-      public Graph<Function, BasicBlock>::Node,
+      public Graph<Function, BasicBlock>::GraphNodeBase,
       public WorkList<BasicBlock>::Item {
   DECLARE_LIR_CONCRETE_LITERAL_CLASS(BasicBlock);
 
