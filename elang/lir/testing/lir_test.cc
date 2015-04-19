@@ -54,8 +54,7 @@ struct InstructionWithAllocation {
 };
 
 // TODO(eval1749) We should share |SortBasicBlocks()| with |TextFormatter|.
-std::vector<BasicBlock*> SortBasicBlocks(
-    const ZoneUnorderedSet<BasicBlock*>& block_set) {
+std::vector<BasicBlock*> SortBasicBlocks(const Function::NodeList& block_set) {
   std::vector<BasicBlock*> blocks(block_set.begin(), block_set.end());
   std::sort(blocks.begin(), blocks.end(),
             [](BasicBlock* a, BasicBlock* b) { return a->id() < b->id(); });
@@ -407,8 +406,8 @@ Function* LirTest::CreateFunctionWithCriticalEdge2() {
   auto const var0 = NewRegister(Value::Int32Type());
 
   editor.Edit(entry_block);
-  editor.Append(factory()->NewCopyInstruction(var0,
-                                              Target::GetParameterAt(var0, 0)));
+  editor.Append(
+      factory()->NewCopyInstruction(var0, Target::GetParameterAt(var0, 0)));
   editor.SetJump(start_block);
   EXPECT_EQ("", Commit(&editor));
 

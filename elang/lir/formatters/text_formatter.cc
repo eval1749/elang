@@ -44,8 +44,7 @@ namespace lir {
 
 namespace {
 
-std::vector<BasicBlock*> SortBasicBlocks(
-    const ZoneUnorderedSet<BasicBlock*>& block_set) {
+std::vector<BasicBlock*> SortBasicBlocks(const Function::NodeList& block_set) {
   std::vector<BasicBlock*> blocks(block_set.begin(), block_set.end());
   std::sort(blocks.begin(), blocks.end(),
             [](BasicBlock* a, BasicBlock* b) { return a->id() < b->id(); });

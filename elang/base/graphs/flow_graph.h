@@ -22,11 +22,11 @@ struct BackwardFlowGraph {
     return node->HasMoreThanOnePredecessor();
   }
 
-  static typename Graph::NodeSet PredecessorsOf(const GraphNode* node) {
+  static typename Graph::NodeList PredecessorsOf(const GraphNode* node) {
     return node->successors();
   }
 
-  static typename Graph::NodeSet SuccessorsOf(const GraphNode* node) {
+  static typename Graph::NodeList SuccessorsOf(const GraphNode* node) {
     return node->predecessors();
   }
 };
@@ -46,11 +46,11 @@ struct ForwardFlowGraph {
     return node->HasMoreThanOneSuccessor();
   }
 
-  static typename Graph::NodeSet PredecessorsOf(const GraphNode* node) {
+  static typename Graph::NodeList PredecessorsOf(const GraphNode* node) {
     return node->predecessors();
   }
 
-  static typename Graph::NodeSet SuccessorsOf(const GraphNode* node) {
+  static typename Graph::NodeList SuccessorsOf(const GraphNode* node) {
     return node->successors();
   }
 };

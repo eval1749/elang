@@ -5,10 +5,13 @@
 #ifndef ELANG_BASE_GRAPHS_GRAPH_H_
 #define ELANG_BASE_GRAPHS_GRAPH_H_
 
+#include <algorithm>
+
 #include "base/logging.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/ordered_list.h"
 #include "elang/base/zone_unordered_set.h"
+#include "elang/base/zone_vector.h"
 
 namespace elang {
 
@@ -30,6 +33,7 @@ class Graph {
  public:
   using GraphNode = Node;
   using Editor = GraphEditor<Owner>;
+  using NodeList = ZoneVector<GraphNode*>;
   using NodeSet = ZoneUnorderedSet<GraphNode*>;
   using Nodes = DoubleLinked<GraphNode, Owner>;
   using Sorter = GraphSorter<Graph, ForwardFlowGraph<Graph>>;
@@ -37,8 +41,8 @@ class Graph {
   // |NodeBase| represents graph node having edges.
   class GraphNodeBase : public DoubleLinked<GraphNode, Owner>::Node {
    public:
-    const NodeSet& predecessors() const { return predecessors_; }
-    const NodeSet& successors() const { return successors_; }
+    const NodeList& predecessors() const { return predecessors_; }
+    const NodeList& successors() const { return successors_; }
 
     bool HasMoreThanOnePredecessor() const { return predecessors_.size() > 1u; }
     bool HasMoreThanOneSuccessor() const { return successors_.size() > 1u; }
@@ -53,12 +57,11 @@ class Graph {
     friend class Editor;
     friend class Graph;
 
-    // For control flow graph, most of most of basic block has only one
-    // successors, e.g. by unconditional jump, and return. More than two
-    // successors are introduced by switch like statement. So, using
-    // |ZoneUnorderedSet| may be overkill regarding memory consumption.
-    NodeSet predecessors_;
-    NodeSet successors_;
+    // For control flow graph, most of basic blocks have few successors, e.g.
+    // by unconditional jump, and return. More than two successors are
+    // introduced by switch like statement.
+    NodeList predecessors_;
+    NodeList successors_;
 
     DISALLOW_COPY_AND_ASSIGN(GraphNodeBase);
   };
@@ -79,6 +82,8 @@ class Graph {
  private:
   friend class Editor;
 
+  static bool Has(const NodeList& nodes, GraphNode* node);
+
   Nodes nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(Graph);
@@ -86,12 +91,18 @@ class Graph {
 
 // Graph
 template <typename Owner, typename T>
-bool Graph<Owner, T>::HasEdge(T* from, T* to) const {
-  if (from->successors_.count(to) == 1) {
-    DCHECK_EQ(to->predecessors_.count(from), 1u);
+bool Graph<Owner, T>::Has(const NodeList& nodes, GraphNode* node) {
+  auto const it = std::find(nodes.begin(), nodes.end(), node);
+  return it != nodes.end();
+}
+
+template <typename Owner, typename T>
+bool Graph<Owner, T>::HasEdge(GraphNode* from, GraphNode* to) const {
+  if (Has(from->successors_, to)) {
+    DCHECK(Has(to->predecessors_, from));
     return true;
   }
-  DCHECK_EQ(to->predecessors_.count(from), 0u);
+  DCHECK(!Has(to->predecessors_, from));
   return false;
 }
 

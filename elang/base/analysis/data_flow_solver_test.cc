@@ -84,7 +84,7 @@ std::string ToString(const Function& function, const BitSet& bit_set) {
 struct PrintableBlocks {
   std::vector<Block*> blocks;
 
-  explicit PrintableBlocks(const ZoneUnorderedSet<Block*>& block_set)
+  explicit PrintableBlocks(const Function::NodeList& block_set)
       : blocks(block_set.begin(), block_set.end()) {
     std::sort(blocks.begin(), blocks.end(),
               [](Block* a, Block* b) { return a->id() < b->id(); });

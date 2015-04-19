@@ -103,9 +103,7 @@ TEST_F(GraphTest, InsertNode) {
       function()->ToString());
 }
 
-// Since predecessors and successors are represented by unordered map,
-// iterations in sorter don't produce same result.
-TEST_F(GraphTest, FLAKY_OrderedList) {
+TEST_F(GraphTest, OrderedList) {
   EXPECT_EQ("[B1, B2, B4, B3]",
             ToString(Function::Sorter::SortByPreOrder(function())));
   EXPECT_EQ("[B4, B2, B3, B1]",

@@ -5,7 +5,7 @@
 #ifndef ELANG_BASE_GRAPHS_GRAPH_EDITOR_H_
 #define ELANG_BASE_GRAPHS_GRAPH_EDITOR_H_
 
-#include <vector>
+#include <algorithm>
 
 #include "base/logging.h"
 #include "elang/base/graphs/graph.h"
@@ -19,50 +19,58 @@ namespace elang {
 template <typename Graph>
 class GraphEditor {
  public:
-  using GraphNode = typename Graph::GraphNode;
+  using Node = typename Graph::GraphNode;
+  using NodeList = typename Graph::NodeList;
 
   explicit GraphEditor(Graph* graph) : graph_(graph) {}
   ~GraphEditor() = default;
 
-  void AppendNode(GraphNode* new_node);
-  void AddEdge(GraphNode* from, GraphNode* to);
-  void InsertNode(GraphNode* new_node, GraphNode* ref_node);
-  void RemoveEdge(GraphNode* from, GraphNode* to);
-  void RemoveNode(GraphNode* ref_node);
+  void AppendNode(Node* new_node);
+  void AddEdge(Node* from, Node* to);
+  void InsertNode(Node* new_node, Node* ref_node);
+  void RemoveEdge(Node* from, Node* to);
+  void RemoveNode(Node* ref_node);
 
  private:
+  static void RemoveFromList(NodeList* nodes, Node* node);
+
   Graph* const graph_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEditor);
 };
 
 template <typename Graph>
-void GraphEditor<Graph>::AppendNode(typename Graph::GraphNode* new_node) {
+void GraphEditor<Graph>::AppendNode(Node* new_node) {
   graph_->nodes_.AppendNode(new_node);
 }
 
 template <typename Graph>
-void GraphEditor<Graph>::AddEdge(typename Graph::GraphNode* from,
-                                 typename Graph::GraphNode* to) {
-  from->successors_.insert(to);
-  to->predecessors_.insert(from);
+void GraphEditor<Graph>::AddEdge(Node* from, Node* to) {
+  DCHECK(!graph_->HasEdge(from, to));
+  from->successors_.push_back(to);
+  to->predecessors_.push_back(from);
 }
 
 template <typename Graph>
-void GraphEditor<Graph>::InsertNode(typename Graph::GraphNode* new_node,
-                                    typename Graph::GraphNode* ref_node) {
+void GraphEditor<Graph>::InsertNode(Node* new_node, Node* ref_node) {
   graph_->nodes_.InsertBefore(new_node, ref_node);
 }
 
 template <typename Graph>
-void GraphEditor<Graph>::RemoveEdge(typename Graph::GraphNode* from,
-                                    typename Graph::GraphNode* to) {
-  from->successors_.erase(to);
-  to->predecessors_.erase(from);
+void GraphEditor<Graph>::RemoveEdge(Node* from, Node* to) {
+  RemoveFromList(&from->successors_, to);
+  RemoveFromList(&to->predecessors_, from);
 }
 
 template <typename Graph>
-void GraphEditor<Graph>::RemoveNode(typename Graph::GraphNode* old_node) {
+void GraphEditor<Graph>::RemoveFromList(NodeList* nodes, Node* node) {
+  auto const it = std::find(nodes->begin(), nodes->end(), node);
+  DCHECK(it != nodes->end());
+  nodes->erase(it);
+}
+
+template <typename Graph>
+void GraphEditor<Graph>::RemoveNode(Node* old_node) {
   graph_->nodes_.RemoveNode(old_node);
 }
 
