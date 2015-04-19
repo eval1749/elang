@@ -207,7 +207,6 @@ TEST_F(LoopTreeTest, CaseD) {
   editor.AddEdge(blocks[4], blocks[5]);
   editor.AddEdge(blocks[5], blocks[6]);
   editor.AddEdge(blocks[1], blocks[4]);
-  editor.AddEdge(blocks[3], blocks[5]);
   editor.AddEdge(blocks[6], blocks[1]);
 
   auto const loop_tree = LoopTreeBuilder<Function>(function()).Build();
