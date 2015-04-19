@@ -15,7 +15,7 @@ namespace elang {
 //
 // Sort graph.
 //
-template <typename Graph, typename Direction = ForwardFlowGraph>
+template <typename Graph, typename Direction = ForwardFlowGraph<Graph>>
 class GraphSorter final {
  public:
   typedef typename Graph::Derived GraphNode;
