@@ -84,6 +84,7 @@ source_set("base_tests") {
     "analysis/data_flow_solver_test.cc",
     "analysis/dominator_tree_test.cc",
     "analysis/liveness_builder_test.cc",
+    "analysis/loop_tree_test.cc",
     "as_printable_test.cc",
     "atomic_string_test.cc",
     "bits_test.cc",
