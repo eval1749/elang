@@ -173,7 +173,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   mutable std::unique_ptr<ConflictMap> conflict_map_;
   mutable std::unique_ptr<LivenessData> liveness_data_;
 
-  GraphEditor<Function> graph_editor_;
+  Function::Editor graph_editor_;
   bool is_index_valid_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);

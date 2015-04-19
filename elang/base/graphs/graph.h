@@ -31,8 +31,10 @@ class GraphSorter;
 template <typename Owner, typename Node>
 class Graph {
  public:
+  class Editor;
+  class GraphNodeBase;
+
   using GraphNode = Node;
-  using Editor = GraphEditor<Owner>;
   using NodeList = ZoneVector<GraphNode*>;
   using NodeSet = ZoneUnorderedSet<GraphNode*>;
   using Nodes = DoubleLinked<GraphNode, Owner>;
