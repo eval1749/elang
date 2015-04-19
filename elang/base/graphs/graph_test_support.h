@@ -12,6 +12,8 @@
 #include "elang/base/graphs/graph.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
+#include "elang/base/zone_unordered_set.h"
+#include "elang/base/zone_vector.h"
 #include "gtest/gtest.h"
 
 namespace elang {
@@ -54,9 +56,10 @@ class Block : public Graph<Function, Block>::Node, public ZoneAllocated {
 //
 struct PrintableBlocks {
   std::vector<Block*> blocks;
-
-  explicit PrintableBlocks(const ZoneUnorderedSet<Block*>& block_set);
 };
+
+PrintableBlocks Printable(const ZoneUnorderedSet<Block*>& blocks);
+PrintableBlocks Printable(const ZoneVector<Block*>& blocks);
 
 std::ostream& operator<<(std::ostream& ostream, const PrintableBlocks& blocks);
 std::ostream& operator<<(std::ostream& ostream, const Block& block);

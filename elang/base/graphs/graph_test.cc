@@ -49,10 +49,10 @@ TEST_F(GraphTest, AddEdge) {
   std::stringstream ostream;
   ostream << *function();
   EXPECT_EQ(
-      "{id:1 predecessors:{} successors:{2, 3}}\n"
-      "{id:2 predecessors:{1} successors:{4}}\n"
-      "{id:3 predecessors:{1} successors:{4}}\n"
-      "{id:4 predecessors:{2, 3} successors:{}}\n",
+      "{id: 1, predecessors: {}, successors: {B2, B3}}\n"
+      "{id: 2, predecessors: {B1}, successors: {B4}}\n"
+      "{id: 3, predecessors: {B1}, successors: {B4}}\n"
+      "{id: 4, predecessors: {B2, B3}, successors: {}}\n",
       function()->ToString());
   auto const block1 = block_at(0);
   auto const block2 = block_at(1);
@@ -96,23 +96,23 @@ TEST_F(GraphTest, InsertNode) {
   editor.RemoveNode(block2);
   editor.InsertNode(block2, block4);
   EXPECT_EQ(
-      "{id:1 predecessors:{} successors:{2, 3}}\n"
-      "{id:3 predecessors:{1} successors:{4}}\n"
-      "{id:2 predecessors:{1} successors:{4}}\n"
-      "{id:4 predecessors:{2, 3} successors:{}}\n",
+      "{id: 1, predecessors: {}, successors: {B2, B3}}\n"
+      "{id: 3, predecessors: {B1}, successors: {B4}}\n"
+      "{id: 2, predecessors: {B1}, successors: {B4}}\n"
+      "{id: 4, predecessors: {B2, B3}, successors: {}}\n",
       function()->ToString());
 }
 
 // Since predecessors and successors are represented by unordered map,
 // iterations in sorter don't produce same result.
 TEST_F(GraphTest, FLAKY_OrderedList) {
-  EXPECT_EQ("[1, 2, 4, 3]",
+  EXPECT_EQ("[B1, B2, B4, B3]",
             ToString(Function::Sorter::SortByPreOrder(function())));
-  EXPECT_EQ("[4, 2, 3, 1]",
+  EXPECT_EQ("[B4, B2, B3, B1]",
             ToString(Function::Sorter::SortByPostOrder(function())));
-  EXPECT_EQ("[3, 4, 2, 1]",
+  EXPECT_EQ("[B3, B4, B2, B1]",
             ToString(Function::Sorter::SortByReversePreOrder(function())));
-  EXPECT_EQ("[1, 3, 2, 4]",
+  EXPECT_EQ("[B1, B3, B2, B4]",
             ToString(Function::Sorter::SortByReversePostOrder(function())));
 }
 
@@ -125,10 +125,10 @@ TEST_F(GraphTest, RemoveEdge) {
   editor.RemoveEdge(block1, block2);
   editor.RemoveEdge(block2, block4);
   EXPECT_EQ(
-      "{id:1 predecessors:{} successors:{3}}\n"
-      "{id:2 predecessors:{} successors:{}}\n"
-      "{id:3 predecessors:{1} successors:{4}}\n"
-      "{id:4 predecessors:{3} successors:{}}\n",
+      "{id: 1, predecessors: {}, successors: {B3}}\n"
+      "{id: 2, predecessors: {}, successors: {}}\n"
+      "{id: 3, predecessors: {B1}, successors: {B4}}\n"
+      "{id: 4, predecessors: {B3}, successors: {}}\n",
       function()->ToString());
 
   EXPECT_FALSE(block1->HasPredecessor());

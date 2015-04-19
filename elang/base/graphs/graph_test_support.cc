@@ -19,28 +19,37 @@ std::string Function::ToString() const {
   return ostream.str();
 }
 
-// PrintableBlocks
-PrintableBlocks::PrintableBlocks(const ZoneUnorderedSet<Block*>& block_set)
-    : blocks(block_set.begin(), block_set.end()) {
-  std::sort(blocks.begin(), blocks.end(),
+// Printable
+PrintableBlocks Printable(const ZoneUnorderedSet<Block*>& blocks) {
+  PrintableBlocks printable;
+  printable.blocks.insert(printable.blocks.end(), blocks.begin(), blocks.end());
+  std::sort(printable.blocks.begin(), printable.blocks.end(),
             [](Block* a, Block* b) { return a->id() < b->id(); });
+  return printable;
+}
+
+PrintableBlocks Printable(const ZoneVector<Block*>& blocks) {
+  PrintableBlocks printable;
+  printable.blocks.insert(printable.blocks.end(), blocks.begin(), blocks.end());
+  std::sort(printable.blocks.begin(), printable.blocks.end(),
+            [](Block* a, Block* b) { return a->id() < b->id(); });
+  return printable;
 }
 
 std::ostream& operator<<(std::ostream& ostream, const PrintableBlocks& blocks) {
   ostream << "{";
   auto separator = "";
   for (auto const block : blocks.blocks) {
-    ostream << separator << block->id();
+    ostream << separator << block;
     separator = ", ";
   }
-  ostream << "}";
-  return ostream;
+  return ostream << "}";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Block& block) {
-  ostream << "{id:" << block.id()
-          << " predecessors:" << PrintableBlocks(block.predecessors())
-          << " successors:" << PrintableBlocks(block.successors()) << "}";
+  ostream << "{id: " << block.id()
+          << ", predecessors: " << Printable(block.predecessors())
+          << ", successors: " << Printable(block.successors()) << "}";
   return ostream;
 }
 
@@ -151,7 +160,7 @@ std::string ToString(const OrderedList<Block*>& list) {
   ostream << "[";
   auto separator = "";
   for (auto const block : list) {
-    ostream << separator << block->id();
+    ostream << separator << block;
     separator = ", ";
   }
   ostream << "]";
