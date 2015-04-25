@@ -5,6 +5,8 @@
 #ifndef ELANG_OPTIMIZER_FUNCTION_H_
 #define ELANG_OPTIMIZER_FUNCTION_H_
 
+#include <ostream>
+
 #include "base/basictypes.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/optimizer/optimizer_export.h"
@@ -49,6 +51,11 @@ class ELANG_OPTIMIZER_EXPORT Function final : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(Function);
 };
+
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                                const Function* function);
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                                const Function& function);
 
 }  // namespace optimizer
 }  // namespace elang

@@ -33,5 +33,16 @@ Type* Function::return_type() const {
   return function_type()->return_type();
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Function* function) {
+  if (!function)
+    return ostream << "nil";
+  return ostream << *function;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Function& function) {
+  return ostream << "function" << function.id() << " "
+                 << *function.function_type();
+}
+
 }  // namespace optimizer
 }  // namespace elang
