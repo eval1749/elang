@@ -19,7 +19,8 @@ static_library("targets") {
   ]
 }
 
-source_set("targets_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "bytes_test.cc",
@@ -28,5 +29,13 @@ source_set("targets_tests") {
   public_deps = [
     "//testing/gtest",
     ":targets",
+  ]
+}
+
+test("tests") {
+  output_name = "elang_targets_tests"
+  deps = [
+    "//base/test:run_all_unittests",
+    ":test_files",
   ]
 }

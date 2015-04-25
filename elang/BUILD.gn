@@ -23,14 +23,17 @@ config("elang_target_arch_config") {
   }
 }
 
-test("elang_all_tests") {
+group("tests") {
+  visibility = []
+  testonly = true
   deps = [
-    "//base/test:run_all_unittests",
-    "//elang/cg:cg_tests",
-    "//elang/hir:hir_tests",
-    "//elang/lir:lir_tests",
-    "//elang/shell:shell_tests",
-    "//elang/targets:targets_tests",
-    "//elang/vm:vm_tests",
+    "//elang/base:tests",
+    "//elang/cg:tests",
+    "//elang/hir:tests",
+    "//elang/lir:tests",
+    "//elang/optimizer:tests",
+    "//elang/shell:tests",
+    "//elang/targets:tests",
+    "//elang/vm:tests",
   ]
 }

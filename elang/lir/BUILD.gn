@@ -85,6 +85,7 @@ source_set("core") {
 }
 
 source_set("core_tests") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "editor_unittest.cc",
@@ -104,6 +105,10 @@ source_set("core_tests") {
 }
 
 source_set("test_support") {
+  visibility = [
+    ":*",
+    "./*",
+  ]
   testonly = true
   sources = [
     "testing/lir_test.cc",
@@ -123,7 +128,8 @@ source_set("test_support") {
   }
 }
 
-source_set("lir_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
   deps = [
     ":core_tests",
@@ -133,9 +139,10 @@ source_set("lir_tests") {
   ]
 }
 
-test("elang_lir_tests") {
+test("tests") {
+  output_name = "elang_lir_tests"
   deps = [
     "//base/test:run_all_unittests",
-    ":lir_tests",
+    ":test_files",
   ]
 }

@@ -53,6 +53,7 @@ static_library("vm") {
 }
 
 source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
   public_deps = [
     "//testing/gtest",
@@ -62,6 +63,7 @@ source_set("test_support") {
 }
 
 source_set("vm_tests") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "machine_code_builder_impl_unittest.cc",
@@ -72,7 +74,9 @@ source_set("vm_tests") {
   ]
 }
 
-test("elang_vm_tests") {
+test("tests") {
+  output_name = "elang_vm_tests"
+  visibility = [ "//elang:tests" ]
   sources = []
 
   deps = [

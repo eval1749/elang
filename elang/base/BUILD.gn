@@ -67,6 +67,7 @@ component("base") {
 }
 
 source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "graphs/graph_test_support.cc",
@@ -78,7 +79,8 @@ source_set("test_support") {
   ]
 }
 
-source_set("base_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "analysis/data_flow_solver_test.cc",
@@ -106,9 +108,10 @@ source_set("base_tests") {
   ]
 }
 
-test("elang_base_tests") {
+test("tests") {
+  output_name = "elang_base_tests"
   deps = [
     "//base/test:run_all_unittests",
-    ":base_tests",
+    ":test_files",
   ]
 }

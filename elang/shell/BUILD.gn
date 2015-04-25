@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//testing/test.gni")
+
 executable("elang_shell") {
   sources = [
     "compiler.cc",
@@ -10,17 +12,15 @@ executable("elang_shell") {
   ]
 
   deps = [
-    "//base",
+    ":shell_library",
     "//elang/api",
-    "//elang/compiler",
     "//elang/cg",
     "//elang/optimizer",
-    "//elang/vm",
-    ":shell_library",
   ]
 }
 
-static_library("shell_library") {
+source_set("shell_library") {
+  visibility = [ ":*" ]
   sources = [
     "namespace_builder.cc",
     "namespace_builder.h",
@@ -31,20 +31,36 @@ static_library("shell_library") {
     "utf8_decoder.cc",
     "utf8_decoder.h",
   ]
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/compiler",
+    "//elang/vm",
+  ]
 }
 
-source_set("shell_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
+  testonly = true
   sources = [
     "utf8_decoder_unittest.cc",
   ]
   public_deps = [
-    "//testing/gtest",
     ":shell_library",
+    "//testing/gtest",
   ]
 }
 
 group("shell") {
   deps = [
     ":elang_shell",
+  ]
+}
+
+test("tests") {
+  output_name = "elang_shell_tests"
+  deps = [
+    ":test_files",
+    "//base/test:run_all_unittests",
   ]
 }

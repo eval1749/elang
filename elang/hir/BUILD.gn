@@ -56,13 +56,14 @@ component("hir") {
 
   defines = [ "HIR_IMPLEMENTATION" ]
 
-  deps = [
+  public_deps = [
     "//base",
     "//elang/base",
   ]
 }
 
-source_set("hir_test") {
+source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "testing/hir_test.cc",
@@ -74,7 +75,8 @@ source_set("hir_test") {
   ]
 }
 
-source_set("hir_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "analysis/dominator_tree_unittest.cc",
@@ -85,14 +87,16 @@ source_set("hir_tests") {
     "values_unittest.cc",
   ]
   public_deps = [
+    ":test_support",
+    "//elang/base",
     "//testing/gtest",
-    ":hir_test",
   ]
 }
 
-test("elang_hir_tests") {
+test("tests") {
+  output_name = "elang_hir_tests"
   deps = [
+    ":test_files",
     "//base/test:run_all_unittests",
-    ":hir_tests",
   ]
 }

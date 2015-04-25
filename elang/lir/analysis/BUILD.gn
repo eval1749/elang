@@ -32,6 +32,7 @@ source_set("tests") {
     "use_def_list_unittest.cc",
   ]
   public_deps = [
+    "//elang/base",
     "//elang/lir:test_support",
   ]
 }

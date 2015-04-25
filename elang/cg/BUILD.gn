@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//elang/build/elang_target_arch.gni")
+import("//testing/test.gni")
 
 static_library("cg") {
   sources = [
@@ -26,6 +27,7 @@ static_library("cg") {
 }
 
 source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
 
   sources = [
@@ -34,12 +36,13 @@ source_set("test_support") {
   ]
 
   public_deps = [
-    "//testing/gtest",
     ":cg",
+    "//testing/gtest",
   ]
 }
 
-source_set("cg_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
 
   sources = []
@@ -51,4 +54,12 @@ source_set("cg_tests") {
   if (elang_target_arch == "x64") {
     sources += [ "generator_x64_unittest.cc" ]
   }
+}
+
+test("tests") {
+  output_name = "elang_cg_tests"
+  deps = [
+    "//base/test:run_all_unittests",
+    ":test_files",
+  ]
 }

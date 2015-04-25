@@ -103,8 +103,9 @@ source_set("test_files") {
   ]
 }
 
-test("elang_optimizer_tests") {
-  visibility = []
+test("tests") {
+  output_name = "elang_optimizer_tests"
+  visibility = [ "//elang:tests" ]
   deps = [
     ":test_files",
     "//base/test:run_all_unittests",
