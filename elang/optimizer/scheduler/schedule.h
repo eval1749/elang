@@ -5,38 +5,36 @@
 #ifndef ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_H_
 #define ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_H_
 
-#include <unordered_map>
-
 #include "base/macros.h"
 #include "elang/base/zone_owner.h"
+#include "elang/optimizer/optimizer_export.h"
 
 namespace elang {
 namespace optimizer {
 
 class BasicBlock;
+class ControlFlowGraph;
 class Function;
 class Node;
+class ScheduleEdtior;
 
 //////////////////////////////////////////////////////////////////////
 //
 // Schedule
 //
-class Schedule final : public ZoneOwner {
+class ELANG_OPTIMIZER_EXPORT Schedule final : public ZoneOwner {
  public:
   explicit Schedule(Function* function);
   ~Schedule();
 
+  ControlFlowGraph* control_flow_graph() const { return control_flow_graph_; }
   Function* function() const { return function_; }
 
-  BasicBlock* BlockOf(Node* node) const;
-
  private:
-  friend class CfgBuilder;
+  friend class ScheduleEditor;
 
+  ControlFlowGraph* const control_flow_graph_;
   Function* const function_;
-
-  // Mapping from |Node| node to |BasicBlock|
-  std::unordered_map<Node*, BasicBlock*> block_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Schedule);
 };

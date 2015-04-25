@@ -13,10 +13,20 @@ namespace optimizer {
 //
 // BasicBlock
 //
-BasicBlock::BasicBlock(Zone* zone, Node* start_node)
-    : nodes_(zone), predecessors_(zone), successors_(zone) {
-  DCHECK(start_node->IsBlockStart());
-  nodes_.push_back(start_node);
+BasicBlock::BasicBlock(Zone* zone) : GraphNodeBase(zone), nodes_(zone) {
+}
+
+std::ostream& operator<<(std::ostream& ostream, const BasicBlock* block) {
+  if (!block)
+    return ostream << "nil";
+  return ostream << *block;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
+  ostream << "block";
+  if (block.nodes().empty())
+    return ostream;
+  return ostream << block.nodes().front()->id();
 }
 
 }  // namespace optimizer

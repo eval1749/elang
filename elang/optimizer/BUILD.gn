@@ -5,6 +5,7 @@
 import("//testing/test.gni")
 
 component("optimizer") {
+  visibility = [ "*" ]
   output_name = "elang_optimizer"
   sources = [
     "depth_first_traversal.cc",
@@ -43,14 +44,6 @@ component("optimizer") {
     "nodes_forward.h",
     "opcode.h",
     "optimizer_export.h",
-    "scheduler/basic_block.cc",
-    "scheduler/basic_block.h",
-    "scheduler/cfg_builder.cc",
-    "scheduler/cfg_builder.h",
-    "scheduler/schedule.cc",
-    "scheduler/schedule.h",
-    "scheduler/scheduler.cc",
-    "scheduler/scheduler.h",
     "sequence_id_source.cc",
     "sequence_id_source.h",
     "thing.h",
@@ -71,38 +64,49 @@ component("optimizer") {
 
   defines = [ "OPTIMIZER_IMPLEMENTATION" ]
 
+  deps = [
+    "scheduler",
+  ]
+
   public_deps = [
     "//base",
     "//elang/base",
   ]
 }
 
-source_set("optimizer_test_support") {
+source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "testing/optimizer_test.cc",
     "testing/optimizer_test.h",
   ]
   public_deps = [
+    ":optimizer",
     "//testing/gtest",
     "//elang/base",
-    ":optimizer",
   ]
 }
 
-source_set("optimizer_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
   testonly = true
-}
-
-test("elang_optimizer_tests") {
   sources = [
     "editor_test.cc",
     "function_test.cc",
     "nodes_test.cc",
+    "scheduler/scheduler_test.cc",
     "types_test.cc",
   ]
   deps = [
+    ":test_support",
+  ]
+}
+
+test("elang_optimizer_tests") {
+  visibility = []
+  deps = [
+    ":test_files",
     "//base/test:run_all_unittests",
-    ":optimizer_test_support",
   ]
 }

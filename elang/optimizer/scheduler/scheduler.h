@@ -5,7 +5,11 @@
 #ifndef ELANG_OPTIMIZER_SCHEDULER_SCHEDULER_H_
 #define ELANG_OPTIMIZER_SCHEDULER_SCHEDULER_H_
 
+#include <memory>
+
 #include "base/macros.h"
+#include "elang/base/analysis/dominator_tree.h"
+#include "elang/optimizer/optimizer_export.h"
 
 namespace elang {
 namespace optimizer {
@@ -16,7 +20,7 @@ class Schedule;
 //
 // Scheduler
 //
-class Scheduler final {
+class ELANG_OPTIMIZER_EXPORT Scheduler final {
  public:
   explicit Scheduler(Schedule* schedule);
   ~Scheduler();
@@ -24,7 +28,7 @@ class Scheduler final {
   void Run();
 
  private:
-  Schedule* const schedule_;
+  Schedule& schedule_;
 
   DISALLOW_COPY_AND_ASSIGN(Scheduler);
 };

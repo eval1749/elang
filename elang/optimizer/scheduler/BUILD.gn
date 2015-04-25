@@ -1,0 +1,31 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source_set("scheduler") {
+  visibility = [ "//elang/optimizer" ]
+
+  sources = [
+    "basic_block.cc",
+    "basic_block.h",
+    "cfg_builder.cc",
+    "cfg_builder.h",
+    "control_flow_graph.cc",
+    "control_flow_graph.h",
+    "schedule.cc",
+    "schedule.h",
+    "schedule_editor.cc",
+    "schedule_editor.h",
+    "schedule_formatter.cc",
+    "schedule_formatter.h",
+    "scheduler.cc",
+    "scheduler.h",
+  ]
+
+  defines = [ "OPTIMIZER_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+  ]
+}

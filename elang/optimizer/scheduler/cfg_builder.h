@@ -8,8 +8,7 @@
 #include <unordered_map>
 
 #include "base/macros.h"
-#include "elang/base/zone_user.h"
-#include "elang/optimizer/nodes_forward.h"
+#include "elang/base/graphs/graph_editor.h"
 #include "elang/optimizer/node_visitor.h"
 
 namespace elang {
@@ -17,31 +16,29 @@ namespace optimizer {
 
 class BasicBlock;
 class Function;
-class Schedule;
+class ScheduleEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
 // CfgBuilder
 //
-class CfgBuilder : public NodeVisitor, public ZoneUser {
+class CfgBuilder : public NodeVisitor {
  public:
-  explicit CfgBuilder(Schedule* schedule);
+  explicit CfgBuilder(ScheduleEditor* editor);
   ~CfgBuilder();
 
   void Run();
 
  private:
-  void AddCfgEdge(BasicBlock* from, BasicBlock* to);
   BasicBlock* BlockOf(Node* node);
   void EndBlock(Node* node);
-  BasicBlock* NewBasicBlock(Node* start);
   void StartBlock(Node* node);
 
   // NodeVisitor protocol
   void DoDefaultVisit(Node* node) final;
 
-  Node* block_end_node_;
-  Schedule& schedule_;
+  BasicBlock* block_;
+  ScheduleEditor& editor_;
 
   DISALLOW_COPY_AND_ASSIGN(CfgBuilder);
 };
