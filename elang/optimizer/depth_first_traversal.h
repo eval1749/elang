@@ -45,23 +45,24 @@ void DepthFirstTraversal<Strategy, Context>::Traverse(Context* context,
   stack.push(Strategy::StartNodeOf(context));
   states[stack.top()->id()] = State::OnStack;
   while (!stack.empty()) {
-    auto const node = stack.top();
+    auto const from = stack.top();
     auto should_pop = true;
-    for (auto successor : Strategy::SuccessorsOf(context, node)) {
-      if (!Strategy::ShouldVisit(context, node))
+    for (auto edge : Strategy::AdjacentEdgesOf(context, from)) {
+      auto const to = Strategy::EdgeTo(edge);
+      if (!Strategy::ShouldVisit(context, to))
         continue;
-      if (states[successor->id()] != State::NotVisited)
+      if (states[to->id()] != State::NotVisited)
         continue;
-      stack.push(successor);
-      states[successor->id()] = State::OnStack;
+      stack.push(to);
+      states[to->id()] = State::OnStack;
       should_pop = false;
       break;
     }
     if (!should_pop)
       continue;
-    states[node->id()] = State::Visited;
+    states[from->id()] = State::Visited;
     stack.pop();
-    node->Accept(visitor);
+    from->Accept(visitor);
   }
 }
 
@@ -70,9 +71,10 @@ void DepthFirstTraversal<Strategy, Context>::Traverse(Context* context,
 // OnInputEdge
 //
 struct OnInputEdge {
+  static Node::Inputs AdjacentEdgesOf(const Function* function, Node* node);
+  static Node* EdgeTo(Node* node);
   static bool ShouldVisit(const Function* function, Node* node);
   static Node* StartNodeOf(const Function* function);
-  static Node::Inputs SuccessorsOf(const Function* function, Node* node);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -96,9 +98,10 @@ struct OnEffectEdge : OnInputEdge {
 // OnUseEdge
 //
 struct OnUseEdge {
+  static const UseEdges& AdjacentEdgesOf(const Function* function, Node* node);
+  static Node* EdgeTo(const UseEdge* edge);
   static bool ShouldVisit(const Function* function, Node* node);
   static Node* StartNodeOf(const Function* function);
-  static const UseEdges& SuccessorsOf(const Function* function, Node* node);
 };
 
 }  // namespace optimizer

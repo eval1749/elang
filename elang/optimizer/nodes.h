@@ -117,7 +117,8 @@ inline IntCondition CommuteCondition(IntCondition condition) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Input, aka use edge
+// Use edge; an edge from user to used. Instances are embedded into |Node|
+// as input operands.
 //
 class ELANG_OPTIMIZER_EXPORT Input final
     : public DoubleLinked<Input, Node>::Node {
@@ -145,8 +146,8 @@ class ELANG_OPTIMIZER_EXPORT Input final
   // |Node| calls |Init| during construction of |Node|.
   friend class Node;
 
-  Node* from_;
-  Node* to_;
+  Node* from_;  // user of |to_|.
+  Node* to_;    // used by |from_|
 
   DISALLOW_COPY_AND_ASSIGN(Input);
 };

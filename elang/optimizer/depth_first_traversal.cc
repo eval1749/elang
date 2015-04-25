@@ -29,6 +29,15 @@ bool OnEffectEdge::ShouldVisit(const Function* function, Node* node) {
 //
 // OnInputEdge
 //
+Node::Inputs OnInputEdge::AdjacentEdgesOf(const Function* function,
+                                          Node* node) {
+  return node->inputs();
+}
+
+Node* OnInputEdge::EdgeTo(Node* node) {
+  return node;
+}
+
 bool OnInputEdge::ShouldVisit(const Function* function, Node* node) {
   return true;
 }
@@ -37,25 +46,25 @@ Node* OnInputEdge::StartNodeOf(const Function* function) {
   return function->exit_node();
 }
 
-Node::Inputs OnInputEdge::SuccessorsOf(const Function* function, Node* node) {
-  return node->inputs();
-}
-
 //////////////////////////////////////////////////////////////////////
 //
 // OnUseEdge
 //
+const UseEdges& OnUseEdge::AdjacentEdgesOf(const Function* function,
+                                           Node* node) {
+  return node->use_edges();
+}
+
+Node* OnUseEdge::EdgeTo(const UseEdge* edge) {
+  return edge->from();  // returns user
+}
+
 bool OnUseEdge::ShouldVisit(const Function* function, Node* node) {
   return true;
 }
 
 Node* OnUseEdge::StartNodeOf(const Function* function) {
   return function->entry_node();
-}
-
-const UseEdges& OnUseEdge::SuccessorsOf(const Function* function,
-                                           Node* node) {
-  return node->use_edges();
 }
 
 }  // namespace optimizer
