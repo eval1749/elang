@@ -158,7 +158,7 @@ class ELANG_LIR_EXPORT BasicBlockOperands final {
 //
 class ELANG_LIR_EXPORT Instruction
     : public Castable,
-      public DoubleLinked<Instruction, BasicBlock>::Node,
+      public DoubleLinked<Instruction, BasicBlock>::NodeBase,
       public Visitable<InstructionVisitor>,
       public WorkList<Instruction>::Item,
       public ZoneAllocated {
@@ -448,7 +448,7 @@ class ELANG_LIR_EXPORT PCopyInstruction final : public Instruction {
 
 // PhiInput
 class ELANG_LIR_EXPORT PhiInput final
-    : public DoubleLinked<PhiInput, PhiInstruction>::Node,
+    : public DoubleLinked<PhiInput, PhiInstruction>::NodeBase,
       public ZoneAllocated {
  public:
   PhiInput(BasicBlock* block, Value value);

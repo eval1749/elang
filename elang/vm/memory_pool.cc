@@ -22,7 +22,7 @@ size_t RoundUp(size_t num, size_t unit) {
 // MemoryPool::Segment
 //
 class MemoryPool::Segment final
-    : public DoubleLinked<Segment, MemoryPool>::Node {
+    : public DoubleLinked<Segment, MemoryPool>::NodeBase {
  public:
   Segment(Kind kind, size_t size);
   ~Segment() = default;
@@ -38,9 +38,7 @@ class MemoryPool::Segment final
 };
 
 MemoryPool::Segment::Segment(Kind kind, size_t size)
-    : memory_(VirtualMemory(size)),
-      offset_(0),
-      size_(memory_.size()) {
+    : memory_(VirtualMemory(size)), offset_(0), size_(memory_.size()) {
   if (kind == Kind::Code)
     memory_.CommitCode();
   else

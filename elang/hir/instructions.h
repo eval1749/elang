@@ -77,7 +77,7 @@ class ELANG_HIR_EXPORT Operands final {
 //
 class ELANG_HIR_EXPORT Instruction
     : public Value,
-      public DoubleLinked<Instruction, BasicBlock>::Node {
+      public DoubleLinked<Instruction, BasicBlock>::NodeBase {
   DECLARE_HIR_VALUE_CLASS(Instruction, Value);
 
  public:
@@ -399,7 +399,7 @@ class ELANG_HIR_EXPORT LoadInstruction final
 // PhiInput
 //
 class ELANG_HIR_EXPORT PhiInput final
-    : public DoubleLinked<PhiInput, PhiInstruction>::Node,
+    : public DoubleLinked<PhiInput, PhiInstruction>::NodeBase,
       public UseDefNode,
       public ZoneAllocated {
  public:

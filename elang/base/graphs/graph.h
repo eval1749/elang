@@ -41,7 +41,7 @@ class Graph {
   using Sorter = GraphSorter<Graph, ForwardFlowGraph<Graph>>;
 
   // |NodeBase| represents graph node having edges.
-  class GraphNodeBase : public DoubleLinked<GraphNode, Owner>::Node {
+  class GraphNodeBase : public DoubleLinked<GraphNode, Owner>::NodeBase {
    public:
     const NodeList& predecessors() const { return predecessors_; }
     const NodeList& successors() const { return successors_; }

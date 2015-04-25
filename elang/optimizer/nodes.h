@@ -121,10 +121,8 @@ inline IntCondition CommuteCondition(IntCondition condition) {
 // as input operands.
 //
 class ELANG_OPTIMIZER_EXPORT Input final
-    : public DoubleLinked<Input, Node>::Node {
+    : public DoubleLinked<Input, Node>::NodeBase {
  public:
-  typedef ::elang::optimizer::Node Node;
-
   Input();
   ~Input() = default;
 
@@ -894,7 +892,7 @@ class ELANG_OPTIMIZER_EXPORT ParameterNode final
 //
 class ELANG_OPTIMIZER_EXPORT PhiNode final
     : public PhiNodeTemplate<Data>,
-      public DoubleLinked<PhiNode, PhiOwnerNode>::Node {
+      public DoubleLinked<PhiNode, PhiOwnerNode>::NodeBase {
   DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(PhiNode, Data);
 
  public:

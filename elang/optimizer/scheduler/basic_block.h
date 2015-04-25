@@ -27,8 +27,6 @@ class ELANG_OPTIMIZER_EXPORT BasicBlock final
     : public ControlFlowGraph::GraphNodeBase,
       public ZoneAllocated {
  public:
-  using Node = ::elang::optimizer::Node;
-
   ~BasicBlock() = delete;
 
   const ZoneVector<Node*>& nodes() const { return nodes_; }

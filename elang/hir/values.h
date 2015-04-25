@@ -41,7 +41,7 @@ namespace hir {
 
 // Use-def list node.
 class ELANG_HIR_EXPORT UseDefNode
-    : public DoubleLinked<UseDefNode, Value>::Node {
+    : public DoubleLinked<UseDefNode, Value>::NodeBase {
  public:
   UseDefNode();
   ~UseDefNode() = default;
@@ -168,6 +168,7 @@ class ELANG_HIR_EXPORT Reference final : public Literal {
 //
 class ELANG_HIR_EXPORT SizeOf final : public Literal {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(SizeOf, Literal);
+
  public:
   Type* type_operand() const { return type_operand_; }
 
@@ -315,7 +316,7 @@ class ELANG_HIR_EXPORT BasicBlockSuccessors final {
 //
 class ELANG_HIR_EXPORT BasicBlock final
     : public Value,
-      public DoubleLinked<BasicBlock, Function>::Node {
+      public DoubleLinked<BasicBlock, Function>::NodeBase {
   DECLARE_HIR_CONCRETE_VALUE_CLASS(BasicBlock, Value);
 
  public:

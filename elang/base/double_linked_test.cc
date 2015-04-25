@@ -14,18 +14,18 @@ namespace {
 class List1;
 class List2;
 
-class Node : public DoubleLinked<Node, List1>::Node,
-             public DoubleLinked<Node, List2>::Node {
+class Node : public DoubleLinked<Node, List1>::NodeBase,
+             public DoubleLinked<Node, List2>::NodeBase {
  public:
   explicit Node(std::string value) : value_(value) {}
 
   Node* next() {
     // |next()| is defined in double-linked-list List1 and List2, so we need
     // to have cast |this| pointer.
-    return static_cast<DoubleLinked<Node, List1>::Node*>(this)->next();
+    return static_cast<DoubleLinked<Node, List1>::NodeBase*>(this)->next();
   }
   Node* next2() {
-    return static_cast<DoubleLinked<Node, List2>::Node*>(this)->next();
+    return static_cast<DoubleLinked<Node, List2>::NodeBase*>(this)->next();
   }
   const std::string& value() const { return value_; }
 

@@ -16,7 +16,7 @@ namespace elang {
 //
 // DoubleLinked
 // provides O(1) insertion and deletion of node in list. A node of list must
-// be derived from |DoubleLinked<T, U>::Node| with |public| accessibility.
+// be derived from |DoubleLinked<T, U>::NodeBase| with |public| accessibility.
 //
 // Example:
 //  class MyItem : public DoubleLinked<MyItem, MyItemCollection> {
@@ -38,12 +38,12 @@ namespace elang {
 //    rbegin()
 //    rend()
 //    reversed() for last to first iteration in ranged-for loop.
-//    AppendNode(Node* new_node)
-//    InsertAfter(Node* new_node, Node* ref_node)
-//    InsertBefore(Node* new_node, Node* ref_node)
-//    PrependNode(Node* new_node)
+//    AppendNode(NodeBase* new_node)
+//    InsertAfter(NodeBase* new_node, NodeBase* ref_node)
+//    InsertBefore(NodeBase* new_node, NodeBase* ref_node)
+//    PrependNode(NodeBase* new_node)
 //    RemoveAll()
-//    RemoveNode(Node* old_node)
+//    RemoveNode(NodeBase* old_node)
 //    ReplaceNode(Derive* new_node, Derive* old_node);
 //
 //  Note:
@@ -53,19 +53,19 @@ namespace elang {
 template <typename Derived, typename AnchorType>
 class DoubleLinked final {
  public:
-  // Node
-  class Node {
+  // NodeBase
+  class NodeBase {
    public:
     Derived* next() const { return next_; }
     Derived* previous() const { return previous_; }
 
    protected:
 #if _DEBUG
-    Node() : next_(nullptr), owner_(nullptr), previous_(nullptr) {}
+    NodeBase() : next_(nullptr), owner_(nullptr), previous_(nullptr) {}
 #else
-    Node() : next_(nullptr), previous_(nullptr) {}
+    NodeBase() : next_(nullptr), previous_(nullptr) {}
 #endif
-    ~Node() = default;
+    ~NodeBase() = default;
 
    private:
     friend class DoubleLinked;
@@ -76,7 +76,7 @@ class DoubleLinked final {
     DoubleLinked* owner_;
 #endif
 
-    DISALLOW_COPY_AND_ASSIGN(Node);
+    DISALLOW_COPY_AND_ASSIGN(NodeBase);
   };
 
   class Iterator final : public IteratorBase {
@@ -95,7 +95,7 @@ class DoubleLinked final {
 
     Iterator& operator++() {
       DCHECK(!!current_);
-      current_ = static_cast<Node*>(current_)->next_;
+      current_ = static_cast<NodeBase*>(current_)->next_;
       return *this;
     }
   };
@@ -116,7 +116,7 @@ class DoubleLinked final {
 
     ReverseIterator& operator++() {
       DCHECK(!!current_);
-      current_ = static_cast<Node*>(current_)->previous_;
+      current_ = static_cast<NodeBase*>(current_)->previous_;
       return *this;
     }
   };
@@ -153,7 +153,7 @@ class DoubleLinked final {
   // Inserts |new_derived| at the end of this list. |new_derived| must not be
   // in this list.
   void AppendNode(Derived* new_derived) {
-    auto const new_node = static_cast<Node*>(new_derived);
+    auto const new_node = static_cast<NodeBase*>(new_derived);
 #if _DEBUG
     DCHECK(!new_node->owner_) << "new node should not be in this list.";
     new_node->owner_ = this;
@@ -167,7 +167,7 @@ class DoubleLinked final {
     if (!first_)
       first_ = new_derived;
     if (last_)
-      static_cast<Node*>(last_)->next_ = new_derived;
+      static_cast<NodeBase*>(last_)->next_ = new_derived;
     last_ = new_derived;
   }
 
@@ -189,7 +189,7 @@ class DoubleLinked final {
       PrependNode(new_derived);
       return;
     }
-    auto const new_node = static_cast<Node*>(new_derived);
+    auto const new_node = static_cast<NodeBase*>(new_derived);
 #if _DEBUG
     DCHECK(!new_node->owner_) << "new node should not be in this list.";
     new_node->owner_ = this;
@@ -198,7 +198,7 @@ class DoubleLinked final {
     DCHECK(!new_node->previous_);
     DCHECK_NE(first_, new_node);
 
-    auto const ref_node = static_cast<Node*>(ref_derived);
+    auto const ref_node = static_cast<NodeBase*>(ref_derived);
 #if _DEBUG
     DCHECK_EQ(this, ref_node->owner_) << "ref node must be in this list.";
     new_node->owner_ = this;
@@ -206,7 +206,7 @@ class DoubleLinked final {
 
     auto const next = ref_node->next_;
     if (next)
-      static_cast<Node*>(next)->previous_ = new_derived;
+      static_cast<NodeBase*>(next)->previous_ = new_derived;
     else
       last_ = new_derived;
 
@@ -224,7 +224,7 @@ class DoubleLinked final {
       AppendNode(new_derived);
       return;
     }
-    auto const new_node = static_cast<Node*>(new_derived);
+    auto const new_node = static_cast<NodeBase*>(new_derived);
 #if _DEBUG
     DCHECK(!new_node->owner_) << "new node should not be in this list.";
     new_node->owner_ = this;
@@ -233,14 +233,14 @@ class DoubleLinked final {
     DCHECK(!new_node->previous_);
     DCHECK_NE(first_, new_node);
 
-    auto const ref_node = static_cast<Node*>(ref_derived);
+    auto const ref_node = static_cast<NodeBase*>(ref_derived);
 #if _DEBUG
     DCHECK_EQ(this, ref_node->owner_) << "ref node must be in this list.";
 #endif
 
     auto const previous = ref_node->previous_;
     if (previous)
-      static_cast<Node*>(previous)->next_ = new_derived;
+      static_cast<NodeBase*>(previous)->next_ = new_derived;
     else
       first_ = new_derived;
 
@@ -251,7 +251,7 @@ class DoubleLinked final {
 
   // Inserts |new_derived| at first.
   void PrependNode(Derived* new_derived) {
-    auto const new_node = static_cast<Node*>(new_derived);
+    auto const new_node = static_cast<NodeBase*>(new_derived);
 #if _DEBUG
     DCHECK(!new_node->owner_) << "new node should not be in this list.";
     new_node->owner_ = this;
@@ -265,7 +265,7 @@ class DoubleLinked final {
     if (!last_)
       last_ = new_derived;
     if (first_)
-      static_cast<Node*>(first_)->previous_ = new_derived;
+      static_cast<NodeBase*>(first_)->previous_ = new_derived;
     first_ = new_derived;
   }
 
@@ -277,7 +277,7 @@ class DoubleLinked final {
 
   // Removes |old_derived| from this list.
   void RemoveNode(Derived* old_derived) {
-    auto const old_node = static_cast<Node*>(old_derived);
+    auto const old_node = static_cast<NodeBase*>(old_derived);
 #if _DEBUG
     DCHECK_EQ(this, old_node->owner_) << "old_node must be in this list.";
     old_node->owner_ = nullptr;
@@ -286,12 +286,12 @@ class DoubleLinked final {
     auto const previous = old_node->previous_;
 
     if (next)
-      static_cast<Node*>(next)->previous_ = previous;
+      static_cast<NodeBase*>(next)->previous_ = previous;
     else
       last_ = previous;
 
     if (previous)
-      static_cast<Node*>(previous)->next_ = next;
+      static_cast<NodeBase*>(previous)->next_ = next;
     else
       first_ = next;
 
@@ -304,7 +304,7 @@ class DoubleLinked final {
   void ReplaceNode(Derived* new_derived, Derived* old_derived) {
     DCHECK_NE(new_derived, old_derived);
 
-    auto const new_node = static_cast<Node*>(new_derived);
+    auto const new_node = static_cast<NodeBase*>(new_derived);
 #if _DEBUG
     DCHECK(!new_node->owner_) << "new node should not be in this list.";
     new_node->owner_ = this;
@@ -313,7 +313,7 @@ class DoubleLinked final {
     DCHECK(!new_node->previous_);
     DCHECK_NE(first_, new_node);
 
-    auto const old_node = static_cast<Node*>(old_derived);
+    auto const old_node = static_cast<NodeBase*>(old_derived);
 #if _DEBUG
     DCHECK_EQ(this, old_node->owner_) << "old node must be in this list.";
     old_node->owner_ = nullptr;
@@ -325,13 +325,13 @@ class DoubleLinked final {
     old_node->previous_ = nullptr;
 
     if (next)
-      static_cast<Node*>(next)->previous_ = new_derived;
+      static_cast<NodeBase*>(next)->previous_ = new_derived;
     else
       last_ = new_derived;
     new_node->next_ = next;
 
     if (previous)
-      static_cast<Node*>(previous)->next_ = new_derived;
+      static_cast<NodeBase*>(previous)->next_ = new_derived;
     else
       first_ = new_derived;
 
