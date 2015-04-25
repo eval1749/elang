@@ -4,13 +4,13 @@
 
 static_library("semantics") {
   sources = [
+    "factory.cc",
+    "factory.h",
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
-    "factory.cc",
-    "factory.h",
     "visitor.cc",
     "visitor.h",
   ]

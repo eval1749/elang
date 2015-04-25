@@ -19,8 +19,8 @@ component("lir") {
 
 source_set("core") {
   sources = [
-    "dump_function_pass.h",
     "dump_function_pass.cc",
+    "dump_function_pass.h",
     "editor.cc",
     "editor.h",
     "editor_owner.cc",
@@ -39,27 +39,27 @@ source_set("core") {
     "formatters/text_formatter.cc",
     "formatters/text_formatter.h",
     "generate_machine_code.cc",
-    "instructions.cc",
-    "instructions.h",
     "instruction_visitor.cc",
     "instruction_visitor.h",
-    "literals.cc",
-    "literals.h",
-    "literals_forward.h",
+    "instructions.cc",
+    "instructions.h",
     "literal_map.cc",
     "literal_map.h",
     "literal_visitor.cc",
     "literal_visitor.h",
-    "pass.h",
+    "literals.cc",
+    "literals.h",
+    "literals_forward.h",
     "pass.cc",
+    "pass.h",
     "printable.h",
-    "printer_generic.h",
     "printer_generic.cc",
+    "printer_generic.h",
     "target.h",
-    "value.h",
-    "value.cc",
-    "validator.h",
     "validator.cc",
+    "validator.h",
+    "value.cc",
+    "value.h",
   ]
 
   defines = [ "LIR_IMPLEMENTATION" ]
@@ -78,8 +78,8 @@ source_set("core") {
       "instructions_x64_forward.h",
       "isa_x64.h",
       "opcodes_x64.h",
-      "target_x64.h",
       "target_x64.cc",
+      "target_x64.h",
     ]
   }
 }

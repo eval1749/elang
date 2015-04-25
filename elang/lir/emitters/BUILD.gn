@@ -27,8 +27,8 @@ source_set("emitters") {
   if (elang_target_arch == "x64") {
     sources += [
       "code_emitter_x64.cc",
-      "disasm_x64.h",
       "disasm_x64.cc",
+      "disasm_x64.h",
       "isa_x64.h",
       "opcodes_x64.h",
     ]
@@ -44,8 +44,6 @@ source_set("tests") {
     "//elang/lir:test_support",
   ]
   if (elang_target_arch == "x64") {
-    sources += [
-      "code_emitter_x64_unittest.cc",
-    ]
+    sources += [ "code_emitter_x64_unittest.cc" ]
   }
 }

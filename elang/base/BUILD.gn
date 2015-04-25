@@ -11,18 +11,18 @@ component("base") {
     "analysis/liveness.cc",
     "analysis/liveness.h",
     "analysis/liveness_builder.h",
-    "analysis/liveness_editor.h",
-    "analysis/liveness_editor.cc",
     "analysis/liveness_collection.h",
+    "analysis/liveness_editor.cc",
+    "analysis/liveness_editor.h",
     "as_printable.cc",
     "as_printable.h",
     "atomic_string.cc",
     "atomic_string.h",
     "atomic_string_factory.cc",
     "atomic_string_factory.h",
-    "bits.h",
     "bit_set.cc",
     "bit_set.h",
+    "bits.h",
     "castable.h",
     "disjoint_sets.h",
     "double_linked.h",
@@ -42,12 +42,12 @@ component("base") {
     "work_list.h",
     "zone.cc",
     "zone.h",
-    "zone_allocated.h",
     "zone_allocated.cc",
+    "zone_allocated.h",
     "zone_allocator.h",
     "zone_deque.h",
-    "zone_owner.h",
     "zone_owner.cc",
+    "zone_owner.h",
     "zone_unordered_map.h",
     "zone_unordered_set.h",
     "zone_user.cc",
@@ -58,7 +58,7 @@ component("base") {
   defines = [ "ELANG_BASE_IMPLEMENTATION" ]
 
   public_deps = [
-    "//base"
+    "//base",
   ]
 
   if (is_win) {
@@ -87,8 +87,8 @@ source_set("base_tests") {
     "analysis/loop_tree_test.cc",
     "as_printable_test.cc",
     "atomic_string_test.cc",
-    "bits_test.cc",
     "bit_set_test.cc",
+    "bits_test.cc",
     "castable_test.cc",
     "disjoint_sets_test.cc",
     "double_linked_test.cc",

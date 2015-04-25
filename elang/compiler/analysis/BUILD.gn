@@ -12,10 +12,10 @@ static_library("analysis") {
     "method_analyzer.h",
     "method_resolver.cc",
     "method_resolver.h",
-    "namespace_analyzer.cc",
-    "namespace_analyzer.h",
     "name_resolver.cc",
     "name_resolver.h",
+    "namespace_analyzer.cc",
+    "namespace_analyzer.h",
     "type_evaluator.cc",
     "type_evaluator.h",
     "type_factory.cc",
@@ -44,12 +44,11 @@ source_set("compiler_analysis_test") {
   sources = [
     "class_analyzer_test.cc",
     "method_analyzer_test.cc",
-    "namespace_analyzer_test.cc",
     "name_resolver_test.cc",
+    "namespace_analyzer_test.cc",
   ]
   public_deps = [
     "//testing/gtest",
     ":analysis",
   ]
 }
-

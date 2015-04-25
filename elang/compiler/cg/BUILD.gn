@@ -10,10 +10,10 @@ static_library("cg") {
     "code_generator.h",
     "type_mapper.cc",
     "type_mapper.h",
-    "variable_usages.cc",
-    "variable_usages.h",
     "variable_analyzer.cc",
     "variable_analyzer.h",
+    "variable_usages.cc",
+    "variable_usages.h",
   ]
 
   public_deps = [

@@ -21,9 +21,7 @@ static_library("cg") {
   ]
 
   if (elang_target_arch == "x64") {
-    sources += [
-      "generator_x64.cc",
-    ]
+    sources += [ "generator_x64.cc" ]
   }
 }
 
@@ -44,16 +42,13 @@ source_set("test_support") {
 source_set("cg_tests") {
   testonly = true
 
-  sources = [
-  ]
+  sources = []
 
   public_deps = [
     ":test_support",
   ]
 
   if (elang_target_arch == "x64") {
-    sources += [
-      "generator_x64_unittest.cc",
-    ]
+    sources += [ "generator_x64_unittest.cc" ]
   }
 }

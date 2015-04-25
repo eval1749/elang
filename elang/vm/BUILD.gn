@@ -31,10 +31,10 @@ static_library("vm") {
     "namespace_member.h",
     "node.cc",
     "node.h",
-    "objects.cc",
-    "objects.h",
     "object_factory.cc",
     "object_factory.h",
+    "objects.cc",
+    "objects.h",
     "virtual_memory.h",
   ]
 
@@ -46,8 +46,8 @@ static_library("vm") {
 
   if (is_win) {
     sources += [
-      "platform/virtual_memory_win.h",
       "platform/virtual_memory_win.cc",
+      "platform/virtual_memory_win.h",
     ]
   }
 }
@@ -73,8 +73,7 @@ source_set("vm_tests") {
 }
 
 test("elang_vm_tests") {
-  sources = [
-  ]
+  sources = []
 
   deps = [
     "//base/test:run_all_unittests",
