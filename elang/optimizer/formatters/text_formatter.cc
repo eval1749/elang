@@ -11,6 +11,7 @@
 #include "elang/base/as_printable.h"
 #include "elang/base/atomic_string.h"
 #include "elang/optimizer/depth_first_traversal.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_visitor.h"
 #include "elang/optimizer/types.h"
@@ -53,8 +54,7 @@ void Printer::DoDefaultVisit(Node* node) {
 std::ostream& operator<<(std::ostream& ostream,
                          const AsReversePostOrder& thing) {
   auto const function = thing.function;
-  ostream << "function" << function->id() << " " << *function->function_type()
-          << std::endl;
+  ostream << function << std::endl;
   Printer printer(&ostream);
   DepthFirstTraversal<OnInputEdge, const Function> walker;
   walker.Traverse(thing.function, &printer);
