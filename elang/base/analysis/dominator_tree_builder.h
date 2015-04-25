@@ -94,10 +94,10 @@ typename DominatorTree<Graph>::Node* DominatorTreeEditor<Graph>::TreeNodeOf(
 // |Direction| based on the algorithm described in:
 //
 // A Simple, Fast Dominance Algorithm,
-// Keith D. Cooper, Timothy J. Havery, // and Ken Kennedy
+// Keith D. Cooper, Timothy J. Havery, and Ken Kennedy
 // Rice Computer Science, TR-06-33870.
 //
-template <typename Graph, typename Direction>
+template <typename Graph, typename Direction = ForwardFlowGraph<Graph>>
 class DominatorTreeBuilder final : public DominatorTreeEditor<Graph> {
  public:
   explicit DominatorTreeBuilder(const Graph* graph);
