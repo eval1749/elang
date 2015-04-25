@@ -4,6 +4,7 @@
 
 #include "elang/lir/analysis/conflict_map_builder.h"
 
+#include "base/containers/adapters.h"
 #include "base/logging.h"
 #include "elang/base/analysis/liveness.h"
 #include "elang/base/analysis/liveness_collection.h"
@@ -46,7 +47,7 @@ ConflictMap ConflictMapBuilder::Build() {
     // Members in Live-Out conflict to other members.
     UpdateConflictMapFromLiveness(&conflict_map, liveness.out());
 
-    for (auto const instr : block->instructions().reversed()) {
+    for (auto const instr : base::Reversed(block->instructions())) {
       for (auto const output : instr->outputs())
         live_registers->Remove(liveness_map_.NumberOf(Normalize(output)));
 

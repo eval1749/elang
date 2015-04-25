@@ -121,23 +121,6 @@ class DoubleLinked final {
     }
   };
 
-  // Used for last to first loop in range-for loop, e.g.
-  //    for (auto const node : list.reversed()) {
-  //      result += node->value();
-  //    }
-  class Reversed final {
-   public:
-    explicit Reversed(const DoubleLinked<Node, AnchorType>* anchor)
-        : anchor_(anchor) {}
-    ~Reversed() = default;
-
-    ReverseIterator begin() const { return anchor_->rbegin(); }
-    ReverseIterator end() const { return anchor_->rend(); }
-
-   private:
-    const DoubleLinked* anchor_;
-  };
-
   DoubleLinked() : first_(nullptr), last_(nullptr) {}
   ~DoubleLinked() = default;
 
@@ -148,7 +131,6 @@ class DoubleLinked final {
   Node* last_node() const { return last_; }
   ReverseIterator rbegin() const { return ReverseIterator(last_); }
   ReverseIterator rend() const { return ReverseIterator(nullptr); }
-  Reversed reversed() const { return Reversed(this); }
 
   // Inserts |new_node| at the end of this list. |new_node| must not be
   // in this list.

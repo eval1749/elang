@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "base/containers/adapters.h"
 #include "elang/base/double_linked.h"
 #include "gtest/gtest.h"
 
@@ -45,7 +46,6 @@ class ListOwner {
   Node* last_node() { return nodes_.last_node(); }
   typename List::ReverseIterator rbegin() { return nodes_.rbegin(); }
   typename List::ReverseIterator rend() { return nodes_.rend(); }
-  typename List::Reversed reversed() { return nodes_.reversed(); }
 
   void AppendNode(Node* new_node) { nodes_.AppendNode(new_node); }
   int Count() const { return nodes_.Count(); }
@@ -204,7 +204,7 @@ TEST_F(DoubleLinkedTest, ReverseIterator) {
 
 TEST_F(DoubleLinkedTest, Reversed) {
   std::string result;
-  for (auto const node : list1.reversed())
+  for (auto const node : base::Reversed(list1))
     result += node->value();
   EXPECT_EQ("CBA", result);
 }
