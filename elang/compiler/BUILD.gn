@@ -65,7 +65,12 @@ static_library("compiler") {
   ]
 }
 
-static_library("compiler_testing") {
+source_set("test_support") {
+  visibility = [
+    ":*",
+    "./*",
+  ]
+
   testonly = true
   sources = [
     "testing/analyzer_test.cc",
@@ -78,24 +83,34 @@ static_library("compiler_testing") {
     "testing/namespace_builder.h",
   ]
   public_deps = [
-    "//testing/gtest",
     ":compiler",
+    "//testing/gtest",
   ]
 }
 
-test("elang_compiler_tests") {
+source_set("test_files") {
+  visibility = [ ":*" ]
+  testonly = true
   sources = [
     "syntax/lexer_test.cc",
     "syntax/parser_test.cc",
     "token_test.cc",
   ]
-
+  public_deps = [
+    ":test_support",
+  ]
   deps = [
-    "//base/test:run_all_unittests",
     "//elang/compiler/analysis:compiler_analysis_test",
     "//elang/compiler/cg:compiler_cg_test",
     "//elang/compiler/semantics:compiler_semantics_test",
-    "//elang/compiler/translate:translate_test",
-    ":compiler_testing",
+    "//elang/compiler/translate:test_files",
+  ]
+}
+
+test("tests") {
+  output_name = "elang_compiler_tests"
+  deps = [
+    ":test_files",
+    "//base/test:run_all_unittests",
   ]
 }

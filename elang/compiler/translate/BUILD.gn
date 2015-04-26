@@ -4,7 +4,7 @@
 
 import("//testing/test.gni")
 
-static_library("translate") {
+source_set("translate") {
   sources = [
     "builder.cc",
     "builder.h",
@@ -26,24 +26,27 @@ static_library("translate") {
   ]
 }
 
-source_set("translate_testing") {
+source_set("test_support") {
+  visibility = [ ":*" ]
   testonly = true
   sources = [
     "translate_test.cc",
     "translate_test.h",
   ]
   public_deps = [
-    "//elang/compiler:compiler_testing",
+    ":translate",
+    "//elang/compiler:test_support",
   ]
 }
 
-source_set("translate_test") {
+source_set("test_files") {
+  visibility = [ "//elang/compiler:test_files" ]
   testonly = true
   sources = [
     "translator_test.cc",
     "type_mapper_test.cc",
   ]
   public_deps = [
-    ":translate_testing",
+    ":test_support",
   ]
 }

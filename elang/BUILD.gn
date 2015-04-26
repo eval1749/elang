@@ -29,6 +29,7 @@ group("tests") {
   deps = [
     "//elang/base:tests",
     "//elang/cg:tests",
+    "//elang/compiler:tests",
     "//elang/hir:tests",
     "//elang/lir:tests",
     "//elang/optimizer:tests",
