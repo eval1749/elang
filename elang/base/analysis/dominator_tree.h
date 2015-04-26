@@ -74,6 +74,7 @@ class DominatorTree final : public ZoneOwner {
   Node* TreeNodeOf(const GraphNode* graph_node) const;
 
   // Functions for |TreeAlgorithm<Traversal>|.
+  static int DepthOf(const Node* node) { return node->depth(); }
   static Node* ParentOf(const Node* node) { return node->parent(); }
 
  private:

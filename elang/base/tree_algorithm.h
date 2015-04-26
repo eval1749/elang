@@ -8,6 +8,7 @@
 namespace elang {
 
 // |Traversal| should have following members:
+//  - int DepthOf(const Node* node)
 //  - Node* ParentOf(const Node* node)
 
 template <typename Traversal>
@@ -25,34 +26,19 @@ typename Traversal::Node* TreeAlgorithm<Traversal>::CommonAncestorOf(
     const Node* nodeB) {
   if (nodeA == nodeB)
     return const_cast<Node*>(nodeA);
-  auto depthA = 0;
-  for (auto runner = nodeA; runner; runner = Traversal::ParentOf(runner)) {
-    if (runner == nodeB)
-      return const_cast<Node*>(runner);
-    ++depthA;
-  }
-  auto depthB = 0;
-  for (auto runner = nodeB; runner; runner = Traversal::ParentOf(runner)) {
-    if (runner == nodeA)
-      return const_cast<Node*>(runner);
-    ++depthB;
-  }
+  auto const depthA = Traversal::DepthOf(nodeA);
+  auto const depthB = Traversal::DepthOf(nodeB);
   auto runnerA = nodeA;
   auto runnerB = nodeB;
-  if (depthA > depthB) {
-    for (auto depth = depthA; depth > depthB; --depth)
-      runnerA = Traversal::ParentOf(runnerA);
-  } else if (depthB > depthA) {
-    for (auto depth = depthB; depth > depthB; --depth)
-      runnerB = Traversal::ParentOf(runnerB);
-  }
-  while (runnerA) {
-    if (runnerA == runnerB)
-      return const_cast<Node*>(runnerA);
+  for (auto depth = depthA; depth > depthB; --depth)
+    runnerA = Traversal::ParentOf(runnerA);
+  for (auto depth = depthB; depth > depthA; --depth)
+    runnerB = Traversal::ParentOf(runnerB);
+  while (runnerA && runnerA != runnerB) {
     runnerA = Traversal::ParentOf(runnerA);
     runnerB = Traversal::ParentOf(runnerB);
   }
-  return nullptr;
+  return const_cast<Node*>(runnerA);;
 }
 
 }  // namespace elang

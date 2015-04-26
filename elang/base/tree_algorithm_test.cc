@@ -63,10 +63,20 @@ std::ostream& operator<<(std::ostream& ostream, const MyNode* node) {
 class MyNodeTraversal {
  public:
   using Node = MyNode;
+  static int DepthOf(const Node* node);
   static Node* ParentOf(const Node* node) { return node->parent(); }
 };
 
+int MyNodeTraversal::DepthOf(const Node* node) {
+  auto depth = 0;
+  for (auto runner = node; runner; runner = ParentOf(runner))
+    ++depth;
+  return depth;
+}
+
 using MyTreeAlgorithm = TreeAlgorithm<MyNodeTraversal>;
+
+}  // namespace
 
 TEST(TreeAlgorithmTest, CommonAncestorOf) {
   // Build following tree:
@@ -92,5 +102,4 @@ TEST(TreeAlgorithmTest, CommonAncestorOf) {
   EXPECT_EQ(nullptr, MyTreeAlgorithm::CommonAncestorOf(&nodeD, &nodeF));
 }
 
-}  // namespace
 }  // namespace elang
