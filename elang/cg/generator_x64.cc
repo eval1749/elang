@@ -115,13 +115,13 @@ void Generator::VisitElement(hir::ElementInstruction* instr) {
   //  +8 length
   //  +16 element[0]
   auto const sizeof_array_header =
-      lir::Value::SmallInt64(lir::Value::SizeOf(Target::IntPtrType()) * 2);
-  auto const element_start = NewRegister(Target::IntPtrType());
+      lir::Value::SmallInt64(lir::Value::SizeOf(lir::Value::IntPtrType()) * 2);
+  auto const element_start = NewRegister(lir::Value::IntPtrType());
   Emit(NewAddInstruction(element_start, array_pointer, sizeof_array_header));
 
   auto const shift_count = lir::Value::Log2Of(element_type);
   auto const offset = GenerateShl(MapInput(instr->input(1)), shift_count);
-  auto const offset64 = NewRegister(Target::IntPtrType());
+  auto const offset64 = NewRegister(lir::Value::IntPtrType());
   Emit(NewSignExtendInstruction(offset64, offset));
 
   Emit(NewAddInstruction(MapOutput(instr), element_start, offset64));
@@ -170,9 +170,9 @@ void Generator::VisitLength(hir::LengthInstruction* instr) {
   //  add %length_ptr =
   //  load length = %array_ptr, %array_ptr,
   //                sizeof(ArrayHeader) + sizeof(int32) * index
-  auto const pointer = NewRegister(Target::IntPtrType());
+  auto const pointer = NewRegister(lir::Value::IntPtrType());
   auto const offset =
-      lir::Value::SizeOf(Target::IntPtrType()) + instr->index() * 4;
+      lir::Value::SizeOf(lir::Value::IntPtrType()) + instr->index() * 4;
   auto const array_ptr = MapInput(instr->input(0));
   Emit(NewLoadInstruction(MapOutput(instr), array_ptr, array_ptr,
                           lir::Value::SmallInt32(offset)));
