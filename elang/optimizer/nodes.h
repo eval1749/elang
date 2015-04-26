@@ -14,6 +14,7 @@
 #include "elang/base/castable.h"
 #include "elang/base/double_linked.h"
 #include "elang/base/float_types.h"
+#include "elang/base/work_list.h"
 #include "elang/base/zone_deque.h"
 #include "elang/optimizer/nodes_forward.h"
 #include "elang/optimizer/node_visitor.h"
@@ -227,7 +228,8 @@ class NodeLayout {
 //
 // Node
 //
-class ELANG_OPTIMIZER_EXPORT Node : public Thing, public NodeLayout {
+class ELANG_OPTIMIZER_EXPORT Node
+    : public Thing, public NodeLayout, public WorkList<Node>::Item {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Node, Thing);
 
  public:
