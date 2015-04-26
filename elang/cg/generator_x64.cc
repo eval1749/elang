@@ -20,8 +20,6 @@
 namespace elang {
 namespace cg {
 
-using lir::Target;
-
 lir::Value Generator::GenerateShl(lir::Value input, int shift_count) {
   DCHECK_GE(shift_count, 0);
   shift_count &= lir::Value::BitSizeOf(input) - 1;
@@ -53,7 +51,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   if (!arguments_instr) {
     // One argument
     auto const lir_argument = MapInput(argument);
-    EmitCopy(Target::GetArgumentAt(lir_argument, 0), lir_argument);
+    EmitCopy(lir::Target::GetArgumentAt(lir_argument, 0), lir_argument);
     Emit(NewCallInstruction(lir_callee));
     return;
   }
@@ -67,7 +65,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   for (auto const argument : arguments_instr->inputs()) {
     auto const lir_argument = MapInput(argument);
     inputs.push_back(lir_argument);
-    outputs.push_back(Target::GetArgumentAt(lir_argument, position));
+    outputs.push_back(lir::Target::GetArgumentAt(lir_argument, position));
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));
@@ -193,27 +191,27 @@ void Generator::VisitRet(hir::RetInstruction* instr) {
   }
   auto const primitive_type = value->type()->as<hir::PrimitiveValueType>();
   if (!primitive_type) {
-    EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
+    EmitSetValue(lir::Target::GetRegister(lir::isa::RAX), value);
     editor()->SetReturn();
     return;
   }
 
   if (primitive_type->is_float()) {
     if (primitive_type->bit_size() == 64)
-      EmitSetValue(Target::GetRegister(lir::isa::XMM0D), value);
+      EmitSetValue(lir::Target::GetRegister(lir::isa::XMM0D), value);
     else
-      EmitSetValue(Target::GetRegister(lir::isa::XMM0S), value);
+      EmitSetValue(lir::Target::GetRegister(lir::isa::XMM0S), value);
     editor()->SetReturn();
     return;
   }
 
   if (primitive_type->bit_size() == 64) {
-    EmitSetValue(Target::GetRegister(lir::isa::RAX), value);
+    EmitSetValue(lir::Target::GetRegister(lir::isa::RAX), value);
     editor()->SetReturn();
     return;
   }
 
-  auto const output = Target::GetRegister(lir::isa::EAX);
+  auto const output = lir::Target::GetRegister(lir::isa::EAX);
   auto const input = MapInput(value);
   if (primitive_type->bit_size() == 32 || !input.is_register()) {
     EmitSetValue(output, value);
