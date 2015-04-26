@@ -26,6 +26,8 @@ class ELANG_OPTIMIZER_EXPORT Validator final : public ErrorReporter {
   Validator(Factory* factory, const Function* function);
   ~Validator();
 
+  const Function* function() const { return function_; }
+
   bool Validate(const Node* node);
   bool Validate();
 

@@ -28,6 +28,7 @@ class Validator::Context : public NodeVisitor {
   explicit Context(Validator* validator);
   ~Context() = default;
 
+  const Function* function() const { return validator_->function(); }
   bool is_valid() const { return is_valid_; }
 
  private:
@@ -334,6 +335,8 @@ void Validator::Context::VisitRet(RetNode* node) {
   if (!node->input(1)->IsValidEffect())
     ErrorInInput(node, 1);
   if (!node->input(2)->IsValidData())
+    ErrorInInput(node, 2);
+  if (node->input(2)->output_type() != function()->return_type())
     ErrorInInput(node, 2);
 }
 
