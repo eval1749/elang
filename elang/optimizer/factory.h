@@ -23,6 +23,7 @@ namespace elang {
 namespace optimizer {
 
 class Function;
+class Schedule;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -37,6 +38,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
 
   const FactoryConfig& config() const { return config_; }
 
+  std::unique_ptr<Schedule> ComputeSchedule(Function* function);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   Function* NewFunction(FunctionType* function_type);
 

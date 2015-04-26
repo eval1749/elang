@@ -14,6 +14,8 @@
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_factory.h"
+#include "elang/optimizer/scheduler/schedule.h"
+#include "elang/optimizer/scheduler/scheduler.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 
@@ -35,6 +37,12 @@ Factory::Factory(const FactoryConfig& config)
 }
 
 Factory::~Factory() {
+}
+
+std::unique_ptr<Schedule> Factory::ComputeSchedule(Function* function) {
+  auto schedule = std::make_unique<Schedule>(function);
+  Scheduler(schedule.get()).Run();
+  return std::move(schedule);
 }
 
 AtomicString* Factory::NewAtomicString(base::StringPiece16 string) {
