@@ -12,7 +12,6 @@
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
 #include "elang/base/zone_user.h"
-#include "elang/optimizer/scheduler/control_flow_graph.h"
 
 namespace elang {
 
@@ -67,9 +66,6 @@ class ScheduleEditor final : public ZoneUser {
   ControlFlowGraph* control_flow_graph() const;
   Function* function() const;
 
-  // Add an edge from |from| to |to|.
-  void AddEdge(BasicBlock* from, BasicBlock* to);
-
   // Append |node| to |block|.
   void AppendNode(BasicBlock* block, Node* node);
 
@@ -86,20 +82,17 @@ class ScheduleEditor final : public ZoneUser {
   // Returns immediate dominator of |block|.
   BasicBlock* DominatorOf(BasicBlock* block) const;
 
-  // Make |block| to end with |node|.
-  void EndBlock(BasicBlock* block, Node* node);
-
   // Tells no more modification of control flow graph.
   void FinishControlFlowGraph();
 
   // Returns depth of |block| in loop nest tree.
   int LoopDepthOf(BasicBlock* block) const;
 
+  // Returns |BasicBlock| associated to |start_node|
+  BasicBlock* MapToBlock(Node* start_node);
+
   // Associates |node| to |block|.
   void SetBlockOf(Node* node, BasicBlock* block);
-
-  // Returns |BasicBlock| associated to |start_node|
-  BasicBlock* StartBlock(Node* start_node);
 
  private:
   using DominatorTree = DominatorTree<ControlFlowGraph>;
@@ -107,7 +100,6 @@ class ScheduleEditor final : public ZoneUser {
 
   // Mapping from |Node| node to |BasicBlock|
   std::unordered_map<Node*, BasicBlock*> block_map_;
-  ControlFlowGraph::Editor cfg_editor_;
   std::unique_ptr<DominatorTree> dominator_tree_;
   std::unique_ptr<LoopTree> loop_tree_;
   Schedule& schedule_;

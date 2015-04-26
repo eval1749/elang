@@ -23,7 +23,9 @@ bool Has(const ZoneVector<BasicBlock*>& blocks, BasicBlock* block) {
 }  // namespace
 
 CfgBuilder::CfgBuilder(ScheduleEditor* editor)
-    : block_(nullptr), editor_(*editor) {
+    : block_(nullptr),
+      cfg_editor_(editor->control_flow_graph()),
+      editor_(*editor) {
 }
 
 CfgBuilder::~CfgBuilder() {
@@ -36,9 +38,16 @@ BasicBlock* CfgBuilder::BlockOf(Node* node) {
   return editor_.BlockOf(node);
 }
 
-void CfgBuilder::EndBlock(Node* node) {
+void CfgBuilder::EndBlock(Node* end_node) {
+  DCHECK(end_node->IsBlockEnd()) << *end_node;
   DCHECK(block_);
-  editor_.EndBlock(block_, node);
+  editor_.SetBlockOf(end_node, block_);
+  for (auto edge : end_node->use_edges()) {
+    auto const successor = edge->from()->as<Control>();
+    if (!successor)
+      continue;
+    cfg_editor_.AddEdge(block_, editor_.MapToBlock(successor));
+  }
   block_ = nullptr;
 }
 
@@ -52,8 +61,10 @@ void CfgBuilder::Run() {
 }
 
 void CfgBuilder::StartBlock(Node* start_node) {
+  DCHECK(start_node->IsBlockStart());
   DCHECK(!block_) << *block_;
-  block_ = editor_.StartBlock(start_node);
+  block_ = editor_.MapToBlock(start_node);
+  cfg_editor_.AppendNode(block_);
 }
 
 // NodeVisitor protocol
@@ -64,9 +75,9 @@ void CfgBuilder::DoDefaultVisit(Node* node) {
   if (node->IsBlockEnd())
     return EndBlock(node);
   if (auto const phi = node->as<PhiNode>())
-    return editor_.SetBlockOf(node, editor_.StartBlock(phi->owner()));
+    return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
   if (auto const phi = node->as<EffectPhiNode>())
-    return editor_.SetBlockOf(node, editor_.StartBlock(phi->owner()));
+    return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
 }
 
 }  // namespace optimizer

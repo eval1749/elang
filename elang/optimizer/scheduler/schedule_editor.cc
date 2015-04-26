@@ -52,7 +52,6 @@ int ScheduleEditor::User::LoopDepthOf(BasicBlock* block) const {
 //
 ScheduleEditor::ScheduleEditor(Schedule* schedule)
     : ZoneUser(schedule->zone()),
-      cfg_editor_(schedule->control_flow_graph()),
       schedule_(*schedule) {
 }
 
@@ -65,12 +64,6 @@ ControlFlowGraph* ScheduleEditor::control_flow_graph() const {
 
 Function* ScheduleEditor::function() const {
   return schedule_.function();
-}
-
-void ScheduleEditor::AddEdge(BasicBlock* from, BasicBlock* to) {
-  DCHECK(!dominator_tree_);
-  DCHECK(!loop_tree_);
-  cfg_editor_.AddEdge(from, to);
 }
 
 void ScheduleEditor::AppendNode(BasicBlock* block, Node* node) {
@@ -105,19 +98,6 @@ BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
   return dominator_tree_->TreeNodeOf(block)->parent()->value();
 }
 
-void ScheduleEditor::EndBlock(BasicBlock* block, Node* end_node) {
-  DCHECK(!dominator_tree_);
-  DCHECK(!loop_tree_);
-  DCHECK(end_node->IsBlockEnd()) << *end_node;
-  SetBlockOf(end_node, block);
-  for (auto edge : end_node->use_edges()) {
-    auto const successor = edge->from()->as<Control>();
-    if (!successor)
-      continue;
-    AddEdge(block, StartBlock(successor));
-  }
-}
-
 void ScheduleEditor::FinishControlFlowGraph() {
   DCHECK(!dominator_tree_);
   DCHECK(!loop_tree_);
@@ -130,14 +110,7 @@ int ScheduleEditor::LoopDepthOf(BasicBlock* block) const {
   return loop_tree_->NodeOf(block)->depth();
 }
 
-void ScheduleEditor::SetBlockOf(Node* node, BasicBlock* block) {
-  DCHECK(node);
-  DCHECK(block);
-  DCHECK(!block_map_.count(node));
-  block_map_.insert(std::make_pair(node, block));
-}
-
-BasicBlock* ScheduleEditor::StartBlock(Node* start_node) {
+BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
   DCHECK(!dominator_tree_);
   DCHECK(!loop_tree_);
   DCHECK(start_node->IsBlockStart()) << *start_node;
@@ -146,8 +119,14 @@ BasicBlock* ScheduleEditor::StartBlock(Node* start_node) {
     return it->second;
   auto const block = new (zone()) BasicBlock(zone());
   block_map_.insert(std::make_pair(start_node, block));
-  cfg_editor_.AppendNode(block);
   return block;
+}
+
+void ScheduleEditor::SetBlockOf(Node* node, BasicBlock* block) {
+  DCHECK(node);
+  DCHECK(block);
+  DCHECK(!block_map_.count(node));
+  block_map_.insert(std::make_pair(node, block));
 }
 
 }  // namespace optimizer

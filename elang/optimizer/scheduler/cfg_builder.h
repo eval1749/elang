@@ -10,6 +10,7 @@
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
 #include "elang/optimizer/node_visitor.h"
+#include "elang/optimizer/scheduler/control_flow_graph.h"
 
 namespace elang {
 namespace optimizer {
@@ -38,6 +39,7 @@ class CfgBuilder : public NodeVisitor {
   void DoDefaultVisit(Node* node) final;
 
   BasicBlock* block_;
+  ControlFlowGraph::Editor cfg_editor_;
   ScheduleEditor& editor_;
 
   DISALLOW_COPY_AND_ASSIGN(CfgBuilder);
