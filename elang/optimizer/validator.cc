@@ -352,9 +352,9 @@ Node* Validator::NewInt32(int data) {
   return factory_->NewInt32(data);
 }
 
-bool Validator::Validate(Node* node) {
+bool Validator::Validate(const Node* node) {
   Context context(this);
-  node->Accept(&context);
+  const_cast<Node*>(node)->Accept(&context);
   return context.is_valid();
 }
 

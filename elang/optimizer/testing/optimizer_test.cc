@@ -71,9 +71,7 @@ std::string OptimizerTest::ToString(const Function* function) {
 std::string OptimizerTest::ToString(const Node* node) {
   if (function_) {
     Validator validator(factory(), function_);
-    // TODO(eval1749) We should make |Validator::Validate()| to take
-    // |const Node*|.
-    if (!validator.Validate(const_cast<Node*>(node))) {
+    if (!validator.Validate(node)) {
       std::stringstream ostream;
       ostream << factory()->errors();
       return ostream.str();
