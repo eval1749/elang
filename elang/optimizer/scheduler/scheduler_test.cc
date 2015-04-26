@@ -42,34 +42,6 @@ std::string SchedulerTest::ScheduleOf(Function* function) {
   return ostream.str();
 }
 
-TEST_F(SchedulerTest, ChangeInput) {
-  auto const function = NewSampleFunction(int32_type(), int32_type());
-  Editor editor(factory(), function);
-  auto const entry_node = function->entry_node();
-  auto const effect = NewGetEffect(entry_node);
-
-  editor.Edit(entry_node);
-  editor.SetRet(effect, NewInt32(42));
-
-  auto const ret_node = function->exit_node()->input(0)->input(0);
-  editor.ChangeInput(ret_node, 2, NewInt32(33));
-
-  EXPECT_EQ(
-      "function1 int32(int32)\n"
-      "block1:\n"
-      "  in: {}\n"
-      "  out: {block2}\n"
-      "0000: control(int32) %c1 = entry()\n"
-      "0001: effect %e4 = get_effect(%c1)\n"
-      "0002: control %c5 = ret(%c1, %e4, 33)\n"
-      "block2:\n"
-      "  in: {block1}\n"
-      "  out: {}\n"
-      "0003: control %c2 = merge(%c5)\n"
-      "0004: exit(%c2)\n",
-      ScheduleOf(function));
-}
-
 TEST_F(SchedulerTest, SetBranch) {
   auto const function = NewSampleFunction(int32_type(), bool_type());
   Editor editor(factory(), function);
