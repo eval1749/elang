@@ -4,7 +4,8 @@
 
 import("//testing/test.gni")
 
-executable("elang_shell") {
+executable("shell") {
+  output_name = "elang_shell"
   sources = [
     "compiler.cc",
     "compiler.h",
@@ -16,6 +17,7 @@ executable("elang_shell") {
     "//elang/api",
     "//elang/cg",
     "//elang/optimizer",
+    "//elang/translator",
   ]
 }
 
@@ -48,12 +50,6 @@ source_set("test_files") {
   public_deps = [
     ":shell_library",
     "//testing/gtest",
-  ]
-}
-
-group("shell") {
-  deps = [
-    ":elang_shell",
   ]
 }
 

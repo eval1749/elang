@@ -43,11 +43,15 @@
 #include "elang/lir/formatters/text_formatter.h"
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/formatters/graphviz_formatter.h"
 #include "elang/optimizer/formatters/text_formatter.h"
+#include "elang/optimizer/scheduler/schedule.h"
+#include "elang/optimizer/types.h"
 #include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/source_file_stream.h"
+#include "elang/translator/translator.h"
 #include "elang/vm/factory.h"
 #include "elang/vm/machine_code_function.h"
 #include "elang/vm/machine_code_builder_impl.h"
@@ -249,6 +253,10 @@ lir::Function* TranslateToLir(lir::Factory* factory,
   return generator.Generate();
 }
 
+lir::Function* TranslateToLir(lir::Factory* factory, ir::Schedule* schedule) {
+  return ::elang::translator::Translator(factory, schedule).Run();
+}
+
 vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
                                              lir::Factory* lir_factory,
                                              lir::Function* lir_function) {
@@ -319,14 +327,15 @@ int Compiler::CompileAndGo() {
   NameResolver name_resolver(session());
   PopulateNamespace(&name_resolver);
 
+  std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
+  auto lir_function = static_cast<lir::Function*>(nullptr);
+  auto has_parameter = false;
+  auto has_return_value = false;
+
   if (!command_line->HasSwitch(kUseHir)) {
-    //////////////////////////////////////////////////////////////
-    //
     // Compile to Optimizer-IR
-    //
-    std::unique_ptr<ir::FactoryConfig> factory_config(
-        NewIrFactoryConfig(session()));
-    std::unique_ptr<ir::Factory> factory(new ir::Factory(*factory_config));
+    auto const factory_config = NewIrFactoryConfig(session());
+    auto const factory = std::make_unique<ir::Factory>(*factory_config);
     session()->Compile(&name_resolver, factory.get());
     if (ReportCompileErrors())
       return 1;
@@ -344,46 +353,47 @@ int Compiler::CompileAndGo() {
       std::cout << ir::AsGraphviz(main_function);
     else
       std::cout << ir::AsReversePostOrder(main_function);
-    return 0;
+
+    // Translate IR to LIR
+    auto const schedule = factory->ComputeSchedule(main_function);
+    lir_function = TranslateToLir(lir_factory.get(), schedule.get());
+    has_parameter = !main_function->parameters_type()->is<hir::VoidType>();
+    has_return_value = !main_function->return_type()->is<hir::VoidType>();
+
+  } else {
+    // Compile to HIR
+    auto const factory_config = NewFactoryConfig(session());
+    auto const factory = std::make_unique<hir::Factory>(*factory_config);
+
+    session()->Compile(&name_resolver, factory.get());
+    if (ReportCompileErrors())
+      return 1;
+
+    if (ReportHirErrors(factory.get()))
+      return 1;
+
+    // Find main method
+    auto const main_method = FindMainMethod(session(), &name_resolver);
+    if (!main_method)
+      return 1;
+    auto const main_function = session()->FunctionOf(main_method);
+    if (!main_function) {
+      std::cerr << "No function for main method." << *main_method;
+      return 1;
+    }
+    if (command_line->HasSwitch(kDumpHir)) {
+      hir::TextFormatter formatter(&std::cout);
+      formatter.FormatFunction(main_function);
+    }
+
+    // Translate HIR to LIR
+    lir_function = TranslateToLir(lir_factory.get(), main_function);
+    has_parameter = !main_function->parameters_type()->is<hir::VoidType>();
+    has_return_value = !main_function->return_type()->is<hir::VoidType>();
   }
-
-  //////////////////////////////////////////////////////////////
-  //
-  // Compile to HIR
-  //
-  std::unique_ptr<hir::FactoryConfig> factory_config(
-      NewFactoryConfig(session()));
-  std::unique_ptr<hir::Factory> factory(new hir::Factory(*factory_config));
-
-  session()->Compile(&name_resolver, factory.get());
-  if (ReportCompileErrors())
-    return 1;
-
-  if (ReportHirErrors(factory.get()))
-    return 1;
-
-  // Find main method
-  auto const main_method = FindMainMethod(session(), &name_resolver);
-  if (!main_method)
-    return 1;
-  auto const main_function = session()->FunctionOf(main_method);
-  if (!main_function) {
-    std::cerr << "No function for main method." << *main_method;
-    return 1;
-  }
-  if (command_line->HasSwitch(kDumpHir)) {
-    hir::TextFormatter formatter(&std::cout);
-    formatter.FormatFunction(main_function);
-  }
-
-  // Translate HIR to LIR
-  std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
-  auto const lir_function = TranslateToLir(lir_factory.get(), main_function);
 
   if (ReportLirErrors(lir_factory.get()))
     return 1;
-
-  factory.release();
 
   if (command_line->HasSwitch(kDumpLir)) {
     lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
@@ -406,13 +416,13 @@ int Compiler::CompileAndGo() {
   std::cout << std::endl;
 
   // Execute
-  if (main_function->parameters_type()->is<hir::VoidType>()) {
-    if (main_function->return_type()->is<hir::VoidType>()) {
-      mc_function->Invoke();
-      return 0;
-    }
-    return mc_function->Call<int>();
+  if (!has_parameter) {
+    if (has_return_value)
+      return mc_function->Call<int>();
+    mc_function->Invoke();
+    return 0;
   }
+
   DCHECK_GE(args_.size(), 1);
   auto const objects = vm_factory->object_factory();
   auto const args = objects->NewVector<vm::impl::String*>(
@@ -420,7 +430,7 @@ int Compiler::CompileAndGo() {
   for (auto index = 1; index < args_.size(); ++index)
     (*args)[index - 1] = objects->NewString(base::StringPiece16(args_[index]));
 
-  if (main_function->return_type()->is<hir::VoidType>()) {
+  if (!has_return_value) {
     mc_function->Invoke(args);
     return 0;
   }
