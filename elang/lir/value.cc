@@ -5,6 +5,7 @@
 #include "elang/lir/value.h"
 
 #include "base/logging.h"
+#include "elang/lir/target.h"
 
 namespace elang {
 namespace lir {
@@ -83,6 +84,10 @@ Value Value::Int64Type() {
 
 Value Value::Int8Type() {
   return Value(Type::Integer, ValueSize::Size8, Kind::Void, 0);
+}
+
+Value Value::IntPtrType() {
+  return Target::IntPtrType();
 }
 
 Value Value::Literal(Value type) {

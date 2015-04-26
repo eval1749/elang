@@ -131,6 +131,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value Int32Type();
   static Value Int64Type();
   static Value Int8Type();
+  static Value IntPtrType();
   static Value Literal(Value type);
   static Value Parameter(Value type, int data);
   static Value Register(Value type, int data);
