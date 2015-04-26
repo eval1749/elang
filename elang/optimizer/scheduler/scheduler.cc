@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_set>
 #include <vector>
 
 #include "elang/optimizer/scheduler/scheduler.h"
@@ -64,6 +65,7 @@ void EarlyScheduler::DoDefaultVisit(Node* node) {
     if (input->IsLiteral())
       continue;
     auto input_block = BlockOf(input);
+    DCHECK(input_block) << *input << " in " << *node;
     if (!block) {
       block = input_block;
       continue;
@@ -103,8 +105,17 @@ void LateScheduler::Run() {
 
 // NodeVisitor implementation
 void LateScheduler::DoDefaultVisit(Node* node) {
-  if (IsPinned(node) || node->IsLiteral())
+  if (node->IsLiteral())
     return;
+  if (IsPinned(node)) {
+    auto const block = BlockOf(node);
+    if (!block) {
+      DCHECK(node->is<PhiNode>() || node->is<EffectPhiNode>());
+      return;
+    }
+    editor()->AppendNode(block, node);
+    return;
+  }
   // Find Least Common Ancestor of users of |node|.
   BasicBlock* lca_block = nullptr;
   for (auto const edge : node->use_edges()) {
@@ -130,27 +141,29 @@ void LateScheduler::DoDefaultVisit(Node* node) {
   auto best_block = lca_block;
   auto const block = BlockOf(node);
   for (auto runner = lca_block; runner != block; runner = DominatorOf(runner)) {
-    if (LoopDepthOf(best_block) <= LoopDepthOf(lca_block))
+    if (LoopDepthOf(best_block) <= LoopDepthOf(runner))
       continue;
-    best_block = lca_block;
+    best_block = runner;
   }
   // TODO(eval1749) Split |node| if it is partially dead.
   editor()->SetBlockOf(node, best_block);
+  editor()->AppendNode(best_block, node);
 }
 
 //////////////////////////////////////////////////////////////////////
 //
 // NodePlacer
 //
-class NodePlacer final : public NodeVisitor, public ScheduleEditor::User {
+class NodePlacer final : public ScheduleEditor::User {
  public:
   explicit NodePlacer(ScheduleEditor* editor);
-  ~NodePlacer() final = default;
+  ~NodePlacer() = default;
 
   void Run();
 
  private:
-  void DoDefaultVisit(Node* node) final;
+  bool IsUsedInBlock(Node* node, BasicBlock* block) const;
+  void ScheduleInBlock(BasicBlock* block);
 
   std::vector<Node*> nodes_;
 
@@ -161,20 +174,75 @@ NodePlacer::NodePlacer(ScheduleEditor* editor) : ScheduleEditor::User(editor) {
   nodes_.reserve(function()->max_node_id());
 }
 
-void NodePlacer::Run() {
-  DepthFirstTraversal<OnInputEdge, const Function> walker;
-  walker.Traverse(function(), this);
-  for (auto const node : nodes_) {
-    if (node->IsLiteral())
-      continue;
-    editor()->AppendNode(BlockOf(node), node);
+bool NodePlacer::IsUsedInBlock(Node* node, BasicBlock* block) const {
+  for (auto const edge : node->use_edges()) {
+    auto const user = edge->from();
+    if (BlockOf(user) == block)
+      return true;
   }
-  editor()->DidPlaceNodes();
+  return false;
 }
 
-// NodeVisitor implementation
-void NodePlacer::DoDefaultVisit(Node* node) {
-  nodes_.push_back(node);
+void NodePlacer::Run() {
+  for (auto const block : editor()->blocks())
+    ScheduleInBlock(block);
+  editor()->DidPlaceNodes(nodes_);
+}
+
+void NodePlacer::ScheduleInBlock(BasicBlock* block) {
+  std::unordered_set<Node*> placed;
+  WorkList<Node> pending_list;
+  auto end_node = static_cast<Node*>(nullptr);
+  auto first = true;
+  for (auto const node : block->nodes()) {
+    if (!first) {
+      if (node->IsBlockEnd()) {
+        DCHECK(!end_node);
+        end_node = node;
+        continue;
+      }
+      pending_list.Push(node);
+      continue;
+    }
+    first = false;
+    DCHECK(node->IsBlockStart());
+    nodes_.push_back(node);
+    placed.insert(node);
+    if (auto const phi_owner = node->as<PhiOwnerNode>()) {
+      if (auto const effect_phi = phi_owner->effect_phi()) {
+        nodes_.push_back(effect_phi);
+        placed.insert(effect_phi);
+      }
+      for (auto const phi : phi_owner->phi_nodes()) {
+        nodes_.push_back(phi);
+        placed.insert(phi);
+      }
+    }
+  }
+  DCHECK(end_node);
+
+  while (!pending_list.empty()) {
+    WorkList<Node> work_list;
+    while (!pending_list.empty())
+      work_list.Push(pending_list.Pop());
+    while (!work_list.empty()) {
+      auto const node = work_list.Pop();
+      for (auto const input : node->inputs()) {
+        if (input->IsLiteral() || BlockOf(input) != block ||
+            placed.count(input)) {
+          continue;
+        }
+        pending_list.Push(node);
+        break;
+      }
+      if (!pending_list.Contains(node)) {
+        nodes_.push_back(node);
+        placed.insert(node);
+      }
+    }
+  }
+
+  nodes_.push_back(end_node);
 }
 
 }  // namespace

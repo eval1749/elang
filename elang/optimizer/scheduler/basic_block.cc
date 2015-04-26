@@ -14,6 +14,7 @@ namespace optimizer {
 // BasicBlock
 //
 BasicBlock::BasicBlock(Zone* zone) : GraphNodeBase(zone), nodes_(zone) {
+  nodes_.reserve(2);
 }
 
 std::ostream& operator<<(std::ostream& ostream, const BasicBlock* block) {
@@ -25,7 +26,7 @@ std::ostream& operator<<(std::ostream& ostream, const BasicBlock* block) {
 std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
   ostream << "block";
   if (block.nodes().empty())
-    return ostream;
+    return ostream << "@" << static_cast<const void*>(&block);
   return ostream << block.nodes().front()->id();
 }
 

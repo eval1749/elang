@@ -8,6 +8,7 @@
 #include <memory>
 #include <ostream>
 #include <unordered_map>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/base/graphs/graph_editor.h"
@@ -63,6 +64,7 @@ class ScheduleEditor final : public ZoneUser {
   explicit ScheduleEditor(Schedule* scheduler);
   ~ScheduleEditor();
 
+  const std::vector<BasicBlock*> blocks() const { return blocks_; }
   ControlFlowGraph* control_flow_graph() const { return control_flow_graph_; }
   Function* function() const;
 
@@ -83,7 +85,7 @@ class ScheduleEditor final : public ZoneUser {
   void DidBuildControlFlowGraph();
 
   // Tells all nodes are placed into blocks.
-  void DidPlaceNodes();
+  void DidPlaceNodes(const std::vector<Node*>& nodes);
 
   // Returns immediate dominator of |block|.
   BasicBlock* DominatorOf(BasicBlock* block) const;
@@ -101,6 +103,7 @@ class ScheduleEditor final : public ZoneUser {
   using DominatorTree = DominatorTree<ControlFlowGraph>;
   using LoopTree = LoopTree<ControlFlowGraph>;
 
+  std::vector<BasicBlock*> blocks_;
   // Mapping from |Node| node to |BasicBlock|
   std::unordered_map<Node*, BasicBlock*> block_map_;
   ControlFlowGraph* const control_flow_graph_;

@@ -65,21 +65,24 @@ void CfgBuilder::StartBlock(Node* start_node) {
   DCHECK(!block_) << *block_;
   block_ = editor_.MapToBlock(start_node);
   cfg_editor_.AppendNode(block_);
+  auto const phi_owner = start_node->as<PhiOwnerNode>();
+  if (!phi_owner)
+    return;
+  if (auto const effect_phi = phi_owner->effect_phi())
+    editor_.SetBlockOf(effect_phi, block_);
+  for (auto const phi : phi_owner->phi_nodes())
+    editor_.SetBlockOf(phi, block_);
 }
 
 // NodeVisitor protocol
 void CfgBuilder::DoDefaultVisit(Node* node) {
+  DCHECK(node->IsControl());
   if (node->IsBlockStart())
     return StartBlock(node);
   DCHECK(block_);
   if (node->IsBlockEnd())
     return EndBlock(node);
-  if (auto const phi = node->as<PhiNode>())
-    return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
-  if (auto const phi = node->as<EffectPhiNode>())
-    return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
-  if (node->IsControl())
-    return editor_.SetBlockOf(node, block_);
+  editor_.SetBlockOf(node, block_);
 }
 
 }  // namespace optimizer

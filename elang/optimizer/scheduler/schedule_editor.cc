@@ -66,17 +66,14 @@ Function* ScheduleEditor::function() const {
 }
 
 void ScheduleEditor::AppendNode(BasicBlock* block, Node* node) {
-  if (block->nodes_.empty()) {
-    block->nodes_.push_back(node);
+  DCHECK(!block->nodes_.empty());
+  if (node->is<PhiNode>() || node->is<EffectPhiNode>())
+    return;
+  if (node->IsBlockStart()) {
+    DCHECK_EQ(block->nodes_.front(), node);
     return;
   }
-  auto const last = block->nodes_.back();
-  if (!last->IsBlockEnd()) {
-    block->nodes_.push_back(node);
-    return;
-  }
-  block->nodes_.back() = node;
-  block->nodes_.push_back(last);
+  block->nodes_.push_back(node);
 }
 
 BasicBlock* ScheduleEditor::BlockOf(Node* node) const {
@@ -102,13 +99,9 @@ void ScheduleEditor::DidBuildControlFlowGraph() {
   loop_tree_ = LoopTreeBuilder<ControlFlowGraph>(control_flow_graph_).Build();
 }
 
-void ScheduleEditor::DidPlaceNodes() {
-  schedule_.nodes_.reserve(function()->max_node_id());
-  for (auto const block : GraphSorter<ControlFlowGraph>::SortByReversePostOrder(
-           control_flow_graph_)) {
-    schedule_.nodes_.insert(schedule_.nodes_.end(), block->nodes().begin(),
-                            block->nodes().end());
-  }
+void ScheduleEditor::DidPlaceNodes(const std::vector<Node*>& nodes) {
+  schedule_.nodes_.reserve(nodes.size());
+  schedule_.nodes_.insert(schedule_.nodes_.end(), nodes.begin(), nodes.end());
 }
 
 BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
@@ -127,7 +120,9 @@ BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
   if (it != block_map_.end())
     return it->second;
   auto const block = new (zone()) BasicBlock(zone());
+  block->nodes_.push_back(start_node);
   block_map_.insert(std::make_pair(start_node, block));
+  blocks_.push_back(block);
   return block;
 }
 
