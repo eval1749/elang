@@ -63,7 +63,7 @@ class ScheduleEditor final : public ZoneUser {
   explicit ScheduleEditor(Schedule* scheduler);
   ~ScheduleEditor();
 
-  ControlFlowGraph* control_flow_graph() const;
+  ControlFlowGraph* control_flow_graph() const { return control_flow_graph_; }
   Function* function() const;
 
   // Append |node| to |block|.
@@ -79,11 +79,14 @@ class ScheduleEditor final : public ZoneUser {
   // Returns depth of |block| in dominator tree.
   int DepthOf(BasicBlock* block) const;
 
+  // Tells no more modification of control flow graph.
+  void DidBuildControlFlowGraph();
+
+  // Tells all nodes are placed into blocks.
+  void DidPlaceNodes();
+
   // Returns immediate dominator of |block|.
   BasicBlock* DominatorOf(BasicBlock* block) const;
-
-  // Tells no more modification of control flow graph.
-  void FinishControlFlowGraph();
 
   // Returns depth of |block| in loop nest tree.
   int LoopDepthOf(BasicBlock* block) const;
@@ -100,6 +103,7 @@ class ScheduleEditor final : public ZoneUser {
 
   // Mapping from |Node| node to |BasicBlock|
   std::unordered_map<Node*, BasicBlock*> block_map_;
+  ControlFlowGraph* const control_flow_graph_;
   std::unique_ptr<DominatorTree> dominator_tree_;
   std::unique_ptr<LoopTree> loop_tree_;
   Schedule& schedule_;

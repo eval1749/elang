@@ -5,7 +5,6 @@
 #include "elang/optimizer/scheduler/schedule_formatter.h"
 
 #include "base/strings/stringprintf.h"
-#include "elang/base/graphs/graph_sorter.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/scheduler/basic_block.h"
@@ -21,35 +20,14 @@ FormattedSchedule AsFormatted(const Schedule& schedule) {
 
 std::ostream& operator<<(std::ostream& ostream,
                          const FormattedSchedule& formatted) {
-  ostream << formatted.schedule->function() << std::endl;
-  auto const cfg = formatted.schedule->control_flow_graph();
-  auto const blocks =
-      GraphSorter<ControlFlowGraph>::SortByReversePostOrder(cfg);
+  auto& schedule = *formatted.schedule;
+  ostream << schedule.function() << std::endl;
   auto position = 0;
-  for (auto const block : blocks) {
-    ostream << block << ":" << std::endl;
-    {
-      ostream << "  in: {";
-      auto separator = "";
-      for (auto const predecessor : block->predecessors()) {
-        ostream << separator << predecessor;
-        separator = ", ";
-      }
-      ostream << "}" << std::endl;
-    }
-    {
-      ostream << "  out: {";
-      auto separator = "";
-      for (auto const successor : block->successors()) {
-        ostream << separator << successor;
-        separator = ", ";
-      }
-      ostream << "}" << std::endl;
-    }
-    for (auto const node : block->nodes()) {
-      ostream << base::StringPrintf("%04d: ", position) << *node << std::endl;
-      ++position;
-    }
+  for (auto const node : schedule.nodes()) {
+    if (node->IsBlockStart())
+      ostream << "block" << node->id() << ":" << std::endl;
+    ostream << base::StringPrintf("%04d: ", position) << *node << std::endl;
+    ++position;
   }
   return ostream;
 }

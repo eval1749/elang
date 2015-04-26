@@ -57,7 +57,7 @@ void CfgBuilder::Run() {
   DepthFirstTraversal<OnControlEdge, const Function> walker;
   auto const function = editor_.function();
   walker.Traverse(function, this);
-  editor_.FinishControlFlowGraph();
+  editor_.DidBuildControlFlowGraph();
 }
 
 void CfgBuilder::StartBlock(Node* start_node) {

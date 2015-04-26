@@ -7,6 +7,8 @@
 #include "base/logging.h"
 #include "elang/base/analysis/dominator_tree_builder.h"
 #include "elang/base/analysis/loop_tree_builder.h"
+#include "elang/base/graphs/graph_sorter.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/control_flow_graph.h"
@@ -52,14 +54,11 @@ int ScheduleEditor::User::LoopDepthOf(BasicBlock* block) const {
 //
 ScheduleEditor::ScheduleEditor(Schedule* schedule)
     : ZoneUser(schedule->zone()),
+      control_flow_graph_(new (zone()) ControlFlowGraph()),
       schedule_(*schedule) {
 }
 
 ScheduleEditor::~ScheduleEditor() {
-}
-
-ControlFlowGraph* ScheduleEditor::control_flow_graph() const {
-  return schedule_.control_flow_graph();
 }
 
 Function* ScheduleEditor::function() const {
@@ -94,16 +93,25 @@ int ScheduleEditor::DepthOf(BasicBlock* block) const {
   return dominator_tree_->TreeNodeOf(block)->depth();
 }
 
-BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
-  return dominator_tree_->TreeNodeOf(block)->parent()->value();
-}
-
-void ScheduleEditor::FinishControlFlowGraph() {
+void ScheduleEditor::DidBuildControlFlowGraph() {
   DCHECK(!dominator_tree_);
   DCHECK(!loop_tree_);
-  auto const cfg = schedule_.control_flow_graph();
-  dominator_tree_ = DominatorTreeBuilder<ControlFlowGraph>(cfg).Build();
-  loop_tree_ = LoopTreeBuilder<ControlFlowGraph>(cfg).Build();
+  dominator_tree_ =
+      DominatorTreeBuilder<ControlFlowGraph>(control_flow_graph_).Build();
+  loop_tree_ = LoopTreeBuilder<ControlFlowGraph>(control_flow_graph_).Build();
+}
+
+void ScheduleEditor::DidPlaceNodes() {
+  schedule_.nodes_.reserve(function()->max_node_id());
+  for (auto const block : GraphSorter<ControlFlowGraph>::SortByReversePostOrder(
+           control_flow_graph_)) {
+    schedule_.nodes_.insert(schedule_.nodes_.end(), block->nodes().begin(),
+                            block->nodes().end());
+  }
+}
+
+BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
+  return dominator_tree_->TreeNodeOf(block)->parent()->value();
 }
 
 int ScheduleEditor::LoopDepthOf(BasicBlock* block) const {

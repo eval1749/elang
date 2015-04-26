@@ -14,6 +14,7 @@ namespace elang {
 namespace optimizer {
 
 class BasicBlock;
+class ScheduleEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -23,10 +24,13 @@ class ELANG_OPTIMIZER_EXPORT ControlFlowGraph final
     : public Graph<ControlFlowGraph, BasicBlock>,
       public ZoneAllocated {
  public:
-  ControlFlowGraph();
   ~ControlFlowGraph() = delete;
 
  private:
+  friend class ScheduleEditor;
+
+  ControlFlowGraph();
+
   DISALLOW_COPY_AND_ASSIGN(ControlFlowGraph);
 };
 

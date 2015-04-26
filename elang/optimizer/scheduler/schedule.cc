@@ -15,9 +15,7 @@ namespace optimizer {
 //
 // Schedule
 //
-Schedule::Schedule(Function* function)
-    : control_flow_graph_(new (zone()) ControlFlowGraph()),
-      function_(function) {
+Schedule::Schedule(Function* function) : function_(function), nodes_(zone()) {
 }
 
 Schedule::~Schedule() {

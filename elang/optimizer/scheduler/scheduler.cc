@@ -166,6 +166,7 @@ void NodePlacer::Run() {
       continue;
     editor()->AppendNode(BlockOf(node), node);
   }
+  editor()->DidPlaceNodes();
 }
 
 // NodeVisitor implementation
