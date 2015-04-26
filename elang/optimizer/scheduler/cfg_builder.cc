@@ -78,6 +78,8 @@ void CfgBuilder::DoDefaultVisit(Node* node) {
     return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
   if (auto const phi = node->as<EffectPhiNode>())
     return editor_.SetBlockOf(node, editor_.MapToBlock(phi->owner()));
+  if (node->IsControl())
+    return editor_.SetBlockOf(node, block_);
 }
 
 }  // namespace optimizer

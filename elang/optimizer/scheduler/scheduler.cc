@@ -20,7 +20,7 @@ namespace optimizer {
 namespace {
 
 bool IsPinned(const Node* node) {
-  if (node->IsControl())
+  if (node->IsControl() || node->IsEffect())
     return true;
   // All nodes have at least one input except for |EntryNode|.
   if (node->input(0)->IsControl())
@@ -58,8 +58,11 @@ void EarlyScheduler::Run() {
 void EarlyScheduler::DoDefaultVisit(Node* node) {
   if (node->IsLiteral() || BlockOf(node))
     return;
+  // Place |node| into deepest block in dominator tree.
   BasicBlock* block = nullptr;
   for (auto const input : node->inputs()) {
+    if (input->IsLiteral())
+      continue;
     auto input_block = BlockOf(input);
     if (!block) {
       block = input_block;

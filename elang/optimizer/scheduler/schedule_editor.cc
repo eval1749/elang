@@ -80,6 +80,7 @@ void ScheduleEditor::AppendNode(BasicBlock* block, Node* node) {
 }
 
 BasicBlock* ScheduleEditor::BlockOf(Node* node) const {
+  DCHECK(!node->IsLiteral());
   auto const it = block_map_.find(node);
   return it == block_map_.end() ? nullptr : it->second;
 }
@@ -132,9 +133,8 @@ BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
 
 void ScheduleEditor::SetBlockOf(Node* node, BasicBlock* block) {
   DCHECK(node);
-  DCHECK(block);
-  DCHECK(!block_map_.count(node));
-  block_map_.insert(std::make_pair(node, block));
+  DCHECK(block) << *node;
+  block_map_[node] = block;
 }
 
 }  // namespace optimizer
