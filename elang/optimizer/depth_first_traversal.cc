@@ -14,7 +14,7 @@ namespace optimizer {
 // OnControlEdge
 //
 bool OnControlEdge::ShouldVisit(const Function* function, Node* node) {
-  return true;
+  return node->IsControl();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@ bool OnControlEdge::ShouldVisit(const Function* function, Node* node) {
 // OnEffectEdge
 //
 bool OnEffectEdge::ShouldVisit(const Function* function, Node* node) {
-  return true;
+  return node->IsEffect();
 }
 
 //////////////////////////////////////////////////////////////////////
