@@ -477,6 +477,8 @@ void Builder::StartIfBlock(ir::Control* control) {
   auto const if_node = control->input(0);
   auto const predecessor = BasicBlockOf(if_node->control(0));
   StartBlock(NewBasicBlock(control, predecessor->effect()));
+  for (auto const variable : predecessor->variables())
+    AssignVariable(variable, predecessor->ValueOf(variable));
 }
 
 void Builder::StartMergeBlock(ir::PhiOwnerNode* phi_owner) {
