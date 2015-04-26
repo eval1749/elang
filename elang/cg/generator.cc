@@ -18,6 +18,32 @@
 namespace elang {
 namespace cg {
 
+namespace {
+int SizeOfType(hir::Type* type) {
+  if (type->is<hir::IntPtrType>())
+    return 8;
+  if (type->is<hir::UIntPtrType>())
+    return 8;
+  if (auto const primitive_type = type->as<hir::PrimitiveType>())
+    return primitive_type->bit_size() / 8;
+  if (auto const tuple_type = type->as<hir::TupleType>()) {
+    auto size = 0;
+    for (auto const member : tuple_type->members())
+      size += SizeOfType(member);
+    return size;
+  }
+  if (auto const array_type = type->as<hir::ArrayType>()) {
+    auto size = SizeOfType(array_type->element_type());
+    for (auto const dimension : array_type->dimensions()) {
+      DCHECK_GE(dimension, 0);
+      size *= dimension;
+    }
+    return size;
+  }
+  return 8;
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Generator
@@ -44,6 +70,16 @@ void Generator::Emit(lir::Instruction* instruction) {
 void Generator::EmitCopy(lir::Value output, lir::Value input) {
   DCHECK_NE(output, input);
   Emit(NewCopyInstruction(output, input));
+}
+
+void Generator::EmitSetValue(lir::Value output, hir::Value* value) {
+  DCHECK(output.is_register());
+  auto const input = MapInput(value);
+  if (input.is_register()) {
+    EmitCopy(output, input);
+    return;
+  }
+  Emit(NewLiteralInstruction(output, input));
 }
 
 lir::Function* Generator::Generate() {
@@ -112,6 +148,94 @@ lir::BasicBlock* Generator::MapBlock(hir::BasicBlock* hir_block) {
   auto const block = editor()->NewBasicBlock(editor()->exit_block());
   block_map_[hir_block] = block;
   return block;
+}
+
+lir::Value Generator::MapInput(hir::Value* value) {
+  // TODO(eval1749) We should process |value| in reverse post order to ensure
+  // |value| is mapped before it used.
+  if (auto const instr = value->as<hir::Instruction>())
+    return MapRegister(instr);
+
+  if (auto const literal = value->as<hir::BoolLiteral>())
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
+  if (auto const literal = value->as<hir::Float32Literal>())
+    return NewFloat32Value(literal->data());
+  if (auto const literal = value->as<hir::Float64Literal>())
+    return NewFloat64Value(literal->data());
+  if (auto const literal = value->as<hir::Int8Literal>())
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
+  if (auto const literal = value->as<hir::Int16Literal>())
+    return NewIntValue(lir::Value::Int16Type(), literal->data());
+  if (auto const literal = value->as<hir::Int32Literal>())
+    return NewIntValue(lir::Value::Int32Type(), literal->data());
+  if (auto const literal = value->as<hir::Int64Literal>())
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
+  if (auto const literal = value->as<hir::IntPtrLiteral>())
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
+  if (auto const literal = value->as<hir::UInt8Literal>())
+    return NewIntValue(lir::Value::Int8Type(), literal->data());
+  if (auto const literal = value->as<hir::UInt16Literal>())
+    return NewIntValue(lir::Value::Int16Type(), literal->data());
+  if (auto const literal = value->as<hir::UInt32Literal>())
+    return NewIntValue(lir::Value::Int32Type(), literal->data());
+  if (auto const literal = value->as<hir::UInt64Literal>())
+    return NewIntValue(lir::Value::Int64Type(), literal->data());
+  if (auto const literal = value->as<hir::UIntPtrLiteral>())
+    return NewIntValue(lir::Value::IntPtrType(), literal->data());
+
+  if (auto const reference = value->as<hir::Reference>())
+    return NewStringValue(reference->name());
+
+  if (auto const size = value->as<hir::SizeOf>())
+    return NewIntValue(lir::Value::Int64Type(), SizeOfType(value->type()));
+
+  NOTREACHED() << "unsupported hir::Literal: " << *value;
+  return NewIntValue(lir::Value::Int8Type(), 0);
+}
+
+// Get output register for instruction except for 'load'.
+lir::Value Generator::MapOutput(hir::Instruction* instr) {
+  // TODO(eval1749) We should process |value| in reverse post order to ensure
+  // |value| is mapped before it used.
+  if (!instr->is<hir::PhiInstruction>())
+    DCHECK(!register_map_.count(instr)) << *instr;
+  return MapRegister(instr);
+}
+
+lir::Value Generator::MapRegister(hir::Value* value) {
+  auto const it = register_map_.find(value);
+  if (it != register_map_.end())
+    return it->second;
+  auto const new_register = NewRegister(MapType(value->type()));
+  register_map_[value] = new_register;
+  return new_register;
+}
+
+lir::Value Generator::MapType(hir::Type* type) {
+  auto const primitive_type = type->as<hir::PrimitiveType>();
+  if (!primitive_type)
+    return lir::Value::Int64Type();
+  if (primitive_type->is<hir::Float32Type>())
+    return lir::Value::Float32Type();
+  if (primitive_type->is<hir::Float64Type>())
+    return lir::Value::Float64Type();
+  if (primitive_type->is<hir::IntPtrType>())
+    return lir::Value::IntPtrType();
+  if (primitive_type->is<hir::UIntPtrType>())
+    return lir::Value::IntPtrType();
+  switch (primitive_type->bit_size()) {
+    case 1:
+    case 8:
+      return lir::Value::Int8Type();
+    case 16:
+      return lir::Value::Int16Type();
+    case 32:
+      return lir::Value::Int32Type();
+    case 64:
+      return lir::Value::Int64Type();
+  }
+  NOTREACHED() << "unsupported bit size: " << *primitive_type;
+  return lir::Value::Float64Type();
 }
 
 lir::Function* Generator::NewFunction(lir::Factory* factory,
