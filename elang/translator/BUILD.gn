@@ -1,0 +1,63 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//elang/build/elang_target_arch.gni")
+import("//testing/test.gni")
+
+static_library("translator") {
+  sources = [
+    "translator.cc",
+    "translator.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//elang/base",
+    "//elang/lir",
+    "//elang/optimizer",
+    "//elang:elang_target_arch",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [ "translator_x64.cc" ]
+  }
+}
+
+source_set("test_support") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  sources = [
+    "testing/translator_test.cc",
+    "testing/translator_test.h",
+  ]
+
+  public_deps = [
+    ":translator",
+    "//testing/gtest",
+  ]
+}
+
+source_set("test_files") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  sources = []
+
+  public_deps = [
+    ":test_support",
+  ]
+
+  if (elang_target_arch == "x64") {
+    sources += [ "translator_x64_test.cc" ]
+  }
+}
+
+test("tests") {
+  output_name = "elang_translator_tests"
+  deps = [
+    "//base/test:run_all_unittests",
+    ":test_files",
+  ]
+}

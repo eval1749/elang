@@ -34,6 +34,7 @@ group("tests") {
     "//elang/optimizer:tests",
     "//elang/shell:tests",
     "//elang/targets:tests",
+    "//elang/translator:tests",
     "//elang/vm:tests",
   ]
 }
