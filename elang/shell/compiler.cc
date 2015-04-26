@@ -243,7 +243,8 @@ ast::Method* FindMainMethod(CompilationSession* session,
   return main_methods.front()->as<ast::Method>();
 }
 
-lir::Function* Generate(lir::Factory* factory, hir::Function* hir_function) {
+lir::Function* TranslateToLir(lir::Factory* factory,
+                              hir::Function* hir_function) {
   ::elang::cg::Generator generator(factory, hir_function);
   return generator.Generate();
 }
@@ -377,7 +378,7 @@ int Compiler::CompileAndGo() {
 
   // Translate HIR to LIR
   std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
-  auto const lir_function = Generate(lir_factory.get(), main_function);
+  auto const lir_function = TranslateToLir(lir_factory.get(), main_function);
 
   if (ReportLirErrors(lir_factory.get()))
     return 1;
