@@ -63,7 +63,7 @@ std::ostream& operator<<(std::ostream& ostream, const MyNode* node) {
 class MyNodeTraversal {
  public:
   using Node = MyNode;
-  static Node* parentOf(const Node* node) { return node->parent(); }
+  static Node* ParentOf(const Node* node) { return node->parent(); }
 };
 
 using MyTreeAlgorithm = TreeAlgorithm<MyNodeTraversal>;

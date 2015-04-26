@@ -8,8 +8,7 @@
 namespace elang {
 
 // |Traversal| should have following members:
-//  typename Node
-//  Node* parent(const Node* node)
+//  - Node* ParentOf(const Node* node)
 
 template <typename Traversal>
 class TreeAlgorithm : public Traversal {
@@ -27,13 +26,13 @@ typename Traversal::Node* TreeAlgorithm<Traversal>::CommonAncestorOf(
   if (nodeA == nodeB)
     return const_cast<Node*>(nodeA);
   auto depthA = 0;
-  for (auto runner = nodeA; runner; runner = Traversal::parentOf(runner)) {
+  for (auto runner = nodeA; runner; runner = Traversal::ParentOf(runner)) {
     if (runner == nodeB)
       return const_cast<Node*>(runner);
     ++depthA;
   }
   auto depthB = 0;
-  for (auto runner = nodeB; runner; runner = Traversal::parentOf(runner)) {
+  for (auto runner = nodeB; runner; runner = Traversal::ParentOf(runner)) {
     if (runner == nodeA)
       return const_cast<Node*>(runner);
     ++depthB;
@@ -42,16 +41,16 @@ typename Traversal::Node* TreeAlgorithm<Traversal>::CommonAncestorOf(
   auto runnerB = nodeB;
   if (depthA > depthB) {
     for (auto depth = depthA; depth > depthB; --depth)
-      runnerA = Traversal::parentOf(runnerA);
+      runnerA = Traversal::ParentOf(runnerA);
   } else if (depthB > depthA) {
     for (auto depth = depthB; depth > depthB; --depth)
-      runnerB = Traversal::parentOf(runnerB);
+      runnerB = Traversal::ParentOf(runnerB);
   }
   while (runnerA) {
     if (runnerA == runnerB)
       return const_cast<Node*>(runnerA);
-    runnerA = Traversal::parentOf(runnerA);
-    runnerB = Traversal::parentOf(runnerB);
+    runnerA = Traversal::ParentOf(runnerA);
+    runnerB = Traversal::ParentOf(runnerB);
   }
   return nullptr;
 }
