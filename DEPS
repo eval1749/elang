@@ -4,15 +4,15 @@
 
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
-  'buildtools_revision': '3b302fef93f7cc58d9b8168466905237484b2772',
+  'buildtools_revision': '15308f469a704c45d15567fa69cd94ce07ad0e1b',
 }
 
 deps = {
   'src/buildtools':
-   Var('chromium_git') + '/chromium/buildtools.git' + '@' +  Var('buildtools_revision'),
+    Var('chromium_git') + '/chromium/buildtools.git' + '@' +  Var('buildtools_revision'),
 
   'src/third_party/cygwin':
-      Var('chromium_git') + '/chromium/deps/cygwin.git' + '@' + 'c89e446b273697fadf3a10ff1007a97c0b7de6df',
+    Var('chromium_git') + '/chromium/deps/cygwin.git' + '@' + 'c89e446b273697fadf3a10ff1007a97c0b7de6df',
 
   'src/tools/deps2git':
     Var('chromium_git') + '/chromium/tools/deps2git.git' + '@' + 'f04828eb0b5acd3e7ad983c024870f17f17b06d9',
@@ -24,10 +24,10 @@ deps = {
     Var('chromium_git') + '/external/googletest.git' + '@' + 'be1868139ffe0ccd0e8e3b37292b84c821d9c8ad', # from svn revision 704
 
   'src/tools/gyp':
-    Var('chromium_git') + '/external/gyp.git' + '@' + '2889664b9fa88cce175c5c7cdf207d28420a7412',
+    Var('chromium_git') + '/external/gyp.git' + '@' + '2a5511bd901f328db10d0b6415c864a5ff59fc81',
 
   'src/third_party/icu':
-   Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '10834e84d250eb31a73496bfdb7923eaa43ead51',
+    Var('chromium_git') + '/chromium/deps/icu.git' + '@' + '10834e84d250eb31a73496bfdb7923eaa43ead51',
 
 }
 
