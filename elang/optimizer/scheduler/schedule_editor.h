@@ -53,7 +53,8 @@ class ScheduleEditor final : public ZoneUser {
     BasicBlock* CommonAncestorOf(BasicBlock* block1, BasicBlock* block2) const;
     int DepthOf(BasicBlock* block) const;
     BasicBlock* DominatorOf(BasicBlock* block) const;
-    int LoopDepthOf(BasicBlock* block) const;
+    int LoopDepthOf(const BasicBlock* block) const;
+    BasicBlock* LoopHeaderOf(const BasicBlock* block) const;
 
    private:
     ScheduleEditor& editor_;
@@ -64,7 +65,6 @@ class ScheduleEditor final : public ZoneUser {
   explicit ScheduleEditor(Schedule* scheduler);
   ~ScheduleEditor();
 
-  const std::vector<BasicBlock*> blocks() const { return blocks_; }
   ControlFlowGraph* control_flow_graph() const { return control_flow_graph_; }
   Function* function() const;
 
@@ -91,7 +91,8 @@ class ScheduleEditor final : public ZoneUser {
   BasicBlock* DominatorOf(BasicBlock* block) const;
 
   // Returns depth of |block| in loop nest tree.
-  int LoopDepthOf(BasicBlock* block) const;
+  int LoopDepthOf(const BasicBlock* block) const;
+  BasicBlock* LoopHeaderOf(const BasicBlock* block) const;
 
   // Returns |BasicBlock| associated to |start_node|
   BasicBlock* MapToBlock(Node* start_node);
@@ -103,7 +104,6 @@ class ScheduleEditor final : public ZoneUser {
   using DominatorTree = DominatorTree<ControlFlowGraph>;
   using LoopTree = LoopTree<ControlFlowGraph>;
 
-  std::vector<BasicBlock*> blocks_;
   // Mapping from |Node| node to |BasicBlock|
   std::unordered_map<Node*, BasicBlock*> block_map_;
   ControlFlowGraph* const control_flow_graph_;

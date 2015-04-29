@@ -10,6 +10,7 @@
 #include "elang/base/graphs/graph_sorter.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/opcode.h"
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/control_flow_graph.h"
 #include "elang/optimizer/scheduler/schedule.h"
@@ -44,8 +45,12 @@ BasicBlock* ScheduleEditor::User::DominatorOf(BasicBlock* block) const {
   return editor_.DominatorOf(block);
 }
 
-int ScheduleEditor::User::LoopDepthOf(BasicBlock* block) const {
+int ScheduleEditor::User::LoopDepthOf(const BasicBlock* block) const {
   return editor_.LoopDepthOf(block);
+}
+
+BasicBlock* ScheduleEditor::User::LoopHeaderOf(const BasicBlock* block) const {
+  return editor_.LoopHeaderOf(block);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -73,7 +78,13 @@ void ScheduleEditor::AppendNode(BasicBlock* block, Node* node) {
     DCHECK_EQ(block->nodes_.front(), node);
     return;
   }
-  block->nodes_.push_back(node);
+  auto const last_node = block->nodes_.back();
+  if (!last_node->IsBlockEnd()) {
+    block->nodes_.push_back(node);
+    return;
+  }
+  block->nodes_.back() = node;
+  block->nodes_.push_back(last_node);
 }
 
 BasicBlock* ScheduleEditor::BlockOf(Node* node) const {
@@ -108,8 +119,12 @@ BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
   return dominator_tree_->TreeNodeOf(block)->parent()->value();
 }
 
-int ScheduleEditor::LoopDepthOf(BasicBlock* block) const {
-  return loop_tree_->NodeOf(block)->depth();
+int ScheduleEditor::LoopDepthOf(const BasicBlock* block) const {
+  return loop_tree_->NodeOf(const_cast<BasicBlock*>(block))->depth();
+}
+
+BasicBlock* ScheduleEditor::LoopHeaderOf(const BasicBlock* block) const {
+  return loop_tree_->NodeOf(const_cast<BasicBlock*>(block))->entry();
 }
 
 BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
@@ -122,7 +137,6 @@ BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
   auto const block = new (zone()) BasicBlock(zone());
   block->nodes_.push_back(start_node);
   block_map_.insert(std::make_pair(start_node, block));
-  blocks_.push_back(block);
   return block;
 }
 
