@@ -29,6 +29,9 @@ class ELANG_OPTIMIZER_EXPORT BasicBlock final
  public:
   ~BasicBlock() = delete;
 
+  Node* first_node() const { return nodes_.front(); }
+  Node* last_node() const { return nodes_.back(); }
+  size_t id() const;
   const ZoneVector<Node*>& nodes() const { return nodes_; }
 
  private:

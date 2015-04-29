@@ -17,6 +17,11 @@ BasicBlock::BasicBlock(Zone* zone) : GraphNodeBase(zone), nodes_(zone) {
   nodes_.reserve(2);
 }
 
+size_t BasicBlock::id() const {
+  DCHECK(!nodes_.empty());
+  return nodes_.front()->id();
+}
+
 std::ostream& operator<<(std::ostream& ostream, const BasicBlock* block) {
   if (!block)
     return ostream << "nil";
@@ -27,7 +32,7 @@ std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
   ostream << "block";
   if (block.nodes().empty())
     return ostream << "@" << static_cast<const void*>(&block);
-  return ostream << block.nodes().front()->id();
+  return ostream << block.id();
 }
 
 }  // namespace optimizer
