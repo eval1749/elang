@@ -134,7 +134,8 @@ namespace optimizer {
   V(Jump)                                    \
   V(Ret)                                     \
   V(Switch)                                  \
-  V(Throw)
+  V(Throw)                                   \
+  V(Unreachable)
 
 // Forward declarations
 #define V(Name) class Name;
