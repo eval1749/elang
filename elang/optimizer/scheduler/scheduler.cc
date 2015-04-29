@@ -12,8 +12,10 @@
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/opcode.h"
 #include "elang/optimizer/scheduler/basic_block.h"
+#include "elang/optimizer/scheduler/block_layouter.h"
 #include "elang/optimizer/scheduler/cfg_builder.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
+#include "elang/optimizer/scheduler/static_predictor.h"
 
 namespace elang {
 namespace optimizer {
@@ -156,7 +158,8 @@ void LateScheduler::DoDefaultVisit(Node* node) {
 //
 class NodePlacer final : public ScheduleEditor::User {
  public:
-  explicit NodePlacer(ScheduleEditor* editor);
+  explicit NodePlacer(ScheduleEditor* editor,
+                      const std::vector<BasicBlock*>& blocks);
   ~NodePlacer() = default;
 
   void Run();
@@ -165,12 +168,15 @@ class NodePlacer final : public ScheduleEditor::User {
   bool IsUsedInBlock(Node* node, BasicBlock* block) const;
   void ScheduleInBlock(BasicBlock* block);
 
+  const std::vector<BasicBlock*>& blocks_;
   std::vector<Node*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NodePlacer);
 };
 
-NodePlacer::NodePlacer(ScheduleEditor* editor) : ScheduleEditor::User(editor) {
+NodePlacer::NodePlacer(ScheduleEditor* editor,
+                       const std::vector<BasicBlock*>& blocks)
+    : ScheduleEditor::User(editor), blocks_(blocks) {
   nodes_.reserve(function()->max_node_id());
 }
 
@@ -184,7 +190,7 @@ bool NodePlacer::IsUsedInBlock(Node* node, BasicBlock* block) const {
 }
 
 void NodePlacer::Run() {
-  for (auto const block : editor()->blocks())
+  for (auto const block : blocks_)
     ScheduleInBlock(block);
   editor()->DidPlaceNodes(nodes_);
 }
@@ -264,7 +270,9 @@ void Scheduler::Run() {
   CfgBuilder(&editor).Run();
   EarlyScheduler(&editor).Run();
   LateScheduler(&editor).Run();
-  NodePlacer(&editor).Run();
+  auto const edge_map = StaticPredictor(&editor).Run();
+  auto const blocks = BlockLayouter(&editor, edge_map.get()).Run();
+  NodePlacer(&editor, blocks).Run();
 }
 
 }  // namespace optimizer
