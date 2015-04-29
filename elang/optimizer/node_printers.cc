@@ -217,5 +217,15 @@ std::ostream& operator<<(std::ostream& ostream, const Node& node) {
   return ostream;
 }
 
+std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
+  static const char* mnemonics[] = {
+#define V(Name, mnemonic, ...) mnemonic,
+      FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
+#undef V
+  };
+  auto const it = std::begin(mnemonics) + static_cast<size_t>(opcode);
+  return ostream << (it < std::end(mnemonics) ? *it : "invalid_opcode");
+}
+
 }  // namespace optimizer
 }  // namespace elang

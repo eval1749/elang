@@ -167,6 +167,9 @@ ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
 ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                                 const Node& node);
 
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                                Opcode opcode);
+
 }  // namespace optimizer
 }  // namespace elang
 
