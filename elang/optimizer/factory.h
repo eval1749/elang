@@ -20,6 +20,9 @@
 #include "elang/optimizer/type_factory_user.h"
 
 namespace elang {
+namespace api {
+class PassObserver;
+}
 namespace optimizer {
 
 class Function;
@@ -33,7 +36,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
                                              public NodeFactoryUser,
                                              public TypeFactoryUser {
  public:
-  explicit Factory(const FactoryConfig& config);
+  Factory(api::PassObserver* pass_observer, const FactoryConfig& config);
   ~Factory();
 
   const FactoryConfig& config() const { return config_; }
@@ -47,6 +50,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   const FactoryConfig config_;
   size_t last_function_id_;
   const std::unique_ptr<NodeFactory> node_factory_;
+  api::PassObserver* const pass_observer_;
   const std::unique_ptr<TypeFactory> type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

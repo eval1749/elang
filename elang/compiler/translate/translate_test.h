@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "base/strings/string_piece.h"
+#include "elang/api/pass_observer.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/testing/analyzer_test.h"
 
@@ -36,7 +37,9 @@ namespace testing {
 //
 // TranslateTest is a simple harness for testing interactions with compiler.
 //
-class TranslateTest : public testing::AnalyzerTest, public ZoneOwner {
+class TranslateTest : public testing::AnalyzerTest,
+                      public api::PassObserver,
+                      public ZoneOwner {
  protected:
   TranslateTest();
   ~TranslateTest() override;
@@ -48,6 +51,10 @@ class TranslateTest : public testing::AnalyzerTest, public ZoneOwner {
  private:
   std::string FormatFunction(ir::Function* function);
   std::string GetFunction(base::StringPiece name);
+
+  // api::PassObserver
+  void DidEndPass(api::Pass* pass) final;
+  void DidStartPass(api::Pass* pass) final;
 
   const std::unique_ptr<ir::FactoryConfig> factory_config_;
   const std::unique_ptr<ir::Factory> factory_;

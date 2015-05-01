@@ -70,6 +70,7 @@ component("optimizer") {
 
   public_deps = [
     "//base",
+    "//elang/api",
     "//elang/base",
   ]
 }
@@ -84,6 +85,7 @@ source_set("test_support") {
   public_deps = [
     ":optimizer",
     "//testing/gtest",
+    "//elang/api",
     "//elang/base",
   ]
 }

@@ -35,6 +35,7 @@ source_set("test_support") {
   ]
   public_deps = [
     ":translate",
+    "//elang/api",
     "//elang/compiler:test_support",
   ]
 }

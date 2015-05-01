@@ -175,11 +175,14 @@ double EdgeFrequencyMap::FrequencyOf(const BasicBlock* form,
 //
 // StaticPredictor
 //
-StaticPredictor::StaticPredictor(ScheduleEditor* editor)
-    : ScheduleEditor::User(editor) {
+StaticPredictor::StaticPredictor(api::PassObserver* observer,
+                                 ScheduleEditor* editor)
+    : Pass(observer), ScheduleEditor::User(editor) {
+  StartPass();
 }
 
 StaticPredictor::~StaticPredictor() {
+  EndPass();
 }
 
 void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
@@ -231,6 +234,14 @@ void StaticPredictor::SetFrequency(const BasicBlock* from,
                                    const BasicBlock* to,
                                    double frequency) {
   edge_map_.Add(from, to, frequency);
+}
+
+// api::Pass
+base::StringPiece StaticPredictor::name() const {
+  return "static_predictor";
+}
+
+void StaticPredictor::DumpPass(const api::PassDumpContext& context) {
 }
 
 }  // namespace optimizer

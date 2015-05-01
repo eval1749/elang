@@ -257,7 +257,8 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
 //
 // Scheduler
 //
-Scheduler::Scheduler(Schedule* schedule) : schedule_(*schedule) {
+Scheduler::Scheduler(api::PassObserver* observer, Schedule* schedule)
+    : Pass(observer), schedule_(*schedule) {
   DCHECK(schedule);
 }
 
@@ -270,9 +271,17 @@ void Scheduler::Run() {
   CfgBuilder(&editor).Run();
   EarlyScheduler(&editor).Run();
   LateScheduler(&editor).Run();
-  auto const edge_map = StaticPredictor(&editor).Run();
+  auto const edge_map = StaticPredictor(observer(), &editor).Run();
   auto const blocks = BlockLayouter(&editor, edge_map.get()).Run();
   NodePlacer(&editor, blocks).Run();
+}
+
+// api::Pass
+base::StringPiece Scheduler::name() const {
+  return "scheduler";
+}
+
+void Scheduler::DumpPass(const api::PassDumpContext& context) {
 }
 
 }  // namespace optimizer

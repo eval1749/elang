@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/api/pass.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 
 namespace elang {
@@ -71,14 +72,18 @@ class EdgeFrequencyMap final {
 //  Brian L. Deitrich, Ben-Chung Cheng, Wen-mei W. Hwuy
 //  October 1998
 //
-class StaticPredictor final : public ScheduleEditor::User {
+class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
  public:
-  explicit StaticPredictor(ScheduleEditor* editor);
+  explicit StaticPredictor(api::PassObserver* observer, ScheduleEditor* editor);
   ~StaticPredictor();
 
   std::unique_ptr<EdgeFrequencyMap> Run();
 
  private:
+  // api::Pass
+  base::StringPiece name() const final;
+  void DumpPass(const api::PassDumpContext& context) final;
+
   void Predict(const BasicBlock* from, double frequency);
   void SetFrequency(const BasicBlock* from,
                     const BasicBlock* to,

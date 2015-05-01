@@ -21,13 +21,14 @@ namespace optimizer {
 namespace testing {
 
 namespace {
-Factory* NewFactory() {
+
+Factory* NewFactory(api::PassObserver* observer) {
   FactoryConfig config;
   auto const atomic_string_factory = new AtomicStringFactory();
   config.atomic_string_factory = atomic_string_factory;
   config.string_type_name =
       atomic_string_factory->NewAtomicString(L"System.String");
-  return new Factory(config);
+  return new Factory(observer, config);
 }
 }  // namespace
 
@@ -36,7 +37,7 @@ Factory* NewFactory() {
 // OptimizerTest
 //
 OptimizerTest::OptimizerTest()
-    : FactoryUser(NewFactory()),
+    : FactoryUser(NewFactory(this)),
       atomic_string_factory_(factory()->config().atomic_string_factory),
       factory_(factory()),
       function_(nullptr) {
@@ -86,6 +87,13 @@ std::string OptimizerTest::ToString(const Type* type) {
   std::stringstream ostream;
   ostream << *type;
   return ostream.str();
+}
+
+// api::PassObserver
+void OptimizerTest::DidEndPass(api::Pass* pass) {
+}
+
+void OptimizerTest::DidStartPass(api::Pass* pass) {
 }
 
 }  // namespace testing

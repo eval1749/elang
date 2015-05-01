@@ -8,6 +8,7 @@
 #include "elang/optimizer/testing/optimizer_test.h"
 
 #include "elang/optimizer/editor.h"
+#include "elang/optimizer/factory.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/scheduler/schedule.h"
@@ -34,11 +35,9 @@ class SchedulerTest : public testing::OptimizerTest {
 };
 
 std::string SchedulerTest::ScheduleOf(Function* function) {
-  Schedule schedule(function);
-  Scheduler scheduler(&schedule);
-  scheduler.Run();
+  auto const schedule = factory()->ComputeSchedule(function);
   std::stringstream ostream;
-  ostream << AsFormatted(schedule);
+  ostream << AsFormatted(*schedule);
   return ostream.str();
 }
 

@@ -30,6 +30,7 @@ source_set("scheduler") {
 
   public_deps = [
     "//base",
+    "//elang/api",
     "//elang/base",
   ]
 }

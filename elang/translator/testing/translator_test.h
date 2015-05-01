@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/api/pass_observer.h"
 #include "elang/base/float_types.h"
 #include "elang/optimizer/factory_user.h"
 #include "gtest/gtest.h"
@@ -34,7 +35,9 @@ namespace testing {
 //
 // TranslatorTest
 //
-class TranslatorTest : public ::testing::Test, public ir::FactoryUser {
+class TranslatorTest : public ::testing::Test,
+                       public api::PassObserver,
+                       public ir::FactoryUser {
  protected:
   TranslatorTest();
   ~TranslatorTest() override;
@@ -54,6 +57,10 @@ class TranslatorTest : public ::testing::Test, public ir::FactoryUser {
   ir::Function* NewFunction(ir::Type* return_type, ir::Type* parameters_type);
 
  private:
+  // api::PassObserver
+  void DidEndPass(api::Pass* pass) final;
+  void DidStartPass(api::Pass* pass) final;
+
   const std::unique_ptr<ir::Factory> factory_;
   const std::unique_ptr<lir::Factory> lir_factory_;
 

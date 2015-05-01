@@ -36,7 +36,7 @@ std::unique_ptr<ir::FactoryConfig> NewFactoryConfig(
 //
 TranslateTest::TranslateTest()
     : factory_config_(NewFactoryConfig(session())),
-      factory_(new ir::Factory(*factory_config_)),
+      factory_(new ir::Factory(this, *factory_config_)),
       translator_(new Translator(session(), factory())) {
 }
 
@@ -70,6 +70,13 @@ std::string TranslateTest::Translate(base::StringPiece name) {
   if (!translator_->Run())
     return GetErrors();
   return GetFunction(name);
+}
+
+// api::PassObserver
+void TranslateTest::DidEndPass(api::Pass* pass) {
+}
+
+void TranslateTest::DidStartPass(api::Pass* pass) {
 }
 
 }  // namespace testing

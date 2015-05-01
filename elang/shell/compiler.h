@@ -11,6 +11,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
+#include "elang/api/pass_observer.h"
 
 namespace base {
 class FilePath;
@@ -25,7 +26,7 @@ namespace shell {
 //
 // Compiler
 //
-class Compiler final {
+class Compiler final : public api::PassObserver {
  public:
   explicit Compiler(const std::vector<base::string16>& args);
   ~Compiler();
@@ -43,6 +44,10 @@ class Compiler final {
 
   // Report compilation errors so far.
   bool ReportCompileErrors();
+
+  // api::PassObserver implementation
+  void DidEndPass(api::Pass* pass) final;
+  void DidStartPass(api::Pass* pass) final;
 
   const std::vector<base::string16> args_;
   std::unique_ptr<CompilationSession> session_;

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/api/pass_observer.h"
 #include "elang/optimizer/factory_user.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -25,7 +26,9 @@ namespace testing {
 //
 // OptimizerTest
 //
-class OptimizerTest : public ::testing::Test, public FactoryUser {
+class OptimizerTest : public ::testing::Test,
+                      public api::PassObserver,
+                      public FactoryUser {
  protected:
   OptimizerTest();
   ~OptimizerTest() override;
@@ -39,6 +42,10 @@ class OptimizerTest : public ::testing::Test, public FactoryUser {
   std::string ToString(const Type* type);
 
  private:
+  // api::PassObserver
+  void DidEndPass(api::Pass* pass) final;
+  void DidStartPass(api::Pass* pass) final;
+
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
   const std::unique_ptr<Factory> factory_;
   Function* function_;

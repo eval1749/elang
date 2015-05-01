@@ -21,17 +21,17 @@ namespace translator {
 namespace testing {
 
 namespace {
-ir::Factory* NewHirFactory() {
+ir::Factory* NewHirFactory(api::PassObserver* observer) {
   ir::FactoryConfig config;
   auto const atomic_string_factory = new AtomicStringFactory();
   config.atomic_string_factory = atomic_string_factory;
   config.string_type_name = atomic_string_factory->NewAtomicString(L"String");
-  return new ir::Factory(config);
+  return new ir::Factory(observer, config);
 }
 }  // namespace
 
 TranslatorTest::TranslatorTest()
-    : ir::FactoryUser(NewHirFactory()),
+    : ir::FactoryUser(NewHirFactory(this)),
       lir_factory_(new lir::Factory()),
       factory_(factory()) {
 }
@@ -70,6 +70,13 @@ std::string TranslatorTest::Translate(const ir::Editor& editor) {
 ir::Function* TranslatorTest::NewFunction(ir::Type* return_type,
                                           ir::Type* parameters_type) {
   return factory()->NewFunction(NewFunctionType(return_type, parameters_type));
+}
+
+// api::PassObserver
+void TranslatorTest::DidEndPass(api::Pass* pass) {
+}
+
+void TranslatorTest::DidStartPass(api::Pass* pass) {
 }
 
 }  // namespace testing

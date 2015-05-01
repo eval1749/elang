@@ -13,6 +13,7 @@
 #include "base/files/file_util.h"
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "elang/api/pass.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/cg/generator.h"
 #include "elang/compiler/analysis/name_resolver.h"
@@ -336,7 +337,7 @@ int Compiler::CompileAndGo() {
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
     auto const factory_config = NewIrFactoryConfig(session());
-    auto const factory = std::make_unique<ir::Factory>(*factory_config);
+    auto const factory = std::make_unique<ir::Factory>(this, *factory_config);
     session()->Compile(&name_resolver, factory.get());
     if (ReportCompileErrors())
       return 1;
@@ -462,6 +463,16 @@ bool Compiler::ReportCompileErrors() {
               << "): " << ReadableErrorData(*error) << std::endl;
   }
   return true;
+}
+
+// api::PassObserver implementation
+void Compiler::DidEndPass(api::Pass* pass) {
+  DVLOG(0) << "End " << pass->name() << " "
+           << pass->duration().InMillisecondsF() << "ms";
+}
+
+void Compiler::DidStartPass(api::Pass* pass) {
+  DVLOG(0) << "Start: " << pass->name();
 }
 
 }  // namespace shell
