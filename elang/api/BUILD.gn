@@ -7,6 +7,10 @@ static_library("api") {
   sources = [
     "machine_code_builder.cc",
     "machine_code_builder.h",
+    "pass.cc",
+    "pass.h",
+    "pass_observer.cc",
+    "pass_observer.h",
     "source_code_location.cc",
     "source_code_location.h",
   ]
