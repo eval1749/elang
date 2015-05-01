@@ -150,6 +150,7 @@ std::vector<BasicBlock*> BlockLayouter::Layout() {
   std::vector<BasicBlock*> blocks;
   std::priority_queue<Chain*> work_list;
   auto const entry_block = control_flow_graph()->first_node();
+  auto const exit_block = control_flow_graph()->last_node();
   work_list.push(ChainOf(entry_block));
   while (!work_list.empty()) {
     // Pick the chain C with lowest priority from |work_list|.
@@ -158,7 +159,8 @@ std::vector<BasicBlock*> BlockLayouter::Layout() {
     placed.insert(chain);
     // Place it next in the code
     for (auto const block : chain->blocks()) {
-      blocks.push_back(block);
+      if (block != exit_block)
+        blocks.push_back(block);
       for (auto const use_edge : block->last_node()->use_edges()) {
         auto const successor = BlockOf(use_edge->from());
         auto const chain = ChainOf(successor);
@@ -169,6 +171,8 @@ std::vector<BasicBlock*> BlockLayouter::Layout() {
     }
   }
   DCHECK_EQ(entry_block, blocks.front());
+  DCHECK(std::find(blocks.begin(), blocks.end(), exit_block) == blocks.end());
+  blocks.push_back(exit_block);
   return blocks;
 }
 
