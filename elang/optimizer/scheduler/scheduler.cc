@@ -272,7 +272,7 @@ void Scheduler::Run() {
   EarlyScheduler(&editor).Run();
   LateScheduler(&editor).Run();
   auto const edge_map = StaticPredictor(observer(), &editor).Run();
-  auto const blocks = BlockLayouter(&editor, edge_map.get()).Run();
+  auto const blocks = BlockLayouter(observer(), &editor, edge_map.get()).Run();
   NodePlacer(&editor, blocks).Run();
 }
 

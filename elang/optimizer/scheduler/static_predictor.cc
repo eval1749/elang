@@ -178,11 +178,9 @@ double EdgeFrequencyMap::FrequencyOf(const BasicBlock* form,
 StaticPredictor::StaticPredictor(api::PassObserver* observer,
                                  ScheduleEditor* editor)
     : Pass(observer), ScheduleEditor::User(editor) {
-  StartPass();
 }
 
 StaticPredictor::~StaticPredictor() {
-  EndPass();
 }
 
 void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
@@ -217,6 +215,7 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
 }
 
 std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
+  RunScope scope(this);
   auto const blocks =
       ControlFlowGraph::Sorter::SortByReversePostOrder(control_flow_graph());
   for (auto const block : blocks) {

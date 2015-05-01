@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "elang/api/pass.h"
 #include "elang/base/zone_owner.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 
@@ -28,9 +29,13 @@ class EdgeFrequencyMap;
 //  Keith D. Cooper, Linda Torczon
 //  February 2011
 //
-class BlockLayouter final : public ScheduleEditor::User, public ZoneOwner {
+class BlockLayouter final : public api::Pass,
+                            public ScheduleEditor::User,
+                            public ZoneOwner {
  public:
-  BlockLayouter(ScheduleEditor* editor, const EdgeFrequencyMap* edge_map);
+  BlockLayouter(api::PassObserver* observer,
+                ScheduleEditor* editor,
+                const EdgeFrequencyMap* edge_map);
   ~BlockLayouter();
 
   std::vector<BasicBlock*> Run();
@@ -41,6 +46,10 @@ class BlockLayouter final : public ScheduleEditor::User, public ZoneOwner {
   void BuildChain();
   Chain* ChainOf(const BasicBlock* block) const;
   std::vector<BasicBlock*> Layout();
+
+  // api::Pass
+  base::StringPiece name() const final;
+  void DumpPass(const api::PassDumpContext& context) final;
 
   std::unordered_map<const BasicBlock*, Chain*> chain_map_;
   const EdgeFrequencyMap* const edge_map_;
