@@ -21,7 +21,6 @@ namespace api {
 //
 class MachineCodeBuilder {
  public:
-  MachineCodeBuilder();
   virtual ~MachineCodeBuilder();
 
   virtual void EmitCode(const uint8_t* codes, size_t code_size) = 0;
@@ -36,6 +35,9 @@ class MachineCodeBuilder {
   virtual void SetSourceCodeLocation(size_t offset,
                                      SourceCodeLocation location) = 0;
   virtual void SetString(size_t offset, base::StringPiece16 string) = 0;
+
+ protected:
+  MachineCodeBuilder();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MachineCodeBuilder);
