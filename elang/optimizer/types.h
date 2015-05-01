@@ -16,6 +16,8 @@
 #include "elang/optimizer/thing.h"
 #include "elang/optimizer/types_forward.h"
 
+#undef RegisterClass
+
 namespace elang {
 class AtomicString;
 namespace optimizer {
