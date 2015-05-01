@@ -13,6 +13,7 @@
 #include "base/files/file_util.h"
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "base/strings/string_split.h"
 #include "elang/api/pass.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/cg/generator.h"
@@ -334,6 +335,13 @@ int Compiler::CompileAndGo() {
   auto has_parameter = false;
   auto has_return_value = false;
 
+  {
+    std::vector<std::string> names;
+    base::SplitString(command_line->GetSwitchValueASCII("dump"), ',', &names);
+    for (auto name : names)
+      dump_passes_.insert(name);
+  }
+
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
     auto const factory_config = NewIrFactoryConfig(session());
@@ -469,10 +477,18 @@ bool Compiler::ReportCompileErrors() {
 void Compiler::DidEndPass(api::Pass* pass) {
   DVLOG(0) << "End " << pass->name() << " "
            << pass->duration().InMillisecondsF() << "ms";
+  if (!dump_passes_.count(pass->name().as_string()))
+    return;
+  api::PassDumpContext dump_context{&std::cout};
+  pass->DumpPass(dump_context);
 }
 
 void Compiler::DidStartPass(api::Pass* pass) {
   DVLOG(0) << "Start: " << pass->name();
+  if (!dump_passes_.count(pass->name().as_string()))
+    return;
+  api::PassDumpContext dump_context{&std::cout};
+  pass->DumpPass(dump_context);
 }
 
 }  // namespace shell

@@ -25,10 +25,15 @@ class BasicBlock;
 //
 class EdgeFrequencyMap final {
  public:
+  using Edge = std::pair<const BasicBlock*, const BasicBlock*>;
+  using Map = std::map<Edge, double>;
+
   class Editor {
    public:
     Editor();
     ~Editor();
+
+    const Map& all_edges() const { return edge_map_->all_edges(); }
 
     void Add(const BasicBlock* from, const BasicBlock* to, double frequency);
     std::unique_ptr<EdgeFrequencyMap> Finish();
@@ -40,8 +45,6 @@ class EdgeFrequencyMap final {
 
     DISALLOW_COPY_AND_ASSIGN(Editor);
   };
-
-  using Map = std::map<std::pair<const BasicBlock*, const BasicBlock*>, double>;
 
   EdgeFrequencyMap();
   ~EdgeFrequencyMap();

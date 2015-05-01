@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <ostream>
 #include <vector>
 
 #include "elang/optimizer/scheduler/static_predictor.h"
@@ -198,9 +199,19 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
     case Opcode::If: {
       auto const true_target = BlockOf(TrueTargetOf(from));
       auto const false_target = BlockOf(FalseTargetOf(from));
-      auto const true_frequency = frequency * EstimateByCondition(last_node);
-      SetFrequency(from, true_target, true_frequency);
-      SetFrequency(from, false_target, frequency - true_frequency);
+      if (LoopDepthOf(true_target) == LoopDepthOf(false_target)) {
+        auto const true_frequency = frequency * EstimateByCondition(last_node);
+        SetFrequency(from, true_target, true_frequency);
+        SetFrequency(from, false_target, frequency - true_frequency);
+        return;
+      }
+      if (LoopDepthOf(true_target) < LoopDepthOf(false_target)) {
+        SetFrequency(from, true_target, 1);
+        SetFrequency(from, false_target, frequency - 1);
+        return;
+      }
+      SetFrequency(from, true_target, frequency - 1);
+      SetFrequency(from, false_target, 1);
       return;
     }
     case Opcode::Jump: {
@@ -215,16 +226,24 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
 }
 
 std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
-  RunScope scope(this);
-  auto const blocks =
-      ControlFlowGraph::Sorter::SortByReversePostOrder(control_flow_graph());
-  for (auto const block : blocks) {
-    auto frequency = LoopDepthOf(block) * 1000.0;
-    for (auto const use_edge : block->first_node()->use_edges()) {
-      auto const predecessor = BlockOf(use_edge->from());
-      frequency += edge_map_.FrequencyOf(predecessor, block);
+  {
+    RunScope scope(this);
+    auto const blocks =
+        ControlFlowGraph::Sorter::SortByReversePostOrder(control_flow_graph());
+    for (auto const block : blocks) {
+      auto frequency = 0;
+      for (auto const use_edge : block->first_node()->use_edges()) {
+        auto const predecessor = BlockOf(use_edge->from());
+        if (edge_map_.Has(predecessor, block))
+          frequency += edge_map_.FrequencyOf(predecessor, block);
+        else
+          frequency += LoopDepthOf(block) * 1000;
+      }
+      if (block->first_node()->opcode() == Opcode::Entry)
+        frequency = 1;
+      DVLOG(0) << block << " sum(predecessors)=" << frequency;
+      Predict(block, frequency);
     }
-    Predict(block, frequency);
   }
   return edge_map_.Finish();
 }
@@ -241,6 +260,26 @@ base::StringPiece StaticPredictor::name() const {
 }
 
 void StaticPredictor::DumpPass(const api::PassDumpContext& context) {
+  auto& ostream = *context.ostream;
+  using Edge = EdgeFrequencyMap::Edge;
+  std::vector<Edge> edges;
+  edges.reserve(edge_map_.all_edges().size());
+  for (auto const data : edge_map_.all_edges())
+    edges.push_back(data.first);
+  std::sort(edges.begin(), edges.end(),
+            [](const Edge& edge1, const Edge& edge2) {
+              if (edge1.first->id() == edge2.first->id())
+                return edge1.second->id() < edge2.second->id();
+              return edge1.first->id() < edge2.first->id();
+            });
+  ostream << "Static prediction" << std::endl;
+  for (auto const& edge : edges) {
+    auto const from = edge.first;
+    auto const to = edge.second;
+    ostream << from << "/" << LoopDepthOf(from) << "->"
+            << to << "/" << LoopDepthOf(to) << " "
+            << edge_map_.FrequencyOf(edge.first, edge.second) << std::endl;
+  }
 }
 
 }  // namespace optimizer

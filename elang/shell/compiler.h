@@ -7,10 +7,12 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
+#include "base/strings/string_piece.h"
 #include "elang/api/pass_observer.h"
 
 namespace base {
@@ -50,6 +52,7 @@ class Compiler final : public api::PassObserver {
   void DidStartPass(api::Pass* pass) final;
 
   const std::vector<base::string16> args_;
+  std::unordered_set<std::string> dump_passes_;
   std::unique_ptr<CompilationSession> session_;
 
   DISALLOW_COPY_AND_ASSIGN(Compiler);
