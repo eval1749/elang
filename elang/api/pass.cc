@@ -12,6 +12,18 @@ namespace api {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Pass::RunScope
+//
+Pass::RunScope::RunScope(Pass* pass) : pass_(pass) {
+  pass_->StartPass();
+}
+
+Pass::RunScope::~RunScope() {
+  pass_->EndPass();
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // Pass
 //
 Pass::Pass(PassObserver* observer) : observer_(observer) {

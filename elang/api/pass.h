@@ -35,6 +35,17 @@ class Pass {
   virtual void DumpPass(const PassDumpContext& context) = 0;
 
  protected:
+  class RunScope final {
+   public:
+    explicit RunScope(Pass* pass);
+    ~RunScope();
+
+   private:
+    Pass* const pass_;
+
+    DISALLOW_COPY_AND_ASSIGN(RunScope);
+  };
+
   explicit Pass(PassObserver* observer);
 
   PassObserver* observer() const { return observer_; }
