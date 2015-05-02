@@ -23,6 +23,7 @@
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 #include "elang/optimizer/scheduler/static_predictor.h"
+#include "elang/optimizer/scheduler/visual_schedule.h"
 
 namespace elang {
 namespace optimizer {
@@ -314,7 +315,12 @@ void Scheduler::DumpBeforePass(const api::PassDumpContext& context) {
 }
 
 void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
-  *context.ostream << *editor_;
+  auto& ostream = *context.ostream;
+  if (context.IsGraph()) {
+    ostream << AsVisual(editor_->schedule());
+    return;
+  }
+  ostream << AsFormatted(editor_->schedule());
 }
 
 }  // namespace optimizer

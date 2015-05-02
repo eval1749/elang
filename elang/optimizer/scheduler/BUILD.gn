@@ -28,6 +28,8 @@ source_set("scheduler") {
     "scheduler.h",
     "static_predictor.cc",
     "static_predictor.h",
+    "visual_schedule.cc",
+    "visual_schedule.h",
   ]
 
   defines = [ "OPTIMIZER_IMPLEMENTATION" ]
