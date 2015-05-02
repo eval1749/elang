@@ -382,8 +382,26 @@ void Translator::VisitIntShr(ir::IntShrNode* node) {
 }
 
 void Translator::VisitLength(ir::LengthNode* node) {
-  // TODO(eval1749): NYI translate Length
-  NOTREACHED() << *node;
+  // Layout of vector object:
+  //  +0 object header
+  //  +8 length[0]
+  //  +12 length[1]
+  //  ...
+  //  +8+(rank-1)*4 length[rank-1]
+  //  +8+rank*4 padding for align(16)
+  //  +8+rank*4+align(16) element[0]
+  //
+  //  length int32 %length = %array, index
+  //  =>
+  //  add %length_ptr =
+  //  load length = %array_ptr, %array_ptr,
+  //                sizeof(ArrayHeader) + sizeof(int32) * index
+  auto const pointer = NewRegister(lir::Value::IntPtrType());
+  auto const rank = node->input(1)->as<ir::Int32Node>()->data();
+  auto const offset = lir::Value::SizeOf(lir::Value::IntPtrType()) + rank * 4;
+  auto const array_ptr = MapInput(node->input(0));
+  Emit(NewLoadInstruction(MapOutput(node), array_ptr, array_ptr,
+                          lir::Value::SmallInt32(offset)));
 }
 
 void Translator::VisitStackAlloc(ir::StackAllocNode* node) {

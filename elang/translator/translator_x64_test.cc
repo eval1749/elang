@@ -171,5 +171,33 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, LengthNode) {
+  auto const function = NewFunction(
+      int32_type(), NewPointerType(NewArrayType(int32_type(), {-1})));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const array = NewParameter(entry_node, 0);
+  editor.SetRet(effect, NewLength(array, 0));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  load %r3 = %r1l, %r1l, 8\n"
+      "  mov EAX = %r3\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 }  // namespace translator
 }  // namespace elang
