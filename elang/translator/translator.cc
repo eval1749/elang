@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <utility>
 #include <vector>
 
 #include "elang/translator/translator.h"
@@ -21,6 +22,15 @@ namespace elang {
 namespace translator {
 
 namespace {
+lir::IntegerCondition MapCondition(ir::IntCondition condition) {
+#define V(Name, ...)                                                    \
+  DCHECK_EQ(static_cast<ir::IntCondition>(lir::IntegerCondition::Name), \
+            ir::IntCondition::Name);
+  FOR_EACH_OPTIMIZER_INTEGER_CONDITION(V)
+#undef V
+  return static_cast<lir::IntegerCondition>(condition);
+}
+
 int SizeOfType(ir::Type* type) {
   if (type->is<ir::IntPtrType>())
     return 8;
@@ -536,8 +546,15 @@ void Translator::VisitGet(ir::GetNode* node) {
 }
 
 void Translator::VisitIntCmp(ir::IntCmpNode* node) {
-  // TODO(eval1749): NYI translate IntCmp
-  NOTREACHED() << *node;
+  auto const output = NewConditional();
+  DCHECK(!register_map_.count(node));
+  register_map_.insert(std::make_pair(node, output));
+
+  auto const left = MapInput(node->input(0));
+  auto const right = MapInput(node->input(1));
+  // TODO(eval1749) We should emit |IfInstruction| when |IntCmpNode| isn't used
+  // for |IfNode|.
+  Emit(NewCmpInstruction(output, MapCondition(node->condition()), left, right));
 }
 
 void Translator::VisitLoop(ir::LoopNode* node) {

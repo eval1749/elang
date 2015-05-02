@@ -171,6 +171,36 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, IntCmpNode) {
+  auto const function = NewFunction(bool_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const param0 = NewParameter(entry_node, 0);
+  editor.SetRet(effect, NewIntCmp(ir::IntCondition::SignedLessThan, param0,
+                                  NewInt32(42)));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  cmp_lt %b2 = %r1, 42\n"
+      // TODO(eval1749) We should use "if" instruction to convert |bool| value
+      // to |int32| value.
+      "  lit EAX = %b2\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 TEST_F(TranslatorX64Test, LengthNode) {
   auto const function = NewFunction(
       int32_type(), NewPointerType(NewArrayType(int32_type(), {-1})));
