@@ -384,8 +384,8 @@ int Compiler::CompileAndGo() {
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
     lir_function = TranslateToLir(lir_factory.get(), schedule.get());
-    has_parameter = !main_function->parameters_type()->is<hir::VoidType>();
-    has_return_value = !main_function->return_type()->is<hir::VoidType>();
+    has_parameter = !main_function->parameters_type()->is<ir::VoidType>();
+    has_return_value = !main_function->return_type()->is<ir::VoidType>();
 
   } else {
     // Compile to HIR
