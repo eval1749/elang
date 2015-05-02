@@ -14,7 +14,8 @@ namespace shell {
 //
 // PassRecord
 //
-PassRecord::PassRecord(base::StringPiece name) : name_(name) {
+PassRecord::PassRecord(size_t depth, base::StringPiece name)
+    : depth_(depth), name_(name) {
 }
 
 PassRecord::~PassRecord() {

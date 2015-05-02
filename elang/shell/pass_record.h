@@ -19,9 +19,10 @@ namespace shell {
 //
 class PassRecord {
  public:
-  explicit PassRecord(base::StringPiece name);
+  PassRecord(size_t depth, base::StringPiece name);
   ~PassRecord();
 
+  size_t depth() const { return depth_; }
   base::TimeDelta duration() const;
   base::StringPiece name() const { return name_; }
 
@@ -30,7 +31,8 @@ class PassRecord {
 
  private:
   base::Time end_at_;
-  base::StringPiece name_;
+  size_t const depth_;
+  const base::StringPiece name_;
   base::Time start_at_;
 
   DISALLOW_COPY_AND_ASSIGN(PassRecord);

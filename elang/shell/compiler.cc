@@ -340,8 +340,9 @@ int Compiler::CompileAndGo() {
       graph_after_passes_.empty() && graph_before_passes_.empty() ? "" : "// ";
   std::cout << prefix << "Pass elapsed times:" << std::endl;
   for (auto const& record : pass_records_) {
-    std::cout << prefix << record->name() << " "
-              << record->duration().InMillisecondsF() << "ms" << std::endl;
+    std::cout << prefix << std::string(record->depth() * 2, ' ')
+              << record->name() << " " << record->duration().InMillisecondsF()
+              << "ms" << std::endl;
   }
   return 0;
 }
@@ -544,7 +545,7 @@ bool Compiler::DidStartPass(api::Pass* pass) {
   }
   if (stop_)
     return false;
-  pass_records_.emplace_back(new PassRecord(pass_name));
+  pass_records_.emplace_back(new PassRecord(pass_stack_.size(), pass_name));
   pass_records_.back()->StartMetrics();
   pass_stack_.push_back(pass_records_.back().get());
   return true;
