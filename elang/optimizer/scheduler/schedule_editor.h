@@ -50,9 +50,10 @@ class ScheduleEditor final : public ZoneUser {
     Function* function() const { return editor_.function(); }
 
     BasicBlock* BlockOf(Node* node) const;
-    BasicBlock* CommonAncestorOf(BasicBlock* block1, BasicBlock* block2) const;
-    int DepthOf(BasicBlock* block) const;
-    BasicBlock* DominatorOf(BasicBlock* block) const;
+    BasicBlock* CommonAncestorOf(const BasicBlock* block1,
+                                 const BasicBlock* block2) const;
+    int DepthOf(const BasicBlock* block) const;
+    BasicBlock* DominatorOf(const BasicBlock* block) const;
     int LoopDepthOf(const BasicBlock* block) const;
     BasicBlock* LoopHeaderOf(const BasicBlock* block) const;
     int PostDepthOf(const BasicBlock* block) const;
@@ -77,10 +78,11 @@ class ScheduleEditor final : public ZoneUser {
   BasicBlock* BlockOf(Node* node) const;
 
   // Returns common ancestor of |block1| and |block2| in dominator tree.
-  BasicBlock* CommonAncestorOf(BasicBlock* block1, BasicBlock* block2);
+  BasicBlock* CommonAncestorOf(const BasicBlock* block1,
+                               const BasicBlock* block2) const;
 
   // Returns depth of |block| in dominator tree.
-  int DepthOf(BasicBlock* block) const;
+  int DepthOf(const BasicBlock* block) const;
 
   // Tells no more modification of control flow graph.
   void DidBuildControlFlowGraph();
@@ -89,7 +91,7 @@ class ScheduleEditor final : public ZoneUser {
   void DidPlaceNodes(const std::vector<Node*>& nodes);
 
   // Returns immediate dominator of |block|.
-  BasicBlock* DominatorOf(BasicBlock* block) const;
+  BasicBlock* DominatorOf(const BasicBlock* block) const;
 
   // Returns depth of |block| in loop nest tree.
   int LoopDepthOf(const BasicBlock* block) const;

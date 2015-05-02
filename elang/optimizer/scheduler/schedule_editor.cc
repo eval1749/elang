@@ -32,16 +32,17 @@ BasicBlock* ScheduleEditor::User::BlockOf(Node* node) const {
   return editor_.BlockOf(node);
 }
 
-BasicBlock* ScheduleEditor::User::CommonAncestorOf(BasicBlock* block1,
-                                                   BasicBlock* block2) const {
+BasicBlock* ScheduleEditor::User::CommonAncestorOf(
+    const BasicBlock* block1,
+    const BasicBlock* block2) const {
   return editor_.CommonAncestorOf(block1, block2);
 }
 
-int ScheduleEditor::User::DepthOf(BasicBlock* block) const {
+int ScheduleEditor::User::DepthOf(const BasicBlock* block) const {
   return editor_.DepthOf(block);
 }
 
-BasicBlock* ScheduleEditor::User::DominatorOf(BasicBlock* block) const {
+BasicBlock* ScheduleEditor::User::DominatorOf(const BasicBlock* block) const {
   return editor_.DominatorOf(block);
 }
 
@@ -97,12 +98,12 @@ BasicBlock* ScheduleEditor::BlockOf(Node* node) const {
   return it == block_map_.end() ? nullptr : it->second;
 }
 
-BasicBlock* ScheduleEditor::CommonAncestorOf(BasicBlock* block1,
-                                             BasicBlock* block2) {
+BasicBlock* ScheduleEditor::CommonAncestorOf(const BasicBlock* block1,
+                                             const BasicBlock* block2) const {
   return dominator_tree_->CommonAncestorOf(block1, block2);
 }
 
-int ScheduleEditor::DepthOf(BasicBlock* block) const {
+int ScheduleEditor::DepthOf(const BasicBlock* block) const {
   return dominator_tree_->TreeNodeOf(block)->depth();
 }
 
@@ -123,7 +124,7 @@ void ScheduleEditor::DidPlaceNodes(const std::vector<Node*>& nodes) {
   schedule_.nodes_.insert(schedule_.nodes_.end(), nodes.begin(), nodes.end());
 }
 
-BasicBlock* ScheduleEditor::DominatorOf(BasicBlock* block) const {
+BasicBlock* ScheduleEditor::DominatorOf(const BasicBlock* block) const {
   return dominator_tree_->TreeNodeOf(block)->parent()->value();
 }
 
