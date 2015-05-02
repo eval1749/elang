@@ -19,6 +19,7 @@ class PassObserver;
 namespace optimizer {
 
 class Schedule;
+class ScheduleEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -37,7 +38,7 @@ class ELANG_OPTIMIZER_EXPORT Scheduler final : public api::Pass {
   void DumpAfterPass(const api::PassDumpContext& context) final;
   void DumpBeforePass(const api::PassDumpContext& context) final;
 
-  Schedule& schedule_;
+  std::unique_ptr<ScheduleEditor> editor_;
 
   DISALLOW_COPY_AND_ASSIGN(Scheduler);
 };

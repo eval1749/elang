@@ -69,6 +69,7 @@ class ScheduleEditor final : public ZoneUser {
 
   ControlFlowGraph* control_flow_graph() const { return control_flow_graph_; }
   Function* function() const;
+  const Schedule& schedule() const { return schedule_; }
 
   // Append |node| to |block|.
   void AppendNode(BasicBlock* block, Node* node);

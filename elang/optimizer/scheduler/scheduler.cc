@@ -310,7 +310,7 @@ void NodePlacer::DumpAfterPass(const api::PassDumpContext& context) {
 // Scheduler
 //
 Scheduler::Scheduler(api::PassObserver* observer, Schedule* schedule)
-    : Pass(observer), schedule_(*schedule) {
+    : Pass(observer), editor_(new ScheduleEditor(schedule)) {
   DCHECK(schedule);
 }
 
@@ -322,13 +322,13 @@ void Scheduler::Run() {
   RunScope scope(this);
   if (scope.IsStop())
     return;
-  ScheduleEditor editor(&schedule_);
-  CfgBuilder(&editor).Run();
-  EarlyScheduler(&editor).Run();
-  LateScheduler(&editor).Run();
-  auto const edge_map = StaticPredictor(observer(), &editor).Run();
-  auto const blocks = BlockLayouter(observer(), &editor, edge_map.get()).Run();
-  NodePlacer(observer(), &editor, blocks).Run();
+  CfgBuilder(editor_.get()).Run();
+  EarlyScheduler(editor_.get()).Run();
+  LateScheduler(editor_.get()).Run();
+  auto const edge_map = StaticPredictor(observer(), editor_.get()).Run();
+  auto const blocks =
+      BlockLayouter(observer(), editor_.get(), edge_map.get()).Run();
+  NodePlacer(observer(), editor_.get(), blocks).Run();
 }
 
 // api::Pass
@@ -339,17 +339,18 @@ base::StringPiece Scheduler::name() const {
 void Scheduler::DumpBeforePass(const api::PassDumpContext& context) {
   auto& ostream = *context.ostream;
   if (context.IsGraph()) {
-    ostream << AsGraphviz(schedule_.function());
+    ostream << AsGraphviz(editor_->function());
     return;
   }
-  ostream << AsReversePostOrder(schedule_.function());
+  ostream << AsReversePostOrder(editor_->function());
 }
 
 void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
-  DCHECK(!schedule_.nodes().empty());
+  auto const& nodes = editor_->schedule().nodes();
+  DCHECK(!nodes.empty());
   auto& ostream = *context.ostream;
   auto position = 0;
-  for (auto const node : schedule_.nodes()) {
+  for (auto const node : nodes) {
     if (node->IsBlockStart())
       ostream << "block" << node->id() << ":" << std::endl;
     ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
