@@ -197,21 +197,24 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
                    frequency);
       return;
     case Opcode::If: {
-      auto const true_target = BlockOf(TrueTargetOf(from));
-      auto const false_target = BlockOf(FalseTargetOf(from));
-      if (LoopDepthOf(true_target) == LoopDepthOf(false_target)) {
-        auto const true_frequency = frequency * EstimateByCondition(last_node);
-        SetFrequency(from, true_target, true_frequency);
-        SetFrequency(from, false_target, frequency - true_frequency);
+      auto const true_block = BlockOf(TrueTargetOf(from));
+      auto const false_block = BlockOf(FalseTargetOf(from));
+      if (LoopDepthOf(true_block) != LoopDepthOf(false_block)) {
+        SetBranchFrequency(
+            from, true_block, false_block, frequency,
+            LoopDepthOf(true_block) < LoopDepthOf(false_block) ? 0.001 : 0.999);
         return;
       }
-      if (LoopDepthOf(true_target) < LoopDepthOf(false_target)) {
-        SetFrequency(from, true_target, 1);
-        SetFrequency(from, false_target, frequency - 1);
+
+      auto const probability = EstimateByCondition(last_node);
+      if (probability != 0.5) {
+        SetBranchFrequency(from, true_block, false_block, frequency,
+                           probability);
         return;
       }
-      SetFrequency(from, true_target, frequency - 1);
-      SetFrequency(from, false_target, 1);
+      SetBranchFrequency(
+          from, true_block, false_block, frequency,
+          PostDepthOf(true_block) < PostDepthOf(false_block) ? 0.1 : 0.9);
       return;
     }
     case Opcode::Jump: {
@@ -236,8 +239,8 @@ std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
         DCHECK(control->IsControl());
         auto const predecessor = BlockOf(control);
         auto const frequency = edge_map_.Has(predecessor, block)
-            ? edge_map_.FrequencyOf(predecessor, block)
-            : LoopDepthOf(block) * 1000;
+                                   ? edge_map_.FrequencyOf(predecessor, block)
+                                   : LoopDepthOf(block) * 1000;
         total_frequency += frequency;
       }
       if (block->first_node()->opcode() == Opcode::Entry)
@@ -252,6 +255,16 @@ void StaticPredictor::SetFrequency(const BasicBlock* from,
                                    const BasicBlock* to,
                                    double frequency) {
   edge_map_.Add(from, to, frequency);
+}
+
+void StaticPredictor::SetBranchFrequency(const BasicBlock* block,
+                                         const BasicBlock* true_block,
+                                         const BasicBlock* false_block,
+                                         double frequency,
+                                         double probability) {
+  auto const true_frequency = frequency * probability;
+  SetFrequency(block, true_block, true_frequency);
+  SetFrequency(block, false_block, frequency - true_frequency);
 }
 
 // api::Pass
@@ -276,8 +289,9 @@ void StaticPredictor::DumpPass(const api::PassDumpContext& context) {
   for (auto const& edge : edges) {
     auto const from = edge.first;
     auto const to = edge.second;
-    ostream << "  " << from << "/" << LoopDepthOf(from) << " -> "
-            << to << "/" << LoopDepthOf(to) << " "
+    ostream << "  " << from << "/" << LoopDepthOf(from) << "/"
+            << PostDepthOf(from) << " -> " << to << "/" << LoopDepthOf(to)
+            << "/" << PostDepthOf(to) << " "
             << edge_map_.FrequencyOf(edge.first, edge.second) << std::endl;
   }
 }

@@ -88,6 +88,11 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
   void DumpPass(const api::PassDumpContext& context) final;
 
   void Predict(const BasicBlock* from, double frequency);
+  void SetBranchFrequency(const BasicBlock* block,
+                          const BasicBlock* true_block,
+                          const BasicBlock* false_block,
+                          double frequency,
+                          double probability);
   void SetFrequency(const BasicBlock* from,
                     const BasicBlock* to,
                     double frequency);
