@@ -158,9 +158,10 @@ void LateScheduler::DoDefaultVisit(Node* node) {
 //
 // NodePlacer
 //
-class NodePlacer final : public ScheduleEditor::User {
+class NodePlacer final : public api::Pass, public ScheduleEditor::User {
  public:
-  explicit NodePlacer(ScheduleEditor* editor,
+  explicit NodePlacer(api::PassObserver* observer,
+                      ScheduleEditor* editor,
                       const std::vector<BasicBlock*>& blocks);
   ~NodePlacer() = default;
 
@@ -170,15 +171,20 @@ class NodePlacer final : public ScheduleEditor::User {
   bool IsUsedInBlock(Node* node, BasicBlock* block) const;
   void ScheduleInBlock(BasicBlock* block);
 
+  // api::Pass
+  base::StringPiece name() const final;
+  void DumpPass(const api::PassDumpContext& context) final;
+
   const std::vector<BasicBlock*>& blocks_;
   std::vector<Node*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(NodePlacer);
 };
 
-NodePlacer::NodePlacer(ScheduleEditor* editor,
+NodePlacer::NodePlacer(api::PassObserver* observer,
+                       ScheduleEditor* editor,
                        const std::vector<BasicBlock*>& blocks)
-    : ScheduleEditor::User(editor), blocks_(blocks) {
+    : Pass(observer), ScheduleEditor::User(editor), blocks_(blocks) {
   nodes_.reserve(function()->max_node_id());
 }
 
@@ -192,6 +198,7 @@ bool NodePlacer::IsUsedInBlock(Node* node, BasicBlock* block) const {
 }
 
 void NodePlacer::Run() {
+  RunScope scope(this);
   for (auto const block : blocks_)
     ScheduleInBlock(block);
   editor()->DidPlaceNodes(nodes_);
@@ -253,6 +260,44 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
   nodes_.push_back(end_node);
 }
 
+// api::Pass
+base::StringPiece NodePlacer::name() const {
+  return "node_placer";
+}
+
+void NodePlacer::DumpPass(const api::PassDumpContext& context) {
+  if (nodes_.empty())
+    return;
+  auto& ostream = *context.ostream;
+  auto position = 0;
+  for (auto const node : nodes_) {
+    if (node->IsBlockStart()) {
+      auto const block = BlockOf(node);
+      ostream << block << ":" << std::endl;
+      {
+        ostream << "  In:   {";
+        auto separator = "";
+        for (auto const control : node->inputs()) {
+          ostream << separator << BlockOf(control);
+          separator = ", ";
+        }
+        ostream << "}" << std::endl;
+      }
+      {
+        ostream << "  Out:  {";
+        auto separator = "";
+        for (auto const use_edge : block->last_node()->use_edges()) {
+          ostream << separator << BlockOf(use_edge->from());
+          separator = ", ";
+        }
+        ostream << "}" << std::endl;
+      }
+    }
+    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
+    ++position;
+  }
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -276,7 +321,7 @@ void Scheduler::Run() {
   LateScheduler(&editor).Run();
   auto const edge_map = StaticPredictor(observer(), &editor).Run();
   auto const blocks = BlockLayouter(observer(), &editor, edge_map.get()).Run();
-  NodePlacer(&editor, blocks).Run();
+  NodePlacer(observer(), &editor, blocks).Run();
 }
 
 // api::Pass
