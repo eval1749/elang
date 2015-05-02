@@ -90,7 +90,7 @@ BlockLayouter::~BlockLayouter() {
 void BlockLayouter::BuildChain() {
   std::unordered_set<const BasicBlock*> blocks;
   std::vector<Edge> edges;
-  edges.reserve(edge_map_->size());
+  edges.reserve(edge_map_->all_edges().size());
   for (auto pair : edge_map_->all_edges()) {
     auto const from = pair.first.first;
     auto const to = pair.first.second;

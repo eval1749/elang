@@ -47,7 +47,6 @@ class EdgeProfile final {
   ~EdgeProfile();
 
   const Map& all_edges() const { return map_; }
-  size_t size() const { return map_.size(); }
 
   double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
 
