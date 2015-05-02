@@ -62,6 +62,38 @@ DEFINE_RET_TEST(UInt16, uint16, "lit EAX = 42")
 DEFINE_RET_TEST(UInt32, uint32, "lit EAX = 42")
 DEFINE_RET_TEST(UInt64, uint64, "lit RAX = 42l")
 
+TEST_F(TranslatorX64Test, ElementNode) {
+  auto const function =
+      NewFunction(NewPointerType(int32_type()),
+                  NewPointerType(NewArrayType(int32_type(), {-1})));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const array = NewParameter(entry_node, 0);
+  editor.SetRet(effect, NewElement(array, NewInt32(42)));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  add %r2l = %r1l, 16l\n"
+      "  shl %r3 = 42, 2\n"
+      "  sext %r4l = %r3\n"
+      "  add %r5l = %r2l, %r4l\n"
+      "  mov RAX = %r5l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 TEST_F(TranslatorX64Test, EntryNode) {
   auto const function = NewFunction(void_type(), void_type());
   ir::Editor editor(factory(), function);

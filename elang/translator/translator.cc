@@ -90,6 +90,21 @@ void Translator::EmitSetValue(lir::Value output, ir::Node* node) {
   Emit(NewLiteralInstruction(output, input));
 }
 
+lir::Value Translator::EmitShl(lir::Value input, int shift_count) {
+  DCHECK_GE(shift_count, 0);
+  shift_count &= lir::Value::BitSizeOf(input) - 1;
+  DCHECK_GE(shift_count, 0);
+  if (!shift_count)
+    return input;
+  auto const output = NewRegister(input);
+  if (shift_count == 1) {
+    Emit(NewAddInstruction(output, input, input));
+    return output;
+  }
+  Emit(NewShlInstruction(output, input, lir::Value::SmallInt32(shift_count)));
+  return output;
+}
+
 lir::Value Translator::MapInput(ir::Node* node) {
   DCHECK(node->IsData());
 
@@ -299,8 +314,56 @@ void Translator::VisitUnreachable(ir::UnreachableNode* node) {
 
 // Simple node 2
 void Translator::VisitElement(ir::ElementNode* node) {
-  // TODO(eval1749): NYI translate Element
-  NOTREACHED() << *node;
+  auto const indexes = node->input(1)->as<ir::TupleNode>();
+  if (indexes) {
+    // Multiple dimensions array:
+    //   T* %ptr = element %array_ptr, %index...
+    //   =>
+    //   pcopy RCX, RDX, ... = %array_ptr%, %index...
+    //   call `CalculateRowMajorIndex` //   for multiple dimension array
+    //   copy %row_major_index, EAX
+    //   sext %row_major_index64, %row_major_index
+    //   add %element_ptr = %array_ptr, %row_major_index64
+    //   aload %output = %array_ptr, %element_ptr, sizeof(ArrayHeader)
+    // or
+    //   astore %array_ptr, %element_ptr, sizeof(ArrayHeader), %new_value
+    // TODO(eval1749) We need to have helper function to calculate row-major-
+    // index from array type.
+    NOTREACHED() << "NYI: multiple dimension array access" << *node;
+    // Layout of multiple dimensions array object:
+    //  +0 object header
+    //  +8 dimension[0]
+    //  +16 dimension[1]
+    //  ...
+    //  +8*(n+1) element[0]
+  }
+
+  // Vector (single dimension array)
+  //   T* %ptr = element %array_ptr, %index
+  //   =>
+  //   add %element_start = %array_ptr, sizeof(ArrayHeader)
+  //   shl %offset = %index, log2(sizeof(element_type))
+  //   sext %offset64 = %offset
+  //   add %element_ptr = %element_start, %offset64
+  auto const array_pointer = MapInput(node->input(0));
+  auto const element_type =
+      MapType(node->output_type()->as<ir::PointerType>()->pointee());
+
+  // Layout of vector object:
+  //  +0 object header
+  //  +8 length
+  //  +16 element[0]
+  auto const sizeof_array_header =
+      lir::Value::SmallInt64(lir::Value::SizeOf(lir::Value::IntPtrType()) * 2);
+  auto const element_start = NewRegister(lir::Value::IntPtrType());
+  Emit(NewAddInstruction(element_start, array_pointer, sizeof_array_header));
+
+  auto const shift_count = lir::Value::Log2Of(element_type);
+  auto const offset = EmitShl(MapInput(node->input(1)), shift_count);
+  auto const offset64 = NewRegister(lir::Value::IntPtrType());
+  Emit(NewSignExtendInstruction(offset64, offset));
+
+  Emit(NewAddInstruction(MapOutput(node), element_start, offset64));
 }
 
 void Translator::VisitIf(ir::IfNode* node) {

@@ -56,6 +56,9 @@ class Translator final : public ZoneOwner,
   void EmitCopy(lir::Value output, lir::Value input);
   void EmitSetValue(lir::Value output, ir::Node* node);
 
+  // Generate literal or |ShlInstruction|.
+  lir::Value EmitShl(lir::Value input, int shift_count);
+
   lir::Value MapInput(ir::Node* node);
   lir::Value MapOutput(ir::Node* node);
   lir::Value MapRegister(ir::Node* node);
