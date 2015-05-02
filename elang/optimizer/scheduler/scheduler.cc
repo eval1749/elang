@@ -21,6 +21,7 @@
 #include "elang/optimizer/scheduler/cfg_builder.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
+#include "elang/optimizer/scheduler/schedule_formatter.h"
 #include "elang/optimizer/scheduler/static_predictor.h"
 
 namespace elang {
@@ -349,13 +350,7 @@ void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
   auto const& nodes = editor_->schedule().nodes();
   DCHECK(!nodes.empty());
   auto& ostream = *context.ostream;
-  auto position = 0;
-  for (auto const node : nodes) {
-    if (node->IsBlockStart())
-      ostream << "block" << node->id() << ":" << std::endl;
-    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
-    ++position;
-  }
+  ostream << AsFormatted(editor_->schedule());
 }
 
 }  // namespace optimizer

@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& ostream,
   for (auto const node : schedule.nodes()) {
     if (node->IsBlockStart())
       ostream << "block" << node->id() << ":" << std::endl;
-    ostream << base::StringPrintf("%04d: ", position) << *node << std::endl;
+    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
     ++position;
   }
   return ostream;
