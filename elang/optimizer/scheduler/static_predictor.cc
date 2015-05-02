@@ -13,7 +13,7 @@
 #include "elang/optimizer/opcode.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/scheduler/basic_block.h"
-#include "elang/optimizer/scheduler/edge_profile.h"
+#include "elang/optimizer/scheduler/edge_profile_editor.h"
 
 namespace elang {
 namespace optimizer {
@@ -127,7 +127,9 @@ Node* TrueTargetOf(const BasicBlock* block) {
 //
 StaticPredictor::StaticPredictor(api::PassObserver* observer,
                                  ScheduleEditor* editor)
-    : Pass(observer), ScheduleEditor::User(editor) {
+    : Pass(observer),
+      ScheduleEditor::User(editor),
+      edge_profile_(new EdgeProfileEditor()) {
 }
 
 StaticPredictor::~StaticPredictor() {
@@ -188,8 +190,8 @@ std::unique_ptr<EdgeProfile> StaticPredictor::Run() {
         DCHECK(control->IsControl());
         auto const predecessor = BlockOf(control);
         auto const frequency =
-            edge_profile_.Has(predecessor, block)
-                ? edge_profile_.FrequencyOf(predecessor, block)
+            edge_profile_->Has(predecessor, block)
+                ? edge_profile_->FrequencyOf(predecessor, block)
                 : LoopDepthOf(block) * 1000;
         total_frequency += frequency;
       }
@@ -198,13 +200,13 @@ std::unique_ptr<EdgeProfile> StaticPredictor::Run() {
       Predict(block, total_frequency);
     }
   }
-  return edge_profile_.Finish();
+  return edge_profile_->Finish();
 }
 
 void StaticPredictor::SetFrequency(const BasicBlock* from,
                                    const BasicBlock* to,
                                    double frequency) {
-  edge_profile_.Add(from, to, frequency);
+  edge_profile_->Add(from, to, frequency);
 }
 
 void StaticPredictor::SetBranchFrequency(const BasicBlock* block,
@@ -226,8 +228,8 @@ void StaticPredictor::DumpAfterPass(const api::PassDumpContext& context) {
   auto& ostream = *context.ostream;
   using Edge = EdgeProfile::Edge;
   std::vector<Edge> edges;
-  edges.reserve(edge_profile_.all_edges().size());
-  for (auto const data : edge_profile_.all_edges())
+  edges.reserve(edge_profile_->all_edges().size());
+  for (auto const data : edge_profile_->all_edges())
     edges.push_back(data.first);
   std::sort(edges.begin(), edges.end(),
             [](const Edge& edge1, const Edge& edge2) {
@@ -242,7 +244,7 @@ void StaticPredictor::DumpAfterPass(const api::PassDumpContext& context) {
     ostream << "  " << from << "/" << LoopDepthOf(from) << "/"
             << PostDepthOf(from) << " -> " << to << "/" << LoopDepthOf(to)
             << "/" << PostDepthOf(to) << " "
-            << edge_profile_.FrequencyOf(edge.first, edge.second) << std::endl;
+            << edge_profile_->FrequencyOf(edge.first, edge.second) << std::endl;
   }
 }
 

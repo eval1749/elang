@@ -17,6 +17,7 @@ namespace optimizer {
 
 class BasicBlock;
 class EdgeProfile;
+class EdgeProfileEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -53,7 +54,7 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
   base::StringPiece name() const final;
   void DumpAfterPass(const api::PassDumpContext& context) final;
 
-  EdgeProfile::Editor edge_profile_;
+  std::unique_ptr<EdgeProfileEditor> edge_profile_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticPredictor);
 };

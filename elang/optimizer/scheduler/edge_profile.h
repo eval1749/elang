@@ -15,6 +15,7 @@ namespace elang {
 namespace optimizer {
 
 class BasicBlock;
+class EdgeProfileEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -25,24 +26,6 @@ class EdgeProfile final {
   using Edge = std::pair<const BasicBlock*, const BasicBlock*>;
   using Map = std::map<Edge, double>;
 
-  class Editor {
-   public:
-    Editor();
-    ~Editor();
-
-    const Map& all_edges() const { return edge_profile_->all_edges(); }
-
-    void Add(const BasicBlock* from, const BasicBlock* to, double frequency);
-    std::unique_ptr<EdgeProfile> Finish();
-    double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
-    bool Has(const BasicBlock* from, const BasicBlock* to) const;
-
-   private:
-    std::unique_ptr<EdgeProfile> edge_profile_;
-
-    DISALLOW_COPY_AND_ASSIGN(Editor);
-  };
-
   EdgeProfile();
   ~EdgeProfile();
 
@@ -51,7 +34,7 @@ class EdgeProfile final {
   double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
 
  private:
-  friend class Editor;
+  friend class EdgeProfileEditor;
 
   Map map_;
 

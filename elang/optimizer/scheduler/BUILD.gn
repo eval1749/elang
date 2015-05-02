@@ -16,6 +16,8 @@ source_set("scheduler") {
     "control_flow_graph.h",
     "edge_profile.cc",
     "edge_profile.h",
+    "edge_profile_editor.cc",
+    "edge_profile_editor.h",
     "schedule.cc",
     "schedule.h",
     "schedule_editor.cc",
