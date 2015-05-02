@@ -122,52 +122,52 @@ Node* TrueTargetOf(const BasicBlock* block) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// EdgeFrequencyMap::Editor
+// EdgeProfile::Editor
 //
-EdgeFrequencyMap::Editor::Editor() : edge_map_(new EdgeFrequencyMap()) {
+EdgeProfile::Editor::Editor() : edge_profile_(new EdgeProfile()) {
 }
 
-EdgeFrequencyMap::Editor::~Editor() {
-  DCHECK(!edge_map_);
+EdgeProfile::Editor::~Editor() {
+  DCHECK(!edge_profile_);
 }
 
-void EdgeFrequencyMap::Editor::Add(const BasicBlock* from,
-                                   const BasicBlock* to,
-                                   double value) {
+void EdgeProfile::Editor::Add(const BasicBlock* from,
+                              const BasicBlock* to,
+                              double value) {
   DCHECK_GE(value, 0);
   auto const key = std::make_pair(from, to);
-  DCHECK(!edge_map_->map_.count(key)) << from << "->" << to;
-  edge_map_->map_.insert(std::make_pair(key, value));
+  DCHECK(!edge_profile_->map_.count(key)) << from << "->" << to;
+  edge_profile_->map_.insert(std::make_pair(key, value));
 }
 
-std::unique_ptr<EdgeFrequencyMap> EdgeFrequencyMap::Editor::Finish() {
-  DCHECK(edge_map_);
-  return std::move(edge_map_);
+std::unique_ptr<EdgeProfile> EdgeProfile::Editor::Finish() {
+  DCHECK(edge_profile_);
+  return std::move(edge_profile_);
 }
 
-double EdgeFrequencyMap::Editor::FrequencyOf(const BasicBlock* from,
-                                             const BasicBlock* to) const {
-  return edge_map_->FrequencyOf(from, to);
+double EdgeProfile::Editor::FrequencyOf(const BasicBlock* from,
+                                        const BasicBlock* to) const {
+  return edge_profile_->FrequencyOf(from, to);
 }
 
-bool EdgeFrequencyMap::Editor::Has(const BasicBlock* from,
-                                   const BasicBlock* to) const {
-  auto const it = edge_map_->map_.find(std::make_pair(from, to));
-  return it != edge_map_->map_.end();
+bool EdgeProfile::Editor::Has(const BasicBlock* from,
+                              const BasicBlock* to) const {
+  auto const it = edge_profile_->map_.find(std::make_pair(from, to));
+  return it != edge_profile_->map_.end();
 }
 
 //////////////////////////////////////////////////////////////////////
 //
-// EdgeFrequencyMap
+// EdgeProfile
 //
-EdgeFrequencyMap::EdgeFrequencyMap() {
+EdgeProfile::EdgeProfile() {
 }
 
-EdgeFrequencyMap::~EdgeFrequencyMap() {
+EdgeProfile::~EdgeProfile() {
 }
 
-double EdgeFrequencyMap::FrequencyOf(const BasicBlock* form,
-                                     const BasicBlock* to) const {
+double EdgeProfile::FrequencyOf(const BasicBlock* form,
+                                const BasicBlock* to) const {
   auto const it = map_.find(std::make_pair(form, to));
   return it == map_.end() ? 0.0 : it->second;
 }
@@ -228,7 +228,7 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
   NOTREACHED() << *last_node;
 }
 
-std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
+std::unique_ptr<EdgeProfile> StaticPredictor::Run() {
   {
     RunScope scope(this);
     auto const blocks =
@@ -238,9 +238,10 @@ std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
       for (auto const control : block->first_node()->inputs()) {
         DCHECK(control->IsControl());
         auto const predecessor = BlockOf(control);
-        auto const frequency = edge_map_.Has(predecessor, block)
-                                   ? edge_map_.FrequencyOf(predecessor, block)
-                                   : LoopDepthOf(block) * 1000;
+        auto const frequency =
+            edge_profile_.Has(predecessor, block)
+                ? edge_profile_.FrequencyOf(predecessor, block)
+                : LoopDepthOf(block) * 1000;
         total_frequency += frequency;
       }
       if (block->first_node()->opcode() == Opcode::Entry)
@@ -248,13 +249,13 @@ std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
       Predict(block, total_frequency);
     }
   }
-  return edge_map_.Finish();
+  return edge_profile_.Finish();
 }
 
 void StaticPredictor::SetFrequency(const BasicBlock* from,
                                    const BasicBlock* to,
                                    double frequency) {
-  edge_map_.Add(from, to, frequency);
+  edge_profile_.Add(from, to, frequency);
 }
 
 void StaticPredictor::SetBranchFrequency(const BasicBlock* block,
@@ -274,10 +275,10 @@ base::StringPiece StaticPredictor::name() const {
 
 void StaticPredictor::DumpAfterPass(const api::PassDumpContext& context) {
   auto& ostream = *context.ostream;
-  using Edge = EdgeFrequencyMap::Edge;
+  using Edge = EdgeProfile::Edge;
   std::vector<Edge> edges;
-  edges.reserve(edge_map_.all_edges().size());
-  for (auto const data : edge_map_.all_edges())
+  edges.reserve(edge_profile_.all_edges().size());
+  for (auto const data : edge_profile_.all_edges())
     edges.push_back(data.first);
   std::sort(edges.begin(), edges.end(),
             [](const Edge& edge1, const Edge& edge2) {
@@ -292,7 +293,7 @@ void StaticPredictor::DumpAfterPass(const api::PassDumpContext& context) {
     ostream << "  " << from << "/" << LoopDepthOf(from) << "/"
             << PostDepthOf(from) << " -> " << to << "/" << LoopDepthOf(to)
             << "/" << PostDepthOf(to) << " "
-            << edge_map_.FrequencyOf(edge.first, edge.second) << std::endl;
+            << edge_profile_.FrequencyOf(edge.first, edge.second) << std::endl;
   }
 }
 

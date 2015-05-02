@@ -21,9 +21,9 @@ class BasicBlock;
 
 //////////////////////////////////////////////////////////////////////
 //
-// EdgeFrequencyMap
+// EdgeProfile
 //
-class EdgeFrequencyMap final {
+class EdgeProfile final {
  public:
   using Edge = std::pair<const BasicBlock*, const BasicBlock*>;
   using Map = std::map<Edge, double>;
@@ -33,21 +33,21 @@ class EdgeFrequencyMap final {
     Editor();
     ~Editor();
 
-    const Map& all_edges() const { return edge_map_->all_edges(); }
+    const Map& all_edges() const { return edge_profile_->all_edges(); }
 
     void Add(const BasicBlock* from, const BasicBlock* to, double frequency);
-    std::unique_ptr<EdgeFrequencyMap> Finish();
+    std::unique_ptr<EdgeProfile> Finish();
     double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
     bool Has(const BasicBlock* from, const BasicBlock* to) const;
 
    private:
-    std::unique_ptr<EdgeFrequencyMap> edge_map_;
+    std::unique_ptr<EdgeProfile> edge_profile_;
 
     DISALLOW_COPY_AND_ASSIGN(Editor);
   };
 
-  EdgeFrequencyMap();
-  ~EdgeFrequencyMap();
+  EdgeProfile();
+  ~EdgeProfile();
 
   const Map& all_edges() const { return map_; }
   size_t size() const { return map_.size(); }
@@ -59,7 +59,7 @@ class EdgeFrequencyMap final {
 
   Map map_;
 
-  DISALLOW_COPY_AND_ASSIGN(EdgeFrequencyMap);
+  DISALLOW_COPY_AND_ASSIGN(EdgeProfile);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
   explicit StaticPredictor(api::PassObserver* observer, ScheduleEditor* editor);
   ~StaticPredictor();
 
-  std::unique_ptr<EdgeFrequencyMap> Run();
+  std::unique_ptr<EdgeProfile> Run();
 
  private:
   // api::Pass
@@ -97,7 +97,7 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
                     const BasicBlock* to,
                     double frequency);
 
-  EdgeFrequencyMap::Editor edge_map_;
+  EdgeProfile::Editor edge_profile_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticPredictor);
 };

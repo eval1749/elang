@@ -80,7 +80,7 @@ void BlockLayouter::Chain::Append(const Chain* other, size_t priority) {
 //
 BlockLayouter::BlockLayouter(api::PassObserver* observer,
                              ScheduleEditor* editor,
-                             const EdgeFrequencyMap* edge_map)
+                             const EdgeProfile* edge_map)
     : Pass(observer), ScheduleEditor::User(editor), edge_map_(edge_map) {
 }
 

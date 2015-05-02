@@ -17,7 +17,7 @@ namespace elang {
 namespace optimizer {
 
 class BasicBlock;
-class EdgeFrequencyMap;
+class EdgeProfile;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -35,7 +35,7 @@ class BlockLayouter final : public api::Pass,
  public:
   BlockLayouter(api::PassObserver* observer,
                 ScheduleEditor* editor,
-                const EdgeFrequencyMap* edge_map);
+                const EdgeProfile* edge_map);
   ~BlockLayouter();
 
   std::vector<BasicBlock*> Run();
@@ -51,7 +51,7 @@ class BlockLayouter final : public api::Pass,
   base::StringPiece name() const final;
 
   std::unordered_map<const BasicBlock*, Chain*> chain_map_;
-  const EdgeFrequencyMap* const edge_map_;
+  const EdgeProfile* const edge_map_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockLayouter);
 };
