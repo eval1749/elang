@@ -19,9 +19,9 @@
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/block_layouter.h"
 #include "elang/optimizer/scheduler/cfg_builder.h"
+#include "elang/optimizer/scheduler/formatted_schedule.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
-#include "elang/optimizer/scheduler/schedule_formatter.h"
 #include "elang/optimizer/scheduler/static_predictor.h"
 
 namespace elang {

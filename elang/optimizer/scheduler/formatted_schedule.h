@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_FORMATTER_H_
-#define ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_FORMATTER_H_
+#ifndef ELANG_OPTIMIZER_SCHEDULER_FORMATTED_SCHEDULE_H_
+#define ELANG_OPTIMIZER_SCHEDULER_FORMATTED_SCHEDULE_H_
 
 #include <ostream>
 
@@ -28,4 +28,4 @@ ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(
 }  // namespace optimizer
 }  // namespace elang
 
-#endif  // ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_FORMATTER_H_
+#endif  // ELANG_OPTIMIZER_SCHEDULER_FORMATTED_SCHEDULE_H_

@@ -11,9 +11,9 @@
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/scheduler/formatted_schedule.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/scheduler.h"
-#include "elang/optimizer/scheduler/schedule_formatter.h"
 #include "elang/optimizer/types.h"
 
 namespace elang {

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/optimizer/scheduler/schedule_formatter.h"
+#include "elang/optimizer/scheduler/formatted_schedule.h"
 
 #include "base/strings/stringprintf.h"
 #include "elang/optimizer/function.h"
@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& ostream,
   for (auto const node : schedule.nodes()) {
     if (node->IsBlockStart())
       ostream << "block" << node->id() << ":" << std::endl;
-    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
+    ostream << base::StringPrintf("%04d: ", position) << *node << std::endl;
     ++position;
   }
   return ostream;
