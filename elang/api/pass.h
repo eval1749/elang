@@ -52,8 +52,11 @@ class Pass {
     explicit RunScope(Pass* pass);
     ~RunScope();
 
+    bool IsStop() const { return stop_; }
+
    private:
     Pass* const pass_;
+    bool const stop_;
 
     DISALLOW_COPY_AND_ASSIGN(RunScope);
   };
@@ -63,7 +66,7 @@ class Pass {
   PassObserver* observer() const { return observer_; }
 
   void EndPass();
-  void StartPass();
+  bool StartPass();
 
  private:
   base::Time end_at_;

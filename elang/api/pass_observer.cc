@@ -20,7 +20,8 @@ PassObserver::~PassObserver() {
 void PassObserver::DidEndPass(Pass* pass) {
 }
 
-void PassObserver::DidStartPass(Pass* pass) {
+bool PassObserver::DidStartPass(Pass* pass) {
+  return true;
 }
 
 }  // namespace api

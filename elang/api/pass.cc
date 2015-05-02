@@ -14,8 +14,7 @@ namespace api {
 //
 // Pass::RunScope
 //
-Pass::RunScope::RunScope(Pass* pass) : pass_(pass) {
-  pass_->StartPass();
+Pass::RunScope::RunScope(Pass* pass) : pass_(pass), stop_(!pass_->StartPass()) {
 }
 
 Pass::RunScope::~RunScope() {
@@ -51,11 +50,11 @@ void Pass::EndPass() {
   observer_->DidEndPass(this);
 }
 
-void Pass::StartPass() {
+bool Pass::StartPass() {
   DCHECK(start_at_ == base::Time());
   DCHECK(end_at_ == base::Time());
   start_at_ = base::Time::Now();
-  observer_->DidStartPass(this);
+  return observer_->DidStartPass(this);
 }
 
 }  // namespace api

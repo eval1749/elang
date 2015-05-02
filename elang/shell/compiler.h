@@ -49,7 +49,7 @@ class Compiler final : public api::PassObserver {
 
   // api::PassObserver implementation
   void DidEndPass(api::Pass* pass) final;
-  void DidStartPass(api::Pass* pass) final;
+  bool DidStartPass(api::Pass* pass) final;
 
   const std::vector<base::string16> args_;
   std::unordered_set<std::string> dump_after_passes_;

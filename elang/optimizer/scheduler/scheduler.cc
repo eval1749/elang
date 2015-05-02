@@ -203,6 +203,8 @@ bool NodePlacer::IsUsedInBlock(Node* node, BasicBlock* block) const {
 
 void NodePlacer::Run() {
   RunScope scope(this);
+  if (scope.IsStop())
+    return;
   for (auto const block : blocks_)
     ScheduleInBlock(block);
   editor()->DidPlaceNodes(nodes_);
@@ -318,6 +320,8 @@ Scheduler::~Scheduler() {
 // The entry point
 void Scheduler::Run() {
   RunScope scope(this);
+  if (scope.IsStop())
+    return;
   ScheduleEditor editor(&schedule_);
   CfgBuilder(&editor).Run();
   EarlyScheduler(&editor).Run();

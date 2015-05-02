@@ -487,6 +487,8 @@ bool Compiler::ReportCompileErrors() {
 
 // api::PassObserver implementation
 void Compiler::DidEndPass(api::Pass* pass) {
+  if (stop_)
+    return;
   auto const pass_name = pass->name();
   stop_ = stop_after_ == pass_name;
   DVLOG(0) << "End " << pass_name << " " << pass->duration().InMillisecondsF()
@@ -501,7 +503,8 @@ void Compiler::DidEndPass(api::Pass* pass) {
   }
 }
 
-void Compiler::DidStartPass(api::Pass* pass) {
+bool Compiler::DidStartPass(api::Pass* pass) {
+  DCHECK(!stop_);
   auto const pass_name = pass->name();
   stop_ = stop_before_ == pass_name;
   DVLOG(0) << "Start: " << pass_name;
@@ -513,6 +516,7 @@ void Compiler::DidStartPass(api::Pass* pass) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
     pass->DumpBeforePass(dump_context);
   }
+  return !stop_;
 }
 
 }  // namespace shell
