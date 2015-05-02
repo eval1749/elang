@@ -52,10 +52,6 @@ class TranslateTest : public testing::AnalyzerTest,
   std::string FormatFunction(ir::Function* function);
   std::string GetFunction(base::StringPiece name);
 
-  // api::PassObserver
-  void DidEndPass(api::Pass* pass) final;
-  void DidStartPass(api::Pass* pass) final;
-
   const std::unique_ptr<ir::FactoryConfig> factory_config_;
   const std::unique_ptr<ir::Factory> factory_;
   const std::unique_ptr<Translator> translator_;

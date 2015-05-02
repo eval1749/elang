@@ -57,10 +57,6 @@ class TranslatorTest : public ::testing::Test,
   ir::Function* NewFunction(ir::Type* return_type, ir::Type* parameters_type);
 
  private:
-  // api::PassObserver
-  void DidEndPass(api::Pass* pass) final;
-  void DidStartPass(api::Pass* pass) final;
-
   const std::unique_ptr<ir::Factory> factory_;
   const std::unique_ptr<lir::Factory> lir_factory_;
 

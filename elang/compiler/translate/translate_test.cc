@@ -72,13 +72,6 @@ std::string TranslateTest::Translate(base::StringPiece name) {
   return GetFunction(name);
 }
 
-// api::PassObserver
-void TranslateTest::DidEndPass(api::Pass* pass) {
-}
-
-void TranslateTest::DidStartPass(api::Pass* pass) {
-}
-
 }  // namespace testing
 }  // namespace compiler
 }  // namespace elang

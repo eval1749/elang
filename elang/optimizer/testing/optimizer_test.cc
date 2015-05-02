@@ -89,13 +89,6 @@ std::string OptimizerTest::ToString(const Type* type) {
   return ostream.str();
 }
 
-// api::PassObserver
-void OptimizerTest::DidEndPass(api::Pass* pass) {
-}
-
-void OptimizerTest::DidStartPass(api::Pass* pass) {
-}
-
 }  // namespace testing
 }  // namespace optimizer
 }  // namespace elang

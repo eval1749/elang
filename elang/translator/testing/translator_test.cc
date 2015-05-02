@@ -72,13 +72,6 @@ ir::Function* TranslatorTest::NewFunction(ir::Type* return_type,
   return factory()->NewFunction(NewFunctionType(return_type, parameters_type));
 }
 
-// api::PassObserver
-void TranslatorTest::DidEndPass(api::Pass* pass) {
-}
-
-void TranslatorTest::DidStartPass(api::Pass* pass) {
-}
-
 }  // namespace testing
 }  // namespace translator
 }  // namespace elang
