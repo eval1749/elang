@@ -14,7 +14,6 @@ namespace elang {
 namespace optimizer {
 
 class Schedule;
-class ScheduleEditor;
 
 struct ELANG_OPTIMIZER_EXPORT FormattedSchedule {
   const Schedule* schedule;
@@ -25,10 +24,6 @@ ELANG_OPTIMIZER_EXPORT FormattedSchedule AsFormatted(const Schedule& schedule);
 ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(
     std::ostream& ostream,
     const FormattedSchedule& formatted);
-
-ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(
-    std::ostream& ostream,
-    const ScheduleEditor& formatted);
 
 }  // namespace optimizer
 }  // namespace elang
