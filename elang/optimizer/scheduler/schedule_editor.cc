@@ -53,6 +53,10 @@ BasicBlock* ScheduleEditor::User::LoopHeaderOf(const BasicBlock* block) const {
   return editor_.LoopHeaderOf(block);
 }
 
+int ScheduleEditor::User::PostDepthOf(const BasicBlock* block) const {
+  return editor_.PostDepthOf(block);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // ScheduleEditor
@@ -107,6 +111,10 @@ void ScheduleEditor::DidBuildControlFlowGraph() {
   DCHECK(!loop_tree_);
   dominator_tree_ =
       DominatorTreeBuilder<ControlFlowGraph>(control_flow_graph_).Build();
+  post_dominator_tree_ =
+      DominatorTreeBuilder<ControlFlowGraph,
+                           BackwardFlowGraph<ControlFlowGraph>>(
+          control_flow_graph_).Build();
   loop_tree_ = LoopTreeBuilder<ControlFlowGraph>(control_flow_graph_).Build();
 }
 
@@ -138,6 +146,10 @@ BasicBlock* ScheduleEditor::MapToBlock(Node* start_node) {
   block->nodes_.push_back(start_node);
   block_map_.insert(std::make_pair(start_node, block));
   return block;
+}
+
+int ScheduleEditor::PostDepthOf(const BasicBlock* block) const {
+  return post_dominator_tree_->TreeNodeOf(block)->depth();
 }
 
 void ScheduleEditor::SetBlockOf(Node* node, BasicBlock* block) {

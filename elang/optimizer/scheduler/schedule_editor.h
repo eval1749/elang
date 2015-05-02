@@ -55,6 +55,7 @@ class ScheduleEditor final : public ZoneUser {
     BasicBlock* DominatorOf(BasicBlock* block) const;
     int LoopDepthOf(const BasicBlock* block) const;
     BasicBlock* LoopHeaderOf(const BasicBlock* block) const;
+    int PostDepthOf(const BasicBlock* block) const;
 
    private:
     ScheduleEditor& editor_;
@@ -97,6 +98,9 @@ class ScheduleEditor final : public ZoneUser {
   // Returns |BasicBlock| associated to |start_node|
   BasicBlock* MapToBlock(Node* start_node);
 
+  // Returns depth of |block| in post-dominator tree.
+  int PostDepthOf(const BasicBlock* block) const;
+
   // Associates |node| to |block|.
   void SetBlockOf(Node* node, BasicBlock* block);
 
@@ -109,6 +113,7 @@ class ScheduleEditor final : public ZoneUser {
   ControlFlowGraph* const control_flow_graph_;
   std::unique_ptr<DominatorTree> dominator_tree_;
   std::unique_ptr<LoopTree> loop_tree_;
+  std::unique_ptr<DominatorTree> post_dominator_tree_;
   Schedule& schedule_;
 
   DISALLOW_COPY_AND_ASSIGN(ScheduleEditor);
