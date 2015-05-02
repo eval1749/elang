@@ -7,6 +7,7 @@
 #include <string>
 
 #include "base/logging.h"
+#include "base/numerics/safe_conversions.h"
 #include "base/strings/string_piece.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
@@ -204,8 +205,7 @@ std::vector<Value> Target::AllocatableGeneralRegisters() {
   return registers;
 }
 
-Value Target::GetArgumentAt(Value output, int position) {
-  DCHECK_GE(position, 0);
+Value Target::GetArgumentAt(Value output, size_t position) {
   auto const it = std::begin(isa::kIntegerParameters) + position;
   if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
@@ -213,11 +213,11 @@ Value Target::GetArgumentAt(Value output, int position) {
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
                  number & 15);
   }
-  return Value::Argument(output, position);
+  // TODO(eval1749) We should make |Value::Argument()| to take |size_t|.
+  return Value::Argument(output, base::checked_cast<int>(position));
 }
 
-Value Target::GetParameterAt(Value output, int position) {
-  DCHECK_GE(position, 0);
+Value Target::GetParameterAt(Value output, size_t position) {
   auto const it = std::begin(isa::kIntegerParameters) + position;
   if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
@@ -225,7 +225,8 @@ Value Target::GetParameterAt(Value output, int position) {
     return Value(output.type, output.size, Value::Kind::PhysicalRegister,
                  number & 15);
   }
-  return Value::Parameter(output, position);
+  // TODO(eval1749) We should make |Value::Parameter()| to take |size_t|.
+  return Value::Parameter(output, base::checked_cast<int>(position));
 }
 
 Value Target::GetRegister(isa::Register name) {

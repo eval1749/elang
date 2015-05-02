@@ -219,10 +219,10 @@ class ELANG_LIR_EXPORT Target {
   static std::vector<Value> AllocatableGeneralRegisters();
 
   // Returns register or location for argument at |position|.
-  static Value GetArgumentAt(Value output, int position);
+  static Value GetArgumentAt(Value output, size_t position);
 
   // Returns register or location for parameter at |position|.
-  static Value GetParameterAt(Value output, int position);
+  static Value GetParameterAt(Value output, size_t position);
 
   // Returns physical/pseudo register of |name|.
   static Value GetRegister(isa::Register name);
