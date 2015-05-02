@@ -272,7 +272,7 @@ base::StringPiece StaticPredictor::name() const {
   return "static_predictor";
 }
 
-void StaticPredictor::DumpPass(const api::PassDumpContext& context) {
+void StaticPredictor::DumpAfterPass(const api::PassDumpContext& context) {
   auto& ostream = *context.ostream;
   using Edge = EdgeFrequencyMap::Edge;
   std::vector<Edge> edges;

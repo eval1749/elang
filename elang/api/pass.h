@@ -32,7 +32,8 @@ class Pass {
   base::TimeDelta duration() const;
   virtual base::StringPiece name() const = 0;
 
-  virtual void DumpPass(const PassDumpContext& context) = 0;
+  virtual void DumpAfterPass(const PassDumpContext& context);
+  virtual void DumpBeforePass(const PassDumpContext& context);
 
  protected:
   class RunScope final {

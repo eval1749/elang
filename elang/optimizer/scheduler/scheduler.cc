@@ -173,7 +173,7 @@ class NodePlacer final : public api::Pass, public ScheduleEditor::User {
 
   // api::Pass
   base::StringPiece name() const final;
-  void DumpPass(const api::PassDumpContext& context) final;
+  void DumpAfterPass(const api::PassDumpContext& context) final;
 
   const std::vector<BasicBlock*>& blocks_;
   std::vector<Node*> nodes_;
@@ -265,9 +265,8 @@ base::StringPiece NodePlacer::name() const {
   return "node_placer";
 }
 
-void NodePlacer::DumpPass(const api::PassDumpContext& context) {
-  if (nodes_.empty())
-    return;
+void NodePlacer::DumpAfterPass(const api::PassDumpContext& context) {
+  DCHECK(!nodes_.empty());
   auto& ostream = *context.ostream;
   auto position = 0;
   for (auto const node : nodes_) {
@@ -329,9 +328,8 @@ base::StringPiece Scheduler::name() const {
   return "scheduler";
 }
 
-void Scheduler::DumpPass(const api::PassDumpContext& context) {
-  if (schedule_.nodes().empty())
-    return;
+void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
+  DCHECK(!schedule_.nodes().empty());
   auto& ostream = *context.ostream;
   auto position = 0;
   for (auto const node : schedule_.nodes()) {

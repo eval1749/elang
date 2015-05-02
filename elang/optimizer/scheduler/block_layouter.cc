@@ -188,8 +188,5 @@ base::StringPiece BlockLayouter::name() const {
   return "block layouter";
 }
 
-void BlockLayouter::DumpPass(const api::PassDumpContext& context) {
-}
-
 }  // namespace optimizer
 }  // namespace elang

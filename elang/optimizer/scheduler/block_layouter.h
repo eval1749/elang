@@ -49,7 +49,6 @@ class BlockLayouter final : public api::Pass,
 
   // api::Pass
   base::StringPiece name() const final;
-  void DumpPass(const api::PassDumpContext& context) final;
 
   std::unordered_map<const BasicBlock*, Chain*> chain_map_;
   const EdgeFrequencyMap* const edge_map_;

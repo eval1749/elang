@@ -292,6 +292,14 @@ bool ReportLirErrors(const lir::Factory* factory) {
   return true;
 }
 
+std::vector<std::string> SwitchValuesOf(base::StringPiece switch_name) {
+  auto const command_line = base::CommandLine::ForCurrentProcess();
+  std::vector<std::string> values;
+  base::SplitString(command_line->GetSwitchValueASCII(switch_name.as_string()),
+                    ',', &values);
+  return std::move(values);
+}
+
 const char kDumpHir[] = "dump_hir";
 const char kDumpLir[] = "dump_lir";
 const char kUseGraphviz[] = "use_gv";
@@ -335,12 +343,14 @@ int Compiler::CompileAndGo() {
   auto has_parameter = false;
   auto has_return_value = false;
 
-  {
-    std::vector<std::string> names;
-    base::SplitString(command_line->GetSwitchValueASCII("dump"), ',', &names);
-    for (auto name : names)
-      dump_passes_.insert(name);
+  for (auto name : SwitchValuesOf("dump")) {
+    dump_after_passes_.insert(name);
+    dump_before_passes_.insert(name);
   }
+  for (auto name : SwitchValuesOf("dump_after"))
+    dump_after_passes_.insert(name);
+  for (auto name : SwitchValuesOf("dump_before"))
+    dump_before_passes_.insert(name);
 
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
@@ -465,18 +475,18 @@ bool Compiler::ReportCompileErrors() {
 void Compiler::DidEndPass(api::Pass* pass) {
   DVLOG(0) << "End " << pass->name() << " "
            << pass->duration().InMillisecondsF() << "ms";
-  if (!dump_passes_.count(pass->name().as_string()))
+  if (!dump_after_passes_.count(pass->name().as_string()))
     return;
   api::PassDumpContext dump_context{&std::cout};
-  pass->DumpPass(dump_context);
+  pass->DumpAfterPass(dump_context);
 }
 
 void Compiler::DidStartPass(api::Pass* pass) {
   DVLOG(0) << "Start: " << pass->name();
-  if (!dump_passes_.count(pass->name().as_string()))
+  if (!dump_before_passes_.count(pass->name().as_string()))
     return;
   api::PassDumpContext dump_context{&std::cout};
-  pass->DumpPass(dump_context);
+  pass->DumpBeforePass(dump_context);
 }
 
 }  // namespace shell

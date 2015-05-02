@@ -38,6 +38,12 @@ base::TimeDelta Pass::duration() const {
   return end_at_ - start_at_;
 }
 
+void Pass::DumpAfterPass(const PassDumpContext& context) {
+}
+
+void Pass::DumpBeforePass(const PassDumpContext& context) {
+}
+
 void Pass::EndPass() {
   DCHECK(start_at_ != base::Time());
   DCHECK(end_at_ == base::Time());
