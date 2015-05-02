@@ -10,7 +10,6 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
-#include "base/time/time.h"
 
 namespace elang {
 namespace api {
@@ -40,7 +39,6 @@ class Pass {
  public:
   virtual ~Pass();
 
-  base::TimeDelta duration() const;
   virtual base::StringPiece name() const = 0;
 
   virtual void DumpAfterPass(const PassDumpContext& context);
@@ -69,9 +67,7 @@ class Pass {
   bool StartPass();
 
  private:
-  base::Time end_at_;
   PassObserver* const observer_;
-  base::Time start_at_;
 
   DISALLOW_COPY_AND_ASSIGN(Pass);
 };

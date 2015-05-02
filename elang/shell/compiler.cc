@@ -50,6 +50,7 @@
 #include "elang/optimizer/types.h"
 #include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
+#include "elang/shell/pass_record.h"
 #include "elang/shell/source_file_stream.h"
 #include "elang/translator/translator.h"
 #include "elang/vm/factory.h"
@@ -304,7 +305,10 @@ const char kUseHir[] = "use_hir";
 }  // namespace
 
 Compiler::Compiler(const std::vector<base::string16>& args)
-    : args_(args), session_(new CompilationSession()), stop_(false) {
+    : args_(args),
+      exit_code_(1),
+      session_(new CompilationSession()),
+      stop_(false) {
 }
 
 Compiler::~Compiler() {
@@ -326,8 +330,19 @@ void Compiler::AddSourceFile(const base::FilePath& file_path) {
 }
 
 int Compiler::CompileAndGo() {
+  CompileAndGoInternal();
+  if (!stop_)
+    return exit_code_;
+  for (auto const& record : pass_records_) {
+    std::cout << record->name() << " " << record->duration().InMillisecondsF()
+              << "ms" << std::endl;
+  }
+  return 0;
+}
+
+void Compiler::CompileAndGoInternal() {
   if (ReportCompileErrors())
-    return 1;
+    return;
 
   auto const command_line = base::CommandLine::ForCurrentProcess();
 
@@ -372,25 +387,25 @@ int Compiler::CompileAndGo() {
     auto const factory = std::make_unique<ir::Factory>(this, *factory_config);
     session()->Compile(&name_resolver, factory.get());
     if (ReportCompileErrors())
-      return 1;
+      return;
     if (ReportIrErrors(factory.get()))
-      return 1;
+      return;
     auto const main_method = FindMainMethod(session(), &name_resolver);
     if (!main_method)
-      return 1;
+      return;
     auto const main_function = session()->IrFunctionOf(main_method);
     if (!main_function) {
       std::cerr << "No function for main method." << *main_method;
-      return 1;
+      return;
     }
 
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
     if (stop_)
-      return 0;
+      return;
     lir_function = TranslateToLir(lir_factory.get(), schedule.get());
     if (stop_)
-      return 0;
+      return;
     has_parameter = !main_function->parameters_type()->is<ir::VoidType>();
     has_return_value = !main_function->return_type()->is<ir::VoidType>();
 
@@ -401,19 +416,19 @@ int Compiler::CompileAndGo() {
 
     session()->Compile(&name_resolver, factory.get());
     if (ReportCompileErrors())
-      return 1;
+      return;
 
     if (ReportHirErrors(factory.get()))
-      return 1;
+      return;
 
     // Find main method
     auto const main_method = FindMainMethod(session(), &name_resolver);
     if (!main_method)
-      return 1;
+      return;
     auto const main_function = session()->FunctionOf(main_method);
     if (!main_function) {
       std::cerr << "No function for main method." << *main_method;
-      return 1;
+      return;
     }
     if (command_line->HasSwitch(kDumpHir)) {
       hir::TextFormatter formatter(&std::cout);
@@ -427,7 +442,7 @@ int Compiler::CompileAndGo() {
   }
 
   if (ReportLirErrors(lir_factory.get()))
-    return 1;
+    return;
 
   if (command_line->HasSwitch(kDumpLir)) {
     lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
@@ -451,10 +466,13 @@ int Compiler::CompileAndGo() {
 
   // Execute
   if (!has_parameter) {
-    if (has_return_value)
-      return mc_function->Call<int>();
+    if (has_return_value) {
+      exit_code_ = mc_function->Call<int>();
+      return;
+    }
     mc_function->Invoke();
-    return 0;
+    exit_code_ = 0;
+    return;
   }
 
   DCHECK_GE(args_.size(), 1);
@@ -466,10 +484,12 @@ int Compiler::CompileAndGo() {
 
   if (!has_return_value) {
     mc_function->Invoke(args);
-    return 0;
+    exit_code_ = 0;
+    return;
   }
 
-  return mc_function->Call<int, vm::impl::Vector<vm::impl::String*>*>(args);
+  exit_code_ =
+      mc_function->Call<int, vm::impl::Vector<vm::impl::String*>*>(args);
 }
 
 bool Compiler::ReportCompileErrors() {
@@ -490,9 +510,10 @@ void Compiler::DidEndPass(api::Pass* pass) {
   if (stop_)
     return;
   auto const pass_name = pass->name();
+  DCHECK_EQ(pass_stack_.back()->name(), pass_name);
+  pass_stack_.back()->EndMetrics();
+  pass_stack_.pop_back();
   stop_ = stop_after_ == pass_name;
-  DVLOG(0) << "End " << pass_name << " " << pass->duration().InMillisecondsF()
-           << "ms";
   if (dump_after_passes_.count(pass_name.as_string())) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpAfterPass(dump_context);
@@ -507,7 +528,6 @@ bool Compiler::DidStartPass(api::Pass* pass) {
   DCHECK(!stop_);
   auto const pass_name = pass->name();
   stop_ = stop_before_ == pass_name;
-  DVLOG(0) << "Start: " << pass_name;
   if (dump_before_passes_.count(pass_name.as_string())) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpBeforePass(dump_context);
@@ -516,7 +536,12 @@ bool Compiler::DidStartPass(api::Pass* pass) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
     pass->DumpBeforePass(dump_context);
   }
-  return !stop_;
+  if (stop_)
+    return false;
+  pass_records_.emplace_back(new PassRecord(pass_name));
+  pass_records_.back()->StartMetrics();
+  pass_stack_.push_back(pass_records_.back().get());
+  return true;
 }
 
 }  // namespace shell

@@ -28,6 +28,8 @@ source_set("shell_library") {
     "namespace_builder.h",
     "node_query.cc",
     "node_query.h",
+    "pass_record.cc",
+    "pass_record.h",
     "source_file_stream.cc",
     "source_file_stream.h",
     "utf8_decoder.cc",

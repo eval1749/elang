@@ -23,6 +23,7 @@ namespace elang {
 namespace compiler {
 class CompilationSession;
 namespace shell {
+class PassRecord;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -44,6 +45,8 @@ class Compiler final : public api::PassObserver {
 
   CompilationSession* session() { return session_.get(); }
 
+  void CompileAndGoInternal();
+
   // Report compilation errors so far.
   bool ReportCompileErrors();
 
@@ -52,10 +55,13 @@ class Compiler final : public api::PassObserver {
   bool DidStartPass(api::Pass* pass) final;
 
   const std::vector<base::string16> args_;
+  int exit_code_;
   std::unordered_set<std::string> dump_after_passes_;
   std::unordered_set<std::string> dump_before_passes_;
   std::unordered_set<std::string> graph_after_passes_;
   std::unordered_set<std::string> graph_before_passes_;
+  std::vector<std::unique_ptr<PassRecord>> pass_records_;
+  std::vector<PassRecord*> pass_stack_;
   std::unique_ptr<CompilationSession> session_;
   bool stop_;
   std::string stop_before_;

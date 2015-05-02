@@ -31,12 +31,6 @@ Pass::Pass(PassObserver* observer) : observer_(observer) {
 Pass::~Pass() {
 }
 
-base::TimeDelta Pass::duration() const {
-  DCHECK(start_at_ != base::Time());
-  DCHECK(end_at_ != base::Time());
-  return end_at_ - start_at_;
-}
-
 void Pass::DumpAfterPass(const PassDumpContext& context) {
 }
 
@@ -44,16 +38,10 @@ void Pass::DumpBeforePass(const PassDumpContext& context) {
 }
 
 void Pass::EndPass() {
-  DCHECK(start_at_ != base::Time());
-  DCHECK(end_at_ == base::Time());
-  end_at_ = base::Time::Now();
   observer_->DidEndPass(this);
 }
 
 bool Pass::StartPass() {
-  DCHECK(start_at_ == base::Time());
-  DCHECK(end_at_ == base::Time());
-  start_at_ = base::Time::Now();
   return observer_->DidStartPass(this);
 }
 
