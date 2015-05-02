@@ -20,8 +20,8 @@ class PassObserver {
  public:
   virtual ~PassObserver();
 
-  virtual void DidEndPass(Pass* pass) = 0;
-  virtual void DidStartPass(Pass* pass) = 0;
+  virtual void DidEndPass(Pass* pass);
+  virtual bool DidStartPass(Pass* pass);
 
  protected:
   PassObserver();

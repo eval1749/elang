@@ -17,5 +17,11 @@ PassObserver::PassObserver() {
 PassObserver::~PassObserver() {
 }
 
+void PassObserver::DidEndPass(Pass* pass) {
+}
+
+void PassObserver::DidStartPass(Pass* pass) {
+}
+
 }  // namespace api
 }  // namespace elang
