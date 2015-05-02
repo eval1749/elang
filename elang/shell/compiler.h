@@ -57,6 +57,9 @@ class Compiler final : public api::PassObserver {
   std::unordered_set<std::string> graph_after_passes_;
   std::unordered_set<std::string> graph_before_passes_;
   std::unique_ptr<CompilationSession> session_;
+  bool stop_;
+  std::string stop_before_;
+  std::string stop_after_;
 
   DISALLOW_COPY_AND_ASSIGN(Compiler);
 };

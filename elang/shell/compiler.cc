@@ -304,7 +304,7 @@ const char kUseHir[] = "use_hir";
 }  // namespace
 
 Compiler::Compiler(const std::vector<base::string16>& args)
-    : args_(args), session_(new CompilationSession()) {
+    : args_(args), session_(new CompilationSession()), stop_(false) {
 }
 
 Compiler::~Compiler() {
@@ -363,6 +363,9 @@ int Compiler::CompileAndGo() {
   for (auto name : SwitchValuesOf("graph_before"))
     graph_before_passes_.insert(name);
 
+  stop_after_ = command_line->GetSwitchValueASCII("stop_after");
+  stop_before_ = command_line->GetSwitchValueASCII("stop_before");
+
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
     auto const factory_config = NewIrFactoryConfig(session());
@@ -383,7 +386,11 @@ int Compiler::CompileAndGo() {
 
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
+    if (stop_)
+      return 0;
     lir_function = TranslateToLir(lir_factory.get(), schedule.get());
+    if (stop_)
+      return 0;
     has_parameter = !main_function->parameters_type()->is<ir::VoidType>();
     has_return_value = !main_function->return_type()->is<ir::VoidType>();
 
@@ -481,6 +488,7 @@ bool Compiler::ReportCompileErrors() {
 // api::PassObserver implementation
 void Compiler::DidEndPass(api::Pass* pass) {
   auto const pass_name = pass->name();
+  stop_ = stop_after_ == pass_name;
   DVLOG(0) << "End " << pass_name << " " << pass->duration().InMillisecondsF()
            << "ms";
   if (dump_after_passes_.count(pass_name.as_string())) {
@@ -495,6 +503,7 @@ void Compiler::DidEndPass(api::Pass* pass) {
 
 void Compiler::DidStartPass(api::Pass* pass) {
   auto const pass_name = pass->name();
+  stop_ = stop_before_ == pass_name;
   DVLOG(0) << "Start: " << pass_name;
   if (dump_before_passes_.count(pass_name.as_string())) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
