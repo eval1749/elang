@@ -366,18 +366,6 @@ int Compiler::CompileAndGo() {
 
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
-
-    {
-      auto position = 0;
-      for (auto const node : schedule->nodes()) {
-        if (node->IsBlockStart())
-          std::cout << "block" << node->id() << ":" << std::endl;
-        std::cout << base::StringPrintf("%04d: ", position) << *node
-                  << std::endl;
-        ++position;
-      }
-    }
-
     lir_function = TranslateToLir(lir_factory.get(), schedule.get());
     has_parameter = !main_function->parameters_type()->is<hir::VoidType>();
     has_return_value = !main_function->return_type()->is<hir::VoidType>();

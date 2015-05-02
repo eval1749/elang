@@ -8,12 +8,14 @@
 #include "elang/optimizer/scheduler/scheduler.h"
 
 #include "base/logging.h"
+#include "base/strings/stringprintf.h"
 #include "elang/optimizer/depth_first_traversal.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/opcode.h"
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/block_layouter.h"
 #include "elang/optimizer/scheduler/cfg_builder.h"
+#include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 #include "elang/optimizer/scheduler/static_predictor.h"
 
@@ -267,6 +269,7 @@ Scheduler::~Scheduler() {
 
 // The entry point
 void Scheduler::Run() {
+  RunScope scope(this);
   ScheduleEditor editor(&schedule_);
   CfgBuilder(&editor).Run();
   EarlyScheduler(&editor).Run();
@@ -282,6 +285,16 @@ base::StringPiece Scheduler::name() const {
 }
 
 void Scheduler::DumpPass(const api::PassDumpContext& context) {
+  if (schedule_.nodes().empty())
+    return;
+  auto& ostream = *context.ostream;
+  auto position = 0;
+  for (auto const node : schedule_.nodes()) {
+    if (node->IsBlockStart())
+      ostream << "block" << node->id() << ":" << std::endl;
+    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
+    ++position;
+  }
 }
 
 }  // namespace optimizer
