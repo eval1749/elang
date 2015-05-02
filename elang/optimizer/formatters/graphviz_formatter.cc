@@ -251,7 +251,8 @@ std::ostream& operator<<(std::ostream& ostream, const AsGraphvizNode& wrapper) {
 
 }  // namespace
 
-std::ostream& operator<<(std::ostream& ostream, const AsGraphviz& wrapper) {
+std::ostream& operator<<(std::ostream& ostream,
+                         const AsGraphvizFunction& wrapper) {
   ostream << "digraph IR {" << std::endl
           // Node: when we set |concentrate| to true, "dot" is crashed with
           // "samples/statements/for.e".
@@ -278,6 +279,10 @@ std::ostream& operator<<(std::ostream& ostream, const AsGraphviz& wrapper) {
 
   ostream << "}" << std::endl;
   return ostream;
+}
+
+AsGraphvizFunction AsGraphviz(const Function* function) {
+  return AsGraphvizFunction{function};
 }
 
 }  // namespace optimizer

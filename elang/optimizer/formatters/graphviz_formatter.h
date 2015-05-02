@@ -15,13 +15,14 @@ namespace optimizer {
 
 class Function;
 
-struct ELANG_OPTIMIZER_EXPORT AsGraphviz {
+struct AsGraphvizFunction {
   const Function* function;
-  explicit AsGraphviz(const Function* function) : function(function) {}
+  explicit AsGraphvizFunction(const Function* function) : function(function) {}
 };
 
-ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                                const AsGraphviz& thing);
+std::ostream& operator<<(std::ostream& ostream,
+                         const AsGraphvizFunction& thing);
+AsGraphvizFunction AsGraphviz(const Function* function);
 
 }  // namespace optimizer
 }  // namespace elang
