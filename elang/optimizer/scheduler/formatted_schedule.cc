@@ -10,6 +10,7 @@
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/control_flow_graph.h"
 #include "elang/optimizer/scheduler/schedule.h"
+#include "elang/optimizer/scheduler/schedule_editor.h"
 
 namespace elang {
 namespace optimizer {
@@ -27,6 +28,40 @@ std::ostream& operator<<(std::ostream& ostream,
     if (node->IsBlockStart())
       ostream << "block" << node->id() << ":" << std::endl;
     ostream << base::StringPrintf("%04d: ", position) << *node << std::endl;
+    ++position;
+  }
+  return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const ScheduleEditor& editor) {
+  auto& schedule = editor.schedule();
+  ostream << schedule.function() << std::endl;
+  auto position = 0;
+  for (auto const node : schedule.nodes()) {
+    if (node->IsBlockStart()) {
+      auto const block = editor.BlockOf(node);
+      ostream << block << ":" << std::endl;
+      {
+        ostream << "  In:   {";
+        auto separator = "";
+        for (auto const control : node->inputs()) {
+          ostream << separator << editor.BlockOf(control);
+          separator = ", ";
+        }
+        ostream << "}" << std::endl;
+      }
+      {
+        ostream << "  Out:  {";
+        auto separator = "";
+        for (auto const use_edge : block->last_node()->use_edges()) {
+          ostream << separator << editor.BlockOf(use_edge->from());
+          separator = ", ";
+        }
+        ostream << "}" << std::endl;
+      }
+    }
+    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
     ++position;
   }
   return ostream;
