@@ -333,9 +333,15 @@ int Compiler::CompileAndGo() {
   CompileAndGoInternal();
   if (!stop_)
     return exit_code_;
+  auto const command_line = base::CommandLine::ForCurrentProcess();
+  if (!command_line->HasSwitch("times"))
+    return 0;
+  auto const prefix =
+      graph_after_passes_.empty() && graph_before_passes_.empty() ? "" : "// ";
+  std::cout << prefix << "Pass elapsed times:" << std::endl;
   for (auto const& record : pass_records_) {
-    std::cout << record->name() << " " << record->duration().InMillisecondsF()
-              << "ms" << std::endl;
+    std::cout << prefix << record->name() << " "
+              << record->duration().InMillisecondsF() << "ms" << std::endl;
   }
   return 0;
 }
