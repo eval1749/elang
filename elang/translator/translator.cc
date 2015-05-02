@@ -31,6 +31,15 @@ lir::IntegerCondition MapCondition(ir::IntCondition condition) {
   return static_cast<lir::IntegerCondition>(condition);
 }
 
+ir::Node* SelectNode(const ir::Node* node, ir::Opcode opcode) {
+  for (auto const edge : node->use_edges()) {
+    if (edge->from()->opcode() == opcode)
+      return edge->from();
+  }
+  NOTREACHED() << opcode << " " << *node;
+  return nullptr;
+}
+
 int SizeOfType(ir::Type* type) {
   if (type->is<ir::IntPtrType>())
     return 8;
@@ -300,12 +309,14 @@ void Translator::VisitIfException(ir::IfExceptionNode* node) {
 }
 
 void Translator::VisitIfFalse(ir::IfFalseNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitIfSuccess(ir::IfSuccessNode* node) {
 }
 
 void Translator::VisitIfTrue(ir::IfTrueNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitJump(ir::JumpNode* node) {
@@ -377,8 +388,10 @@ void Translator::VisitElement(ir::ElementNode* node) {
 }
 
 void Translator::VisitIf(ir::IfNode* node) {
-  // TODO(eval1749): NYI translate If
-  NOTREACHED() << *node;
+  auto const true_node = SelectNode(node, ir::Opcode::IfTrue);
+  auto const false_node = SelectNode(node, ir::Opcode::IfFalse);
+  editor()->SetBranch(MapInput(node->input(1)), BlockOf(true_node),
+                      BlockOf(false_node));
 }
 
 void Translator::VisitIntShl(ir::IntShlNode* node) {

@@ -171,6 +171,53 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, IfNode) {
+  auto const function = NewFunction(int32_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const param0 = NewParameter(entry_node, 0);
+  auto const condition =
+      NewIntCmp(ir::IntCondition::SignedLessThan, param0, NewInt32(42));
+  auto const if_node = editor.SetBranch(condition);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(NewIfTrue(if_node));
+  editor.SetRet(effect, NewInt32(12));
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(NewIfFalse(if_node));
+  editor.SetRet(effect, NewInt32(34));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block4}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  cmp_lt %b2 = %r1, 42\n"
+      "  br %b2, block3, block4\n"
+      "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
+      "  lit EAX = 12\n"
+      "  ret block2\n"
+      "block4:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block2}\n"
+      "  lit EAX = 34\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block3, block4}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 TEST_F(TranslatorX64Test, IntCmpNode) {
   auto const function = NewFunction(bool_type(), int32_type());
   ir::Editor editor(factory(), function);
