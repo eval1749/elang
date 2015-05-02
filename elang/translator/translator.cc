@@ -339,30 +339,19 @@ void Translator::VisitThrow(ir::ThrowNode* node) {
 }
 
 // Arithmetic node
-void Translator::VisitFloatAdd(ir::FloatAddNode* node) {
-  // TODO(eval1749): NYI translate FloatAdd
-  NOTREACHED() << *node;
-}
+#define DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Name)                   \
+  void Translator::VisitFloat##Name(ir::Float##Name##Node* node) { \
+    auto const output = MapOutput(node);                           \
+    auto const left = MapInput(node->input(0));                    \
+    auto const right = MapInput(node->input(1));                   \
+    Emit(New##Name##Instruction(output, left, right));             \
+  }
 
-void Translator::VisitFloatDiv(ir::FloatDivNode* node) {
-  // TODO(eval1749): NYI translate FloatDiv
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitFloatMod(ir::FloatModNode* node) {
-  // TODO(eval1749): NYI translate FloatMod
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitFloatMul(ir::FloatMulNode* node) {
-  // TODO(eval1749): NYI translate FloatMul
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitFloatSub(ir::FloatSubNode* node) {
-  // TODO(eval1749): NYI translate FloatSub
-  NOTREACHED() << *node;
-}
+DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Add)
+DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Div)
+DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Mod)
+DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Mul)
+DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Sub)
 
 void Translator::VisitIntBitAnd(ir::IntBitAndNode* node) {
   // TODO(eval1749): NYI translate IntBitAnd
@@ -434,7 +423,20 @@ void Translator::VisitEffectPhi(ir::EffectPhiNode* node) {
 }
 
 void Translator::VisitEntry(ir::EntryNode* node) {
-  // nothing to do
+  auto const parameters_type = node->parameters_type();
+  if (parameters_type->is<ir::VoidType>())
+    return;
+  std::vector<lir::Value> inputs;
+  std::vector<lir::Value> outputs;
+  for (auto const edge : node->use_edges()) {
+    auto const param = edge->from()->as<ir::ParameterNode>();
+    if (!param)
+      continue;
+    auto const output = MapRegister(param);
+    outputs.push_back(output);
+    inputs.push_back(lir::Target::GetParameterAt(output, param->field()));
+  }
+  Emit(NewPCopyInstruction(outputs, inputs));
 }
 
 void Translator::VisitFloatCmp(ir::FloatCmpNode* node) {
@@ -470,8 +472,7 @@ void Translator::VisitNull(ir::NullNode* node) {
 }
 
 void Translator::VisitParameter(ir::ParameterNode* node) {
-  // TODO(eval1749): NYI translate Parameter
-  NOTREACHED() << *node;
+  // |ParameterNode| is process by |EntryNode|
 }
 
 void Translator::VisitPhi(ir::PhiNode* node) {

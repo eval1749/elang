@@ -62,5 +62,82 @@ DEFINE_RET_TEST(UInt16, uint16, "lit EAX = 42")
 DEFINE_RET_TEST(UInt32, uint32, "lit EAX = 42")
 DEFINE_RET_TEST(UInt64, uint64, "lit RAX = 42l")
 
+TEST_F(TranslatorX64Test, EntryNode) {
+  auto const function = NewFunction(void_type(), void_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect, void_value());
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, EntryNode1) {
+  auto const function = NewFunction(int32_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect, NewParameter(entry_node, 0));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  mov EAX = %r1\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, EntryNode2) {
+  auto const function = NewFunction(
+      float32_type(), NewTupleType({float32_type(), float32_type()}));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const param0 = NewParameter(entry_node, 0);
+  auto const param1 = NewParameter(entry_node, 1);
+  editor.SetRet(effect, NewFloatAdd(param0, param1));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry XMM0, XMM1 =\n"
+      "  pcopy %f1, %f2 = XMM0, XMM1\n"
+      "  add %f3 = %f1, %f2\n"
+      "  mov XMM0 = %f3\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 }  // namespace translator
 }  // namespace elang
