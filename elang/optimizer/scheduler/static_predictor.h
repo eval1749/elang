@@ -6,61 +6,17 @@
 #define ELANG_OPTIMIZER_SCHEDULER_STATIC_PREDICTOR_H_
 
 #include <memory>
-#include <map>
-#include <utility>
-#include <vector>
 
 #include "base/macros.h"
 #include "elang/api/pass.h"
+#include "elang/optimizer/scheduler/edge_profile.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 
 namespace elang {
 namespace optimizer {
 
 class BasicBlock;
-
-//////////////////////////////////////////////////////////////////////
-//
-// EdgeProfile
-//
-class EdgeProfile final {
- public:
-  using Edge = std::pair<const BasicBlock*, const BasicBlock*>;
-  using Map = std::map<Edge, double>;
-
-  class Editor {
-   public:
-    Editor();
-    ~Editor();
-
-    const Map& all_edges() const { return edge_profile_->all_edges(); }
-
-    void Add(const BasicBlock* from, const BasicBlock* to, double frequency);
-    std::unique_ptr<EdgeProfile> Finish();
-    double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
-    bool Has(const BasicBlock* from, const BasicBlock* to) const;
-
-   private:
-    std::unique_ptr<EdgeProfile> edge_profile_;
-
-    DISALLOW_COPY_AND_ASSIGN(Editor);
-  };
-
-  EdgeProfile();
-  ~EdgeProfile();
-
-  const Map& all_edges() const { return map_; }
-  size_t size() const { return map_.size(); }
-
-  double FrequencyOf(const BasicBlock* form, const BasicBlock* to) const;
-
- private:
-  friend class Editor;
-
-  Map map_;
-
-  DISALLOW_COPY_AND_ASSIGN(EdgeProfile);
-};
+class EdgeProfile;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -83,10 +39,6 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
   std::unique_ptr<EdgeProfile> Run();
 
  private:
-  // api::Pass
-  base::StringPiece name() const final;
-  void DumpAfterPass(const api::PassDumpContext& context) final;
-
   void Predict(const BasicBlock* from, double frequency);
   void SetBranchFrequency(const BasicBlock* block,
                           const BasicBlock* true_block,
@@ -96,6 +48,10 @@ class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
   void SetFrequency(const BasicBlock* from,
                     const BasicBlock* to,
                     double frequency);
+
+  // api::Pass
+  base::StringPiece name() const final;
+  void DumpAfterPass(const api::PassDumpContext& context) final;
 
   EdgeProfile::Editor edge_profile_;
 

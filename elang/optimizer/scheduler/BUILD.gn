@@ -14,6 +14,8 @@ source_set("scheduler") {
     "cfg_builder.h",
     "control_flow_graph.cc",
     "control_flow_graph.h",
+    "edge_profile.cc",
+    "edge_profile.h",
     "schedule.cc",
     "schedule.h",
     "schedule_editor.cc",
