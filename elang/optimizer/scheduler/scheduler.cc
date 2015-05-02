@@ -178,7 +178,6 @@ class NodePlacer final : public api::Pass, public ScheduleEditor::User {
 
   // api::Pass
   base::StringPiece name() const final;
-  void DumpAfterPass(const api::PassDumpContext& context) final;
 
   const std::vector<BasicBlock*>& blocks_;
   std::vector<Node*> nodes_;
@@ -272,38 +271,6 @@ base::StringPiece NodePlacer::name() const {
   return "node_placer";
 }
 
-void NodePlacer::DumpAfterPass(const api::PassDumpContext& context) {
-  DCHECK(!nodes_.empty());
-  auto& ostream = *context.ostream;
-  auto position = 0;
-  for (auto const node : nodes_) {
-    if (node->IsBlockStart()) {
-      auto const block = BlockOf(node);
-      ostream << block << ":" << std::endl;
-      {
-        ostream << "  In:   {";
-        auto separator = "";
-        for (auto const control : node->inputs()) {
-          ostream << separator << BlockOf(control);
-          separator = ", ";
-        }
-        ostream << "}" << std::endl;
-      }
-      {
-        ostream << "  Out:  {";
-        auto separator = "";
-        for (auto const use_edge : block->last_node()->use_edges()) {
-          ostream << separator << BlockOf(use_edge->from());
-          separator = ", ";
-        }
-        ostream << "}" << std::endl;
-      }
-    }
-    ostream << base::StringPrintf("  %04d: ", position) << *node << std::endl;
-    ++position;
-  }
-}
-
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -347,10 +314,7 @@ void Scheduler::DumpBeforePass(const api::PassDumpContext& context) {
 }
 
 void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
-  auto const& nodes = editor_->schedule().nodes();
-  DCHECK(!nodes.empty());
-  auto& ostream = *context.ostream;
-  ostream << AsFormatted(editor_->schedule());
+  *context.ostream << *editor_;
 }
 
 }  // namespace optimizer
