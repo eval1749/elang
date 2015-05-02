@@ -65,19 +65,19 @@ TEST_F(SchedulerTest, SetBranch) {
   EXPECT_EQ(
       "function1 int32(bool)\n"
       "block1:\n"
-      "0000: control(bool) %c1 = entry()\n"
-      "0001: effect %e4 = get_effect(%c1)\n"
-      "0002: bool %r5 = param(%c1, 0)\n"
-      "0003: control %c6 = if(%c1, %r5)\n"
+      "  0000: control(bool) %c1 = entry()\n"
+      "  0001: effect %e4 = get_effect(%c1)\n"
+      "  0002: bool %r5 = param(%c1, 0)\n"
+      "  0003: control %c6 = if(%c1, %r5)\n"
       "block7:\n"
-      "0004: control %c7 = if_true(%c6)\n"
-      "0005: control %c9 = ret(%c7, %e4, 42)\n"
+      "  0004: control %c7 = if_true(%c6)\n"
+      "  0005: control %c9 = ret(%c7, %e4, 42)\n"
       "block8:\n"
-      "0006: control %c8 = if_false(%c6)\n"
-      "0007: control %c10 = ret(%c8, %e4, 33)\n"
+      "  0006: control %c8 = if_false(%c6)\n"
+      "  0007: control %c10 = ret(%c8, %e4, 33)\n"
       "block2:\n"
-      "0008: control %c2 = merge(%c9, %c10)\n"
-      "0009: exit(%c2)\n",
+      "  0008: control %c2 = merge(%c9, %c10)\n"
+      "  0009: exit(%c2)\n",
       ScheduleOf(function));
 }
 
@@ -114,25 +114,25 @@ TEST_F(SchedulerTest, SetBranchPhi) {
   EXPECT_EQ(
       "function1 int32(bool, int32, int32)\n"
       "block1:\n"
-      "0000: control((bool, int32, int32)) %c1 = entry()\n"
-      "0001: effect %e4 = get_effect(%c1)\n"
-      "0002: bool %r5 = param(%c1, 0)\n"
-      "0003: int32 %r13 = param(%c1, 1)\n"
-      "0004: int32 %r14 = param(%c1, 2)\n"
-      "0005: control %c6 = if(%c1, %r5)\n"
+      "  0000: control((bool, int32, int32)) %c1 = entry()\n"
+      "  0001: effect %e4 = get_effect(%c1)\n"
+      "  0002: bool %r5 = param(%c1, 0)\n"
+      "  0003: int32 %r13 = param(%c1, 1)\n"
+      "  0004: int32 %r14 = param(%c1, 2)\n"
+      "  0005: control %c6 = if(%c1, %r5)\n"
       "block7:\n"
-      "0006: control %c7 = if_true(%c6)\n"
-      "0007: control %c10 = br(%c7)\n"
+      "  0006: control %c7 = if_true(%c6)\n"
+      "  0007: control %c10 = br(%c7)\n"
       "block9:\n"
-      "0008: control %c9 = merge(%c10, %c11)\n"
-      "0009: int32 %r12 = phi(%c10: %r13, %c11: %r14)\n"
-      "0010: control %c15 = ret(%c9, %e4, %r12)\n"
+      "  0008: control %c9 = merge(%c10, %c11)\n"
+      "  0009: int32 %r12 = phi(%c10: %r13, %c11: %r14)\n"
+      "  0010: control %c15 = ret(%c9, %e4, %r12)\n"
       "block8:\n"
-      "0011: control %c8 = if_false(%c6)\n"
-      "0012: control %c11 = br(%c8)\n"
+      "  0011: control %c8 = if_false(%c6)\n"
+      "  0012: control %c11 = br(%c8)\n"
       "block2:\n"
-      "0013: control %c2 = merge(%c15)\n"
-      "0014: exit(%c2)\n",
+      "  0013: control %c2 = merge(%c15)\n"
+      "  0014: exit(%c2)\n",
       ScheduleOf(function));
 }
 
@@ -149,12 +149,12 @@ TEST_F(SchedulerTest, SetRet) {
   EXPECT_EQ(
       "function1 int32(int32)\n"
       "block1:\n"
-      "0000: control(int32) %c1 = entry()\n"
-      "0001: effect %e4 = get_effect(%c1)\n"
-      "0002: control %c5 = ret(%c1, %e4, 42)\n"
+      "  0000: control(int32) %c1 = entry()\n"
+      "  0001: effect %e4 = get_effect(%c1)\n"
+      "  0002: control %c5 = ret(%c1, %e4, 42)\n"
       "block2:\n"
-      "0003: control %c2 = merge(%c5)\n"
-      "0004: exit(%c2)\n",
+      "  0003: control %c2 = merge(%c5)\n"
+      "  0004: exit(%c2)\n",
       ScheduleOf(function));
 }
 
