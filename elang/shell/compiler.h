@@ -54,6 +54,8 @@ class Compiler final : public api::PassObserver {
   const std::vector<base::string16> args_;
   std::unordered_set<std::string> dump_after_passes_;
   std::unordered_set<std::string> dump_before_passes_;
+  std::unordered_set<std::string> graph_after_passes_;
+  std::unordered_set<std::string> graph_before_passes_;
   std::unique_ptr<CompilationSession> session_;
 
   DISALLOW_COPY_AND_ASSIGN(Compiler);

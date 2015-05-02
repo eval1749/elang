@@ -46,9 +46,6 @@
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/function.h"
-#include "elang/optimizer/formatters/graphviz_formatter.h"
-#include "elang/optimizer/formatters/text_formatter.h"
-#include "elang/optimizer/nodes.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/types.h"
 #include "elang/shell/namespace_builder.h"
@@ -302,7 +299,6 @@ std::vector<std::string> SwitchValuesOf(base::StringPiece switch_name) {
 
 const char kDumpHir[] = "dump_hir";
 const char kDumpLir[] = "dump_lir";
-const char kUseGraphviz[] = "use_gv";
 const char kUseHir[] = "use_hir";
 
 }  // namespace
@@ -343,6 +339,9 @@ int Compiler::CompileAndGo() {
   auto has_parameter = false;
   auto has_return_value = false;
 
+  // --dump=pass[,pass]*
+  // --dump_after=pass[,pass]*
+  // --dump_before=pass[,pass]*
   for (auto name : SwitchValuesOf("dump")) {
     dump_after_passes_.insert(name);
     dump_before_passes_.insert(name);
@@ -351,6 +350,18 @@ int Compiler::CompileAndGo() {
     dump_after_passes_.insert(name);
   for (auto name : SwitchValuesOf("dump_before"))
     dump_before_passes_.insert(name);
+
+  // --graph=pass[,pass]*
+  // --graph_after=pass[,pass]*
+  // --graph_before=pass[,pass]*
+  for (auto name : SwitchValuesOf("graph")) {
+    graph_after_passes_.insert(name);
+    graph_before_passes_.insert(name);
+  }
+  for (auto name : SwitchValuesOf("graph_after"))
+    graph_after_passes_.insert(name);
+  for (auto name : SwitchValuesOf("graph_before"))
+    graph_before_passes_.insert(name);
 
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
@@ -369,10 +380,6 @@ int Compiler::CompileAndGo() {
       std::cerr << "No function for main method." << *main_method;
       return 1;
     }
-    if (command_line->HasSwitch(kUseGraphviz))
-      std::cout << ir::AsGraphviz(main_function);
-    else
-      std::cout << ir::AsReversePostOrder(main_function);
 
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
@@ -473,20 +480,30 @@ bool Compiler::ReportCompileErrors() {
 
 // api::PassObserver implementation
 void Compiler::DidEndPass(api::Pass* pass) {
-  DVLOG(0) << "End " << pass->name() << " "
-           << pass->duration().InMillisecondsF() << "ms";
-  if (!dump_after_passes_.count(pass->name().as_string()))
-    return;
-  api::PassDumpContext dump_context{&std::cout};
-  pass->DumpAfterPass(dump_context);
+  auto const pass_name = pass->name();
+  DVLOG(0) << "End " << pass_name << " " << pass->duration().InMillisecondsF()
+           << "ms";
+  if (dump_after_passes_.count(pass_name.as_string())) {
+    api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
+    pass->DumpAfterPass(dump_context);
+  }
+  if (graph_after_passes_.count(pass_name.as_string())) {
+    api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
+    pass->DumpAfterPass(dump_context);
+  }
 }
 
 void Compiler::DidStartPass(api::Pass* pass) {
-  DVLOG(0) << "Start: " << pass->name();
-  if (!dump_before_passes_.count(pass->name().as_string()))
-    return;
-  api::PassDumpContext dump_context{&std::cout};
-  pass->DumpBeforePass(dump_context);
+  auto const pass_name = pass->name();
+  DVLOG(0) << "Start: " << pass_name;
+  if (dump_before_passes_.count(pass_name.as_string())) {
+    api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
+    pass->DumpBeforePass(dump_context);
+  }
+  if (graph_before_passes_.count(pass_name.as_string())) {
+    api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
+    pass->DumpBeforePass(dump_context);
+  }
 }
 
 }  // namespace shell

@@ -17,8 +17,19 @@ namespace api {
 
 class PassObserver;
 
+enum class PassDumpFormat {
+  Graph,
+  Html,
+  Text,
+};
+
 struct PassDumpContext {
+  PassDumpFormat format;
   std::ostream* ostream;
+
+  bool IsGraph() const { return format == PassDumpFormat::Graph; }
+  bool IsHtml() const { return format == PassDumpFormat::Html; }
+  bool IsText() const { return format == PassDumpFormat::Text; }
 };
 
 //////////////////////////////////////////////////////////////////////

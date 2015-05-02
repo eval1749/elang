@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <ostream>
 #include <unordered_set>
 #include <vector>
 
@@ -10,6 +11,9 @@
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "elang/optimizer/depth_first_traversal.h"
+#include "elang/optimizer/formatters/graphviz_formatter.h"
+#include "elang/optimizer/formatters/text_formatter.h"
+#include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/opcode.h"
 #include "elang/optimizer/scheduler/basic_block.h"
@@ -326,6 +330,15 @@ void Scheduler::Run() {
 // api::Pass
 base::StringPiece Scheduler::name() const {
   return "scheduler";
+}
+
+void Scheduler::DumpBeforePass(const api::PassDumpContext& context) {
+  auto& ostream = *context.ostream;
+  if (context.IsGraph()) {
+    ostream << AsGraphviz(schedule_.function());
+    return;
+  }
+  ostream << AsReversePostOrder(schedule_.function());
 }
 
 void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {

@@ -35,6 +35,7 @@ class ELANG_OPTIMIZER_EXPORT Scheduler final : public api::Pass {
   // api::Pass
   base::StringPiece name() const final;
   void DumpAfterPass(const api::PassDumpContext& context) final;
+  void DumpBeforePass(const api::PassDumpContext& context) final;
 
   Schedule& schedule_;
 
