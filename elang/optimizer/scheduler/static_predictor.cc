@@ -231,18 +231,18 @@ std::unique_ptr<EdgeFrequencyMap> StaticPredictor::Run() {
     auto const blocks =
         ControlFlowGraph::Sorter::SortByReversePostOrder(control_flow_graph());
     for (auto const block : blocks) {
-      auto frequency = 0;
-      for (auto const use_edge : block->first_node()->use_edges()) {
-        auto const predecessor = BlockOf(use_edge->from());
-        if (edge_map_.Has(predecessor, block))
-          frequency += edge_map_.FrequencyOf(predecessor, block);
-        else
-          frequency += LoopDepthOf(block) * 1000;
+      auto total_frequency = 0.0;
+      for (auto const control : block->first_node()->inputs()) {
+        DCHECK(control->IsControl());
+        auto const predecessor = BlockOf(control);
+        auto const frequency = edge_map_.Has(predecessor, block)
+            ? edge_map_.FrequencyOf(predecessor, block)
+            : LoopDepthOf(block) * 1000;
+        total_frequency += frequency;
       }
       if (block->first_node()->opcode() == Opcode::Entry)
-        frequency = 1;
-      DVLOG(0) << block << " sum(predecessors)=" << frequency;
-      Predict(block, frequency);
+        total_frequency = 1.0;
+      Predict(block, total_frequency);
     }
   }
   return edge_map_.Finish();
@@ -276,7 +276,7 @@ void StaticPredictor::DumpPass(const api::PassDumpContext& context) {
   for (auto const& edge : edges) {
     auto const from = edge.first;
     auto const to = edge.second;
-    ostream << from << "/" << LoopDepthOf(from) << "->"
+    ostream << "  " << from << "/" << LoopDepthOf(from) << " -> "
             << to << "/" << LoopDepthOf(to) << " "
             << edge_map_.FrequencyOf(edge.first, edge.second) << std::endl;
   }
