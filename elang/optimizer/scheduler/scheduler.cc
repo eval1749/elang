@@ -83,7 +83,11 @@ void EarlyScheduler::DoDefaultVisit(Node* node) {
     if (DepthOf(block) < DepthOf(input_block))
       block = input_block;
   }
-  DCHECK(block) << *node;
+  if (!block) {
+    // |node| is a literal tuple.
+    DCHECK(node->is<TupleNode>()) << *node;
+    return;
+  }
   editor()->SetBlockOf(node, block);
 }
 
