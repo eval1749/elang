@@ -9,7 +9,6 @@
 #include "elang/optimizer/scheduler/scheduler.h"
 
 #include "base/logging.h"
-#include "base/strings/stringprintf.h"
 #include "elang/optimizer/depth_first_traversal.h"
 #include "elang/optimizer/formatters/graphviz_formatter.h"
 #include "elang/optimizer/formatters/text_formatter.h"

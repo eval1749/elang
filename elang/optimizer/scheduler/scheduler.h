@@ -13,9 +13,6 @@
 #include "elang/optimizer/optimizer_export.h"
 
 namespace elang {
-namespace api {
-class PassObserver;
-}
 namespace optimizer {
 
 class Schedule;
