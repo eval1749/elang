@@ -363,8 +363,38 @@ void Translator::VisitJump(ir::JumpNode* node) {
 }
 
 void Translator::VisitStaticCast(ir::StaticCastNode* node) {
-  // TODO(eval1749): NYI translate StaticCast
-  NOTREACHED() << *node;
+  auto const output = MapOutput(node);
+  auto const input = MapInput(node->input(0));
+  auto const input_type = node->input(0)->output_type();
+
+  if (output.is_float()) {
+    if (input.is_float()) {
+      if (lir::Value::Log2Of(output) > lir::Value::Log2Of(input))
+        return Emit(NewExtendInstruction(output, input));
+      return Emit(NewTruncateInstruction(output, input));
+    }
+    if (input_type->is_signed())
+      return Emit(NewSignedConvertInstruction(output, input));
+    return Emit(NewUnsignedConvertInstruction(output, input));
+  }
+
+  if (input.is_float()) {
+    if (node->output_type()->is_signed())
+      return Emit(NewSignedConvertInstruction(output, input));
+    return Emit(NewUnsignedConvertInstruction(output, input));
+  }
+
+  if (lir::Value::Log2Of(output) == lir::Value::Log2Of(input)) {
+    register_map_[node] = input;
+    return;
+  }
+
+  if (lir::Value::Log2Of(output) > lir::Value::Log2Of(input)) {
+    if (input_type->is_signed())
+      return Emit(NewSignExtendInstruction(output, input));
+    return Emit(NewZeroExtendInstruction(output, input));
+  }
+  Emit(NewTruncateInstruction(output, input));
 }
 
 void Translator::VisitUnreachable(ir::UnreachableNode* node) {

@@ -334,5 +334,369 @@ TEST_F(TranslatorX64Test, PhiNode) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToFloat64) {
+  auto const function = NewFunction(float64_type(), float32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(float64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry XMM0 =\n"
+      "  pcopy %f1 = XMM0\n"
+      "  ext %f2d = %f1\n"
+      "  mov XMM0 = %f2d\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToInt64) {
+  auto const function = NewFunction(int64_type(), float32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(int64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry XMM0 =\n"
+      "  pcopy %f1 = XMM0\n"
+      "  sconv %r1l = %f1\n"
+      "  mov RAX = %r1l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToUInt64) {
+  auto const function = NewFunction(uint64_type(), float32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(uint64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry XMM0 =\n"
+      "  pcopy %f1 = XMM0\n"
+      "  uconv %r1l = %f1\n"
+      "  mov RAX = %r1l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeFloat64oFloat32) {
+  auto const function = NewFunction(float32_type(), float64_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(float32_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry XMM0 =\n"
+      "  pcopy %f1d = XMM0\n"
+      "  trunc %f2 = %f1d\n"
+      "  mov XMM0 = %f2\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeInt32ToFloat64) {
+  auto const function = NewFunction(float64_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(float64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  sconv %f1d = %r1\n"
+      "  mov XMM0 = %f1d\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeInt32ToInt64) {
+  auto const function = NewFunction(int64_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(int64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  sext %r2l = %r1\n"
+      "  mov RAX = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeInt32ToUInt64) {
+  auto const function = NewFunction(uint64_type(), int32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(uint64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  sext %r2l = %r1\n"
+      "  mov RAX = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeInt64ToInt32) {
+  auto const function = NewFunction(int32_type(), int64_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(int32_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  trunc %r2 = %r1l\n"
+      "  mov EAX = %r2\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeInt64ToUInt32) {
+  auto const function = NewFunction(uint32_type(), int64_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(uint32_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  trunc %r2 = %r1l\n"
+      "  mov EAX = %r2\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodePtrToInt64) {
+  auto const function =
+      NewFunction(uint64_type(), NewPointerType(int32_type()));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(uint64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  mov RAX = %r1l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeUInt32ToFloat64) {
+  auto const function = NewFunction(float64_type(), uint32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(float64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  uconv %f1d = %r1\n"
+      "  mov XMM0 = %f1d\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeUInt32ToInt64) {
+  auto const function = NewFunction(int64_type(), uint32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(int64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  zext %r2l = %r1\n"
+      "  mov RAX = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, StaticCastNodeUInt32ToUInt64) {
+  auto const function = NewFunction(uint64_type(), uint32_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  editor.SetRet(effect,
+                NewStaticCast(uint64_type(), NewParameter(entry_node, 0)));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX =\n"
+      "  pcopy %r1 = ECX\n"
+      "  zext %r2l = %r1\n"
+      "  mov RAX = %r2l\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 }  // namespace translator
 }  // namespace elang
