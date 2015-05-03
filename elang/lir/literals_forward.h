@@ -64,6 +64,9 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const BasicBlock& basic_block);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const BasicBlock* basic_block);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Function& function);
 
 }  // namespace lir

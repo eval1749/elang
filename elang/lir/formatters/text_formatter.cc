@@ -147,6 +147,12 @@ std::ostream& operator<<(std::ostream& ostream, const BasicBlock& block) {
   return ostream << "block" << block.id();
 }
 
+std::ostream& operator<<(std::ostream& ostream, const BasicBlock* block) {
+  if (!block)
+    return ostream << "nil";
+  return ostream << *block;
+}
+
 std::ostream& operator<<(std::ostream& ostream, const Function& function) {
   return ostream << "function" << function.id();
 }
