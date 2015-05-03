@@ -82,10 +82,21 @@ void RegisterAssignmentsPass::RunOnFunction() {
   for (auto const block : function()->basic_blocks()) {
     Editor::ScopedEdit scope(editor());
     editor()->Edit(block);
+    WorkList<Instruction> action_owners;
     for (auto const instr : block->instructions()) {
-      for (auto const action : register_assignments_->BeforeActionOf(instr))
-        ProcessInstruction(action);
+      if (!register_assignments_->BeforeActionOf(instr).empty())
+        action_owners.Push(instr);
       ProcessInstruction(instr);
+    }
+    while (!action_owners.empty()) {
+      auto const instr = action_owners.Pop();
+      for (auto const action : register_assignments_->BeforeActionOf(instr)) {
+        editor()->InsertBefore(action, instr);
+        ProcessInstruction(action);
+      }
+      if (!instr->is<PCopyInstruction>())
+        continue;
+      editor()->Remove(instr);
     }
     auto const ret_instr = block->last_instruction()->as<RetInstruction>();
     if (!ret_instr)
