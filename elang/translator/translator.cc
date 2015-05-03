@@ -85,9 +85,9 @@ lir::Function* Translator::function() const {
 }
 
 lir::BasicBlock* Translator::BlockOf(ir::Node* node) const {
-  DCHECK(node->IsBlockStart() || node->IsBlockEnd());
+  DCHECK(node->IsBlockStart() || node->IsBlockEnd()) << *node;
   auto const it = block_map_.find(node);
-  DCHECK(it != block_map_.end());
+  DCHECK(it != block_map_.end()) << *node;
   return it->second;
 }
 
@@ -101,7 +101,7 @@ void Translator::EmitCopy(lir::Value output, lir::Value input) {
 }
 
 void Translator::EmitSetValue(lir::Value output, ir::Node* node) {
-  DCHECK(output.is_register());
+  DCHECK(output.is_register()) << output;
   auto const input = MapInput(node);
   if (input.is_register()) {
     EmitCopy(output, input);
@@ -270,8 +270,8 @@ void Translator::PrepareBlocks() {
   auto block = static_cast<lir::BasicBlock*>(nullptr);
   for (auto const node : schedule_.nodes()) {
     if (node->IsBlockStart()) {
-      DCHECK(!block);
-      DCHECK(!block_map_.count(node));
+      DCHECK(!block) << *node;
+      DCHECK(!block_map_.count(node)) << *node;
       if (node->opcode() == ir::Opcode::Entry)
         block = editor()->entry_block();
       else if (node->use_edges().begin()->from()->opcode() == ir::Opcode::Exit)
@@ -281,14 +281,14 @@ void Translator::PrepareBlocks() {
       block_map_.insert(std::make_pair(node, block));
       continue;
     }
-    DCHECK(block);
+    DCHECK(block) << *node;
     if (!node->IsBlockEnd())
       continue;
-    DCHECK(!block_map_.count(node));
+    DCHECK(!block_map_.count(node)) << *node;
     block_map_.insert(std::make_pair(node, block));
     block = nullptr;
   }
-  DCHECK(!block);
+  DCHECK(!block) << block;
 }
 
 // The entry point
@@ -306,6 +306,7 @@ lir::Function* Translator::Run() {
 
   PopulatePhiOperands();
 
+  // TODO(eval1749) We should dump invalid LIR by |lir::Editor| printer.
   DCHECK(editor()->Validate());
   return editor()->function();
 }
@@ -315,7 +316,7 @@ lir::Value Translator::TranslateConditional(ir::Node* node) {
       node->opcode() == ir::Opcode::FloatCmp) {
     return MapInput(node);
   }
-  DCHECK(node->output_type()->is<ir::BoolType>());
+  DCHECK(node->output_type()->is<ir::BoolType>()) << *node;
   auto const output = NewConditional();
   Emit(NewCmpInstruction(output, lir::IntegerCondition::NotEqual,
                          MapInput(node), lir::Value::SmallInt8(0)));
@@ -631,7 +632,7 @@ void Translator::VisitGet(ir::GetNode* node) {
 
 void Translator::VisitIntCmp(ir::IntCmpNode* node) {
   auto const output = NewConditional();
-  DCHECK(!register_map_.count(node));
+  DCHECK(!register_map_.count(node)) << *node;
   register_map_.insert(std::make_pair(node, output));
 
   auto const left = MapInput(node->input(0));
