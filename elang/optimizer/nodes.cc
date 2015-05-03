@@ -338,7 +338,7 @@ bool Node::IsTuple() const {
 }
 
 bool Node::IsUsed() const {
-  return !use_edges().empty();
+  return !use_edges().empty() || opcode() == Opcode::Exit;
 }
 
 bool Node::IsValidControl() const {
