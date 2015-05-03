@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -241,44 +242,82 @@ lir::Function* Translator::NewFunction(lir::Factory* factory,
   return factory->NewFunction({parameter});
 }
 
+void Translator::PopulatePhiOperands() {
+  for (auto const node : schedule_.nodes()) {
+    auto const phi_owner = node->as<ir::PhiOwnerNode>();
+    if (!phi_owner)
+      continue;
+    auto const block = BlockOf(phi_owner);
+    editor()->Edit(block);
+    std::unordered_map<lir::Value, lir::PhiInstruction*> phi_map;
+    for (auto const phi : block->phi_instructions())
+      phi_map.insert(std::make_pair(phi->output(0), phi));
+    for (auto const phi : phi_owner->phi_nodes()) {
+      for (auto const phi_input : phi->phi_inputs()) {
+        auto const it = phi_map.find(MapOutput(phi));
+        DCHECK(it != phi_map.end()) << *phi;
+        editor()->SetPhiInput(it->second, BlockOf(phi_input->control()),
+                              MapInput(phi_input->value()));
+      }
+    }
+    editor()->Commit();
+  }
+}
+
+void Translator::PrepareBlocks() {
+  auto block = static_cast<lir::BasicBlock*>(nullptr);
+  for (auto const node : schedule_.nodes()) {
+    if (node->IsBlockStart()) {
+      DCHECK(!block);
+      DCHECK(!block_map_.count(node));
+      if (node->opcode() == ir::Opcode::Entry)
+        block = editor()->entry_block();
+      else if (node->use_edges().begin()->from()->opcode() == ir::Opcode::Exit)
+        block = editor()->exit_block();
+      else
+        block = editor()->NewBasicBlock(editor()->exit_block());
+      block_map_.insert(std::make_pair(node, block));
+      continue;
+    }
+    DCHECK(block);
+    if (!node->IsBlockEnd())
+      continue;
+    DCHECK(!block_map_.count(node));
+    block_map_.insert(std::make_pair(node, block));
+    block = nullptr;
+  }
+  DCHECK(!block);
+}
+
 // The entry point
 lir::Function* Translator::Run() {
-  {
-    auto block = static_cast<lir::BasicBlock*>(nullptr);
-    for (auto const node : schedule_.nodes()) {
-      if (node->IsBlockStart()) {
-        DCHECK(!block);
-        DCHECK(!block_map_.count(node));
-        if (node->opcode() == ir::Opcode::Entry)
-          block = editor()->entry_block();
-        else if (node->use_edges().begin()->from()->opcode() ==
-                 ir::Opcode::Exit)
-          block = editor()->exit_block();
-        else
-          block = editor()->NewBasicBlock(editor()->exit_block());
-        block_map_.insert(std::make_pair(node, block));
-        continue;
-      }
-      DCHECK(block);
-      if (!node->IsBlockEnd())
-        continue;
-      DCHECK(!block_map_.count(node));
-      block_map_.insert(std::make_pair(node, block));
-      block = nullptr;
-    }
-    DCHECK(!block);
-  }
+  PrepareBlocks();
 
   for (auto const node : schedule_.nodes()) {
     if (node->IsBlockStart())
       editor()->Edit(BlockOf(node));
     node->Accept(this);
-    if (node->IsBlockEnd())
-      editor()->Commit();
+    if (!node->IsBlockEnd())
+      continue;
+    editor()->Commit();
   }
+
+  PopulatePhiOperands();
 
   DCHECK(editor()->Validate());
   return editor()->function();
+}
+
+lir::Value Translator::TranslateConditional(ir::Node* node) {
+  if (node->opcode() == ir::Opcode::IntCmp ||
+      node->opcode() == ir::Opcode::FloatCmp) {
+    return MapInput(node);
+  }
+  DCHECK(node->output_type()->is<ir::BoolType>());
+  auto const output = NewConditional();
+  Emit(NewCmpInstruction(output, lir::IntegerCondition::NotEqual,
+                         MapInput(node), lir::Value::SmallInt8(0)));
+  return output;
 }
 
 // ir::NodeVisitor
@@ -390,7 +429,7 @@ void Translator::VisitElement(ir::ElementNode* node) {
 void Translator::VisitIf(ir::IfNode* node) {
   auto const true_node = SelectNode(node, ir::Opcode::IfTrue);
   auto const false_node = SelectNode(node, ir::Opcode::IfFalse);
-  editor()->SetBranch(MapInput(node->input(1)), BlockOf(true_node),
+  editor()->SetBranch(TranslateConditional(node->input(1)), BlockOf(true_node),
                       BlockOf(false_node));
 }
 
@@ -522,8 +561,7 @@ void Translator::VisitTuple(ir::TupleNode* node) {
 
 // Non simple inputs node
 void Translator::VisitEffectPhi(ir::EffectPhiNode* node) {
-  // TODO(eval1749): NYI translate EffectPhi
-  NOTREACHED() << *node;
+  // nothing to do
 }
 
 void Translator::VisitEntry(ir::EntryNode* node) {
@@ -587,8 +625,7 @@ void Translator::VisitParameter(ir::ParameterNode* node) {
 }
 
 void Translator::VisitPhi(ir::PhiNode* node) {
-  // TODO(eval1749): NYI translate Phi
-  NOTREACHED() << *node;
+  editor()->NewPhi(MapOutput(node));
 }
 
 void Translator::VisitReference(ir::ReferenceNode* node) {

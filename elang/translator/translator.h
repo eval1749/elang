@@ -70,6 +70,11 @@ class Translator final : public ZoneOwner,
   static lir::Function* NewFunction(lir::Factory* factor,
                                     ir::Function* ir_function);
 
+  void PopulatePhiOperands();
+  void PrepareBlocks();
+
+  lir::Value TranslateConditional(ir::Node* node);
+
 // ir::NodeVisitor
 #define V(Name, ...) void Visit##Name(ir::Name##Node* node) final;
   FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)

@@ -276,5 +276,63 @@ TEST_F(TranslatorX64Test, LengthNode) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, PhiNode) {
+  auto const function = NewFunction(
+      int32_type(), NewTupleType({bool_type(), int32_type(), int32_type()}));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const if_node = editor.SetBranch(NewParameter(entry_node, 0));
+  ASSERT_EQ("", Commit(&editor));
+
+  auto const ret_control = NewMerge({});
+
+  editor.Edit(NewIfTrue(if_node));
+  editor.SetJump(ret_control);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(NewIfFalse(if_node));
+  editor.SetJump(ret_control);
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(ret_control);
+  auto const phi = NewPhi(int32_type(), ret_control);
+  editor.SetPhiInput(phi, ret_control->control(0), NewParameter(entry_node, 1));
+  editor.SetPhiInput(phi, ret_control->control(1), NewParameter(entry_node, 2));
+  editor.SetRet(effect, phi);
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block3, block5}\n"
+      "  entry CL, EDX, R8D =\n"
+      "  pcopy %r1b, %r2, %r3 = CL, EDX, R8D\n"
+      "  cmp_ne %b2 = %r1b, 0\n"
+      "  br %b2, block3, block5\n"
+      "block3:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block4}\n"
+      "  jmp block4\n"
+      "block4:\n"
+      "  // In: {block3, block5}\n"
+      "  // Out: {block2}\n"
+      "  phi %r4 = block3 %r2, block5 %r3\n"
+      "  mov EAX = %r4\n"
+      "  ret block2\n"
+      "block5:\n"
+      "  // In: {block1}\n"
+      "  // Out: {block4}\n"
+      "  jmp block4\n"
+      "block2:\n"
+      "  // In: {block4}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 }  // namespace translator
 }  // namespace elang
