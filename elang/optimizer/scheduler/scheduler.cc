@@ -235,10 +235,14 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
     placed.insert(node);
     if (auto const phi_owner = node->as<PhiOwnerNode>()) {
       if (auto const effect_phi = phi_owner->effect_phi()) {
-        nodes_.push_back(effect_phi);
-        placed.insert(effect_phi);
+        if (effect_phi->IsUsed()) {
+          nodes_.push_back(effect_phi);
+          placed.insert(effect_phi);
+        }
       }
       for (auto const phi : phi_owner->phi_nodes()) {
+        if (!phi->IsUsed())
+          continue;
         nodes_.push_back(phi);
         placed.insert(phi);
       }
