@@ -119,7 +119,7 @@ void Input::Init(Node* from, Node* to) {
 }
 
 void Input::Reset() {
-  DCHECK(!to_) << "Already reset";
+  DCHECK(to_) << *from_;
   to_->Unuse(this);
   to_ = nullptr;
 }
