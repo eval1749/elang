@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+#include <ostream>
 #include <vector>
 
 #include "elang/optimizer/editor.h"
 
 #include "base/logging.h"
+#include "elang/optimizer/error_data.h"
+#include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/validator.h"
@@ -52,6 +56,13 @@ void Editor::Commit() {
   control_ = nullptr;
 }
 
+void Editor::Discard(Node* node) {
+  DCHECK(!node->IsUsed());
+  auto const num_inputs = node->CountInputs();
+  for (size_t position = 0; position < num_inputs; ++position)
+    node->InputAt(position)->Reset();
+}
+
 void Editor::Edit(Control* control) {
   DCHECK(!control_);
   DCHECK(control);
@@ -62,6 +73,42 @@ Data* Editor::ParameterAt(size_t index) {
   DCHECK(control_);
   DCHECK_EQ(control_, entry_node()) << *control_;
   return NewParameter(entry_node(), index);
+}
+
+void Editor::RemoveControlInput(PhiOwnerNode* node, Control* control) {
+  auto const it = std::find_if(node->inputs_.begin(), node->inputs_.end(),
+                               [control](const InputHolder* holder) {
+                                 return holder->input()->value() == control;
+                               });
+  DCHECK(it != node->inputs_.end()) << *node << " " << *control;
+  (*it)->input()->Reset();
+  node->inputs_.erase(it);
+  if (auto const effect_phi = node->effect_phi())
+    RemovePhiInput(effect_phi, control);
+  for (auto const phi : node->phi_nodes())
+    RemovePhiInput(phi, control);
+}
+
+void Editor::RemovePhiInput(EffectPhiNode* phi, Control* control) {
+  auto& phi_inputs = phi->phi_inputs_;
+  auto const it = std::find_if(phi_inputs.begin(), phi_inputs.end(),
+                               [control](const PhiInputHolder* holder) {
+                                 return holder->control() == control;
+                               });
+  DCHECK(it != phi_inputs.end());
+  (*it)->input()->Reset();
+  phi_inputs.erase(it);
+}
+
+void Editor::RemovePhiInput(PhiNode* phi, Control* control) {
+  auto& phi_inputs = phi->phi_inputs_;
+  auto const it = std::find_if(phi_inputs.begin(), phi_inputs.end(),
+                               [control](const PhiInputHolder* holder) {
+                                 return holder->control() == control;
+                               });
+  DCHECK(it != phi_inputs.end());
+  (*it)->input()->Reset();
+  phi_inputs.erase(it);
 }
 
 void Editor::ReplaceAllUses(Node* new_node, Node* old_node) {
@@ -134,6 +181,15 @@ Control* Editor::SetRet(Effect* effect, Data* data) {
 bool Editor::Validate() const {
   Validator validator(factory(), function());
   return validator.Validate();
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Editor& editor) {
+  ostream << AsReversePostOrder(editor.function());
+  if (editor.errors().empty())
+    return ostream;
+  return ostream << std::endl
+                 << "Errors:" << std::endl
+                 << editor.errors();
 }
 
 }  // namespace optimizer

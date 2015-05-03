@@ -5,6 +5,8 @@
 #ifndef ELANG_OPTIMIZER_EDITOR_H_
 #define ELANG_OPTIMIZER_EDITOR_H_
 
+#include <iosfwd>
+
 #include "base/macros.h"
 #include "elang/optimizer/error_reporter.h"
 #include "elang/optimizer/factory_user.h"
@@ -41,9 +43,15 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
   // Edit input edge
   void AppendInput(Node* node, Node* new_value);
   void ChangeInput(Node* node, size_t index, Node* new_value);
+  void RemoveControlInput(PhiOwnerNode* node, Control* control);
+
+  // Node
+  void Discard(Node* node);
   void ReplaceAllUses(Node* new_node, Node* old_node);
 
   // Phi
+  void RemovePhiInput(EffectPhiNode* phi, Control* control);
+  void RemovePhiInput(PhiNode* phi, Control* control);
   void SetPhiInput(EffectPhiNode* phi, Control* control, Effect* effect);
   void SetPhiInput(PhiNode* phi, Control* control, Data* value);
 
@@ -58,6 +66,9 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
+
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                                const Editor& editor);
 
 }  // namespace optimizer
 }  // namespace elang
