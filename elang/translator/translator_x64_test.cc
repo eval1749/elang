@@ -276,6 +276,33 @@ TEST_F(TranslatorX64Test, LengthNode) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, LoadNode) {
+  auto const function = NewFunction(char_type(), NewPointerType(char_type()));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const ptr = NewParameter(entry_node, 0);
+  editor.SetRet(effect, NewLoad(effect, ptr, ptr));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX =\n"
+      "  pcopy %r1l = RCX\n"
+      "  load %r2w = %r1l, %r1l, 0\n"
+      "  zext EAX = %r2w\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 TEST_F(TranslatorX64Test, PhiNode) {
   auto const function = NewFunction(
       int32_type(), NewTupleType({bool_type(), int32_type(), int32_type()}));

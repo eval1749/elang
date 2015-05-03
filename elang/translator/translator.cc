@@ -126,7 +126,7 @@ lir::Value Translator::EmitShl(lir::Value input, int shift_count) {
 }
 
 lir::Value Translator::MapInput(ir::Node* node) {
-  DCHECK(node->IsData());
+  DCHECK(node->IsData()) << *node;
 
   if (auto const reference = node->as<ir::ReferenceNode>())
     return NewStringValue(reference->name());
@@ -568,8 +568,8 @@ void Translator::VisitIntSub(ir::IntSubNode* node) {
 
 // Simple nodes with three inputs
 void Translator::VisitLoad(ir::LoadNode* node) {
-  // TODO(eval1749): NYI translate Load
-  NOTREACHED() << *node;
+  Emit(NewLoadInstruction(MapOutput(node), MapInput(node->input(1)),
+                          MapInput(node->input(2)), lir::Value::SmallInt32(0)));
 }
 
 // Simple node 4 inputs
