@@ -253,6 +253,8 @@ void Translator::PopulatePhiOperands() {
     for (auto const phi : block->phi_instructions())
       phi_map.insert(std::make_pair(phi->output(0), phi));
     for (auto const phi : phi_owner->phi_nodes()) {
+      if (!phi->IsUsed())
+        continue;
       for (auto const phi_input : phi->phi_inputs()) {
         auto const it = phi_map.find(MapOutput(phi));
         DCHECK(it != phi_map.end()) << *phi;
