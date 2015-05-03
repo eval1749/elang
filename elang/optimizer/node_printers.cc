@@ -217,6 +217,12 @@ std::ostream& operator<<(std::ostream& ostream, const Node& node) {
   return ostream;
 }
 
+std::ostream& operator<<(std::ostream& ostream, const Node* node) {
+  if (!node)
+    return ostream << "nil";
+  return ostream << *node;
+}
+
 std::ostream& operator<<(std::ostream& ostream, Opcode opcode) {
   static const char* mnemonics[] = {
 #define V(Name, mnemonic, ...) mnemonic,
