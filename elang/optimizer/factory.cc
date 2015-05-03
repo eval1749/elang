@@ -10,12 +10,14 @@
 #include "elang/base/atomic_string.h"
 #include "elang/base/atomic_string_factory.h"
 #include "elang/base/zone.h"
+#include "elang/optimizer/editor.h"
 #include "elang/optimizer/error_data.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/node_factory.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/scheduler.h"
+#include "elang/optimizer/transforms/clean_pass.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 
@@ -59,6 +61,12 @@ Function* Factory::NewFunction(FunctionType* function_type) {
       node_factory()->node_id_source(), function_type, entry_node, exit_node);
   function->id_ = ++last_function_id_;
   return function;
+}
+
+bool Factory::Optimize(Function* function, int level) {
+  Editor editor(this, function);
+  CleanPass(pass_observer_, &editor).Run();
+  return errors().empty();
 }
 
 }  // namespace optimizer

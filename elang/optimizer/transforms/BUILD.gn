@@ -1,0 +1,20 @@
+# Copyright 2015 Project Vogue. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+source_set("transforms") {
+  visibility = [ "//elang/optimizer" ]
+
+  sources = [
+    "clean_pass.cc",
+    "clean_pass.h",
+  ]
+
+  defines = [ "OPTIMIZER_IMPLEMENTATION" ]
+
+  public_deps = [
+    "//base",
+    "//elang/api",
+    "//elang/base",
+  ]
+}

@@ -44,6 +44,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   std::unique_ptr<Schedule> ComputeSchedule(Function* function);
   AtomicString* NewAtomicString(base::StringPiece16 string);
   Function* NewFunction(FunctionType* function_type);
+  bool Optimize(Function* function, int level);
 
  private:
   AtomicStringFactory* const atomic_string_factory_;

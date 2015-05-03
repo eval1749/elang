@@ -66,6 +66,7 @@ component("optimizer") {
 
   deps = [
     "scheduler",
+    "transforms",
   ]
 
   public_deps = [
