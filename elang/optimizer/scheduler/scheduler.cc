@@ -123,7 +123,7 @@ void LateScheduler::DoDefaultVisit(Node* node) {
   if (IsPinned(node)) {
     auto const block = BlockOf(node);
     if (!block) {
-      DCHECK(node->is<PhiNode>() || node->is<EffectPhiNode>());
+      DCHECK(node->is<PhiNode>() || node->is<EffectPhiNode>()) << *node;
       return;
     }
     editor()->AppendNode(block, node);
@@ -222,7 +222,7 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
   for (auto const node : block->nodes()) {
     if (!first) {
       if (node->IsBlockEnd()) {
-        DCHECK(!end_node);
+        DCHECK(!end_node) << *node << " " << *end_node;
         end_node = node;
         continue;
       }
@@ -230,7 +230,7 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
       continue;
     }
     first = false;
-    DCHECK(node->IsBlockStart());
+    DCHECK(node->IsBlockStart()) << *node;
     nodes_.push_back(node);
     placed.insert(node);
     if (auto const phi_owner = node->as<PhiOwnerNode>()) {
@@ -244,7 +244,7 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
       }
     }
   }
-  DCHECK(end_node);
+  DCHECK(end_node) << block;
 
   while (!pending_list.empty()) {
     WorkList<Node> work_list;
