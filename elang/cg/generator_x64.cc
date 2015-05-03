@@ -176,12 +176,6 @@ void Generator::VisitLength(hir::LengthInstruction* instr) {
                           lir::Value::SmallInt32(offset)));
 }
 
-void Generator::VisitLoad(hir::LoadInstruction* instr) {
-  Emit(NewLoadInstruction(MapOutput(instr), MapInput(instr->input(0)),
-                          MapInput(instr->input(1)),
-                          lir::Value::SmallInt32(0)));
-}
-
 // Set return value and emit 'ret' instruction.
 void Generator::VisitRet(hir::RetInstruction* instr) {
   auto const value = instr->input(0);

@@ -304,12 +304,6 @@ void Generator::VisitGt(hir::GtInstruction* instr) {
                    lir::FloatCondition::OrderedGreaterThan);
 }
 
-void Generator::VisitNe(hir::NeInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::NotEqual,
-                   lir::IntegerCondition::NotEqual,
-                   lir::FloatCondition::OrderedNotEqual);
-}
-
 void Generator::VisitJump(hir::JumpInstruction* instr) {
   editor()->SetJump(MapBlock(instr->input(0)->as<hir::BasicBlock>()));
 }
@@ -320,10 +314,22 @@ void Generator::VisitLe(hir::LeInstruction* instr) {
                    lir::FloatCondition::OrderedLessThanOrEqual);
 }
 
+void Generator::VisitLoad(hir::LoadInstruction* instr) {
+  Emit(NewLoadInstruction(MapOutput(instr), MapInput(instr->input(0)),
+                          MapInput(instr->input(1)),
+                          lir::Value::SmallInt32(0)));
+}
+
 void Generator::VisitLt(hir::LtInstruction* instr) {
   HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
                    lir::IntegerCondition::UnsignedLessThan,
                    lir::FloatCondition::OrderedLessThan);
+}
+
+void Generator::VisitNe(hir::NeInstruction* instr) {
+  HandleComparison(instr, lir::IntegerCondition::NotEqual,
+                   lir::IntegerCondition::NotEqual,
+                   lir::FloatCondition::OrderedNotEqual);
 }
 
 void Generator::VisitStaticCast(hir::StaticCastInstruction* instr) {
