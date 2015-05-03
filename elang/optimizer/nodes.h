@@ -229,6 +229,9 @@ class NodeLayout {
 //
 // Node
 //
+// Since |Node| class doesn't provide modification functions, you can use
+// |Editor| class to modify state of |Node| instances.
+//
 class ELANG_OPTIMIZER_EXPORT Node : public Thing,
                                     public NodeLayout,
                                     public WorkList<Node>::Item {
@@ -306,6 +309,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing,
   virtual bool IsEffect() const;
   virtual bool IsLiteral() const;
   virtual bool IsTuple() const;
+  bool IsUsed() const;
   bool IsValidControl() const;
   bool IsValidControlAt(size_t field) const;
   bool IsValidData() const;

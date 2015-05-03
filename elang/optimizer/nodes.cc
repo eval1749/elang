@@ -337,6 +337,10 @@ bool Node::IsTuple() const {
   return false;
 }
 
+bool Node::IsUsed() const {
+  return !use_edges().empty();
+}
+
 bool Node::IsValidControl() const {
   return IsControl() && id_;
 }
