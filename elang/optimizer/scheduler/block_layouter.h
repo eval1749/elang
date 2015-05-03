@@ -33,6 +33,9 @@ class BlockLayouter final : public api::Pass,
                             public ScheduleEditor::User,
                             public ZoneOwner {
  public:
+  // |Chain| is marked |public| for debugging purpose.
+  class Chain;
+
   BlockLayouter(api::PassObserver* observer,
                 ScheduleEditor* editor,
                 const EdgeProfile* edge_map);
@@ -41,8 +44,6 @@ class BlockLayouter final : public api::Pass,
   std::vector<BasicBlock*> Run();
 
  private:
-  class Chain;
-
   void BuildChain();
   Chain* ChainOf(const BasicBlock* block) const;
   std::vector<BasicBlock*> Layout();

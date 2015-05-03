@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <ostream>
 #include <queue>
 #include <unordered_set>
 #include <vector>
@@ -52,7 +53,8 @@ class BlockLayouter::Chain final : public ZoneAllocated {
     return priority_ > other.priority_;
   }
 
-  void Append(const Chain* other, size_t priority);
+  void Append(Chain* other, size_t priority);
+  void PrintTo(std::ostream* ostream) const;
 
  private:
   // Small number is higher priority.
@@ -65,13 +67,36 @@ class BlockLayouter::Chain final : public ZoneAllocated {
 BlockLayouter::Chain::Chain(Zone* zone,
                             const BasicBlock* block,
                             size_t priority)
-    : blocks_(zone), priority_(0) {
+    : blocks_(zone), priority_(priority) {
   blocks_.push_back(const_cast<BasicBlock*>(block));
 }
 
-void BlockLayouter::Chain::Append(const Chain* other, size_t priority) {
+void BlockLayouter::Chain::Append(Chain* other, size_t priority) {
+  DCHECK_NE(this, other) << blocks_.front();
+  DCHECK(!other->blocks_.empty());
   priority_ = std::min(priority_, std::min(other->priority_, priority));
   blocks_.insert(blocks_.end(), other->blocks_.begin(), other->blocks_.end());
+  other->blocks_.clear();
+}
+
+void BlockLayouter::Chain::PrintTo(std::ostream* ostream) const {
+  *ostream << "chain P=" << priority_ << " {";
+  auto separator = "";
+  for (auto const block : blocks_) {
+    *ostream << separator << block;
+    separator = ", ";
+  }
+  *ostream << "}";
+  if (blocks_.empty()) {
+    *ostream << "chain empty";
+    return;
+  }
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const BlockLayouter::Chain& chain) {
+  chain.PrintTo(&ostream);
+  return ostream;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -147,30 +172,40 @@ BlockLayouter::Chain* BlockLayouter::ChainOf(const BasicBlock* block) const {
 //    - Predicted as take on target machine (forward branch isn't taken)
 //    - Edge remains only if it is lower probability choice
 std::vector<BasicBlock*> BlockLayouter::Layout() {
-  std::unordered_set<Chain*> placed;
+  std::unordered_set<Chain*> placed_chains;
+  std::unordered_set<Chain*> pending_chains;
   std::vector<BasicBlock*> blocks;
   std::priority_queue<Chain*> work_list;
   auto const entry_block = control_flow_graph()->first_node();
   auto const exit_block = control_flow_graph()->last_node();
   work_list.push(ChainOf(entry_block));
+  pending_chains.insert(work_list.top());
   while (!work_list.empty()) {
     // Pick the chain C with lowest priority from |work_list|.
     auto const chain = work_list.top();
+    DCHECK(pending_chains.count(chain)) << *chain;
+    DCHECK(!placed_chains.count(chain)) << *chain;
     work_list.pop();
-    placed.insert(chain);
+    placed_chains.insert(chain);
+    pending_chains.erase(chain);
     // Place it next in the code
     for (auto const block : chain->blocks()) {
-      if (block != exit_block)
+      if (block != exit_block) {
+        DCHECK(std::find(blocks.begin(), blocks.end(), block) == blocks.end())
+            << *block;
         blocks.push_back(block);
+      }
       for (auto const use_edge : block->last_node()->use_edges()) {
         auto const successor = BlockOf(use_edge->from());
         auto const chain = ChainOf(successor);
-        if (placed.count(chain))
+        if (placed_chains.count(chain) || pending_chains.count(chain))
           continue;
         work_list.push(chain);
+        pending_chains.insert(chain);
       }
     }
   }
+  DCHECK(pending_chains.empty()) << *pending_chains.begin();
   DCHECK_EQ(entry_block, blocks.front());
   DCHECK(std::find(blocks.begin(), blocks.end(), exit_block) == blocks.end());
   blocks.push_back(exit_block);
