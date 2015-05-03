@@ -164,6 +164,7 @@ class InputHolder final : public ZoneAllocated {
   InputHolder();
   ~InputHolder();
 
+  const Input* input() const { return &input_; }
   Input* input() { return &input_; }
 
  private:
@@ -228,8 +229,9 @@ class NodeLayout {
 //
 // Node
 //
-class ELANG_OPTIMIZER_EXPORT Node
-    : public Thing, public NodeLayout, public WorkList<Node>::Item {
+class ELANG_OPTIMIZER_EXPORT Node : public Thing,
+                                    public NodeLayout,
+                                    public WorkList<Node>::Item {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(Node, Thing);
 
  public:
@@ -492,7 +494,7 @@ class PhiNodeTemplate : public Base {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(PhiNodeTemplate, Base);
 
  public:
-  const ZoneDeque<PhiInputHolder*> phi_inputs() const { return phi_inputs_; }
+  const ZoneDeque<PhiInputHolder*>& phi_inputs() const { return phi_inputs_; }
   PhiOwnerNode* owner() const { return owner_; }
 
  protected:
