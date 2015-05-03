@@ -312,6 +312,10 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing,
   bool IsValidEffect() const;
   bool IsValidEffectAt(size_t field) const;
 
+  // Select a user
+  Node* SelectUser(Opcode opcode) const;
+  Node* SelectUserIfOne() const;
+
   // NodeLayout
   size_t field() const override;
   bool has_field() const override;

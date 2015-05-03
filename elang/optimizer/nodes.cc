@@ -363,6 +363,26 @@ void Node::ResetInputAt(size_t index) {
   InputAt(index)->Reset();
 }
 
+Node* Node::SelectUser(Opcode opcode) const {
+  for (auto const edge : use_edges()) {
+    auto const user = edge->from();
+    if (user->opcode() == opcode)
+      return user;
+  }
+  return nullptr;
+}
+
+Node* Node::SelectUserIfOne() const {
+  auto single_user = static_cast<Node*>(nullptr);
+  for (auto const edge : use_edges()) {
+    auto const user = edge->from();
+    if (single_user)
+      return nullptr;
+    single_user = user;
+  }
+  return single_user;
+}
+
 void Node::SetInputAt(size_t index, Node* value) {
   InputAt(index)->SetTo(value);
 }
