@@ -199,8 +199,8 @@ void Editor::DidRemoveInstruction() {
 }
 
 void Editor::Edit(BasicBlock* basic_block) {
-  DCHECK(!basic_block_);
-  DCHECK_EQ(function(), basic_block->function());
+  DCHECK(!basic_block_) << basic_block;
+  DCHECK_EQ(function(), basic_block->function()) << basic_block;
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
@@ -236,8 +236,8 @@ void Editor::InsertBefore(Instruction* new_instruction,
 Value Editor::InsertCopyBefore(Value output,
                                Value input,
                                Instruction* ref_instruction) {
-  DCHECK(output.is_output());
-  DCHECK(basic_block_);
+  DCHECK(output.is_output()) << output;
+  DCHECK(basic_block_) << output;
   if (ref_instruction) {
     auto const previous = ref_instruction->previous();
     if (previous && previous->is<CopyInstruction>() &&
@@ -255,7 +255,7 @@ Value Editor::InsertCopyBefore(Value output,
 
 BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   DCHECK(reference);
-  DCHECK_EQ(function(), reference->function());
+  DCHECK_EQ(function(), reference->function()) << reference;
   auto const new_block = factory()->NewBasicBlock();
   new_block->function_ = function();
   new_block->id_ = factory()->NextBasicBlockId();
@@ -265,7 +265,7 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
 }
 
 PhiInstruction* Editor::NewPhi(Value output) {
-  DCHECK(basic_block_);
+  DCHECK(basic_block_) << output;
   auto const phi_instruction = factory()->NewPhiInstruction(output);
   basic_block_->phi_instructions_.AppendNode(phi_instruction);
   phi_instruction->basic_block_ = basic_block_;
@@ -290,8 +290,8 @@ const OrderedBlockList& Editor::PostOrderList() const {
 }
 
 void Editor::Remove(Instruction* old_instruction) {
-  DCHECK(basic_block_);
-  DCHECK_EQ(basic_block_, old_instruction->basic_block_);
+  DCHECK(basic_block_) << old_instruction;
+  DCHECK_EQ(basic_block_, old_instruction->basic_block_) << old_instruction;
   DidRemoveInstruction();
   if (old_instruction->IsTerminator()) {
     RemoveEdgesFrom(old_instruction);
@@ -319,10 +319,11 @@ void Editor::RemoveInternal(Instruction* old_instruction) {
 void Editor::Replace(Instruction* new_instruction,
                      Instruction* old_instruction) {
   DCHECK(!new_instruction->IsTerminator())
-      << "Please use Editor::SetTerminator() to replace terminator";
-  DCHECK(basic_block_);
-  DCHECK_EQ(basic_block_, old_instruction->basic_block_);
-  DCHECK(!new_instruction->basic_block());
+      << "Please use Editor::SetTerminator() to replace terminator"
+      << new_instruction << " " << old_instruction;
+  DCHECK(basic_block_) << new_instruction << " " << old_instruction;
+  DCHECK_EQ(basic_block_, old_instruction->basic_block_) << old_instruction;
+  DCHECK(!new_instruction->basic_block()) << new_instruction;
   basic_block_->instructions_.ReplaceNode(new_instruction, old_instruction);
   new_instruction->id_ = old_instruction->id_;
   new_instruction->basic_block_ = basic_block_;
@@ -351,7 +352,7 @@ const OrderedBlockList& Editor::ReversePostOrderList() const {
 void Editor::SetBlockOperand(Instruction* instruction,
                              int index,
                              BasicBlock* new_block) {
-  DCHECK(basic_block_);
+  DCHECK(basic_block_) << instruction;
   DCHECK_EQ(basic_block_->last_instruction(), instruction);
   RemoveEdgesFrom(instruction);
   instruction->SetBlockOperand(index, new_block);
@@ -361,9 +362,9 @@ void Editor::SetBlockOperand(Instruction* instruction,
 void Editor::SetBranch(Value condition,
                        BasicBlock* true_block,
                        BasicBlock* false_block) {
-  DCHECK(basic_block_);
-  DCHECK(false_block->id());
-  DCHECK(true_block->id());
+  DCHECK(basic_block_) << condition << " " << true_block << " " << false_block;
+  DCHECK(false_block->id()) << false_block;
+  DCHECK(true_block->id()) << true_block;
   if (auto const last =
           basic_block_->last_instruction()->as<BranchInstruction>()) {
     SetInput(last, 0, condition);
@@ -378,13 +379,13 @@ void Editor::SetBranch(Value condition,
 }
 
 void Editor::SetInput(Instruction* instruction, int index, Value new_value) {
-  DCHECK(basic_block_);
-  DCHECK_EQ(basic_block_, instruction->basic_block());
+  DCHECK(basic_block_) << instruction;
+  DCHECK_EQ(basic_block_, instruction->basic_block()) << instruction;
   instruction->SetInput(index, new_value);
 }
 
 void Editor::SetJump(BasicBlock* target_block) {
-  DCHECK(basic_block_);
+  DCHECK(basic_block_) << target_block;
   if (auto const last =
           basic_block_->last_instruction()->as<JumpInstruction>()) {
     RemoveEdgesFrom(last);
@@ -398,8 +399,8 @@ void Editor::SetJump(BasicBlock* target_block) {
 void Editor::SetPhiInput(PhiInstruction* phi,
                          BasicBlock* block,
                          Value new_value) {
-  DCHECK_EQ(basic_block_, phi->basic_block());
-  DCHECK(basic_block_);
+  DCHECK_EQ(basic_block_, phi->basic_block()) << phi;
+  DCHECK(basic_block_) << phi;
   if (auto const present = phi->FindPhiInputFor(block)) {
     present->value_ = new_value;
     return;
@@ -409,8 +410,8 @@ void Editor::SetPhiInput(PhiInstruction* phi,
 }
 
 void Editor::SetOutput(Instruction* instruction, int index, Value new_value) {
-  DCHECK(basic_block_);
-  DCHECK_EQ(basic_block_, instruction->basic_block());
+  DCHECK(basic_block_) << instruction;
+  DCHECK_EQ(basic_block_, instruction->basic_block()) << instruction;
   instruction->SetOutput(index, new_value);
 }
 
@@ -422,9 +423,9 @@ void Editor::SetReturn() {
 }
 
 void Editor::SetTerminator(Instruction* instr) {
-  DCHECK(basic_block_);
-  DCHECK(!instr->basic_block_);
-  DCHECK(instr->IsTerminator());
+  DCHECK(basic_block_) << instr;
+  DCHECK(!instr->basic_block_) << instr;
+  DCHECK(instr->IsTerminator()) << instr;
   auto const last = basic_block_->last_instruction();
   if (last && last->IsTerminator())
     Remove(last);
@@ -433,7 +434,7 @@ void Editor::SetTerminator(Instruction* instr) {
 
 // Replaces phi input for |old_block| to |new_block|.
 void Editor::ReplacePhiInputs(BasicBlock* new_block, BasicBlock* old_block) {
-  DCHECK(basic_block_);
+  DCHECK(basic_block_) << new_block << " " << old_block;
   DCHECK_NE(new_block, old_block);
   for (auto const phi : basic_block_->phi_instructions())
     phi->FindPhiInputFor(old_block)->basic_block_ = new_block;
