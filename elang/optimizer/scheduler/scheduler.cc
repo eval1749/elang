@@ -174,10 +174,12 @@ class NodePlacer final : public api::Pass, public ScheduleEditor::User {
                       const std::vector<BasicBlock*>& blocks);
   ~NodePlacer() = default;
 
+  void PrintTo(std::ostream* ostream) const;
   void Run();
 
  private:
   bool IsUsedInBlock(Node* node, BasicBlock* block) const;
+  void PlaceNode(Node* node);
   void ScheduleInBlock(BasicBlock* block);
 
   // api::Pass
@@ -185,6 +187,7 @@ class NodePlacer final : public api::Pass, public ScheduleEditor::User {
 
   const std::vector<BasicBlock*>& blocks_;
   std::vector<Node*> nodes_;
+  std::unordered_set<Node*> placed_;
 
   DISALLOW_COPY_AND_ASSIGN(NodePlacer);
 };
@@ -205,17 +208,39 @@ bool NodePlacer::IsUsedInBlock(Node* node, BasicBlock* block) const {
   return false;
 }
 
+void NodePlacer::PlaceNode(Node* node) {
+  DCHECK(node->IsUsed()) << *node;
+  if (placed_.count(node))
+    return;
+  placed_.insert(node);
+  nodes_.push_back(node);
+}
+
+void NodePlacer::PrintTo(std::ostream* ostream) const {
+  *ostream << "Extra nodes:" << std::endl;
+  for (auto const node : nodes_) {
+    if (placed_.count(node))
+      continue;
+    *ostream << "  " << *node << std::endl;
+  }
+}
+
+std::ostream& operator<<(std::ostream& ostream, const NodePlacer& pass) {
+  pass.PrintTo(&ostream);
+  return ostream;
+}
+
 void NodePlacer::Run() {
   RunScope scope(this);
   if (scope.IsStop())
     return;
   for (auto const block : blocks_)
     ScheduleInBlock(block);
+  DCHECK_EQ(placed_.size(), nodes_.size()) << *this;
   editor()->DidPlaceNodes(nodes_);
 }
 
 void NodePlacer::ScheduleInBlock(BasicBlock* block) {
-  std::unordered_set<Node*> placed;
   WorkList<Node> pending_list;
   auto end_node = static_cast<Node*>(nullptr);
   auto first = true;
@@ -231,20 +256,17 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
     }
     first = false;
     DCHECK(node->IsBlockStart()) << *node;
-    nodes_.push_back(node);
-    placed.insert(node);
+    PlaceNode(node);
     if (auto const phi_owner = node->as<PhiOwnerNode>()) {
       if (auto const effect_phi = phi_owner->effect_phi()) {
         if (effect_phi->IsUsed()) {
-          nodes_.push_back(effect_phi);
-          placed.insert(effect_phi);
+          PlaceNode(effect_phi);
         }
       }
       for (auto const phi : phi_owner->phi_nodes()) {
         if (!phi->IsUsed())
           continue;
-        nodes_.push_back(phi);
-        placed.insert(phi);
+        PlaceNode(phi);
       }
     }
   }
@@ -258,20 +280,19 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
       auto const node = work_list.Pop();
       for (auto const input : node->inputs()) {
         if (input->IsLiteral() || BlockOf(input) != block ||
-            placed.count(input)) {
+            placed_.count(input)) {
           continue;
         }
         pending_list.Push(node);
         break;
       }
-      if (!pending_list.Contains(node)) {
-        nodes_.push_back(node);
-        placed.insert(node);
-      }
+      if (!pending_list.Contains(node))
+        PlaceNode(node);
     }
   }
 
-  nodes_.push_back(end_node);
+  DCHECK(!placed_.count(end_node)) << *end_node;
+  PlaceNode(end_node);
 }
 
 // api::Pass
