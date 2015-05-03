@@ -62,6 +62,106 @@ DEFINE_RET_TEST(UInt16, uint16, "lit EAX = 42")
 DEFINE_RET_TEST(UInt32, uint32, "lit EAX = 42")
 DEFINE_RET_TEST(UInt64, uint64, "lit RAX = 42l")
 
+TEST_F(TranslatorX64Test, CallNode) {
+  auto const function = NewFunction(void_type(), void_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  auto const callee = NewReference(NewFunctionType(void_type(), void_type()),
+                                   NewAtomicString(L"Foo"));
+
+  editor.Edit(entry_node);
+  auto const call_node = NewCall(entry_node, effect, callee, void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(call_node);
+  editor.SetRet(NewGetEffect(call_node), void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  call \"Foo\"\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, CallNodeOne) {
+  auto const function = NewFunction(void_type(), void_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  auto const callee = NewReference(NewFunctionType(void_type(), int32_type()),
+                                   NewAtomicString(L"Foo"));
+
+  editor.Edit(entry_node);
+  auto const call_node = NewCall(entry_node, effect, callee, NewInt32(42));
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(call_node);
+  editor.SetRet(NewGetEffect(call_node), void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  mov ECX = 42\n"
+      "  call \"Foo\"\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
+TEST_F(TranslatorX64Test, CallNodeTwo) {
+  auto const function = NewFunction(void_type(), void_type());
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  auto const callee = NewReference(
+      NewFunctionType(void_type(), NewTupleType({int32_type(), int32_type()})),
+      NewAtomicString(L"Foo"));
+
+  editor.Edit(entry_node);
+  auto const call_node = NewCall(entry_node, effect, callee,
+                                 NewTuple({NewInt32(12), NewInt32(34)}));
+  ASSERT_EQ("", Commit(&editor));
+
+  editor.Edit(call_node);
+  editor.SetRet(NewGetEffect(call_node), void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry\n"
+      "  pcopy ECX, EDX = 12, 34\n"
+      "  call \"Foo\"\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 TEST_F(TranslatorX64Test, ElementNode) {
   auto const function =
       NewFunction(NewPointerType(int32_type()),

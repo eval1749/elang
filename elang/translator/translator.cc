@@ -574,8 +574,33 @@ void Translator::VisitLoad(ir::LoadNode* node) {
 
 // Simple node 4 inputs
 void Translator::VisitCall(ir::CallNode* node) {
-  // TODO(eval1749): NYI translate Call
-  NOTREACHED() << *node;
+  auto const callee = MapInput(node->input(2));
+  auto const argument = node->input(3);
+
+  if (argument->output_type()->is<ir::VoidType>())
+    return Emit(NewCallInstruction(callee));
+
+  auto const tuple = argument->as<ir::TupleNode>();
+  if (!tuple) {
+    auto const arg0 = MapInput(argument);
+    EmitCopy(lir::Target::GetArgumentAt(arg0, 0), arg0);
+    Emit(NewCallInstruction(callee));
+    return;
+  }
+
+  std::vector<lir::Value> inputs;
+  inputs.reserve(tuple->CountInputs());
+  std::vector<lir::Value> outputs;
+  outputs.reserve(tuple->CountInputs());
+  auto position = static_cast<size_t>(0);
+  for (auto const argument : tuple->inputs()) {
+    auto const arg = MapInput(argument);
+    inputs.push_back(arg);
+    outputs.push_back(lir::Target::GetArgumentAt(arg, position));
+    ++position;
+  }
+  Emit(NewPCopyInstruction(outputs, inputs));
+  Emit(NewCallInstruction(callee));
 }
 
 // Variadic inputs node
