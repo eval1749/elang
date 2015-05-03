@@ -107,6 +107,9 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction& instruction);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Instruction* instruction);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           IntegerCondition condition);
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream, Opcode opcode);
 

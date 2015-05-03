@@ -184,6 +184,13 @@ std::ostream& operator<<(std::ostream& ostream,
   return ostream;
 }
 
+std::ostream& operator<<(std::ostream& ostream,
+                         const Instruction* instruction) {
+  if (!instruction)
+    return ostream << "nil";
+  return ostream << *instruction;
+}
+
 std::ostream& operator<<(std::ostream& ostream, IntegerCondition condition) {
   static const char* const names[] = {
 #define V(Name, mnemonic, ...) mnemonic,
