@@ -12,6 +12,7 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/logging.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/string_split.h"
 #include "elang/api/pass.h"
@@ -290,6 +291,14 @@ bool ReportLirErrors(const lir::Factory* factory) {
   return true;
 }
 
+int SwitchValueAsInt(base::StringPiece switch_name, int default_value) {
+  auto const command_line = base::CommandLine::ForCurrentProcess();
+  auto const switch_value =
+      command_line->GetSwitchValueASCII(switch_name.as_string());
+  auto value = default_value;
+  return base::StringToInt(switch_value, &value) ? value : default_value;
+}
+
 std::vector<std::string> SwitchValuesOf(base::StringPiece switch_name) {
   auto const command_line = base::CommandLine::ForCurrentProcess();
   std::vector<std::string> values;
@@ -388,6 +397,8 @@ void Compiler::CompileAndGoInternal() {
   stop_after_ = command_line->GetSwitchValueASCII("stop_after");
   stop_before_ = command_line->GetSwitchValueASCII("stop_before");
 
+  auto const optimize_level = SwitchValueAsInt("O", 0);
+
   if (!command_line->HasSwitch(kUseHir)) {
     // Compile to Optimizer-IR
     auto const factory_config = NewIrFactoryConfig(session());
@@ -406,12 +417,16 @@ void Compiler::CompileAndGoInternal() {
       return;
     }
 
+    factory->Optimize(main_function, optimize_level);
+    if (ReportIrErrors(factory.get()) || stop_)
+      return;
+
     // Translate IR to LIR
     auto const schedule = factory->ComputeSchedule(main_function);
-    if (stop_)
+    if (ReportIrErrors(factory.get()) || stop_)
       return;
     lir_function = TranslateToLir(lir_factory.get(), schedule.get());
-    if (stop_)
+    if (ReportLirErrors(lir_factory.get()) || stop_)
       return;
     has_parameter = !main_function->parameters_type()->is<ir::VoidType>();
     has_return_value = !main_function->return_type()->is<ir::VoidType>();
