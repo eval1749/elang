@@ -17,7 +17,7 @@ namespace optimizer {
 
 // Control
 Control::Control(Type* output_type) : Node(output_type) {
-  DCHECK(output_type->is<ControlType>());
+  DCHECK(output_type->is<ControlType>()) << output_type;
 }
 
 bool Control::IsControl() const {
@@ -34,7 +34,7 @@ bool Data::IsData() const {
 
 // Effect
 Effect::Effect(Type* output_type) : Node(output_type) {
-  DCHECK(output_type->is<EffectType>());
+  DCHECK(output_type->is<EffectType>()) << output_type;
 }
 
 bool Effect::IsEffect() const {
@@ -44,12 +44,12 @@ bool Effect::IsEffect() const {
 // EffectPhiNode
 EffectPhiNode::EffectPhiNode(Type* output_type, Zone* zone, PhiOwnerNode* owner)
     : PhiNodeTemplate(output_type, zone, owner) {
-  DCHECK(output_type->is<EffectType>());
+  DCHECK(output_type->is<EffectType>()) << output_type;
 }
 
 // EntryNode
 EntryNode::EntryNode(Type* output_type) : NodeTemplate(output_type) {
-  DCHECK(output_type->is<ControlType>());
+  DCHECK(output_type->is<ControlType>()) << output_type;
 }
 
 Type* EntryNode::parameters_type() const {
@@ -100,8 +100,8 @@ FunctionReferenceNode::FunctionReferenceNode(Type* output_type,
 // GetNode
 GetNode::GetNode(Type* output_type, Tuple* input, size_t field)
     : ProjectionNodeTemplate(output_type, input, field) {
-  DCHECK(!output_type->is<ControlType>());
-  DCHECK(!output_type->is<EffectType>());
+  DCHECK(!output_type->is<ControlType>() && !output_type->is<EffectType>())
+      << output_type;
 }
 
 // Input
@@ -111,21 +111,21 @@ Input::Input() : from_(nullptr), to_(nullptr) {
 void Input::Init(Node* from, Node* to) {
   DCHECK(from);
   DCHECK(to);
-  DCHECK(!from_);
-  DCHECK(!to_);
+  DCHECK(!from_) << from_ << " " << from;
+  DCHECK(!to_) << to_ << " " << from;
   from_ = from;
   to_ = to;
   to_->Use(this);
 }
 
 void Input::Reset() {
-  DCHECK(to_) << *from_;
+  DCHECK(to_) << from_;
   to_->Unuse(this);
   to_ = nullptr;
 }
 
 void Input::SetTo(Node* new_to) {
-  DCHECK(to_);
+  DCHECK(to_) << from_;
   to_->Unuse(this);
   new_to->Use(this);
   to_ = new_to;
@@ -230,7 +230,7 @@ base::StringPiece IntCmpNode::mnemonic() const {
 #define V(Name, mnemonic, data_type)                        \
   Name##Node::Name##Node(Type* output_type, data_type data) \
       : LiteralNodeTemplate(output_type, data) {            \
-    DCHECK(output_type->is<Name##Type>());                  \
+    DCHECK(output_type->is<Name##Type>()) << output_type;   \
   }
 FOR_EACH_OPTIMIZER_CONCRETE_LITERAL_NODE(V)
 #undef V
@@ -459,8 +459,8 @@ PhiOwnerNode::PhiOwnerNode(Type* output_type, Zone* zone)
 }
 
 void PhiOwnerNode::set_effect_phi(EffectPhiNode* effect_phi) {
-  DCHECK(!effect_phi_);
-  DCHECK(effect_phi);
+  DCHECK(!effect_phi_) << this << " " << effect_phi_;
+  DCHECK(effect_phi) << this;
   effect_phi_ = effect_phi;
 }
 
@@ -514,12 +514,12 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V)
 // SizeOf
 SizeOfNode::SizeOfNode(Type* uintptr_type, Type* type)
     : NodeTemplate(uintptr_type), type_operand_(type) {
-  DCHECK(output_type()->is<UIntPtrType>());
+  DCHECK(output_type()->is<UIntPtrType>()) << output_type();
 }
 
 // Tuple
 Tuple::Tuple(Type* output_type) : Node(output_type) {
-  DCHECK(output_type->is<TupleType>());
+  DCHECK(output_type->is<TupleType>()) << output_type;
 }
 
 bool Tuple::IsData() const {
@@ -544,7 +544,7 @@ FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
 // VoidNode
 VoidNode::VoidNode(Type* output_type) : NodeTemplate(output_type) {
-  DCHECK(output_type->is<VoidType>());
+  DCHECK(output_type->is<VoidType>()) << output_type;
 }
 
 }  // namespace optimizer
