@@ -463,11 +463,6 @@ void Translator::VisitIf(ir::IfNode* node) {
                       BlockOf(false_node));
 }
 
-void Translator::VisitIntShl(ir::IntShlNode* node) {
-  // TODO(eval1749): NYI translate IntShl
-  NOTREACHED() << *node;
-}
-
 void Translator::VisitIntShr(ir::IntShrNode* node) {
   // TODO(eval1749): NYI translate IntShr
   NOTREACHED() << *node;
@@ -511,40 +506,26 @@ void Translator::VisitThrow(ir::ThrowNode* node) {
   NOTREACHED() << *node;
 }
 
-// Arithmetic node
-#define DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Name)                   \
-  void Translator::VisitFloat##Name(ir::Float##Name##Node* node) { \
-    auto const output = MapOutput(node);                           \
-    auto const left = MapInput(node->input(0));                    \
-    auto const right = MapInput(node->input(1));                   \
-    Emit(New##Name##Instruction(output, left, right));             \
+// Arithmetic nodes
+#define DEFINE_ARITHMETIC_TRANSLATOR(IrName, LirName)      \
+  void Translator::Visit##IrName(ir::IrName##Node* node) { \
+    auto const output = MapOutput(node);                   \
+    auto const left = MapInput(node->input(0));            \
+    auto const right = MapInput(node->input(1));           \
+    Emit(New##LirName##Instruction(output, left, right));  \
   }
 
-DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Add)
-DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Div)
-DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Mod)
-DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Mul)
-DEFINE_FLOAT_ARITHMETIC_TRANSLATOR(Sub)
-
-void Translator::VisitIntBitAnd(ir::IntBitAndNode* node) {
-  // TODO(eval1749): NYI translate IntBitAnd
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntBitOr(ir::IntBitOrNode* node) {
-  // TODO(eval1749): NYI translate IntBitOr
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntBitXor(ir::IntBitXorNode* node) {
-  // TODO(eval1749): NYI translate IntBitXor
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntAdd(ir::IntAddNode* node) {
-  // TODO(eval1749): NYI translate IntAdd
-  NOTREACHED() << *node;
-}
+DEFINE_ARITHMETIC_TRANSLATOR(FloatAdd, Add)
+DEFINE_ARITHMETIC_TRANSLATOR(FloatDiv, Div)
+DEFINE_ARITHMETIC_TRANSLATOR(FloatMod, Mod)
+DEFINE_ARITHMETIC_TRANSLATOR(FloatMul, Mul)
+DEFINE_ARITHMETIC_TRANSLATOR(FloatSub, Sub)
+DEFINE_ARITHMETIC_TRANSLATOR(IntAdd, Add)
+DEFINE_ARITHMETIC_TRANSLATOR(IntBitAnd, BitAnd)
+DEFINE_ARITHMETIC_TRANSLATOR(IntBitOr, BitOr)
+DEFINE_ARITHMETIC_TRANSLATOR(IntBitXor, BitXor)
+DEFINE_ARITHMETIC_TRANSLATOR(IntShl, Shl)
+DEFINE_ARITHMETIC_TRANSLATOR(IntSub, Sub)
 
 void Translator::VisitIntDiv(ir::IntDivNode* node) {
   // TODO(eval1749): NYI translate IntDiv
@@ -558,11 +539,6 @@ void Translator::VisitIntMod(ir::IntModNode* node) {
 
 void Translator::VisitIntMul(ir::IntMulNode* node) {
   // TODO(eval1749): NYI translate IntMul
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntSub(ir::IntSubNode* node) {
-  // TODO(eval1749): NYI translate IntSub
   NOTREACHED() << *node;
 }
 

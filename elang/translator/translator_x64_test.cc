@@ -26,6 +26,81 @@ class TranslatorX64Test : public testing::TranslatorTest {
   DISALLOW_COPY_AND_ASSIGN(TranslatorX64Test);
 };
 
+#define DEFINE_FLOAT_ARITHMETIC_TEST(Name, mnemonic)                   \
+  TEST_F(TranslatorX64Test, Name##Node) {                              \
+    auto const function = NewFunction(float32_type(), float32_type()); \
+    ir::Editor editor(factory(), function);                            \
+    auto const entry_node = function->entry_node();                    \
+    auto const effect = NewGetEffect(entry_node);                      \
+                                                                       \
+    editor.Edit(entry_node);                                           \
+    auto const left = NewParameter(entry_node, 0);                     \
+    auto const right = NewFloat32(17);                                 \
+    editor.SetRet(effect, New##Name(left, right));                     \
+    ASSERT_EQ("", Commit(&editor));                                    \
+                                                                       \
+    EXPECT_EQ(                                                         \
+        "function1:\n"                                                 \
+        "block1:\n"                                                    \
+        "  // In: {}\n"                                                \
+        "  // Out: {block2}\n"                                         \
+        "  entry XMM0 =\n"                                             \
+        "  pcopy %f1 = XMM0\n"                                         \
+        "  " mnemonic                                                  \
+        " %f2 = %f1, 17f\n"                                            \
+        "  mov XMM0 = %f2\n"                                           \
+        "  ret block2\n"                                               \
+        "block2:\n"                                                    \
+        "  // In: {block1}\n"                                          \
+        "  // Out: {}\n"                                               \
+        "  exit\n",                                                    \
+        Translate(editor));                                            \
+  }
+
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatAdd, "add")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatDiv, "div")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatMod, "mod")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatMul, "mul")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatSub, "sub")
+
+#define DEFINE_INT_ARITHMETIC_TEST(Name, mnemonic)                 \
+  TEST_F(TranslatorX64Test, Name##Node) {                          \
+    auto const function = NewFunction(int32_type(), int32_type()); \
+    ir::Editor editor(factory(), function);                        \
+    auto const entry_node = function->entry_node();                \
+    auto const effect = NewGetEffect(entry_node);                  \
+                                                                   \
+    editor.Edit(entry_node);                                       \
+    auto const left = NewParameter(entry_node, 0);                 \
+    auto const right = NewInt32(17);                               \
+    editor.SetRet(effect, New##Name(left, right));                 \
+    ASSERT_EQ("", Commit(&editor));                                \
+                                                                   \
+    EXPECT_EQ(                                                     \
+        "function1:\n"                                             \
+        "block1:\n"                                                \
+        "  // In: {}\n"                                            \
+        "  // Out: {block2}\n"                                     \
+        "  entry ECX =\n"                                          \
+        "  pcopy %r1 = ECX\n"                                      \
+        "  " mnemonic                                              \
+        " %r2 = %r1, 17\n"                                         \
+        "  mov EAX = %r2\n"                                        \
+        "  ret block2\n"                                           \
+        "block2:\n"                                                \
+        "  // In: {block1}\n"                                      \
+        "  // Out: {}\n"                                           \
+        "  exit\n",                                                \
+        Translate(editor));                                        \
+  }
+
+DEFINE_INT_ARITHMETIC_TEST(IntAdd, "add")
+DEFINE_INT_ARITHMETIC_TEST(IntBitAnd, "and")
+DEFINE_INT_ARITHMETIC_TEST(IntBitOr, "or")
+DEFINE_INT_ARITHMETIC_TEST(IntBitXor, "xor")
+DEFINE_INT_ARITHMETIC_TEST(IntShl, "shl")
+DEFINE_INT_ARITHMETIC_TEST(IntSub, "sub")
+
 #define DEFINE_RET_TEST(Name, name, line)                          \
   TEST_F(TranslatorX64Test, Ret##Name) {                           \
     auto const function = NewFunction(name##_type(), void_type()); \
