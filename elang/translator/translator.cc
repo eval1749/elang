@@ -274,13 +274,6 @@ void Translator::PrepareBlocks() {
   auto start_node = static_cast<ir::Node*>(nullptr);
   auto last_node = start_node;
   for (auto const node : schedule_.nodes()) {
-    if (node->IsBlockLabel()) {
-      DCHECK(!start_node) << *node;
-      DCHECK(!block) << *node;
-      start_node = node;
-      last_node = node;
-      continue;
-    }
     if (node->IsBlockStart()) {
       DCHECK(!start_node) << *node;
       DCHECK(!block) << *node;
@@ -297,18 +290,6 @@ void Translator::PrepareBlocks() {
       continue;
     }
     DCHECK(start_node) << *node;
-    if (!block) {
-      DCHECK(start_node->IsBlockLabel()) << *start_node;
-      if (node->opcode() == ir::Opcode::Jump) {
-        empty_block_starts_.insert(start_node);
-        empty_block_ends_.insert(node);
-        start_node = nullptr;
-        last_node = node;
-        continue;
-      }
-      block = editor()->NewBasicBlock(exit_block);
-      block_map_.insert(std::make_pair(start_node, block));
-    }
     DCHECK(block) << *node;
     if (node->IsBlockEnd()) {
       block_map_.insert(std::make_pair(node, block));
@@ -323,50 +304,11 @@ void Translator::PrepareBlocks() {
   DCHECK(!block) << block;
 }
 
-void Translator::ResolveLabels() {
-  for (;;) {
-    auto changed = false;
-    for (auto const start_node : empty_block_starts_) {
-      auto const jump_node = start_node->SelectUserIfOne();
-      DCHECK_EQ(ir::Opcode::Jump, jump_node->opcode());
-      auto const it = block_map_.find(jump_node->SelectUserIfOne());
-      if (it == block_map_.end()) {
-        changed = true;
-        continue;
-      }
-      auto const candidate = it->second;
-      auto current = block_map_.find(start_node);
-      if (current == block_map_.end()) {
-        block_map_.insert(std::make_pair(start_node, candidate));
-        changed = true;
-        continue;
-      }
-      if (current->second == candidate)
-        continue;
-      current->second = candidate;
-      changed = true;
-    }
-    if (!changed)
-      break;
-  }
-
-  for (auto const jump_node : empty_block_ends_) {
-    DCHECK_EQ(ir::Opcode::Jump, jump_node->opcode());
-    auto const start_node = jump_node->input(0);
-    DCHECK(start_node->IsBlockLabel()) << *start_node;
-    block_map_[jump_node] = BlockOf(start_node->input(0));
-  }
-}
-
 // The entry point
 lir::Function* Translator::Run() {
   PrepareBlocks();
-  ResolveLabels();
 
   for (auto const node : schedule_.nodes()) {
-    if (node->IsBlockLabel() && empty_block_starts_.count(node))
-      continue;
-
     if (node->IsBlockStart()) {
       editor()->Edit(BlockOf(node));
       node->Accept(this);
@@ -374,8 +316,6 @@ lir::Function* Translator::Run() {
     }
 
     if (node->IsBlockEnd()) {
-      if (empty_block_ends_.count(node))
-        continue;
       node->Accept(this);
       editor()->Commit();
       continue;
@@ -443,7 +383,6 @@ void Translator::VisitIfTrue(ir::IfTrueNode* node) {
 }
 
 void Translator::VisitJump(ir::JumpNode* node) {
-  DCHECK(!empty_block_ends_.count(node));
   editor()->SetJump(BlockOf(node->SelectUserIfOne()));
 }
 

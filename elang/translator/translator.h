@@ -87,12 +87,6 @@ class Translator final : public ZoneOwner,
   // rather than successor blocks.
   std::unordered_map<ir::Node*, lir::BasicBlock*> block_map_;
 
-  // A set of nodes at end of an empty block.
-  std::unordered_set<ir::Node*> empty_block_ends_;
-
-  // A set of nodes at start of an empty block.
-  std::unordered_set<ir::Node*> empty_block_starts_;
-
   // Map |ir::Node| to |lir::Value|.
   std::unordered_map<ir::Node*, lir::Value> register_map_;
   std::unique_ptr<lir::Editor> const editor_;
