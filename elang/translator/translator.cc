@@ -596,7 +596,9 @@ void Translator::VisitCase(ir::CaseNode* node) {
 
 void Translator::VisitTuple(ir::TupleNode* node) {
   // TODO(eval1749): NYI translate Tuple
-  NOTREACHED() << *node;
+  DCHECK(node->SelectUserIfOne()) << *node;
+  DCHECK_EQ(ir::Opcode::Call, node->SelectUserIfOne()->opcode())
+      << *node << " by " << *node->SelectUserIfOne();
 }
 
 // Non simple inputs node
