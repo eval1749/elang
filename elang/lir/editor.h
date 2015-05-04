@@ -177,6 +177,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
 
   Function::Editor graph_editor_;
   bool is_index_valid_;
+  mutable bool using_control_flow_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };

@@ -34,7 +34,8 @@ Editor::Editor(Factory* factory, Function* function)
       factory_(factory),
       function_(function),
       graph_editor_(function),
-      is_index_valid_(false) {
+      is_index_valid_(false),
+      using_control_flow_(false) {
   counters_.block_counter = 0;
   counters_.instruction_counter = 0;
   counters_.output_counter = 0;
@@ -53,27 +54,31 @@ BasicBlock* Editor::exit_block() const {
 }
 
 // Add edges between |instruction|'s block and new successors.
-// Note: This function doesn't call |DidChangeControlFlow()| because this
-// function is used for multiple edge mutation, e.g. |DidChangeControlFlow()|.
-// Callers must call |DidChangeControlFlow()| to notify control flow change.
 void Editor::AddEdgesFrom(Instruction* instruction) {
   if (!instruction->IsTerminator())
     return;
   auto const block = instruction->basic_block();
   for (auto successor : instruction->block_operands())
     graph_editor_.AddEdge(block, successor);
+  DidChangeControlFlow();
 }
 
 const Editor::LivenessData& Editor::AnalyzeLiveness() const {
-  if (liveness_data_)
+  if (liveness_data_) {
+    DCHECK(using_control_flow_);
     return *liveness_data_;
+  }
+  using_control_flow_ = true;
   liveness_data_ = std::move(::elang::lir::AnalyzeLiveness(function()));
   return *liveness_data_;
 }
 
 const ConflictMap& Editor::AnalyzeConflicts() const {
-  if (conflict_map_)
+  if (conflict_map_) {
+    DCHECK(using_control_flow_);
     return *conflict_map_;
+  }
+  using_control_flow_ = true;
   conflict_map_.reset(new ConflictMap(ConflictMapBuilder(this).Build()));
   return *conflict_map_;
 }
@@ -121,24 +126,29 @@ void Editor::Append(Instruction* new_instruction) {
   }
   basic_block_->instructions_.AppendNode(new_instruction);
   AddEdgesFrom(new_instruction);
-  DidChangeControlFlow();
 }
 
 const DominatorTree<Function>& Editor::BuildDominatorTree() const {
-  if (dominator_tree_)
+  if (dominator_tree_) {
+    DCHECK(using_control_flow_);
     return *dominator_tree_;
+  }
   dominator_tree_ =
       std::move(DominatorTreeBuilder<Function, ForwardFlowGraph<Function>>(
                     function()).Build());
+  using_control_flow_ = true;
   return *dominator_tree_;
 }
 
 const DominatorTree<Function>& Editor::BuildPostDominatorTree() const {
-  if (post_dominator_tree_)
+  if (post_dominator_tree_) {
+    DCHECK(using_control_flow_);
     return *post_dominator_tree_;
+  }
   post_dominator_tree_ =
       std::move(DominatorTreeBuilder<Function, BackwardFlowGraph<Function>>(
                     function()).Build());
+  using_control_flow_ = true;
   return *post_dominator_tree_;
 }
 
@@ -183,6 +193,9 @@ bool Editor::Commit() {
 
 void Editor::DidChangeControlFlow() {
   is_index_valid_ = false;
+  if (!using_control_flow_)
+    return;
+  using_control_flow_ = false;
   dominator_tree_.reset();
   post_dominator_tree_.reset();
   liveness_data_.reset();
@@ -268,6 +281,7 @@ BasicBlock* Editor::NewBasicBlock(BasicBlock* reference) {
   new_block->id_ = factory()->NextBasicBlockId();
   // We keep exit block at end of basic block list.
   graph_editor_.InsertNode(new_block, reference);
+  DidChangeControlFlow();
   return new_block;
 }
 
@@ -282,17 +296,23 @@ PhiInstruction* Editor::NewPhi(Value output) {
 
 const OrderedBlockList& Editor::PreOrderList() const {
   if (!pre_order_list_) {
-    pre_order_list_.reset(
-        new OrderedBlockList(Function::Sorter::SortByPreOrder(function())));
+    DCHECK(using_control_flow_);
+    return *pre_order_list_;
   }
+  using_control_flow_ = true;
+  pre_order_list_.reset(
+      new OrderedBlockList(Function::Sorter::SortByPreOrder(function())));
   return *pre_order_list_;
 }
 
 const OrderedBlockList& Editor::PostOrderList() const {
-  if (!post_order_list_) {
-    post_order_list_.reset(
-        new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
+  if (post_order_list_) {
+    DCHECK(using_control_flow_);
+    return *post_order_list_;
   }
+  using_control_flow_ = true;
+  post_order_list_.reset(
+    new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
   return *post_order_list_;
 }
 
@@ -300,21 +320,20 @@ void Editor::Remove(Instruction* old_instruction) {
   DCHECK(basic_block_) << old_instruction;
   DCHECK_EQ(basic_block_, old_instruction->basic_block_) << old_instruction;
   DidRemoveInstruction();
-  if (old_instruction->IsTerminator()) {
+  if (old_instruction->IsTerminator())
     RemoveEdgesFrom(old_instruction);
-    DidChangeControlFlow();
-  }
   RemoveInternal(old_instruction);
 }
 
 // Remove edges between |instruction|'s block and old successors.
 void Editor::RemoveEdgesFrom(Instruction* instruction) {
-  if (!instruction->IsTerminator())
-    return;
-  auto const block = instruction->basic_block();
-  for (auto successor : instruction->block_operands()) {
-    graph_editor_.RemoveEdge(block, successor);
+  DCHECK(instruction->IsTerminator()) << *instruction;
+  auto const from = instruction->basic_block();
+  for (auto const to : instruction->block_operands()) {
+    DCHECK(function()->HasEdge(from, to)) << from << "->" << to;
+    graph_editor_.RemoveEdge(from, to);
   }
+  DidChangeControlFlow();
 }
 
 void Editor::RemoveInternal(Instruction* old_instruction) {
@@ -341,18 +360,24 @@ void Editor::Replace(Instruction* new_instruction,
 }
 
 const OrderedBlockList& Editor::ReversePreOrderList() const {
-  if (!reverse_pre_order_list_) {
-    reverse_pre_order_list_.reset(new OrderedBlockList(
-        Function::Sorter::SortByReversePreOrder(function())));
+  if (reverse_pre_order_list_) {
+    DCHECK(using_control_flow_);
+    return *reverse_pre_order_list_;
   }
-  return *pre_order_list_;
+  using_control_flow_ = true;
+  reverse_pre_order_list_.reset(new OrderedBlockList(
+      Function::Sorter::SortByReversePreOrder(function())));
+  return *reverse_pre_order_list_;
 }
 
 const OrderedBlockList& Editor::ReversePostOrderList() const {
-  if (!reverse_post_order_list_) {
-    reverse_post_order_list_.reset(new OrderedBlockList(
-        Function::Sorter::SortByReversePostOrder(function())));
+  if (reverse_post_order_list_) {
+    DCHECK(using_control_flow_);
+    return *reverse_post_order_list_;
   }
+  using_control_flow_ = true;
+  reverse_post_order_list_.reset(new OrderedBlockList(
+      Function::Sorter::SortByReversePostOrder(function())));
   return *reverse_post_order_list_;
 }
 
