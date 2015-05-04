@@ -151,7 +151,8 @@ void CleanPass::CleanJump(Node* jump_node) {
   auto const control = jump_node->input(0);
   if (IsEmptyBlock(jump_node)) {
     // Remove an empty block
-    WillChangeControlFlow("Remove an empty block", target);
+    DCHECK(control->is<PhiOwnerNode>()) << *control;
+    WillChangeControlFlow("Remove an empty block", control);
     for (auto const predecessor : control->inputs()) {
       auto const it = std::find(target->inputs().begin(),
                                 target->inputs().end(), predecessor);
