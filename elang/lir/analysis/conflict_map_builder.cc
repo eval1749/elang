@@ -59,7 +59,8 @@ ConflictMap ConflictMapBuilder::Build() {
           conflict_map.sets_.Union(Normalize(input), live);
         }
         auto const number = liveness_map_.NumberOf(Normalize(input));
-        DCHECK_GE(number, 0) << input << " doesn't have liveness!";
+        DCHECK_GE(number, 0) << input << " in " << *instr
+                             << " doesn't have liveness!";
         live_registers->Add(number);
       }
     }
@@ -70,7 +71,7 @@ ConflictMap ConflictMapBuilder::Build() {
     // Phi outputs conflict with Live-In and other phi outputs.
     for (auto const phi : block->phi_instructions()) {
       auto const output = phi->output(0);
-      DCHECK(!output.is_physical());
+      DCHECK(!output.is_physical()) << *phi;
       for (auto const number : *live_registers) {
         auto const live = liveness_map_.VariableOf(number);
         conflict_map.sets_.Union(output, live);
