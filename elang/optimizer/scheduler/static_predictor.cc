@@ -105,7 +105,7 @@ Node* JumpTargetOf(const BasicBlock* block) {
   auto const last_node = block->last_node();
   if (last_node->opcode() != Opcode::Jump)
     return nullptr;
-  return last_node->use_edges().begin()->from();
+  return last_node->SelectUserIfOne();
 }
 
 Node* TrueTargetOf(const BasicBlock* block) {
@@ -143,9 +143,8 @@ void StaticPredictor::Predict(const BasicBlock* from, double frequency) {
     case Opcode::Ret:
     case Opcode::Throw:
     case Opcode::Unreachable:
-      SetFrequency(from,
-                   BlockOf(from->last_node()->use_edges().begin()->from()),
-                   frequency);
+      // Set frequency for pseudo edge to exit block.
+      SetFrequency(from, BlockOf(last_node->SelectUserIfOne()), frequency);
       return;
     case Opcode::If: {
       auto const true_block = BlockOf(TrueTargetOf(from));
