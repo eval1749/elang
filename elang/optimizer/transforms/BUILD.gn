@@ -8,6 +8,8 @@ source_set("transforms") {
   sources = [
     "clean_pass.cc",
     "clean_pass.h",
+    "dead_pass.cc",
+    "dead_pass.h",
   ]
 
   defines = [ "OPTIMIZER_IMPLEMENTATION" ]

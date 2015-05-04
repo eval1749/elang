@@ -18,6 +18,7 @@
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/scheduler.h"
 #include "elang/optimizer/transforms/clean_pass.h"
+#include "elang/optimizer/transforms/dead_pass.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 
@@ -63,10 +64,37 @@ Function* Factory::NewFunction(FunctionType* function_type) {
   return function;
 }
 
+namespace {
+
+template <typename Pass>
+void RunPass(api::PassObserver* observer, Editor* editor) {
+  Pass(observer, editor).Run();
+}
+
+typedef void PassEntry(api::PassObserver* observer, Editor* editor);
+
+struct PassInfo {
+  int level;
+  PassEntry* function;
+};
+
+PassInfo kPasses[] = {
+    {0, &RunPass<CleanPass>},
+    {0, &RunPass<DeadPass>},
+};
+
+}  // namespace
+
 bool Factory::Optimize(Function* function, int level) {
   Editor editor(this, function);
-  CleanPass(pass_observer_, &editor).Run();
-  return errors().empty();
+  for (auto it = std::begin(kPasses); it != std::end(kPasses); ++it) {
+    if (it->level > level)
+      continue;
+    (it->function)(pass_observer_, &editor);
+    if (!errors().empty())
+      return false;
+  }
+  return true;
 }
 
 }  // namespace optimizer
