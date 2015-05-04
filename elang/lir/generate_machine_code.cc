@@ -10,6 +10,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/literals.h"
+#include "elang/lir/transforms/clean_pass.h"
 #include "elang/lir/transforms/lowering_x64_pass.h"
 #include "elang/lir/transforms/remove_critical_edges_pass.h"
 #include "elang/lir/transforms/register_allocation_pass.h"
@@ -34,6 +35,8 @@ PassEntry* kPasses[] = {
     &RunPass<RemoveCriticalEdgesPass>,
     &RunPass<DumpFunctionPass>,
     &RunPass<RegisterAssignmentsPass>,
+    &RunPass<DumpFunctionPass>,
+    &RunPass<CleanPass>,
     &RunPass<DumpFunctionPass>,
 };
 
