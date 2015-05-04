@@ -9,10 +9,33 @@
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/opcode.h"
 #include "elang/optimizer/types.h"
 
 namespace elang {
 namespace translator {
+
+void Translator::VisitGetData(ir::GetDataNode* node) {
+  DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
+                                                        << *node->input(0);
+  auto const output = MapOutput(node);
+  if (output.is_int32())
+    return EmitCopy(output, lir::Target::GetRegister(lir::isa::EAX));
+  if (output.is_int64())
+    return EmitCopy(output, lir::Target::GetRegister(lir::isa::RAX));
+  if (output.is_32bit())
+    return EmitCopy(output, lir::Target::GetRegister(lir::isa::XMM0S));
+  if (output.is_64bit())
+    return EmitCopy(output, lir::Target::GetRegister(lir::isa::XMM0D));
+  NOTREACHED() << "Not supported : " << output;
+}
+
+void Translator::VisitGetTuple(ir::GetTupleNode* node) {
+  DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
+                                                        << *node->input(0);
+  // TODO(eval1749): NYI translate |GetTupleNode|
+  NOTREACHED() << *node;
+}
 
 // control = ret control, effect, data
 void Translator::VisitRet(ir::RetNode* node) {

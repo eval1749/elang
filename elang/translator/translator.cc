@@ -357,14 +357,12 @@ void Translator::VisitDynamicCast(ir::DynamicCastNode* node) {
 void Translator::VisitExit(ir::ExitNode* node) {
 }
 
-void Translator::VisitGetData(ir::GetDataNode* node) {
-}
+// See "translator_${arch}.cc" for |GetDataNode|.
 
 void Translator::VisitGetEffect(ir::GetEffectNode* node) {
 }
 
-void Translator::VisitGetTuple(ir::GetTupleNode* node) {
-}
+// See "translator_${arch}.cc" for |GetTupleNode|.
 
 void Translator::VisitIfException(ir::IfExceptionNode* node) {
   // nothing to do
