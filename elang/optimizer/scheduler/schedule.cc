@@ -7,6 +7,7 @@
 #include "elang/optimizer/nodes.h"
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/control_flow_graph.h"
+#include "elang/optimizer/scheduler/formatted_schedule.h"
 
 namespace elang {
 namespace optimizer {
@@ -19,6 +20,10 @@ Schedule::Schedule(Function* function) : function_(function), nodes_(zone()) {
 }
 
 Schedule::~Schedule() {
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Schedule& schedule) {
+  return ostream << AsFormatted(schedule);
 }
 
 }  // namespace optimizer

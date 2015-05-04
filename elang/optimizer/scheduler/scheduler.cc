@@ -18,7 +18,6 @@
 #include "elang/optimizer/scheduler/basic_block.h"
 #include "elang/optimizer/scheduler/block_layouter.h"
 #include "elang/optimizer/scheduler/cfg_builder.h"
-#include "elang/optimizer/scheduler/formatted_schedule.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/scheduler/schedule_editor.h"
 #include "elang/optimizer/scheduler/static_predictor.h"
@@ -348,7 +347,7 @@ void Scheduler::DumpAfterPass(const api::PassDumpContext& context) {
     ostream << AsVisual(editor_->schedule());
     return;
   }
-  ostream << AsFormatted(editor_->schedule());
+  ostream << editor_->schedule();
 }
 
 }  // namespace optimizer

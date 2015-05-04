@@ -5,6 +5,8 @@
 #ifndef ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_H_
 #define ELANG_OPTIMIZER_SCHEDULER_SCHEDULE_H_
 
+#include <iosfwd>
+
 #include "base/macros.h"
 #include "elang/base/zone_owner.h"
 #include "elang/base/zone_vector.h"
@@ -38,6 +40,9 @@ class ELANG_OPTIMIZER_EXPORT Schedule final : public ZoneOwner {
 
   DISALLOW_COPY_AND_ASSIGN(Schedule);
 };
+
+ELANG_OPTIMIZER_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                                const Schedule& schedule);
 
 }  // namespace optimizer
 }  // namespace elang
