@@ -31,7 +31,8 @@ namespace {
 bool IsPinned(const Node* node) {
   if (node->IsControl() || node->IsEffect())
     return true;
-  // All nodes have at least one input except for |EntryNode|.
+  // Since all nodes have at least one input except for |EntryNode|, it is safe
+  // to use |input(0)|.
   if (node->input(0)->IsControl())
     return true;
   return node->opcode() == Opcode::Phi || node->opcode() == Opcode::EffectPhi;
@@ -67,6 +68,7 @@ void EarlyScheduler::Run() {
 void EarlyScheduler::DoDefaultVisit(Node* node) {
   if (node->IsLiteral() || BlockOf(node))
     return;
+
   // Place |node| into deepest block in dominator tree.
   BasicBlock* block = nullptr;
   for (auto const input : node->inputs()) {
@@ -82,8 +84,8 @@ void EarlyScheduler::DoDefaultVisit(Node* node) {
       block = input_block;
   }
   if (!block) {
-    // |node| is a literal tuple.
-    DCHECK(node->is<TupleNode>()) << *node;
+    if (!node->is<TupleNode>())
+      DVLOG(0) << "Should be replaced with literal: " << *node;
     return;
   }
   editor()->SetBlockOf(node, block);
@@ -128,26 +130,25 @@ void LateScheduler::DoDefaultVisit(Node* node) {
     editor()->AppendNode(block, node);
     return;
   }
+
   // Find Least Common Ancestor of users of |node|.
   BasicBlock* lca_block = nullptr;
   for (auto const edge : node->use_edges()) {
-    if (auto const phi = edge->from()->as<PhiNode>()) {
+    auto const user = edge->from();
+    if (auto const phi = user->as<PhiNode>()) {
       // This loop could be removed (and the code made asymptotically faster)
       // by using complex data structures. In practice it is never a bottleneck.
       for (auto phi_operand : phi->phi_inputs()) {
         if (phi_operand->value() != node)
           continue;
+        auto const from_block = BlockOf(phi_operand->control());
         lca_block =
-            CommonAncestorOf(lca_block, BlockOf(phi_operand->control()));
+            lca_block ? CommonAncestorOf(lca_block, from_block) : from_block;
       }
       continue;
     }
-    auto const use_block = BlockOf(edge->to());
-    if (!lca_block) {
-      lca_block = use_block;
-      continue;
-    }
-    lca_block = CommonAncestorOf(lca_block, use_block);
+    auto const use_block = BlockOf(user);
+    lca_block = lca_block ? CommonAncestorOf(lca_block, use_block) : use_block;
   }
   DCHECK(lca_block) << *node;
   auto best_block = lca_block;
@@ -211,6 +212,14 @@ void NodePlacer::PlaceNode(Node* node) {
   DCHECK(node->IsUsed()) << *node;
   if (placed_.count(node))
     return;
+  // Place literal inputs before |node|.
+  for (auto const input : node->inputs()) {
+    if (input->IsLiteral() || BlockOf(input))
+      continue;
+    DCHECK(input->SelectUserIfOne() == node) << *input;
+    placed_.insert(input);
+    nodes_.push_back(input);
+  }
   placed_.insert(node);
   nodes_.push_back(node);
 }
@@ -285,8 +294,9 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
         pending_list.Push(node);
         break;
       }
-      if (!pending_list.Contains(node))
-        PlaceNode(node);
+      if (pending_list.Contains(node))
+        continue;
+      PlaceNode(node);
     }
   }
 
@@ -296,7 +306,7 @@ void NodePlacer::ScheduleInBlock(BasicBlock* block) {
 
 // api::Pass
 base::StringPiece NodePlacer::name() const {
-  return "node_placer";
+  return "node_placement";
 }
 
 }  // namespace
@@ -329,7 +339,7 @@ void Scheduler::Run() {
 
 // api::Pass
 base::StringPiece Scheduler::name() const {
-  return "scheduler";
+  return "schedule";
 }
 
 void Scheduler::DumpBeforePass(const api::PassDumpContext& context) {
