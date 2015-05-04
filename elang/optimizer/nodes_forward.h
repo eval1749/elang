@@ -119,12 +119,8 @@ namespace optimizer {
   FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V)
 
 #define FOR_EACH_OPTIMIZER_BLOCK_START_NODE(V) \
-  V(Case)                                      \
+  FOR_EACH_OPTIMIZER_BLOCK_LABEL_NODE(V)       \
   V(Entry)                                     \
-  V(IfException)                               \
-  V(IfFalse)                                   \
-  V(IfSuccess)                                 \
-  V(IfTrue)                                    \
   V(Loop)                                      \
   V(Merge)
 
@@ -136,6 +132,15 @@ namespace optimizer {
   V(Switch)                                  \
   V(Throw)                                   \
   V(Unreachable)
+
+// A list of label like nodes which takes one control input and projects an
+// input control with |Node| semantics.
+#define FOR_EACH_OPTIMIZER_BLOCK_LABEL_NODE(V) \
+  V(Case)                                      \
+  V(IfException)                               \
+  V(IfFalse)                                   \
+  V(IfSuccess)                                 \
+  V(IfTrue)
 
 // Forward declarations
 #define V(Name) class Name;

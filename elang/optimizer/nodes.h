@@ -302,6 +302,7 @@ class ELANG_OPTIMIZER_EXPORT Node : public Thing,
   virtual void Accept(NodeVisitor* visitor) = 0;
 
   bool IsBlockEnd() const;
+  bool IsBlockLabel() const;
   bool IsBlockStart() const;
   virtual bool IsControl() const;
   bool IsControlEffect() const;
