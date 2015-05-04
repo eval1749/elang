@@ -276,7 +276,7 @@ void Instruction::SetInput(int index, Value new_input) {
 void Instruction::SetOutput(int index, Value new_output) {
   DCHECK_GE(index, 0);
   DCHECK_LE(index, CountOutputs());
-  DCHECK(new_output.is_output());
+  DCHECK(new_output.is_output()) << new_output;
   OutputValues()[index] = new_output;
 }
 
@@ -288,7 +288,8 @@ bool Instruction::IsTerminator() const {
 BranchInstruction::BranchInstruction(Value condition,
                                      BasicBlock* true_block,
                                      BasicBlock* false_block) {
-  DCHECK(condition.is_conditional());
+  DCHECK(condition.is_conditional()) << condition;
+  DCHECK_NE(true_block, false_block);
   InitInput(0, condition);
   InitBlockOperand(0, true_block);
   InitBlockOperand(1, false_block);
@@ -300,9 +301,9 @@ CmpInstruction::CmpInstruction(Value output,
                                Value left,
                                Value right)
     : condition_(condition) {
-  DCHECK(output.is_conditional());
-  DCHECK(left.is_integer());
-  DCHECK(right.is_integer());
+  DCHECK(output.is_conditional()) << output;
+  DCHECK(left.is_integer()) << left;
+  DCHECK(right.is_integer()) << right;
   DCHECK_EQ(left.size, right.size);
   InitOutput(0, output);
   InitInput(0, left);
@@ -348,9 +349,9 @@ FCmpInstruction::FCmpInstruction(Value output,
                                  Value left,
                                  Value right)
     : condition_(condition) {
-  DCHECK(output.is_conditional());
-  DCHECK(left.is_float());
-  DCHECK(right.is_float());
+  DCHECK(output.is_conditional()) << output;
+  DCHECK(left.is_float()) << left;
+  DCHECK(right.is_float()) << right;
   DCHECK_EQ(left.size, right.size);
   InitOutput(0, output);
   InitInput(0, left);
