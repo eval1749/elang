@@ -55,8 +55,7 @@ BasicBlock* Editor::exit_block() const {
 
 // Add edges between |instruction|'s block and new successors.
 void Editor::AddEdgesFrom(Instruction* instruction) {
-  if (!instruction->IsTerminator())
-    return;
+  DCHECK(instruction->IsTerminator()) << *instruction;
   auto const block = instruction->basic_block();
   for (auto successor : instruction->block_operands())
     graph_editor_.AddEdge(block, successor);
@@ -113,8 +112,9 @@ Editor::Counters Editor::AssignIndex() {
 }
 
 void Editor::Append(Instruction* new_instruction) {
-  DCHECK(!new_instruction->basic_block_);
-  DCHECK(!new_instruction->id_);
+  DCHECK(!new_instruction->basic_block_) << *new_instruction;
+  DCHECK(!new_instruction->id_) << *new_instruction;
+  DCHECK(!new_instruction->IsTerminator()) << *new_instruction;
   DCHECK(basic_block_);
   DidInsertInstruction();
   new_instruction->id_ = factory()->NextInstructionId();
@@ -125,7 +125,6 @@ void Editor::Append(Instruction* new_instruction) {
     return;
   }
   basic_block_->instructions_.AppendNode(new_instruction);
-  AddEdgesFrom(new_instruction);
 }
 
 const DominatorTree<Function>& Editor::BuildDominatorTree() const {
@@ -278,8 +277,9 @@ void Editor::InsertBefore(Instruction* new_instruction,
   }
   DCHECK(basic_block_);
   DCHECK_EQ(basic_block_, ref_instruction->basic_block());
-  DCHECK(!new_instruction->basic_block_);
-  DCHECK(!new_instruction->id_);
+  DCHECK(!new_instruction->basic_block_) << *new_instruction;
+  DCHECK(!new_instruction->id_) << *new_instruction;
+  DCHECK(!new_instruction->IsTerminator()) << *new_instruction;
   basic_block_->instructions_.InsertBefore(new_instruction, ref_instruction);
   new_instruction->id_ = factory()->NextInstructionId();
   new_instruction->basic_block_ = basic_block_;
@@ -487,14 +487,17 @@ void Editor::SetReturn() {
   SetTerminator(factory()->NewRetInstruction(exit_block()));
 }
 
-void Editor::SetTerminator(Instruction* instr) {
-  DCHECK(basic_block_) << instr;
-  DCHECK(!instr->basic_block_) << instr;
-  DCHECK(instr->IsTerminator()) << instr;
+void Editor::SetTerminator(Instruction* new_instruction) {
+  DCHECK(basic_block_) << new_instruction;
+  DCHECK(!new_instruction->basic_block_) << new_instruction;
+  DCHECK(new_instruction->IsTerminator()) << new_instruction;
   auto const last = basic_block_->last_instruction();
   if (last && last->IsTerminator())
     Remove(last);
-  Append(instr);
+  new_instruction->id_ = factory()->NextInstructionId();
+  new_instruction->basic_block_ = basic_block_;
+  basic_block_->instructions_.AppendNode(new_instruction);
+  AddEdgesFrom(new_instruction);
 }
 
 // Replaces phi input for |old_block| to |new_block|.
