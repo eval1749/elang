@@ -57,7 +57,7 @@ Value FactoryUser::NewStringValue(base::StringPiece16 data) {
 
 // Creating instructions
 Instruction* FactoryUser::NewCmpInstruction(Value output,
-                                            IntegerCondition condition,
+                                            IntCondition condition,
                                             Value left,
                                             Value right) {
   return factory()->NewCmpInstruction(output, condition, left, right);

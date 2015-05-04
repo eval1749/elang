@@ -296,7 +296,7 @@ BranchInstruction::BranchInstruction(Value condition,
 
 // CmpInstruction
 CmpInstruction::CmpInstruction(Value output,
-                               IntegerCondition condition,
+                               IntCondition condition,
                                Value left,
                                Value right)
     : condition_(condition) {

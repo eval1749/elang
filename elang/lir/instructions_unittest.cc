@@ -85,8 +85,8 @@ TEST_F(LirInstructionTest, CallInstruction) {
 TEST_F(LirInstructionTest, CmpInstruction) {
   auto const left = NewRegister(Value::Int32Type());
   auto const right = NewRegister(Value::Int32Type());
-  auto const instr = NewCmpInstruction(NewConditional(),
-                                       IntegerCondition::NotEqual, left, right);
+  auto const instr =
+      NewCmpInstruction(NewConditional(), IntCondition::NotEqual, left, right);
   EXPECT_TRUE(instr->is<CmpInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());

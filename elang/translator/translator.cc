@@ -24,13 +24,13 @@ namespace elang {
 namespace translator {
 
 namespace {
-lir::IntegerCondition MapCondition(ir::IntCondition condition) {
-#define V(Name, ...)                                                    \
-  DCHECK_EQ(static_cast<ir::IntCondition>(lir::IntegerCondition::Name), \
+lir::IntCondition MapCondition(ir::IntCondition condition) {
+#define V(Name, ...)                                                \
+  DCHECK_EQ(static_cast<ir::IntCondition>(lir::IntCondition::Name), \
             ir::IntCondition::Name);
   FOR_EACH_OPTIMIZER_INTEGER_CONDITION(V)
 #undef V
-  return static_cast<lir::IntegerCondition>(condition);
+  return static_cast<lir::IntCondition>(condition);
 }
 
 ir::Node* SelectNode(const ir::Node* node, ir::Opcode opcode) {
@@ -337,8 +337,8 @@ lir::Value Translator::TranslateConditional(ir::Node* node) {
   }
   DCHECK(node->output_type()->is<ir::BoolType>()) << *node;
   auto const output = NewConditional();
-  Emit(NewCmpInstruction(output, lir::IntegerCondition::NotEqual,
-                         MapInput(node), lir::Value::SmallInt8(0)));
+  Emit(NewCmpInstruction(output, lir::IntCondition::NotEqual, MapInput(node),
+                         lir::Value::SmallInt8(0)));
   return output;
 }
 

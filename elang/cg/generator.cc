@@ -111,8 +111,8 @@ lir::Function* Generator::Generate() {
 }
 
 void Generator::HandleComparison(hir::Instruction* instr,
-                                 lir::IntegerCondition signed_condition,
-                                 lir::IntegerCondition unsigned_condition,
+                                 lir::IntCondition signed_condition,
+                                 lir::IntCondition unsigned_condition,
                                  lir::FloatCondition float_condition) {
   auto const output = NewConditional();
   DCHECK(!register_map_.count(instr));
@@ -123,7 +123,7 @@ void Generator::HandleComparison(hir::Instruction* instr,
   auto const primitive_type =
       instr->input(0)->type()->as<hir::PrimitiveValueType>();
   if (!primitive_type) {
-    DCHECK_EQ(lir::IntegerCondition::Equal, signed_condition);
+    DCHECK_EQ(lir::IntCondition::Equal, signed_condition);
     Emit(NewCmpInstruction(output, signed_condition, left, right));
     return;
   }
@@ -279,8 +279,7 @@ void Generator::VisitBranch(hir::BranchInstruction* instr) {
 }
 
 void Generator::VisitEq(hir::EqInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::Equal,
-                   lir::IntegerCondition::Equal,
+  HandleComparison(instr, lir::IntCondition::Equal, lir::IntCondition::Equal,
                    lir::FloatCondition::OrderedEqual);
 }
 
@@ -289,8 +288,8 @@ void Generator::VisitExit(hir::ExitInstruction* instr) {
 }
 
 void Generator::VisitGe(hir::GeInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThanOrEqual,
-                   lir::IntegerCondition::UnsignedGreaterThanOrEqual,
+  HandleComparison(instr, lir::IntCondition::SignedGreaterThanOrEqual,
+                   lir::IntCondition::UnsignedGreaterThanOrEqual,
                    lir::FloatCondition::OrderedGreaterThanOrEqual);
 }
 
@@ -299,8 +298,8 @@ void Generator::VisitGet(hir::GetInstruction* instr) {
 }
 
 void Generator::VisitGt(hir::GtInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::SignedGreaterThan,
-                   lir::IntegerCondition::UnsignedGreaterThan,
+  HandleComparison(instr, lir::IntCondition::SignedGreaterThan,
+                   lir::IntCondition::UnsignedGreaterThan,
                    lir::FloatCondition::OrderedGreaterThan);
 }
 
@@ -309,8 +308,8 @@ void Generator::VisitJump(hir::JumpInstruction* instr) {
 }
 
 void Generator::VisitLe(hir::LeInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::SignedLessThanOrEqual,
-                   lir::IntegerCondition::UnsignedLessThanOrEqual,
+  HandleComparison(instr, lir::IntCondition::SignedLessThanOrEqual,
+                   lir::IntCondition::UnsignedLessThanOrEqual,
                    lir::FloatCondition::OrderedLessThanOrEqual);
 }
 
@@ -321,14 +320,14 @@ void Generator::VisitLoad(hir::LoadInstruction* instr) {
 }
 
 void Generator::VisitLt(hir::LtInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::SignedLessThan,
-                   lir::IntegerCondition::UnsignedLessThan,
+  HandleComparison(instr, lir::IntCondition::SignedLessThan,
+                   lir::IntCondition::UnsignedLessThan,
                    lir::FloatCondition::OrderedLessThan);
 }
 
 void Generator::VisitNe(hir::NeInstruction* instr) {
-  HandleComparison(instr, lir::IntegerCondition::NotEqual,
-                   lir::IntegerCondition::NotEqual,
+  HandleComparison(instr, lir::IntCondition::NotEqual,
+                   lir::IntCondition::NotEqual,
                    lir::FloatCondition::OrderedNotEqual);
 }
 

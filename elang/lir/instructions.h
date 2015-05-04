@@ -66,7 +66,7 @@ inline FloatCondition CommuteCondition(FloatCondition condition) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// IntegerCondition
+// IntCondition
 // Make |CommuteCondition()| to simple, condition ^ 15, we assign constant
 // to each condition.
 //
@@ -88,14 +88,14 @@ inline FloatCondition CommuteCondition(FloatCondition condition) {
   V(SignedLessThan, "lt", 14)             \
   V(NotEqual, "ne", 15)
 
-enum class IntegerCondition {
+enum class IntCondition {
 #define V(Name, mnemonic, value) Name = value,
   FOR_EACH_INTEGER_CONDITION(V)
 #undef V
 };
 
-inline IntegerCondition CommuteCondition(IntegerCondition condition) {
-  return static_cast<IntegerCondition>(static_cast<int>(condition) ^ 15);
+inline IntCondition CommuteCondition(IntCondition condition) {
+  return static_cast<IntCondition>(static_cast<int>(condition) ^ 15);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -348,21 +348,16 @@ class ELANG_LIR_EXPORT CmpInstruction final : public InstructionTemplate<1, 2> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Cmp);
 
  public:
-  IntegerCondition condition() const { return condition_; }
+  IntCondition condition() const { return condition_; }
 
  private:
-  CmpInstruction(Value output,
-                 IntegerCondition condition,
-                 Value left,
-                 Value right);
+  CmpInstruction(Value output, IntCondition condition, Value left, Value right);
 
   base::StringPiece mnemonic() const final;
 
-  void set_condition(IntegerCondition new_condition) {
-    condition_ = new_condition;
-  }
+  void set_condition(IntCondition new_condition) { condition_ = new_condition; }
 
-  IntegerCondition condition_;
+  IntCondition condition_;
 };
 
 // EntryInstruction

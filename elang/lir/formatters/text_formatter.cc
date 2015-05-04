@@ -197,7 +197,7 @@ std::ostream& operator<<(std::ostream& ostream,
   return ostream << *instruction;
 }
 
-std::ostream& operator<<(std::ostream& ostream, IntegerCondition condition) {
+std::ostream& operator<<(std::ostream& ostream, IntCondition condition) {
   static const char* const names[] = {
 #define V(Name, mnemonic, ...) mnemonic,
       FOR_EACH_INTEGER_CONDITION(V)

@@ -52,7 +52,7 @@ namespace lir {
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
   V(Cmp, "cmp",                                                            \
-    (Value output, IntegerCondition condition, Value left, Value right))   \
+    (Value output, IntCondition condition, Value left, Value right))       \
   V(Entry, "entry", (const std::vector<Value>& outputs))                   \
   V(FCmp, "fcmp",                                                          \
     (Value output, FloatCondition condition, Value left, Value right))     \
@@ -94,7 +94,7 @@ namespace lir {
 
 // Forward declarations
 enum class FloatCondition;
-enum class IntegerCondition;
+enum class IntCondition;
 class Instruction;
 class InstructionVisitor;
 enum class Opcode;
@@ -110,7 +110,7 @@ ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Instruction* instruction);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                          IntegerCondition condition);
+                                          IntCondition condition);
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream, Opcode opcode);
 
 ELANG_LIR_EXPORT base::StringPiece ToStringPiece(Opcode opcode);

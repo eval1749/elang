@@ -102,7 +102,7 @@ isa::Register ToRegister(Value reg) {
   return static_cast<Register>(0);
 }
 
-isa::Tttn ToTttn(IntegerCondition condition) {
+isa::Tttn ToTttn(IntCondition condition) {
   static const isa::Tttn tttns[] = {
       isa::Tttn::NotEqual,        // 0
       isa::Tttn::GreaterOrEqual,  // 1
@@ -110,7 +110,7 @@ isa::Tttn ToTttn(IntegerCondition condition) {
       isa::Tttn::AboveOrEqual,    // 3
       isa::Tttn::Above,           // 4
 
-      // Fillers for unassigned |IntegerCondition|.
+      // Fillers for unassigned |IntCondition|.
       isa::Tttn::Parity,  // 5
       isa::Tttn::Parity,  // 6
       isa::Tttn::Parity,  // 7
@@ -149,7 +149,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   ~InstructionHandlerX64() final = default;
 
  private:
-  void EmitBranch(IntegerCondition condition, BasicBlock* target_block);
+  void EmitBranch(IntCondition condition, BasicBlock* target_block);
   // Emit Iz (imm8, imm16 or imm32) operand.
   void EmitIz(Value output, int imm);
   void EmitJump(BasicBlock* target_block);
@@ -189,7 +189,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   int32_t Int32ValueOf(Value literal) const;
   int64_t Int64ValueOf(Value literal) const;
 
-  IntegerCondition UseCondition(Instruction* user) const;
+  IntCondition UseCondition(Instruction* user) const;
 
   // InstructionHandler
   void Handle(Instruction* instr) final;
@@ -239,7 +239,7 @@ InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
       last_cmp_instruction_(nullptr) {
 }
 
-void InstructionHandlerX64::EmitBranch(IntegerCondition condition,
+void InstructionHandlerX64::EmitBranch(IntCondition condition,
                                        BasicBlock* target_block) {
   auto const tttn = ToTttn(condition);
   auto const long_branch = JumpOf(isa::Opcode::Jcc_Jv, tttn, 2, 4);
@@ -593,7 +593,7 @@ int64_t InstructionHandlerX64::Int64ValueOf(Value value) const {
   return 0;
 }
 
-IntegerCondition InstructionHandlerX64::UseCondition(Instruction* user) const {
+IntCondition InstructionHandlerX64::UseCondition(Instruction* user) const {
   auto const cmp_instr = last_cmp_instruction_->as<CmpInstruction>();
   DCHECK(cmp_instr) << "Not cmp instruction" << *last_cmp_instruction_;
   DCHECK_EQ(cmp_instr->output(0), user->input(0));

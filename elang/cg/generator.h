@@ -28,7 +28,7 @@ class Factory;
 enum class FloatCondition;
 class Function;
 class Instruction;
-enum class IntegerCondition;
+enum class IntCondition;
 }
 namespace cg {
 
@@ -54,8 +54,8 @@ class Generator final : public ZoneOwner,
   void EmitSetValue(lir::Value output, hir::Value* input);
   lir::Value GenerateShl(lir::Value index, int shift_count);
   void HandleComparison(hir::Instruction* instr,
-                        lir::IntegerCondition signed_condition,
-                        lir::IntegerCondition unsigned_condition,
+                        lir::IntCondition signed_condition,
+                        lir::IntCondition unsigned_condition,
                         lir::FloatCondition float_condition);
   lir::BasicBlock* MapBlock(hir::BasicBlock* block);
   lir::Value MapInput(hir::Value* instr);

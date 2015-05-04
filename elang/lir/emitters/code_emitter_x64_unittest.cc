@@ -210,7 +210,7 @@ TEST_F(CodeEmitterX64Test, Branch) {
 
   editor.Edit(function->entry_block());
   auto const conditional = NewConditional();
-  editor.Append(NewCmpInstruction(conditional, IntegerCondition::SignedLessThan,
+  editor.Append(NewCmpInstruction(conditional, IntCondition::SignedLessThan,
                                   Target::GetRegister(isa::EAX),
                                   Target::GetRegister(isa::EBX)));
   editor.SetBranch(conditional, block1, block2);
@@ -247,7 +247,7 @@ TEST_F(CodeEmitterX64Test, CmpInt32) {
   auto const cond = NewConditional();
   auto const eax = Target::GetRegister(isa::EAX);
   auto const ebx = Target::GetRegister(isa::EBX);
-  auto const eq = IntegerCondition::Equal;
+  auto const eq = IntCondition::Equal;
   auto const imm32 = Value::SmallInt32(2359);
   auto const imm8 = Value::SmallInt32(42);
   auto const r9d = Target::GetRegister(isa::R9D);

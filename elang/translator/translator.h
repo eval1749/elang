@@ -23,7 +23,7 @@ class Factory;
 enum class FloatCondition;
 class Function;
 class Instruction;
-enum class IntegerCondition;
+enum class IntCondition;
 }
 
 namespace optimizer {

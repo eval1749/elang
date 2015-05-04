@@ -41,8 +41,8 @@ Factory::~Factory() {
 void Factory::AddError(ErrorCode error_code,
                        Value value,
                        const std::vector<Value> details) {
-  errors_.push_back(new (zone()) ErrorData(
-      zone(), literals(), error_code, value, details));
+  errors_.push_back(
+      new (zone()) ErrorData(zone(), literals(), error_code, value, details));
 }
 
 Literal* Factory::GetLiteral(Value value) const {
@@ -252,7 +252,7 @@ Instruction* Factory::NewBranchInstruction(Value condition,
 }
 
 Instruction* Factory::NewCmpInstruction(Value output,
-                                        IntegerCondition condition,
+                                        IntCondition condition,
                                         Value left,
                                         Value right) {
   DCHECK(output.is_conditional());

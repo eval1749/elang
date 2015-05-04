@@ -258,7 +258,7 @@ Function* LirTest::CreateFunctionSample2() {
   editor.Append(
       factory()->NewPCopyInstruction({values[0], values[1]}, parameters));
   auto const cond1 = factory()->NewConditional();
-  editor.Append(NewCmpInstruction(cond1, IntegerCondition::Equal, values[0],
+  editor.Append(NewCmpInstruction(cond1, IntCondition::Equal, values[0],
                                   Value::SmallInt32(0)));
   editor.SetBranch(cond1, true_block, false_block);
   EXPECT_EQ("", Commit(&editor));
