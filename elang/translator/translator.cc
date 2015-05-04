@@ -9,6 +9,7 @@
 #include "elang/translator/translator.h"
 
 #include "elang/lir/editor.h"
+#include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
@@ -252,13 +253,14 @@ void Translator::PopulatePhiOperands() {
     std::unordered_map<lir::Value, lir::PhiInstruction*> phi_map;
     for (auto const phi : block->phi_instructions())
       phi_map.insert(std::make_pair(phi->output(0), phi));
-    for (auto const phi : phi_owner->phi_nodes()) {
-      if (!phi->IsUsed())
+    for (auto const phi_node : phi_owner->phi_nodes()) {
+      if (!phi_node->IsUsed())
         continue;
-      for (auto const phi_input : phi->phi_inputs()) {
-        auto const it = phi_map.find(MapOutput(phi));
-        DCHECK(it != phi_map.end()) << *phi;
-        editor()->SetPhiInput(it->second, BlockOf(phi_input->control()),
+      auto const it = phi_map.find(MapOutput(phi_node));
+      DCHECK(it != phi_map.end()) << *phi_node;
+      auto const phi = it->second;
+      for (auto const phi_input : phi_node->phi_inputs()) {
+        editor()->SetPhiInput(phi, BlockOf(phi_input->control()),
                               MapInput(phi_input->value()));
       }
     }
@@ -268,46 +270,123 @@ void Translator::PopulatePhiOperands() {
 
 void Translator::PrepareBlocks() {
   auto block = static_cast<lir::BasicBlock*>(nullptr);
+  auto const exit_block = editor()->exit_block();
+  auto start_node = static_cast<ir::Node*>(nullptr);
+  auto last_node = start_node;
   for (auto const node : schedule_.nodes()) {
+    if (node->IsBlockLabel()) {
+      DCHECK(!start_node) << *node;
+      DCHECK(!block) << *node;
+      start_node = node;
+      last_node = node;
+      continue;
+    }
     if (node->IsBlockStart()) {
+      DCHECK(!start_node) << *node;
       DCHECK(!block) << *node;
       DCHECK(!block_map_.count(node)) << *node;
       if (node->opcode() == ir::Opcode::Entry)
         block = editor()->entry_block();
       else if (node->use_edges().begin()->from()->opcode() == ir::Opcode::Exit)
-        block = editor()->exit_block();
+        block = exit_block;
       else
-        block = editor()->NewBasicBlock(editor()->exit_block());
-      block_map_.insert(std::make_pair(node, block));
+        block = editor()->NewBasicBlock(exit_block);
+      start_node = node;
+      block_map_.insert(std::make_pair(start_node, block));
+      last_node = node;
       continue;
     }
+    DCHECK(start_node) << *node;
+    if (!block) {
+      DCHECK(start_node->IsBlockLabel()) << *start_node;
+      if (node->opcode() == ir::Opcode::Jump) {
+        empty_block_starts_.insert(start_node);
+        empty_block_ends_.insert(node);
+        start_node = nullptr;
+        last_node = node;
+        continue;
+      }
+      block = editor()->NewBasicBlock(exit_block);
+      block_map_.insert(std::make_pair(start_node, block));
+    }
     DCHECK(block) << *node;
-    if (!node->IsBlockEnd())
+    if (node->IsBlockEnd()) {
+      block_map_.insert(std::make_pair(node, block));
+      block = nullptr;
+      start_node = nullptr;
+      last_node = node;
       continue;
-    DCHECK(!block_map_.count(node)) << *node;
-    block_map_.insert(std::make_pair(node, block));
-    block = nullptr;
+    }
+    last_node = node;
   }
+  DCHECK_EQ(ir::Opcode::Exit, last_node->opcode()) << *last_node;
   DCHECK(!block) << block;
+}
+
+void Translator::ResolveLabels() {
+  for (;;) {
+    auto changed = false;
+    for (auto const start_node : empty_block_starts_) {
+      auto const jump_node = start_node->SelectUserIfOne();
+      DCHECK_EQ(ir::Opcode::Jump, jump_node->opcode());
+      auto const it = block_map_.find(jump_node->SelectUserIfOne());
+      if (it == block_map_.end()) {
+        changed = true;
+        continue;
+      }
+      auto const candidate = it->second;
+      auto current = block_map_.find(start_node);
+      if (current == block_map_.end()) {
+        block_map_.insert(std::make_pair(start_node, candidate));
+        changed = true;
+        continue;
+      }
+      if (current->second == candidate)
+        continue;
+      current->second = candidate;
+      changed = true;
+    }
+    if (!changed)
+      break;
+  }
+
+  for (auto const jump_node : empty_block_ends_) {
+    DCHECK_EQ(ir::Opcode::Jump, jump_node->opcode());
+    auto const start_node = jump_node->input(0);
+    DCHECK(start_node->IsBlockLabel()) << *start_node;
+    block_map_[jump_node] = BlockOf(start_node->input(0));
+  }
 }
 
 // The entry point
 lir::Function* Translator::Run() {
   PrepareBlocks();
+  ResolveLabels();
 
   for (auto const node : schedule_.nodes()) {
-    if (node->IsBlockStart())
-      editor()->Edit(BlockOf(node));
-    node->Accept(this);
-    if (!node->IsBlockEnd())
+    if (node->IsBlockLabel() && empty_block_starts_.count(node))
       continue;
-    editor()->Commit();
+
+    if (node->IsBlockStart()) {
+      editor()->Edit(BlockOf(node));
+      node->Accept(this);
+      continue;
+    }
+
+    if (node->IsBlockEnd()) {
+      if (empty_block_ends_.count(node))
+        continue;
+      node->Accept(this);
+      editor()->Commit();
+      continue;
+    }
+
+    node->Accept(this);
   }
 
   PopulatePhiOperands();
 
-  // TODO(eval1749) We should dump invalid LIR by |lir::Editor| printer.
-  DCHECK(editor()->Validate());
+  DCHECK(editor()->Validate()) << *editor();
   return editor()->function();
 }
 
@@ -348,6 +427,7 @@ void Translator::VisitGetTuple(ir::GetTupleNode* node) {
 }
 
 void Translator::VisitIfException(ir::IfExceptionNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitIfFalse(ir::IfFalseNode* node) {
@@ -355,6 +435,7 @@ void Translator::VisitIfFalse(ir::IfFalseNode* node) {
 }
 
 void Translator::VisitIfSuccess(ir::IfSuccessNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitIfTrue(ir::IfTrueNode* node) {
@@ -362,7 +443,8 @@ void Translator::VisitIfTrue(ir::IfTrueNode* node) {
 }
 
 void Translator::VisitJump(ir::JumpNode* node) {
-  editor()->SetJump(BlockOf(node->use_edges().begin()->from()));
+  DCHECK(!empty_block_ends_.count(node));
+  editor()->SetJump(BlockOf(node->SelectUserIfOne()));
 }
 
 void Translator::VisitStaticCast(ir::StaticCastNode* node) {
@@ -584,8 +666,7 @@ void Translator::VisitCall(ir::CallNode* node) {
 
 // Variadic inputs node
 void Translator::VisitCase(ir::CaseNode* node) {
-  // TODO(eval1749): NYI translate Case
-  NOTREACHED() << *node;
+  // nothing to do
 }
 
 void Translator::VisitTuple(ir::TupleNode* node) {

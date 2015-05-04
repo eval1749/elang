@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "elang/base/zone_owner.h"
 #include "elang/lir/factory_user.h"
@@ -72,6 +73,7 @@ class Translator final : public ZoneOwner,
 
   void PopulatePhiOperands();
   void PrepareBlocks();
+  void ResolveLabels();
 
   lir::Value TranslateConditional(ir::Node* node);
 
@@ -80,8 +82,16 @@ class Translator final : public ZoneOwner,
   FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
 #undef V
 
-  // Map |ir::Node| to |lir::BasicBlock|.
+  // A map block start and block end |ir::Node| to |lir::BasicBlock|.
+  // For block end nodes in empty blocks, they are mapped to predecessor blocks
+  // rather than successor blocks.
   std::unordered_map<ir::Node*, lir::BasicBlock*> block_map_;
+
+  // A set of nodes at end of an empty block.
+  std::unordered_set<ir::Node*> empty_block_ends_;
+
+  // A set of nodes at start of an empty block.
+  std::unordered_set<ir::Node*> empty_block_starts_;
 
   // Map |ir::Node| to |lir::Value|.
   std::unordered_map<ir::Node*, lir::Value> register_map_;
