@@ -548,6 +548,14 @@ void Builder::StartMergeBlock(ir::PhiOwnerNode* phi_owner) {
 void Builder::StartWhileLoop(ir::Data* condition,
                              ir::LoopNode* loop_block,
                              ir::PhiOwnerNode* break_block) {
+  if (condition == editor_->true_value()) {
+    StartDoLoop(loop_block);
+    return;
+  }
+  if (condition == editor_->false_value()) {
+    EndBlockWithJump(break_block);
+    return;
+  }
   auto const if_node = EndBlockWithBranch(condition);
 
   StartIfBlock(editor_->NewIfFalse(if_node));
