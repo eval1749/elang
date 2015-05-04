@@ -5,6 +5,7 @@
 #ifndef ELANG_LIR_EDITOR_H_
 #define ELANG_LIR_EDITOR_H_
 
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -178,6 +179,9 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const Editor& editor);
 
 }  // namespace lir
 }  // namespace elang

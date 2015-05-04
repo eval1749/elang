@@ -2,19 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <ostream>
 #include <string>
 
 #include "elang/lir/editor.h"
 
 #include "base/logging.h"
-#include "elang/lir/analysis/conflict_map.h"
-#include "elang/lir/analysis/conflict_map_builder.h"
 #include "elang/base/analysis/dominator_tree_builder.h"
 #include "elang/base/analysis/liveness_collection.h"
 #include "elang/base/graphs/graph_sorter.h"
 #include "elang/lir/analysis/liveness_analyzer.h"
+#include "elang/lir/analysis/conflict_map.h"
+#include "elang/lir/analysis/conflict_map_builder.h"
 #include "elang/lir/error_data.h"
 #include "elang/lir/factory.h"
+#include "elang/lir/formatters/text_formatter.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/validator.h"
@@ -162,7 +164,7 @@ void Editor::BulkRemoveInstructions(WorkList<Instruction>* instructions) {
 #ifndef NDEBUG
   while (!changed_blocks.empty()) {
     auto const block = changed_blocks.Pop();
-    DCHECK(Validate(block)) << factory()->errors();
+    DCHECK(Validate(block)) << *this;
   }
 #endif
 }
@@ -204,7 +206,7 @@ void Editor::Edit(BasicBlock* basic_block) {
   basic_block_ = basic_block;
   if (basic_block_->instructions().empty())
     return;
-  DCHECK(Validate(basic_block_)) << factory()->errors();
+  DCHECK(Validate(basic_block_)) << *this;
 }
 
 void Editor::EditNewBasicBlock() {
@@ -453,6 +455,16 @@ bool Editor::Validate(BasicBlock* block) {
 bool Editor::Validate(Function* function) {
   Validator validator(this);
   return validator.Validate(function);
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Editor& editor) {
+  TextFormatter formatter(editor.factory()->literals(), &ostream);
+  formatter.FormatFunction(editor.function());
+  if (editor.factory()->errors().empty())
+    return ostream;
+  return ostream << std::endl
+                 << "Errors:" << std::endl
+                 << editor.factory()->errors() << std::endl;
 }
 
 }  // namespace lir
