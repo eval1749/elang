@@ -200,6 +200,11 @@ void Editor::DidRemoveInstruction() {
   is_index_valid_ = false;
 }
 
+void Editor::DiscardPhiInstructions() {
+  DCHECK(basic_block_);
+  basic_block_->phi_instructions_.RemoveAll();
+}
+
 void Editor::Edit(BasicBlock* basic_block) {
   DCHECK(!basic_block_) << basic_block;
   DCHECK_EQ(function(), basic_block->function()) << basic_block;

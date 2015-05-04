@@ -83,6 +83,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
 
   // Basic block editing
   bool Commit();
+  void DiscardPhiInstructions();
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
 
