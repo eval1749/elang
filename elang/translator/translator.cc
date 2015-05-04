@@ -548,23 +548,11 @@ DEFINE_ARITHMETIC_TRANSLATOR(IntAdd, Add)
 DEFINE_ARITHMETIC_TRANSLATOR(IntBitAnd, BitAnd)
 DEFINE_ARITHMETIC_TRANSLATOR(IntBitOr, BitOr)
 DEFINE_ARITHMETIC_TRANSLATOR(IntBitXor, BitXor)
+DEFINE_ARITHMETIC_TRANSLATOR(IntDiv, Div)
+DEFINE_ARITHMETIC_TRANSLATOR(IntMod, Mod)
+DEFINE_ARITHMETIC_TRANSLATOR(IntMul, Mul)
 DEFINE_ARITHMETIC_TRANSLATOR(IntShl, Shl)
 DEFINE_ARITHMETIC_TRANSLATOR(IntSub, Sub)
-
-void Translator::VisitIntDiv(ir::IntDivNode* node) {
-  // TODO(eval1749): NYI translate IntDiv
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntMod(ir::IntModNode* node) {
-  // TODO(eval1749): NYI translate IntMod
-  NOTREACHED() << *node;
-}
-
-void Translator::VisitIntMul(ir::IntMulNode* node) {
-  // TODO(eval1749): NYI translate IntMul
-  NOTREACHED() << *node;
-}
 
 // Simple nodes with three inputs
 void Translator::VisitLoad(ir::LoadNode* node) {
