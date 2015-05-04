@@ -70,6 +70,88 @@ namespace ir = optimizer;
 
 //////////////////////////////////////////////////////////////////////
 //
+// InstructionSelectionPass
+//
+class InstructionSelectionPass final : public api::Pass {
+ public:
+  InstructionSelectionPass(api::PassObserver* observer, lir::Factory* factory);
+  ~InstructionSelectionPass() = default;
+
+  lir::Function* Run(const hir::Function* function);
+  lir::Function* Run(const ir::Schedule* schedule);
+
+ private:
+  // api::Pass
+  base::StringPiece name() const final { return "select"; }
+  void DumpAfterPass(const api::PassDumpContext& context) final;
+  void DumpBeforePass(const api::PassDumpContext& context) final;
+
+  lir::Factory* const factory_;
+  lir::Function* function_;
+  const hir::Function* hir_function_;
+  const ir::Schedule* schedule_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstructionSelectionPass);
+};
+
+InstructionSelectionPass::InstructionSelectionPass(api::PassObserver* observer,
+                                                   lir::Factory* factory)
+    : api::Pass(observer),
+      factory_(factory),
+      function_(nullptr),
+      hir_function_(nullptr),
+      schedule_(nullptr) {
+}
+
+lir::Function* InstructionSelectionPass::Run(
+    const hir::Function* hir_function) {
+  DCHECK(!function_) << *function_;
+  DCHECK(!hir_function) << *hir_function_;
+  DCHECK(!schedule_) << *schedule_;
+  hir_function_ = hir_function;
+  RunScope scope(this);
+  if (scope.IsStop())
+    return nullptr;
+  ::elang::cg::Generator generator(factory_,
+                                   const_cast<hir::Function*>(hir_function));
+  return function_ = generator.Generate();
+}
+
+lir::Function* InstructionSelectionPass::Run(const ir::Schedule* schedule) {
+  DCHECK(!function_) << *function_;
+  DCHECK(!hir_function_) << *hir_function_;
+  DCHECK(!schedule_) << *schedule_;
+  schedule_ = schedule;
+  RunScope scope(this);
+  if (scope.IsStop())
+    return nullptr;
+  return function_ = ::elang::translator::Translator(factory_, schedule).Run();
+}
+
+void InstructionSelectionPass::DumpBeforePass(
+    const api::PassDumpContext& context) {
+  if (hir_function_) {
+    hir::TextFormatter formatter(context.ostream);
+    formatter.FormatFunction(hir_function_);
+    return;
+  }
+  if (schedule_) {
+    *context.ostream << *schedule_;
+    return;
+  }
+  NOTREACHED();
+}
+
+void InstructionSelectionPass::DumpAfterPass(
+    const api::PassDumpContext& context) {
+  if (!function_)
+    return;
+  lir::TextFormatter formatter(factory_->literals(), context.ostream);
+  formatter.FormatFunction(function_);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // ReadableErrorData
 //
 struct ReadableErrorData {
@@ -249,16 +331,6 @@ ast::Method* FindMainMethod(CompilationSession* session,
   return main_methods.front()->as<ast::Method>();
 }
 
-lir::Function* TranslateToLir(lir::Factory* factory,
-                              hir::Function* hir_function) {
-  ::elang::cg::Generator generator(factory, hir_function);
-  return generator.Generate();
-}
-
-lir::Function* TranslateToLir(lir::Factory* factory, ir::Schedule* schedule) {
-  return ::elang::translator::Translator(factory, schedule).Run();
-}
-
 vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
                                              lir::Factory* lir_factory,
                                              lir::Function* lir_function) {
@@ -307,8 +379,6 @@ std::vector<std::string> SwitchValuesOf(base::StringPiece switch_name) {
   return std::move(values);
 }
 
-const char kDumpHir[] = "dump_hir";
-const char kDumpLir[] = "dump_lir";
 const char kUseHir[] = "use_hir";
 
 }  // namespace
@@ -425,8 +495,9 @@ void Compiler::CompileAndGoInternal() {
     auto const schedule = factory->ComputeSchedule(main_function);
     if (ReportIrErrors(factory.get()) || stop_)
       return;
-    lir_function = TranslateToLir(lir_factory.get(), schedule.get());
-    if (ReportLirErrors(lir_factory.get()) || stop_)
+    lir_function =
+        InstructionSelectionPass(this, lir_factory.get()).Run(schedule.get());
+    if (ReportLirErrors(lir_factory.get()) || stop_ || !lir_function)
       return;
     has_parameter = !main_function->parameters_type()->is<ir::VoidType>();
     has_return_value = !main_function->return_type()->is<ir::VoidType>();
@@ -452,23 +523,14 @@ void Compiler::CompileAndGoInternal() {
       std::cerr << "No function for main method." << *main_method;
       return;
     }
-    if (command_line->HasSwitch(kDumpHir)) {
-      hir::TextFormatter formatter(&std::cout);
-      formatter.FormatFunction(main_function);
-    }
 
     // Translate HIR to LIR
-    lir_function = TranslateToLir(lir_factory.get(), main_function);
+    lir_function =
+        InstructionSelectionPass(this, lir_factory.get()).Run(main_function);
+    if (ReportLirErrors(lir_factory.get()) || stop_ || !lir_function)
+      return;
     has_parameter = !main_function->parameters_type()->is<hir::VoidType>();
     has_return_value = !main_function->return_type()->is<hir::VoidType>();
-  }
-
-  if (ReportLirErrors(lir_factory.get()))
-    return;
-
-  if (command_line->HasSwitch(kDumpLir)) {
-    lir::TextFormatter formatter(lir_factory->literals(), &std::cout);
-    formatter.FormatFunction(lir_function);
   }
 
   // Translate LIR to Machine code
@@ -537,6 +599,8 @@ void Compiler::DidEndPass(api::Pass* pass) {
   pass_stack_.pop_back();
   stop_ = stop_after_ == pass_name;
   if (dump_after_passes_.count(pass_name.as_string())) {
+    std::cout << std::endl
+              << "After " << pass_name << " ~~~~~~~~~~~~~~~~~~~~" << std::endl;
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpAfterPass(dump_context);
   }
@@ -551,6 +615,8 @@ bool Compiler::DidStartPass(api::Pass* pass) {
   auto const pass_name = pass->name();
   stop_ = stop_before_ == pass_name;
   if (dump_before_passes_.count(pass_name.as_string())) {
+    std::cout << std::endl
+              << "Before " << pass_name << " ~~~~~~~~~~~~~~~~~~~~" << std::endl;
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpBeforePass(dump_context);
   }
