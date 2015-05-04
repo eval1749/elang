@@ -82,6 +82,7 @@ void RegisterAssignmentsPass::RunOnFunction() {
   for (auto const block : function()->basic_blocks()) {
     Editor::ScopedEdit scope(editor());
     editor()->Edit(block);
+    editor()->DiscardPhiInstructions();
     WorkList<Instruction> action_owners;
     for (auto const instr : block->instructions()) {
       if (!register_assignments_->BeforeActionOf(instr).empty())
