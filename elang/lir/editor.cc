@@ -179,6 +179,31 @@ void Editor::BulkRemoveInstructions(WorkList<Instruction>* instructions) {
 #endif
 }
 
+void Editor::CombineBlock(BasicBlock* from) {
+  DCHECK(basic_block_);
+  auto const from_last = from->last_instruction();
+  auto const to_last = basic_block_->last_instruction();
+  for (;;) {
+    auto const instr = from->first_instruction();
+    if (instr == from->last_instruction())
+      break;
+    from->instructions_.RemoveNode(instr);
+    basic_block_->instructions_.InsertBefore(instr, to_last);
+    instr->basic_block_ = basic_block_;
+  }
+  DidRemoveInstruction();
+  DidInsertInstruction();
+  if (auto const branch = from_last->as<BranchInstruction>()) {
+    SetBranch(branch->input(0), branch->true_block(), branch->false_block());
+    return;
+  }
+  if (auto const jump = from_last->as<JumpInstruction>())
+    return SetJump(jump->target_block());
+  if (from_last->is<RetInstruction>())
+    return SetReturn();
+  NOTREACHED() << *from_last;
+}
+
 bool Editor::Commit() {
   DCHECK(basic_block_);
 #ifdef NDEBUG
@@ -211,6 +236,14 @@ void Editor::DidInsertInstruction() {
 
 void Editor::DidRemoveInstruction() {
   is_index_valid_ = false;
+}
+
+void Editor::DiscardBlock(BasicBlock* block) {
+  DCHECK(!basic_block_) << basic_block_;
+  auto const last_instr = block->last_instruction();
+  DCHECK_EQ(block->first_instruction(), last_instr);
+  RemoveEdgesFrom(last_instr);
+  graph_editor_.RemoveNode(block);
 }
 
 void Editor::DiscardPhiInstructions() {

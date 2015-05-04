@@ -82,7 +82,11 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   const DominatorTree<Function>& BuildPostDominatorTree() const;
 
   // Basic block editing
+  // Move all instructions except for last instructions in |from| to current
+  // editing block.
+  void CombineBlock(BasicBlock* from);
   bool Commit();
+  void DiscardBlock(BasicBlock* block);
   void DiscardPhiInstructions();
   void Edit(BasicBlock* basic_block);
   void EditNewBasicBlock();
