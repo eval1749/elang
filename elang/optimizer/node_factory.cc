@@ -69,6 +69,38 @@ void DefaultValueFactory::DoDefaultVisit(Type* type) {
 FOR_EACH_OPTIMIZER_PRIMITIVE_VALUE_TYPE(V)
 #undef V
 
+int64_t AsInt64(const Data* literal) {
+  DCHECK(literal->output_type()->is_signed());
+  if (auto const i8 = literal->as<Int8Node>())
+    return i8->data();
+  if (auto const i16 = literal->as<Int16Node>())
+    return i16->data();
+  if (auto const i32 = literal->as<Int32Node>())
+    return i32->data();
+  if (auto const i64 = literal->as<Int64Node>())
+    return i64->data();
+  if (auto const i64 = literal->as<IntPtrNode>())
+    return i64->data();
+  NOTREACHED() << *literal;
+  return 0;
+}
+
+uint64_t AsUInt64(const Data* literal) {
+  DCHECK(literal->output_type()->is_signed());
+  if (auto const u8 = literal->as<UInt8Node>())
+    return u8->data();
+  if (auto const u16 = literal->as<UInt16Node>())
+    return u16->data();
+  if (auto const u32 = literal->as<UInt32Node>())
+    return u32->data();
+  if (auto const u64 = literal->as<UInt64Node>())
+    return u64->data();
+  if (auto const u64 = literal->as<UIntPtrNode>())
+    return u64->data();
+  NOTREACHED() << *literal;
+  return 0;
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -88,6 +120,52 @@ NodeFactory::~NodeFactory() {
 
 SequenceIdSource* NodeFactory::node_id_source() const {
   return node_cache_->node_id_source();
+}
+
+Data* NodeFactory::CalculateConstant(IntCondition condition,
+                                     Data* left,
+                                     Data* right) {
+  DCHECK(left->IsLiteral()) << *left;
+  DCHECK(right->IsLiteral()) << *right;
+  DCHECK_EQ(left->output_type(), right->output_type());
+  if (left->output_type()->is_signed()) {
+    auto const left_i64 = AsInt64(left);
+    auto const right_i64 = AsInt64(right);
+    switch (condition) {
+      case IntCondition::Equal:
+        return left_i64 == right_i64 ? true_value() : false_value();
+      case IntCondition::NotEqual:
+        return left_i64 != right_i64 ? true_value() : false_value();
+      case IntCondition::SignedGreaterThan:
+        return left_i64 > right_i64 ? true_value() : false_value();
+      case IntCondition::SignedGreaterThanOrEqual:
+        return left_i64 >= right_i64 ? true_value() : false_value();
+      case IntCondition::SignedLessThan:
+        return left_i64 < right_i64 ? true_value() : false_value();
+      case IntCondition::SignedLessThanOrEqual:
+        return left_i64 <= right_i64 ? true_value() : false_value();
+    }
+    NOTREACHED() << "Invalid condition: " << condition << left << right;
+    return nullptr;
+  }
+  auto const left_u64 = AsInt64(left);
+  auto const right_u64 = AsInt64(right);
+  switch (condition) {
+    case IntCondition::Equal:
+      return left_u64 == right_u64 ? true_value() : false_value();
+    case IntCondition::NotEqual:
+      return left_u64 != right_u64 ? true_value() : false_value();
+    case IntCondition::UnsignedGreaterThan:
+      return left_u64 > right_u64 ? true_value() : false_value();
+    case IntCondition::UnsignedGreaterThanOrEqual:
+      return left_u64 >= right_u64 ? true_value() : false_value();
+    case IntCondition::UnsignedLessThan:
+      return left_u64 < right_u64 ? true_value() : false_value();
+    case IntCondition::UnsignedLessThanOrEqual:
+      return left_u64 <= right_u64 ? true_value() : false_value();
+  }
+  NOTREACHED() << "Invalid condition: " << condition << left << right;
+  return nullptr;
 }
 
 Data* NodeFactory::DefaultValueOf(Type* type) {
@@ -344,7 +422,7 @@ Data* NodeFactory::NewIntBitXor(Data* left, Data* right) {
 Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer() || type->is<PointerType>());
+  DCHECK(type->is_integer() || type->is<PointerType>()) << *type;
 #if NDEBUG
   if (type->is_signed()) {
     DCHECK(condition != IntCondition::UnsignedGreaterThan &&
@@ -358,6 +436,10 @@ Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
            condition != IntCondition::SignedLessThanOrEqual);
   }
 #endif
+  if (left->IsLiteral() && right->IsLiteral())
+    return CalculateConstant(condition, left, right);
+  if (left->IsLiteral())
+    return NewIntCmp(CommuteCondition(condition), right, left);
   auto const node =
       new (zone()) IntCmpNode(bool_type(), condition, left, right);
   node->set_id(NewNodeId());

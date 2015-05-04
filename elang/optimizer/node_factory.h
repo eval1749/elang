@@ -37,6 +37,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
   Data* true_value() const { return true_value_; }
   Data* void_value() const { return void_value_; }
 
+  Data* CalculateConstant(IntCondition condition, Data* left, Data* right);
   Data* DefaultValueOf(Type* type);
   Data* NewNull(Type* type);
   Data* NewSizeOf(Type* type);
