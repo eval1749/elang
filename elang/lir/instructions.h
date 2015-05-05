@@ -228,8 +228,8 @@ class ELANG_LIR_EXPORT Instruction
   virtual BasicBlockOperands block_operands() const;
   BasicBlock* block_operand(int index) const;
 
-  virtual int CountInputs() const = 0;
-  virtual int CountOutputs() const = 0;
+  virtual size_t CountInputs() const = 0;
+  virtual size_t CountOutputs() const = 0;
 
   // Returns true if this instruction is placed at end of block, e.g. 'br',
   // 'br', 'switch', and so on.
@@ -272,8 +272,8 @@ class ELANG_LIR_EXPORT Instruction
 template <int kOutputCount, int kInputCount>
 class InstructionTemplate : public Instruction {
  public:
-  int CountInputs() const final { return kInputCount; }
-  int CountOutputs() const final { return kOutputCount; }
+  size_t CountInputs() const final { return kInputCount; }
+  size_t CountOutputs() const final { return kOutputCount; }
 
  protected:
   InstructionTemplate() = default;
@@ -297,8 +297,8 @@ class InstructionTemplate : public Instruction {
 template <>
 class InstructionTemplate<0, 0> : public Instruction {
  public:
-  int CountInputs() const final { return 0; }
-  int CountOutputs() const final { return 0; }
+  size_t CountInputs() const final { return 0; }
+  size_t CountOutputs() const final { return 0; }
 
  protected:
   InstructionTemplate() = default;
@@ -371,8 +371,8 @@ class ELANG_LIR_EXPORT EntryInstruction final : public Instruction {
   EntryInstruction(Zone* zone, const std::vector<Value>& outputs);
 
   // Instruction operand protocol
-  int CountInputs() const final;
-  int CountOutputs() const final;
+  size_t CountInputs() const final;
+  size_t CountOutputs() const final;
   Value* InputValues() const final;
   Value* OutputValues() const final;
 
@@ -435,8 +435,8 @@ class ELANG_LIR_EXPORT PCopyInstruction final : public Instruction {
                    const std::vector<Value>& inputs);
 
   // Instruction operand protocol
-  int CountInputs() const final;
-  int CountOutputs() const final;
+  size_t CountInputs() const final;
+  size_t CountOutputs() const final;
   Value* InputValues() const final;
   Value* OutputValues() const final;
 
@@ -486,8 +486,8 @@ class ELANG_LIR_EXPORT PhiInstruction final : public Instruction {
   PhiInput* FindPhiInputFor(BasicBlock* block) const;
 
   // Instruction operand protocol
-  int CountInputs() const final;
-  int CountOutputs() const final;
+  size_t CountInputs() const final;
+  size_t CountOutputs() const final;
   Value* InputValues() const final;
   Value* OutputValues() const final;
 

@@ -327,12 +327,12 @@ EntryInstruction::EntryInstruction(Zone* zone,
 }
 
 // EntryInstruction Instruction operand protocol
-int EntryInstruction::CountInputs() const {
+size_t EntryInstruction::CountInputs() const {
   return 0;
 }
 
-int EntryInstruction::CountOutputs() const {
-  return static_cast<int>(outputs_.size());
+size_t EntryInstruction::CountOutputs() const {
+  return outputs_.size();
 }
 
 Value* EntryInstruction::InputValues() const {
@@ -386,12 +386,12 @@ PCopyInstruction::PCopyInstruction(Zone* zone,
 }
 
 // PCopyInstruction Instruction operand protocol
-int PCopyInstruction::CountInputs() const {
-  return static_cast<int>(inputs_.size());
+size_t PCopyInstruction::CountInputs() const {
+  return inputs_.size();
 }
 
-int PCopyInstruction::CountOutputs() const {
-  return static_cast<int>(outputs_.size());
+size_t PCopyInstruction::CountOutputs() const {
+  return outputs_.size();
 }
 
 Value* PCopyInstruction::InputValues() const {
@@ -417,12 +417,12 @@ Value PhiInstruction::input_of(BasicBlock* block) const {
   return phi_input->value();
 }
 
-int PhiInstruction::CountInputs() const {
+size_t PhiInstruction::CountInputs() const {
   NOTREACHED();
   return 0;
 }
 
-int PhiInstruction::CountOutputs() const {
+size_t PhiInstruction::CountOutputs() const {
   return 1;
 }
 
