@@ -136,6 +136,10 @@ Value Value::TypeOf(Value value) {
   return Value(value.type, value.size, Kind::Void, 0);
 }
 
+Value Value::VoidType() {
+  return Value();
+}
+
 }  // namespace lir
 }  // namespace elang
 

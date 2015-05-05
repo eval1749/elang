@@ -142,6 +142,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value SmallInt64(int data);
   static Value SmallInt8(int data);
   static Value True();
+  static Value VoidType();
 
  private:
   friend class Factory;
