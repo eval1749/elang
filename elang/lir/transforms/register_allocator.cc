@@ -51,7 +51,7 @@ int PreferenceOfInLeaf(const Value& reg) {
     return 0;
   if (Target::IsCalleeSavedRegister(reg))
     return 1;
-  if (Target::GetReturn(reg) == reg)
+  if (Target::ReturnAt(reg, 0) == reg)
     return 9;
   if (Target::IsParameterRegister(reg))
     return 8;
@@ -64,7 +64,7 @@ int PreferenceOfInNonLeaf(const Value& reg) {
     return 0;
   if (Target::IsCallerSavedRegister(reg))
     return 1;
-  if (Target::GetReturn(reg) == reg)
+  if (Target::ReturnAt(reg, 0) == reg)
     return 9;
   if (Target::IsParameterRegister(reg))
     return 8;

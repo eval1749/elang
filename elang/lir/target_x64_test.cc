@@ -59,19 +59,19 @@ TEST(LirTargetX64Test, GetParameterAt) {
 TEST(LirTargetX64Test, GetReturn) {
   EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, EAX & 15),
-            Target::GetReturn(Value::Int32Type()));
+            Target::ReturnAt(Value::Int32Type(), 0));
 
   EXPECT_EQ(Value(Value::Type::Integer, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, RAX & 15),
-            Target::GetReturn(Value::Int64Type()));
+            Target::ReturnAt(Value::Int64Type(), 0));
 
   EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size32,
                   Value::Kind::PhysicalRegister, XMM0S & 15),
-            Target::GetReturn(Value::Float32Type()));
+            Target::ReturnAt(Value::Float32Type(), 0));
 
   EXPECT_EQ(Value(Value::Type::Float, ValueSize::Size64,
                   Value::Kind::PhysicalRegister, XMM0D & 15),
-            Target::GetReturn(Value::Float64Type()));
+            Target::ReturnAt(Value::Float64Type(), 0));
 }
 
 TEST(LirTargetX64Test, GetRegister) {

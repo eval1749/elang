@@ -278,7 +278,7 @@ Function* LirTest::CreateFunctionSample2() {
   editor.SetPhiInput(merge_phi, true_block, values[1]);
   editor.SetPhiInput(merge_phi, false_block, Value::SmallInt32(42));
   editor.Append(
-      factory()->NewCopyInstruction(Target::GetReturn(values[0]), values[2]));
+      factory()->NewCopyInstruction(Target::ReturnAt(values[0], 0), values[2]));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
@@ -310,7 +310,7 @@ Function* LirTest::CreateFunctionSampleAdd() {
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewPCopyInstruction({var0, var1}, parameters));
   editor.Append(factory()->NewAddInstruction(var2, var0, var1));
-  editor.Append(factory()->NewCopyInstruction(Target::GetReturn(var2), var2));
+  editor.Append(factory()->NewCopyInstruction(Target::ReturnAt(var2, 0), var2));
   EXPECT_EQ("", Commit(&editor));
   return function;
 }
@@ -364,7 +364,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
   editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
   editor.SetPhiInput(phi_instr, sample2_block, Value::SmallInt32(39));
   editor.Append(factory()->NewCopyInstruction(
-      Target::GetReturn(phi_instr->output(0)), phi_instr->output(0)));
+      Target::ReturnAt(phi_instr->output(0), 0), phi_instr->output(0)));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 
@@ -427,7 +427,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge2() {
   editor.SetPhiInput(phi_instr, sample_block, Value::SmallInt32(42));
   editor.SetPhiInput(phi_instr, sample2_block, var0);
   editor.Append(factory()->NewCopyInstruction(
-      Target::GetReturn(phi_instr->output(0)), phi_instr->output(0)));
+      Target::ReturnAt(phi_instr->output(0), 0), phi_instr->output(0)));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
 

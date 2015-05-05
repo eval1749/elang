@@ -56,81 +56,81 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
 // int Foo(float64 x, float64 y) {
 //   return x / y;
 // }
-#define DEFINE_FLOAT64_BINARY_OPERATION_TEST(Name, mnemonic)            \
-  TEST_F(LirLoweringX64Test, Name##Float) {                             \
-    auto const type = Value::Float64Type();                             \
-    auto const function = CreateSampleFunction(type, 2);                \
-    auto const entry_block = function->entry_block();                   \
-    Editor editor(factory(), function);                                 \
-    editor.Edit(entry_block);                                           \
-    auto const parameters = EmitCopyParameters(&editor);                \
-    auto output = NewRegister(type);                                    \
-    editor.Append(                                                      \
-        New##Name##Instruction(output, parameters[0], parameters[1]));  \
-    editor.Append(NewCopyInstruction(Target::GetReturn(type), output)); \
-    editor.SetReturn();                                                 \
-    EXPECT_EQ("", Commit(&editor));                                     \
-    ASSERT_EQ("", Validate(&editor));                                   \
-                                                                        \
-    LoweringX64Pass(&editor).Run();                                     \
-    EXPECT_EQ(                                                          \
-        "function1:\n"                                                  \
-        "block1:\n"                                                     \
-        "  // In: {}\n"                                                 \
-        "  // Out: {block2}\n"                                          \
-        "  entry XMM0D, XMM1D =\n"                                      \
-        "  pcopy %f1d, %f2d = XMM0D, XMM1D\n"                           \
-        "  mov %f4d = %f1d\n"                                           \
-        "  " mnemonic                                                   \
-        " %f5d = %f4d, %f2d\n"                                          \
-        "  mov %f3d = %f5d\n"                                           \
-        "  mov XMM0D = %f3d\n"                                          \
-        "  ret block2\n"                                                \
-        "block2:\n"                                                     \
-        "  // In: {block1}\n"                                           \
-        "  // Out: {}\n"                                                \
-        "  exit\n",                                                     \
-        FormatFunction(&editor));                                       \
+#define DEFINE_FLOAT64_BINARY_OPERATION_TEST(Name, mnemonic)              \
+  TEST_F(LirLoweringX64Test, Name##Float) {                               \
+    auto const type = Value::Float64Type();                               \
+    auto const function = CreateSampleFunction(type, 2);                  \
+    auto const entry_block = function->entry_block();                     \
+    Editor editor(factory(), function);                                   \
+    editor.Edit(entry_block);                                             \
+    auto const parameters = EmitCopyParameters(&editor);                  \
+    auto output = NewRegister(type);                                      \
+    editor.Append(                                                        \
+        New##Name##Instruction(output, parameters[0], parameters[1]));    \
+    editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output)); \
+    editor.SetReturn();                                                   \
+    EXPECT_EQ("", Commit(&editor));                                       \
+    ASSERT_EQ("", Validate(&editor));                                     \
+                                                                          \
+    LoweringX64Pass(&editor).Run();                                       \
+    EXPECT_EQ(                                                            \
+        "function1:\n"                                                    \
+        "block1:\n"                                                       \
+        "  // In: {}\n"                                                   \
+        "  // Out: {block2}\n"                                            \
+        "  entry XMM0D, XMM1D =\n"                                        \
+        "  pcopy %f1d, %f2d = XMM0D, XMM1D\n"                             \
+        "  mov %f4d = %f1d\n"                                             \
+        "  " mnemonic                                                     \
+        " %f5d = %f4d, %f2d\n"                                            \
+        "  mov %f3d = %f5d\n"                                             \
+        "  mov XMM0D = %f3d\n"                                            \
+        "  ret block2\n"                                                  \
+        "block2:\n"                                                       \
+        "  // In: {block1}\n"                                             \
+        "  // Out: {}\n"                                                  \
+        "  exit\n",                                                       \
+        FormatFunction(&editor));                                         \
   }
 
 // int Foo(int x, int y) {
 //   return x + y;
 // }
-#define DEFINE_INTEGER_BINARY_OPERATION_TEST(Name, mnemonic)            \
-  TEST_F(LirLoweringX64Test, Name##Int) {                               \
-    auto const type = Value::Int32Type();                               \
-    auto const function = CreateSampleFunction(type, 2);                \
-    auto const entry_block = function->entry_block();                   \
-    Editor editor(factory(), function);                                 \
-    editor.Edit(entry_block);                                           \
-    auto const parameters = EmitCopyParameters(&editor);                \
-    auto output = NewRegister(type);                                    \
-    editor.Append(                                                      \
-        New##Name##Instruction(output, parameters[0], parameters[1]));  \
-    editor.Append(NewCopyInstruction(Target::GetReturn(type), output)); \
-    editor.SetReturn();                                                 \
-    EXPECT_EQ("", Commit(&editor));                                     \
-    ASSERT_EQ("", Validate(&editor));                                   \
-                                                                        \
-    LoweringX64Pass(&editor).Run();                                     \
-    EXPECT_EQ(                                                          \
-        "function1:\n"                                                  \
-        "block1:\n"                                                     \
-        "  // In: {}\n"                                                 \
-        "  // Out: {block2}\n"                                          \
-        "  entry ECX, EDX =\n"                                          \
-        "  pcopy %r1, %r2 = ECX, EDX\n"                                 \
-        "  mov %r4 = %r1\n"                                             \
-        "  " mnemonic                                                   \
-        " %r5 = %r4, %r2\n"                                             \
-        "  mov %r3 = %r5\n"                                             \
-        "  mov EAX = %r3\n"                                             \
-        "  ret block2\n"                                                \
-        "block2:\n"                                                     \
-        "  // In: {block1}\n"                                           \
-        "  // Out: {}\n"                                                \
-        "  exit\n",                                                     \
-        FormatFunction(&editor));                                       \
+#define DEFINE_INTEGER_BINARY_OPERATION_TEST(Name, mnemonic)              \
+  TEST_F(LirLoweringX64Test, Name##Int) {                                 \
+    auto const type = Value::Int32Type();                                 \
+    auto const function = CreateSampleFunction(type, 2);                  \
+    auto const entry_block = function->entry_block();                     \
+    Editor editor(factory(), function);                                   \
+    editor.Edit(entry_block);                                             \
+    auto const parameters = EmitCopyParameters(&editor);                  \
+    auto output = NewRegister(type);                                      \
+    editor.Append(                                                        \
+        New##Name##Instruction(output, parameters[0], parameters[1]));    \
+    editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output)); \
+    editor.SetReturn();                                                   \
+    EXPECT_EQ("", Commit(&editor));                                       \
+    ASSERT_EQ("", Validate(&editor));                                     \
+                                                                          \
+    LoweringX64Pass(&editor).Run();                                       \
+    EXPECT_EQ(                                                            \
+        "function1:\n"                                                    \
+        "block1:\n"                                                       \
+        "  // In: {}\n"                                                   \
+        "  // Out: {block2}\n"                                            \
+        "  entry ECX, EDX =\n"                                            \
+        "  pcopy %r1, %r2 = ECX, EDX\n"                                   \
+        "  mov %r4 = %r1\n"                                               \
+        "  " mnemonic                                                     \
+        " %r5 = %r4, %r2\n"                                               \
+        "  mov %r3 = %r5\n"                                               \
+        "  mov EAX = %r3\n"                                               \
+        "  ret block2\n"                                                  \
+        "block2:\n"                                                       \
+        "  // In: {block1}\n"                                             \
+        "  // Out: {}\n"                                                  \
+        "  exit\n",                                                       \
+        FormatFunction(&editor));                                         \
   }
 
 #define DEFINE_BINARY_OPERATION_TEST(Name, mnemonic)   \
@@ -158,7 +158,7 @@ TEST_F(LirLoweringX64Test, DivInt) {
   auto const parameters = EmitCopyParameters(&editor);
   auto output = NewRegister(type);
   editor.Append(NewDivInstruction(output, parameters[0], parameters[1]));
-  editor.Append(NewCopyInstruction(Target::GetReturn(type), output));
+  editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
@@ -196,7 +196,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
   auto const parameters = EmitCopyParameters(&editor);
   auto output = NewRegister(type);
   editor.Append(NewMulInstruction(output, parameters[0], parameters[1]));
-  editor.Append(NewCopyInstruction(Target::GetReturn(type), output));
+  editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
@@ -238,7 +238,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
     editor.Append(                                                             \
         New##Name##Instruction(output2, parameters[0], Value::SmallInt32(5))); \
     editor.Append(New##Name##Instruction(output, output2, parameters[1]));     \
-    editor.Append(NewCopyInstruction(Target::GetReturn(type), output));        \
+    editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));      \
     editor.SetReturn();                                                        \
     EXPECT_EQ("", Commit(&editor));                                            \
     ASSERT_EQ("", Validate(&editor));                                          \

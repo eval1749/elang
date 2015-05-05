@@ -224,9 +224,6 @@ class ELANG_LIR_EXPORT Target {
   // Returns physical/pseudo register of |name|.
   static Value GetRegister(isa::Register name);
 
-  // Returns physical register for return value.
-  static Value GetReturn(Value type);
-
   // Returns true if |value| is an integer literal represented in 32-bit
   // integer, otherwise false.
   static bool HasCopyImmediateToMemory(Value value);
@@ -258,6 +255,9 @@ class ELANG_LIR_EXPORT Target {
 
   // Returns register or location for parameter at |position|.
   static Value ParameterAt(Value output, size_t position);
+
+  // Returns physical register for return value.
+  static Value ReturnAt(Value type, size_t position);
 };
 
 }  // namespace lir

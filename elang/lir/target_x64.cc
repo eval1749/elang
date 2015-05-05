@@ -231,13 +231,6 @@ Value Target::GetRegister(isa::Register name) {
                Value::Kind::PhysicalRegister, name & 15);
 }
 
-Value Target::GetReturn(Value type) {
-  if (type.type == Value::Type::Float) {
-    return GetRegister(type.is_32bit() ? isa::XMM0S : isa::XMM0D);
-  }
-  return GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
-}
-
 // We can use |MOV r/m, imm32| instruction.
 bool Target::HasCopyImmediateToMemory(Value value) {
   if (value.type == Value::Type::Float)
@@ -302,6 +295,13 @@ Value Target::ParameterAt(Value output, size_t position) {
   }
   // TODO(eval1749) We should make |Value::Parameter()| to take |size_t|.
   return Value::Parameter(output, base::checked_cast<int>(position));
+}
+
+Value Target::ReturnAt(Value type, size_t position) {
+  DCHECK_EQ(position, 0) << "NYI multiple return values";
+  if (type.type == Value::Type::Float)
+    return GetRegister(type.is_32bit() ? isa::XMM0S : isa::XMM0D);
+  return GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
 }
 
 }  // namespace lir
