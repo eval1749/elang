@@ -253,8 +253,7 @@ lir::Function* Generator::NewFunction(lir::Factory* factory,
     auto position = 0;
     for (auto const hir_type : tuple_type->members()) {
       auto const parameter_type = MapType(hir_type);
-      parameters.push_back(
-          lir::Target::GetParameterAt(parameter_type, position));
+      parameters.push_back(lir::Target::ParameterAt(parameter_type, position));
       ++position;
     }
     return factory->NewFunction(parameters);
@@ -262,7 +261,7 @@ lir::Function* Generator::NewFunction(lir::Factory* factory,
 
   // Single parameter
   auto const parameter_type = MapType(parameters_type);
-  auto const parameter = lir::Target::GetParameterAt(parameter_type, 0);
+  auto const parameter = lir::Target::ParameterAt(parameter_type, 0);
   return factory->NewFunction({parameter});
 }
 

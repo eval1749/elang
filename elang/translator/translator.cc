@@ -230,8 +230,7 @@ lir::Function* Translator::NewFunction(lir::Factory* factory,
     auto position = 0;
     for (auto const component : tuple_type->components()) {
       auto const parameter_type = MapType(component);
-      parameters.push_back(
-          lir::Target::GetParameterAt(parameter_type, position));
+      parameters.push_back(lir::Target::ParameterAt(parameter_type, position));
       ++position;
     }
     return factory->NewFunction(parameters);
@@ -239,7 +238,7 @@ lir::Function* Translator::NewFunction(lir::Factory* factory,
 
   // Single parameter
   auto const parameter_type = MapType(parameters_type);
-  auto const parameter = lir::Target::GetParameterAt(parameter_type, 0);
+  auto const parameter = lir::Target::ParameterAt(parameter_type, 0);
   return factory->NewFunction({parameter});
 }
 
@@ -618,7 +617,7 @@ void Translator::VisitEntry(ir::EntryNode* node) {
       continue;
     auto const output = MapRegister(param);
     outputs.push_back(output);
-    inputs.push_back(lir::Target::GetParameterAt(output, param->field()));
+    inputs.push_back(lir::Target::ParameterAt(output, param->field()));
   }
   Emit(NewPCopyInstruction(outputs, inputs));
 }

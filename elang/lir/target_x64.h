@@ -221,9 +221,6 @@ class ELANG_LIR_EXPORT Target {
   // Returns register or location for argument at |position|.
   static Value ArgumentAt(Value output, size_t position);
 
-  // Returns register or location for parameter at |position|.
-  static Value GetParameterAt(Value output, size_t position);
-
   // Returns physical/pseudo register of |name|.
   static Value GetRegister(isa::Register name);
 
@@ -258,6 +255,9 @@ class ELANG_LIR_EXPORT Target {
   static bool IsParameterRegister(Value physical);
 
   static Value NaturalRegisterOf(Value physical);
+
+  // Returns register or location for parameter at |position|.
+  static Value ParameterAt(Value output, size_t position);
 };
 
 }  // namespace lir

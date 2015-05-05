@@ -61,7 +61,7 @@ TEST_F(LirStackAllocatorTest, Parameters) {
   std::vector<Value> parameters(vregs.size());
   for (auto position = 0; position < vregs.size(); ++position) {
     vregs[position] = factory()->NewRegister(Value::Int32Type());
-    parameters[position] = Target::GetParameterAt(vregs[position], position);
+    parameters[position] = Target::ParameterAt(vregs[position], position);
   }
 
   auto const function = CreateFunctionEmptySample(parameters);
@@ -84,7 +84,7 @@ TEST_F(LirStackAllocatorTest, Reuse) {
       factory()->NewRegister(Value::Int32Type()),
   };
 
-  std::vector<Value> parameters{Target::GetParameterAt(vregs[0], 0)};
+  std::vector<Value> parameters{Target::ParameterAt(vregs[0], 0)};
   auto const function = CreateFunctionEmptySample(parameters);
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());

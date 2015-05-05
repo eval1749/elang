@@ -35,7 +35,7 @@ class LirLoweringX64Test : public testing::LirTest {
 Function* LirLoweringX64Test::CreateSampleFunction(Value type, int count) {
   std::vector<Value> parameters;
   for (auto position = 0; position < count; ++position) {
-    parameters.push_back(Target::GetParameterAt(type, position));
+    parameters.push_back(Target::ParameterAt(type, position));
   }
   return factory()->NewFunction(parameters);
 }

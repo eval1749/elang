@@ -217,18 +217,6 @@ Value Target::ArgumentAt(Value output, size_t position) {
   return Value::Argument(output, base::checked_cast<int>(position));
 }
 
-Value Target::GetParameterAt(Value output, size_t position) {
-  auto const it = std::begin(isa::kIntegerParameters) + position;
-  if (it < std::end(isa::kIntegerParameters)) {
-    auto const number = output.is_float() ? isa::kFloatParameters[position]
-                                          : isa::kIntegerParameters[position];
-    return Value(output.type, output.size, Value::Kind::PhysicalRegister,
-                 number & 15);
-  }
-  // TODO(eval1749) We should make |Value::Parameter()| to take |size_t|.
-  return Value::Parameter(output, base::checked_cast<int>(position));
-}
-
 Value Target::GetRegister(isa::Register name) {
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
@@ -302,6 +290,18 @@ Value Target::NaturalRegisterOf(Value physical) {
   DCHECK(physical.is_physical());
   return Value(physical.type, ValueSize::Size64, Value::Kind::PhysicalRegister,
                physical.data);
+}
+
+Value Target::ParameterAt(Value output, size_t position) {
+  auto const it = std::begin(isa::kIntegerParameters) + position;
+  if (it < std::end(isa::kIntegerParameters)) {
+    auto const number = output.is_float() ? isa::kFloatParameters[position]
+                                          : isa::kIntegerParameters[position];
+    return Value(output.type, output.size, Value::Kind::PhysicalRegister,
+                 number & 15);
+  }
+  // TODO(eval1749) We should make |Value::Parameter()| to take |size_t|.
+  return Value::Parameter(output, base::checked_cast<int>(position));
 }
 
 }  // namespace lir

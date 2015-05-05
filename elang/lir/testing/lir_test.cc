@@ -242,8 +242,7 @@ Function* LirTest::CreateFunctionSample2() {
   };
 
   std::vector<Value> parameters{
-      Target::GetParameterAt(values[0], 0),
-      Target::GetParameterAt(values[1], 1),
+      Target::ParameterAt(values[0], 0), Target::ParameterAt(values[1], 1),
   };
 
   auto const function = CreateFunctionEmptySample(parameters);
@@ -304,7 +303,7 @@ Function* LirTest::CreateFunctionSampleAdd() {
   auto const var1 = NewIntPtrRegister();
   auto const var2 = NewIntPtrRegister();
   std::vector<Value> parameters{
-      Target::GetParameterAt(var0, 0), Target::GetParameterAt(var1, 1),
+      Target::ParameterAt(var0, 0), Target::ParameterAt(var1, 1),
   };
   auto const function = CreateFunctionEmptySample(parameters);
   Editor editor(factory(), function);
@@ -407,7 +406,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge2() {
 
   editor.Edit(entry_block);
   editor.Append(
-      factory()->NewCopyInstruction(var0, Target::GetParameterAt(var0, 0)));
+      factory()->NewCopyInstruction(var0, Target::ParameterAt(var0, 0)));
   editor.SetJump(start_block);
   EXPECT_EQ("", Commit(&editor));
 

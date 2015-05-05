@@ -133,7 +133,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
   auto const tuple = parameters_type->as<hir::TupleType>();
   if (!tuple) {
     auto const output = MapRegister(instr);
-    auto const input = lir::Target::GetParameterAt(output, 0);
+    auto const input = lir::Target::ParameterAt(output, 0);
     DCHECK(input.is_register());
     EmitCopy(output, input);
     return;
@@ -148,7 +148,7 @@ void Generator::VisitEntry(hir::EntryInstruction* instr) {
       continue;
     auto const output = MapRegister(get_instr);
     outputs.push_back(output);
-    inputs.push_back(lir::Target::GetParameterAt(output, get_instr->index()));
+    inputs.push_back(lir::Target::ParameterAt(output, get_instr->index()));
   }
   Emit(NewPCopyInstruction(outputs, inputs));
 }
