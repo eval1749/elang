@@ -120,7 +120,7 @@ void DeadPass::Run() {
 
   while (!dead_nodes.empty()) {
     auto const dead_node = dead_nodes.Pop();
-    DVLOG(0) << "Dead " << *dead_node;
+    DVLOG(1) << "Dead " << *dead_node;
     editor_.Discard(dead_node);
   }
 }
