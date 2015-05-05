@@ -61,9 +61,7 @@ class PassWrapper final : public api::Pass {
 };
 
 PassWrapper::PassWrapper(const PassInfo& info, Editor* editor)
-    : api::Pass(editor->factory()->pass_controller()),
-      editor_(editor),
-      info_(info) {
+    : api::Pass(editor->pass_controller()), editor_(editor), info_(info) {
 }
 
 bool PassWrapper::Run() {
