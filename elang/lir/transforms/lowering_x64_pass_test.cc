@@ -78,13 +78,13 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
         "block1:\n"                                                     \
         "  // In: {}\n"                                                 \
         "  // Out: {block2}\n"                                          \
-        "  entry XMM0, XMM1 =\n"                                        \
-        "  pcopy %f1d, %f2d = XMM0, XMM1\n"                             \
+        "  entry XMM0D, XMM1D =\n"                                      \
+        "  pcopy %f1d, %f2d = XMM0D, XMM1D\n"                           \
         "  mov %f4d = %f1d\n"                                           \
         "  " mnemonic                                                   \
         " %f5d = %f4d, %f2d\n"                                          \
         "  mov %f3d = %f5d\n"                                           \
-        "  mov XMM0 = %f3d\n"                                           \
+        "  mov XMM0D = %f3d\n"                                          \
         "  ret block2\n"                                                \
         "block2:\n"                                                     \
         "  // In: {block1}\n"                                           \

@@ -44,11 +44,11 @@ class TranslatorX64Test : public testing::TranslatorTest {
         "block1:\n"                                                    \
         "  // In: {}\n"                                                \
         "  // Out: {block2}\n"                                         \
-        "  entry XMM0 =\n"                                             \
-        "  pcopy %f1 = XMM0\n"                                         \
+        "  entry XMM0S =\n"                                            \
+        "  pcopy %f1 = XMM0S\n"                                        \
         "  " mnemonic                                                  \
         " %f2 = %f1, 17f\n"                                            \
-        "  mov XMM0 = %f2\n"                                           \
+        "  mov XMM0S = %f2\n"                                          \
         "  ret block2\n"                                               \
         "block2:\n"                                                    \
         "  // In: {block1}\n"                                          \
@@ -128,8 +128,8 @@ DEFINE_INT_ARITHMETIC_TEST(IntSub, "sub")
         Translate(editor));                                        \
   }
 
-DEFINE_RET_TEST(Float32, float32, "lit XMM0 = 42f")
-DEFINE_RET_TEST(Float64, float64, "lit XMM0 = 42")
+DEFINE_RET_TEST(Float32, float32, "lit XMM0S = 42f")
+DEFINE_RET_TEST(Float64, float64, "lit XMM0D = 42")
 DEFINE_RET_TEST(Int16, int16, "lit EAX = 42")
 DEFINE_RET_TEST(Int32, int32, "lit EAX = 42")
 DEFINE_RET_TEST(Int64, int64, "lit RAX = 42l")
@@ -334,10 +334,10 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry XMM0, XMM1 =\n"
-      "  pcopy %f1, %f2 = XMM0, XMM1\n"
+      "  entry XMM0S, XMM1S =\n"
+      "  pcopy %f1, %f2 = XMM0S, XMM1S\n"
       "  add %f3 = %f1, %f2\n"
-      "  mov XMM0 = %f3\n"
+      "  mov XMM0S = %f3\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
@@ -552,10 +552,10 @@ TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToFloat64) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry XMM0 =\n"
-      "  pcopy %f1 = XMM0\n"
+      "  entry XMM0S =\n"
+      "  pcopy %f1 = XMM0S\n"
       "  ext %f2d = %f1\n"
-      "  mov XMM0 = %f2d\n"
+      "  mov XMM0D = %f2d\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
@@ -580,8 +580,8 @@ TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToInt64) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry XMM0 =\n"
-      "  pcopy %f1 = XMM0\n"
+      "  entry XMM0S =\n"
+      "  pcopy %f1 = XMM0S\n"
       "  sconv %r1l = %f1\n"
       "  mov RAX = %r1l\n"
       "  ret block2\n"
@@ -608,8 +608,8 @@ TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToUInt64) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry XMM0 =\n"
-      "  pcopy %f1 = XMM0\n"
+      "  entry XMM0S =\n"
+      "  pcopy %f1 = XMM0S\n"
       "  uconv %r1l = %f1\n"
       "  mov RAX = %r1l\n"
       "  ret block2\n"
@@ -636,10 +636,10 @@ TEST_F(TranslatorX64Test, StaticCastNodeFloat64oFloat32) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry XMM0 =\n"
-      "  pcopy %f1d = XMM0\n"
+      "  entry XMM0D =\n"
+      "  pcopy %f1d = XMM0D\n"
       "  trunc %f2 = %f1d\n"
-      "  mov XMM0 = %f2\n"
+      "  mov XMM0S = %f2\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
@@ -667,7 +667,7 @@ TEST_F(TranslatorX64Test, StaticCastNodeInt32ToFloat64) {
       "  entry ECX =\n"
       "  pcopy %r1 = ECX\n"
       "  sconv %f1d = %r1\n"
-      "  mov XMM0 = %f1d\n"
+      "  mov XMM0D = %f1d\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
@@ -835,7 +835,7 @@ TEST_F(TranslatorX64Test, StaticCastNodeUInt32ToFloat64) {
       "  entry ECX =\n"
       "  pcopy %r1 = ECX\n"
       "  uconv %f1d = %r1\n"
-      "  mov XMM0 = %f1d\n"
+      "  mov XMM0D = %f1d\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

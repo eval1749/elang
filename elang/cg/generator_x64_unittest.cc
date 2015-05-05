@@ -242,8 +242,8 @@ TEST_F(GeneratorX64Test, Jump) {
 
 TEST_F(GeneratorX64Test, Length) {
   auto const array_type = types()->NewArrayType(int32_type(), {-1});
-  auto const function = NewFunction(int32_type(),
-                                    types()->NewPointerType(array_type));
+  auto const function =
+      NewFunction(int32_type(), types()->NewPointerType(array_type));
   hir::Editor editor(factory(), function);
   editor.Edit(editor.entry_block());
   auto const array_instr = function->entry_block()->first_instruction();
@@ -288,8 +288,8 @@ TEST_F(GeneratorX64Test, Parameter) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block2}\n"
-      "  entry ECX, RDX, R8B, XMM3, %param[4] =\n"
-      "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8B, XMM3, %param[4]\n"
+      "  entry ECX, RDX, R8B, XMM3D, %param[4] =\n"
+      "  pcopy %r1, %r2l, %r3b, %f1d, %r4l = ECX, RDX, R8B, XMM3D, %param[4]\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

@@ -128,18 +128,18 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::PhysicalRegister:
       DCHECK_GE(value.data, 0);
       DCHECK_LT(value.data, 16);
-      if (value.type == Value::Type::Float)
-        return ostream << "XMM" << value.data;
-      switch (value.size) {
-        case ValueSize::Size8:
-          return ostream << names8[value.data];
-        case ValueSize::Size16:
-          return ostream << names16[value.data];
-        case ValueSize::Size32:
-          return ostream << names32[value.data];
-        case ValueSize::Size64:
-          return ostream << names64[value.data];
-      }
+      if (value.is_int32())
+        return ostream << names32[value.data];
+      if (value.is_int64())
+        return ostream << names64[value.data];
+      if (value.is_int16())
+        return ostream << names16[value.data];
+      if (value.is_int8())
+        return ostream << names8[value.data];
+      if (value.is_float32())
+        return ostream << "XMM" << value.data << "S";
+      if (value.is_float64())
+        return ostream << "XMM" << value.data << "D";
       break;
     case Value::Kind::Parameter:
       return ostream << "%param[" << value.data << "]";
