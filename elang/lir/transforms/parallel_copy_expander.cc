@@ -297,10 +297,8 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
       continue;
     }
     free_tasks.push_back(task);
-    if (task.output.is_physical()) {
-      DCHECK(!IsSourceOfTask(task.output)) << task.output << *this;
+    if (task.output.is_physical() && !IsSourceOfTask(task.output))
       scratches_.push_back(task.output);
-    }
     if (!task.input.is_physical())
       continue;
     if (dependency_graph_->GetInEdges(task.input).size() >= 2u)
