@@ -22,7 +22,7 @@ class Node;
 //
 class ELANG_OPTIMIZER_EXPORT DeadPass final : public api::Pass {
  public:
-  DeadPass(api::PassController* pass_controller, Editor* editor);
+  explicit DeadPass(Editor* editor);
   ~DeadPass();
 
   void Run();

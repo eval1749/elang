@@ -68,11 +68,11 @@ Function* Factory::NewFunction(FunctionType* function_type) {
 namespace {
 
 template <typename Pass>
-void RunPass(api::PassController* pass_controller, Editor* editor) {
-  Pass(pass_controller, editor).Run();
+void RunPass(Editor* editor) {
+  Pass(editor).Run();
 }
 
-typedef void PassEntry(api::PassController* pass_controller, Editor* editor);
+typedef void PassEntry(Editor* editor);
 
 struct PassInfo {
   int level;
@@ -91,7 +91,7 @@ bool Factory::Optimize(Function* function, int level) {
   for (auto it = std::begin(kPasses); it != std::end(kPasses); ++it) {
     if (it->level > level)
       continue;
-    (it->function)(pass_controller_, &editor);
+    (it->function)(&editor);
     if (!errors().empty())
       return false;
   }

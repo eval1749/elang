@@ -33,7 +33,7 @@ class Node;
 //
 class ELANG_OPTIMIZER_EXPORT CleanPass final : public api::Pass {
  public:
-  CleanPass(api::PassController* pass_controller, Editor* editor);
+  explicit CleanPass(Editor* editor);
   ~CleanPass();
 
   void Run();

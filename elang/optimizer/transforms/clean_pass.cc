@@ -80,8 +80,8 @@ bool CanHoistBranch(const Node* first_node) {
 
 }  // namespace
 
-CleanPass::CleanPass(api::PassController* pass_controller, Editor* editor)
-    : api::Pass(pass_controller), changed_(false), editor_(*editor) {
+CleanPass::CleanPass(Editor* editor)
+    : api::Pass(editor->pass_controller()), changed_(false), editor_(*editor) {
 }
 
 CleanPass::~CleanPass() {
