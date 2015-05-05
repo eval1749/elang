@@ -108,6 +108,7 @@ struct ELANG_LIR_EXPORT Value {
   bool is_stack_slot() const { return kind == Kind::StackSlot; }
   bool is_virtual() const { return kind == Kind::VirtualRegister; }
   bool is_void() const { return kind == Kind::Void; }
+  bool is_void_type() const;
 
   // Helper functions
   static bool CanBeImmediate(int64_t value);

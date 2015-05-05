@@ -45,6 +45,7 @@ TEST_F(LirValueTest, Basic) {
                             Value::Kind::Immediate, 123);
   EXPECT_EQ(value1, value2);
   EXPECT_NE(value1, value3);
+  EXPECT_TRUE(Value::VoidType().is_void_type());
 }
 
 TEST_F(LirValueTest, FrameSlot) {
