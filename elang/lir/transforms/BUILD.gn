@@ -51,18 +51,18 @@ source_set("transforms") {
 source_set("tests") {
   testonly = true
   sources = [
-    "remove_critical_edges_pass_unittest.cc",
-    "stack_allocator_unittest.cc",
+    "remove_critical_edges_pass_test.cc",
+    "stack_allocator_test.cc",
   ]
   public_deps = [
     "//elang/lir:test_support",
   ]
   if (elang_target_arch == "x64") {
     sources += [
-      "lowering_x64_pass_unittest.cc",
-      "parallel_copy_expander_unittest.cc",
-      "register_allocator_x64_unittest.cc",
-      "stack_assigner_x64_unittest.cc",
+      "lowering_x64_pass_test.cc",
+      "parallel_copy_expander_test.cc",
+      "register_allocator_x64_test.cc",
+      "stack_assigner_x64_test.cc",
     ]
   }
 }

@@ -88,18 +88,18 @@ source_set("core_tests") {
   visibility = [ ":*" ]
   testonly = true
   sources = [
-    "editor_unittest.cc",
-    "instructions_unittest.cc",
-    "literals_unittest.cc",
-    "value_unittest.cc",
+    "editor_test.cc",
+    "instructions_test.cc",
+    "literals_test.cc",
+    "value_test.cc",
   ]
   public_deps = [
     ":test_support",
   ]
   if (elang_target_arch == "x64") {
     sources += [
-      "instructions_x64_unittest.cc",
-      "target_x64_unittest.cc",
+      "instructions_x64_test.cc",
+      "target_x64_test.cc",
     ]
   }
 }

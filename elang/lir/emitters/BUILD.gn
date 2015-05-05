@@ -38,12 +38,12 @@ source_set("emitters") {
 source_set("tests") {
   testonly = true
   sources = [
-    "code_buffer_unittest.cc",
+    "code_buffer_test.cc",
   ]
   public_deps = [
     "//elang/lir:test_support",
   ]
   if (elang_target_arch == "x64") {
-    sources += [ "code_emitter_x64_unittest.cc" ]
+    sources += [ "code_emitter_x64_test.cc" ]
   }
 }
