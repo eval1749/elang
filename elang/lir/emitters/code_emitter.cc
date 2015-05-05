@@ -6,6 +6,7 @@
 
 #include "elang/lir/emitters/code_buffer.h"
 #include "elang/lir/emitters/instruction_handler.h"
+#include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 
@@ -36,6 +37,8 @@ void CodeEmitter::Process(const Function* function) {
       code_buffer.EndBasicBlock();
     }
   }
+  if (!factory_->errors().empty())
+    return;
   code_buffer.Finish(factory_, builder_);
 }
 

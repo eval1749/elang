@@ -11,6 +11,8 @@ namespace lir {
 #define IGNORE_LIR_ERROR(category, subcategory, name)
 
 #define FOR_EACH_LIR_ERROR_CODE(E, W)    \
+  /* Code Emitter */                     \
+  E(CodeEmitter, Instruction, NotYetImplemented) \
   /* Basic Block */                      \
   E(Validate, BasicBlock, DeadEnd)       \
   E(Validate, BasicBlock, Empty)         \

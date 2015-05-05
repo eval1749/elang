@@ -11,6 +11,8 @@
 #include "elang/lir/emitters/instruction_handler.h"
 #include "elang/lir/emitters/isa_x64.h"
 #include "elang/lir/emitters/opcodes_x64.h"
+#include "elang/lir/error_code.h"
+#include "elang/lir/error_reporter.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
@@ -142,6 +144,7 @@ CodeBuffer::Jump JumpOf(isa::Opcode opcode,
 // InstructionHandlerX64
 //
 class InstructionHandlerX64 final : public CodeBufferUser,
+                                    public ErrorReporter,
                                     public InstructionHandler,
                                     public InstructionVisitor {
  public:
@@ -234,6 +237,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 InstructionHandlerX64::InstructionHandlerX64(const Factory* factory,
                                              CodeBuffer* code_buffer)
     : CodeBufferUser(code_buffer),
+      ErrorReporter(const_cast<Factory*>(factory)),
       factory_(factory),
       fused_instruction_(nullptr),
       last_cmp_instruction_(nullptr) {
@@ -615,7 +619,7 @@ void InstructionHandlerX64::Handle(Instruction* instr) {
 
 // InstructionVisitor
 void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
-  DVLOG(0) << "NYI " << *instr;
+  Error(ErrorCode::CodeEmitterInstructionNotYetImplemented, instr);
 }
 
 // int8:
