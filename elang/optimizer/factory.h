@@ -40,6 +40,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   ~Factory();
 
   const FactoryConfig& config() const { return config_; }
+  api::PassController* pass_controller() const { return pass_controller_; }
 
   std::unique_ptr<Schedule> ComputeSchedule(Function* function);
   AtomicString* NewAtomicString(base::StringPiece16 string);

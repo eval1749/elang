@@ -22,6 +22,10 @@ const std::vector<ErrorData*>& FactoryUser::errors() const {
   return factory_->errors();
 }
 
+api::PassController* FactoryUser::pass_controller() const {
+  return factory()->pass_controller();
+}
+
 Zone* FactoryUser::zone() const {
   return factory_->zone();
 }

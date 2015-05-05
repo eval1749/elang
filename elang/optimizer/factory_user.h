@@ -17,6 +17,11 @@
 namespace elang {
 class AtomicString;
 class Zone;
+
+namespace api {
+class PassController;
+}
+
 namespace optimizer {
 
 class ErrorData;
@@ -33,6 +38,7 @@ class ELANG_OPTIMIZER_EXPORT FactoryUser : public NodeFactoryUser,
 
   const std::vector<ErrorData*>& errors() const;
   Factory* factory() const { return factory_; }
+  api::PassController* pass_controller() const;
   Zone* zone() const;
 
   AtomicString* NewAtomicString(base::StringPiece16 string);
