@@ -356,12 +356,22 @@ void Translator::VisitDynamicCast(ir::DynamicCastNode* node) {
 void Translator::VisitExit(ir::ExitNode* node) {
 }
 
-// See "translator_${arch}.cc" for |GetDataNode|.
+void Translator::VisitGetData(ir::GetDataNode* node) {
+  DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
+                                                        << *node->input(0);
+  auto const output = MapOutput(node);
+  EmitCopy(output, lir::Target::ReturnAt(output, 0));
+}
 
 void Translator::VisitGetEffect(ir::GetEffectNode* node) {
 }
 
-// See "translator_${arch}.cc" for |GetTupleNode|.
+void Translator::VisitGetTuple(ir::GetTupleNode* node) {
+  DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
+                                                        << *node->input(0);
+  // TODO(eval1749): NYI translate |GetTupleNode|
+  NOTREACHED() << *node;
+}
 
 void Translator::VisitIfException(ir::IfExceptionNode* node) {
   // nothing to do

@@ -346,6 +346,51 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       Translate(editor));
 }
 
+#define DEFINE_GET_NODE_TEST(Type, ret_type, ret_var, ret_reg)               \
+  TEST_F(TranslatorX64Test, GetNode##Type) {                                  \
+    auto const function = NewFunction(ret_type, void_type());                 \
+    ir::Editor editor(factory(), function);                                   \
+    auto const entry_node = function->entry_node();                           \
+    auto const effect = NewGetEffect(entry_node);                             \
+                                                                              \
+    auto const callee = NewReference(NewFunctionType(ret_type, void_type()),  \
+                                     NewAtomicString(L"Foo"));                \
+                                                                              \
+    editor.Edit(entry_node);                                                  \
+    auto const call_node = NewCall(entry_node, effect, callee, void_value()); \
+    auto const ret_value = NewGetData(call_node);                             \
+    ASSERT_EQ("", Commit(&editor));                                           \
+                                                                              \
+    editor.Edit(call_node);                                                   \
+    editor.SetRet(NewGetEffect(call_node), ret_value);                        \
+    ASSERT_EQ("", Commit(&editor));                                           \
+                                                                              \
+    EXPECT_EQ(                                                                \
+        "function1:\n"                                                        \
+        "block1:\n"                                                           \
+        "  // In: {}\n"                                                       \
+        "  // Out: {block2}\n"                                                \
+        "  entry\n"                                                           \
+        "  call \"Foo\"\n"                                                    \
+        "  mov " ret_var " = " ret_reg "\n"                                   \
+        "  mov " ret_reg " = " ret_var "\n"                                   \
+        "  ret block2\n"                                                      \
+        "block2:\n"                                                           \
+        "  // In: {block1}\n"                                                 \
+        "  // Out: {}\n"                                                      \
+        "  exit\n",                                                           \
+        Translate(editor));                                                   \
+  }
+
+// Because of |int8|, |int16|, |uint8|, |uint16| are promoted to |int32| or
+// |uint32|, we don't have test cases for them.
+DEFINE_GET_NODE_TEST(Int32, int32_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(Int64, int64_type(), "%r1l", "RAX")
+DEFINE_GET_NODE_TEST(UInt32, uint32_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(UInt64, uint64_type(), "%r1l", "RAX")
+DEFINE_GET_NODE_TEST(Float32, float32_type(), "%f1", "XMM0S")
+DEFINE_GET_NODE_TEST(Float64, float64_type(), "%f1d", "XMM0D")
+
 TEST_F(TranslatorX64Test, IfNode) {
   auto const function = NewFunction(int32_type(), int32_type());
   ir::Editor editor(factory(), function);
