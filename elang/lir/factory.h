@@ -48,6 +48,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
   // Literal data map
   LiteralMap* literals() const { return literal_map_.get(); }
+  api::PassObserver* observer() const { return observer_; }
 
   // Add error.
   void AddError(ErrorCode error_code,

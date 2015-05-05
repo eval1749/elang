@@ -43,9 +43,7 @@ struct PassInfo {
 //
 class PassWrapper final : public api::Pass {
  public:
-  PassWrapper(const PassInfo& info,
-              api::PassObserver* observer,
-              Editor* editor);
+  PassWrapper(const PassInfo& info, Editor* editor);
   ~PassWrapper() = default;
 
   bool Run();
@@ -62,10 +60,8 @@ class PassWrapper final : public api::Pass {
   DISALLOW_COPY_AND_ASSIGN(PassWrapper);
 };
 
-PassWrapper::PassWrapper(const PassInfo& info,
-                         api::PassObserver* observer,
-                         Editor* editor)
-    : api::Pass(observer), editor_(editor), info_(info) {
+PassWrapper::PassWrapper(const PassInfo& info, Editor* editor)
+    : api::Pass(editor->factory()->observer()), editor_(editor), info_(info) {
 }
 
 bool PassWrapper::Run() {
@@ -92,8 +88,7 @@ void PassWrapper::DumpBeforePass(const api::PassDumpContext& context) {
 //
 class CodeEmitterPass final : public api::Pass {
  public:
-  CodeEmitterPass(api::PassObserver* observer,
-                  Factory* factory,
+  CodeEmitterPass(Factory* factory,
                   api::MachineCodeBuilder* builder,
                   Function* function);
   ~CodeEmitterPass() = default;
@@ -111,11 +106,10 @@ class CodeEmitterPass final : public api::Pass {
   DISALLOW_COPY_AND_ASSIGN(CodeEmitterPass);
 };
 
-CodeEmitterPass::CodeEmitterPass(api::PassObserver* observer,
-                                 Factory* factory,
+CodeEmitterPass::CodeEmitterPass(Factory* factory,
                                  api::MachineCodeBuilder* builder,
                                  Function* function)
-    : api::Pass(observer),
+    : api::Pass(factory->observer()),
       builder_(builder),
       factory_(factory),
       function_(function) {
@@ -143,13 +137,9 @@ PassInfo const kPassList[] = {
 }  // namespace
 
 Pipeline::Pipeline(Factory* factory,
-                   api::PassObserver* observer,
                    api::MachineCodeBuilder* builder,
                    Function* function)
-    : builder_(builder),
-      factory_(factory),
-      function_(function),
-      observer_(observer) {
+    : builder_(builder), factory_(factory), function_(function) {
 }
 
 Pipeline::~Pipeline() {
@@ -158,13 +148,13 @@ Pipeline::~Pipeline() {
 bool Pipeline::Run() {
   Editor editor(factory_, function_);
   for (auto it = std::begin(kPassList); it != std::end(kPassList); ++it) {
-    if (!PassWrapper(*it, observer_, &editor).Run())
+    if (!PassWrapper(*it, &editor).Run())
       return false;
     if (!factory_->errors().empty())
       return false;
   }
 
-  return CodeEmitterPass(observer_, factory_, builder_, function_).Run();
+  return CodeEmitterPass(factory_, builder_, function_).Run();
 }
 
 }  // namespace lir

@@ -31,7 +31,6 @@ class Function;
 class Pipeline final {
  public:
   Pipeline(Factory* factory,
-           api::PassObserver* observer,
            api::MachineCodeBuilder* builder,
            Function* function);
   ~Pipeline();
@@ -42,7 +41,6 @@ class Pipeline final {
   api::MachineCodeBuilder* const builder_;
   Factory* const factory_;
   Function* const function_;
-  api::PassObserver* observer_;
 
   DISALLOW_COPY_AND_ASSIGN(Pipeline);
 };
