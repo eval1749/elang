@@ -267,9 +267,15 @@ void Validator::VisitCmp(CmpInstruction* instr) {
 }
 
 void Validator::VisitCopy(CopyInstruction* instr) {
-  if (instr->output(0).size != instr->input(0).size)
+  auto const output = instr->output(0);
+  auto const input = instr->input(0);
+  if (!output.is_output())
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  if (!input.is_output())
+    Error(ErrorCode::ValidateInstructionInput, instr, 0);
+  if (output.size != input.size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
-  if (instr->output(0).type != instr->input(0).type)
+  if (output.type != input.type)
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
 }
 
