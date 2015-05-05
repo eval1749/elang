@@ -336,6 +336,8 @@ vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
                                              lir::Function* lir_function) {
   vm::MachineCodeBuilderImpl mc_builder(vm_factory);
   lir_factory->GenerateMachineCode(&mc_builder, lir_function);
+  if (!lir_factory->errors().empty())
+    return nullptr;
   return mc_builder.NewMachineCodeFunction();
 }
 
@@ -537,6 +539,8 @@ void Compiler::CompileAndGoInternal() {
   std::unique_ptr<vm::Factory> vm_factory(new vm::Factory());
   auto const mc_function =
       GenerateMachineCode(vm_factory.get(), lir_factory.get(), lir_function);
+  if (ReportLirErrors(lir_factory.get()) || stop_ || !mc_function)
+    return;
 
   // Dump machine code
   auto const code_start = mc_function->code_start_for_testing();
