@@ -24,6 +24,14 @@ namespace elang {
 namespace translator {
 
 namespace {
+
+lir::Value AdjustReturnType(lir::Value type) {
+  if (lir::Value::SizeOf(type) >= 4)
+    return type;
+  DCHECK(type.is_integer()) << type;
+  return lir::Value::Int32Type();
+}
+
 lir::IntCondition MapCondition(ir::IntCondition condition) {
 #define V(Name, ...)                                                \
   DCHECK_EQ(static_cast<ir::IntCondition>(lir::IntCondition::Name), \
@@ -363,7 +371,15 @@ void Translator::VisitGetData(ir::GetDataNode* node) {
   DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
                                                         << *node->input(0);
   auto const output = MapOutput(node);
-  EmitCopy(output, lir::Target::ReturnAt(output, 0));
+  auto const return_type = AdjustReturnType(output);
+  auto const return_value = lir::Target::ReturnAt(return_type, 0);
+  DCHECK_LE(lir::Value::SizeOf(output), lir::Value::SizeOf(return_type))
+      << output << " " << return_type;
+  if (output.size == return_type.size) {
+    EmitCopy(output, return_value);
+    return;
+  }
+  Emit(NewTruncateInstruction(output, return_value));
 }
 
 void Translator::VisitGetEffect(ir::GetEffectNode* node) {
@@ -582,7 +598,7 @@ void Translator::VisitCall(ir::CallNode* node) {
       MapType(node->output_type()->as<ir::ControlType>()->data_type());
   std::vector<lir::Value> returns;
   if (!return_type.is_void_type())
-    returns.push_back(lir::Target::ReturnAt(return_type, 0));
+    returns.push_back(lir::Target::ReturnAt(AdjustReturnType(return_type), 0));
 
   if (argument->output_type()->is<ir::VoidType>())
     return Emit(NewCallInstruction(returns, callee));
