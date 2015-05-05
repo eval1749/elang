@@ -6,6 +6,7 @@
 #define ELANG_LIR_INSTRUCTIONS_H_
 
 #include <array>
+#include <iterator>
 #include <vector>
 
 #include "base/basictypes.h"
@@ -114,7 +115,8 @@ enum class Opcode {
 //
 class ELANG_LIR_EXPORT BasicBlockOperands final {
  public:
-  class ELANG_LIR_EXPORT Iterator final {
+  class ELANG_LIR_EXPORT Iterator final
+      : public std::iterator<std::forward_iterator_tag, BasicBlock*> {
    public:
     explicit Iterator(BasicBlock** pointer);
     Iterator(const Iterator& other);
@@ -167,7 +169,8 @@ class ELANG_LIR_EXPORT Instruction
  public:
   class ELANG_LIR_EXPORT Values final {
    public:
-    class ELANG_LIR_EXPORT Iterator final {
+    class ELANG_LIR_EXPORT Iterator final
+        : public std::iterator<std::forward_iterator_tag, Value> {
      public:
       Iterator(const Iterator& other);
       explicit Iterator(Value* pointer);
