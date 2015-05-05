@@ -231,7 +231,7 @@ TEST_F(CodeEmitterX64Test, Call) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewCallInstruction(NewStringValue8("Foo")));
+  editor.Append(factory()->NewCallInstruction({}, NewStringValue8("Foo")));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(

@@ -56,6 +56,11 @@ Value FactoryUser::NewStringValue(base::StringPiece16 data) {
 }
 
 // Creating instructions
+Instruction* FactoryUser::NewCallInstruction(const std::vector<Value>& outputs,
+                                             Value callee) {
+  return factory()->NewCallInstruction(outputs, callee);
+}
+
 Instruction* FactoryUser::NewCmpInstruction(Value output,
                                             IntCondition condition,
                                             Value left,

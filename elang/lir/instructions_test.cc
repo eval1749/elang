@@ -73,12 +73,23 @@ TEST_F(LirInstructionTest, BranchInstruction) {
 // CallInstruction
 TEST_F(LirInstructionTest, CallInstruction) {
   auto const callee = factory()->NewStringValue(L"Foo");
-  auto const instr = factory()->NewCallInstruction(callee);
+  auto const instr = factory()->NewCallInstruction({}, callee);
   EXPECT_TRUE(instr->is<CallInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
+}
+
+TEST_F(LirInstructionTest, CallInstruction2) {
+  auto const callee = factory()->NewStringValue(L"Foo");
+  auto const output = NewRegister(Value::Int32Type());
+  auto const instr = factory()->NewCallInstruction({output}, callee);
+  EXPECT_TRUE(instr->is<CallInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
 }
 
 // CmpInstruction

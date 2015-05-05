@@ -346,6 +346,23 @@ class ELANG_LIR_EXPORT BranchInstruction final
                     BasicBlock* false_block);
 };
 
+// CallInstruction
+class ELANG_LIR_EXPORT CallInstruction final : public Instruction {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Call);
+
+ private:
+  CallInstruction(Zone* zone, const std::vector<Value>& outputs, Value callee);
+
+  // Instruction operand protocol
+  size_t CountInputs() const final;
+  size_t CountOutputs() const final;
+  Value* InputValues() const final;
+  Value* OutputValues() const final;
+
+  Value callee_;
+  ZoneVector<Value> outputs_;
+};
+
 // CmpInstruction
 class ELANG_LIR_EXPORT CmpInstruction final : public InstructionTemplate<1, 2> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Cmp);

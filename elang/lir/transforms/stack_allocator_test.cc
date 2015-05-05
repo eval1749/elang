@@ -117,7 +117,7 @@ TEST_F(LirStackAllocatorTest, TrackCall) {
   for (auto const arg : args)
     values.push_back(NewIntValue(arg, static_cast<int>(values.size())));
   editor.Append(NewPCopyInstruction(args, values));
-  auto const call_instr = NewCallInstruction(NewStringValue8("foo"));
+  auto const call_instr = NewCallInstruction({}, NewStringValue8("foo"));
   editor.Append(call_instr);
   ASSERT_EQ("", Commit(&editor));
 

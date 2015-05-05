@@ -16,9 +16,7 @@ namespace lir {
 
 #define FOR_EACH_LIR_INSTRUCTION_0_0(V) V(Exit, "exit")
 
-#define FOR_EACH_LIR_INSTRUCTION_0_1(V) \
-  V(Call, "call")                       \
-  V(Use, "use")
+#define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Use, "use")
 
 #define FOR_EACH_LIR_INSTRUCTION_0_2(V) V(Store, "store")
 
@@ -51,6 +49,7 @@ namespace lir {
 #define FOR_EACH_LIR_INSTRUCTION_N_N(V)                                    \
   V(Branch, "br",                                                          \
     (Value condition, BasicBlock * true_block, BasicBlock * false_block))  \
+  V(Call, "call", (const std::vector<Value>& output, Value callee))        \
   V(Cmp, "cmp",                                                            \
     (Value output, IntCondition condition, Value left, Value right))       \
   V(Entry, "entry", (const std::vector<Value>& outputs))                   \

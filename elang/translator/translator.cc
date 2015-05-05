@@ -564,13 +564,13 @@ void Translator::VisitCall(ir::CallNode* node) {
   auto const argument = node->input(3);
 
   if (argument->output_type()->is<ir::VoidType>())
-    return Emit(NewCallInstruction(callee));
+    return Emit(NewCallInstruction({}, callee));
 
   auto const tuple = argument->as<ir::TupleNode>();
   if (!tuple) {
     auto const arg0 = MapInput(argument);
     EmitCopy(lir::Target::GetArgumentAt(arg0, 0), arg0);
-    Emit(NewCallInstruction(callee));
+    Emit(NewCallInstruction({}, callee));
     return;
   }
 
@@ -586,7 +586,7 @@ void Translator::VisitCall(ir::CallNode* node) {
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));
-  Emit(NewCallInstruction(callee));
+  Emit(NewCallInstruction({}, callee));
 }
 
 // Variadic inputs node

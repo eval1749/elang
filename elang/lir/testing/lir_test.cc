@@ -201,7 +201,7 @@ Function* LirTest::CreateFunctionSample1() {
   {
     Editor::ScopedEdit scope(&editor);
     editor.Edit(entry_block);
-    auto const call = factory()->NewCallInstruction(NewStringValue8("Foo"));
+    auto const call = factory()->NewCallInstruction({}, NewStringValue8("Foo"));
     editor.InsertBefore(call, entry_block->last_instruction());
   }
   return function;

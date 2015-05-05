@@ -251,6 +251,11 @@ Instruction* Factory::NewBranchInstruction(Value condition,
   return new (zone()) BranchInstruction(condition, true_block, false_block);
 }
 
+Instruction* Factory::NewCallInstruction(const std::vector<Value>& outputs,
+                                         Value callee) {
+  return new (zone()) CallInstruction(zone(), outputs, callee);
+}
+
 Instruction* Factory::NewCmpInstruction(Value output,
                                         IntCondition condition,
                                         Value left,

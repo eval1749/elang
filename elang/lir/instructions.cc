@@ -295,6 +295,30 @@ BranchInstruction::BranchInstruction(Value condition,
   InitBlockOperand(1, false_block);
 }
 
+// CallInstruction
+CallInstruction::CallInstruction(Zone* zone,
+                                 const std::vector<Value>& outputs,
+                                 Value callee)
+    : callee_(callee), outputs_(zone, outputs) {
+}
+
+// CallInstruction Instruction operand protocol
+size_t CallInstruction::CountInputs() const {
+  return 1;
+}
+
+size_t CallInstruction::CountOutputs() const {
+  return outputs_.size();
+}
+
+Value* CallInstruction::InputValues() const {
+  return const_cast<Value*>(&callee_);
+}
+
+Value* CallInstruction::OutputValues() const {
+  return const_cast<CallInstruction*>(this)->outputs_.data();
+}
+
 // CmpInstruction
 CmpInstruction::CmpInstruction(Value output,
                                IntCondition condition,

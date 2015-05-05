@@ -43,7 +43,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
 
   if (argument->type()->is<hir::VoidType>()) {
     // No argument
-    Emit(NewCallInstruction(lir_callee));
+    Emit(NewCallInstruction({}, lir_callee));
     return;
   }
 
@@ -52,7 +52,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
     // One argument
     auto const lir_argument = MapInput(argument);
     EmitCopy(lir::Target::GetArgumentAt(lir_argument, 0), lir_argument);
-    Emit(NewCallInstruction(lir_callee));
+    Emit(NewCallInstruction({}, lir_callee));
     return;
   }
 
@@ -69,7 +69,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));
-  Emit(NewCallInstruction(lir_callee));
+  Emit(NewCallInstruction({}, lir_callee));
 }
 
 void Generator::VisitElement(hir::ElementInstruction* instr) {
