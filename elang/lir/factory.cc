@@ -9,7 +9,7 @@
 #include "elang/base/atomic_string.h"
 #include "elang/base/zone.h"
 #include "elang/lir/editor.h"
-#include "elang/lir/error_data.h"
+#include "elang/lir/error_sink.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
@@ -34,17 +34,21 @@ Factory::Factory(api::PassObserver* observer)
       last_float_register_id_(0),
       last_general_register_id_(0),
       literal_map_(new LiteralMap()),
+      error_sink_(new ErrorSink(zone(), literal_map_.get())),
       observer_(observer) {
 }
 
 Factory::~Factory() {
 }
 
+const std::vector<ErrorData*>& Factory::errors() const {
+  return error_sink_->errors();
+}
+
 void Factory::AddError(ErrorCode error_code,
                        Value value,
-                       const std::vector<Value> details) {
-  errors_.push_back(
-      new (zone()) ErrorData(zone(), literals(), error_code, value, details));
+                       const std::vector<Value>& details) {
+  error_sink_->AddError(error_code, value, details);
 }
 
 bool Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,

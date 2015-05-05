@@ -32,6 +32,8 @@ source_set("core") {
     "error_data.h",
     "error_reporter.cc",
     "error_reporter.h",
+    "error_sink.cc",
+    "error_sink.h",
     "factory.cc",
     "factory.h",
     "factory_user.cc",

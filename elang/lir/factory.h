@@ -31,6 +31,7 @@ class PassObserver;
 namespace lir {
 enum class ErrorCode;
 class ErrorData;
+class ErrorSink;
 class LiteralMap;
 
 //////////////////////////////////////////////////////////////////////
@@ -42,8 +43,8 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   explicit Factory(api::PassObserver* observer);
   ~Factory();
 
-  // Errors found by validator.
-  const std::vector<ErrorData*>& errors() const { return errors_; }
+  // Errors reported by pipeline
+  const std::vector<ErrorData*>& errors() const;
 
   // Literal data map
   LiteralMap* literals() const { return literal_map_.get(); }
@@ -51,7 +52,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   // Add error.
   void AddError(ErrorCode error_code,
                 Value value,
-                const std::vector<Value> details);
+                const std::vector<Value>& details);
 
   // Returns true if successfully generate machine code function for |function|,
   // otherwise returns false.
@@ -135,13 +136,15 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   base::StringPiece16 NewString(base::StringPiece16 string);
   void RegisterLiteral(Literal* literal);
 
-  // List of errors found by validator
-  std::vector<ErrorData*> errors_;
   std::unordered_map<float32_t, Value> float32_map_;
   std::unordered_map<float64_t, Value> float64_map_;
   std::unordered_map<int32_t, Value> int32_map_;
   std::unordered_map<int64_t, Value> int64_map_;
   const std::unique_ptr<LiteralMap> literal_map_;
+
+  // |ErrorSink| needs |LiteralMap|.
+  const std::unique_ptr<ErrorSink> error_sink_;
+
   int last_basic_block_id_;
   int last_instruction_id_;
   int last_condition_id_;

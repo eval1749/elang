@@ -17,8 +17,8 @@
 namespace elang {
 namespace lir {
 
-class Editor;
 enum class ErrorCode;
+class ErrorSink;
 class LiteralMap;
 
 //////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ class ELANG_LIR_EXPORT ErrorData final : public ZoneAllocated {
   LiteralMap* literals() const { return literals_; }
 
  private:
-  friend class Factory;
+  friend class ErrorSink;
 
   // |error_value| has error of |error_code| with additional information
   // in |details|.
