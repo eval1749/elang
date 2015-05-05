@@ -48,7 +48,7 @@ class PassWrapper final : public api::Pass {
               Editor* editor);
   ~PassWrapper() = default;
 
-  void Run();
+  bool Run();
 
  private:
   // api::Pass
@@ -68,11 +68,12 @@ PassWrapper::PassWrapper(const PassInfo& info,
     : api::Pass(observer), editor_(editor), info_(info) {
 }
 
-void PassWrapper::Run() {
+bool PassWrapper::Run() {
   RunScope scope(this);
   if (scope.IsStop())
-    return;
+    return false;
   info_.entry(editor_);
+  return true;
 }
 
 // api::Pass
@@ -97,7 +98,7 @@ class CodeEmitterPass final : public api::Pass {
                   Function* function);
   ~CodeEmitterPass() = default;
 
-  void Run();
+  bool Run();
 
  private:
   // api::Pass
@@ -120,11 +121,12 @@ CodeEmitterPass::CodeEmitterPass(api::PassObserver* observer,
       function_(function) {
 }
 
-void CodeEmitterPass::Run() {
+bool CodeEmitterPass::Run() {
   RunScope scope(this);
   if (scope.IsStop())
-    return;
+    return false;
   CodeEmitter(factory_, builder_).Process(function_);
+  return factory_->errors().empty();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,15 +155,16 @@ Pipeline::Pipeline(Factory* factory,
 Pipeline::~Pipeline() {
 }
 
-void Pipeline::Run() {
+bool Pipeline::Run() {
   Editor editor(factory_, function_);
   for (auto it = std::begin(kPassList); it != std::end(kPassList); ++it) {
-    PassWrapper(*it, observer_, &editor).Run();
+    if (!PassWrapper(*it, observer_, &editor).Run())
+      return false;
     if (!factory_->errors().empty())
-      return;
+      return false;
   }
 
-  CodeEmitterPass(observer_, factory_, builder_, function_).Run();
+  return CodeEmitterPass(observer_, factory_, builder_, function_).Run();
 }
 
 }  // namespace lir

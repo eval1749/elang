@@ -47,9 +47,9 @@ void Factory::AddError(ErrorCode error_code,
       new (zone()) ErrorData(zone(), literals(), error_code, value, details));
 }
 
-void Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,
+bool Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,
                                   Function* function) {
-  Pipeline(this, observer_, builder, function).Run();
+  return Pipeline(this, observer_, builder, function).Run();
 }
 
 Literal* Factory::GetLiteral(Value value) const {

@@ -53,7 +53,9 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
                 Value value,
                 const std::vector<Value> details);
 
-  void GenerateMachineCode(api::MachineCodeBuilder* builder,
+  // Returns true if successfully generate machine code function for |function|,
+  // otherwise returns false.
+  bool GenerateMachineCode(api::MachineCodeBuilder* builder,
                            Function* function);
 
   // Returns |Literal| associated with |index|.

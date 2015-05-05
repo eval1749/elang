@@ -335,8 +335,7 @@ vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
                                              lir::Factory* lir_factory,
                                              lir::Function* lir_function) {
   vm::MachineCodeBuilderImpl mc_builder(vm_factory);
-  lir_factory->GenerateMachineCode(&mc_builder, lir_function);
-  if (!lir_factory->errors().empty())
+  if (!lir_factory->GenerateMachineCode(&mc_builder, lir_function))
     return nullptr;
   return mc_builder.NewMachineCodeFunction();
 }
@@ -615,7 +614,8 @@ void Compiler::DidEndPass(api::Pass* pass) {
 }
 
 bool Compiler::DidStartPass(api::Pass* pass) {
-  DCHECK(!stop_);
+  if (stop_)
+    return false;
   auto const pass_name = pass->name();
   stop_ = stop_before_ == pass_name;
   if (dump_before_passes_.count(pass_name.as_string())) {

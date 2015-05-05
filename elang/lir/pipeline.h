@@ -36,7 +36,7 @@ class Pipeline final {
            Function* function);
   ~Pipeline();
 
-  void Run();
+  bool Run();
 
  private:
   api::MachineCodeBuilder* const builder_;
