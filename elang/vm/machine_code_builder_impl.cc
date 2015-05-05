@@ -7,6 +7,7 @@
 #include "elang/vm/machine_code_builder_impl.h"
 
 #include "base/logging.h"
+#include "elang/base/atomic_string.h"
 #include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/targets/bytes.h"
@@ -96,7 +97,7 @@ void MachineCodeBuilderImpl::SetCallSite(size_t offset,
   auto const name = factory_->NewAtomicString(string);
   auto const function =
       factory_->machine_code_collection()->FunctionByName(name);
-  DCHECK(function);
+  DCHECK(function) << "No such function: " << name;
   code_buffer_->SetRelativeAddress32(offset,
                                      function->code_start_for_testing());
 }
