@@ -205,7 +205,7 @@ std::vector<Value> Target::AllocatableGeneralRegisters() {
   return registers;
 }
 
-Value Target::GetArgumentAt(Value output, size_t position) {
+Value Target::ArgumentAt(Value output, size_t position) {
   auto const it = std::begin(isa::kIntegerParameters) + position;
   if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]

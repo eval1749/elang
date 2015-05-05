@@ -51,7 +51,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   if (!arguments_instr) {
     // One argument
     auto const lir_argument = MapInput(argument);
-    EmitCopy(lir::Target::GetArgumentAt(lir_argument, 0), lir_argument);
+    EmitCopy(lir::Target::ArgumentAt(lir_argument, 0), lir_argument);
     Emit(NewCallInstruction({}, lir_callee));
     return;
   }
@@ -65,7 +65,7 @@ void Generator::VisitCall(hir::CallInstruction* instr) {
   for (auto const argument : arguments_instr->inputs()) {
     auto const lir_argument = MapInput(argument);
     inputs.push_back(lir_argument);
-    outputs.push_back(lir::Target::GetArgumentAt(lir_argument, position));
+    outputs.push_back(lir::Target::ArgumentAt(lir_argument, position));
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));

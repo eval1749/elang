@@ -569,7 +569,7 @@ void Translator::VisitCall(ir::CallNode* node) {
   auto const tuple = argument->as<ir::TupleNode>();
   if (!tuple) {
     auto const arg0 = MapInput(argument);
-    EmitCopy(lir::Target::GetArgumentAt(arg0, 0), arg0);
+    EmitCopy(lir::Target::ArgumentAt(arg0, 0), arg0);
     Emit(NewCallInstruction({}, callee));
     return;
   }
@@ -582,7 +582,7 @@ void Translator::VisitCall(ir::CallNode* node) {
   for (auto const argument : tuple->inputs()) {
     auto const arg = MapInput(argument);
     inputs.push_back(arg);
-    outputs.push_back(lir::Target::GetArgumentAt(arg, position));
+    outputs.push_back(lir::Target::ArgumentAt(arg, position));
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));

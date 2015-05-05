@@ -107,11 +107,11 @@ TEST_F(LirStackAllocatorTest, TrackCall) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   std::vector<Value> args{
-      Target::GetArgumentAt(Value::Int64Type(), 0),
-      Target::GetArgumentAt(Value::Int32Type(), 1),
-      Target::GetArgumentAt(Value::Int32Type(), 2),
-      Target::GetArgumentAt(Value::Int64Type(), 3),
-      Target::GetArgumentAt(Value::Int64Type(), 4),
+      Target::ArgumentAt(Value::Int64Type(), 0),
+      Target::ArgumentAt(Value::Int32Type(), 1),
+      Target::ArgumentAt(Value::Int32Type(), 2),
+      Target::ArgumentAt(Value::Int64Type(), 3),
+      Target::ArgumentAt(Value::Int64Type(), 4),
   };
   std::vector<Value> values;
   for (auto const arg : args)

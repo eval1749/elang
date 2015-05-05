@@ -22,19 +22,17 @@ TEST(LirTargetX64Test, GetArgumentAt) {
   auto const int32_type = Value::Int32Type();
   auto const int64_type = Value::Int64Type();
 
-  EXPECT_EQ(Target::GetRegister(ECX), Target::GetArgumentAt(int32_type, 0));
-  EXPECT_EQ(Target::GetRegister(EDX), Target::GetArgumentAt(int32_type, 1));
-  EXPECT_EQ(Target::GetRegister(R8D), Target::GetArgumentAt(int32_type, 2));
-  EXPECT_EQ(Target::GetRegister(R9D), Target::GetArgumentAt(int32_type, 3));
-  EXPECT_EQ(Value::Argument(int32_type, 4),
-            Target::GetArgumentAt(int32_type, 4));
+  EXPECT_EQ(Target::GetRegister(ECX), Target::ArgumentAt(int32_type, 0));
+  EXPECT_EQ(Target::GetRegister(EDX), Target::ArgumentAt(int32_type, 1));
+  EXPECT_EQ(Target::GetRegister(R8D), Target::ArgumentAt(int32_type, 2));
+  EXPECT_EQ(Target::GetRegister(R9D), Target::ArgumentAt(int32_type, 3));
+  EXPECT_EQ(Value::Argument(int32_type, 4), Target::ArgumentAt(int32_type, 4));
 
-  EXPECT_EQ(Target::GetRegister(RCX), Target::GetArgumentAt(int64_type, 0));
-  EXPECT_EQ(Target::GetRegister(RDX), Target::GetArgumentAt(int64_type, 1));
-  EXPECT_EQ(Target::GetRegister(R8), Target::GetArgumentAt(int64_type, 2));
-  EXPECT_EQ(Target::GetRegister(R9), Target::GetArgumentAt(int64_type, 3));
-  EXPECT_EQ(Value::Argument(int64_type, 4),
-            Target::GetArgumentAt(int64_type, 4));
+  EXPECT_EQ(Target::GetRegister(RCX), Target::ArgumentAt(int64_type, 0));
+  EXPECT_EQ(Target::GetRegister(RDX), Target::ArgumentAt(int64_type, 1));
+  EXPECT_EQ(Target::GetRegister(R8), Target::ArgumentAt(int64_type, 2));
+  EXPECT_EQ(Target::GetRegister(R9), Target::ArgumentAt(int64_type, 3));
+  EXPECT_EQ(Value::Argument(int64_type, 4), Target::ArgumentAt(int64_type, 4));
 }
 
 TEST(LirTargetX64Test, GetParameterAt) {
