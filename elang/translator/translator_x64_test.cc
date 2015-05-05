@@ -81,7 +81,7 @@ TEST_F(TranslatorX64Test, CallNodeOne) {
       "  // In: {}\n"
       "  // Out: {block2}\n"
       "  entry\n"
-      "  mov ECX = 42\n"
+      "  lit ECX = 42\n"
       "  call \"Foo\"\n"
       "  ret block2\n"
       "block2:\n"

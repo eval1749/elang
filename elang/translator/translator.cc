@@ -589,8 +589,8 @@ void Translator::VisitCall(ir::CallNode* node) {
 
   auto const tuple = argument->as<ir::TupleNode>();
   if (!tuple) {
-    auto const arg0 = MapInput(argument);
-    EmitCopy(lir::Target::ArgumentAt(arg0, 0), arg0);
+    auto const arg_type = MapType(argument->output_type());
+    EmitSetValue(lir::Target::ArgumentAt(arg_type, 0), argument);
     Emit(NewCallInstruction(returns, callee));
     return;
   }
