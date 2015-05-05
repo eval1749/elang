@@ -469,7 +469,7 @@ TEST_F(TranslatorX64Test, IntCmpNode) {
       "  cmp_lt %b2 = %r1, 42\n"
       // TODO(eval1749) We should use "if" instruction to convert |bool| value
       // to |int32| value.
-      "  lit EAX = %b2\n"
+      "  zext EAX = %b2\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"

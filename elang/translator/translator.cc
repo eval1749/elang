@@ -587,6 +587,35 @@ void Translator::VisitLoad(ir::LoadNode* node) {
                           MapInput(node->input(2)), lir::Value::SmallInt32(0)));
 }
 
+// control = ret control, effect, data
+void Translator::VisitRet(ir::RetNode* node) {
+  auto const value = node->input(2);
+  if (value->is<ir::VoidNode>()) {
+    editor()->SetReturn();
+    return;
+  }
+  auto const input = MapInput(value);
+  auto const return_type = AdjustReturnType(input);
+  auto const output = lir::Target::ReturnAt(return_type, 0);
+  DCHECK_LE(lir::Value::SizeOf(return_type), lir::Value::SizeOf(output))
+      << return_type << " " << output;
+
+  if (output.size == input.size || !input.is_output()) {
+    EmitSetValue(output, value);
+    editor()->SetReturn();
+    return;
+  }
+
+  if (value->output_type()->is_signed()) {
+    Emit(NewSignExtendInstruction(output, input));
+    editor()->SetReturn();
+    return;
+  }
+
+  Emit(NewZeroExtendInstruction(output, input));
+  editor()->SetReturn();
+}
+
 // Simple node 4 inputs
 
 // control(type) %control = Call(%control, %effect, %callee, %arguments)
