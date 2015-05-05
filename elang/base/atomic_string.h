@@ -5,7 +5,7 @@
 #ifndef ELANG_BASE_ATOMIC_STRING_H_
 #define ELANG_BASE_ATOMIC_STRING_H_
 
-#include <ostream>
+#include <iosfwd>
 #include <string>
 
 #include "base/strings/string_piece.h"
@@ -34,7 +34,10 @@ class ELANG_BASE_EXPORT AtomicString final : public ZoneAllocated {
 };
 
 ELANG_BASE_EXPORT std::ostream& operator<<(std::ostream& ostream,
-                                           const AtomicString& simple_name);
+                                           const AtomicString& atomic_string);
+
+ELANG_BASE_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                           const AtomicString* atomic_string);
 
 }  // namespace elang
 
