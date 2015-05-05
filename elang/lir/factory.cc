@@ -13,6 +13,7 @@
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/literal_map.h"
+#include "elang/lir/pipeline.h"
 #include "elang/lir/target.h"
 
 #ifdef ELANG_TARGET_ARCH_X64
@@ -43,6 +44,11 @@ void Factory::AddError(ErrorCode error_code,
                        const std::vector<Value> details) {
   errors_.push_back(
       new (zone()) ErrorData(zone(), literals(), error_code, value, details));
+}
+
+void Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,
+                                  Function* function) {
+  Pipeline(this, builder, function).Run();
 }
 
 Literal* Factory::GetLiteral(Value value) const {

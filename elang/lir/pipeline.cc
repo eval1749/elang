@@ -4,10 +4,11 @@
 
 #include <iterator>
 
-#include "elang/lir/factory.h"
+#include "elang/lir/pipeline.h"
 
 #include "elang/lir/dump_function_pass.h"
 #include "elang/lir/editor.h"
+#include "elang/lir/factory.h"
 #include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/transforms/clean_pass.h"
@@ -42,17 +43,23 @@ PassEntry* kPasses[] = {
 
 }  // namespace
 
-void Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,
-                                  Function* function) {
-  Editor editor(this, function);
+Pipeline::Pipeline(Factory* factory, api::MachineCodeBuilder* builder,
+                   Function* function)
+    : builder_(builder), factory_(factory), function_(function) {
+}
+
+Pipeline::~Pipeline() {
+}
+
+void Pipeline::Run() {
+  Editor editor(factory_, function_);
   for (auto it = std::begin(kPasses); it != std::end(kPasses); ++it) {
     (*it)(&editor);
-    if (!errors().empty())
+    if (!factory_->errors().empty())
       return;
   }
 
-  lir::CodeEmitter emitter(this, builder);
-  emitter.Process(function);
+  CodeEmitter(factory_, builder_).Process(function_);
 }
 
 }  // namespace lir
