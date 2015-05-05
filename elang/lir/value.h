@@ -14,8 +14,8 @@
 namespace elang {
 namespace lir {
 
-// If you change definition of |ValueSize|, please change |Log2Of(ValueSize)|
-// and |BitSizeOf(size)| appropriately.
+// If you change definition of |ValueSize|, please change
+// |ShiftCountOf(ValueSize)| and |BitSizeOf(size)| appropriately.
 enum class ValueSize : uint32_t {
   Size8,
   Size16,
@@ -28,7 +28,7 @@ enum class ValueSize : uint32_t {
 };
 
 static_assert(static_cast<size_t>(ValueSize::Size0) == 7,
-             "ValueSize::Size0 must be 7");
+              "ValueSize::Size0 must be 7");
 
 #define FOR_EACH_VALUE_KIND(V)                            \
   V(Void)                                                 \
@@ -122,8 +122,8 @@ struct ELANG_LIR_EXPORT Value {
 
   // |ValueSize| properties
   static int BitSizeOf(Value value) { return SizeOf(value) * 8; }
-  static int SizeOf(Value value) { return 1 << Log2Of(value); }
-  static int Log2Of(Value value) { return static_cast<int>(value.size); }
+  static int SizeOf(Value value) { return 1 << (Log2Of(value) - 3); }
+  static int Log2Of(Value value) { return static_cast<int>(value.size) + 3; }
 
   // |Value::Type|
   static Value TypeOf(Value value);

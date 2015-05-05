@@ -499,7 +499,7 @@ void Translator::VisitElement(ir::ElementNode* node) {
   auto const element_start = NewRegister(lir::Value::IntPtrType());
   Emit(NewAddInstruction(element_start, array_pointer, sizeof_array_header));
 
-  auto const shift_count = lir::Value::Log2Of(element_type);
+  auto const shift_count = lir::Value::Log2Of(element_type) - 3;
   auto const offset = EmitShl(MapInput(node->input(1)), shift_count);
   auto const offset64 = NewRegister(lir::Value::IntPtrType());
   Emit(NewSignExtendInstruction(offset64, offset));
