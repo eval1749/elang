@@ -196,7 +196,7 @@ class ELANG_LIR_EXPORT Instruction
     Iterator begin() { return Iterator(start_); }
     bool empty() const { return start_ == end_; }
     Iterator end() { return Iterator(end_); }
-    int size() const { return static_cast<int>(end_ - start_); }
+    size_t size() const { return end_ - start_; }
 
    private:
     Value* start_;
