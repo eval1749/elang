@@ -49,7 +49,7 @@ void Factory::AddError(ErrorCode error_code,
 
 void Factory::GenerateMachineCode(api::MachineCodeBuilder* builder,
                                   Function* function) {
-  Pipeline(this, builder, function).Run();
+  Pipeline(this, observer_, builder, function).Run();
 }
 
 Literal* Factory::GetLiteral(Value value) const {

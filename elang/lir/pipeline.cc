@@ -43,9 +43,14 @@ PassEntry* kPasses[] = {
 
 }  // namespace
 
-Pipeline::Pipeline(Factory* factory, api::MachineCodeBuilder* builder,
+Pipeline::Pipeline(Factory* factory,
+                   api::PassObserver* observer,
+                   api::MachineCodeBuilder* builder,
                    Function* function)
-    : builder_(builder), factory_(factory), function_(function) {
+    : builder_(builder),
+      factory_(factory),
+      function_(function),
+      observer_(observer) {
 }
 
 Pipeline::~Pipeline() {
