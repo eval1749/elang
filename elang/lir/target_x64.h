@@ -38,6 +38,8 @@ namespace isa {
 //  RSP     | callee save  |
 //          +--------------+
 
+// Note: For integer register names, high 8-bit should be matched to value of
+// |ValueSize|.
 enum Register {
   // 64-bit register
   RAX = 0x300,

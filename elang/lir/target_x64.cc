@@ -97,6 +97,15 @@ std::ostream& operator<<(std::ostream& ostream,
       "R14",
       "R15",
   };
+  static const char* const sizes[8] = {
+    "8",
+    "16",
+    "32",
+    "64",
+    "?5",
+    "?6",
+    "0",
+  };
   auto const value = printable.value;
   switch (value.kind) {
     case Value::Kind::Argument:
@@ -163,7 +172,10 @@ std::ostream& operator<<(std::ostream& ostream,
     case Value::Kind::StackSlot:
       return ostream << "%stack[" << value.data << "]";
     case Value::Kind::Void:
-      return ostream << "void";
+      if (value.size == ValueSize::Size0)
+        return ostream << "void";
+      return ostream << (value.is_integer() ? "int" : "float")
+                     << sizes[static_cast<size_t>(value.size)];
   }
   NOTREACHED() << value.kind;
   return ostream << "NOTREACHED(" << value.data << ")";

@@ -34,8 +34,8 @@ bool Value::is_output() const {
 }
 
 bool Value::is_void_type() const {
-  return type == Type::Integer && size == ValueSize::Size8 &&
-         kind == Kind::Void && data == 1;
+  return type == Type::Integer && size == ValueSize::Size0 &&
+         kind == Kind::Void;
 }
 
 Value Value::Argument(Value type, int data) {
@@ -142,7 +142,7 @@ Value Value::TypeOf(Value value) {
 }
 
 Value Value::VoidType() {
-  return Value(Type::Integer, ValueSize::Size8, Kind::Void, 1);
+  return Value(Type::Integer, ValueSize::Size0, Kind::Void, 0);
 }
 
 }  // namespace lir

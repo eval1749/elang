@@ -21,7 +21,14 @@ enum class ValueSize : uint32_t {
   Size16,
   Size32,
   Size64,
+  NotUsed4,
+  NotUsed5,
+  NotUsed6,
+  Size0,
 };
+
+static_assert(static_cast<size_t>(ValueSize::Size0) == 7,
+             "ValueSize::Size0 must be 7");
 
 #define FOR_EACH_VALUE_KIND(V)                            \
   V(Void)                                                 \
@@ -67,7 +74,7 @@ struct ELANG_LIR_EXPORT Value {
 
   Value()
       : type(Type::Integer),
-        size(ValueSize::Size8),
+        size(ValueSize::Size0),
         kind(Kind::Void),
         data(0) {}
 
