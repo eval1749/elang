@@ -25,6 +25,7 @@ class AtomicString;
 
 namespace api {
 class MachineCodeBuilder;
+class PassObserver;
 }
 
 namespace lir {
@@ -38,7 +39,7 @@ class LiteralMap;
 //
 class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
  public:
-  Factory();
+  explicit Factory(api::PassObserver* observer);
   ~Factory();
 
   // Errors found by validator.
@@ -144,6 +145,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   int last_condition_id_;
   int last_float_register_id_;
   int last_general_register_id_;
+  api::PassObserver* const observer_;
   std::unordered_map<base::StringPiece16, Value> string_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

@@ -32,7 +32,7 @@ ir::Factory* NewHirFactory(api::PassObserver* observer) {
 
 TranslatorTest::TranslatorTest()
     : ir::FactoryUser(NewHirFactory(this)),
-      lir_factory_(new lir::Factory()),
+      lir_factory_(new lir::Factory(this)),
       factory_(factory()) {
 }
 

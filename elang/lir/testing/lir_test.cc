@@ -113,7 +113,7 @@ std::ostream& operator<<(std::ostream& ostream,
 //
 // LirTest
 //
-LirTest::LirTest() : FactoryUser(new Factory()), factory_(factory()) {
+LirTest::LirTest() : FactoryUser(new Factory(this)), factory_(factory()) {
 }
 
 LirTest::~LirTest() {

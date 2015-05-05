@@ -437,7 +437,7 @@ void Compiler::CompileAndGoInternal() {
   NameResolver name_resolver(session());
   PopulateNamespace(&name_resolver);
 
-  std::unique_ptr<lir::Factory> lir_factory(new lir::Factory());
+  std::unique_ptr<lir::Factory> lir_factory(new lir::Factory(this));
   auto lir_function = static_cast<lir::Function*>(nullptr);
   auto has_parameter = false;
   auto has_return_value = false;

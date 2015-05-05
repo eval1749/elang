@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/api/pass_observer.h"
 #include "elang/base/float_types.h"
 #include "elang/hir/factory_user.h"
 #include "gtest/gtest.h"
@@ -33,7 +34,9 @@ namespace testing {
 //
 // CgTest
 //
-class CgTest : public ::testing::Test, public hir::FactoryUser {
+class CgTest : public ::testing::Test,
+               public api::PassObserver,
+               public hir::FactoryUser {
  protected:
   CgTest();
   ~CgTest() override;

@@ -11,6 +11,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/api/pass_observer.h"
 #include "elang/base/float_types.h"
 #include "elang/lir/factory_user.h"
 #include "elang/lir/printer_generic.h"
@@ -30,7 +31,9 @@ namespace testing {
 //
 // LirTest offers LIR factories.
 //
-class LirTest : public ::testing::Test, public FactoryUser {
+class LirTest : public ::testing::Test,
+                public api::PassObserver,
+                public FactoryUser {
  protected:
   LirTest();
   ~LirTest() override;

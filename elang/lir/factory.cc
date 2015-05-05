@@ -27,13 +27,14 @@ namespace lir {
 //
 // Factory
 //
-Factory::Factory()
+Factory::Factory(api::PassObserver* observer)
     : last_basic_block_id_(0),
       last_condition_id_(1),
       last_instruction_id_(0),
       last_float_register_id_(0),
       last_general_register_id_(0),
-      literal_map_(new LiteralMap()) {
+      literal_map_(new LiteralMap()),
+      observer_(observer) {
 }
 
 Factory::~Factory() {

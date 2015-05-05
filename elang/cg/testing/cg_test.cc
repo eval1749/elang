@@ -32,7 +32,7 @@ hir::Factory* NewHirFactory() {
 
 CgTest::CgTest()
     : hir::FactoryUser(NewHirFactory()),
-      lir_factory_(new lir::Factory()),
+      lir_factory_(new lir::Factory(this)),
       factory_(factory()),
       function_(NewFunction(void_type(), void_type())) {
 }

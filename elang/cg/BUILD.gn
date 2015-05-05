@@ -37,6 +37,7 @@ source_set("test_support") {
 
   public_deps = [
     ":cg",
+    "//elang/api",
     "//testing/gtest",
   ]
 }
