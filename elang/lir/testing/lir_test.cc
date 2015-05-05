@@ -375,7 +375,7 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
 
 // The sample block for RemoveCriticalEdges test case:
 //   entry:
-//    entry
+//    entry param[0] =
 //    copy %var0, param[0]
 //    br start
 //   start:
@@ -391,7 +391,8 @@ Function* LirTest::CreateFunctionWithCriticalEdge() {
 // An edge sample => merge is a critical edge.
 //
 Function* LirTest::CreateFunctionWithCriticalEdge2() {
-  auto const function = CreateFunctionEmptySample({Value::Int32Type()});
+  std::vector<Value> parameters{Target::ParameterAt(Value::Int32Type(), 0)};
+  auto const function = CreateFunctionEmptySample(parameters);
   auto const entry_block = function->entry_block();
   auto const exit_block = function->exit_block();
 

@@ -67,7 +67,7 @@ TEST_F(LirRemoveCriticalEdgesTest, Basic) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block3}\n"
-      "  entry void =\n"
+      "  entry ECX =\n"
       "  mov %r1 = ECX\n"
       "  jmp block3\n"
       "block3:\n"
