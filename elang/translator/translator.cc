@@ -354,6 +354,7 @@ void Translator::VisitDynamicCast(ir::DynamicCastNode* node) {
 }
 
 void Translator::VisitExit(ir::ExitNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitGetData(ir::GetDataNode* node) {
@@ -364,6 +365,7 @@ void Translator::VisitGetData(ir::GetDataNode* node) {
 }
 
 void Translator::VisitGetEffect(ir::GetEffectNode* node) {
+  // nothing to do
 }
 
 void Translator::VisitGetTuple(ir::GetTupleNode* node) {
