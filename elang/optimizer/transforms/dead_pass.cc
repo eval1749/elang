@@ -99,8 +99,8 @@ void LiveNodeCollector::DoDefaultVisit(Node* node) {
 
 }  // namespace
 
-DeadPass::DeadPass(api::PassObserver* observer, Editor* editor)
-    : api::Pass(observer), editor_(*editor) {
+DeadPass::DeadPass(api::PassController* pass_controller, Editor* editor)
+    : api::Pass(pass_controller), editor_(*editor) {
 }
 
 DeadPass::~DeadPass() {

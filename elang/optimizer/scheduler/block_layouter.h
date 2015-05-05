@@ -36,7 +36,7 @@ class BlockLayouter final : public api::Pass,
   // |Chain| is marked |public| for debugging purpose.
   class Chain;
 
-  BlockLayouter(api::PassObserver* observer,
+  BlockLayouter(api::PassController* pass_controller,
                 ScheduleEditor* editor,
                 const EdgeProfile* edge_map);
   ~BlockLayouter();

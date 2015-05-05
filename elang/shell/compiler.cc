@@ -74,7 +74,8 @@ namespace ir = optimizer;
 //
 class InstructionSelectionPass final : public api::Pass {
  public:
-  InstructionSelectionPass(api::PassObserver* observer, lir::Factory* factory);
+  InstructionSelectionPass(api::PassController* pass_controller,
+                           lir::Factory* factory);
   ~InstructionSelectionPass() = default;
 
   lir::Function* Run(const hir::Function* function);
@@ -94,9 +95,10 @@ class InstructionSelectionPass final : public api::Pass {
   DISALLOW_COPY_AND_ASSIGN(InstructionSelectionPass);
 };
 
-InstructionSelectionPass::InstructionSelectionPass(api::PassObserver* observer,
-                                                   lir::Factory* factory)
-    : api::Pass(observer),
+InstructionSelectionPass::InstructionSelectionPass(
+    api::PassController* pass_controller,
+    lir::Factory* factory)
+    : api::Pass(pass_controller),
       factory_(factory),
       function_(nullptr),
       hir_function_(nullptr),
@@ -592,7 +594,7 @@ bool Compiler::ReportCompileErrors() {
   return true;
 }
 
-// api::PassObserver implementation
+// api::PassController implementation
 void Compiler::DidEndPass(api::Pass* pass) {
   if (stop_)
     return;

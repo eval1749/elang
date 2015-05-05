@@ -13,7 +13,7 @@
 #include "base/macros.h"
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 
 namespace base {
 class FilePath;
@@ -29,7 +29,7 @@ class PassRecord;
 //
 // Compiler
 //
-class Compiler final : public api::PassObserver {
+class Compiler final : public api::PassController {
  public:
   explicit Compiler(const std::vector<base::string16>& args);
   ~Compiler();
@@ -50,7 +50,7 @@ class Compiler final : public api::PassObserver {
   // Report compilation errors so far.
   bool ReportCompileErrors();
 
-  // api::PassObserver implementation
+  // api::PassController implementation
   void DidEndPass(api::Pass* pass) final;
   bool DidStartPass(api::Pass* pass) final;
 

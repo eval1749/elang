@@ -103,10 +103,10 @@ std::ostream& operator<<(std::ostream& ostream,
 //
 // BlockLayouter
 //
-BlockLayouter::BlockLayouter(api::PassObserver* observer,
+BlockLayouter::BlockLayouter(api::PassController* pass_controller,
                              ScheduleEditor* editor,
                              const EdgeProfile* edge_map)
-    : Pass(observer), ScheduleEditor::User(editor), edge_map_(edge_map) {
+    : Pass(pass_controller), ScheduleEditor::User(editor), edge_map_(edge_map) {
 }
 
 BlockLayouter::~BlockLayouter() {

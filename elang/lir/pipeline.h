@@ -16,7 +16,7 @@ namespace elang {
 
 namespace api {
 class MachineCodeBuilder;
-class PassObserver;
+class PassController;
 }
 
 namespace lir {

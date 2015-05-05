@@ -21,7 +21,7 @@
 
 namespace elang {
 namespace api {
-class PassObserver;
+class PassController;
 }
 namespace optimizer {
 
@@ -36,7 +36,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
                                              public NodeFactoryUser,
                                              public TypeFactoryUser {
  public:
-  Factory(api::PassObserver* pass_observer, const FactoryConfig& config);
+  Factory(api::PassController* pass_controller, const FactoryConfig& config);
   ~Factory();
 
   const FactoryConfig& config() const { return config_; }
@@ -51,7 +51,7 @@ class ELANG_OPTIMIZER_EXPORT Factory final : public ErrorSink,
   const FactoryConfig config_;
   size_t last_function_id_;
   const std::unique_ptr<NodeFactory> node_factory_;
-  api::PassObserver* const pass_observer_;
+  api::PassController* const pass_controller_;
   const std::unique_ptr<TypeFactory> type_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

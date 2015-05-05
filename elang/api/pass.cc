@@ -5,7 +5,7 @@
 #include "elang/api/pass.h"
 
 #include "base/logging.h"
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 
 namespace elang {
 namespace api {
@@ -25,7 +25,8 @@ Pass::RunScope::~RunScope() {
 //
 // Pass
 //
-Pass::Pass(PassObserver* observer) : observer_(observer) {
+Pass::Pass(PassController* pass_controller)
+    : pass_controller_(pass_controller) {
 }
 
 Pass::~Pass() {
@@ -38,11 +39,11 @@ void Pass::DumpBeforePass(const PassDumpContext& context) {
 }
 
 void Pass::EndPass() {
-  observer_->DidEndPass(this);
+  pass_controller_->DidEndPass(this);
 }
 
 bool Pass::StartPass() {
-  return observer_->DidStartPass(this);
+  return pass_controller_->DidStartPass(this);
 }
 
 }  // namespace api

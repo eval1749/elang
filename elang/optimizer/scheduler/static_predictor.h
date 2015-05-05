@@ -34,7 +34,8 @@ class EdgeProfileEditor;
 //
 class StaticPredictor final : public api::Pass, public ScheduleEditor::User {
  public:
-  explicit StaticPredictor(api::PassObserver* observer, ScheduleEditor* editor);
+  explicit StaticPredictor(api::PassController* pass_controller,
+                           ScheduleEditor* editor);
   ~StaticPredictor();
 
   std::unique_ptr<EdgeProfile> Run();

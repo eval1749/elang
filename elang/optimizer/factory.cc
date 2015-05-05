@@ -29,14 +29,15 @@ namespace optimizer {
 //
 // Factory
 //
-Factory::Factory(api::PassObserver* pass_observer, const FactoryConfig& config)
+Factory::Factory(api::PassController* pass_controller,
+                 const FactoryConfig& config)
     : NodeFactoryUser(new NodeFactory(new TypeFactory(config))),
       TypeFactoryUser(node_factory()->type_factory()),
       atomic_string_factory_(config.atomic_string_factory),
       config_(config),
       last_function_id_(0),
       node_factory_(node_factory()),
-      pass_observer_(pass_observer),
+      pass_controller_(pass_controller),
       type_factory_(type_factory()) {
 }
 
@@ -45,7 +46,7 @@ Factory::~Factory() {
 
 std::unique_ptr<Schedule> Factory::ComputeSchedule(Function* function) {
   auto schedule = std::make_unique<Schedule>(function);
-  Scheduler(pass_observer_, schedule.get()).Run();
+  Scheduler(pass_controller_, schedule.get()).Run();
   return std::move(schedule);
 }
 
@@ -67,11 +68,11 @@ Function* Factory::NewFunction(FunctionType* function_type) {
 namespace {
 
 template <typename Pass>
-void RunPass(api::PassObserver* observer, Editor* editor) {
-  Pass(observer, editor).Run();
+void RunPass(api::PassController* pass_controller, Editor* editor) {
+  Pass(pass_controller, editor).Run();
 }
 
-typedef void PassEntry(api::PassObserver* observer, Editor* editor);
+typedef void PassEntry(api::PassController* pass_controller, Editor* editor);
 
 struct PassInfo {
   int level;
@@ -90,7 +91,7 @@ bool Factory::Optimize(Function* function, int level) {
   for (auto it = std::begin(kPasses); it != std::end(kPasses); ++it) {
     if (it->level > level)
       continue;
-    (it->function)(pass_observer_, &editor);
+    (it->function)(pass_controller_, &editor);
     if (!errors().empty())
       return false;
   }

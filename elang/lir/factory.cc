@@ -27,7 +27,7 @@ namespace lir {
 //
 // Factory
 //
-Factory::Factory(api::PassObserver* observer)
+Factory::Factory(api::PassController* pass_controller)
     : last_basic_block_id_(0),
       last_condition_id_(1),
       last_instruction_id_(0),
@@ -35,7 +35,7 @@ Factory::Factory(api::PassObserver* observer)
       last_general_register_id_(0),
       literal_map_(new LiteralMap()),
       error_sink_(new ErrorSink(zone(), literal_map_.get())),
-      observer_(observer) {
+      pass_controller_(pass_controller) {
 }
 
 Factory::~Factory() {

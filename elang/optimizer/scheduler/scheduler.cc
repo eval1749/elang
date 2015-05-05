@@ -169,7 +169,7 @@ void LateScheduler::DoDefaultVisit(Node* node) {
 //
 class NodePlacer final : public api::Pass, public ScheduleEditor::User {
  public:
-  explicit NodePlacer(api::PassObserver* observer,
+  explicit NodePlacer(api::PassController* pass_controller,
                       ScheduleEditor* editor,
                       const std::vector<BasicBlock*>& blocks);
   ~NodePlacer() = default;
@@ -192,10 +192,10 @@ class NodePlacer final : public api::Pass, public ScheduleEditor::User {
   DISALLOW_COPY_AND_ASSIGN(NodePlacer);
 };
 
-NodePlacer::NodePlacer(api::PassObserver* observer,
+NodePlacer::NodePlacer(api::PassController* pass_controller,
                        ScheduleEditor* editor,
                        const std::vector<BasicBlock*>& blocks)
-    : Pass(observer), ScheduleEditor::User(editor), blocks_(blocks) {
+    : Pass(pass_controller), ScheduleEditor::User(editor), blocks_(blocks) {
   nodes_.reserve(function()->max_node_id());
 }
 
@@ -315,8 +315,8 @@ base::StringPiece NodePlacer::name() const {
 //
 // Scheduler
 //
-Scheduler::Scheduler(api::PassObserver* observer, Schedule* schedule)
-    : Pass(observer), editor_(new ScheduleEditor(schedule)) {
+Scheduler::Scheduler(api::PassController* pass_controller, Schedule* schedule)
+    : Pass(pass_controller), editor_(new ScheduleEditor(schedule)) {
   DCHECK(schedule);
 }
 
@@ -331,10 +331,10 @@ void Scheduler::Run() {
   CfgBuilder(editor_.get()).Run();
   EarlyScheduler(editor_.get()).Run();
   LateScheduler(editor_.get()).Run();
-  auto const edge_map = StaticPredictor(observer(), editor_.get()).Run();
+  auto const edge_map = StaticPredictor(pass_controller(), editor_.get()).Run();
   auto const blocks =
-      BlockLayouter(observer(), editor_.get(), edge_map.get()).Run();
-  NodePlacer(observer(), editor_.get(), blocks).Run();
+      BlockLayouter(pass_controller(), editor_.get(), edge_map.get()).Run();
+  NodePlacer(pass_controller(), editor_.get(), blocks).Run();
 }
 
 // api::Pass

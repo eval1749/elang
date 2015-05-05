@@ -14,7 +14,7 @@
 namespace elang {
 namespace api {
 
-class PassObserver;
+class PassController;
 
 enum class PassDumpFormat {
   Graph,
@@ -59,15 +59,15 @@ class Pass {
     DISALLOW_COPY_AND_ASSIGN(RunScope);
   };
 
-  explicit Pass(PassObserver* observer);
+  explicit Pass(PassController* controller);
 
-  PassObserver* observer() const { return observer_; }
+  PassController* pass_controller() const { return pass_controller_; }
 
   void EndPass();
   bool StartPass();
 
  private:
-  PassObserver* const observer_;
+  PassController* const pass_controller_;
 
   DISALLOW_COPY_AND_ASSIGN(Pass);
 };

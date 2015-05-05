@@ -61,7 +61,9 @@ class PassWrapper final : public api::Pass {
 };
 
 PassWrapper::PassWrapper(const PassInfo& info, Editor* editor)
-    : api::Pass(editor->factory()->observer()), editor_(editor), info_(info) {
+    : api::Pass(editor->factory()->pass_controller()),
+      editor_(editor),
+      info_(info) {
 }
 
 bool PassWrapper::Run() {
@@ -109,7 +111,7 @@ class CodeEmitterPass final : public api::Pass {
 CodeEmitterPass::CodeEmitterPass(Factory* factory,
                                  api::MachineCodeBuilder* builder,
                                  Function* function)
-    : api::Pass(factory->observer()),
+    : api::Pass(factory->pass_controller()),
       builder_(builder),
       factory_(factory),
       function_(function) {

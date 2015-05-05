@@ -10,7 +10,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 #include "elang/base/float_types.h"
 #include "elang/optimizer/factory_user.h"
 #include "gtest/gtest.h"
@@ -36,7 +36,7 @@ namespace testing {
 // TranslatorTest
 //
 class TranslatorTest : public ::testing::Test,
-                       public api::PassObserver,
+                       public api::PassController,
                        public ir::FactoryUser {
  protected:
   TranslatorTest();

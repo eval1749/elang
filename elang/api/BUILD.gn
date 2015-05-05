@@ -9,8 +9,8 @@ static_library("api") {
     "machine_code_builder.h",
     "pass.cc",
     "pass.h",
-    "pass_observer.cc",
-    "pass_observer.h",
+    "pass_controller.cc",
+    "pass_controller.h",
     "source_code_location.cc",
     "source_code_location.h",
   ]

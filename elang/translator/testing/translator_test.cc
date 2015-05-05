@@ -21,12 +21,12 @@ namespace translator {
 namespace testing {
 
 namespace {
-ir::Factory* NewHirFactory(api::PassObserver* observer) {
+ir::Factory* NewHirFactory(api::PassController* pass_controller) {
   ir::FactoryConfig config;
   auto const atomic_string_factory = new AtomicStringFactory();
   config.atomic_string_factory = atomic_string_factory;
   config.string_type_name = atomic_string_factory->NewAtomicString(L"String");
-  return new ir::Factory(observer, config);
+  return new ir::Factory(pass_controller, config);
 }
 }  // namespace
 

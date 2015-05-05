@@ -2,25 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 
 namespace elang {
 namespace api {
 
 //////////////////////////////////////////////////////////////////////
 //
-// PassObserver
+// PassController
 //
-PassObserver::PassObserver() {
+PassController::PassController() {
 }
 
-PassObserver::~PassObserver() {
+PassController::~PassController() {
 }
 
-void PassObserver::DidEndPass(Pass* pass) {
+void PassController::DidEndPass(Pass* pass) {
 }
 
-bool PassObserver::DidStartPass(Pass* pass) {
+bool PassController::DidStartPass(Pass* pass) {
   return true;
 }
 

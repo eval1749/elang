@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "base/macros.h"
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 #include "elang/optimizer/factory_user.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -27,7 +27,7 @@ namespace testing {
 // OptimizerTest
 //
 class OptimizerTest : public ::testing::Test,
-                      public api::PassObserver,
+                      public api::PassController,
                       public FactoryUser {
  protected:
   OptimizerTest();

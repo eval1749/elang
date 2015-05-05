@@ -24,7 +24,7 @@ class ScheduleEditor;
 //
 class ELANG_OPTIMIZER_EXPORT Scheduler final : public api::Pass {
  public:
-  Scheduler(api::PassObserver* observer, Schedule* schedule);
+  Scheduler(api::PassController* pass_controller, Schedule* schedule);
   ~Scheduler();
 
   void Run();

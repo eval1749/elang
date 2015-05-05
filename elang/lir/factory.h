@@ -25,7 +25,7 @@ class AtomicString;
 
 namespace api {
 class MachineCodeBuilder;
-class PassObserver;
+class PassController;
 }
 
 namespace lir {
@@ -40,7 +40,7 @@ class LiteralMap;
 //
 class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
  public:
-  explicit Factory(api::PassObserver* observer);
+  explicit Factory(api::PassController* pass_controller);
   ~Factory();
 
   // Errors reported by pipeline
@@ -48,7 +48,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
   // Literal data map
   LiteralMap* literals() const { return literal_map_.get(); }
-  api::PassObserver* observer() const { return observer_; }
+  api::PassController* pass_controller() const { return pass_controller_; }
 
   // Add error.
   void AddError(ErrorCode error_code,
@@ -151,7 +151,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   int last_condition_id_;
   int last_float_register_id_;
   int last_general_register_id_;
-  api::PassObserver* const observer_;
+  api::PassController* const pass_controller_;
   std::unordered_map<base::StringPiece16, Value> string_map_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

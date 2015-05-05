@@ -125,9 +125,9 @@ Node* TrueTargetOf(const BasicBlock* block) {
 //
 // StaticPredictor
 //
-StaticPredictor::StaticPredictor(api::PassObserver* observer,
+StaticPredictor::StaticPredictor(api::PassController* pass_controller,
                                  ScheduleEditor* editor)
-    : Pass(observer),
+    : Pass(pass_controller),
       ScheduleEditor::User(editor),
       edge_profile_(new EdgeProfileEditor()) {
 }

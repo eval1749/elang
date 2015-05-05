@@ -22,13 +22,13 @@ namespace testing {
 
 namespace {
 
-Factory* NewFactory(api::PassObserver* observer) {
+Factory* NewFactory(api::PassController* pass_controller) {
   FactoryConfig config;
   auto const atomic_string_factory = new AtomicStringFactory();
   config.atomic_string_factory = atomic_string_factory;
   config.string_type_name =
       atomic_string_factory->NewAtomicString(L"System.String");
-  return new Factory(observer, config);
+  return new Factory(pass_controller, config);
 }
 }  // namespace
 

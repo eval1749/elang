@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "base/strings/string_piece.h"
-#include "elang/api/pass_observer.h"
+#include "elang/api/pass_controller.h"
 #include "elang/base/zone_owner.h"
 #include "elang/compiler/testing/analyzer_test.h"
 
@@ -38,7 +38,7 @@ namespace testing {
 // TranslateTest is a simple harness for testing interactions with compiler.
 //
 class TranslateTest : public testing::AnalyzerTest,
-                      public api::PassObserver,
+                      public api::PassController,
                       public ZoneOwner {
  protected:
   TranslateTest();

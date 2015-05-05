@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_API_PASS_OBSERVER_H_
-#define ELANG_API_PASS_OBSERVER_H_
+#ifndef ELANG_API_PASS_CONTROLLER_H_
+#define ELANG_API_PASS_CONTROLLER_H_
 
 #include "base/macros.h"
 
@@ -14,23 +14,23 @@ class Pass;
 
 //////////////////////////////////////////////////////////////////////
 //
-// PassObserver
+// PassController
 //
-class PassObserver {
+class PassController {
  public:
-  virtual ~PassObserver();
+  virtual ~PassController();
 
   virtual void DidEndPass(Pass* pass);
   virtual bool DidStartPass(Pass* pass);
 
  protected:
-  PassObserver();
+  PassController();
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(PassObserver);
+  DISALLOW_COPY_AND_ASSIGN(PassController);
 };
 
 }  // namespace api
 }  // namespace elang
 
-#endif  // ELANG_API_PASS_OBSERVER_H_
+#endif  // ELANG_API_PASS_CONTROLLER_H_
