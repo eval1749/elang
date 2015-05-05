@@ -26,8 +26,11 @@ class DominatorTree;
 template <typename Element>
 class WorkList;
 
-namespace lir {
+namespace api {
+class PassController;
+}
 
+namespace lir {
 class ConflictMap;
 enum class ErrorCode;
 class ErrorData;
@@ -71,6 +74,7 @@ class ELANG_LIR_EXPORT Editor final : public ErrorReporter {
   BasicBlock* exit_block() const;
   Factory* factory() const { return factory_; }
   Function* function() const { return function_; }
+  api::PassController* pass_controller() const;
 
   // Analysis
   const LivenessData& AnalyzeLiveness() const;

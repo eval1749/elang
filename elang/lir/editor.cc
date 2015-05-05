@@ -53,6 +53,10 @@ BasicBlock* Editor::exit_block() const {
   return function()->exit_block();
 }
 
+api::PassController* Editor::pass_controller() const {
+  return factory()->pass_controller();
+}
+
 // Add edges between |instruction|'s block and new successors.
 void Editor::AddEdgesFrom(Instruction* instruction) {
   DCHECK(instruction->IsTerminator()) << *instruction;
@@ -345,7 +349,7 @@ const OrderedBlockList& Editor::PostOrderList() const {
   }
   using_control_flow_ = true;
   post_order_list_.reset(
-    new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
+      new OrderedBlockList(Function::Sorter::SortByPostOrder(function())));
   return *post_order_list_;
 }
 
