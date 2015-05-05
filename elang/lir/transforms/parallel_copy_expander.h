@@ -5,6 +5,7 @@
 #ifndef ELANG_LIR_TRANSFORMS_PARALLEL_COPY_EXPANDER_H_
 #define ELANG_LIR_TRANSFORMS_PARALLEL_COPY_EXPANDER_H_
 
+#include <iosfwd>
 #include <vector>
 
 #include "elang/lir/factory_user.h"
@@ -47,6 +48,9 @@ namespace lir {
 //
 class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
  public:
+  // Expose |Task| class for printer.
+  struct Task;
+
   explicit ParallelCopyExpander(Factory* factory, Value type);
   ~ParallelCopyExpander();
 
@@ -67,9 +71,10 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
   // Returns true if this expander has at least one task.
   bool HasTasks() const { return !tasks_.empty(); }
 
+  void PrintTo(std::ostream* ostream) const;
+
  private:
   class ScopedExpand;
-  struct Task;
 
   void DidCopy(Value output, Value input);
 
@@ -124,6 +129,9 @@ class ELANG_LIR_EXPORT ParallelCopyExpander final : public FactoryUser {
 
   DISALLOW_COPY_AND_ASSIGN(ParallelCopyExpander);
 };
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const ParallelCopyExpander& expander);
 
 }  // namespace lir
 }  // namespace elang

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <ostream>
 #include <unordered_set>
 #include <vector>
 
@@ -85,6 +86,11 @@ struct ParallelCopyExpander::Task {
 
   bool operator!=(const Task& other) const { return !operator==(other); }
 };
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const ParallelCopyExpander::Task& task) {
+  return ostream << "Task(" << task.output << " <- " << task.input << ")";
+}
 
 bool ParallelCopyExpander::Task::Less(const Task& task1, const Task& task2) {
   if (auto const diff = Task::OrderOf(task1) - Task::OrderOf(task2))
@@ -292,7 +298,7 @@ std::vector<Instruction*> ParallelCopyExpander::Expand() {
     }
     free_tasks.push_back(task);
     if (task.output.is_physical()) {
-      DCHECK(!IsSourceOfTask(task.output));
+      DCHECK(!IsSourceOfTask(task.output)) << task.output << *this;
       scratches_.push_back(task.output);
     }
     if (!task.input.is_physical())
@@ -424,6 +430,48 @@ bool ParallelCopyExpander::NeedRegister(Task task) const {
          !Target::HasCopyImmediateToMemory(task.input);
 }
 
+void ParallelCopyExpander::PrintTo(std::ostream* ostream) const {
+  *ostream << std::endl
+           << "ParallelCopyExpander:" << std::endl;
+  {
+    *ostream << "Scratch: {";
+    auto separator = "";
+    for (auto const value : scratches_) {
+      *ostream << separator << value;
+      separator = ", ";
+    }
+    *ostream << "}" << std::endl;
+  }
+  {
+    *ostream << "Tasks: {" << std::endl;
+    auto separator = "";
+    for (auto const task : tasks_) {
+      *ostream << "  " << task << std::endl;
+      separator = ", ";
+    }
+    *ostream << "}" << std::endl;
+  }
+  {
+    *ostream << "Instructions: {" << std::endl;
+    auto separator = "";
+    for (auto const instruction : instructions_) {
+      *ostream << "  " << *instruction << std::endl;
+      separator = ", ";
+    }
+    *ostream << "}" << std::endl;
+  }
+  *ostream << "Dependency:" << std::endl;
+  for (auto const node : dependency_graph_->GetAllVertices()) {
+    *ostream << "  " << node << " {";
+    auto separator = "";
+    for (auto const user : dependency_graph_->GetInEdges(node)) {
+      *ostream << separator << user;
+      separator = ", ";
+    }
+    *ostream << "}" << std::endl;
+  }
+}
+
 Value ParallelCopyExpander::TakeScratch(Value source) {
   if (scratches_.empty())
     return Value();
@@ -445,6 +493,12 @@ ParallelCopyExpander::Task ParallelCopyExpander::TrySwap(
     }
   }
   return Task();
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const ParallelCopyExpander& expander) {
+  expander.PrintTo(&ostream);
+  return ostream;
 }
 
 }  // namespace lir
