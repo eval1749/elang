@@ -189,6 +189,8 @@ lir::Value Translator::MapRegister(ir::Node* node) {
 }
 
 lir::Value Translator::MapType(ir::Type* type) {
+  if (type->is<ir::VoidType>())
+    return lir::Value::VoidType();
   auto const primitive_type = type->as<ir::PrimitiveType>();
   if (!primitive_type)
     return lir::Value::Int64Type();
@@ -570,18 +572,26 @@ void Translator::VisitLoad(ir::LoadNode* node) {
 }
 
 // Simple node 4 inputs
+
+// control(type) %control = Call(%control, %effect, %callee, %arguments)
 void Translator::VisitCall(ir::CallNode* node) {
   auto const callee = MapInput(node->input(2));
   auto const argument = node->input(3);
 
+  auto const return_type =
+      MapType(node->output_type()->as<ir::ControlType>()->data_type());
+  std::vector<lir::Value> returns;
+  if (!return_type.is_void_type())
+    returns.push_back(lir::Target::ReturnAt(return_type, 0));
+
   if (argument->output_type()->is<ir::VoidType>())
-    return Emit(NewCallInstruction({}, callee));
+    return Emit(NewCallInstruction(returns, callee));
 
   auto const tuple = argument->as<ir::TupleNode>();
   if (!tuple) {
     auto const arg0 = MapInput(argument);
     EmitCopy(lir::Target::ArgumentAt(arg0, 0), arg0);
-    Emit(NewCallInstruction({}, callee));
+    Emit(NewCallInstruction(returns, callee));
     return;
   }
 
@@ -597,7 +607,7 @@ void Translator::VisitCall(ir::CallNode* node) {
     ++position;
   }
   Emit(NewPCopyInstruction(outputs, inputs));
-  Emit(NewCallInstruction({}, callee));
+  Emit(NewCallInstruction(returns, callee));
 }
 
 // Variadic inputs node

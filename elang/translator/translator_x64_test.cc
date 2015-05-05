@@ -297,7 +297,7 @@ DEFINE_FLOAT_ARITHMETIC_TEST(FloatSub, "sub")
         "  // In: {}\n"                                                       \
         "  // Out: {block2}\n"                                                \
         "  entry\n"                                                           \
-        "  call \"Foo\"\n"                                                    \
+        "  call " ret_reg " = \"Foo\"\n"                                      \
         "  mov " ret_var " = " ret_reg "\n"                                   \
         "  mov " ret_reg " = " ret_var "\n"                                   \
         "  ret block2\n"                                                      \
