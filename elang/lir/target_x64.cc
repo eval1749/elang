@@ -299,9 +299,16 @@ Value Target::ParameterAt(Value output, size_t position) {
 
 Value Target::ReturnAt(Value type, size_t position) {
   DCHECK_EQ(position, 0) << "NYI multiple return values";
-  if (type.type == Value::Type::Float)
-    return GetRegister(type.is_32bit() ? isa::XMM0S : isa::XMM0D);
-  return GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
+  if (type.is_int32())
+    return GetRegister(isa::EAX);
+  if (type.is_int64())
+    return GetRegister(isa::RAX);
+  if (type.is_float32())
+    return GetRegister(isa::XMM0S);
+  if (type.is_float64())
+    return GetRegister(isa::XMM0D);
+  NOTREACHED() << "Return values must be numeric promoted: " << type;
+  return Value();
 }
 
 }  // namespace lir
