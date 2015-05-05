@@ -183,7 +183,7 @@ void CleanPass::CleanJump(Node* jump_node) {
 
 void CleanPass::DidChangeControlFlow(base::StringPiece message,
                                      const Node* node) {
-  DVLOG(0) << "After " << message << ": " << *node;
+  DVLOG(1) << "After " << message << ": " << *node;
   changed_ = true;
 }
 
@@ -199,7 +199,7 @@ void CleanPass::Run() {
 
 void CleanPass::WillChangeControlFlow(base::StringPiece message,
                                       const Node* node) {
-  DVLOG(0) << "Before " << message << ": " << *node;
+  DVLOG(1) << "Before " << message << ": " << *node;
   changed_ = true;
 }
 
