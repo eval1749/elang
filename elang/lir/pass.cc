@@ -5,12 +5,15 @@
 #include "elang/lir/pass.h"
 
 #include "elang/lir/editor.h"
+#include "elang/lir/factory.h"
+#include "elang/lir/formatters/text_formatter.h"
 
 namespace elang {
 namespace lir {
 
 // Pass
-Pass::Pass(Factory* factory) : FactoryUser(factory) {
+Pass::Pass(Factory* factory)
+    : api::Pass(factory->pass_controller()), FactoryUser(factory) {
 }
 
 Pass::~Pass() {
@@ -24,9 +27,23 @@ FunctionPass::FunctionPass(Editor* editor)
 FunctionPass::~FunctionPass() {
 }
 
-void FunctionPass::Run() {
+bool FunctionPass::Run() {
+  RunScope scope(this);
+  if (scope.IsStop())
+    return false;
   RunOnFunction();
   DCHECK(editor()->Validate());
+  return true;
+}
+
+// api::Pass
+void FunctionPass::DumpAfterPass(const api::PassDumpContext& context) {
+  TextFormatter formatter(editor()->factory()->literals(), context.ostream);
+  formatter.FormatFunction(editor()->function());
+}
+
+void FunctionPass::DumpBeforePass(const api::PassDumpContext& context) {
+  DumpAfterPass(context);
 }
 
 }  // namespace lir

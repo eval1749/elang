@@ -10,8 +10,6 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/emitters/code_emitter.h"
-#include "elang/lir/formatters/text_formatter.h"
-#include "elang/lir/literals.h"
 #include "elang/lir/transforms/clean_pass.h"
 #include "elang/lir/transforms/lowering_x64_pass.h"
 #include "elang/lir/transforms/remove_critical_edges_pass.h"
@@ -23,64 +21,16 @@ namespace lir {
 namespace {
 
 template <typename Pass>
-void RunPass(Editor* editor) {
-  Pass pass(editor);
-  pass.Run();
+bool RunPass(base::StringPiece name, Editor* editor) {
+  return Pass(editor).Run();
 }
 
-class DumpPass final : public FunctionPass {};
-
-typedef void PassEntry(Editor* editor);
+typedef bool PassEntry(base::StringPiece name, Editor* editor);
 
 struct PassInfo {
   const char* name;
   PassEntry* entry;
 };
-
-//////////////////////////////////////////////////////////////////////
-//
-// PassWrapper
-//
-class PassWrapper final : public api::Pass {
- public:
-  PassWrapper(const PassInfo& info, Editor* editor);
-  ~PassWrapper() = default;
-
-  bool Run();
-
- private:
-  // api::Pass
-  base::StringPiece name() const { return info_.name; }
-  void DumpAfterPass(const api::PassDumpContext& context) final;
-  void DumpBeforePass(const api::PassDumpContext& context) final;
-
-  Editor* const editor_;
-  const PassInfo& info_;
-
-  DISALLOW_COPY_AND_ASSIGN(PassWrapper);
-};
-
-PassWrapper::PassWrapper(const PassInfo& info, Editor* editor)
-    : api::Pass(editor->pass_controller()), editor_(editor), info_(info) {
-}
-
-bool PassWrapper::Run() {
-  RunScope scope(this);
-  if (scope.IsStop())
-    return false;
-  info_.entry(editor_);
-  return true;
-}
-
-// api::Pass
-void PassWrapper::DumpAfterPass(const api::PassDumpContext& context) {
-  TextFormatter formatter(editor_->factory()->literals(), context.ostream);
-  formatter.FormatFunction(editor_->function());
-}
-
-void PassWrapper::DumpBeforePass(const api::PassDumpContext& context) {
-  DumpAfterPass(context);
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -148,7 +98,7 @@ Pipeline::~Pipeline() {
 bool Pipeline::Run() {
   Editor editor(factory_, function_);
   for (auto it = std::begin(kPassList); it != std::end(kPassList); ++it) {
-    if (!PassWrapper(*it, &editor).Run())
+    if (!it->entry(it->name, &editor))
       return false;
     if (!factory_->errors().empty())
       return false;

@@ -9,6 +9,7 @@
 
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
+#include "elang/api/pass.h"
 #include "elang/lir/editor_user.h"
 #include "elang/lir/factory_user.h"
 
@@ -21,13 +22,11 @@ class Function;
 //
 // Pass
 //
-class ELANG_LIR_EXPORT Pass : public FactoryUser {
+class ELANG_LIR_EXPORT Pass : public api::Pass, public FactoryUser {
  public:
   virtual ~Pass();
 
-  virtual base::StringPiece name() const = 0;
-
-  virtual void Run() = 0;
+  virtual bool Run() = 0;
 
  protected:
   explicit Pass(Factory* factory);
@@ -45,12 +44,16 @@ class ELANG_LIR_EXPORT FunctionPass : public Pass, public EditorUser {
   virtual ~FunctionPass();
 
   // Pass
-  void Run() final;
+  bool Run() final;
 
  protected:
   explicit FunctionPass(Editor* editor);
 
   virtual void RunOnFunction() = 0;
+
+  // api::Pass
+  void DumpAfterPass(const api::PassDumpContext& context) override;
+  void DumpBeforePass(const api::PassDumpContext& context) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FunctionPass);
