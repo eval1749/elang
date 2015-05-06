@@ -157,24 +157,6 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   physical_map_[vreg] = physical;
 }
 
-bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
-                                            Value vreg,
-                                            Value physical) {
-  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(physical)) << *instr << " "
-                                                          << physical;
-  DCHECK(vreg.is_virtual()) << *instr << " " << physical;
-  DCHECK(physical.is_physical()) << *instr << " " << physical;
-  auto const present = VirtualFor(physical);
-  if (!present.is_void()) {
-    DCHECK(present.is_virtual()) << present;
-    DCHECK_NE(present, vreg);
-    return false;
-  }
-  TrackPhysical(vreg, physical);
-  SetAllocation(instr, vreg, physical);
-  return true;
-}
-
 Value RegisterAllocationTracker::VirtualFor(Value physical) const {
   DCHECK(physical.is_physical());
   for (auto const pair : physical_map_) {

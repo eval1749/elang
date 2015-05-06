@@ -54,10 +54,6 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   void FreePhysical(Value physical);
   void TrackPhysical(Value virtual_register, Value physical);
 
-  // Returns true if |output| is allocated to |physical|, otherwise returns
-  // false.
-  bool TryAllocate(Instruction* instr, Value output, Value physical);
-
   // Recording allocation
   void InsertBefore(Instruction* new_instr, Instruction* ref_instr);
   void SetAllocation(Instruction* instr, Value vreg, Value allocated);

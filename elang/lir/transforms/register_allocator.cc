@@ -609,10 +609,16 @@ Value RegisterAllocator::SpillSlotFor(Value vreg) const {
 bool RegisterAllocator::TryAllocate(Instruction* instr,
                                     Value vreg,
                                     Value physical) {
-  DCHECK(vreg.is_virtual()) << vreg;
-  DCHECK(physical.is_physical()) << physical;
-  if (!allocation_tracker_->TryAllocate(instr, vreg, physical))
+  DCHECK(vreg.is_virtual()) << vreg << " " << physical << " at " << *instr;
+  DCHECK(physical.is_physical()) << vreg << " " << physical << " at " << *instr;
+  DCHECK_NE(PhysicalFor(vreg), physical) << vreg << " " << physical << " at "
+                                         << *instr;
+  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(physical))
+      << vreg << " " << physical << " at " << *instr;
+  if (!VirtualFor(physical).is_void())
     return false;
+  allocation_tracker_->TrackPhysical(vreg, physical);
+  allocation_tracker_->SetAllocation(instr, vreg, physical);
   if (!Target::IsCalleeSavedRegister(physical))
     return true;
   stack_allocator_->AllocateForPreserving(physical);
