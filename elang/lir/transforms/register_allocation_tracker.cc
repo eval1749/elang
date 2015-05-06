@@ -77,7 +77,8 @@ void RegisterAllocationTracker::FreePhysical(Value physical) {
       return;
     }
   }
-  NOTREACHED() << "block map doesn't have " << physical;
+  NOTREACHED() << "No entry for " << physical << std::endl
+               << physical_map_;
 }
 
 void RegisterAllocationTracker::FreeVirtual(Value vreg) {
@@ -145,11 +146,11 @@ void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
 }
 
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(physical.is_physical());
-  DCHECK_EQ(vreg.type, physical.type);
-  DCHECK_EQ(vreg.size, physical.size);
-  DCHECK(!physical_map_.count(vreg));
+  DCHECK(vreg.is_virtual()) << vreg;
+  DCHECK(physical.is_physical()) << physical;
+  DCHECK_EQ(vreg.type, physical.type) << vreg << " " << physical;
+  DCHECK_EQ(vreg.size, physical.size) << vreg << " " << physical;
+  DCHECK(!physical_map_.count(vreg)) << vreg << " " << physical_map_[vreg];
   DCHECK(VirtualFor(physical).is_void())
       << "Can't allocate " << vreg << " to " << physical
       << ", it is already allocated to " << VirtualFor(physical);

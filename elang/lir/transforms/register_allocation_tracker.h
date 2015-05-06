@@ -46,7 +46,7 @@ class ELANG_LIR_EXPORT RegisterAllocationTracker final {
   Value PhysicalFor(Value virtual_register) const;
   Value SpillSlotFor(Value virtual_register) const;
 
-  // Expose for testing purpose.
+  // Expose for |RegisterAllocate::TryAllocate()|.
   Value VirtualFor(Value physical) const;
 
   // Update current mapping
