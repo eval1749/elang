@@ -246,16 +246,16 @@ TEST(LirTargetX64Test, IsCalleeSavedRegister) {
 }
 
 TEST(LirTargetX64Test, IsCallerSavedRegister) {
-  EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RAX)));
+  EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(RAX)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RBX)));
-  EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RCX)));
-  EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RDX)));
+  EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(RCX)));
+  EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(RDX)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RDI)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RSI)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RBP)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(RSP)));
-  EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(R8)));
-  EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(R9)));
+  EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(R8)));
+  EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(R9)));
   EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(R10)));
   EXPECT_TRUE(Target::IsCallerSavedRegister(Target::GetRegister(R11)));
   EXPECT_FALSE(Target::IsCallerSavedRegister(Target::GetRegister(R12)));

@@ -174,7 +174,8 @@ const int kFloatCalleeSavedRegisters =
 
 // Registers must be saved if caller uses them.
 const int kFloatCallerSavedRegisters =
-    REGISTER_MASK(XMM4D) | REGISTER_MASK(XMM5D);
+    REGISTER_MASK(XMM0D) | REGISTER_MASK(XMM1D) | REGISTER_MASK(XMM2D) |
+    REGISTER_MASK(XMM3D) | REGISTER_MASK(XMM4D) | REGISTER_MASK(XMM5D);
 
 static_assert(!(kFloatCalleeSavedRegisters & kFloatCallerSavedRegisters),
               "caller and callee registers should not contains same register");
@@ -190,7 +191,9 @@ const int kGeneralCalleeSavedRegisters =
 // These registers are used to hold temporary value that need not be preserved
 // across calls.
 const int kGeneralCallerSavedRegisters =
-    REGISTER_MASK(R10) | REGISTER_MASK(R11);
+    REGISTER_MASK(RAX) | REGISTER_MASK(RCX) | REGISTER_MASK(RDX) |
+    REGISTER_MASK(R8) | REGISTER_MASK(R9) | REGISTER_MASK(R10) |
+    REGISTER_MASK(R11);
 
 static_assert(!(kGeneralCalleeSavedRegisters & kGeneralCallerSavedRegisters),
               "caller and callee registers should not contains same register");
