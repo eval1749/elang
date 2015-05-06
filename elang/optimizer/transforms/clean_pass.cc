@@ -6,6 +6,7 @@
 
 #include "elang/optimizer/transforms/clean_pass.h"
 
+#include "elang/api/pass_controller.h"
 #include "elang/optimizer/depth_first_traversal.h"
 #include "elang/optimizer/editor.h"
 #include "elang/optimizer/formatters/graphviz_formatter.h"
@@ -192,8 +193,10 @@ void CleanPass::Run() {
   if (scope.IsStop())
     return;
   do {
+    pass_controller()->DidStartPass(this);
     changed_ = false;
     Clean();
+    pass_controller()->DidEndPass(this);
   } while (changed_);
 }
 
