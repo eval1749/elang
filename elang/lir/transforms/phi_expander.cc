@@ -129,9 +129,7 @@ void PhiExpander::EmitSpill(Value vreg, Value physical) {
 // pcopy %f32, %f64 <= %r1, %r2, we can use %f64 as scratch register during
 // expanding float 32.
 void PhiExpander::Expand() {
-  std::vector<Instruction*> copies;
   std::vector<std::pair<Value, Value>> tasks;
-
   for (auto const phi : phi_block_->phi_instructions()) {
     auto const output = phi->output(0);
     output_registers_.insert(output);
@@ -143,8 +141,9 @@ void PhiExpander::Expand() {
 
     auto const input = phi->input_of(predecessor_);
     if (!input.is_virtual()) {
-      allocations_[input] = input;
       tasks.push_back(std::make_pair(output, input));
+      allocations_[input] = input;
+      DVLOG(2) << "task(" << output << ", " << input << ")";
       continue;
     }
 
@@ -155,6 +154,7 @@ void PhiExpander::Expand() {
       continue;
     tasks.push_back(std::make_pair(output, input));
     allocations_[input] = input_allocation;
+    DVLOG(2) << "task(" << output << ", " << input << ")";
   }
 
   if (tasks.empty())
@@ -168,7 +168,14 @@ void PhiExpander::Expand() {
     scratch_registers_.erase(Target::NaturalRegisterOf(pair.second));
   }
 
+  DVLOG(2) << "allocations_=" << allocations_;
+  DVLOG(2) << "input_registers_=" << input_registers_;
+  DVLOG(2) << "output_registers_=" << output_registers_;
+  DVLOG(2) << "live_registers_=" << live_registers_;
+  DVLOG(2) << "scratch_registers_=" << scratch_registers_;
+
   // Expand parallel copy for each type.
+  std::vector<Instruction*> copies;
   for (auto const type : IntegerTypesAndFloatTypes()) {
     // Expander needs at most two scratch registers.
     for (auto count = 0; count < 2; ++count) {
@@ -180,8 +187,8 @@ void PhiExpander::Expand() {
         if (output.type != type.type || output.size != type.size)
           continue;
         auto const input = task.second;
-        DCHECK_EQ(output.type, input.type);
-        DCHECK_EQ(output.size, input.size);
+        DCHECK_EQ(output.type, input.type) << output << " " << input;
+        DCHECK_EQ(output.size, input.size) << output << " " << input;
         expander.AddTask(AllocationOf(output), AllocationOf(input));
       }
       if (!expander.HasTasks())
@@ -217,7 +224,7 @@ void PhiExpander::Expand() {
 }
 
 bool PhiExpander::IsInput(Value physical) const {
-  DCHECK(physical.is_physical());
+  DCHECK(physical.is_physical()) << physical;
   auto const natural = Target::NaturalRegisterOf(physical);
   for (auto const phi : phi_block_->phi_instructions()) {
     auto const input = phi->input_of(predecessor_);
@@ -253,11 +260,12 @@ bool PhiExpander::SpillFromInput(Value type) {
 // Spill one of live-in register to make scratch register.
 void PhiExpander::SpillFromLiveIn(Value type) {
   auto const victim = ChooseSpillRegisterFromLiveIn(type);
-  DCHECK(victim.is_virtual());
-  DCHECK(!allocations_.count(victim));
+  DCHECK(victim.is_virtual()) << victim;
+  DCHECK(!allocations_.count(victim)) << victim;
 
   auto const physical = allocation_tracker_->PhysicalFor(victim);
-  DCHECK(physical.is_physical());
+  DCHECK(physical.is_physical()) << "PhysicalFor(" << victim
+                                 << ")=" << physical;
 
   auto const spill_slot = spill_manager_->SpillSlotFor(victim);
   if (spill_slot.is_memory_proxy()) {
@@ -282,8 +290,8 @@ bool PhiExpander::SpillFromOutput(Value type) {
 }
 
 Value PhiExpander::UpdateAllocationForSpill(Value vreg, Value spill_slot) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(spill_slot.is_memory_proxy());
+  DCHECK(vreg.is_virtual()) << vreg;
+  DCHECK(spill_slot.is_memory_proxy()) << spill_slot;
   auto const physical = AllocationOf(vreg);
   DCHECK(physical.is_physical()) << "Invalid AllocationOf(" << vreg << ")";
   allocations_[vreg] = spill_slot;
