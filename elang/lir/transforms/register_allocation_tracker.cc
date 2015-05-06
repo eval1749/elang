@@ -105,8 +105,8 @@ void RegisterAllocationTracker::SetAllocation(Instruction* instr,
                                               Value vreg,
                                               Value allocation) {
   DCHECK(vreg.is_virtual());
-  DCHECK_EQ(vreg.type, allocation.type);
-  DCHECK_EQ(vreg.size, allocation.size);
+  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(allocation)) << vreg << " "
+                                                            << allocation;
   assignments_.SetAllocation(instr, vreg, allocation);
   if (allocation.is_physical()) {
     DCHECK_EQ(PhysicalFor(vreg), allocation);
@@ -124,8 +124,8 @@ void RegisterAllocationTracker::SetPhysical(BasicBlock* block,
                                             Value physical) {
   DCHECK(vreg.is_virtual());
   DCHECK(physical.is_physical());
-  DCHECK_EQ(vreg.type, physical.type);
-  DCHECK_EQ(vreg.size, physical.size);
+  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(physical)) << vreg << " "
+                                                          << physical;
   assignments_.SetPhysical(block, vreg, physical);
 }
 
@@ -148,8 +148,8 @@ void RegisterAllocationTracker::StartBlock(BasicBlock* block) {
 void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
   DCHECK(vreg.is_virtual()) << vreg;
   DCHECK(physical.is_physical()) << physical;
-  DCHECK_EQ(vreg.type, physical.type) << vreg << " " << physical;
-  DCHECK_EQ(vreg.size, physical.size) << vreg << " " << physical;
+  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(physical)) << vreg << " "
+                                                          << physical;
   DCHECK(!physical_map_.count(vreg)) << vreg << " " << physical_map_[vreg];
   DCHECK(VirtualFor(physical).is_void())
       << "Can't allocate " << vreg << " to " << physical
@@ -160,8 +160,8 @@ void RegisterAllocationTracker::TrackPhysical(Value vreg, Value physical) {
 bool RegisterAllocationTracker::TryAllocate(Instruction* instr,
                                             Value vreg,
                                             Value physical) {
-  DCHECK_EQ(vreg.type, physical.type) << *instr << " " << physical;
-  DCHECK_EQ(vreg.size, physical.size) << *instr << " " << physical;
+  DCHECK_EQ(Value::TypeOf(vreg), Value::TypeOf(physical)) << *instr << " "
+                                                          << physical;
   DCHECK(vreg.is_virtual()) << *instr << " " << physical;
   DCHECK(physical.is_physical()) << *instr << " " << physical;
   auto const present = VirtualFor(physical);

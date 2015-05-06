@@ -709,8 +709,8 @@ void RegisterAllocator::VisitPCopy(PCopyInstruction* instr) {
       ++inputs;
       if (output.size != type.size || output.type != type.type)
         continue;
-      DCHECK_EQ(output.size, input.size);
-      DCHECK_EQ(output.type, input.type);
+      DCHECK_EQ(Value::TypeOf(output), Value::TypeOf(input)) << output << " "
+                                                             << input;
       if (input.is_parameter())
         stack_allocator_->Assign(output, input);
       pairs.push_back(std::make_pair(output, input));

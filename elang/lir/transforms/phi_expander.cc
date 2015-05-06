@@ -187,8 +187,8 @@ void PhiExpander::Expand() {
         if (output.type != type.type || output.size != type.size)
           continue;
         auto const input = task.second;
-        DCHECK_EQ(output.type, input.type) << output << " " << input;
-        DCHECK_EQ(output.size, input.size) << output << " " << input;
+        DCHECK_EQ(Value::TypeOf(output), Value::TypeOf(input)) << output << " "
+                                                               << input;
         expander.AddTask(AllocationOf(output), AllocationOf(input));
       }
       if (!expander.HasTasks())
