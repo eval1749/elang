@@ -20,6 +20,15 @@ class FilePath;
 }
 
 namespace elang {
+namespace hir {
+class Factory;
+}
+namespace lir {
+class Factory;
+}
+namespace optimizer {
+class Factory;
+}
 namespace compiler {
 class CompilationSession;
 namespace shell {
@@ -49,12 +58,16 @@ class Compiler final : public api::PassController {
 
   // Report compilation errors so far.
   bool ReportCompileErrors();
+  bool ReportHirErrors(const hir::Factory* factory);
+  bool ReportIrErrors(const optimizer::Factory* factory);
+  bool ReportLirErrors(const lir::Factory* factory);
 
   // api::PassController implementation
   void DidEndPass(api::Pass* pass) final;
   bool DidStartPass(api::Pass* pass) final;
 
   const std::vector<base::string16> args_;
+  bool dumped_;
   int exit_code_;
   std::unordered_set<std::string> dump_after_passes_;
   std::unordered_set<std::string> dump_before_passes_;

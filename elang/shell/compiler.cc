@@ -342,30 +342,6 @@ vm::MachineCodeFunction* GenerateMachineCode(vm::Factory* vm_factory,
   return mc_builder.NewMachineCodeFunction();
 }
 
-bool ReportHirErrors(const hir::Factory* factory) {
-  if (factory->errors().empty())
-    return false;
-  for (auto const error : factory->errors())
-    std::cerr << *error << std::endl;
-  return true;
-}
-
-bool ReportIrErrors(const ir::Factory* factory) {
-  if (factory->errors().empty())
-    return false;
-  for (auto const error : factory->errors())
-    std::cerr << *error << std::endl;
-  return true;
-}
-
-bool ReportLirErrors(const lir::Factory* factory) {
-  if (factory->errors().empty())
-    return false;
-  for (auto const error : factory->errors())
-    std::cerr << *error << std::endl;
-  return true;
-}
-
 int SwitchValueAsInt(base::StringPiece switch_name, int default_value) {
   auto const command_line = base::CommandLine::ForCurrentProcess();
   auto const switch_value =
@@ -388,6 +364,7 @@ const char kUseHir[] = "use_hir";
 
 Compiler::Compiler(const std::vector<base::string16>& args)
     : args_(args),
+      dumped_(false),
       exit_code_(1),
       session_(new CompilationSession()),
       stop_(false) {
@@ -420,9 +397,10 @@ int Compiler::CompileAndGo() {
     return 0;
   auto const prefix =
       graph_after_passes_.empty() && graph_before_passes_.empty() ? "" : "// ";
-  std::cout << prefix << "Pass elapsed times:" << std::endl;
+  std::cout << std::endl << prefix << "Pass elapsed times: ~~~~~~~~~~~~~~~~~~~~"
+            << std::endl;
   for (auto const& record : pass_records_) {
-    std::cout << prefix << std::string(record->depth() * 2, ' ')
+    std::cout << prefix << "  " << std::string(record->depth() * 2, ' ')
               << record->name() << " " << record->duration().InMillisecondsF()
               << "ms" << std::endl;
   }
@@ -553,6 +531,12 @@ void Compiler::CompileAndGoInternal() {
   }
   std::cout << std::endl;
 
+  if (dumped_) {
+    // TODO(eval1749) Should we stop if we dump all dump requests?
+    stop_ = true;
+    return;
+  }
+
   // Execute
   if (!has_parameter) {
     if (has_return_value) {
@@ -594,6 +578,33 @@ bool Compiler::ReportCompileErrors() {
   return true;
 }
 
+bool Compiler::ReportHirErrors(const hir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  stop_ = true;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
+bool Compiler::ReportIrErrors(const ir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  stop_ = true;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
+bool Compiler::ReportLirErrors(const lir::Factory* factory) {
+  if (factory->errors().empty())
+    return false;
+  stop_ = true;
+  for (auto const error : factory->errors())
+    std::cerr << *error << std::endl;
+  return true;
+}
+
 // api::PassController implementation
 void Compiler::DidEndPass(api::Pass* pass) {
   if (stop_)
@@ -608,10 +619,12 @@ void Compiler::DidEndPass(api::Pass* pass) {
               << "After " << pass_name << " ~~~~~~~~~~~~~~~~~~~~" << std::endl;
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpAfterPass(dump_context);
+    dumped_ = true;
   }
   if (graph_after_passes_.count(pass_name.as_string())) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
     pass->DumpAfterPass(dump_context);
+    dumped_ = true;
   }
 }
 
@@ -625,10 +638,12 @@ bool Compiler::DidStartPass(api::Pass* pass) {
               << "Before " << pass_name << " ~~~~~~~~~~~~~~~~~~~~" << std::endl;
     api::PassDumpContext dump_context{api::PassDumpFormat::Text, &std::cout};
     pass->DumpBeforePass(dump_context);
+    dumped_ = true;
   }
   if (graph_before_passes_.count(pass_name.as_string())) {
     api::PassDumpContext dump_context{api::PassDumpFormat::Graph, &std::cout};
     pass->DumpBeforePass(dump_context);
+    dumped_ = true;
   }
   if (stop_)
     return false;
