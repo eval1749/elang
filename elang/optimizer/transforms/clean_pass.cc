@@ -30,7 +30,8 @@ class NodeCollector final : public NodeVisitor {
 
  private:
   void DoDefaultVisit(Node* node) final {
-    if (!node->IsBlockEnd())
+    auto const opcode = node->opcode();
+    if (opcode != Opcode::If && opcode != Opcode::Jump)
       return;
     nodes_.push_back(node);
   }
@@ -41,21 +42,16 @@ class NodeCollector final : public NodeVisitor {
 };
 
 struct PostOrderControlFlow {
-  static std::vector<Node*> AdjacentEdgesOf(const Function* function,
+  static const UseEdges& AdjacentEdgesOf(const Function* function,
                                             Node* node) {
-    std::vector<Node*> users;
-    for (auto const edge : node->use_edges()) {
-      auto const user = edge->from()->as<Control>();
-      if (!user)
-        continue;
-      users.push_back(user);
-    }
-    return std::move(users);
+    return node->use_edges();
   }
 
-  static Node* EdgeTo(Node* node) { return node; }
+  static Node* EdgeTo(UseEdge* edge) { return edge->from(); }
 
-  static bool ShouldVisit(const Function* function, Node* node) { return true; }
+  static bool ShouldVisit(const Function* function, Node* node) {
+    return node->IsControl();
+  }
 
   static Node* StartNodeOf(const Function* function) {
     return function->entry_node();
@@ -92,6 +88,7 @@ void CleanPass::Clean() {
   DepthFirstTraversal<PostOrderControlFlow, const Function> walker;
   NodeCollector collector;
   walker.Traverse(editor_.function(), &collector);
+  DVLOG(1) << "# of control nodes is " << collector.nodes().size();
 
   // Process successors before processing |Node|.
   for (auto const& node : collector.nodes()) {
