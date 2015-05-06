@@ -122,7 +122,7 @@ LirTest::~LirTest() {
 std::string LirTest::Allocate(Function* function) {
   Editor editor(factory(), function);
 
-  Run<RemoveCriticalEdgesPass>(&editor);
+  RunPassForTesting<RemoveCriticalEdgesPass>(&editor);
 
   RegisterAssignments assignments;
   StackAssignments stack_assignments;

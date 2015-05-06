@@ -61,7 +61,7 @@ class LirRemoveCriticalEdgesTest : public testing::LirTest {
 TEST_F(LirRemoveCriticalEdgesTest, Basic) {
   auto const function = CreateFunctionWithCriticalEdge2();
   Editor editor(factory(), function);
-  Run<RemoveCriticalEdgesPass>(&editor);
+  RunPassForTesting<RemoveCriticalEdgesPass>(&editor);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"

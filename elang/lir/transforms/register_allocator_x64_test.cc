@@ -69,7 +69,7 @@ TEST_F(LirRegisterAllocatorX64Test, SampleAdd) {
   auto const function = CreateFunctionSampleAdd();
   {
     Editor editor(factory(), function);
-    Run<LoweringX64Pass>(&editor);
+    RunPassForTesting<LoweringX64Pass>(&editor);
   }
   EXPECT_EQ(
       "function1:\n"
@@ -125,7 +125,7 @@ TEST_F(LirRegisterAllocatorX64Test, WithCriticalEdge) {
   auto const function = CreateFunctionWithCriticalEdge();
   {
     Editor editor(factory(), function);
-    Run<LoweringX64Pass>(&editor);
+    RunPassForTesting<LoweringX64Pass>(&editor);
   }
 
   EXPECT_EQ(

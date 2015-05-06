@@ -47,10 +47,8 @@ class LirTest : public ::testing::Test,
   // Returns virtual registers in |function|.
   std::vector<Value> CollectRegisters(const Function* function);
 
-  // TODO(eval1749) Should we move |Run<Pass>()| somewhere?
-  // Note: |::testing::Test| also defines |Run<T>()|.
   template <typename Pass>
-  void Run(Editor* editor) {
+  void RunPassForTesting(Editor* editor) {
     Pass("test", editor).Run();
   }
 
