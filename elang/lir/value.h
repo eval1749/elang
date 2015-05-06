@@ -6,7 +6,11 @@
 #define ELANG_LIR_VALUE_H_
 
 #include <stdint.h>
-#include <ostream>
+#include <iosfwd>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "elang/base/float_types.h"
 #include "elang/lir/lir_export.h"
@@ -174,6 +178,21 @@ inline bool operator!=(const Value& value1, const Value& value2) {
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value& value);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(
+    std::ostream& ostream,
+    const std::pair<Value, Value>& values);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(
+    std::ostream& ostream,
+    const std::unordered_map<Value, Value>& pairs);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(
+    std::ostream& ostream,
+    const std::unordered_set<Value>& values);
+
+ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
+                                          const std::vector<Value>& values);
 
 ELANG_LIR_EXPORT std::ostream& operator<<(std::ostream& ostream,
                                           const Value::Kind& kind);

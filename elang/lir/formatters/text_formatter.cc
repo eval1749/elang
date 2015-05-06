@@ -4,7 +4,9 @@
 
 #include <algorithm>
 #include <iterator>
+#include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "elang/lir/formatters/text_formatter.h"
@@ -261,6 +263,44 @@ std::ostream& operator<<(std::ostream& ostream,
 
 std::ostream& operator<<(std::ostream& ostream, const Value& value) {
   return ostream << PrintableValue(value);
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::pair<Value, Value>& pair) {
+  return ostream << "(" << pair.first << ", " << pair.second << ")";
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::unordered_map<Value, Value>& pairs) {
+  ostream << "{";
+  auto separator = "";
+  for (auto const pair : pairs) {
+    ostream << separator << pair;
+    separator = ", ";
+  }
+  return ostream << "}";
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::unordered_set<Value>& values) {
+  ostream << "{";
+  auto separator = "";
+  for (auto const value : values) {
+    ostream << separator << value;
+    separator = ", ";
+  }
+  return ostream << "}";
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const std::vector<Value>& values) {
+  ostream << "[";
+  auto separator = "";
+  for (auto const value : values) {
+    ostream << separator << value;
+    separator = ", ";
+  }
+  return ostream << "]";
 }
 
 std::ostream& operator<<(std::ostream& ostream, const Value::Kind& kind) {
