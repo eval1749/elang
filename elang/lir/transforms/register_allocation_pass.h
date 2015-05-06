@@ -23,15 +23,13 @@ class StackAssignments;
 //
 class ELANG_LIR_EXPORT RegisterAssignmentsPass final : public FunctionPass {
  public:
-  explicit RegisterAssignmentsPass(Editor* editor);
+  explicit RegisterAssignmentsPass(base::StringPiece name, Editor* editor);
   ~RegisterAssignmentsPass() final;
 
  private:
-  // Pass
-  base::StringPiece name() const final;
-
   Value AssignmentOf(Instruction* instr, Value operand) const;
-  // Function
+
+  // FunctionPass
   void RunOnFunction() final;
 
   void ProcessInstruction(Instruction* instr);

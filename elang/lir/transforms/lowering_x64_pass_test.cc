@@ -72,7 +72,7 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
     EXPECT_EQ("", Commit(&editor));                                       \
     ASSERT_EQ("", Validate(&editor));                                     \
                                                                           \
-    LoweringX64Pass(&editor).Run();                                       \
+    Run<LoweringX64Pass>(&editor);                                        \
     EXPECT_EQ(                                                            \
         "function1:\n"                                                    \
         "block1:\n"                                                       \
@@ -112,7 +112,7 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
     EXPECT_EQ("", Commit(&editor));                                       \
     ASSERT_EQ("", Validate(&editor));                                     \
                                                                           \
-    LoweringX64Pass(&editor).Run();                                       \
+    Run<LoweringX64Pass>(&editor);                                        \
     EXPECT_EQ(                                                            \
         "function1:\n"                                                    \
         "block1:\n"                                                       \
@@ -163,7 +163,7 @@ TEST_F(LirLoweringX64Test, DivInt) {
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
 
-  LoweringX64Pass(&editor).Run();
+  Run<LoweringX64Pass>(&editor);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -201,7 +201,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
   EXPECT_EQ("", Commit(&editor));
   ASSERT_EQ("", Validate(&editor));
 
-  LoweringX64Pass(&editor).Run();
+  Run<LoweringX64Pass>(&editor);
   EXPECT_EQ(
       "function1:\n"
       "block1:\n"
@@ -243,7 +243,7 @@ TEST_F(LirLoweringX64Test, MulInt) {
     EXPECT_EQ("", Commit(&editor));                                            \
     ASSERT_EQ("", Validate(&editor));                                          \
                                                                                \
-    LoweringX64Pass(&editor).Run();                                            \
+    Run<LoweringX64Pass>(&editor);                                             \
     EXPECT_EQ(                                                                 \
         "function1:\n"                                                         \
         "block1:\n"                                                            \

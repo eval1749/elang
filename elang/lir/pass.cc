@@ -20,8 +20,8 @@ Pass::~Pass() {
 }
 
 // FuncitonPass
-FunctionPass::FunctionPass(Editor* editor)
-    : Pass(editor->factory()), EditorUser(editor) {
+FunctionPass::FunctionPass(base::StringPiece name, Editor* editor)
+    : Pass(editor->factory()), EditorUser(editor), name_(name) {
 }
 
 FunctionPass::~FunctionPass() {
@@ -37,6 +37,10 @@ bool FunctionPass::Run() {
 }
 
 // api::Pass
+base::StringPiece FunctionPass::name() const {
+  return name_;
+}
+
 void FunctionPass::DumpAfterPass(const api::PassDumpContext& context) {
   TextFormatter formatter(editor()->factory()->literals(), context.ostream);
   formatter.FormatFunction(editor()->function());

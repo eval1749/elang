@@ -16,13 +16,10 @@ namespace lir {
 //
 class DumpFunctionPass : public FunctionPass {
  public:
-  explicit DumpFunctionPass(Editor* editor);
+  DumpFunctionPass(base::StringPiece name, Editor* editor);
   ~DumpFunctionPass() final;
 
  private:
-  // Pass
-  base::StringPiece name() const final;
-
   // FunctionPass
   void RunOnFunction() final;
 

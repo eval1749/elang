@@ -21,13 +21,10 @@ struct Value;
 //
 class ELANG_LIR_EXPORT RemoveCriticalEdgesPass final : public FunctionPass {
  public:
-  explicit RemoveCriticalEdgesPass(Editor* editor);
+  RemoveCriticalEdgesPass(base::StringPiece name, Editor* editor);
   ~RemoveCriticalEdgesPass();
 
  private:
-  // Pass
-  base::StringPiece name() const final;
-
   // FunctionPass
   void RunOnFunction() final;
 

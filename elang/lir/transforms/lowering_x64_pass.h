@@ -24,14 +24,11 @@ struct Value;
 class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
                                                public InstructionVisitor {
  public:
-  explicit LoweringX64Pass(Editor* editor);
+  LoweringX64Pass(base::StringPiece name, Editor* editor);
   ~LoweringX64Pass() final;
 
  private:
-  // Pass
-  base::StringPiece name() const final;
-
-  // Function
+  // FunctionPass
   void RunOnFunction() final;
 
   // Support functions

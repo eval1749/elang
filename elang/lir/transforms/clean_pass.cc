@@ -13,7 +13,8 @@
 namespace elang {
 namespace lir {
 
-CleanPass::CleanPass(Editor* editor) : FunctionPass(editor), changed_(false) {
+CleanPass::CleanPass(base::StringPiece name, Editor* editor)
+    : FunctionPass(name, editor), changed_(false) {
 }
 
 CleanPass::~CleanPass() {
@@ -129,11 +130,6 @@ void CleanPass::WillChangeControlFlow(base::StringPiece message,
                                       const Instruction* instr) {
   DVLOG(1) << "Before " << message << ": " << *instr;
   changed_ = true;
-}
-
-// Pass
-base::StringPiece CleanPass::name() const {
-  return "lir_clean";
 }
 
 // FunctionPass

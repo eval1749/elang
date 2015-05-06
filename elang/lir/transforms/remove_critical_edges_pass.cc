@@ -31,15 +31,12 @@ bool HasBackEdge(const OrderedList<BasicBlock*>& blocks, BasicBlock* block) {
 //
 // RemoveCriticalEdgesPass
 //
-RemoveCriticalEdgesPass::RemoveCriticalEdgesPass(Editor* editor)
-    : FunctionPass(editor) {
+RemoveCriticalEdgesPass::RemoveCriticalEdgesPass(base::StringPiece name,
+                                                 Editor* editor)
+    : FunctionPass(name, editor) {
 }
 
 RemoveCriticalEdgesPass::~RemoveCriticalEdgesPass() {
-}
-
-base::StringPiece RemoveCriticalEdgesPass::name() const {
-  return "remove_critical_edges";
 }
 
 // Removes critical edges

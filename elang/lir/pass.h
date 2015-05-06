@@ -47,15 +47,18 @@ class ELANG_LIR_EXPORT FunctionPass : public Pass, public EditorUser {
   bool Run() final;
 
  protected:
-  explicit FunctionPass(Editor* editor);
+  FunctionPass(base::StringPiece name, Editor* editor);
 
   virtual void RunOnFunction() = 0;
 
   // api::Pass
+  base::StringPiece name() const override;
   void DumpAfterPass(const api::PassDumpContext& context) override;
   void DumpBeforePass(const api::PassDumpContext& context) override;
 
  private:
+  const base::StringPiece name_;
+
   DISALLOW_COPY_AND_ASSIGN(FunctionPass);
 };
 

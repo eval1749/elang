@@ -51,8 +51,7 @@ class LirTest : public ::testing::Test,
   // Note: |::testing::Test| also defines |Run<T>()|.
   template <typename Pass>
   void Run(Editor* editor) {
-    Pass pass(editor);
-    pass.Run();
+    Pass("test", editor).Run();
   }
 
   // Samples

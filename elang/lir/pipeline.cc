@@ -22,7 +22,7 @@ namespace {
 
 template <typename Pass>
 bool RunPass(base::StringPiece name, Editor* editor) {
-  return Pass(editor).Run();
+  return Pass(name, editor).Run();
 }
 
 typedef bool PassEntry(base::StringPiece name, Editor* editor);

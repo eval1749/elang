@@ -16,14 +16,11 @@ namespace lir {
 //
 // DumpDumpFunctionPass
 //
-DumpFunctionPass::DumpFunctionPass(Editor* editor) : FunctionPass(editor) {
+DumpFunctionPass::DumpFunctionPass(base::StringPiece name, Editor* editor)
+    : FunctionPass(name, editor) {
 }
 
 DumpFunctionPass::~DumpFunctionPass() {
-}
-
-base::StringPiece DumpFunctionPass::name() const {
-  return "dump_function";
 }
 
 void DumpFunctionPass::RunOnFunction() {

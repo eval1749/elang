@@ -29,17 +29,14 @@ bool IsUselessInstruction(const Instruction* instr) {
 //
 // RegisterAssignmentsPass
 //
-RegisterAssignmentsPass::RegisterAssignmentsPass(Editor* editor)
-    : FunctionPass(editor),
+RegisterAssignmentsPass::RegisterAssignmentsPass(base::StringPiece name,
+                                                 Editor* editor)
+    : FunctionPass(name, editor),
       register_assignments_(new RegisterAssignments()),
       stack_assignments_(new StackAssignments()) {
 }
 
 RegisterAssignmentsPass::~RegisterAssignmentsPass() {
-}
-
-base::StringPiece RegisterAssignmentsPass::name() const {
-  return "register_allocation";
 }
 
 Value RegisterAssignmentsPass::AssignmentOf(Instruction* instr,

@@ -14,14 +14,11 @@
 namespace elang {
 namespace lir {
 
-LoweringX64Pass::LoweringX64Pass(Editor* editor) : FunctionPass(editor) {
+LoweringX64Pass::LoweringX64Pass(base::StringPiece name, Editor* editor)
+    : FunctionPass(name, editor) {
 }
 
 LoweringX64Pass::~LoweringX64Pass() {
-}
-
-base::StringPiece LoweringX64Pass::name() const {
-  return "lowering_x64";
 }
 
 Value LoweringX64Pass::GetRAX(Value type) {

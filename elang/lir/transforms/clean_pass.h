@@ -30,7 +30,7 @@ class Editor;
 //
 class ELANG_LIR_EXPORT CleanPass final : public FunctionPass {
  public:
-  explicit CleanPass(Editor* editor);
+  CleanPass(base::StringPiece name, Editor* editor);
   ~CleanPass() final;
 
  private:
@@ -41,9 +41,6 @@ class ELANG_LIR_EXPORT CleanPass final : public FunctionPass {
                             const Instruction* instr);
   void WillChangeControlFlow(base::StringPiece message,
                              const Instruction* instr);
-
-  // Pass
-  base::StringPiece name() const final;
 
   // FunctionPas
   void RunOnFunction() final;
