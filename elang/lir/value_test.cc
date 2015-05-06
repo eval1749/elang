@@ -33,10 +33,10 @@ std::string LirValueTest::ToString(Value value) {
   return ostream.str();
 }
 
-// Test cases...
-
 TEST_F(LirValueTest, Basic) {
   EXPECT_EQ(Value(), Value());
+  EXPECT_EQ(Value(), Value::Void());
+  EXPECT_EQ(Value::Void(), Value::Void());
   auto const value1 = Value(Value::Type::Integer, ValueSize::Size32,
                             Value::Kind::Immediate, 42);
   auto const value2 = Value(Value::Type::Integer, ValueSize::Size32,

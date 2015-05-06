@@ -53,14 +53,14 @@ class LirParallelCopyExpanderTest : public testing::LirTest {
 
 void LirParallelCopyExpanderTest::Expand(const std::vector<Task>& tasks,
                                          base::StringPiece expected) {
-  ExpandWithScratch2(tasks, Value(), Value(), expected);
+  ExpandWithScratch2(tasks, Value::Void(), Value::Void(), expected);
 }
 
 void LirParallelCopyExpanderTest::ExpandWithScratch(
     const std::vector<Task>& tasks,
     Value scratch1,
     base::StringPiece expected) {
-  ExpandWithScratch2(tasks, scratch1, Value(), expected);
+  ExpandWithScratch2(tasks, scratch1, Value::Void(), expected);
 }
 
 void LirParallelCopyExpanderTest::ExpandWithScratch2(

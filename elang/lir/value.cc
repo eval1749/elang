@@ -10,6 +10,14 @@
 namespace elang {
 namespace lir {
 
+Value::Value(Type type, ValueSize size, Kind kind, int data)
+    : type(type), size(size), kind(kind), data(data) {
+}
+
+Value::Value()
+    : Value(Type::Integer, ValueSize::Size0, Kind::Void, 0) {
+}
+
 bool Value::is_memory_proxy() const {
   return is_argument() || is_parameter() || is_spill_slot();
 }
@@ -139,6 +147,10 @@ Value Value::True() {
 
 Value Value::TypeOf(Value value) {
   return Value(value.type, value.size, Kind::Void, 0);
+}
+
+Value Value::Void() {
+  return Value();
 }
 
 Value Value::VoidType() {

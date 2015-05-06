@@ -30,8 +30,8 @@ RegisterAssignments::Editor::Editor(RegisterAssignments* assignments)
 RegisterAssignments::Editor::~Editor() {
 }
 
-const ZoneUnorderedMap<Value, Value>&
-RegisterAssignments::Editor::proxy_map() const {
+const ZoneUnorderedMap<Value, Value>& RegisterAssignments::Editor::proxy_map()
+    const {
   return assignments_->proxy_map_;
 }
 
@@ -130,7 +130,7 @@ const ZoneVector<Instruction*>& RegisterAssignments::BeforeActionOf(
 Value RegisterAssignments::SpillSlotFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
   auto const it = proxy_map_.find(vreg);
-  return it == proxy_map_.end() ? Value() : it->second;
+  return it == proxy_map_.end() ? Value::Void() : it->second;
 }
 
 }  // namespace lir

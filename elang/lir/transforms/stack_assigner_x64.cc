@@ -68,7 +68,7 @@ void StackAssigner::RunForLeafFunction() {
       if (proxy.is_spill_slot())
         return Value::StackSlot(proxy, proxy.data);
       NOTREACHED() << proxy << " isn't memory proxy.";
-      return Value();
+      return Value::Void();
     }
   } mapper(size);
 
@@ -173,7 +173,7 @@ void StackAssigner::RunForNonLeafFunction() {
       if (proxy.is_spill_slot())
         return Value::FrameSlot(proxy, proxy.data);
       NOTREACHED() << proxy << " isn't memory proxy.";
-      return Value();
+      return Value::Void();
     }
   } mapper(local_size, base_offset);
 

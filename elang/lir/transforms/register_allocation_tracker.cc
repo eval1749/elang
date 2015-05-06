@@ -98,7 +98,7 @@ void RegisterAllocationTracker::InsertBefore(Instruction* new_instr,
 Value RegisterAllocationTracker::PhysicalFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
   auto const it = physical_map_.find(vreg);
-  return it == physical_map_.end() ? Value() : it->second;
+  return it == physical_map_.end() ? Value::Void() : it->second;
 }
 
 void RegisterAllocationTracker::SetAllocation(Instruction* instr,
@@ -181,7 +181,7 @@ Value RegisterAllocationTracker::VirtualFor(Value physical) const {
     if (EqualsIgnoringSize(pair.second, physical))
       return pair.first;
   }
-  return Value();
+  return Value::Void();
 }
 
 }  // namespace lir

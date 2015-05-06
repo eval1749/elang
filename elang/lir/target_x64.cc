@@ -98,13 +98,7 @@ std::ostream& operator<<(std::ostream& ostream,
       "R15",
   };
   static const char* const sizes[8] = {
-    "8",
-    "16",
-    "32",
-    "64",
-    "?5",
-    "?6",
-    "0",
+      "8", "16", "32", "64", "?5", "?6", "0",
   };
   auto const value = printable.value;
   switch (value.kind) {
@@ -320,7 +314,7 @@ Value Target::ReturnAt(Value type, size_t position) {
   if (type.is_float64())
     return GetRegister(isa::XMM0D);
   NOTREACHED() << "Return values must be numeric promoted: " << type;
-  return Value();
+  return Value::Void();
 }
 
 }  // namespace lir

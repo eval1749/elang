@@ -53,7 +53,7 @@ StackAllocator::~StackAllocator() {
 Value StackAllocator::AllocationFor(Value vreg) const {
   DCHECK(vreg.is_virtual());
   auto const it = slot_map_.find(vreg);
-  return it == slot_map_.end() ? Value() : it->second->proxy;
+  return it == slot_map_.end() ? Value::Void() : it->second->proxy;
 }
 
 Value StackAllocator::Allocate(Value vreg) {

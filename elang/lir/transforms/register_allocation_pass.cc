@@ -49,7 +49,7 @@ Value RegisterAssignmentsPass::AssignmentOf(Instruction* instr,
   if (assignment.is_spill_slot())
     return stack_assignments_->StackSlotOf(operand);
   NOTREACHED() << "unexpected assignment for " << operand << " " << assignment;
-  return Value();
+  return Value::Void();
 }
 
 void RegisterAssignmentsPass::RunOnFunction() {

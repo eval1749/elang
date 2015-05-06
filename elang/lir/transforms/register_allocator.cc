@@ -141,30 +141,30 @@ Value RegisterAllocator::AllocationOf(Value value) const {
 //  copy %5 = %tmp2
 Value RegisterAllocator::AssignedPhysicalFor(Instruction* instr) {
   if (instr->CountOutputs() != 1 || instr->CountInputs() != 2)
-    return Value();
+    return Value::Void();
   auto const previous = instr->previous();
   if (!previous || !previous->is<CopyInstruction>())
-    return Value();
+    return Value::Void();
   auto const next = instr->next();
   if (!next->is<CopyInstruction>())
-    return Value();
+    return Value::Void();
 
   auto const previous_output = previous->output(0);
   auto const output = instr->output(0);
   auto const next_output = next->output(0);
 
   if (Value::TypeOf(previous_output) != Value::TypeOf(output))
-    return Value();
+    return Value::Void();
   if (Value::TypeOf(next_output) != Value::TypeOf(next_output))
-    return Value();
+    return Value::Void();
 
   if (instr->input(0) != previous_output || next->input(0) != output)
-    return Value();
+    return Value::Void();
 
   if (usage_tracker_->NextUseAfter(previous_output, instr))
-    return Value();
+    return Value::Void();
   if (usage_tracker_->NextUseAfter(output, next))
-    return Value();
+    return Value::Void();
 
   auto const physical =
       allocation_tracker_->AllocationOf(previous, previous_output);
@@ -185,7 +185,7 @@ Value RegisterAllocator::CalleeSavedRegisterFor(Value vreg) const {
     if (VirtualFor(physical).is_void())
       return physical;
   }
-  return Value();
+  return Value::Void();
 }
 
 // Returns farthest used virtual register which types is |type| or farthest

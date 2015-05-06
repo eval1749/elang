@@ -76,14 +76,8 @@ struct ELANG_LIR_EXPORT Value {
   Kind kind : 4;
   int data : 24;
 
-  Value()
-      : type(Type::Integer),
-        size(ValueSize::Size0),
-        kind(Kind::Void),
-        data(0) {}
-
-  Value(Type type, ValueSize size, Kind kind, int data)
-      : type(type), size(size), kind(kind), data(data) {}
+  Value(Type type, ValueSize size, Kind kind, int data);
+  Value();
 
   // predicates for |ValueSize|
   bool is_8bit() const { return size == ValueSize::Size8; }
@@ -154,6 +148,7 @@ struct ELANG_LIR_EXPORT Value {
   static Value SmallInt64(int data);
   static Value SmallInt8(int data);
   static Value True();
+  static Value Void();
   static Value VoidType();
 
  private:

@@ -127,7 +127,7 @@ void ParallelCopyExpander::AddScratch(Value scratch) {
   DCHECK(HasTasks()) << "Please add a task before adding scratch register.";
   DCHECK(scratch.is_physical());
   DCHECK_EQ(scratch.type, type_.type);
-  tasks_.push_back({scratch, Value()});
+  tasks_.push_back({scratch, Value::Void()});
 }
 
 void ParallelCopyExpander::AddTask(Value output, Value input) {
@@ -472,7 +472,7 @@ void ParallelCopyExpander::PrintTo(std::ostream* ostream) const {
 
 Value ParallelCopyExpander::TakeScratch(Value source) {
   if (scratches_.empty())
-    return Value();
+    return Value::Void();
   auto const scratch = scratches_.back();
   DCHECK(scratch.is_physical());
   MustEmitCopy(scratch, source);
