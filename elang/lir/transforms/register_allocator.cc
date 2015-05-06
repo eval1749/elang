@@ -176,6 +176,18 @@ Value RegisterAllocator::AssignedPhysicalFor(Instruction* instr) {
   return physical;
 }
 
+Value RegisterAllocator::CalleeSavedRegisterFor(Value vreg) const {
+  DCHECK(vreg.is_virtual()) << vreg;
+  for (auto const natural : AllocatableRegistersFor(vreg)) {
+    auto const physical = AdjustSize(vreg, natural);
+    if (!Target::IsCalleeSavedRegister(physical))
+      continue;
+    if (VirtualFor(physical).is_void())
+      return physical;
+  }
+  return Value();
+}
+
 // Returns farthest used virtual register which types is |type| or farthest
 // used virtual register.
 Value RegisterAllocator::ChooseRegisterToSpill(Instruction* instr,
@@ -272,9 +284,14 @@ void RegisterAllocator::MustAllocate(Instruction* instr,
                     << output;
 }
 
-Instruction* RegisterAllocator::NewSpill(Value spill_slot, Value physical) {
-  DCHECK(physical.is_physical());
-  DCHECK(spill_slot.is_memory_proxy());
+Instruction* RegisterAllocator::NewSpill(Instruction* instr,
+                                         Value vreg,
+                                         Value physical) {
+  DCHECK(vreg.is_virtual()) << vreg;
+  DCHECK(physical.is_physical()) << physical;
+  auto const spill_slot = EnsureSpillSlot(vreg);
+  DCHECK(spill_slot.is_memory_proxy()) << spill_slot;
+  allocation_tracker_->SetAllocation(instr, vreg, spill_slot);
   return factory()->NewCopyInstruction(spill_slot, physical);
 }
 
@@ -439,7 +456,8 @@ void RegisterAllocator::ProcessOutputOperands(Instruction* instr) {
 
 void RegisterAllocator::ProcessPhiInputOperands(BasicBlock* block,
                                                 BasicBlock* predecessor) {
-  DCHECK(predecessor->last_instruction()->is<JumpInstruction>());
+  DCHECK(predecessor->last_instruction()->is<JumpInstruction>())
+      << *predecessor->last_instruction();
   DCHECK_EQ(predecessor->successors().size(), 1u);
   if (block->phi_instructions().empty())
     return;
@@ -507,7 +525,7 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
       continue;
 
     auto const spill_slot = EnsureSpillSlot(output);
-    DCHECK(spill_slot.is_memory_proxy());
+    DCHECK(spill_slot.is_memory_proxy()) << spill_slot;
     allocation_tracker_->SetAllocation(phi, output, spill_slot);
   }
 }
@@ -517,16 +535,20 @@ void RegisterAllocator::ProcessPhiOutputOperands(BasicBlock* block) {
 void RegisterAllocator::ProcessPredecessors(BasicBlock* block) {
   if (block->phi_instructions().empty() && !HasBackEdge(block))
     return;
+  DVLOG(2) << "ProcessPredecessors " << block;
   allocation_tracker_->StartBlock(block);
   PopulateAllocationMap(block);
 
   // Adjust live-in registers
   for (auto const predecessor : block->predecessors()) {
-    DCHECK(predecessor->last_instruction()->is<JumpInstruction>());
+    DVLOG(2) << "predecessor " << predecessor;
+    DCHECK(predecessor->last_instruction()->is<JumpInstruction>())
+        << predecessor->last_instruction();
     for (auto const pair : allocation_tracker_->physical_map()) {
       auto const vreg = pair.first;
       auto const physical = pair.second;
       auto assignment = allocation_tracker_->AllocationOf(predecessor, vreg);
+      DVLOG(2) << "  " << vreg << " " << physical << " " << assignment;
       if (assignment == physical)
         continue;
       allocation_tracker_->InsertBefore(
@@ -565,30 +587,40 @@ void RegisterAllocator::SortAllocatableRegisters() {
             CompareRegisterInNonLeaf);
 }
 
+// Spill virtual register |victim| at |instr|, we insert spill instruction
+// before |instr|.
 Value RegisterAllocator::Spill(Instruction* instr, Value victim) {
   DCHECK(victim.is_virtual()) << "Failed to choose spill victim for " << *instr;
   auto const physical = PhysicalFor(victim);
   DCHECK(physical.is_physical());
   allocation_tracker_->FreePhysical(physical);
-  allocation_tracker_->InsertBefore(NewSpill(victim, physical), instr);
+  auto const spill_instr = NewSpill(instr, victim, physical);
+  allocation_tracker_->InsertBefore(spill_instr, instr);
   return physical;
 }
 
 Value RegisterAllocator::SpillSlotFor(Value vreg) const {
+  DCHECK(vreg.is_virtual()) << vreg;
   return allocation_tracker_->SpillSlotFor(vreg);
 }
 
+// Allocates |physical| to |vreg| for using |instr| and allocate a stack slot
+// for |physical| if it is callee saved regsiter.
 bool RegisterAllocator::TryAllocate(Instruction* instr,
                                     Value vreg,
                                     Value physical) {
-  DCHECK(vreg.is_virtual());
-  DCHECK(physical.is_physical());
+  DCHECK(vreg.is_virtual()) << vreg;
+  DCHECK(physical.is_physical()) << physical;
   if (!allocation_tracker_->TryAllocate(instr, vreg, physical))
     return false;
   if (!Target::IsCalleeSavedRegister(physical))
     return true;
   stack_allocator_->AllocateForPreserving(physical);
   return true;
+}
+
+Value RegisterAllocator::VirtualFor(Value physical) const {
+  return allocation_tracker_->VirtualFor(physical);
 }
 
 // InstructionVisitor
@@ -606,17 +638,34 @@ void RegisterAllocator::DoDefaultVisit(Instruction* instr) {
 // Save live physical registers allocated caller saved registers.
 void RegisterAllocator::VisitCall(CallInstruction* instr) {
   stack_allocator_->TrackCall(instr);
-  std::vector<Instruction*> save_actions;
-  for (auto const virtual_physical : allocation_tracker_->physical_map()) {
-    auto const physical = virtual_physical.second;
-    if (!Target::IsCallerSavedRegister(physical))
+  std::vector<std::pair<Value, Value>> lives;
+  for (auto const pair : allocation_tracker_->physical_map()) {
+    if (!Target::IsCallerSavedRegister(pair.second))
       continue;
-    auto const vreg = virtual_physical.first;
-    save_actions.push_back(NewSpill(vreg, physical));
+    DVLOG(2) << "live " << pair << " after " << *instr;
+    lives.push_back(pair);
   }
-  for (auto const save_action : save_actions) {
-    allocation_tracker_->FreePhysical(save_action->input(0));
-    allocation_tracker_->InsertBefore(save_action, instr);
+
+  for (auto const pair : lives) {
+    auto const vreg = pair.first;
+    auto const physical = pair.second;
+    if (!SpillSlotFor(vreg).is_void())
+      continue;
+    allocation_tracker_->FreePhysical(physical);
+    auto const another = CalleeSavedRegisterFor(vreg);
+    if (another.is_physical()) {
+      DCHECK(Target::IsCalleeSavedRegister(another)) << another;
+      allocation_tracker_->TrackPhysical(vreg, another);
+      allocation_tracker_->SetAllocation(instr, vreg, another);
+      auto const save = factory()->NewCopyInstruction(another, physical);
+      DVLOG(2) << "save " << *save;
+      allocation_tracker_->InsertBefore(save, instr);
+      continue;
+    }
+    auto const spill_slot = SpillSlotFor(vreg);
+    auto const spill = NewSpill(instr, spill_slot, physical);
+    DVLOG(2) << "spill " << *spill;
+    allocation_tracker_->InsertBefore(spill, instr);
   }
 }
 
@@ -628,7 +677,7 @@ void RegisterAllocator::VisitCopy(CopyInstruction* instr) {
   auto const output = instr->output(0);
   if (output.is_physical())
     return;
-  DCHECK(output.is_virtual());
+  DCHECK(output.is_virtual()) << output;
   if (physical.is_physical() && PhysicalFor(input).is_void()) {
 #if 0
     auto const next_use = usage_tracker_->NextUseAfter(output, instr);

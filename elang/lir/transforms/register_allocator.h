@@ -59,7 +59,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   RegisterAllocator(Editor* editor,
                     RegisterAssignments* register_assignments,
                     StackAssignments* stack_assignments);
-  ~RegisterAllocator();
+  ~RegisterAllocator() final;
 
   // The entry point
   void Run();
@@ -76,6 +76,9 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Returns physical register of if 'assign' instruction just before |instr|,
   // otherwise returns void.
   Value AssignedPhysicalFor(Instruction* instr);
+  // Returns callee save register for |vreg| if available otherwise returns
+  // void.
+  Value CalleeSavedRegisterFor(Value vreg) const;
   Value EnsureSpillSlot(Value vreg);
   void ExpandParallelCopy(const std::vector<ValuePair>& pairs,
                           Instruction* ref_instr);
@@ -106,7 +109,7 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Spill physical register allocated to virtual register |victim| before
   // |instruction|.
   Value Spill(Instruction* instruction, Value victim);
-  Instruction* NewSpill(Value spill_slot, Value physical);
+  Instruction* NewSpill(Instruction* instr, Value spill_slot, Value physical);
 
   ////////////////////////////////////////////////////////////
   //
@@ -117,13 +120,13 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // if |value| isn't a virtual register.
   Value AllocationOf(Value value) const;
 
-  // Returns allocated physical register for |virtual_register|, or void if
-  // not allocated.
-  Value PhysicalFor(Value value) const;
+  // Returns allocated physical register for |vreg|, or void if not allocated.
+  Value PhysicalFor(Value vreg) const;
 
-  // Returns allocated stack slot for |virtual_register|, or void if not
-  // allocated.
-  Value SpillSlotFor(Value virtual_register) const;
+  // Returns allocated stack slot for |vreg|, or void if not allocated.
+  Value SpillSlotFor(Value vreg) const;
+
+  Value VirtualFor(Value physical) const;
 
   // InstructionVisitor
   void DoDefaultVisit(Instruction* instruction);
