@@ -73,6 +73,11 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
   // Returns list of all allocatable natural registers for |type|. Returned list
   // contains both allocated and free registers.
   const std::vector<Value>& AllocatableRegistersFor(Value type) const;
+
+  // Returns list of preferred registers for |vreg| at |instr|.
+  const std::vector<Value>& PreferredRegistersOf(Instruction* instr,
+                                                 Value vreg) const;
+
   // Returns physical register of if 'assign' instruction just before |instr|,
   // otherwise returns void.
   Value AssignedPhysicalFor(Instruction* instr);
@@ -141,7 +146,9 @@ class ELANG_LIR_EXPORT RegisterAllocator final : public InstructionVisitor {
 
   // Allocatable registers ordered by less spilling heuristics.
   std::vector<Value> float_registers_;
+  std::vector<Value> float_short_registers_;
   std::vector<Value> general_registers_;
+  std::vector<Value> general_short_registers_;
 
   // Local allocation map
   LocalAllocation* local_map_;

@@ -112,6 +112,28 @@ RegisterAllocator::RegisterAllocator(Editor* editor,
                                       stack_allocator_.get(),
                                       usage_tracker_.get())) {
   SortAllocatableRegisters();
+
+  for (auto const physical : float_registers_) {
+    if (!Target::IsCallerSavedRegister(physical))
+      continue;
+    float_short_registers_.push_back(physical);
+  }
+  for (auto const physical : float_registers_) {
+    if (Target::IsCallerSavedRegister(physical))
+      continue;
+    float_short_registers_.push_back(physical);
+  }
+
+  for (auto const physical : general_registers_) {
+    if (!Target::IsCallerSavedRegister(physical))
+      continue;
+    general_short_registers_.push_back(physical);
+  }
+  for (auto const physical : general_registers_) {
+    if (Target::IsCallerSavedRegister(physical))
+      continue;
+    general_short_registers_.push_back(physical);
+  }
 }
 
 RegisterAllocator::~RegisterAllocator() {
@@ -353,6 +375,24 @@ void RegisterAllocator::ProcessBlock(BasicBlock* block) {
   allocation_tracker_->EndBlock(block);
 }
 
+// For short live register, we would like to allocate callee saved register.
+const std::vector<Value>& RegisterAllocator::PreferredRegistersOf(
+    Instruction* instr,
+    Value vreg) const {
+  // TODO(eval1749) We should compute preferred registers for each virtual
+  // register before |RegisterAllocator|.
+  auto const next_user = usage_tracker_->NextUseAfter(vreg, instr);
+  if (!next_user)
+    return AllocatableRegistersFor(vreg);
+  if (usage_tracker_->IsUsedAfter(vreg, next_user))
+    return AllocatableRegistersFor(vreg);
+  for (auto runner = instr; runner != next_user; runner = runner->next()) {
+    if (runner->is<CallInstruction>())
+      return AllocatableRegistersFor(vreg);
+  }
+  return vreg.is_float() ? float_short_registers_ : general_short_registers_;
+}
+
 void RegisterAllocator::ProcessInputOperand(Instruction* instr,
                                             Value input,
                                             int position) {
@@ -429,7 +469,7 @@ void RegisterAllocator::ProcessOutputOperand(Instruction* instr, Value output) {
       }
     }
   }
-  for (auto const natural : AllocatableRegistersFor(output)) {
+  for (auto const natural : PreferredRegistersOf(instr, output)) {
     auto const physical = AdjustSize(output, natural);
     if (TryAllocate(instr, output, physical))
       return;
