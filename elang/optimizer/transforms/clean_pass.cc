@@ -66,15 +66,6 @@ bool IsEmptyBlock(const Node* last_node) {
   return !merge_node->effect_phi() && merge_node->phi_nodes().empty();
 }
 
-// Returns true if a block is empty and ends with |IfNode|.
-bool CanHoistBranch(const Node* first_node) {
-  DCHECK(first_node->IsBlockStart()) << *first_node;
-  auto const last_node = first_node->SelectUserIfOne();
-  if (!last_node || !last_node->IsBlockEnd())
-    return false;
-  return last_node->opcode() == Opcode::If && IsEmptyBlock(last_node);
-}
-
 }  // namespace
 
 CleanPass::CleanPass(Editor* editor)
