@@ -239,7 +239,7 @@ Value Target::GetRegister(isa::Register name) {
 
 // We can use |MOV r/m, imm32| instruction.
 bool Target::HasCopyImmediateToMemory(Value value) {
-  if (value.type == Value::Type::Float)
+  if (value.is_float())
     return false;
   // TODO(eval1749) We should check literal map whether value is 32-bit integer
   // or not.
@@ -250,7 +250,7 @@ bool Target::HasCopyImmediateToMemory(Value value) {
 // Note: We should not use |XCHG| with memory operand, since is is slow and
 // locks memory.
 bool Target::HasSwapInstruction(Value value) {
-  return value.type == Value::Type::Integer;
+  return value.is_integer();
 }
 
 bool Target::HasXorInstruction(Value value) {
@@ -264,7 +264,7 @@ Value Target::IntPtrType() {
 bool Target::IsCalleeSavedRegister(Value value) {
   DCHECK(value.is_physical());
   auto const mask = 1 << (value.data & 15);
-  if (value.type == Value::Type::Float)
+  if (value.is_float())
     return (isa::kFloatCalleeSavedRegisters & mask) != 0;
   return (isa::kGeneralCalleeSavedRegisters & mask) != 0;
 }
@@ -272,7 +272,7 @@ bool Target::IsCalleeSavedRegister(Value value) {
 bool Target::IsCallerSavedRegister(Value value) {
   DCHECK(value.is_physical());
   auto const mask = 1 << (value.data & 15);
-  if (value.type == Value::Type::Float)
+  if (value.is_float())
     return (isa::kFloatCallerSavedRegisters & mask) != 0;
   return (isa::kGeneralCallerSavedRegisters & mask) != 0;
 }
@@ -280,7 +280,7 @@ bool Target::IsCallerSavedRegister(Value value) {
 bool Target::IsParameterRegister(Value value) {
   DCHECK(value.is_physical());
   auto const mask = 1 << (value.data & 15);
-  if (value.type == Value::Type::Float)
+  if (value.is_float())
     return (isa::kFloatParameterRegisters & mask) != 0;
   return (isa::kGeneralParameterRegisters & mask) != 0;
 }

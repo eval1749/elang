@@ -142,13 +142,13 @@ Value Factory::NewFloat64Value(float64_t data) {
 }
 
 Value Factory::NewRegister(Value type) {
-  if (type.type == Value::Type::Float)
+  if (type.is_float())
     return Value::Register(type, ++last_float_register_id_);
   return Value::Register(type, ++last_general_register_id_);
 }
 
 Value Factory::NewIntValue(Value type, int64_t data) {
-  DCHECK_EQ(Value::Type::Integer, type.type);
+  DCHECK(type.is_integer());
   auto const size = type.size;
   if (type.is_8bit() || type.is_16bit() || Value::CanBeImmediate(data)) {
     return Value::Immediate(size, data);

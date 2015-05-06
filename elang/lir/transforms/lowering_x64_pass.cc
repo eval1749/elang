@@ -22,12 +22,12 @@ LoweringX64Pass::~LoweringX64Pass() {
 }
 
 Value LoweringX64Pass::GetRAX(Value type) {
-  DCHECK_EQ(type.type, Value::Type::Integer);
+  DCHECK(type.is_integer());
   return Target::GetRegister(type.is_64bit() ? isa::RAX : isa::EAX);
 }
 
 Value LoweringX64Pass::GetRDX(Value type) {
-  DCHECK_EQ(type.type, Value::Type::Integer);
+  DCHECK(type.is_integer());
   return Target::GetRegister(type.is_64bit() ? isa::RDX : isa::EDX);
 }
 

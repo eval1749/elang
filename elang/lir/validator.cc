@@ -286,9 +286,9 @@ void Validator::VisitDiv(DivInstruction* instr) {
 void Validator::VisitExtend(ExtendInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
-  if (output.type != Value::Type::Float)
+  if (!output.is_float())
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
-  if (input.type != Value::Type::Float)
+  if (!input.is_float())
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
@@ -362,9 +362,9 @@ void Validator::VisitSignedConvert(SignedConvertInstruction* instr) {
 void Validator::VisitSignExtend(SignExtendInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
-  if (output.type != Value::Type::Integer)
+  if (!output.is_integer())
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
-  if (input.type != Value::Type::Integer)
+  if (!input.is_integer())
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
@@ -398,9 +398,9 @@ void Validator::VisitUnsignedConvert(UnsignedConvertInstruction* instr) {
 void Validator::VisitZeroExtend(ZeroExtendInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
-  if (output.type != Value::Type::Integer)
+  if (!output.is_integer())
     Error(ErrorCode::ValidateInstructionOutputType, instr, 0);
-  if (input.type != Value::Type::Integer)
+  if (!input.is_integer())
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
   if (Value::SizeOf(output) <= Value::SizeOf(input))
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);

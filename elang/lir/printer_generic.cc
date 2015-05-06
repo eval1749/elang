@@ -59,7 +59,7 @@ std::ostream& operator<<(std::ostream& ostream,
       ostream << "param[" << value.data << "]";
       break;
     case Value::Kind::PhysicalRegister:
-      ostream << (value.type == Value::Type::Float ? "f" : "r") << value.data;
+      ostream << (value.is_float() ? "f" : "r") << value.data;
       break;
     case Value::Kind::SpillSlot:
       ostream << "$" << TypeStringOf(value) << value.data;
@@ -68,7 +68,7 @@ std::ostream& operator<<(std::ostream& ostream,
       ostream << "sp[" << value.data << "]";
       break;
     case Value::Kind::VirtualRegister:
-      ostream << (value.type == Value::Type::Float ? "%f" : "%r") << value.data;
+      ostream << (value.is_float() ? "%f" : "%r") << value.data;
       break;
     case Value::Kind::Void:
       return ostream << "void";
