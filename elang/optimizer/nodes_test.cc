@@ -362,6 +362,16 @@ TEST_F(NodesTest, SizeOfNode) {
   EXPECT_EQ("sizeof(intptr)", ToString(node));
 }
 
+TEST_F(NodesTest, StoreNode) {
+  auto const function =
+      NewSampleFunction(void_type(), NewPointerType(char_type()));
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+  auto const param = NewParameter(entry_node, 0);
+  auto const node = NewStore(effect, param, param, NewChar('a'));
+  EXPECT_EQ("effect %e6 = store(%e4, %r5, %r5, 'a')", ToString(node));
+}
+
 TEST_F(NodesTest, StaticCastNode) {
   auto const function = NewSampleFunction(void_type(), int32_type());
   auto const entry_node = function->entry_node();

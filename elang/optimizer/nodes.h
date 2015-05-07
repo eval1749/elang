@@ -964,19 +964,6 @@ class ELANG_OPTIMIZER_EXPORT SizeOfNode final
 
 //////////////////////////////////////////////////////////////////////
 //
-// StoreNode - effect %new_effect = store %effect, %base, %pointer, %value
-//
-class ELANG_OPTIMIZER_EXPORT StoreNode final : public NodeTemplate<4, Effect> {
-  DECLARE_OPTIMIZER_NODE_CONCRETE_CLASS(StoreNode, Effect);
-
- private:
-  StoreNode(Type* effect_type, Node* input, size_t field);
-
-  DISALLOW_COPY_AND_ASSIGN(StoreNode);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // VoidNode
 //
 class ELANG_OPTIMIZER_EXPORT VoidNode final : public NodeTemplate<0, Literal> {

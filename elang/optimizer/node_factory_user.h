@@ -83,10 +83,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactoryUser {
                    Effect* effect,
                    Data* callee,
                    Node* arguments);
-  Effect* NewStore(Effect* effect,
-                   Node* base_pointer,
-                   Node* pointer,
-                   Node* value);
+  Effect* NewStore(Effect* effect, Data* anchor, Data* pointer, Data* value);
 
   // Variable inputs
   Control* NewCase(Control* control, Data* label);

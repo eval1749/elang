@@ -84,7 +84,9 @@ namespace optimizer {
   V(Load, "load", Data)                              \
   V(Ret, "ret", Control)
 
-#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) V(Call, "call", Control)
+#define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_4(V) \
+  V(Call, "call", Control)                           \
+  V(Store, "store", Effect)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_V(V) \
   V(Case, "case", Control)                           \
@@ -104,7 +106,6 @@ namespace optimizer {
   V(Phi, "phi", Data)                         \
   V(Reference, "ref", Literal)                \
   V(SizeOf, "sizeof", Literal)                \
-  V(Store, "store", Literal)                  \
   V(Void, "void", Literal)
 
 // List of concrete C++ classes representing IR node.

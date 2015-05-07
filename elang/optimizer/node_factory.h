@@ -88,10 +88,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
                    Effect* effect,
                    Data* callee,
                    Node* arguments);
-  Effect* NewStore(Effect* effect,
-                   Data* base_pointer,
-                   Data* pointer,
-                   Data* value);
+  Effect* NewStore(Effect* effect, Data* anchor, Data* pointer, Data* value);
 
   // Variadic inputs
   Data* NewCase(Control* control, Data* label_value);

@@ -619,6 +619,16 @@ Data* NodeFactory::NewString(base::StringPiece16 data) {
   return node_cache_->NewString(string_type(), data);
 }
 
+Effect* NodeFactory::NewStore(Effect* effect,
+                              Data* anchor,
+                              Data* pointer,
+                              Data* value) {
+  auto const node =
+      new (zone()) StoreNode(effect_type(), effect, anchor, pointer, value);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Tuple* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
   std::vector<Type*> types(inputs.size());
   types.resize(0);

@@ -134,6 +134,13 @@ Data* NodeFactoryUser::NewStaticCast(Type* output_type, Data* input) {
   return node_factory_->NewStaticCast(output_type, input);
 }
 
+Effect* NodeFactoryUser::NewStore(Effect* effect,
+                                  Data* anchor,
+                                  Data* pointer,
+                                  Data* new_value) {
+  return node_factory_->NewStore(effect, anchor, pointer, new_value);
+}
+
 Tuple* NodeFactoryUser::NewTuple(const std::vector<Node*>& inputs) {
   return node_factory_->NewTuple(inputs);
 }
