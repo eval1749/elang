@@ -763,9 +763,18 @@ void Translator::VisitSizeOf(ir::SizeOfNode* node) {
   // nothing to do
 }
 
+// effect = store effect, anchor, pointer, new_value
 void Translator::VisitStore(ir::StoreNode* node) {
-  // TODO(eval1749): NYI translate Store
-  NOTREACHED() << *node;
+  auto const anchor = MapInput(node->input(1));
+  auto const pointer = MapInput(node->input(2));
+  auto const offset = lir::Value::SmallInt32(0);
+  auto const new_value = MapInput(node->input(3));
+  auto const element_type = MapType(node->input(3)->output_type());
+  if (new_value.size == element_type.size)
+    return Emit(New<lir::StoreInstruction>(anchor, pointer, offset, new_value));
+  auto const element_value = NewRegister(element_type);
+  Emit(NewTruncateInstruction(element_value, new_value));
+  Emit(New<lir::StoreInstruction>(anchor, pointer, offset, element_value));
 }
 
 void Translator::VisitVoid(ir::VoidNode* node) {

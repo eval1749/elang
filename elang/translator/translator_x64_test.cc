@@ -961,5 +961,37 @@ TEST_F(TranslatorX64Test, StaticCastNodeUInt32ToUInt64) {
       Translate(editor));
 }
 
+TEST_F(TranslatorX64Test, StoreNode) {
+  auto const function = NewFunction(
+      void_type(), NewTupleType({NewPointerType(char_type()), char_type()}));
+  ir::Editor editor(factory(), function);
+  auto const entry_node = function->entry_node();
+  auto const effect = NewGetEffect(entry_node);
+
+  editor.Edit(entry_node);
+  auto const ptr = NewParameter(entry_node, 0);
+  auto const param1 = NewParameter(entry_node, 1);
+  auto const new_value = NewStaticCast(char_type(), param1);
+  auto const store_node = NewStore(effect, ptr, ptr, new_value);
+  editor.SetRet(store_node, void_value());
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry RCX, EDX =\n"
+      "  pcopy %r1l, %r2 = RCX, EDX\n"
+      "  trunc %r3w = %r2\n"
+      "  store %r1l, %r1l, 0, %r3w\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      Translate(editor));
+}
+
 }  // namespace translator
 }  // namespace elang
