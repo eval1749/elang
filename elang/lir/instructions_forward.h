@@ -15,10 +15,8 @@ namespace elang {
 namespace lir {
 
 #define FOR_EACH_LIR_INSTRUCTION_0_0(V) V(Exit, "exit")
-
 #define FOR_EACH_LIR_INSTRUCTION_0_1(V) V(Use, "use")
-
-#define FOR_EACH_LIR_INSTRUCTION_0_2(V) V(Store, "store")
+#define FOR_EACH_LIR_INSTRUCTION_0_4(V) V(Store, "store")
 
 #define FOR_EACH_LIR_INSTRUCTION_1_1(V) \
   V(Assign, "assign")                   \
@@ -68,7 +66,7 @@ namespace lir {
 #define FOR_EACH_COMMON_LIR_INSTRUCTION(V) \
   FOR_EACH_LIR_INSTRUCTION_0_0(V)          \
   FOR_EACH_LIR_INSTRUCTION_0_1(V)          \
-  FOR_EACH_LIR_INSTRUCTION_0_2(V)          \
+  FOR_EACH_LIR_INSTRUCTION_0_4(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_1(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_2(V)          \
   FOR_EACH_LIR_INSTRUCTION_1_3(V)          \

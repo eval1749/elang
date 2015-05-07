@@ -222,13 +222,16 @@ TEST_F(LirInstructionTest, RetInstruction) {
 
 // StoreInstruction
 TEST_F(LirInstructionTest, StoreInstruction) {
-  auto const source = NewIntPtrRegister();
+  auto const anchor = NewIntPtrRegister();
+  auto const pointer = anchor;
+  auto const offset = Value::SmallInt32(4);
+  auto const value = Value::SmallInt8(42);
   auto const instr =
-      factory()->NewStoreInstruction(Value::Argument(source, 0), source);
+      factory()->NewStoreInstruction(anchor, pointer, offset, value);
   EXPECT_TRUE(instr->is<StoreInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(4, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
 }
 

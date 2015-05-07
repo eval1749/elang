@@ -95,9 +95,10 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...) \
-  Instruction* New##Name##Instruction(Value input, Value input2);
-  FOR_EACH_LIR_INSTRUCTION_0_2(V)
+#define V(Name, ...)                                              \
+  Instruction* New##Name##Instruction(Value input0, Value input1, \
+                                      Value input2, Value input3);
+  FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
 #define V(Name, ...) \

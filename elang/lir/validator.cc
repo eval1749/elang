@@ -370,6 +370,24 @@ void Validator::VisitSignExtend(SignExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
+void Validator::VisitStore(StoreInstruction* instr) {
+  // Note: We can't verify |input(3)| since we don't have information about
+  // destination.
+  auto const array = instr->input(0);
+  auto const pointer = instr->input(1);
+  auto const offset = instr->input(2);
+  if (!array.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 0);
+  if (array.size != Target::IntPtrType().size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
+  if (!pointer.is_integer())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 1);
+  if (pointer.size != Target::IntPtrType().size)
+    Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+  if (!offset.is_int32())
+    Error(ErrorCode::ValidateInstructionInputType, instr, 2);
+}
+
 void Validator::VisitSub(SubInstruction* instr) {
   ValidateArithmeticInstruction(instr);
 }

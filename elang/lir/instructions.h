@@ -568,15 +568,15 @@ class ELANG_LIR_EXPORT RetInstruction final
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...)                                   \
-  class ELANG_LIR_EXPORT Name##Instruction final       \
-      : public InstructionTemplate<0, 2> {             \
-    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);      \
-                                                       \
-   private:                                            \
-    Name##Instruction(Value pointer, Value new_value); \
+#define V(Name, ...)                                                           \
+  class ELANG_LIR_EXPORT Name##Instruction final                               \
+      : public InstructionTemplate<0, 4> {                                     \
+    DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(Name);                              \
+                                                                               \
+   private:                                                                    \
+    Name##Instruction(Value input0, Value input1, Value input2, Value input3); \
   };
-FOR_EACH_LIR_INSTRUCTION_0_2(V)
+FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
 #define V(Name, ...)                              \

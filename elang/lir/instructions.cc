@@ -53,12 +53,15 @@ FOR_EACH_LIR_INSTRUCTION_0_0(V)
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...)                                              \
-  Name##Instruction::Name##Instruction(Value left, Value right) { \
-    InitInput(0, left);                                           \
-    InitInput(1, right);                                          \
+#define V(Name, ...)                                                 \
+  Name##Instruction::Name##Instruction(Value input0, Value input1,   \
+                                       Value input2, Value input3) { \
+    InitInput(0, input0);                                            \
+    InitInput(1, input1);                                            \
+    InitInput(2, input2);                                            \
+    InitInput(3, input3);                                            \
   }
-FOR_EACH_LIR_INSTRUCTION_0_2(V)
+FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
 #define V(Name, ...)                                                \
