@@ -558,7 +558,7 @@ TEST_F(TranslatorX64Test, PhiNode) {
       Translate(editor));
 }
 
-#define DEFINE_RET_TEST(Name, name, line)                          \
+#define DEFINE_RET_TEST(Name, name, value, line)                   \
   TEST_F(TranslatorX64Test, Ret##Name) {                           \
     auto const function = NewFunction(name##_type(), void_type()); \
     ir::Editor editor(factory(), function);                        \
@@ -566,7 +566,7 @@ TEST_F(TranslatorX64Test, PhiNode) {
     auto const effect = NewGetEffect(entry_node);                  \
                                                                    \
     editor.Edit(entry_node);                                       \
-    editor.SetRet(effect, New##Name(42));                          \
+    editor.SetRet(effect, New##Name(value));                       \
     ASSERT_EQ("", Commit(&editor));                                \
                                                                    \
     EXPECT_EQ(                                                     \
@@ -585,14 +585,17 @@ TEST_F(TranslatorX64Test, PhiNode) {
         Translate(editor));                                        \
   }
 
-DEFINE_RET_TEST(Float32, float32, "lit XMM0S = 42f")
-DEFINE_RET_TEST(Float64, float64, "lit XMM0D = 42")
-DEFINE_RET_TEST(Int16, int16, "lit EAX = 42")
-DEFINE_RET_TEST(Int32, int32, "lit EAX = 42")
-DEFINE_RET_TEST(Int64, int64, "lit RAX = 42l")
-DEFINE_RET_TEST(UInt16, uint16, "lit EAX = 42")
-DEFINE_RET_TEST(UInt32, uint32, "lit EAX = 42")
-DEFINE_RET_TEST(UInt64, uint64, "lit RAX = 42l")
+DEFINE_RET_TEST(Bool, bool, true, "lit EAX = 1")
+DEFINE_RET_TEST(Float32, float32, 42, "lit XMM0S = 42f")
+DEFINE_RET_TEST(Float64, float64, 42, "lit XMM0D = 42")
+DEFINE_RET_TEST(Int16, int16, -42, "lit EAX = -42")
+DEFINE_RET_TEST(Int32, int32, -42, "lit EAX = -42")
+DEFINE_RET_TEST(Int64, int64, -42, "lit RAX = -42l")
+DEFINE_RET_TEST(Int8, int8, -42, "lit EAX = -42")
+DEFINE_RET_TEST(UInt16, uint16, 42, "lit EAX = 42")
+DEFINE_RET_TEST(UInt32, uint32, 42, "lit EAX = 42")
+DEFINE_RET_TEST(UInt64, uint64, 42, "lit RAX = 42l")
+DEFINE_RET_TEST(UInt8, uint8, 42, "lit EAX = 42")
 
 TEST_F(TranslatorX64Test, StaticCastNodeFloat32ToFloat64) {
   auto const function = NewFunction(float64_type(), float32_type());
