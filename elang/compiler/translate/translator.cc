@@ -224,7 +224,10 @@ bool Translator::Run() {
 ir::Data* Translator::Translate(ast::Expression* node) {
   DCHECK(!visit_result_);
   node->Accept(this);
-  DCHECK(visit_result_) << *node;
+  if (!visit_result_) {
+    DCHECK(!session()->errors().empty());
+    return void_value();
+  }
   auto const result = visit_result_;
   visit_result_ = nullptr;
   auto const data = result->as<ir::Data>();
