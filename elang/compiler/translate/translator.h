@@ -55,6 +55,7 @@ class Translator final : public CompilationSessionUser,
   ir::Type* MapType(sm::Type* type) const;
 
   // Translate
+  ir::Node* NewDataOrTuple(const std::vector<ir::Node*> nodes);
   ir::Data* NewOperationFor(ast::Expression* node,
                             ir::Data* left,
                             ir::Data* right);
@@ -83,6 +84,7 @@ class Translator final : public CompilationSessionUser,
   void VisitMethod(ast::Method* ast_method) final;
 
   // ast::Visitor expression nodes
+  void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitAssignment(ast::Assignment* node) final;
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;

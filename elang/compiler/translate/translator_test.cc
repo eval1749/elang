@@ -36,10 +36,23 @@ class TranslatorTest : public testing::TranslateTest {
   DISALLOW_COPY_AND_ASSIGN(TranslatorTest);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// tests...
-//
+TEST_F(TranslatorTest, ArrayAccessLoad) {
+  Prepare(
+      "class Sample {"
+      "  static int Foo(int[] arr) { return arr[1]; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(int32[]*)\n"
+      "0000: control(int32[]*) %c1 = entry()\n"
+      "0001: effect %e4 = get_effect(%c1)\n"
+      "0002: int32[]* %r5 = param(%c1, 0)\n"
+      "0003: int32* %r6 = element(%r5, 1)\n"
+      "0004: int32 %r7 = load(%e4, %r5, %r6)\n"
+      "0005: control %c8 = ret(%c1, %e4, %r7)\n"
+      "0006: control %c2 = merge(%c8)\n"
+      "0007: exit(%c2)\n",
+      Translate("Sample.Foo"));
+}
 
 TEST_F(TranslatorTest, Calls) {
   Prepare(

@@ -215,6 +215,12 @@ ir::Type* Translator::MapType(sm::Type* type) const {
   return type_mapper_->Map(type);
 }
 
+ir::Node* Translator::NewDataOrTuple(const std::vector<ir::Node*> nodes) {
+  if (nodes.size() == 1u)
+    return nodes.front();
+  return NewTuple(nodes);
+}
+
 // The entry point of |Translator::|.
 bool Translator::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
@@ -382,9 +388,18 @@ void Translator::VisitMethod(ast::Method* ast_method) {
   builder_->EndBlockWithRet(void_value());
 }
 
-//
 // ast::Visitor expression nodes
-//
+
+void Translator::VisitArrayAccess(ast::ArrayAccess* node) {
+  auto const array = Translate(node->array());
+  std::vector<ir::Node*> indexes(node->indexes().size());
+  indexes.resize(0);
+  for (auto const index : node->indexes())
+    indexes.push_back(Translate(index));
+  auto const element_pointer = NewElement(array, NewDataOrTuple(indexes));
+  SetVisitorResult(builder_->NewLoad(array, element_pointer));
+}
+
 // There are five patterns:
 //  1. parameter = expression
 //  2. variable = expression
