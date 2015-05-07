@@ -586,7 +586,7 @@ DEFINE_ARITHMETIC_TRANSLATOR(IntSub, Sub)
 
 // Simple nodes with three inputs
 
-// data = load anchor, pointer
+// data = load effect, anchor, pointer
 void Translator::VisitLoad(ir::LoadNode* node) {
   auto const element_type = MapType(node->output_type());
   auto const output_type = PromoteType(element_type);
