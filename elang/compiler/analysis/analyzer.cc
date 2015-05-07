@@ -34,8 +34,8 @@ Analyzer::Analyzer(NameResolver* name_resolver)
 Analyzer::~Analyzer() {
 }
 
-sm::Factory* Analyzer::ir_factory() const {
-  return name_resolver_->factory();
+sm::Factory* Analyzer::semantics_factory() const {
+  return editor_->factory();
 }
 
 void Analyzer::FixSemanticOf(ast::Node* node, sm::Semantic* semantic) {

@@ -36,9 +36,9 @@ class Analyzer : public CompilationSessionUser {
   virtual ~Analyzer();
 
   sm::Editor* editor() const { return editor_.get(); }
-  sm::Factory* factory() const { return ir_factory(); }
-  sm::Factory* ir_factory() const;
+  sm::Factory* factory() const { return semantics_factory(); }
   NameResolver* resolver() const { return name_resolver_; }
+  sm::Factory* semantics_factory() const;
 
   void FixSemanticOf(ast::Node* node, sm::Semantic* semantic);
   // Shortcut to |NameResolver|.
