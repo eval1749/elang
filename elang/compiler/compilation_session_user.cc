@@ -6,7 +6,7 @@
 
 #include "elang/compiler/ast/nodes.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {

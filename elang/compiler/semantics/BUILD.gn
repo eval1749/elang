@@ -2,7 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-static_library("semantics") {
+source_set("semantics") {
+  visibility = [
+    ":*",
+    "../*",
+  ]
   sources = [
     "factory.cc",
     "factory.h",
@@ -11,6 +15,8 @@ static_library("semantics") {
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
+    "semantics.cc",
+    "semantics.h",
     "visitor.cc",
     "visitor.h",
   ]
@@ -21,13 +27,14 @@ static_library("semantics") {
   ]
 }
 
-source_set("compiler_semantics_test") {
+source_set("test_files") {
+  visibility = [ "//elang/compiler:test_files" ]
   testonly = true
   sources = [
     "nodes_unittest.cc",
   ]
   public_deps = [
-    "//testing/gtest",
     ":semantics",
+    "//testing/gtest",
   ]
 }

@@ -17,7 +17,7 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"

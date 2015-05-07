@@ -22,11 +22,11 @@
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics/factory.h"
-#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/predefined_names.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/factory.h"
+#include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {

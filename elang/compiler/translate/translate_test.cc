@@ -10,7 +10,7 @@
 #include "base/macros.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/translate/translator.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/factory_config.h"

@@ -13,7 +13,7 @@
 #include "elang/compiler/cg/cfg_to_ssa_converter.h"
 #include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"

@@ -26,8 +26,6 @@ static_library("compiler") {
     "public/compiler_error_code.h",
     "public/compiler_error_data.cc",
     "public/compiler_error_data.h",
-    "semantics.cc",
-    "semantics.h",
     "source_code.cc",
     "source_code.h",
     "source_code_position.cc",
@@ -61,6 +59,7 @@ static_library("compiler") {
     "//elang/compiler/analysis",
     "//elang/compiler/ast",
     "//elang/compiler/cg",
+    "//elang/compiler/semantics",
     "//elang/compiler/translate",
   ]
 }
@@ -102,7 +101,7 @@ source_set("test_files") {
   deps = [
     "//elang/compiler/analysis:compiler_analysis_test",
     "//elang/compiler/cg:compiler_cg_test",
-    "//elang/compiler/semantics:compiler_semantics_test",
+    "//elang/compiler/semantics:test_files",
     "//elang/compiler/translate:test_files",
   ]
 }

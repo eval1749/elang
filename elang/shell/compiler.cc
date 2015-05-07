@@ -29,7 +29,7 @@
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/syntax/parser.h"

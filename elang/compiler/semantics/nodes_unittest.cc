@@ -11,7 +11,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {

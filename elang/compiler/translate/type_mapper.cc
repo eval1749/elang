@@ -10,9 +10,9 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/predefined_names.h"
-#include "elang/compiler/semantics.h"
+#include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/optimizer/types.h"
 #include "elang/optimizer/type_factory.h"
 
