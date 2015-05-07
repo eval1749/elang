@@ -25,13 +25,6 @@ namespace translator {
 
 namespace {
 
-lir::Value AdjustReturnType(lir::Value type) {
-  if (lir::Value::SizeOf(type) >= 4)
-    return type;
-  DCHECK(type.is_integer()) << type;
-  return lir::Value::Int32Type();
-}
-
 lir::IntCondition MapCondition(ir::IntCondition condition) {
 #define V(Name, ...)                                                \
   DCHECK_EQ(static_cast<ir::IntCondition>(lir::IntCondition::Name), \
@@ -39,6 +32,10 @@ lir::IntCondition MapCondition(ir::IntCondition condition) {
   FOR_EACH_OPTIMIZER_INTEGER_CONDITION(V)
 #undef V
   return static_cast<lir::IntCondition>(condition);
+}
+
+lir::Value PromoteType(lir::Value type) {
+  return type.is_int8() || type.is_int16() ? lir::Value::Int32Type() : type;
 }
 
 ir::Node* SelectNode(const ir::Node* node, ir::Opcode opcode) {
@@ -145,9 +142,20 @@ lir::Value Translator::MapInput(ir::Node* node) {
                        SizeOfType(size->output_type()));
   }
 
-  if (!node->IsLiteral())
-    return MapRegister(node);
+  if (!node->IsLiteral()) {
+    auto const it = register_map_.find(node);
+    DCHECK(it != register_map_.end()) << *node;
+    return it->second;
+  }
 
+  auto const value = MapLiteral(node);
+  if (value.is_int8() || value.is_int16())
+    return NewIntValue(lir::Value::Int32Type(), value.data);
+  return value;
+}
+
+lir::Value Translator::MapLiteral(ir::Node* node) {
+  DCHECK(node->IsLiteral()) << *node;
   if (auto const literal = node->as<ir::BoolNode>())
     return NewIntValue(lir::Value::Int8Type(), literal->data());
   if (auto const literal = node->as<ir::Float32Node>())
@@ -182,16 +190,10 @@ lir::Value Translator::MapInput(ir::Node* node) {
 lir::Value Translator::MapOutput(ir::Node* node) {
   DCHECK(!node->IsLiteral()) << *node;
   DCHECK(node->IsData()) << *node;
-  return MapRegister(node);
-}
-
-lir::Value Translator::MapRegister(ir::Node* node) {
-  DCHECK(!node->IsLiteral()) << *node;
-  DCHECK(node->IsData()) << *node;
   auto const it = register_map_.find(node);
-  if (it != register_map_.end())
-    return it->second;
-  auto const new_register = NewRegister(MapType(node->output_type()));
+  DCHECK(it == register_map_.end()) << *node << ": " << it->second;
+  auto const type = PromoteType(MapType(node->output_type()));
+  auto const new_register = NewRegister(type);
   register_map_.insert(std::make_pair(node, new_register));
   return new_register;
 }
@@ -265,7 +267,8 @@ void Translator::PopulatePhiOperands() {
     for (auto const phi_node : phi_owner->phi_nodes()) {
       if (!phi_node->IsUsed())
         continue;
-      auto const it = phi_map.find(MapOutput(phi_node));
+      // Note: We've already map |phi_node| as output register.
+      auto const it = phi_map.find(MapInput(phi_node));
       DCHECK(it != phi_map.end()) << *phi_node;
       auto const phi = it->second;
       for (auto const phi_input : phi_node->phi_inputs()) {
@@ -347,7 +350,7 @@ lir::Value Translator::TranslateConditional(ir::Node* node) {
   DCHECK(node->output_type()->is<ir::BoolType>()) << *node;
   auto const output = NewConditional();
   Emit(NewCmpInstruction(output, lir::IntCondition::NotEqual, MapInput(node),
-                         lir::Value::SmallInt8(0)));
+                         lir::Value::SmallInt32(0)));
   return output;
 }
 
@@ -371,7 +374,7 @@ void Translator::VisitGetData(ir::GetDataNode* node) {
   DCHECK_EQ(ir::Opcode::Call, node->input(0)->opcode()) << *node << " "
                                                         << *node->input(0);
   auto const output = MapOutput(node);
-  auto const return_type = AdjustReturnType(output);
+  auto const return_type = PromoteType(output);
   auto const return_value = lir::Target::ReturnAt(return_type, 0);
   DCHECK_LE(lir::Value::SizeOf(output), lir::Value::SizeOf(return_type))
       << output << " " << return_type;
@@ -582,9 +585,24 @@ DEFINE_ARITHMETIC_TRANSLATOR(IntShl, Shl)
 DEFINE_ARITHMETIC_TRANSLATOR(IntSub, Sub)
 
 // Simple nodes with three inputs
+
+// data = load anchor, pointer
 void Translator::VisitLoad(ir::LoadNode* node) {
-  Emit(NewLoadInstruction(MapOutput(node), MapInput(node->input(1)),
-                          MapInput(node->input(2)), lir::Value::SmallInt32(0)));
+  auto const element_type = MapType(node->output_type());
+  auto const output_type = PromoteType(element_type);
+  auto const anchor = MapInput(node->input(1));
+  auto const pointer = MapInput(node->input(2));
+  auto const offset = lir::Value::SmallInt32(0);
+
+  if (output_type.size == element_type.size)
+    return Emit(NewLoadInstruction(MapOutput(node), anchor, pointer, offset));
+
+  auto const element_value = NewRegister(element_type);
+  Emit(NewLoadInstruction(element_value, anchor, pointer, offset));
+  auto const output = MapOutput(node);
+  if (node->output_type()->is_signed())
+    return Emit(NewSignExtendInstruction(output, element_value));
+  Emit(NewZeroExtendInstruction(output, element_value));
 }
 
 // control = ret control, effect, data
@@ -595,7 +613,7 @@ void Translator::VisitRet(ir::RetNode* node) {
     return;
   }
   auto const input = MapInput(value);
-  auto const return_type = AdjustReturnType(input);
+  auto const return_type = PromoteType(input);
   auto const output = lir::Target::ReturnAt(return_type, 0);
   DCHECK_LE(lir::Value::SizeOf(return_type), lir::Value::SizeOf(output))
       << return_type << " " << output;
@@ -627,7 +645,7 @@ void Translator::VisitCall(ir::CallNode* node) {
       MapType(node->output_type()->as<ir::ControlType>()->data_type());
   std::vector<lir::Value> returns;
   if (!return_type.is_void_type())
-    returns.push_back(lir::Target::ReturnAt(AdjustReturnType(return_type), 0));
+    returns.push_back(lir::Target::ReturnAt(PromoteType(return_type), 0));
 
   if (argument->output_type()->is<ir::VoidType>())
     return Emit(NewCallInstruction(returns, callee));
@@ -682,7 +700,7 @@ void Translator::VisitEntry(ir::EntryNode* node) {
     auto const param = edge->from()->as<ir::ParameterNode>();
     if (!param)
       continue;
-    auto const output = MapRegister(param);
+    auto const output = MapOutput(param);
     outputs.push_back(output);
     inputs.push_back(lir::Target::ParameterAt(output, param->field()));
   }

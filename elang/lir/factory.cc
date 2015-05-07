@@ -271,10 +271,10 @@ Instruction* Factory::NewCmpInstruction(Value output,
                                         IntCondition condition,
                                         Value left,
                                         Value right) {
-  DCHECK(output.is_conditional());
-  DCHECK(left.is_integer());
-  DCHECK(right.is_integer());
-  DCHECK_EQ(left.size, right.size);
+  DCHECK(output.is_conditional()) << output;
+  DCHECK(left.is_integer()) << left;
+  DCHECK(right.is_integer()) << right;
+  DCHECK_EQ(left.size, right.size) << left << " " << right;
   return new (zone()) CmpInstruction(output, condition, left, right);
 }
 

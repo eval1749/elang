@@ -61,8 +61,8 @@ class Translator final : public ZoneOwner,
   lir::Value EmitShl(lir::Value input, int shift_count);
 
   lir::Value MapInput(ir::Node* node);
+  lir::Value MapLiteral(ir::Node* node);
   lir::Value MapOutput(ir::Node* node);
-  lir::Value MapRegister(ir::Node* node);
 
   // Returns type template |lir::Value| based on |ir_type|.
   static lir::Value MapType(ir::Type* ir_type);

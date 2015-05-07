@@ -19,6 +19,12 @@
 namespace elang {
 namespace lir {
 
+namespace {
+Value AdjustTypeForCall(Value type) {
+  return type.is_int8() || type.is_int16() ? Value::Int32Type() : type;
+}
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // PrintableValue
@@ -291,7 +297,8 @@ Value Target::NaturalRegisterOf(Value physical) {
                physical.data);
 }
 
-Value Target::ParameterAt(Value output, size_t position) {
+Value Target::ParameterAt(Value type, size_t position) {
+  auto const output = AdjustTypeForCall(type);
   auto const it = std::begin(isa::kIntegerParameters) + position;
   if (it < std::end(isa::kIntegerParameters)) {
     auto const number = output.is_float() ? isa::kFloatParameters[position]
@@ -304,16 +311,17 @@ Value Target::ParameterAt(Value output, size_t position) {
 }
 
 Value Target::ReturnAt(Value type, size_t position) {
+  auto const return_type = AdjustTypeForCall(type);
   DCHECK_EQ(position, 0) << "NYI multiple return values";
-  if (type.is_int32())
+  if (return_type.is_int32())
     return GetRegister(isa::EAX);
-  if (type.is_int64())
+  if (return_type.is_int64())
     return GetRegister(isa::RAX);
-  if (type.is_float32())
+  if (return_type.is_float32())
     return GetRegister(isa::XMM0S);
-  if (type.is_float64())
+  if (return_type.is_float64())
     return GetRegister(isa::XMM0D);
-  NOTREACHED() << "Return values must be numeric promoted: " << type;
+  NOTREACHED() << "Unsupported return type: " << type;
   return Value::Void();
 }
 

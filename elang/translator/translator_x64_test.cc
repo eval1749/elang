@@ -311,59 +311,22 @@ DEFINE_FLOAT_ARITHMETIC_TEST(FloatSub, "sub")
         Translate(editor));                                                   \
   }
 
-DEFINE_GET_NODE_TEST(Int32, int32_type(), "%r1", "EAX")
-DEFINE_GET_NODE_TEST(Int64, int64_type(), "%r1l", "RAX")
-DEFINE_GET_NODE_TEST(UInt32, uint32_type(), "%r1", "EAX")
-DEFINE_GET_NODE_TEST(UInt64, uint64_type(), "%r1l", "RAX")
-DEFINE_GET_NODE_TEST(Float32, float32_type(), "%f1", "XMM0S")
-DEFINE_GET_NODE_TEST(Float64, float64_type(), "%f1d", "XMM0D")
-
-#define DEFINE_GET_NODE_TRUNCATE_TEST(Type, ret_type, ret_var, extend)        \
-  TEST_F(TranslatorX64Test, GetNode##Type) {                                  \
-    auto const function = NewFunction(ret_type, void_type());                 \
-    ir::Editor editor(factory(), function);                                   \
-    auto const entry_node = function->entry_node();                           \
-    auto const effect = NewGetEffect(entry_node);                             \
-                                                                              \
-    auto const callee = NewReference(NewFunctionType(ret_type, void_type()),  \
-                                     NewAtomicString(L"Foo"));                \
-                                                                              \
-    editor.Edit(entry_node);                                                  \
-    auto const call_node = NewCall(entry_node, effect, callee, void_value()); \
-    auto const ret_value = NewGetData(call_node);                             \
-    ASSERT_EQ("", Commit(&editor));                                           \
-                                                                              \
-    editor.Edit(call_node);                                                   \
-    editor.SetRet(NewGetEffect(call_node), ret_value);                        \
-    ASSERT_EQ("", Commit(&editor));                                           \
-                                                                              \
-    EXPECT_EQ(                                                                \
-        "function1:\n"                                                        \
-        "block1:\n"                                                           \
-        "  // In: {}\n"                                                       \
-        "  // Out: {block2}\n"                                                \
-        "  entry\n"                                                           \
-        "  call EAX = \"Foo\"\n"                                              \
-        "  trunc " ret_var                                                    \
-        " = EAX\n"                                                            \
-        "  " extend " EAX = " ret_var                                         \
-        "\n"                                                                  \
-        "  ret block2\n"                                                      \
-        "block2:\n"                                                           \
-        "  // In: {block1}\n"                                                 \
-        "  // Out: {}\n"                                                      \
-        "  exit\n",                                                           \
-        Translate(editor));                                                   \
-  }
-
+// Note: For return value and paramters, Small integral types are promoted to
+// a 32-bit integer type.
 #define BoolType Int8Type
 #define UInt8Type Int8Type
 #define UInt16Type Int16Type
-DEFINE_GET_NODE_TRUNCATE_TEST(Bool, bool_type(), "%r1b", "zext")
-DEFINE_GET_NODE_TRUNCATE_TEST(Int8, int8_type(), "%r1b", "sext")
-DEFINE_GET_NODE_TRUNCATE_TEST(Int16, int16_type(), "%r1w", "sext")
-DEFINE_GET_NODE_TRUNCATE_TEST(UInt8, uint8_type(), "%r1b", "zext")
-DEFINE_GET_NODE_TRUNCATE_TEST(UInt16, uint16_type(), "%r1w", "zext")
+DEFINE_GET_NODE_TEST(Bool, bool_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(Int16, int16_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(Int32, int32_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(Int64, int64_type(), "%r1l", "RAX")
+DEFINE_GET_NODE_TEST(Int8, int8_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(UInt16, uint16_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(UInt32, uint32_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(UInt64, uint64_type(), "%r1l", "RAX")
+DEFINE_GET_NODE_TEST(UInt8, uint8_type(), "%r1", "EAX")
+DEFINE_GET_NODE_TEST(Float32, float32_type(), "%f1", "XMM0S")
+DEFINE_GET_NODE_TEST(Float64, float64_type(), "%f1d", "XMM0D")
 
 TEST_F(TranslatorX64Test, IfNode) {
   auto const function = NewFunction(int32_type(), int32_type());
@@ -527,7 +490,8 @@ TEST_F(TranslatorX64Test, LoadNode) {
       "  entry RCX =\n"
       "  pcopy %r1l = RCX\n"
       "  load %r2w = %r1l, %r1l, 0\n"
-      "  zext EAX = %r2w\n"
+      "  zext %r3 = %r2w\n"
+      "  mov EAX = %r3\n"
       "  ret block2\n"
       "block2:\n"
       "  // In: {block1}\n"
@@ -569,9 +533,9 @@ TEST_F(TranslatorX64Test, PhiNode) {
       "block1:\n"
       "  // In: {}\n"
       "  // Out: {block3, block5}\n"
-      "  entry CL, EDX, R8D =\n"
-      "  pcopy %r1b, %r2, %r3 = CL, EDX, R8D\n"
-      "  cmp_ne %b2 = %r1b, 0\n"
+      "  entry ECX, EDX, R8D =\n"
+      "  pcopy %r1, %r2, %r3 = ECX, EDX, R8D\n"
+      "  cmp_ne %b2 = %r1, 0\n"
       "  br %b2, block3, block5\n"
       "block3:\n"
       "  // In: {block1}\n"
