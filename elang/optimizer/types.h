@@ -20,6 +20,13 @@
 
 namespace elang {
 class AtomicString;
+// TODO(eval1749) Once our tool chain C++14 |std::is_final<T>|, we don't need
+// to define |elang::is_final<T>| for |Type|s.
+#define V(Name, ...) \
+  template <>        \
+  struct is_final<optimizer::Name> : std::true_type {};
+FOR_EACH_OPTIMIZER_CONCRETE_TYPE(V)
+#undef V
 namespace optimizer {
 
 // See "types_forward.h" for list of all types.

@@ -21,6 +21,13 @@
 #include "elang/lir/value.h"
 
 namespace elang {
+// TODO(eval1749) Once our tool chain C++14 |std::is_final<T>|, we don't need
+// to define |elang::is_final<T>| for |Instruction|s.
+#define V(Name, ...) \
+  template <>        \
+  struct is_final<lir::Name> : std::true_type {};
+FOR_EACH_LIR_LITERAL(V)
+#undef V
 namespace lir {
 
 class Instruction;

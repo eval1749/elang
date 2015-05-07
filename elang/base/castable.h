@@ -9,6 +9,11 @@
 
 namespace elang {
 
+// TODO(eval1749) Once our tool chain supports C++14 |std::is_final|, we should
+// replace |elang::is_final<T>| to |std::is_final<T>|.
+template <typename T>
+struct is_final : std::false_type {};
+
 // T* as()
 // const char* class_name()
 // bool is<T>()
@@ -28,6 +33,9 @@ class Castable {
   template <class Class>
   bool is() const {
     static_assert(std::is_base_of<Base, Class>::value, "Unrelated types");
+    // TODO(eval1749) We should use C++14 |std::is_final<T>|.
+    if (is_final<Class>::value)
+      return this && class_name() == Class::static_class_name();
     return this && is_class_of(Class::static_class_name());
   }
   virtual bool is_class_of(const char* other_name) const {

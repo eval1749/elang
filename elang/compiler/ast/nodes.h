@@ -11,6 +11,13 @@
 #include "elang/compiler/ast/nodes_forward.h"
 
 namespace elang {
+// TODO(eval1749) Once our tool chain C++14 |std::is_final<T>|, we don't need
+// to define |elang::is_final<T>| for |Node|s.
+#define V(Name, ...) \
+  template <>        \
+  struct is_final<compiler::ast::Name> : std::true_type {};
+FOR_EACH_CONCRETE_AST_NODE(V)
+#undef V
 namespace compiler {
 namespace ast {
 

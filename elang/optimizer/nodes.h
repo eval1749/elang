@@ -23,6 +23,13 @@
 
 namespace elang {
 class AtomicString;
+// TODO(eval1749) Once our tool chain C++14 |std::is_final<T>|, we don't need
+// to define |elang::is_final<T>| for |Node|s.
+#define V(Name, ...) \
+  template <>        \
+  struct is_final<optimizer::Name##Node> : std::true_type {};
+FOR_EACH_OPTIMIZER_CONCRETE_NODE(V)
+#undef V
 namespace optimizer {
 
 class Editor;
