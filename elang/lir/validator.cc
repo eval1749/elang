@@ -320,7 +320,7 @@ void Validator::VisitLoad(LoadInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 1);
   if (pointer.size != Target::IntPtrType().size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
-  if (!offset.is_integer())
+  if (!offset.is_int32())
     Error(ErrorCode::ValidateInstructionInputType, instr, 2);
 }
 
