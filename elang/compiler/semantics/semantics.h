@@ -13,6 +13,9 @@
 
 namespace elang {
 namespace compiler {
+namespace sm {
+class Editor;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -31,10 +34,9 @@ class Semantics final {
   // Retrieving
   sm::Semantic* SemanticOf(ast::Node* node) const;
 
-  // Storing
-  void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
-
  private:
+  friend class sm::Editor;
+
   // Mapping from AST class, enum, and method to IR object
   std::unordered_map<ast::Node*, sm::Semantic*> semantic_map_;
 

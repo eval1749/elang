@@ -222,12 +222,6 @@ sm::Factory* NameResolver::factory() const {
   return session()->semantics_factory();
 }
 
-void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Semantic* node) {
-  DCHECK(ast_node);
-  DCHECK(!semantics()->SemanticOf(ast_node));
-  semantics()->SetSemanticOf(ast_node, node);
-}
-
 void NameResolver::DidResolveUsing(ast::NamedNode* node,
                                    ast::ContainerNode* container) {
   DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
@@ -266,7 +260,6 @@ sm::Type* NameResolver::ResolvePredefinedType(Token* token,
   if (auto const type = Resolve(ast_type)->as<sm::Type>())
     return type;
   session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
-  DidResolve(ast_type, nullptr);
   return nullptr;
 }
 

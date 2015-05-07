@@ -11,6 +11,7 @@
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
@@ -73,7 +74,7 @@ VariableTracker::VariableTracker(CompilationSession* session,
 VariableTracker::~VariableTracker() {
 }
 
-void VariableTracker::Finish(sm::Factory* factory, ts::Factory* type_factory) {
+void VariableTracker::Finish(sm::Editor* editor, ts::Factory* type_factory) {
   ts::Evaluator evaluator(type_factory);
   for (auto variable_data : variable_map_) {
     auto const variable = variable_data.first;
@@ -84,9 +85,9 @@ void VariableTracker::Finish(sm::Factory* factory, ts::Factory* type_factory) {
                           variable->name());
       continue;
     }
-    semantics()->SetSemanticOf(
-        variable, factory->NewVariable(literal->value(),
-                                       data->ComputeStorageClass(), variable));
+    editor->SetSemanticOf(
+        variable, editor->factory()->NewVariable(
+                      literal->value(), data->ComputeStorageClass(), variable));
   }
 }
 

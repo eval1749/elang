@@ -5,6 +5,7 @@
 #ifndef ELANG_SHELL_NAMESPACE_BUILDER_H_
 #define ELANG_SHELL_NAMESPACE_BUILDER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,7 @@ class Factory;
 
 namespace sm {
 class Class;
+class Editor;
 }
 
 namespace shell {
@@ -62,6 +64,7 @@ class NamespaceBuilder : public CompilationSessionUser {
 
  private:
   NameResolver* const name_resolver_;
+  std::unique_ptr<sm::Editor> editor_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBuilder);
 };

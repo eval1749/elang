@@ -190,13 +190,13 @@ void MethodBodyAnalyzer::Run() {
       continue;
     }
     if (methods.size() == 1u) {
-      semantics()->SetSemanticOf(call->callee(), methods.front());
+      SetSemanticOf(call->callee(), methods.front());
       continue;
     }
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
 
-  variable_tracker_->Finish(factory(), type_factory());
+  variable_tracker_->Finish(editor(), type_factory());
 }
 
 // ast::Visitor statements

@@ -26,11 +26,5 @@ sm::Semantic* Semantics::SemanticOf(ast::Node* node) const {
   return it == semantic_map_.end() ? nullptr : it->second;
 }
 
-void Semantics::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
-  DCHECK(node);
-  DCHECK(semantic);
-  semantic_map_[node] = semantic;
-}
-
 }  // namespace compiler
 }  // namespace elang

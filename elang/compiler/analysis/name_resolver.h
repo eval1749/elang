@@ -46,7 +46,6 @@ class NameResolver final : public CompilationSessionUser {
   sm::Factory* factory() const;
 
   // Registering functions.
-  void DidResolve(ast::NamedNode* ast_node, sm::Semantic* node);
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
   // Retrieving functions.

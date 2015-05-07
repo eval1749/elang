@@ -20,6 +20,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
@@ -32,6 +33,8 @@ namespace testing {
 
 NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
+      editor_(
+          new sm::Editor(name_resolver->session(), name_resolver->factory())),
       name_resolver_(name_resolver) {
 }
 
@@ -78,8 +81,8 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   }
   auto const clazz =
       name_resolver()->factory()->NewClass(ast_class, base_classes);
-  name_resolver()->DidResolve(ast_class, clazz);
-  name_resolver()->DidResolve(ast_class_body, clazz);
+  editor_->SetSemanticOf(ast_class, clazz);
+  editor_->SetSemanticOf(ast_class_body, clazz);
 
   return ast_class_body;
 }

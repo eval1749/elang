@@ -14,6 +14,7 @@ namespace elang {
 namespace compiler {
 
 namespace sm {
+class Editor;
 class Factory;
 class Semantic;
 class Type;
@@ -34,16 +35,20 @@ class Analyzer : public CompilationSessionUser {
   explicit Analyzer(NameResolver* resolver);
   virtual ~Analyzer();
 
+  sm::Editor* editor() const { return editor_.get(); }
   sm::Factory* factory() const { return ir_factory(); }
   sm::Factory* ir_factory() const;
   NameResolver* resolver() const { return name_resolver_; }
 
+  void FixSemanticOf(ast::Node* node, sm::Semantic* semantic);
   // Shortcut to |NameResolver|.
   sm::Semantic* Resolve(ast::NamedNode* ast_node);
   sm::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
+  void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
 
  private:
+  std::unique_ptr<sm::Editor> editor_;
   NameResolver* const name_resolver_;
 
   DISALLOW_COPY_AND_ASSIGN(Analyzer);
