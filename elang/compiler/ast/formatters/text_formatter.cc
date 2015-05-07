@@ -43,6 +43,7 @@ class Formatter final : public ast::Visitor {
  private:
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;
+  void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitArrayType(ast::ArrayType* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitClass(ast::Class* node) final;
@@ -53,6 +54,8 @@ class Formatter final : public ast::Visitor {
   void VisitMethodGroup(ast::MethodGroup* node) final;
   void VisitNameReference(ast::NameReference* node) final;
   void VisitNamespace(ast::Namespace* node) final;
+  void VisitParameter(ast::Parameter* node) final;
+  void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitTypeMemberAccess(ast::TypeMemberAccess* node) final;
   void VisitTypeNameReference(ast::TypeNameReference* node) final;
 
@@ -71,7 +74,17 @@ void Formatter::Format(const ast::Node* node) {
 // Visitor
 
 void Formatter::DoDefaultVisit(ast::Node* node) {
-  ostream_ << node->class_name() << "@" << node;
+  ostream_ << node->class_name() << "@" << static_cast<void*>(&node);
+}
+
+void Formatter::VisitArrayAccess(ast::ArrayAccess* node) {
+  ostream_ << node->array() << "[";
+  auto separator = "";
+  for (auto index : node->indexes()) {
+    ostream_ << index;
+    separator = ", ";
+  }
+  ostream_ << "]";
 }
 
 // Element type of array type is omitting left most rank, e.g.
@@ -150,6 +163,14 @@ void Formatter::VisitNamespace(ast::Namespace* node) {
   ostream_ << "namespace " << GetQualifiedName(node);
 }
 
+void Formatter::VisitParameter(ast::Parameter* node) {
+  ostream_ << *node->name();
+}
+
+void Formatter::VisitParameterReference(ast::ParameterReference* node) {
+  ostream_ << *node->parameter();
+}
+
 void Formatter::VisitTypeMemberAccess(ast::TypeMemberAccess* node) {
   VisitMemberAccess(node->reference());
 }
@@ -164,6 +185,12 @@ std::ostream& operator<<(std::ostream& ostream, const Node& node) {
   Formatter formatter(&ostream);
   formatter.Format(&node);
   return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Node* node) {
+  if (!node)
+    return ostream << "nil";
+  return ostream << *node;
 }
 
 //////////////////////////////////////////////////////////////////////

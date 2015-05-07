@@ -111,6 +111,7 @@ class Factory;
 class Visitor;
 
 std::ostream& operator<<(std::ostream& ostream, const Node& node);
+std::ostream& operator<<(std::ostream& ostream, const Node* node);
 
 }  // namespace ast
 }  // namespace compiler
