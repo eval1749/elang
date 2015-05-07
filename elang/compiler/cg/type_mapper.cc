@@ -25,7 +25,7 @@ sm::Type* ValueOfPredefinedType(CompilationSession* session,
                                 PredefinedName name) {
   auto const ast_class = session->PredefinedTypeOf(name);
   DCHECK(ast_class) << "Not in System namespace " << name;
-  auto const ir_class = session->semantics()->ValueOf(ast_class);
+  auto const ir_class = session->semantics()->SemanticOf(ast_class);
   DCHECK(ir_class) << "Not resolved " << name;
   DCHECK(ir_class->is<sm::Class>());
   return ir_class->as<sm::Class>();

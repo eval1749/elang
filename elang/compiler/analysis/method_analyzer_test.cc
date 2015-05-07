@@ -216,7 +216,7 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
   Collector collector(method_main);
   std::stringstream ostream;
   for (auto const call : collector.calls()) {
-    if (auto const method = semantics()->ValueOf(call->callee()))
+    if (auto const method = semantics()->SemanticOf(call->callee()))
       ostream << *method;
     else
       ostream << "Not resolved: " << *call;
@@ -238,7 +238,7 @@ std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
   Collector collector(method_main);
   std::stringstream ostream;
   for (auto const variable : collector.variables())
-    ostream << *semantics()->ValueOf(variable) << std::endl;
+    ostream << *semantics()->SemanticOf(variable) << std::endl;
   return ostream.str();
 }
 
@@ -475,9 +475,10 @@ TEST_F(MethodAnalyzerTest, ForEachError) {
       "      Console.WriteLine(arg);"
       "  }"
       "}");
-  EXPECT_EQ("TypeResolver.ForEach.ElementType(75) arg\n"
-            "TypeResolver.Expression.Invalid(110) arg\n",
-            VariablesOf("Sample.Main"));
+  EXPECT_EQ(
+      "TypeResolver.ForEach.ElementType(75) arg\n"
+      "TypeResolver.Expression.Invalid(110) arg\n",
+      VariablesOf("Sample.Main"));
 }
 
 // 'if' statement
@@ -552,7 +553,8 @@ TEST_F(MethodAnalyzerTest, Parameter) {
   std::stringstream ostream;
   for (auto method : foo_group->methods()) {
     for (auto const parameter : method->parameters()) {
-      auto const variable = semantics()->ValueOf(parameter)->as<sm::Variable>();
+      auto const variable =
+          semantics()->SemanticOf(parameter)->as<sm::Variable>();
       if (!variable)
         continue;
       ostream << *parameter->name() << " " << variable->storage() << std::endl;

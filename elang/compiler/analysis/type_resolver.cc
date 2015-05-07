@@ -206,7 +206,7 @@ ts::Value* TypeResolver::PromoteNumericType(NumericType type) const {
 
 void TypeResolver::ProduceSemantics(ts::Value* value, ast::Node* ast_node) {
   if (auto const literal = value->as<ts::Literal>())
-    semantics()->SetValue(ast_node, literal->value());
+    semantics()->SetSemanticOf(ast_node, literal->value());
   ProduceUnifiedResult(value, ast_node);
 }
 
@@ -247,7 +247,7 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
 }
 
 sm::Semantic* TypeResolver::SemanticOf(ast::Node* node) {
-  return semantics()->ValueOf(node);
+  return semantics()->SemanticOf(node);
 }
 
 // ast::Visitor
@@ -408,7 +408,7 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
 
   if (ast_node->is_relational()) {
     ProduceUnifiedResult(bool_value(), ast_node);
-    semantics()->SetValue(ast_node, result->as<ts::Literal>()->value());
+    semantics()->SetSemanticOf(ast_node, result->as<ts::Literal>()->value());
     return;
   }
 
@@ -543,7 +543,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   if (!result_literal)
     return;
   DCHECK(!SemanticOf(ast_literal));
-  semantics()->SetValue(
+  semantics()->SetSemanticOf(
       ast_literal,
       ir_factory()->NewLiteral(result_literal->value(), ast_literal->token()));
   ProduceResult(result_literal, ast_literal);

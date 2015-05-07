@@ -84,7 +84,7 @@ void VariableTracker::Finish(sm::Factory* factory, ts::Factory* type_factory) {
                           variable->name());
       continue;
     }
-    semantics()->SetValue(
+    semantics()->SetSemanticOf(
         variable, factory->NewVariable(literal->value(),
                                        data->ComputeStorageClass(), variable));
   }

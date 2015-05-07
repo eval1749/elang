@@ -298,15 +298,16 @@ std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
   auto const semantics = session->semantics();
   auto const name_main = session->NewAtomicString(L"Main");
   auto const int32_type =
-      semantics->ValueOf(session->QueryAstNode(L"System.Int32"))
+      semantics->SemanticOf(session->QueryAstNode(L"System.Int32"))
           ->as<sm::Type>();
   auto const string_type =
-      semantics->ValueOf(session->QueryAstNode(L"System.String"))
+      semantics->SemanticOf(session->QueryAstNode(L"System.String"))
           ->as<sm::Type>();
   auto const string_array_type =
       name_resolver->factory()->NewArrayType(string_type, {-1});
   auto const void_type =
-      semantics->ValueOf(session->QueryAstNode(L"System.Void"))->as<sm::Type>();
+      semantics->SemanticOf(session->QueryAstNode(L"System.Void"))
+          ->as<sm::Type>();
 
   MethodQuery query1(name_main, void_type, {});
   MethodQuery query2(name_main, void_type, {ParameterQuery(string_array_type)});
@@ -397,7 +398,8 @@ int Compiler::CompileAndGo() {
     return 0;
   auto const prefix =
       graph_after_passes_.empty() && graph_before_passes_.empty() ? "" : "// ";
-  std::cout << std::endl << prefix << "Pass elapsed times: ~~~~~~~~~~~~~~~~~~~~"
+  std::cout << std::endl
+            << prefix << "Pass elapsed times: ~~~~~~~~~~~~~~~~~~~~"
             << std::endl;
   for (auto const& record : pass_records_) {
     std::cout << prefix << "  " << std::string(record->depth() * 2, ' ')

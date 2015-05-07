@@ -70,7 +70,7 @@ MethodQuery::~MethodQuery() {
 
 bool MethodQuery::Match(QueryContext* context, ast::Node* node) const {
   auto const method =
-      context->session->semantics()->ValueOf(node)->as<sm::Method>();
+      context->session->semantics()->SemanticOf(node)->as<sm::Method>();
   if (!method)
     return false;
   if (!MatchName(name_, method->ast_method()->name()))

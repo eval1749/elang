@@ -38,11 +38,11 @@ class IrSemanticsTest : public testing::AnalyzerTest {
 };
 
 Type* IrSemanticsTest::system_int32() {
-  return semantics()->ValueOf(FindClass("System.Int32"))->as<Type>();
+  return semantics()->SemanticOf(FindClass("System.Int32"))->as<Type>();
 }
 
 Type* IrSemanticsTest::system_int64() {
-  return semantics()->ValueOf(FindClass("System.Int64"))->as<Type>();
+  return semantics()->SemanticOf(FindClass("System.Int64"))->as<Type>();
 }
 
 std::string IrSemanticsTest::ToString(Semantic* semantic) {

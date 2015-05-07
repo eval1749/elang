@@ -19,16 +19,17 @@ Semantics::Semantics() {
 Semantics::~Semantics() {
 }
 
-void Semantics::SetValue(ast::Node* node, sm::Semantic* value) {
-  DCHECK(node);
-  value_map_[node] = value;
-}
-
 // It is valid to pass |nullptr| to |node| for avoiding null check in call
 // site, see |TypeEvaluator::VisitLiteral()| as example.
-sm::Semantic* Semantics::ValueOf(ast::Node* node) const {
-  auto const it = value_map_.find(node);
-  return it == value_map_.end() ? nullptr : it->second;
+sm::Semantic* Semantics::SemanticOf(ast::Node* node) const {
+  auto const it = semantic_map_.find(node);
+  return it == semantic_map_.end() ? nullptr : it->second;
+}
+
+void Semantics::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
+  DCHECK(node);
+  DCHECK(semantic);
+  semantic_map_[node] = semantic;
 }
 
 }  // namespace compiler

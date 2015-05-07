@@ -71,7 +71,7 @@ class Translator final : public CompilationSessionUser,
   void TranslateVariableAssignment(ast::NamedNode* ast_variable,
                                    ast::Expression* ast_value);
 
-  // Shortcut for |semantics()->ValueOf()|
+  // Shortcut for |semantics()->SemanticOf()|
   sm::Semantic* ValueOf(ast::Node* node) const;
 
   // Variable management

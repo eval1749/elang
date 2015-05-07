@@ -335,7 +335,7 @@ void Translator::TranslateVariableAssignment(ast::NamedNode* ast_variable,
 }
 
 sm::Semantic* Translator::ValueOf(ast::Node* node) const {
-  return semantics()->ValueOf(node);
+  return semantics()->SemanticOf(node);
 }
 
 //
@@ -610,7 +610,7 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
 
   // Loop head
   auto const pointer_variable = session()->semantics_factory()->NewVariable(
-      semantics()->ValueOf(node->variable())->as<sm::Variable>()->type(),
+      semantics()->SemanticOf(node->variable())->as<sm::Variable>()->type(),
       sm::StorageClass::Local, node->variable());
 
   auto const element_type = array_type->as<ir::ArrayType>()->element_type();

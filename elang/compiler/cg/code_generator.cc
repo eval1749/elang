@@ -458,7 +458,7 @@ bool CodeGenerator::Run() {
 }
 
 sm::Semantic* CodeGenerator::ValueOf(ast::Node* node) const {
-  return semantics()->ValueOf(node);
+  return semantics()->SemanticOf(node);
 }
 
 //

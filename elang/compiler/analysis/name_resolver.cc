@@ -224,8 +224,8 @@ sm::Factory* NameResolver::factory() const {
 
 void NameResolver::DidResolve(ast::NamedNode* ast_node, sm::Semantic* node) {
   DCHECK(ast_node);
-  DCHECK(!semantics()->ValueOf(ast_node));
-  semantics()->SetValue(ast_node, node);
+  DCHECK(!semantics()->SemanticOf(ast_node));
+  semantics()->SetSemanticOf(ast_node, node);
 }
 
 void NameResolver::DidResolveUsing(ast::NamedNode* node,
@@ -252,7 +252,7 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
 }
 
 sm::Semantic* NameResolver::Resolve(ast::NamedNode* member) const {
-  return semantics()->ValueOf(member);
+  return semantics()->SemanticOf(member);
 }
 
 sm::Type* NameResolver::ResolvePredefinedType(Token* token,

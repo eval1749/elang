@@ -105,7 +105,7 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
 
 sm::Type* MethodBodyAnalyzer::void_type() const {
   return semantics()
-      ->ValueOf(session()->PredefinedTypeOf(PredefinedName::Void))
+      ->SemanticOf(session()->PredefinedTypeOf(PredefinedName::Void))
       ->as<sm::Type>();
 }
 
@@ -158,7 +158,7 @@ void MethodBodyAnalyzer::RegisterParameters() {
 
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
-  auto const ir_method = semantics()->ValueOf(method_)->as<sm::Method>();
+  auto const ir_method = semantics()->SemanticOf(method_)->as<sm::Method>();
   if (!ir_method) {
     DVLOG(0) << *method_ << " isn't resolved.";
     return;
@@ -190,7 +190,7 @@ void MethodBodyAnalyzer::Run() {
       continue;
     }
     if (methods.size() == 1u) {
-      semantics()->SetValue(call->callee(), methods.front());
+      semantics()->SetSemanticOf(call->callee(), methods.front());
       continue;
     }
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
@@ -281,7 +281,7 @@ void MethodBodyAnalyzer::VisitIfStatement(ast::IfStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
-  auto const ir_method = semantics()->ValueOf(method_)->as<sm::Method>();
+  auto const ir_method = semantics()->SemanticOf(method_)->as<sm::Method>();
   auto const return_type = ir_method->return_type();
   if (ir_method->return_type() == void_type()) {
     if (node->value())

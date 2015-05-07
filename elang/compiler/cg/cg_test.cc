@@ -89,7 +89,7 @@ std::string CgTest::GetFunction(base::StringPiece name) {
   if (!ast_method_group)
     return std::string("No such method group ") + name.as_string();
   auto const ast_method = ast_method_group->methods()[0];
-  auto const ir_function = semantics()->ValueOf(ast_method);
+  auto const ir_function = semantics()->SemanticOf(ast_method);
   if (!ir_function)
     return std::string("Unbound ") + name.as_string();
   auto const hir_function = FunctionOf(ast_method);

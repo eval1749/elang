@@ -54,7 +54,7 @@ std::string TranslateTest::GetFunction(base::StringPiece name) {
   if (!ast_method_group)
     return std::string("No such method group ") + name.as_string();
   auto const ast_method = ast_method_group->methods()[0];
-  auto const sm_function = semantics()->ValueOf(ast_method);
+  auto const sm_function = semantics()->SemanticOf(ast_method);
   if (!sm_function)
     return std::string("Unbound ") + name.as_string();
   auto const ir_function = session()->IrFunctionOf(ast_method);

@@ -48,7 +48,7 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
     std::vector<int> dimensions(array_type->dimensions().begin(),
                                 array_type->dimensions().end());
     auto const value = factory()->NewArrayType(element_type, dimensions);
-    semantics()->SetValue(type, value);
+    semantics()->SetSemanticOf(type, value);
     return value;
   }
   auto const ast_node = name_resolver_->ResolveReference(type, container);

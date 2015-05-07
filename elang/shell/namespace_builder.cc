@@ -44,7 +44,7 @@ ast::Factory* NamespaceBuilder::ast_factory() const {
 
 sm::Class* NamespaceBuilder::system_object() {
   auto const ast_class = PredefinedTypeOf(PredefinedName::Object);
-  return semantics()->ValueOf(ast_class)->as<sm::Class>();
+  return semantics()->SemanticOf(ast_class)->as<sm::Class>();
 }
 
 ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
