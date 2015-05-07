@@ -8,7 +8,7 @@
 namespace elang {
 namespace {
 
-class Class1 : public Castable {
+class Class1 : public Castable<Class1> {
   DECLARE_CASTABLE_CLASS(Class1, Castable);
 };
 

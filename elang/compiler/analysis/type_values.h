@@ -53,7 +53,7 @@ namespace ts {
 //
 // Value
 //
-class Value : public Castable, public ZoneAllocated {
+class Value : public Castable<Value>, public ZoneAllocated {
   DECLARE_ABSTRACT_TYPE_VALUE_CLASS(Value, Castable);
 
  protected:

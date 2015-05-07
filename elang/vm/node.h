@@ -24,7 +24,7 @@ namespace vm {
 //
 // Node
 //
-class Node : public Castable, public ZoneAllocated {
+class Node : public Castable<Node>, public ZoneAllocated {
   DECLARE_VM_NODE_CLASS(Node, Castable);
 
  protected:

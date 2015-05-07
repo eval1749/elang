@@ -5,12 +5,15 @@
 #ifndef ELANG_BASE_CASTABLE_H_
 #define ELANG_BASE_CASTABLE_H_
 
+#include <type_traits>
+
 namespace elang {
 
 // T* as()
 // const char* class_name()
 // bool is<T>()
 // static const char* static_class_name()
+template <typename Base>
 class Castable {
  public:
   template <class Class>
@@ -24,6 +27,7 @@ class Castable {
   virtual const char* class_name() const { return static_class_name(); }
   template <class Class>
   bool is() const {
+    static_assert(std::is_base_of<Base, Class>::value, "Unrelated types");
     return this && is_class_of(Class::static_class_name());
   }
   virtual bool is_class_of(const char* other_name) const {

@@ -17,7 +17,8 @@ namespace elang {
 namespace optimizer {
 
 // A base class of |Type| and |Value| for using them in |ErrorData|.
-class ELANG_OPTIMIZER_EXPORT Thing : public Castable, public ZoneAllocated {
+class ELANG_OPTIMIZER_EXPORT Thing : public Castable<Thing>,
+                                     public ZoneAllocated {
   DECLARE_CASTABLE_CLASS(Thing, Castable);
 
  protected:

@@ -44,7 +44,7 @@ class PhiInstructionList;
   ~self() override = default;
 
 // Represent an value in instruction.
-class ELANG_LIR_EXPORT Literal : public Castable,
+class ELANG_LIR_EXPORT Literal : public Castable<Literal>,
                                  public Visitable<LiteralVisitor>,
                                  public ZoneAllocated {
   DECLARE_LIR_LITERAL_CLASS(Literal, Castable);

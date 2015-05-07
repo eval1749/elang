@@ -54,7 +54,7 @@ enum class StorageClass {
 //
 // Semantic
 //
-class Semantic : public Castable,
+class Semantic : public Castable<Semantic>,
                  public Visitable<Visitor>,
                  public ZoneAllocated {
   DECLARE_ABSTRACT_SEMANTIC_CLASS(Semantic, Castable);

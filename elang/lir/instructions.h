@@ -159,7 +159,7 @@ class ELANG_LIR_EXPORT BasicBlockOperands final {
 // Instruction
 //
 class ELANG_LIR_EXPORT Instruction
-    : public Castable,
+    : public Castable<Instruction>,
       public DoubleLinked<Instruction, BasicBlock>::NodeBase,
       public Visitable<InstructionVisitor>,
       public WorkList<Instruction>::Item,

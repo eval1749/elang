@@ -26,7 +26,8 @@ bool Is8Bit(int data) {
 //
 // CodeBuffer::CodeLocation
 //
-class CodeBuffer::CodeLocation : public Castable, public ZoneAllocated {
+class CodeBuffer::CodeLocation : public Castable<CodeLocation>,
+                                 public ZoneAllocated {
   DECLARE_CASTABLE_CLASS(CodeLocation, Castable);
 
  public:
@@ -336,14 +337,14 @@ CodeBuffer::CodeBuffer(const Function* function)
 
 void CodeBuffer::AssociateCallSite(base::StringPiece16 callee) {
   DCHECK(current_block_data_);
-  code_locations_.push_back(
-      new (zone()) CallSite(buffer_size(), code_size_, callee));
+  code_locations_.push_back(new (zone())
+                                CallSite(buffer_size(), code_size_, callee));
 }
 
 void CodeBuffer::AssociateValue(Value value) {
   DCHECK(current_block_data_);
-  code_locations_.push_back(
-      new (zone()) ValueInCode(buffer_size(), code_size_, value));
+  code_locations_.push_back(new (zone())
+                                ValueInCode(buffer_size(), code_size_, value));
 }
 
 void CodeBuffer::Finish(const Factory* factory,

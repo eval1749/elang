@@ -32,7 +32,9 @@ namespace ast {
 //
 // Node
 //
-class Node : public Castable, public Visitable<Visitor>, public ZoneAllocated {
+class Node : public Castable<Node>,
+             public Visitable<Visitor>,
+             public ZoneAllocated {
   DECLARE_ABSTRACT_AST_NODE_CLASS(Node, Castable);
 
  public:
