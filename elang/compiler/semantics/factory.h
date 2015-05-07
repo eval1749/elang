@@ -16,6 +16,8 @@ namespace elang {
 namespace compiler {
 namespace sm {
 
+class Semantics;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Factory
@@ -24,6 +26,8 @@ class Factory final : public ZoneOwner {
  public:
   Factory();
   ~Factory();
+
+  Semantics* semantics() const { return semantics_.get(); }
 
   // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
   // Note: it is valid that one of dimension is zero. In this case, number of
@@ -55,6 +59,7 @@ class Factory final : public ZoneOwner {
   class ArrayTypeFactory;
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
+  std::unique_ptr<Semantics> semantics_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

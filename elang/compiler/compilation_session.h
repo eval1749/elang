@@ -79,7 +79,7 @@ class CompilationSession final : public ZoneOwner {
   ast::NamespaceBody* global_namespace_body() const {
     return global_namespace_body_;
   }
-  sm::Semantics* semantics() const { return semantics_.get(); }
+  sm::Semantics* semantics() const;
   sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   ast::NamespaceBody* system_namespace_body() const {

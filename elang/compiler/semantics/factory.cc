@@ -9,6 +9,7 @@
 
 #include "elang/base/zone_user.h"
 #include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/semantics/visitor.h"
 
 namespace {
@@ -77,7 +78,9 @@ ArrayType* Factory::ArrayTypeFactory::NewArrayType(
 //
 // Factory
 //
-Factory::Factory() : array_type_factory_(new ArrayTypeFactory(zone())) {
+Factory::Factory()
+    : array_type_factory_(new ArrayTypeFactory(zone())),
+      semantics_(new Semantics()) {
 }
 
 Factory::~Factory() {
