@@ -8,6 +8,7 @@
 
 namespace elang {
 namespace compiler {
+namespace sm {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -26,5 +27,6 @@ sm::Semantic* Semantics::SemanticOf(ast::Node* node) const {
   return it == semantic_map_.end() ? nullptr : it->second;
 }
 
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang

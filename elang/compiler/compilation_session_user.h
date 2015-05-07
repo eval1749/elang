@@ -16,11 +16,12 @@ class Namespace;
 class NamespaceBody;
 class Node;
 }
-
+namespace sm {
+class Semantics;
+}
 class CompilationSession;
 enum class ErrorCode;
 enum class PredefinedName;
-class Semantics;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -39,7 +40,7 @@ class CompilationSessionUser {
  protected:
   explicit CompilationSessionUser(CompilationSession* session);
 
-  Semantics* semantics() const;
+  sm::Semantics* semantics() const;
   ast::Namespace* system_namespace();
   ast::NamespaceBody* system_namespace_body();
 

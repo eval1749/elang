@@ -18,7 +18,7 @@ CompilationSessionUser::CompilationSessionUser(CompilationSession* session)
 CompilationSessionUser::~CompilationSessionUser() {
 }
 
-Semantics* CompilationSessionUser::semantics() const {
+sm::Semantics* CompilationSessionUser::semantics() const {
   return session()->semantics();
 }
 

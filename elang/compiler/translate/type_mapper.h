@@ -23,10 +23,10 @@ namespace ast {
 class NamedNode;
 }
 namespace sm {
+class Semantics;
 class Type;
 }
 enum class PredefinedName;
-class Semantics;
 
 namespace cm = compiler;
 namespace ir = optimizer;

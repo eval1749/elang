@@ -120,7 +120,7 @@ AnalyzerTest::AnalyzerTest() : name_resolver_(NewNameResolver(session())) {
 AnalyzerTest::~AnalyzerTest() {
 }
 
-Semantics* AnalyzerTest::semantics() const {
+sm::Semantics* AnalyzerTest::semantics() const {
   return session()->semantics();
 }
 

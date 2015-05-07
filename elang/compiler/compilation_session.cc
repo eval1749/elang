@@ -72,7 +72,7 @@ CompilationSession::CompilationSession()
       atomic_string_factory_(new AtomicStringFactory()),
       predefined_names_(new PredefinedNames(this)),
       source_code_(new StringSourceCode(L"-", L"")),
-      semantics_(new Semantics()),
+      semantics_(new sm::Semantics()),
       semantics_factory_(new sm::Factory()),
       token_factory_(new TokenFactory(zone())),
       global_namespace_(CreateGlobalNamespace(this, source_code_.get())),

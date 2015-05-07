@@ -15,7 +15,6 @@ namespace elang {
 namespace compiler {
 namespace sm {
 class Editor;
-}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -43,6 +42,7 @@ class Semantics final {
   DISALLOW_COPY_AND_ASSIGN(Semantics);
 };
 
+}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 

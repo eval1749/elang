@@ -43,6 +43,7 @@ class NodeQuery;
 
 namespace sm {
 class Factory;
+class Semantics;
 }
 
 class CompilationUnit;
@@ -51,7 +52,6 @@ class ErrorData;
 class NameResolver;
 enum class PredefinedName;
 class PredefinedNames;
-class Semantics;
 class SourceCode;
 class SourceCodeRange;
 class Token;
@@ -79,7 +79,7 @@ class CompilationSession final : public ZoneOwner {
   ast::NamespaceBody* global_namespace_body() const {
     return global_namespace_body_;
   }
-  Semantics* semantics() const { return semantics_.get(); }
+  sm::Semantics* semantics() const { return semantics_.get(); }
   sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
   ast::Namespace* system_namespace() const { return system_namespace_; }
   ast::NamespaceBody* system_namespace_body() const {
@@ -135,7 +135,7 @@ class CompilationSession final : public ZoneOwner {
   std::unordered_map<ast::Method*, hir::Function*> function_map_;
   std::unordered_map<ast::Method*, ir::Function*> ir_function_map_;
   const std::unique_ptr<PredefinedNames> predefined_names_;
-  const std::unique_ptr<Semantics> semantics_;
+  const std::unique_ptr<sm::Semantics> semantics_;
   const std::unique_ptr<sm::Factory> semantics_factory_;
   const std::unique_ptr<TokenFactory> token_factory_;
   std::vector<ErrorData*> warnings_;
