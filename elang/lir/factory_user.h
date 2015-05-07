@@ -34,6 +34,11 @@ class ELANG_LIR_EXPORT FactoryUser {
   Value NewStringValue(AtomicString* atomic_string);
   Value NewStringValue(base::StringPiece16 data);
 
+  template <typename InstructionClass, typename... Parameters>
+  Instruction* New(Parameters... params) {
+    return factory()->New<InstructionClass>(params...);
+  }
+
 // New instructions
 #define V(Name, ...) Instruction* New##Name##Instruction();
   FOR_EACH_LIR_INSTRUCTION_0_0(V)
@@ -41,12 +46,6 @@ class ELANG_LIR_EXPORT FactoryUser {
 
 #define V(Name, ...) Instruction* New##Name##Instruction(Value input);
   FOR_EACH_LIR_INSTRUCTION_0_1(V)
-#undef V
-
-#define V(Name, ...)                                              \
-  Instruction* New##Name##Instruction(Value input0, Value input1, \
-                                      Value input2, Value input3);
-  FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
 #define V(Name, ...) \

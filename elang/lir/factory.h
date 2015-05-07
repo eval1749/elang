@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -86,6 +87,13 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
   int NextBasicBlockId();
   int NextInstructionId();
 
+  template <typename InstructionClass, typename... Parameters>
+  Instruction* New(Parameters... params) {
+    static_assert(std::is_base_of<Instruction, InstructionClass>::value,
+                  "Should be Instruction type");
+    return new (zone()) InstructionClass(params...);
+  }
+
 // Create Instruction
 #define V(Name, ...) Instruction* New##Name##Instruction();
   FOR_EACH_LIR_INSTRUCTION_0_0(V)
@@ -93,12 +101,6 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
 
 #define V(Name, ...) Instruction* New##Name##Instruction(Value input);
   FOR_EACH_LIR_INSTRUCTION_0_1(V)
-#undef V
-
-#define V(Name, ...)                                              \
-  Instruction* New##Name##Instruction(Value input0, Value input1, \
-                                      Value input2, Value input3);
-  FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
 #define V(Name, ...) \

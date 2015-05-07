@@ -227,7 +227,7 @@ TEST_F(LirInstructionTest, StoreInstruction) {
   auto const offset = Value::SmallInt32(4);
   auto const value = Value::SmallInt8(42);
   auto const instr =
-      factory()->NewStoreInstruction(anchor, pointer, offset, value);
+      factory()->New<StoreInstruction>(anchor, pointer, offset, value);
   EXPECT_TRUE(instr->is<StoreInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
