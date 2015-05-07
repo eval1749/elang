@@ -43,56 +43,35 @@ FOR_EACH_LIR_INSTRUCTION(V)
 #undef V
 
 // Constructors
-#define V(Name, ...) \
-  Name##Instruction::Name##Instruction() {}
-FOR_EACH_LIR_INSTRUCTION_0_0(V)
-#undef V
-
-#define V(Name, ...) \
-  Name##Instruction::Name##Instruction(Value input) { InitInput(0, input); }
+#define V(Name, ...)                                \
+  Name##Instruction::Name##Instruction(Value input) \
+      : InstructionTemplate(input) {}
 FOR_EACH_LIR_INSTRUCTION_0_1(V)
 #undef V
 
-#define V(Name, ...)                                                 \
-  Name##Instruction::Name##Instruction(Value input0, Value input1,   \
-                                       Value input2, Value input3) { \
-    InitInput(0, input0);                                            \
-    InitInput(1, input1);                                            \
-    InitInput(2, input2);                                            \
-    InitInput(3, input3);                                            \
-  }
+#define V(Name, ...)                                               \
+  Name##Instruction::Name##Instruction(Value input0, Value input1, \
+                                       Value input2, Value input3) \
+      : InstructionTemplate(input0, input1, input2, input3) {}
 FOR_EACH_LIR_INSTRUCTION_0_4(V)
 #undef V
 
-#define V(Name, ...)                                                \
-  Name##Instruction::Name##Instruction(Value output, Value input) { \
-    DCHECK(output.is_output());                                     \
-    InitOutput(0, output);                                          \
-    InitInput(0, input);                                            \
-  }
+#define V(Name, ...)                                              \
+  Name##Instruction::Name##Instruction(Value output, Value input) \
+      : InstructionTemplate(output, input) {}
 FOR_EACH_LIR_INSTRUCTION_1_1(V)
 #undef V
 
-#define V(Name, ...)                                             \
-  Name##Instruction::Name##Instruction(Value output, Value left, \
-                                       Value right) {            \
-    DCHECK(output.is_output());                                  \
-    InitOutput(0, output);                                       \
-    InitInput(0, left);                                          \
-    InitInput(1, right);                                         \
-  }
+#define V(Name, ...)                                                          \
+  Name##Instruction::Name##Instruction(Value output, Value left, Value right) \
+      : InstructionTemplate(output, left, right) {}
 FOR_EACH_LIR_INSTRUCTION_1_2(V)
 #undef V
 
-#define V(Name, ...)                                                 \
-  Name##Instruction::Name##Instruction(Value output, Value input0,   \
-                                       Value input1, Value input2) { \
-    DCHECK(output.is_output());                                      \
-    InitOutput(0, output);                                           \
-    InitInput(0, input0);                                            \
-    InitInput(1, input1);                                            \
-    InitInput(2, input2);                                            \
-  }
+#define V(Name, ...)                                               \
+  Name##Instruction::Name##Instruction(Value output, Value input0, \
+                                       Value input1, Value input2) \
+      : InstructionTemplate(output, input0, input1, input2) {}
 FOR_EACH_LIR_INSTRUCTION_1_3(V)
 #undef V
 
@@ -255,12 +234,12 @@ Instruction::Values Instruction::outputs() const {
   return Values(start, start + CountOutputs());
 }
 
-void Instruction::InitInput(int index, Value new_input) {
-  SetInput(index, new_input);
+void Instruction::InitInput(size_t index, Value new_input) {
+  SetInput(static_cast<int>(index), new_input);
 }
 
-void Instruction::InitOutput(int index, Value new_output) {
-  SetOutput(index, new_output);
+void Instruction::InitOutput(size_t index, Value new_output) {
+  SetOutput(static_cast<int>(index), new_output);
 }
 
 void Instruction::SetBlockOperand(int index, BasicBlock* new_value) {
@@ -368,6 +347,10 @@ Value* EntryInstruction::InputValues() const {
 
 Value* EntryInstruction::OutputValues() const {
   return const_cast<EntryInstruction*>(this)->outputs_.data();
+}
+
+// ExitInstruction
+ExitInstruction::ExitInstruction() {
 }
 
 // FCmpInstruction

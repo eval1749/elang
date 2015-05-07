@@ -248,8 +248,8 @@ class ELANG_LIR_EXPORT Instruction
   virtual Value* InputValues() const = 0;
   virtual Value* OutputValues() const = 0;
 
-  void InitInput(int index, Value new_value);
-  void InitOutput(int index, Value new_value);
+  void InitInput(size_t index, Value new_value);
+  void InitOutput(size_t index, Value new_value);
 
  private:
   // |Editor| changes |basic_block_|, |id_|, and |opcode_|.
@@ -276,16 +276,28 @@ class ELANG_LIR_EXPORT Instruction
   friend class Factory;
 
 // InstructionTemplate
-template <int kOutputCount, int kInputCount>
+template <size_t kOutputCount, size_t kInputCount>
 class InstructionTemplate : public Instruction {
  public:
   size_t CountInputs() const final { return kInputCount; }
   size_t CountOutputs() const final { return kOutputCount; }
 
  protected:
-  InstructionTemplate() = default;
+  template <typename... Values>
+  explicit InstructionTemplate(Values... params);
 
  private:
+  void InitOutputs() {}
+
+  template <typename... Values>
+  void InitOutputs(Value param, Values... params);
+
+  void InitInputs() {}
+
+  template <typename... Values>
+  void InitInputs(Value param, Values... params);
+
+  // Instruction
   Value* InputValues() const final {
     auto const self = const_cast<InstructionTemplate*>(this);
     return self->operands_.data() + kOutputCount;
@@ -300,6 +312,39 @@ class InstructionTemplate : public Instruction {
 
   DISALLOW_COPY_AND_ASSIGN(InstructionTemplate);
 };
+
+template <size_t kOutputCount, size_t kInputCount>
+template <typename... Params>
+InstructionTemplate<kOutputCount, kInputCount>::InstructionTemplate(
+    Params... params) {
+  InitOutputs(params...);
+  InitInputs(params...);
+}
+
+template <size_t kOutputCount, size_t kInputCount>
+template <typename... Params>
+void InstructionTemplate<kOutputCount, kInputCount>::InitOutputs(
+    Value param,
+    Params... params) {
+  auto const position = kOutputCount + kInputCount - sizeof...(Params)-1;
+  if (position == kOutputCount)
+    return;
+  InitOutput(position, param);
+  InitOutputs(params...);
+}
+
+template <size_t kOutputCount, size_t kInputCount>
+template <typename... Params>
+void InstructionTemplate<kOutputCount, kInputCount>::InitInputs(
+    Value param,
+    Params... params) {
+  auto const position = kOutputCount + kInputCount - sizeof...(Params)-1;
+  if (position == kOutputCount + kInputCount)
+    return;
+  if (position >= kOutputCount)
+    InitInput(position - kOutputCount, param);
+  InitInputs(params...);
+}
 
 template <>
 class InstructionTemplate<0, 0> : public Instruction {
