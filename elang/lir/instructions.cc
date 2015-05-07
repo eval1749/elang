@@ -197,10 +197,9 @@ Instruction::Values::Iterator& Instruction::Values::Iterator::operator++() {
 Instruction::Instruction() : basic_block_(nullptr), id_(0), index_(0) {
 }
 
-BasicBlock* Instruction::block_operand(int index) const {
+BasicBlock* Instruction::block_operand(size_t index) const {
   auto const operands = block_operands();
-  DCHECK_GE(index, 0);
-  DCHECK_LT(index, operands.size());
+  DCHECK_LT(index, operands.size()) << *this;
   return operands.start_[index];
 }
 
@@ -208,8 +207,7 @@ BasicBlockOperands Instruction::block_operands() const {
   return BasicBlockOperands();
 }
 
-Value Instruction::input(int index) const {
-  DCHECK_GE(index, 0) << *this;
+Value Instruction::input(size_t index) const {
   DCHECK_LT(index, CountInputs()) << *this;
   return InputValues()[index];
 }
@@ -223,8 +221,7 @@ base::StringPiece Instruction::mnemonic() const {
   return ToStringPiece(opcode());
 }
 
-Value Instruction::output(int index) const {
-  DCHECK_GE(index, 0) << *this;
+Value Instruction::output(size_t index) const {
   DCHECK_LT(index, CountOutputs()) << *this;
   return OutputValues()[index];
 }
@@ -235,29 +232,26 @@ Instruction::Values Instruction::outputs() const {
 }
 
 void Instruction::InitInput(size_t index, Value new_input) {
-  SetInput(static_cast<int>(index), new_input);
+  SetInput(index, new_input);
 }
 
 void Instruction::InitOutput(size_t index, Value new_output) {
-  SetOutput(static_cast<int>(index), new_output);
+  SetOutput(index, new_output);
 }
 
-void Instruction::SetBlockOperand(int index, BasicBlock* new_value) {
+void Instruction::SetBlockOperand(size_t index, BasicBlock* new_value) {
   auto const operands = block_operands();
-  DCHECK_GE(index, 0);
   DCHECK_LT(index, operands.size());
   operands.start_[index] = new_value;
 }
 
-void Instruction::SetInput(int index, Value new_input) {
-  DCHECK_GE(index, 0);
-  DCHECK_LE(index, CountInputs());
+void Instruction::SetInput(size_t index, Value new_input) {
+  DCHECK_LT(index, CountInputs());
   InputValues()[index] = new_input;
 }
 
-void Instruction::SetOutput(int index, Value new_output) {
-  DCHECK_GE(index, 0);
-  DCHECK_LE(index, CountOutputs());
+void Instruction::SetOutput(size_t index, Value new_output) {
+  DCHECK_LT(index, CountOutputs());
   DCHECK(new_output.is_output()) << new_output;
   OutputValues()[index] = new_output;
 }

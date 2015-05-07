@@ -228,12 +228,12 @@ class ELANG_LIR_EXPORT Instruction
   virtual Opcode opcode() const = 0;
 
   // Operands accessor
-  Value input(int index) const;
+  Value input(size_t index) const;
   Values inputs() const;
-  Value output(int index) const;
+  Value output(size_t index) const;
   Values outputs() const;
   virtual BasicBlockOperands block_operands() const;
-  BasicBlock* block_operand(int index) const;
+  BasicBlock* block_operand(size_t index) const;
 
   virtual size_t CountInputs() const = 0;
   virtual size_t CountOutputs() const = 0;
@@ -256,9 +256,9 @@ class ELANG_LIR_EXPORT Instruction
   friend class Editor;
   friend class Factory;
 
-  void SetBlockOperand(int index, BasicBlock* new_value);
-  void SetInput(int index, Value new_value);
-  void SetOutput(int index, Value new_value);
+  void SetBlockOperand(size_t index, BasicBlock* new_value);
+  void SetInput(size_t index, Value new_value);
+  void SetOutput(size_t index, Value new_value);
 
   BasicBlock* basic_block_;
   int id_;
@@ -375,7 +375,7 @@ class TerminatorInstruction : public InstructionTemplate<0, kInputOperands> {
   bool IsTerminator() const { return true; }
 
  protected:
-  void InitBlockOperand(int index, BasicBlock* block) {
+  void InitBlockOperand(size_t index, BasicBlock* block) {
     block_operands_[index] = block;
   }
 
