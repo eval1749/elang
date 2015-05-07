@@ -45,7 +45,7 @@ class ArrayAccess final : public Expression {
               Expression* array,
               const std::vector<Expression*>& indexes);
 
-  Expression* array_;
+  Expression* const array_;
   const ZoneVector<Expression*> indexes_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayAccess);
