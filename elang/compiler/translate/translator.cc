@@ -401,21 +401,28 @@ void Translator::VisitArrayAccess(ast::ArrayAccess* node) {
 }
 
 // There are five patterns:
-//  1. parameter = expression
-//  2. variable = expression
+//  1. variable = expression
+//  2. parameter = expression
 //  3. array[index+] = expression
 //  5. name = expression; field or property assignment
 //  4. container.member = expression; member assignment
 void Translator::VisitAssignment(ast::Assignment* node) {
   auto const lhs = node->left();
   auto const rhs = node->right();
-  if (auto const reference = lhs->as<ast::ParameterReference>()) {
-    TranslateVariableAssignment(reference->parameter(), rhs);
-    return;
-  }
-  if (auto const reference = lhs->as<ast::VariableReference>()) {
-    TranslateVariableAssignment(reference->variable(), rhs);
-    return;
+  if (auto const reference = lhs->as<ast::ParameterReference>())
+    return TranslateVariableAssignment(reference->parameter(), rhs);
+  if (auto const reference = lhs->as<ast::VariableReference>())
+    return TranslateVariableAssignment(reference->variable(), rhs);
+  if (auto const array_access = lhs->as<ast::ArrayAccess>()) {
+    auto const array = Translate(array_access->array());
+    std::vector<ir::Node*> indexes(array_access->indexes().size());
+    indexes.resize(0);
+    for (auto const index : array_access->indexes())
+      indexes.push_back(Translate(index));
+    auto const element_pointer = NewElement(array, NewDataOrTuple(indexes));
+    auto const new_value = Translate(rhs);
+    builder_->NewStore(array, element_pointer, new_value);
+    return SetVisitorResult(new_value);
   }
   Error(ErrorCode::TranslatorExpressionNotYetImplemented, node);
 }

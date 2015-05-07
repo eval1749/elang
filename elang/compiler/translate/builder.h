@@ -58,7 +58,8 @@ class Builder final : public ZoneOwner {
 
   // Effect consumer/producer
   ir::Data* Call(ir::Data* callee, ir::Node* arguments);
-  ir::Data* NewLoad(ir::Data* base_pointer, ir::Data* pointer);
+  ir::Data* NewLoad(ir::Data* anchor, ir::Data* pointer);
+  void NewStore(ir::Data* anchor, ir::Data* pointer, ir::Data* new_value);
 
   // Variable management
   void AssignVariable(sm::Variable* variable, ir::Data* value);

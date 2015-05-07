@@ -307,7 +307,7 @@ Builder::Builder(ir::Factory* factory, ir::Function* function)
 Builder::~Builder() {
   DCHECK(!basic_block_);
   DCHECK(!editor_->control());
-  DCHECK(editor_->Validate()) << editor_->errors();
+  DCHECK(editor_->Validate()) << *editor_;
 }
 
 void Builder::AssignVariable(sm::Variable* variable, ir::Data* value) {
@@ -409,9 +409,17 @@ Builder::BasicBlock* Builder::NewBasicBlock(ir::Control* start_node,
   return basic_block;
 }
 
-ir::Data* Builder::NewLoad(ir::Data* base_pointer, ir::Data* pointer) {
+ir::Data* Builder::NewLoad(ir::Data* anchor, ir::Data* pointer) {
   DCHECK(basic_block_);
-  return editor_->NewLoad(basic_block_->effect(), base_pointer, pointer);
+  return editor_->NewLoad(basic_block_->effect(), anchor, pointer);
+}
+
+void Builder::NewStore(ir::Data* anchor,
+                       ir::Data* pointer,
+                       ir::Data* new_value) {
+  DCHECK(basic_block_);
+  basic_block_->set_effect(
+      editor_->NewStore(basic_block_->effect(), anchor, pointer, new_value));
 }
 
 ir::PhiOwnerNode* Builder::NewMergeBlock() {
