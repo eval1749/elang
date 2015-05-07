@@ -160,6 +160,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void EmitModRm(Mod mod, Register reg, Rm rm);
   void EmitModRm(Register reg, Value input);
   void EmitModRm(Value output, Value input);
+  void EmitModRmDisp(isa::OpcodeExt opext, Register base, int displacement);
   void EmitModRmDisp(Register reg, Register base, int displacement);
   void EmitOpcode(isa::Opcode opcode);
 
@@ -216,6 +217,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
+  void VisitStore(StoreInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
   void VisitUShr(UShrInstruction* instr) final;
   void VisitZeroExtend(ZeroExtendInstruction* instr) final;
@@ -305,6 +307,12 @@ void InstructionHandlerX64::EmitModRm(Value output, Value input) {
     return;
   }
   NOTREACHED() << "EmitModRm " << output << ", " << input;
+}
+
+void InstructionHandlerX64::EmitModRmDisp(isa::OpcodeExt opext,
+                                          Register base,
+                                          int displacement) {
+  EmitModRmDisp(static_cast<Register>(opext), base, displacement);
 }
 
 void InstructionHandlerX64::EmitModRmDisp(Register reg,
@@ -895,11 +903,11 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
 //  int8:
 //      8A /r MOV r8, r/m8
 //  int16:
-//      66 8A /r MOV r8, r/m8
+//      66 8A /r MOV r16, r/m16
 //  int32:
 //      8B /r MOV r32, r/m32
 //  int64:
-//      REX.W 8B /r MOV r32, r/m32
+//      REX.W 8B /r MOV r64, r/m64
 //
 // Note: |instr->input(0)| doesn't contribute code emission, it holds base
 // address of pointer in |instr->input(1)|.
@@ -951,6 +959,44 @@ void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {
 
 void InstructionHandlerX64::VisitShr(ShrInstruction* instr) {
   HandleShiftInstruction(instr, isa::OpcodeExt::SAR_Ev_1);
+}
+
+// Output code pattern:
+//  int8:
+//      88 /r MOV r/m, r8
+//  int16:
+//      66 89 /r MOV r/m16, r16
+//  int32:
+//      89 /r MOV r/m32, r32
+//  int64:
+//      REX.W 89 /r MOV r/m64, r64
+//
+//  imm8:  C6 /0 ib         MOV r/m16, ib
+//  imm16: 66 C7 /0 iw      MOV r/m16, iw
+//  imm32: C7 /0 id         MOV r/m32, id
+//  imm32: REX.W C7 /0 id   MOV r/m64, id ; sign extended to 64-bit
+//
+// Note: |instr->input(0)| doesn't contribute code emission, it holds base
+// address of pointer in |instr->input(1)|.
+//
+void InstructionHandlerX64::VisitStore(StoreInstruction* instr) {
+  auto const pointer = instr->input(1);
+  auto const new_value = instr->input(3);
+  auto const displacement = instr->input(2);
+  DCHECK_EQ(Value::Int32Type(), Value::TypeOf(displacement)) << displacement;
+  DCHECK(displacement.is_immediate()) << displacement;
+  if (new_value.is_immediate() || new_value.is_literal()) {
+    EmitRexPrefix(new_value, pointer);
+    EmitOpcode(new_value.is_int8() ? isa::Opcode::MOV_Eb_Ib
+                                   : isa::Opcode::MOV_Ev_Iz);
+    EmitModRmDisp(isa::OpcodeExt::MOV_Ev_Iz, ToRegister(pointer),
+                  displacement.data);
+    EmitOperand(new_value);
+    return;
+  }
+  EmitRexPrefix(new_value, pointer);
+  EmitOpcode(OpcodeForStore(new_value));
+  EmitModRmDisp(ToRegister(new_value), ToRegister(pointer), displacement.data);
 }
 
 // Instruction formats are as same as ADD.

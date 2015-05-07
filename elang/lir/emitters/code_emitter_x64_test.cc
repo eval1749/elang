@@ -1060,6 +1060,283 @@ TEST_F(CodeEmitterX64Test, StackSlot) {
   EXPECT_EQ("0000 48 8B 04 24 89 54 24 08 C3\n", Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, Store16) {
+  auto const function = factory()->NewFunction({});
+  auto const ax = Target::GetRegister(isa::AX);
+  auto const di = Target::GetRegister(isa::DI);
+  auto const r12 = Target::GetRegister(isa::R12);
+  auto const r13 = Target::GetRegister(isa::R13);
+  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const disp0 = Value::SmallInt32(0);
+  auto const disp8 = Value::SmallInt32(127);
+  auto const disp32 = Value::SmallInt32(0xABCD);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, ax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, ax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, ax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, di));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, di));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, di));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, r9w));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, r9w));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, r9w));
+
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, ax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, ax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, ax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, di));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, di));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, di));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, r9w));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, r9w));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, r9w));
+
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, ax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, ax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, ax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, di));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, di));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, di));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, r9w));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, r9w));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, r9w));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 66 89 03 66 89 43 7F 66 89 83 CD AB 00 00 66 89\n"
+      "0010 3B 66 89 7B 7F 66 89 BB CD AB 00 00 66 44 89 0B\n"
+      "0020 66 44 89 4B 7F 66 44 89 8B CD AB 00 00 66 41 89\n"
+      "0030 04 24 66 41 89 44 24 7F 66 41 89 84 24 CD AB 00\n"
+      "0040 00 66 41 89 3C 24 66 41 89 7C 24 7F 66 41 89 BC\n"
+      "0050 24 CD AB 00 00 66 45 89 0C 24 66 45 89 4C 24 7F\n"
+      "0060 66 45 89 8C 24 CD AB 00 00 66 41 89 45 00 66 41\n"
+      "0070 89 45 7F 66 41 89 85 CD AB 00 00 66 41 89 7D 00\n"
+      "0080 66 41 89 7D 7F 66 41 89 BD CD AB 00 00 66 45 89\n"
+      "0090 4D 00 66 45 89 4D 7F 66 45 89 8D CD AB 00 00 C3\n",
+      Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, Store32) {
+  auto const function = factory()->NewFunction({});
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const edi = Target::GetRegister(isa::EDI);
+  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const r12 = Target::GetRegister(isa::R12);
+  auto const r13 = Target::GetRegister(isa::R13);
+  auto const disp0 = Value::SmallInt32(0);
+  auto const disp8 = Value::SmallInt32(127);
+  auto const disp32 = Value::SmallInt32(0xABCD);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, eax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, eax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, eax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, edi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, edi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, edi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, r9d));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, r9d));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, r9d));
+
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, eax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, eax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, eax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, edi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, edi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, edi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, r9d));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, r9d));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, r9d));
+
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, eax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, eax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, eax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, edi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, edi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, edi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, r9d));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, r9d));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, r9d));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 89 03 89 43 7F 89 83 CD AB 00 00 89 3B 89 7B 7F\n"
+      "0010 89 BB CD AB 00 00 44 89 0B 44 89 4B 7F 44 89 8B\n"
+      "0020 CD AB 00 00 41 89 04 24 41 89 44 24 7F 41 89 84\n"
+      "0030 24 CD AB 00 00 41 89 3C 24 41 89 7C 24 7F 41 89\n"
+      "0040 BC 24 CD AB 00 00 45 89 0C 24 45 89 4C 24 7F 45\n"
+      "0050 89 8C 24 CD AB 00 00 41 89 45 00 41 89 45 7F 41\n"
+      "0060 89 85 CD AB 00 00 41 89 7D 00 41 89 7D 7F 41 89\n"
+      "0070 BD CD AB 00 00 45 89 4D 00 45 89 4D 7F 45 89 8D\n"
+      "0080 CD AB 00 00 C3\n",
+      Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, Store64) {
+  auto const function = factory()->NewFunction({});
+  auto const rax = Target::GetRegister(isa::RAX);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const rdi = Target::GetRegister(isa::RDI);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const r12 = Target::GetRegister(isa::R12);
+  auto const r13 = Target::GetRegister(isa::R13);
+  auto const disp0 = Value::SmallInt32(0);
+  auto const disp8 = Value::SmallInt32(127);
+  auto const disp32 = Value::SmallInt32(0xABCD);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, rax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, rax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, rax));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, rdi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, rdi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, rdi));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, r9));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, r9));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, r9));
+
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, rax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, rax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, rax));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, rdi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, rdi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, rdi));
+  editor.Append(New<StoreInstruction>(r12, r12, disp0, r9));
+  editor.Append(New<StoreInstruction>(r12, r12, disp8, r9));
+  editor.Append(New<StoreInstruction>(r12, r12, disp32, r9));
+
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, rax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, rax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, rax));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, rdi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, rdi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, rdi));
+  editor.Append(New<StoreInstruction>(r13, r13, disp0, r9));
+  editor.Append(New<StoreInstruction>(r13, r13, disp8, r9));
+  editor.Append(New<StoreInstruction>(r13, r13, disp32, r9));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 48 89 03 48 89 43 7F 48 89 83 CD AB 00 00 48 89\n"
+      "0010 3B 48 89 7B 7F 48 89 BB CD AB 00 00 4C 89 0B 4C\n"
+      "0020 89 4B 7F 4C 89 8B CD AB 00 00 49 89 04 24 49 89\n"
+      "0030 44 24 7F 49 89 84 24 CD AB 00 00 49 89 3C 24 49\n"
+      "0040 89 7C 24 7F 49 89 BC 24 CD AB 00 00 4D 89 0C 24\n"
+      "0050 4D 89 4C 24 7F 4D 89 8C 24 CD AB 00 00 49 89 45\n"
+      "0060 00 49 89 45 7F 49 89 85 CD AB 00 00 49 89 7D 00\n"
+      "0070 49 89 7D 7F 49 89 BD CD AB 00 00 4D 89 4D 00 4D\n"
+      "0080 89 4D 7F 4D 89 8D CD AB 00 00 C3\n",
+      Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, Store8) {
+  auto const function = factory()->NewFunction({});
+  auto const al = Target::GetRegister(isa::AL);
+  auto const dil = Target::GetRegister(isa::DIL);
+  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const disp0 = Value::SmallInt32(0);
+  auto const disp8 = Value::SmallInt32(127);
+  auto const disp32 = Value::SmallInt32(0xABCD);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, al));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, al));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, al));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, dil));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, dil));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, dil));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, r9b));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, r9b));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, r9b));
+
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, al));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, al));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, al));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, dil));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, dil));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, dil));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, r9b));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, r9b));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, r9b));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 88 03 88 43 7F 88 83 CD AB 00 00 40 88 3B 40 88\n"
+      "0010 7B 7F 40 88 BB CD AB 00 00 44 88 0B 44 88 4B 7F\n"
+      "0020 44 88 8B CD AB 00 00 41 88 01 41 88 41 7F 41 88\n"
+      "0030 81 CD AB 00 00 41 88 39 41 88 79 7F 41 88 B9 CD\n"
+      "0040 AB 00 00 45 88 09 45 88 49 7F 45 88 89 CD AB 00\n"
+      "0050 00 C3\n",
+      Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, StoreLiteral) {
+  auto const function = factory()->NewFunction({});
+  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const r9 = Target::GetRegister(isa::R9);
+  auto const disp0 = Value::SmallInt32(0);
+  auto const disp8 = Value::SmallInt32(127);
+  auto const disp32 = Value::SmallInt32(0xABCD);
+  auto const imm8 = Value::SmallInt8(42);
+  auto const imm16 = Value::SmallInt16(42);
+  auto const imm32 = NewIntValue(Value::Int32Type(), 0x76543210);
+  auto const imm64 = NewIntValue(Value::Int64Type(), 0x76543210);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, imm8));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, imm8));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, imm8));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, imm8));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, imm8));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, imm8));
+
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, imm16));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, imm16));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, imm16));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, imm16));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, imm16));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, imm16));
+
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, imm32));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, imm32));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, imm32));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, imm32));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, imm32));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, imm32));
+
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp0, imm64));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp8, imm64));
+  editor.Append(New<StoreInstruction>(rbx, rbx, disp32, imm64));
+  editor.Append(New<StoreInstruction>(r9, r9, disp0, imm64));
+  editor.Append(New<StoreInstruction>(r9, r9, disp8, imm64));
+  editor.Append(New<StoreInstruction>(r9, r9, disp32, imm64));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 C6 03 2A C6 43 7F 2A C6 83 CD AB 00 00 2A 41 C6\n"
+      "0010 01 2A 41 C6 41 7F 2A 41 C6 81 CD AB 00 00 2A 66\n"
+      "0020 C7 03 2A 00 66 C7 43 7F 2A 00 66 C7 83 CD AB 00\n"
+      "0030 00 2A 00 66 41 C7 01 2A 00 66 41 C7 41 7F 2A 00\n"
+      "0040 66 41 C7 81 CD AB 00 00 2A 00 C7 03 10 32 54 76\n"
+      "0050 C7 43 7F 10 32 54 76 C7 83 CD AB 00 00 10 32 54\n"
+      "0060 76 41 C7 01 10 32 54 76 41 C7 41 7F 10 32 54 76\n"
+      "0070 41 C7 81 CD AB 00 00 10 32 54 76 48 C7 03 10 32\n"
+      "0080 54 76 48 C7 43 7F 10 32 54 76 48 C7 83 CD AB 00\n"
+      "0090 00 10 32 54 76 49 C7 01 10 32 54 76 49 C7 41 7F\n"
+      "00A0 10 32 54 76 49 C7 81 CD AB 00 00 10 32 54 76 C3\n",
+      Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, UShrInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
