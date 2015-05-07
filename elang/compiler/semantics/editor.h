@@ -24,16 +24,14 @@ class Semantic;
 //
 class Editor final : public CompilationSessionUser {
  public:
-  Editor(CompilationSession* session, Factory* factory);
+  explicit Editor(CompilationSession* session);
   ~Editor();
 
-  Factory* factory() const { return factory_; }
+  Factory* factory() const;
 
   void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
 
  private:
-  Factory* const factory_;
-
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
 

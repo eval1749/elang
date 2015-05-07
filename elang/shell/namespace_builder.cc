@@ -33,8 +33,7 @@ namespace shell {
 
 NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
-      editor_(
-          new sm::Editor(name_resolver->session(), name_resolver->factory())),
+      editor_(new sm::Editor(name_resolver->session())),
       name_resolver_(name_resolver) {
 }
 

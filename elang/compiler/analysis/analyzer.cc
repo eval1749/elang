@@ -27,7 +27,7 @@ namespace compiler {
 //
 Analyzer::Analyzer(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
-      editor_(new sm::Editor(session(), name_resolver->factory())),
+      editor_(new sm::Editor(session())),
       name_resolver_(name_resolver) {
 }
 

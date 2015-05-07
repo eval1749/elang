@@ -5,6 +5,7 @@
 #include "elang/compiler/semantics/editor.h"
 
 #include "base/logging.h"
+#include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
@@ -15,11 +16,15 @@ namespace sm {
 //
 // Editor
 //
-Editor::Editor(CompilationSession* session, Factory* factory)
-    : CompilationSessionUser(session), factory_(factory) {
+Editor::Editor(CompilationSession* session)
+    : CompilationSessionUser(session) {
 }
 
 Editor::~Editor() {
+}
+
+sm::Factory* Editor::factory() const {
+  return session()->semantics_factory();
 }
 
 void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
