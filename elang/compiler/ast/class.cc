@@ -51,22 +51,17 @@ bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 // ClassBody
 //
-ClassBody::ClassBody(Zone* zone, BodyNode* outer, Class* owner)
+ClassBody::ClassBody(Zone* zone,
+                     BodyNode* outer,
+                     Class* owner,
+                     const std::vector<Type*>& base_class_names)
     : BodyNode(zone, outer, owner),
       WithModifiers(owner->modifiers()),
-      base_class_names_(zone) {
+      base_class_names_(zone, base_class_names) {
 }
 
 Class* ClassBody::owner() const {
   return BodyNode::owner()->as<ast::Class>();
-}
-
-void ClassBody::SetBaseClassNames(const std::vector<Type*>& base_class_names) {
-  DCHECK(base_class_names_.empty());
-  base_class_names_.reserve(base_class_names.size());
-  // TODO(eval1749) We should set parent node for |base_class_names|.
-  for (auto const base_class_name : base_class_names)
-    base_class_names_.push_back(base_class_name);
 }
 
 #if _DEBUG

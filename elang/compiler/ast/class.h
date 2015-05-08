@@ -44,8 +44,6 @@ class Class final : public NamespaceNode, public WithModifiers {
 //////////////////////////////////////////////////////////////////////
 //
 // ClassBody
-// Since base class name list comes after type parameters list, we set
-// base class name list after construction.
 //
 class ClassBody final : public BodyNode, public WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, BodyNode);
@@ -57,10 +55,11 @@ class ClassBody final : public BodyNode, public WithModifiers {
 
   Class* owner() const;
 
-  void SetBaseClassNames(const std::vector<Type*>& base_class_names);
-
  private:
-  ClassBody(Zone* zone, BodyNode* outer, Class* owner);
+  ClassBody(Zone* zone,
+            BodyNode* outer,
+            Class* owner,
+            const std::vector<Type*>& base_class_names);
 
 #if _DEBUG
   // Node
@@ -69,7 +68,7 @@ class ClassBody final : public BodyNode, public WithModifiers {
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
-  ZoneVector<Type*> base_class_names_;
+  const ZoneVector<Type*> base_class_names_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassBody);
 };

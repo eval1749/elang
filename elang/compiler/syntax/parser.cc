@@ -230,26 +230,26 @@ bool Parser::ParseClass() {
                                 class_keyword, class_name);
     container_->owner()->AddNamedMember(clazz);
   }
-  auto const class_body = factory()->NewClassBody(container_, clazz);
-  container_->AddMember(class_body);
-  container_->AddNamedMember(clazz);
-
-  ContainerScope container_scope(this, class_body);
-
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
     ParseTypeParameterList();
 
   // ClassBase
+  std::vector<ast::Type*> base_class_names;
   if (AdvanceIf(TokenType::Colon)) {
-    std::vector<ast::Type*> base_class_names;
     while (ParseNamespaceOrTypeName()) {
       base_class_names.push_back(ConsumeType());
       if (!AdvanceIf(TokenType::Comma))
         break;
     }
-    class_body->SetBaseClassNames(base_class_names);
   }
+
+  auto const class_body =
+      factory()->NewClassBody(container_, clazz, base_class_names);
+  container_->AddMember(class_body);
+  container_->AddNamedMember(clazz);
+
+  ContainerScope container_scope(this, class_body);
 
   if (class_modifiers.HasExtern()) {
     if (!AdvanceIf(TokenType::SemiColon))

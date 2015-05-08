@@ -68,8 +68,14 @@ Class* Factory::NewClass(NamespaceNode* outer,
   return new (zone_) Class(zone_, outer, modifiers, keyword, name);
 }
 
-ClassBody* Factory::NewClassBody(BodyNode* outer, Class* owner) {
-  return new (zone_) ClassBody(zone_, outer, owner);
+ClassBody* Factory::NewClassBody(BodyNode* outer,
+                                 Class* owner,
+                                 const std::vector<Type*>& base_class_names) {
+  auto const node =
+      new (zone_) ClassBody(zone_, outer, owner, base_class_names);
+  for (auto const base_class_name : base_class_names)
+    SetParent(base_class_name, node);
+  return node;
 }
 
 Enum* Factory::NewEnum(BodyNode* container,

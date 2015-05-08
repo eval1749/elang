@@ -38,7 +38,9 @@ class Factory final {
                   Modifiers modifiers,
                   Token* keyword,
                   Token* name);
-  ClassBody* NewClassBody(BodyNode* outer, Class* owner);
+  ClassBody* NewClassBody(BodyNode* outer,
+                          Class* owner,
+                          const std::vector<Type*>& base_class_names);
   Enum* NewEnum(BodyNode* outer,
                 Modifiers modifiers,
                 Token* keyword,

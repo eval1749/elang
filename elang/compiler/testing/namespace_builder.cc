@@ -62,8 +62,7 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   }
 
   auto const ast_class_body = session()->ast_factory()->NewClassBody(
-      session()->system_namespace_body(), ast_class);
-  ast_class_body->SetBaseClassNames(base_class_names);
+      session()->system_namespace_body(), ast_class, base_class_names);
   session()->system_namespace_body()->AddMember(ast_class_body);
   session()->system_namespace_body()->AddNamedMember(ast_class);
 
