@@ -453,6 +453,11 @@ void Formatter::VisitMethod(ast::Method* method) {
   ostream_ << ";" << std::endl;
 }
 
+void Formatter::VisitMethodBody(ast::MethodBody* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
 void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
   DCHECK(node);
   NOTREACHED();

@@ -71,7 +71,6 @@ class BodyNode : public ContainerNode {
 class NamespaceNode : public ContainerNode {
   DECLARE_ABSTRACT_AST_NODE_CLASS(NamespaceNode, ContainerNode);
 
- public:
  protected:
   NamespaceNode(Zone* zone, ContainerNode* outer, Token* keyword, Token* name);
 

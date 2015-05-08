@@ -465,12 +465,16 @@ void Parser::ParseMethod(Modifiers method_modifiers,
   if (!container_->FindMember(method_name))
     container_->AddNamedMember(method_group);
 
-  auto const method = factory()->NewMethod(
-      container_->as<ast::ClassBody>(), method_group, method_modifiers,
-      method_type, method_name, type_parameters);
+  auto const class_body = container_->as<ast::ClassBody>();
+  auto const method =
+      factory()->NewMethod(class_body, method_group, method_modifiers,
+                           method_type, method_name, type_parameters);
   method_group->AddMethod(method);
   container_->AddMember(method);
+  auto const method_body = factory()->NewMethodBody(method);
+  method->AddMember(method_body);
 
+  ContainerScope container_scope(this, method_body);
   LocalDeclarationSpace method_space(this, PeekToken());
   if (!AdvanceIf(TokenType::RightParenthesis)) {
     std::vector<ast::Parameter*> parameters;

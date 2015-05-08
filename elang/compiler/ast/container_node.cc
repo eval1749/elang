@@ -27,7 +27,7 @@ void ContainerNode::AcceptForMembers(Visitor* visitor) {
 }
 
 void ContainerNode::AddMember(Node* member) {
-  DCHECK(member->CanBeMemberOf(this));
+  DCHECK(member->CanBeMemberOf(this)) << *member << " " << *this;
   members_.push_back(member);
 }
 
@@ -50,7 +50,8 @@ NamedNode* ContainerNode::FindMember(Token* name) const {
 BodyNode::BodyNode(Zone* zone, BodyNode* parent, NamespaceNode* owner)
     : ContainerNode(zone, parent, owner->keyword(), owner->name()),
       owner_(owner) {
-  DCHECK(owner->is<ast::Class>() || owner->is<ast::Namespace>());
+  DCHECK(owner->is<ast::Class>() || owner->is<ast::Namespace>() ||
+         owner->is<ast::Method>());
 }
 
 // NamespaceNode

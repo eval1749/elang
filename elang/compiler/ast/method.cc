@@ -13,10 +13,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-//////////////////////////////////////////////////////////////////////
-//
 // Method
-//
 Method::Method(Zone* zone,
                ClassBody* outer,
                MethodGroup* method_group,
@@ -60,10 +57,19 @@ void Method::SetBody(Statement* body) {
   body_ = body;
 }
 
-//////////////////////////////////////////////////////////////////////
-//
+// MethodBody
+MethodBody::MethodBody(Zone* zone, Method* method)
+    : BodyNode(zone, method->parent()->as<ast::ClassBody>(), method) {
+}
+
+#if _DEBUG
+// NamedNode
+bool MethodBody::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Method>();
+}
+#endif
+
 // MethodGroup
-//
 MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
     : NamedNode(owner, name, name), methods_(zone) {
   DCHECK(name->is_name());
@@ -86,10 +92,7 @@ bool MethodGroup::CanBeNamedMemberOf(ContainerNode* container) const {
 }
 #endif
 
-//////////////////////////////////////////////////////////////////////
-//
 // Parameter
-//
 Parameter::Parameter(Method* owner,
                      ParameterKind kind,
                      int position,

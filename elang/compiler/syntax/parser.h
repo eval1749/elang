@@ -178,6 +178,18 @@ class Parser final : public CompilationSessionUser {
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
 
+class Parser::ContainerScope final {
+ public:
+  ContainerScope(Parser* parser, ast::BodyNode* new_container);
+  ~ContainerScope();
+
+ private:
+  Parser* const parser_;
+  ast::BodyNode* const container_;
+
+  DISALLOW_COPY_AND_ASSIGN(ContainerScope);
+};
+
 }  // namespace compiler
 }  // namespace elang
 

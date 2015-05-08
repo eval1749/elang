@@ -55,12 +55,13 @@ class Factory final {
   Import* NewImport(NamespaceBody* namespace_body,
                     Token* keyword,
                     Expression* reference);
-  Method* NewMethod(ClassBody* owner,
+  Method* NewMethod(ClassBody* outer,
                     MethodGroup* method_group,
                     Modifiers modifies,
                     Type* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters);
+  MethodBody* NewMethodBody(Method* method);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
@@ -85,7 +86,7 @@ class Factory final {
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,
                                 const std::vector<Expression*>& members);
-  NameReference* NewNameReference(Token* literal);
+  NameReference* NewNameReference(BodyNode* container, Token* name);
   ParameterReference* NewParameterReference(Token* name, Parameter* param);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
   VariableReference* NewVariableReference(Token* name, Variable* var);

@@ -80,11 +80,12 @@ namespace ast {
   V(CatchClause)                      \
   V(ClassBody)                        \
   V(EnumMember)                       \
-  V(Parameter)                        \
-  V(Variable)                         \
+  V(MethodBody)                       \
   V(MethodGroup)                      \
   V(NamespaceBody)                    \
-  V(VarDeclaration)
+  V(Parameter)                        \
+  V(VarDeclaration)                   \
+  V(Variable)
 
 #define FOR_EACH_ABSTRACT_AST_NODE(V) \
   V(BodyNode)                         \

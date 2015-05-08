@@ -66,6 +66,24 @@ class Method final : public NamespaceNode, public WithModifiers {
 
 //////////////////////////////////////////////////////////////////////
 //
+// MethodBody
+//
+class MethodBody final : public BodyNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(MethodBody, BodyNode);
+
+ private:
+  MethodBody(Zone* zone, Method* method);
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+#endif
+
+  DISALLOW_COPY_AND_ASSIGN(MethodBody);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // MethodGroup
 //
 class MethodGroup final : public NamedNode {

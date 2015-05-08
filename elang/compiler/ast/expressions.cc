@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 
+#include "elang/compiler/ast/container_node.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/token_type.h"
 
@@ -13,13 +14,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-//////////////////////////////////////////////////////////////////////
-//
-// Expression
-//
-Expression::Expression(Token* op) : Node(nullptr, op) {
-}
-
+// ArrayAccess
 ArrayAccess::ArrayAccess(Zone* zone,
                          Token* bracket,
                          Expression* array,
@@ -99,6 +94,14 @@ ConstructedName::ConstructedName(Zone* zone,
   DCHECK(!arguments_.empty());
 }
 
+// Expression
+Expression::Expression(ContainerNode* container, Token* op)
+    : Node(container, op) {
+}
+
+Expression::Expression(Token* op) : Expression(nullptr, op) {
+}
+
 // IncrementExpression
 IncrementExpression::IncrementExpression(Token* op, Expression* expression)
     : Expression(op), expression_(expression) {
@@ -120,8 +123,11 @@ MemberAccess::MemberAccess(Zone* zone,
   DCHECK_GE(components.size(), 2u);
 }
 
-NameReference::NameReference(Token* name) : Expression(name) {
-  DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var);
+// NameReference
+NameReference::NameReference(BodyNode* container, Token* name)
+    : Expression(container, name) {
+  DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var)
+      << name;
 }
 
 // ParameterReference

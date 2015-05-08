@@ -44,18 +44,6 @@ Token* MakeQualifiedNameToken(ast::Node* thing) {
 //
 // ContainerScope
 //
-class Parser::ContainerScope {
- public:
-  ContainerScope(Parser* parser, ast::BodyNode* new_container);
-  ~ContainerScope();
-
- private:
-  Parser* const parser_;
-  ast::BodyNode* const container_;
-
-  DISALLOW_COPY_AND_ASSIGN(ContainerScope);
-};
-
 Parser::ContainerScope::ContainerScope(Parser* parser,
                                        ast::BodyNode* new_container)
     : container_(parser->container_), parser_(parser) {

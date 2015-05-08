@@ -8,6 +8,7 @@
 
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
+#include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
@@ -88,7 +89,8 @@ ir::Type* IrTypeMapperTest::Map(sm::Type* type) {
 
 sm::Parameter* IrTypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_type = session()->ast_factory()->NewTypeNameReference(
-      session()->ast_factory()->NewNameReference(builder_.NewName("type")));
+      session()->ast_factory()->NewNameReference(
+          session()->system_namespace_body(), builder_.NewName("type")));
   auto const ast_parameter = session()->ast_factory()->NewParameter(
       nullptr, cm::ParameterKind::Required, 0, ast_type,
       builder_.NewName("param"), nullptr);

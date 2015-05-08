@@ -25,6 +25,7 @@ class Expression : public Node {
   Token* op() const { return token(); }
 
  protected:
+  Expression(ContainerNode* container, Token* op);
   explicit Expression(Token* op);
 
  private:
@@ -223,7 +224,7 @@ class NameReference final : public Expression {
   Token* name() const { return token(); }
 
  private:
-  explicit NameReference(Token* name);
+  NameReference(BodyNode* container, Token* name);
 
   DISALLOW_COPY_AND_ASSIGN(NameReference);
 };

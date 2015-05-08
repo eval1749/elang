@@ -110,6 +110,10 @@ Method* Factory::NewMethod(ClassBody* outer,
       Method(zone_, outer, method_group, modifies, type, name, type_parameters);
 }
 
+MethodBody* Factory::NewMethodBody(Method* method) {
+  return new (zone_) MethodBody(zone_, method);
+}
+
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
   DCHECK(name->is_name());
   return new (zone_) MethodGroup(zone_, owner, name);
@@ -181,8 +185,8 @@ MemberAccess* Factory::NewMemberAccess(
   return new (zone_) MemberAccess(zone_, name, members);
 }
 
-NameReference* Factory::NewNameReference(Token* name) {
-  return new (zone_) NameReference(name);
+NameReference* Factory::NewNameReference(BodyNode* container, Token* name) {
+  return new (zone_) NameReference(container, name);
 }
 
 ParameterReference* Factory::NewParameterReference(Token* name,

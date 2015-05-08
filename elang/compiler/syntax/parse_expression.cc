@@ -251,7 +251,7 @@ bool Parser::ParsePrimaryExpression() {
 
 void Parser::ParsePrimaryExpressionName(Token* name) {
   DCHECK(name->is_name());
-  auto const reference = factory()->NewNameReference(name);
+  auto const reference = factory()->NewNameReference(container_, name);
   if (!AdvanceIf(TokenType::LeftAngleBracket)) {
     ProduceExpression(reference);
     return;
@@ -424,7 +424,7 @@ ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
 }
 
 ast::Expression* Parser::ProduceNameReference(Token* token) {
-  return ProduceExpression(factory()->NewNameReference(token));
+  return ProduceExpression(factory()->NewNameReference(container_, token));
 }
 
 ast::Expression* Parser::ProduceIncrementExpression(Token* op_token,
