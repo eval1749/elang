@@ -543,14 +543,14 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   auto const present = resolver()->SemanticOf(ast_class)->as<sm::Class>();
   if (present) {
     // TODO(eval1749) Check base classes are matched with |present|.
-    FixSemanticOf(class_body, present);
+    SetSemanticOf(class_body, present);
     DidResolve(class_body);
     return;
   }
 
   auto const clazz = factory()->NewClass(ast_class, direct_base_classes);
-  FixSemanticOf(class_body, clazz);
-  FixSemanticOf(ast_class, clazz);
+  SetSemanticOf(class_body, clazz);
+  SetSemanticOf(ast_class, clazz);
   DidResolve(class_body);
   DidResolve(ast_class);
 }

@@ -40,7 +40,6 @@ class Analyzer : public CompilationSessionUser {
   NameResolver* resolver() const { return name_resolver_; }
   sm::Factory* semantics_factory() const;
 
-  void FixSemanticOf(ast::Node* node, sm::Semantic* semantic);
   // Shortcut to |NameResolver|.
   sm::Semantic* Resolve(ast::NamedNode* ast_node);
   sm::Type* ResolveTypeReference(ast::Type* reference,

@@ -38,11 +38,6 @@ sm::Factory* Analyzer::semantics_factory() const {
   return editor_->factory();
 }
 
-void Analyzer::FixSemanticOf(ast::Node* node, sm::Semantic* semantic) {
-  DCHECK(!semantics()->SemanticOf(node));
-  editor()->SetSemanticOf(node, semantic);
-}
-
 sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return name_resolver_->SemanticOf(ast_node);
 }

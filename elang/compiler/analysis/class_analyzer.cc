@@ -88,7 +88,7 @@ void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
   // TODO(eval1749) Check |ast_method| not override static method.
 
   auto const method = factory()->NewMethod(ast_method, signature);
-  FixSemanticOf(ast_method, method);
+  SetSemanticOf(ast_method, method);
 }
 
 }  // namespace compiler
