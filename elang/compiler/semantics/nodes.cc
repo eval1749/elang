@@ -218,6 +218,14 @@ bool Signature::IsSubtypeOf(const Type* other) const {
 Type::Type() {
 }
 
+// UndefinedType
+UndefinedType::UndefinedType(ast::Type* ast_type) : ast_type_(ast_type) {
+}
+
+bool UndefinedType::IsSubtypeOf(const Type* other) const {
+  return false;
+}
+
 // Variable
 Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
     : ast_node_(ast_node), storage_(storage), type_(type) {

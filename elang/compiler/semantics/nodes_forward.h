@@ -20,6 +20,7 @@ namespace sm {
   V(ArrayType)                             \
   V(Class)                                 \
   V(Enum)                                  \
+  V(UndefinedType)                         \
   V(Signature)
 
 #define FOR_EACH_CONCRETE_SEMANTIC(V) \

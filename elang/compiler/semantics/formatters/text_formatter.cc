@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/visitor.h"
 #include "elang/compiler/parameter_kind.h"
@@ -126,6 +127,10 @@ void Formatter::VisitSignature(Signature* signature) {
     separator = ", ";
   }
   ostream_ << ")";
+}
+
+void Formatter::VisitUndefinedType(UndefinedType* node) {
+  ostream_ << "UndefinedType(" << *node->ast_type() << ")";
 }
 
 void Formatter::VisitVariable(Variable* variable) {

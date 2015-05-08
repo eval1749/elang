@@ -51,6 +51,8 @@ class Factory final : public ZoneOwner {
   Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
 
+  UndefinedType* NewUndefinedType(ast::Type* type);
+
   Variable* NewVariable(Type* type,
                         StorageClass storage,
                         ast::NamedNode* variable);

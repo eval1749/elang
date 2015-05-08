@@ -115,6 +115,10 @@ Signature* Factory::NewSignature(Type* return_type,
   return new (zone()) Signature(zone(), return_type, parameters);
 }
 
+UndefinedType* Factory::NewUndefinedType(ast::Type* type) {
+  return new (zone()) UndefinedType(type);
+}
+
 Variable* Factory::NewVariable(Type* type,
                                StorageClass storage,
                                ast::NamedNode* ast_node) {

@@ -299,6 +299,26 @@ class Signature final : public Type {
 
 //////////////////////////////////////////////////////////////////////
 //
+// UndefinedType
+//
+class UndefinedType final : public Type {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(UndefinedType, Type);
+
+ public:
+  ast::Type* ast_type() const { return ast_type_; }
+
+ private:
+  explicit UndefinedType(ast::Type* ast_type);
+
+  bool IsSubtypeOf(const Type* other) const final;
+
+  ast::Type* const ast_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(UndefinedType);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Variable
 //
 class Variable final : public Semantic {

@@ -60,7 +60,9 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
     DVLOG(0) << "Type not found: " << *type << " in " << *container
              << std::endl;
     Error(ErrorCode::AnalyzeTypeNotFound, type);
-    return nullptr;
+    auto const semantic = semantics_factory()->NewUndefinedType(type);
+    SetSemanticOf(type, semantic);
+    return semantic;
   }
   return SemanticOf(ast_node)->as<sm::Type>();
 }
