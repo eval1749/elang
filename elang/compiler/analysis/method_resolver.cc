@@ -38,7 +38,8 @@ std::vector<sm::Method*> MethodResolver::ComputeApplicableMethods(
   std::vector<sm::Method*> methods;
   // TODO(eval1749) We should check base classes.
   for (auto const ast_method : method_group->methods()) {
-    auto const method = name_resolver()->Resolve(ast_method)->as<sm::Method>();
+    auto const method =
+        name_resolver()->SemanticOf(ast_method)->as<sm::Method>();
     DCHECK(method) << " Not resolved: " << *ast_method;
     if (!IsApplicable(method, arity))
       continue;

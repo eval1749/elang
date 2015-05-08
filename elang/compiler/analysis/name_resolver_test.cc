@@ -33,7 +33,7 @@ class NameResolverTest : public testing::AnalyzerTest {
 TEST_F(NameResolverTest, SystemInt32) {
   auto const int32_ast_class = FindMember("System.Int32");
   ASSERT_TRUE(int32_ast_class) << "class System.Int32 isn't installed.";
-  auto const int32_class = name_resolver()->Resolve(int32_ast_class);
+  auto const int32_class = name_resolver()->SemanticOf(int32_ast_class);
   EXPECT_TRUE(int32_class) << "class System.Int32 isn't resolved.";
 }
 

@@ -50,11 +50,11 @@ class NameResolver final : public CompilationSessionUser {
 
   // Retrieving functions.
   sm::Type* PredefinedTypeOf(PredefinedName name);
-  sm::Semantic* Resolve(ast::NamedNode* ast_node) const;
   // Resolve to |sm::Type| named |name| for |token|.
   sm::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,
                                    ast::ContainerNode* container);
+  sm::Semantic* SemanticOf(ast::NamedNode* ast_node) const;
 
  private:
   class ReferenceResolver;

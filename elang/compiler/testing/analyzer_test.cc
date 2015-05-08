@@ -187,7 +187,7 @@ AnalyzerTest::ClassOrString AnalyzerTest::GetClass(base::StringPiece name) {
   auto const ast_class = member->as<ast::Class>();
   if (!ast_class)
     return ClassOrString("%s isn't class", name);
-  auto const resolved = name_resolver_->Resolve(ast_class);
+  auto const resolved = name_resolver_->SemanticOf(ast_class);
   if (!resolved)
     return ClassOrString("%s isn't resolved", name);
   auto const ir_class = resolved->as<sm::Class>();
@@ -214,7 +214,7 @@ std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
   }
   std::stringstream ostream;
   for (auto const ast_method : ast_method_group->methods()) {
-    auto const ir_method = name_resolver()->Resolve(ast_method);
+    auto const ir_method = name_resolver()->SemanticOf(ast_method);
     if (!ir_method) {
       ostream << "Not resolved " << ast_method->token() << std::endl;
       continue;

@@ -125,7 +125,7 @@ ast::NamedNode* NamespaceAnalyzer::FindResolvedReference(
 }
 
 sm::Class* NamespaceAnalyzer::GetClass(ast::Class* ast_class) {
-  return resolver()->Resolve(ast_class)->as<sm::Class>();
+  return resolver()->SemanticOf(ast_class)->as<sm::Class>();
 }
 
 Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
@@ -156,7 +156,7 @@ bool NamespaceAnalyzer::HasDependency(ast::NamedNode* node) const {
 }
 
 bool NamespaceAnalyzer::IsResolved(ast::NamedNode* node) const {
-  if (resolver()->Resolve(node))
+  if (resolver()->SemanticOf(node))
     return true;
   return !!resolved_nodes_.count(node);
 }
@@ -540,7 +540,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
     direct_base_classes.insert(direct_base_classes.begin(), result.FromJust());
   }
 
-  auto const present = resolver()->Resolve(ast_class)->as<sm::Class>();
+  auto const present = resolver()->SemanticOf(ast_class)->as<sm::Class>();
   if (present) {
     // TODO(eval1749) Check base classes are matched with |present|.
     FixSemanticOf(class_body, present);

@@ -44,7 +44,7 @@ void Analyzer::FixSemanticOf(ast::Node* node, sm::Semantic* semantic) {
 }
 
 sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
-  return name_resolver_->Resolve(ast_node);
+  return name_resolver_->SemanticOf(ast_node);
 }
 
 sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,

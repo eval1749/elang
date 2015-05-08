@@ -70,7 +70,7 @@ void NameResolver::ReferenceResolver::FindInClass(
     founds->insert(present);
     return;
   }
-  auto const ir_node = resolver()->Resolve(ast_class);
+  auto const ir_node = resolver()->SemanticOf(ast_class);
   if (!ir_node) {
     Error(ErrorCode::NameResolutionNameNotResolved, ast_class);
     return;
@@ -234,7 +234,7 @@ sm::Type* NameResolver::PredefinedTypeOf(PredefinedName name) {
   auto const type_name = session()->name_for(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
   DCHECK(ast_type) << *type_name;
-  auto const type = Resolve(ast_type)->as<sm::Type>();
+  auto const type = SemanticOf(ast_type)->as<sm::Type>();
   DCHECK(type) << *type_name;
   return type;
 }
@@ -245,10 +245,6 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   return it == using_map_.end() ? nullptr : it->second;
 }
 
-sm::Semantic* NameResolver::Resolve(ast::NamedNode* member) const {
-  return semantics()->SemanticOf(member);
-}
-
 sm::Type* NameResolver::ResolvePredefinedType(Token* token,
                                               PredefinedName name) {
   auto const type_name = session()->name_for(name);
@@ -257,7 +253,7 @@ sm::Type* NameResolver::ResolvePredefinedType(Token* token,
     session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);
     return nullptr;
   }
-  if (auto const type = Resolve(ast_type)->as<sm::Type>())
+  if (auto const type = SemanticOf(ast_type)->as<sm::Type>())
     return type;
   session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
   return nullptr;
@@ -267,6 +263,10 @@ ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,
                                                ast::ContainerNode* container) {
   ReferenceResolver resolver(this, container);
   return resolver.Resolve(expression);
+}
+
+sm::Semantic* NameResolver::SemanticOf(ast::NamedNode* member) const {
+  return semantics()->SemanticOf(member);
 }
 
 }  // namespace compiler

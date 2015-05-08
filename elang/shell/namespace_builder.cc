@@ -78,7 +78,7 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
         name_resolver()->ResolveReference(base_name, ast_class_body->parent());
     DCHECK(ast_base_class) << " Not found " << *base_name;
     auto const base_class =
-        name_resolver()->Resolve(ast_base_class)->as<sm::Class>();
+        name_resolver()->SemanticOf(ast_base_class)->as<sm::Class>();
     DCHECK(base_class);
     base_classes.push_back(base_class);
   }
