@@ -38,9 +38,12 @@ class Parser::LocalDeclarationSpace final {
 
   void AddMember(ast::NamedNode* member);
   ast::NamedNode* FindMember(Token* name) const;
+  bool IsBound(ast::Variable* variable) const;
+  void RecordBind(ast::Variable* variable);
   void RecordReference(ast::NamedNode* member);
 
  private:
+  std::unordered_set<ast::Variable*> bound_variables_;
   LocalDeclarationSpace* outer_;
   Token* const owner_;
   Parser* const parser_;
@@ -74,9 +77,19 @@ void Parser::LocalDeclarationSpace::AddMember(ast::NamedNode* member) {
 }
 
 ast::NamedNode* Parser::LocalDeclarationSpace::FindMember(Token* name) const {
-  DCHECK(name->is_name());
+  DCHECK(name->is_name()) << *name;
   auto const present = map_.find(name->atomic_string());
   return present == map_.end() ? nullptr : present->second;
+}
+
+bool Parser::LocalDeclarationSpace::IsBound(ast::Variable* variable) const {
+  DCHECK(FindMember(variable->name())) << *variable;
+  return bound_variables_.count(variable) != 0;
+}
+
+void Parser::LocalDeclarationSpace::RecordBind(ast::Variable* variable) {
+  DCHECK(!IsBound(variable)) << *variable;
+  bound_variables_.insert(variable);
 }
 
 void Parser::LocalDeclarationSpace::RecordReference(ast::NamedNode* member) {
@@ -138,6 +151,18 @@ ast::NamedNode* Parser::FindLocalMember(Token* token) const {
       return present;
   }
   return nullptr;
+}
+
+bool Parser::IsBound(ast::Variable* variable) const {
+  auto const name = variable->name();
+  for (auto space = declaration_space_; space; space = space->outer()) {
+    if (auto const present = space->FindMember(name)) {
+      if (present == variable)
+        return space->IsBound(variable);
+    }
+  }
+  NOTREACHED() << *variable;
+  return false;
 }
 
 bool Parser::IsInLoop() const {
@@ -378,7 +403,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           // variable error.
           variables.push_back(factory()->NewVarDeclaration(
               assign_token, variable, NewInvalidExpression(assign_token)));
-          variable->Bind(factory()->NewVariableReference(name, variable));
+          declaration_space_->RecordBind(variable);
           state = State::Colon;
           continue;
         }
@@ -396,7 +421,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         auto const init = ConsumeExpression();
         variables.push_back(
             factory()->NewVarDeclaration(assign_token, variable, init));
-        variable->Bind(init);
+        declaration_space_->RecordBind(variable);
 
         if (PeekToken() == TokenType::SemiColon) {
           state = State::SemiColon;
@@ -640,7 +665,7 @@ bool Parser::ParseUsingStatement(Token* using_keyword) {
         factory()->NewVariable(using_keyword, var_type, var_name);
     using_scope.AddMember(variable);
     auto const resource = ConsumeExpression();
-    variable->Bind(resource);
+    declaration_space_->RecordBind(variable);
     if (!ParseStatement())
       return false;
     ProduceStatement(factory()->NewUsingStatement(
@@ -678,7 +703,7 @@ void Parser::ParseVariables(Token* keyword, ast::Type* type) {
     auto const init = ParseExpression() ? ConsumeExpression() : nullptr;
     if (assign && init) {
       variables.push_back(factory()->NewVarDeclaration(assign, variable, init));
-      variable->Bind(init);
+      declaration_space_->RecordBind(variable);
     }
     if (!init)
       Error(ErrorCode::SyntaxVarInitializer);

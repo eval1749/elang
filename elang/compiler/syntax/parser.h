@@ -110,6 +110,7 @@ class Parser final : public CompilationSessionUser {
   class StatementScope;
   ast::Statement* ConsumeStatement();
   ast::NamedNode* FindLocalMember(Token* token) const;
+  bool IsBound(ast::Variable* variable) const;
   bool IsInLoop() const;
   bool IsInStatement(TokenType keyword) const;
   bool ParseBlockStatement(Token* keyword);

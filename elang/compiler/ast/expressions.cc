@@ -140,7 +140,7 @@ UnaryOperation::UnaryOperation(Token* op, Expression* expression)
 
 // Variable
 Variable::Variable(Token* keyword, Type* type, Token* name)
-    : NamedNode(nullptr, keyword, name), type_(type), value_(nullptr) {
+    : NamedNode(nullptr, keyword, name), type_(type) {
   DCHECK(keyword == type->token() || keyword == TokenType::Const ||
          keyword == TokenType::Catch || keyword == TokenType::For ||
          keyword == TokenType::Using)
@@ -149,12 +149,6 @@ Variable::Variable(Token* keyword, Type* type, Token* name)
 
 bool Variable::is_const() const {
   return token() == TokenType::Const || token() == TokenType::Using;
-}
-
-void Variable::Bind(Expression* value) {
-  DCHECK(value);
-  DCHECK(!value_);
-  value_ = value;
 }
 
 // VariableReference

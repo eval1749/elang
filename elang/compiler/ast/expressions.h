@@ -272,18 +272,14 @@ class Variable final : public NamedNode {
   DECLARE_CONCRETE_AST_NODE_CLASS(Variable, NamedNode);
 
  public:
-  bool is_bound() const { return value_ != nullptr; }
   bool is_const() const;
   Type* type() const { return type_; }
-
-  void Bind(Expression* value);
 
  private:
   // |keyword| one of 'catch', 'const', 'for', 'using', or |type|.
   Variable(Token* keyword, Type* type, Token* name);
 
   Type* const type_;
-  Expression* value_;
 
   DISALLOW_COPY_AND_ASSIGN(Variable);
 };
