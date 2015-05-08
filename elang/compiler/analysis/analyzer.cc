@@ -62,11 +62,19 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
     Error(ErrorCode::AnalyzeTypeNotFound, type);
     return nullptr;
   }
-  return Resolve(ast_node)->as<sm::Type>();
+  return SemanticOf(ast_node)->as<sm::Type>();
 }
 
 void Analyzer::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
   editor()->SetSemanticOf(node, semantic);
+}
+
+sm::Semantic* Analyzer::SemanticOf(ast::Node* node) const {
+  return editor()->SemanticOf(node);
+}
+
+sm::Semantic* Analyzer::TrySemanticOf(ast::Node* node) const {
+  return editor()->TrySemanticOf(node);
 }
 
 }  // namespace compiler

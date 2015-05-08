@@ -35,6 +35,12 @@ void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
   semantics()->semantic_map_[node] = semantic;
 }
 
+Semantic* Editor::SemanticOf(ast::Node* node) const {
+  auto const semantic = TrySemanticOf(node);
+  DCHECK(semantic) << *node;
+  return semantic;
+}
+
 Semantic* Editor::TrySemanticOf(ast::Node* node) const {
   auto const it = semantics()->semantic_map_.find(node);
   return it == semantics()->semantic_map_.end() ? nullptr : it->second;

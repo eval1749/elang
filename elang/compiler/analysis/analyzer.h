@@ -44,7 +44,9 @@ class Analyzer : public CompilationSessionUser {
   sm::Semantic* Resolve(ast::NamedNode* ast_node);
   sm::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
+  sm::Semantic* SemanticOf(ast::Node* node) const;
   void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
+  sm::Semantic* TrySemanticOf(ast::Node* node) const;
 
  private:
   std::unique_ptr<sm::Editor> editor_;

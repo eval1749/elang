@@ -29,7 +29,8 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
+  void SetSemanticOf(ast::Node* node, Semantic* semantic);
+  Semantic* SemanticOf(ast::Node* node) const;
   Semantic* TrySemanticOf(ast::Node* node) const;
 
  private:
