@@ -49,6 +49,8 @@ sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
 
 sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
+  if (auto const semantic = editor_->TrySemanticOf(type))
+    return semantic->as<sm::Type>();
   if (auto const array_type = type->as<ast::ArrayType>()) {
     auto const element_type =
         ResolveTypeReference(array_type->element_type(), container);

@@ -30,6 +30,7 @@ class Editor final : public CompilationSessionUser {
   Factory* factory() const;
 
   void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
+  Semantic* TrySemanticOf(ast::Node* node) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Editor);
