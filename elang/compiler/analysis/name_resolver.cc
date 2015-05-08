@@ -137,10 +137,12 @@ void NameResolver::ReferenceResolver::VisitNameReference(
     return;
   }
 
-  for (auto runner = container_; runner; runner = runner->parent()) {
+  for (ast::Node* runner = container_; runner; runner = runner->parent()) {
     auto const container = runner->is<ast::ClassBody>()
                                ? runner->as<ast::ClassBody>()->owner()
-                               : runner;
+                               : runner->as<ast::ContainerNode>();
+    if (!container)
+      continue;
 
     std::unordered_set<ast::NamedNode*> founds;
 

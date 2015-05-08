@@ -20,8 +20,7 @@ namespace ast {
 //
 // Node
 //
-Node::Node(ContainerNode* parent, Token* token)
-    : parent_(parent), token_(token) {
+Node::Node(Node* parent, Token* token) : parent_(parent), token_(token) {
   // Since we use |token| for sorting error message, we should have non-null
   // token.
   DCHECK(token);
@@ -75,7 +74,7 @@ bool NamedNode::CanBeNamedMemberOf(ContainerNode* container) const {
 base::string16 NamedNode::NewQualifiedName() const {
   std::vector<AtomicString*> ancestors;
   size_t length = 0u;
-  for (auto runner = this; runner; runner = runner->parent()) {
+  for (const ast::Node* runner = this; runner; runner = runner->parent()) {
     if (auto const ns_body = runner->as<ast::NamespaceBody>())
       runner = ns_body->owner();
     if (!runner->parent())

@@ -34,18 +34,18 @@ struct NamespaceAnalyzer::ResolveContext {
   // A |container| for looking up name. Except for |ast::Alias| node, it is
   // enclosing container. For |ast::Alias| it is enclosing container of
   // enclosing container.
-  ast::ContainerNode* container;
+  ast::Node* container;
   // This resolve request is part of member access.
   ast::MemberAccess* member_access;
   // Requester of resolving |node|
   ast::NamedNode* node;
 
-  ResolveContext(ast::NamedNode* node, ast::ContainerNode* container);
+  ResolveContext(ast::NamedNode* node, ast::Node* container);
 };
 
 // Resolve name in |namespace|.
 NamespaceAnalyzer::ResolveContext::ResolveContext(ast::NamedNode* node,
-                                                  ast::ContainerNode* container)
+                                                  ast::Node* container)
     : member_access(nullptr), container(container), node(node) {
 }
 
@@ -62,7 +62,8 @@ NamespaceAnalyzer::~NamespaceAnalyzer() {
 
 void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
   auto const ast_class = class_body->owner();
-  auto const enclosing_namespace = ast_class->parent();
+  auto const enclosing_namespace =
+      ast_class->parent()->as<ast::ContainerNode>();
   auto const name = ast_class->name();
   auto const present = enclosing_namespace->FindMember(name);
   if (!present) {
@@ -316,7 +317,9 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(
   for (auto runner = context.container; runner; runner = runner->parent()) {
     auto const container = runner->is<ast::ClassBody>()
                                ? runner->as<ast::ClassBody>()->owner()
-                               : runner;
+                               : runner->as<ast::ContainerNode>();
+    if (!container)
+      continue;
     std::unordered_set<ast::NamedNode*> founds;
     if (auto const ast_class = container->as<ast::Class>()) {
       if (auto const present = ast_class->FindMember(name)) {

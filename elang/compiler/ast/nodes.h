@@ -48,7 +48,7 @@ class Node : public Castable<Node>,
   // Associated name like thing for error message and debug log.
   virtual Token* name() const;
 
-  ContainerNode* parent() const { return parent_; }
+  Node* parent() const { return parent_; }
 
   // A token which parser created this not for.
   Token* token() const { return token_; }
@@ -65,10 +65,10 @@ class Node : public Castable<Node>,
   void Accept(Visitor* visitor) override;
 
  protected:
-  Node(ContainerNode* parent, Token* token);
+  Node(Node* parent, Token* token);
 
  private:
-  ContainerNode* const parent_;
+  Node* const parent_;
   Token* const token_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);
