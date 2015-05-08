@@ -21,17 +21,22 @@ struct is_final : std::false_type {};
 template <typename Base>
 class Castable {
  public:
-  template <class Class>
+  static_assert(std::is_class<Base>::value, "Base should be a class.");
+
+  template <typename Class>
   Class* as() {
+    static_assert(std::is_class<Class>::value, "Class should be a class.");
     return is<Class>() ? static_cast<Class*>(this) : nullptr;
   }
-  template <class Class>
+  template <typename Class>
   const Class* as() const {
+    static_assert(std::is_class<Class>::value, "Class should be a class.");
     return is<Class>() ? static_cast<const Class*>(this) : nullptr;
   }
   virtual const char* class_name() const { return static_class_name(); }
-  template <class Class>
+  template <typename Class>
   bool is() const {
+    static_assert(std::is_class<Class>::value, "Class should be a class.");
     static_assert(std::is_base_of<Base, Class>::value, "Unrelated types");
     // TODO(eval1749) We should use C++14 |std::is_final<T>|.
     if (is_final<Class>::value)
