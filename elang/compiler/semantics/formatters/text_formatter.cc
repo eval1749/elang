@@ -110,6 +110,16 @@ void Formatter::VisitMethod(Method* method) {
   ostream_ << ")";
 }
 
+void Formatter::VisitMethodGroup(MethodGroup* method_group) {
+  ostream_ << *method_group->owner() << "." << method_group->name() << "{";
+  auto separator = "";
+  for (auto const method : method_group->methods()) {
+    ostream_ << separator << *method;
+    separator = ", ";
+  }
+  ostream_ << "}";
+}
+
 void Formatter::VisitParameter(Parameter* parameter) {
   ostream_ << *parameter->type();
   if (parameter->kind() == ParameterKind::Rest)

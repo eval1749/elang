@@ -5,16 +5,18 @@
 #ifndef ELANG_COMPILER_ANALYSIS_CLASS_ANALYZER_H_
 #define ELANG_COMPILER_ANALYSIS_CLASS_ANALYZER_H_
 
-#include <unordered_map>
+#include <memory>
 
 #include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 
 namespace elang {
 namespace compiler {
-
 class CompilationSession;
 class NameResolver;
+namespace sm {
+class Editor;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -34,6 +36,8 @@ class ClassAnalyzer final : public Analyzer, private ast::Visitor {
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
   void VisitMethod(ast::Method* node) final;
+
+  std::unique_ptr<sm::Editor> editor_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzer);
 };

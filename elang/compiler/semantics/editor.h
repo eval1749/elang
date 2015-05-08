@@ -7,10 +7,13 @@
 
 #include "base/macros.h"
 #include "elang/compiler/compilation_session_user.h"
+#include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
+class AtomicString;
 namespace compiler {
 class CompilationSession;
+class Token;
 namespace ast {
 class Node;
 }
@@ -29,6 +32,10 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
+  void AddMember(Class* clazz, Token* name, Semantic* member);
+  void AddMethod(MethodGroup* method_group, Method* method);
+  MethodGroup* EnsureMethodGroup(Class* clazz, Token* name);
+  Semantic* FindMember(Class* clazz, Token* name) const;
   void SetSemanticOf(ast::Node* node, Semantic* semantic);
   Semantic* SemanticOf(ast::Node* node) const;
   Semantic* TrySemanticOf(ast::Node* node) const;

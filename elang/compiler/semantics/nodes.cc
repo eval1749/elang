@@ -83,7 +83,8 @@ Class::Class(Zone* zone,
              const std::vector<Class*>& direct_base_classes)
     : ast_class_(ast_class),
       base_classes_(zone),
-      direct_base_classes_(zone, direct_base_classes) {
+      direct_base_classes_(zone, direct_base_classes),
+      members_(zone) {
   for (auto const base_class : direct_base_classes)
     ComputeBaseClasses(base_class, &base_classes_);
 }
@@ -118,8 +119,12 @@ Literal::Literal(Type* type, Token* token) : data_(token), type_(type) {
 }
 
 // Method
-Method::Method(ast::Method* ast_method, Signature* signature)
-    : ast_method_(ast_method), signature_(signature) {
+Method::Method(MethodGroup* method_group,
+               Signature* signature,
+               ast::Method* ast_method)
+    : ast_method_(ast_method),
+      method_group_(method_group),
+      signature_(signature) {
 }
 
 const ZoneVector<Parameter*>& Method::parameters() const {
@@ -128,6 +133,11 @@ const ZoneVector<Parameter*>& Method::parameters() const {
 
 Type* Method::return_type() const {
   return signature_->return_type();
+}
+
+// MethodGroup
+MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
+    : methods_(zone), name_(name), owner_(owner) {
 }
 
 // Semantic

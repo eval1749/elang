@@ -13,6 +13,7 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/parameter_kind.h"
@@ -25,7 +26,8 @@ namespace compiler {
 //
 // ClassAnalyzer
 //
-ClassAnalyzer::ClassAnalyzer(NameResolver* resolver) : Analyzer(resolver) {
+ClassAnalyzer::ClassAnalyzer(NameResolver* resolver)
+    : Analyzer(resolver), editor_(new sm::Editor(session())) {
 }
 
 ClassAnalyzer::~ClassAnalyzer() {
@@ -51,44 +53,32 @@ void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
       ResolveTypeReference(ast_method->return_type(), ast_method->owner());
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
-  auto is_valid = return_type;
   for (auto const parameter : ast_method->parameters()) {
     auto const parameter_type =
         ResolveTypeReference(parameter->type(), ast_method);
-    if (!parameter_type) {
-      is_valid = false;
-      continue;
-    }
     parameters.push_back(
         factory()->NewParameter(parameter, parameter_type, nullptr));
   }
-  if (!is_valid)
-    return;
 
+  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
+  auto const method_name = ast_method->name();
+  auto const method_group = editor_->EnsureMethodGroup(clazz, method_name);
   auto const signature = factory()->NewSignature(return_type, parameters);
+  auto const method = factory()->NewMethod(method_group, signature, ast_method);
+  SetSemanticOf(ast_method, method);
 
   // Check this size with existing signatures
-  for (auto ast_other : ast_method->method_group()->methods()) {
-    auto const other = Resolve(ast_other)->as<sm::Method>();
-    if (!other)
-      continue;
+  for (auto other : method_group->methods()) {
     if (!other->signature()->IsIdenticalParameters(signature))
       continue;
     Error(other->return_type() == return_type
               ? ErrorCode::ClassResolutionMethodDuplicate
               : ErrorCode::ClassResolutionMethodConflict,
-          ast_method, ast_other);
-    is_valid = false;
+          ast_method, other->ast_method());
   }
-  if (!is_valid)
-    return;
-
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
   // TODO(eval1749) Check |ast_method| not override static method.
-
-  auto const method = factory()->NewMethod(ast_method, signature);
-  SetSemanticOf(ast_method, method);
 }
 
 }  // namespace compiler

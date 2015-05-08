@@ -27,6 +27,7 @@ namespace sm {
   FOR_EACH_CONCRETE_TYPE_SEMANTIC(V)  \
   V(Literal)                          \
   V(Method)                           \
+  V(MethodGroup)                      \
   V(Parameter)                        \
   V(Variable)
 

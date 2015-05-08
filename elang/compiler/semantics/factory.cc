@@ -100,8 +100,14 @@ Literal* Factory::NewLiteral(Type* type, Token* token) {
   return new (zone()) Literal(type, token);
 }
 
-Method* Factory::NewMethod(ast::Method* ast_method, Signature* signature) {
-  return new (zone()) Method(ast_method, signature);
+Method* Factory::NewMethod(MethodGroup* method_group,
+                           Signature* signature,
+                           ast::Method* ast_method) {
+  return new (zone()) Method(method_group, signature, ast_method);
+}
+
+MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
+  return new (zone()) MethodGroup(zone(), owner, name);
 }
 
 Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,

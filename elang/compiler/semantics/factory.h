@@ -40,7 +40,10 @@ class Factory final : public ZoneOwner {
   Enum* NewEnum(ast::Type* ast_type, const std::vector<int64_t>& values);
 
   Literal* NewLiteral(Type* type, Token* token);
-  Method* NewMethod(ast::Method* ast_method, Signature* signature);
+  Method* NewMethod(MethodGroup* method_group,
+                    Signature* signature,
+                    ast::Method* ast_method);
+  MethodGroup* NewMethodGroup(Class* owner, Token* name);
 
   // Allocate |Parameter| for analyzer
   Parameter* NewParameter(ast::Parameter* parameter,

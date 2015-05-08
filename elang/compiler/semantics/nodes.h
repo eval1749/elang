@@ -9,6 +9,7 @@
 
 #include "elang/base/castable.h"
 #include "elang/base/zone_allocated.h"
+#include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_unordered_set.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/nodes_forward.h"
@@ -27,14 +28,13 @@ namespace sm {
 #define DECLARE_ABSTRACT_SEMANTIC_CLASS(self, super) \
   DECLARE_SEMANTIC_CLASS(self, super);
 
-#define DECLARE_CONCRETE_SEMANTIC_CLASS(self, super)     \
-  DECLARE_SEMANTIC_CLASS(self, super);                   \
-                                                         \
- private:                                                \
-  /* |Factory| class if friend of concrete |Semantic| */ \
-  /* class, for accessing constructor. */                \
-  friend class Factory;                                  \
-  /* Visitor pattern */                                  \
+#define DECLARE_CONCRETE_SEMANTIC_CLASS(self, super) \
+  DECLARE_SEMANTIC_CLASS(self, super);               \
+                                                     \
+ private:                                            \
+  friend class Editor;                               \
+  friend class Factory;                              \
+  /* Visitor pattern */                              \
   void Accept(Visitor* visitor) final;
 
 #define FOR_EACH_STORAGE_CLASS(V) \
@@ -155,6 +155,7 @@ class Class final : public Type {
   ast::Class* const ast_class_;
   ZoneUnorderedSet<Class*> base_classes_;
   const ZoneVector<Class*> direct_base_classes_;
+  ZoneUnorderedMap<AtomicString*, Semantic*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
@@ -215,17 +216,43 @@ class Method final : public Semantic {
 
  public:
   ast::Method* ast_method() const { return ast_method_; }
+  MethodGroup* method_group() const { return method_group_; }
   const ZoneVector<Parameter*>& parameters() const;
   Type* return_type() const;
   Signature* signature() const { return signature_; }
 
  private:
-  Method(ast::Method* ast_method, Signature* signature);
+  Method(MethodGroup* method_group,
+         Signature* signature,
+         ast::Method* ast_method);
 
   ast::Method* const ast_method_;
+  MethodGroup* const method_group_;
   Signature* const signature_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// MethodGroup
+//
+class MethodGroup final : public Semantic {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(MethodGroup, Semantic);
+
+ public:
+  const ZoneVector<Method*>& methods() const { return methods_; }
+  Token* name() const { return name_; }
+  Class* owner() const { return owner_; }
+
+ private:
+  MethodGroup(Zone* zone, Class* owner, Token* name);
+
+  ZoneVector<Method*> methods_;
+  Token* const name_;
+  Class* const owner_;
+
+  DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };
 
 //////////////////////////////////////////////////////////////////////
