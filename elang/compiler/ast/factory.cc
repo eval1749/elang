@@ -58,7 +58,10 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
                          Token* keyword,
                          Token* alias_name,
                          Expression* reference) {
-  return new (zone_) Alias(namespace_body, keyword, alias_name, reference);
+  auto const node =
+      new (zone_) Alias(namespace_body, keyword, alias_name, reference);
+  SetParent(reference, node);
+  return node;
 }
 
 Class* Factory::NewClass(NamespaceNode* outer,
@@ -89,7 +92,10 @@ EnumMember* Factory::NewEnumMember(Enum* owner,
                                    Token* name,
                                    int position,
                                    Expression* expression) {
-  return new (zone_) EnumMember(owner, name, position, expression);
+  auto const node = new (zone_) EnumMember(owner, name, position, expression);
+  if (expression)
+    SetParent(expression, node);
+  return node;
 }
 
 Field* Factory::NewField(ClassBody* outer,
@@ -97,23 +103,32 @@ Field* Factory::NewField(ClassBody* outer,
                          Type* type,
                          Token* name,
                          Expression* expression) {
-  return new (zone_) Field(outer, modifiers, type, name, expression);
+  auto const node = new (zone_) Field(outer, modifiers, type, name, expression);
+  if (expression)
+    SetParent(expression, node);
+  if (!type->parent_)
+    SetParent(type, outer);
+  return node;
 }
 
 Import* Factory::NewImport(NamespaceBody* namespace_body,
                            Token* keyword,
                            Expression* reference) {
-  return new (zone_) Import(namespace_body, keyword, reference);
+  auto const node = new (zone_) Import(namespace_body, keyword, reference);
+  SetParent(reference, node);
+  return node;
 }
 
 Method* Factory::NewMethod(ClassBody* outer,
                            MethodGroup* method_group,
                            Modifiers modifies,
-                           Type* type,
+                           Type* return_type,
                            Token* name,
                            const std::vector<Token*>& type_parameters) {
-  return new (zone_)
-      Method(zone_, outer, method_group, modifies, type, name, type_parameters);
+  auto const node = new (zone_) Method(zone_, outer, method_group, modifies,
+                                       return_type, name, type_parameters);
+  SetParent(return_type, node);
+  return node;
 }
 
 MethodBody* Factory::NewMethodBody(Method* method) {
