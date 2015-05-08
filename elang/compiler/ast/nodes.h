@@ -68,7 +68,7 @@ class Node : public Castable<Node>,
   Node(Node* parent, Token* token);
 
  private:
-  Node* const parent_;
+  Node* parent_;
   Token* const token_;
 
   DISALLOW_COPY_AND_ASSIGN(Node);

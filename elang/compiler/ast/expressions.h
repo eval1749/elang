@@ -224,7 +224,7 @@ class NameReference final : public Expression {
   Token* name() const { return token(); }
 
  private:
-  NameReference(BodyNode* container, Token* name);
+  explicit NameReference(Token* name);
 
   DISALLOW_COPY_AND_ASSIGN(NameReference);
 };

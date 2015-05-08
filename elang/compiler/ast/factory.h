@@ -86,7 +86,7 @@ class Factory final {
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Token* name,
                                 const std::vector<Expression*>& members);
-  NameReference* NewNameReference(BodyNode* container, Token* name);
+  NameReference* NewNameReference(Token* name);
   ParameterReference* NewParameterReference(Token* name, Parameter* param);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
   VariableReference* NewVariableReference(Token* name, Variable* var);
@@ -153,7 +153,11 @@ class Factory final {
   ConstructedType* NewConstructedType(ConstructedName* node);
   InvalidType* NewInvalidType(Expression* expression);
   OptionalType* NewOptionalType(Token* op, Type* base_type);
+  TypeMemberAccess* NewTypeMemberAccess(NamespaceBody* namespace_body,
+                                        MemberAccess* node);
   TypeMemberAccess* NewTypeMemberAccess(MemberAccess* node);
+  TypeNameReference* NewTypeNameReference(NamespaceBody* namespace_body,
+                                          NameReference* node);
   TypeNameReference* NewTypeNameReference(NameReference* node);
 
   // Misc nodes
@@ -167,6 +171,7 @@ class Factory final {
 
  private:
   Node* RememberNode(Node* node);
+  void SetParent(Node* child, Node* parent);
 
   Zone* const zone_;
 

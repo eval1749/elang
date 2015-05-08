@@ -124,8 +124,7 @@ MemberAccess::MemberAccess(Zone* zone,
 }
 
 // NameReference
-NameReference::NameReference(BodyNode* container, Token* name)
-    : Expression(container, name) {
+NameReference::NameReference(Token* name) : Expression(name) {
   DCHECK(name->is_name() || name->is_type_name() || name == TokenType::Var)
       << name;
 }

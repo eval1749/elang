@@ -24,7 +24,6 @@
 
 namespace elang {
 namespace compiler {
-namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -88,8 +87,7 @@ hir::Type* TypeMapperTest::Map(sm::Type* type) {
 
 sm::Parameter* TypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_type = session()->ast_factory()->NewTypeNameReference(
-      session()->ast_factory()->NewNameReference(
-          session()->system_namespace_body(), builder_.NewName("type")));
+      session()->ast_factory()->NewNameReference(builder_.NewName("type")));
   auto const ast_parameter = session()->ast_factory()->NewParameter(
       nullptr, ParameterKind::Required, 0, ast_type, builder_.NewName("param"),
       nullptr);
@@ -99,11 +97,6 @@ sm::Parameter* TypeMapperTest::NewParameter(sm::Type* type) {
 sm::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
   return NewParameter(GetIr(name));
 }
-
-//////////////////////////////////////////////////////////////////////
-//
-// Test cases...
-//
 
 TEST_F(TypeMapperTest, ArrayType) {
   std::vector<int> dimensions{-1};
@@ -129,6 +122,5 @@ TEST_F(TypeMapperTest, PrimitiveTypes) {
 #undef V
 }
 
-}  // namespace
 }  // namespace compiler
 }  // namespace elang

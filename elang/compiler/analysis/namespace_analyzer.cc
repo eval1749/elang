@@ -138,13 +138,13 @@ Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
 
 ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(
     ast::Class* clazz) {
-  return session()->ast_factory()->NewMemberAccess(
-      clazz->name(), {session()->ast_factory()->NewNameReference(
-                          session()->system_namespace_body(),
-                          session()->system_namespace()->name()),
-                      session()->ast_factory()->NewNameReference(
-                          session()->system_namespace_body(),
-                          GetDefaultBaseClassName(clazz))});
+  return session()->ast_factory()->NewTypeMemberAccess(
+      session()->system_namespace_body(),
+      session()->ast_factory()->NewMemberAccess(
+          clazz->name(), {session()->ast_factory()->NewNameReference(
+                              session()->system_namespace()->name()),
+                          session()->ast_factory()->NewNameReference(
+                              GetDefaultBaseClassName(clazz))}));
 }
 
 ast::NamedNode* NamespaceAnalyzer::GetResolvedReference(

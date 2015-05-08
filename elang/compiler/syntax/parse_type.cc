@@ -55,8 +55,7 @@ bool Parser::MaybeTypeName(ast::Expression* maybe_type) const {
 
 ast::Type* Parser::NewTypeNameReference(Token* name) {
   DCHECK(name->is_name() || name->is_keyword());
-  return factory()->NewTypeNameReference(
-      factory()->NewNameReference(container_, name));
+  return factory()->NewTypeNameReference(factory()->NewNameReference(name));
 }
 
 // ArrayType ::= Type ('[' ','* ']')+
@@ -128,8 +127,7 @@ bool Parser::ParseNamespaceOrTypeName() {
           Error(ErrorCode::SyntaxTypeName);
           return false;
         }
-        components.push_back(
-            factory()->NewNameReference(container_, ConsumeToken()));
+        components.push_back(factory()->NewNameReference(ConsumeToken()));
         state = State::Name;
         continue;
       case State::Name:

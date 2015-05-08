@@ -113,8 +113,7 @@ ast::Parameter* NamespaceBuilder::NewParameter(ast::Method* method,
 
 ast::Type* NamespaceBuilder::NewTypeReference(TokenType keyword) {
   return session()->ast_factory()->NewTypeNameReference(
-      session()->ast_factory()->NewNameReference(
-          session()->system_namespace_body(), NewKeyword(keyword)));
+      session()->ast_factory()->NewNameReference(NewKeyword(keyword)));
 }
 
 ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece name) {
@@ -124,7 +123,6 @@ ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece name) {
     if (dot_pos == std::string::npos)
       dot_pos = name.size();
     names.push_back(session()->ast_factory()->NewNameReference(
-        session()->system_namespace_body(),
         NewName(name.substr(pos, dot_pos - pos))));
     pos = dot_pos;
   }
