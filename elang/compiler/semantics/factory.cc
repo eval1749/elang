@@ -98,8 +98,8 @@ Class* Factory::NewClass(ast::Class* ast_class,
   return new (zone()) Class(zone(), ast_class, base_classes);
 }
 
-Enum* Factory::NewEnum(Token* name, Type* enum_base) {
-  return new (zone()) Enum(zone(), name, enum_base);
+Enum* Factory::NewEnum(Semantic* outer, Token* name, Type* enum_base) {
+  return new (zone()) Enum(zone(), outer, name, enum_base);
 }
 
 EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {

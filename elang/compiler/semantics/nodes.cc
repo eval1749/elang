@@ -81,7 +81,8 @@ bool ArrayType::IsSubtypeOf(const Type* other) const {
 Class::Class(Zone* zone,
              ast::Class* ast_class,
              const std::vector<Class*>& direct_base_classes)
-    : ast_class_(ast_class),
+    : NamedMember(nullptr, ast_class->name()),
+      ast_class_(ast_class),
       base_classes_(zone),
       direct_base_classes_(zone, direct_base_classes),
       members_(zone) {
@@ -103,8 +104,9 @@ bool Class::IsSubtypeOf(const Type* other) const {
 }
 
 // Enum
-Enum::Enum(Zone* zone, Token* name, Type* enum_base)
-    : enum_base_(enum_base), members_(zone), name_(name) {
+Enum::Enum(Zone* zone, Semantic* outer, Token* name, Type* enum_base)
+    : NamedMember(outer, name), enum_base_(enum_base), members_(zone) {
+  DCHECK(outer->is<Class>() || outer->is<Namespace>()) << *outer << " " << name;
 }
 
 bool Enum::IsSubtypeOf(const Type* other) const {
@@ -113,7 +115,7 @@ bool Enum::IsSubtypeOf(const Type* other) const {
 
 // EnumMember
 EnumMember::EnumMember(Enum* owner, Token* name)
-    : name_(name), owner_(owner), value_(nullptr) {
+    : NamedMember(owner, name), value_(nullptr) {
 }
 
 Token* EnumMember::value() const {
@@ -129,7 +131,8 @@ Literal::Literal(Type* type, Token* token) : data_(token), type_(type) {
 Method::Method(MethodGroup* method_group,
                Signature* signature,
                ast::Method* ast_method)
-    : ast_method_(ast_method),
+    : NamedMember(method_group->outer(), method_group->name()),
+      ast_method_(ast_method),
       method_group_(method_group),
       signature_(signature) {
 }
@@ -144,12 +147,12 @@ Type* Method::return_type() const {
 
 // MethodGroup
 MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
-    : methods_(zone), name_(name), owner_(owner) {
+    : NamedMember(owner, name), methods_(zone) {
 }
 
-//
+// Namespace
 Namespace::Namespace(Zone* zone, Namespace* outer, Token* name)
-    : members_(zone), name_(name), outer_(outer) {
+    : NamedMember(outer, name), members_(zone) {
 }
 
 Semantic* Namespace::FindMember(Token* name) const {
@@ -199,6 +202,16 @@ bool Parameter::IsIdentical(const Parameter& other) const {
 
 // Semantic
 Semantic::Semantic() {
+}
+
+Token* Semantic::name() const {
+  NOTREACHED() << *this;
+  return nullptr;
+}
+
+Semantic* Semantic::outer() const {
+  NOTREACHED() << *this;
+  return nullptr;
 }
 
 // Signature

@@ -68,12 +68,13 @@ struct AsPath {
 std::ostream& operator<<(std::ostream& ostream, const AsPath& path) {
   std::vector<Token*> names;
   auto runner = path.last_component;
-  while (auto const node = runner->as<Namespace>()) {
-    if (!node->outer())
+  names.push_back(runner->name());
+  for (;;) {
+    runner = runner->outer();
+    if (!runner || !runner->name())
       break;
-    DCHECK(node->name());
-    names.push_back(node->name());
-    runner = node->outer();
+    names.push_back(runner->name());
+    runner = runner->outer();
   }
   auto separator = "";
   for (auto name : base::Reversed(names)) {
@@ -116,7 +117,7 @@ void Formatter::VisitClass(Class* semantic) {
 }
 
 void Formatter::VisitEnum(Enum* node) {
-  ostream_ << "enum " << node->name() << " : " << node->enum_base() << " {";
+  ostream_ << "enum " << AsPath{node} << " : " << node->enum_base() << " {";
   auto separator = "";
   for (auto const member : node->members()) {
     ostream_ << separator << *member->name();
@@ -128,7 +129,7 @@ void Formatter::VisitEnum(Enum* node) {
 }
 
 void Formatter::VisitEnumMember(EnumMember* node) {
-  ostream_ << node->owner()->name() << "." << node->name();
+  ostream_ << AsPath{node->owner()} << "." << node->name();
   if (!node->is_bound())
     return;
   ostream_ << " = " << *node->value();
@@ -161,6 +162,10 @@ void Formatter::VisitMethodGroup(MethodGroup* method_group) {
 }
 
 void Formatter::VisitNamespace(Namespace* node) {
+  if (!node->name()) {
+    ostream_ << "global_namespace";
+    return;
+  }
   ostream_ << "namespace " << AsPath{node};
 }
 

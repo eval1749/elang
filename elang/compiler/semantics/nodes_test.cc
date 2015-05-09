@@ -105,13 +105,16 @@ TEST_F(IrSemanticsTest, ArrayTypeUnbound) {
 }
 
 TEST_F(IrSemanticsTest, Enum) {
-  auto const enum_type = factory()->NewEnum(NewToken("Color"), system_int64());
+  auto const ns =
+      factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const enum_type =
+      factory()->NewEnum(ns, NewToken("Color"), system_int64());
   std::vector<sm::EnumMember*> members{
       factory()->NewEnumMember(enum_type, NewToken("Red")),
       factory()->NewEnumMember(enum_type, NewToken("Green")),
       factory()->NewEnumMember(enum_type, NewToken("Blue"))};
   editor()->FixEnum(enum_type, members);
-  EXPECT_EQ("enum Color : System.Int64 {Red, Green, Blue}",
+  EXPECT_EQ("enum Foo.Color : System.Int64 {Red, Green, Blue}",
             ToString(enum_type));
 }
 

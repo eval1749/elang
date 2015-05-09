@@ -59,6 +59,10 @@ class Semantic : public Castable<Semantic>,
                  public ZoneAllocated {
   DECLARE_ABSTRACT_SEMANTIC_CLASS(Semantic, Castable);
 
+ public:
+  virtual Token* name() const;
+  virtual Semantic* outer() const;
+
  protected:
   Semantic();
 
@@ -97,6 +101,22 @@ class Type : public Semantic {
   DISALLOW_COPY_AND_ASSIGN(Type);
 };
 
+template <typename Base>
+class NamedMember : public Base {
+ public:
+  Token* name() const final { return name_; }
+  Semantic* outer() const final { return outer_; }
+
+ protected:
+  NamedMember(Semantic* outer, Token* name) : name_(name), outer_(outer) {}
+
+ private:
+  Token* const name_;
+  Semantic* const outer_;
+
+  DISALLOW_COPY_AND_ASSIGN(NamedMember);
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // ArrayType
@@ -126,7 +146,7 @@ class ArrayType final : public Type {
 //
 // Class
 //
-class Class final : public Type {
+class Class final : public NamedMember<Type> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Class, Type);
 
  public:
@@ -164,23 +184,21 @@ class Class final : public Type {
 //
 // Enum
 //
-class Enum final : public Type {
+class Enum final : public NamedMember<Type> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Enum, Type);
 
  public:
   sm::Type* enum_base() const { return enum_base_; }
   const ZoneVector<EnumMember*>& members() const { return members_; }
-  Token* name() const { return name_; }
 
  private:
-  Enum(Zone* zone, Token* name, sm::Type* enum_base);
+  Enum(Zone* zone, Semantic* outer, Token* name, sm::Type* enum_base);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
   sm::Type* const enum_base_;
   ZoneVector<EnumMember*> members_;
-  Token* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };
@@ -189,13 +207,12 @@ class Enum final : public Type {
 //
 // EnumMember
 //
-class EnumMember final : public Value {
+class EnumMember final : public NamedMember<Value> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(EnumMember, Value);
 
  public:
-  Token* name() const { return name_; }
   bool is_bound() const { return value_ != nullptr; }
-  Enum* owner() const { return owner_; }
+  Enum* owner() const { return outer()->as<Enum>(); }
   Token* value() const;
 
  private:
@@ -203,8 +220,6 @@ class EnumMember final : public Value {
 
   EnumMember(Enum* owner, Token* name);
 
-  Token* const name_;
-  Enum* const owner_;
   Token* value_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
@@ -234,7 +249,7 @@ class Literal final : public Value {
 //
 // Method
 //
-class Method final : public Semantic {
+class Method final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Method, Semantic);
 
  public:
@@ -260,20 +275,17 @@ class Method final : public Semantic {
 //
 // MethodGroup
 //
-class MethodGroup final : public Semantic {
+class MethodGroup final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(MethodGroup, Semantic);
 
  public:
   const ZoneVector<Method*>& methods() const { return methods_; }
-  Token* name() const { return name_; }
-  Class* owner() const { return owner_; }
+  Class* owner() const { return outer()->as<Class>(); }
 
  private:
   MethodGroup(Zone* zone, Class* owner, Token* name);
 
   ZoneVector<Method*> methods_;
-  Token* const name_;
-  Class* const owner_;
 
   DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };
@@ -282,21 +294,16 @@ class MethodGroup final : public Semantic {
 //
 // Namespace
 //
-class Namespace final : public Semantic {
+class Namespace final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Namespace, Semantic);
 
  public:
-  Token* name() const { return name_; }
-  Namespace* outer() const { return outer_; }
-
   Semantic* FindMember(Token* name) const;
 
  private:
   Namespace(Zone* zone, Namespace* outer, Token* name);
 
   ZoneUnorderedMap<AtomicString*, Semantic*> members_;
-  Token* const name_;
-  Namespace* const outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);
 };
@@ -315,11 +322,13 @@ class Parameter final : public Semantic {
   Value* default_value() const { return default_value_; }
   bool is_rest() const;
   ParameterKind kind() const;
-  Token* name() const;
   int position() const;
   Type* type() const { return type_; }
 
   bool IsIdentical(const Parameter& other) const;
+
+  // Node
+  Token* name() const final;
 
  private:
   Parameter(ast::Parameter* ast_parameter, Type* type, Value* default_value);
