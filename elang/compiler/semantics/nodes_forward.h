@@ -25,6 +25,7 @@ namespace sm {
 
 #define FOR_EACH_CONCRETE_SEMANTIC(V) \
   FOR_EACH_CONCRETE_TYPE_SEMANTIC(V)  \
+  V(EnumMember)                       \
   V(Literal)                          \
   V(Method)                           \
   V(MethodGroup)                      \
@@ -42,6 +43,7 @@ class Visitor;
 
 // Print for formatting and debugging.
 std::ostream& operator<<(std::ostream& ostream, const Semantic& node);
+std::ostream& operator<<(std::ostream& ostream, const Semantic* node);
 std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class);
 
 }  // namespace sm

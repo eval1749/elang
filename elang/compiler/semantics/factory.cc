@@ -7,6 +7,7 @@
 
 #include "elang/compiler/semantics/factory.h"
 
+#include "base/logging.h"
 #include "elang/base/zone_user.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
@@ -94,6 +95,15 @@ ArrayType* Factory::NewArrayType(sm::Type* element_type,
 Class* Factory::NewClass(ast::Class* ast_class,
                          const std::vector<Class*>& base_classes) {
   return new (zone()) Class(zone(), ast_class, base_classes);
+}
+
+Enum* Factory::NewEnum(Token* name, Type* enum_base) {
+  return new (zone()) Enum(zone(), name, enum_base);
+}
+
+EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {
+  DCHECK(owner->members_.empty());
+  return new (zone()) EnumMember(owner, name);
 }
 
 Literal* Factory::NewLiteral(Type* type, Token* token) {

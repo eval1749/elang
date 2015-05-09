@@ -168,23 +168,46 @@ class Enum final : public Type {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Enum, Type);
 
  public:
-  ast::Enum* ast_enum() const { return ast_enum_; }
-  sm::Class* base_type() const { return base_type_; }
+  sm::Type* enum_base() const { return enum_base_; }
+  const ZoneVector<EnumMember*>& members() const { return members_; }
+  Token* name() const { return name_; }
 
  private:
-  Enum(Zone* zone,
-       ast::Enum* ast_enum,
-       sm::Class* base_type,
-       const std::vector<int64_t>& values);
+  Enum(Zone* zone, Token* name, sm::Type* enum_base);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
-  ast::Enum* const ast_enum_;
-  sm::Class* const base_type_;
-  const ZoneVector<int64_t> values_;
+  sm::Type* const enum_base_;
+  ZoneVector<EnumMember*> members_;
+  Token* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// EnumMember
+//
+class EnumMember final : public Value {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(EnumMember, Value);
+
+ public:
+  Token* name() const { return name_; }
+  bool is_bound() const { return value_ != nullptr; }
+  Enum* owner() const { return owner_; }
+  Token* value() const;
+
+ private:
+  friend class Enum;
+
+  EnumMember(Enum* owner, Token* name);
+
+  Token* const name_;
+  Enum* const owner_;
+  Token* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };
 
 //////////////////////////////////////////////////////////////////////

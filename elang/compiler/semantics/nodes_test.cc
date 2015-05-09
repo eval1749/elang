@@ -7,16 +7,20 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 
+#include "base/strings/string_piece.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/compilation_session.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
+#include "elang/compiler/source_code_range.h"
 
 namespace elang {
 namespace compiler {
 namespace sm {
-namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -24,18 +28,25 @@ namespace {
 //
 class IrSemanticsTest : public testing::AnalyzerTest {
  protected:
-  IrSemanticsTest() = default;
+  IrSemanticsTest();
   ~IrSemanticsTest() override = default;
 
+  Editor* editor() { return &editor_; }
   Factory* factory() { return name_resolver()->factory(); }
   Type* system_int32();
   Type* system_int64();
 
+  Token* NewToken(base::StringPiece name);
   std::string ToString(Semantic* node);
 
  private:
+  sm::Editor editor_;
+
   DISALLOW_COPY_AND_ASSIGN(IrSemanticsTest);
 };
+
+IrSemanticsTest::IrSemanticsTest() : editor_(session()) {
+}
 
 Type* IrSemanticsTest::system_int32() {
   return semantics()->SemanticOf(FindClass("System.Int32"))->as<Type>();
@@ -43,6 +54,12 @@ Type* IrSemanticsTest::system_int32() {
 
 Type* IrSemanticsTest::system_int64() {
   return semantics()->SemanticOf(FindClass("System.Int64"))->as<Type>();
+}
+
+Token* IrSemanticsTest::NewToken(base::StringPiece name) {
+  return session()->NewToken(
+      SourceCodeRange(),
+      TokenData(session()->NewAtomicString(base::UTF8ToUTF16(name))));
 }
 
 std::string IrSemanticsTest::ToString(Semantic* semantic) {
@@ -87,7 +104,17 @@ TEST_F(IrSemanticsTest, ArrayTypeUnbound) {
             ToString(factory()->NewArrayType(system_int32(), {-1, -1, -1})));
 }
 
-}  // namespace
+TEST_F(IrSemanticsTest, Enum) {
+  auto const enum_type = factory()->NewEnum(NewToken("Color"), system_int64());
+  std::vector<sm::EnumMember*> members{
+      factory()->NewEnumMember(enum_type, NewToken("Red")),
+      factory()->NewEnumMember(enum_type, NewToken("Green")),
+      factory()->NewEnumMember(enum_type, NewToken("Blue"))};
+  editor()->FixEnum(enum_type, members);
+  EXPECT_EQ("enum Color : System.Int64 {Red, Green, Blue}",
+            ToString(enum_type));
+}
+
 }  // namespace sm
 }  // namespace compiler
 }  // namespace elang

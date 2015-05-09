@@ -33,7 +33,7 @@ source_set("test_files") {
   visibility = [ "//elang/compiler:test_files" ]
   testonly = true
   sources = [
-    "nodes_unittest.cc",
+    "nodes_test.cc",
   ]
   public_deps = [
     ":semantics",

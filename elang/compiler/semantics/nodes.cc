@@ -103,15 +103,22 @@ bool Class::IsSubtypeOf(const Type* other) const {
 }
 
 // Enum
-Enum::Enum(Zone* zone,
-           ast::Enum* ast_enum,
-           sm::Class* base_type,
-           const std::vector<int64_t>& values)
-    : ast_enum_(ast_enum), base_type_(base_type), values_(zone, values) {
+Enum::Enum(Zone* zone, Token* name, Type* enum_base)
+    : enum_base_(enum_base), members_(zone), name_(name) {
 }
 
 bool Enum::IsSubtypeOf(const Type* other) const {
   return this == other;
+}
+
+// EnumMember
+EnumMember::EnumMember(Enum* owner, Token* name)
+    : name_(name), owner_(owner), value_(nullptr) {
+}
+
+Token* EnumMember::value() const {
+  DCHECK(value_) << *this;
+  return value_;
 }
 
 // Literal

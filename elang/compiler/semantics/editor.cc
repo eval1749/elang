@@ -57,6 +57,16 @@ Semantic* Editor::FindMember(Class* clazz, Token* name) const {
   return it == clazz->members_.end() ? nullptr : it->second;
 }
 
+void Editor::FixEnum(sm::Enum* enum_type,
+                     const std::vector<EnumMember*>& members) {
+  DCHECK(enum_type->members_.empty()) << *enum_type;
+#ifndef NDEBUG
+  for (auto const member : members)
+    DCHECK_EQ(enum_type, member->owner());
+#endif
+  enum_type->members_.assign(members.begin(), members.end());
+}
+
 void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
   DCHECK(node);
   DCHECK(semantic);

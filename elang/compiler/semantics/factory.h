@@ -37,7 +37,8 @@ class Factory final : public ZoneOwner {
 
   Class* NewClass(ast::Class* ast_class,
                   const std::vector<Class*>& base_classes);
-  Enum* NewEnum(ast::Type* ast_type, const std::vector<int64_t>& values);
+  Enum* NewEnum(Token* name, Type* enum_base);
+  EnumMember* NewEnumMember(Enum* enum_type, Token* name);
 
   Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(MethodGroup* method_group,

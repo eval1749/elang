@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_SEMANTICS_EDITOR_H_
 #define ELANG_COMPILER_SEMANTICS_EDITOR_H_
 
+#include <vector>
+
 #include "base/macros.h"
 #include "elang/compiler/compilation_session_user.h"
 #include "elang/compiler/semantics/nodes_forward.h"
@@ -36,6 +38,7 @@ class Editor final : public CompilationSessionUser {
   void AddMethod(MethodGroup* method_group, Method* method);
   MethodGroup* EnsureMethodGroup(Class* clazz, Token* name);
   Semantic* FindMember(Class* clazz, Token* name) const;
+  void FixEnum(Enum* enum_type, const std::vector<EnumMember*>& members);
   void SetSemanticOf(ast::Node* node, Semantic* semantic);
   Semantic* SemanticOf(ast::Node* node) const;
   Semantic* TrySemanticOf(ast::Node* node) const;

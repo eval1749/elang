@@ -90,8 +90,23 @@ void Formatter::VisitClass(Class* semantic) {
   ostream_ << semantic->ast_class()->NewQualifiedName();
 }
 
-void Formatter::VisitEnum(Enum* semantic) {
-  ostream_ << semantic->ast_enum()->NewQualifiedName();
+void Formatter::VisitEnum(Enum* node) {
+  ostream_ << "enum " << node->name() << " : " << node->enum_base() << " {";
+  auto separator = "";
+  for (auto const member : node->members()) {
+    ostream_ << separator << *member->name();
+    if (member->is_bound())
+      ostream_ << " = " << *member->value();
+    separator = ", ";
+  }
+  ostream_ << "}";
+}
+
+void Formatter::VisitEnumMember(EnumMember* node) {
+  ostream_ << node->owner()->name() << "." << node->name();
+  if (!node->is_bound())
+    return;
+  ostream_ << " = " << *node->value();
 }
 
 void Formatter::VisitLiteral(Literal* literal) {
@@ -154,6 +169,12 @@ std::ostream& operator<<(std::ostream& ostream, const Semantic& semantic) {
   Formatter formatter(&ostream);
   formatter.Format(&semantic);
   return ostream;
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Semantic* semantic) {
+  if (!semantic)
+    return ostream << "nil";
+  return ostream << *semantic;
 }
 
 std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class) {
