@@ -81,6 +81,7 @@ ArrayType* Factory::ArrayTypeFactory::NewArrayType(
 //
 Factory::Factory()
     : array_type_factory_(new ArrayTypeFactory(zone())),
+      global_namespace_(new (zone()) Namespace(zone(), nullptr, nullptr)),
       semantics_(new Semantics()) {
 }
 
@@ -118,6 +119,12 @@ Method* Factory::NewMethod(MethodGroup* method_group,
 
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
   return new (zone()) MethodGroup(zone(), owner, name);
+}
+
+Namespace* Factory::NewNamespace(Namespace* outer, Token* name) {
+  DCHECK(name);
+  DCHECK(outer);
+  return new (zone()) Namespace(zone(), outer, name);
 }
 
 Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,

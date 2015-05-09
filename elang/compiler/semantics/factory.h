@@ -27,6 +27,7 @@ class Factory final : public ZoneOwner {
   Factory();
   ~Factory();
 
+  Namespace* global_namespace() { return global_namespace_; }
   Semantics* semantics() const { return semantics_.get(); }
 
   // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
@@ -45,6 +46,7 @@ class Factory final : public ZoneOwner {
                     Signature* signature,
                     ast::Method* ast_method);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
+  Namespace* NewNamespace(Namespace* outer, Token* name);
 
   // Allocate |Parameter| for analyzer
   Parameter* NewParameter(ast::Parameter* parameter,
@@ -65,6 +67,7 @@ class Factory final : public ZoneOwner {
   class ArrayTypeFactory;
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
+  Namespace* const global_namespace_;
   std::unique_ptr<Semantics> semantics_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);

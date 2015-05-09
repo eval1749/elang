@@ -115,6 +115,14 @@ TEST_F(IrSemanticsTest, Enum) {
             ToString(enum_type));
 }
 
+TEST_F(IrSemanticsTest, Namespace) {
+  auto const ns1 =
+      factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const ns2 = factory()->NewNamespace(ns1, NewToken("Bar"));
+  EXPECT_EQ("namespace Foo", ToString(ns1));
+  EXPECT_EQ("namespace Foo.Bar", ToString(ns2));
+}
+
 }  // namespace sm
 }  // namespace compiler
 }  // namespace elang

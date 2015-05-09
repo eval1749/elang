@@ -8,6 +8,7 @@
 
 #include "elang/compiler/semantics/formatters/text_formatter.h"
 
+#include "base/containers/adapters.h"
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/class.h"
@@ -58,6 +59,28 @@ Formatter::Formatter(std::ostream* ostream) : ostream_(*ostream) {
 
 void Formatter::Format(const Semantic* semantic) {
   const_cast<Semantic*>(semantic)->Accept(this);
+}
+
+struct AsPath {
+  Semantic* last_component;
+};
+
+std::ostream& operator<<(std::ostream& ostream, const AsPath& path) {
+  std::vector<Token*> names;
+  auto runner = path.last_component;
+  while (auto const node = runner->as<Namespace>()) {
+    if (!node->outer())
+      break;
+    DCHECK(node->name());
+    names.push_back(node->name());
+    runner = node->outer();
+  }
+  auto separator = "";
+  for (auto name : base::Reversed(names)) {
+    ostream << separator << name;
+    separator = ".";
+  }
+  return ostream;
 }
 
 // Visitor
@@ -135,6 +158,10 @@ void Formatter::VisitMethodGroup(MethodGroup* method_group) {
     separator = ", ";
   }
   ostream_ << "}";
+}
+
+void Formatter::VisitNamespace(Namespace* node) {
+  ostream_ << "namespace " << AsPath{node};
 }
 
 void Formatter::VisitParameter(Parameter* parameter) {

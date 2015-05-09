@@ -147,8 +147,14 @@ MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
     : methods_(zone), name_(name), owner_(owner) {
 }
 
-// Semantic
-Semantic::Semantic() {
+//
+Namespace::Namespace(Zone* zone, Namespace* outer, Token* name)
+    : members_(zone), name_(name), outer_(outer) {
+}
+
+Semantic* Namespace::FindMember(Token* name) const {
+  auto const it = members_.find(name->atomic_string());
+  return it == members_.end() ? nullptr : it->second;
 }
 
 // Parameter
@@ -189,6 +195,10 @@ int Parameter::position() const {
 
 bool Parameter::IsIdentical(const Parameter& other) const {
   return type_ == other.type_;
+}
+
+// Semantic
+Semantic::Semantic() {
 }
 
 // Signature

@@ -280,6 +280,29 @@ class MethodGroup final : public Semantic {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Namespace
+//
+class Namespace final : public Semantic {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Namespace, Semantic);
+
+ public:
+  Token* name() const { return name_; }
+  Namespace* outer() const { return outer_; }
+
+  Semantic* FindMember(Token* name) const;
+
+ private:
+  Namespace(Zone* zone, Namespace* outer, Token* name);
+
+  ZoneUnorderedMap<AtomicString*, Semantic*> members_;
+  Token* const name_;
+  Namespace* const outer_;
+
+  DISALLOW_COPY_AND_ASSIGN(Namespace);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Parameter
 //
 class Parameter final : public Semantic {

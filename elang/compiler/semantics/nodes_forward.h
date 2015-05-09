@@ -29,6 +29,7 @@ namespace sm {
   V(Literal)                          \
   V(Method)                           \
   V(MethodGroup)                      \
+  V(Namespace)                        \
   V(Parameter)                        \
   V(Variable)
 
