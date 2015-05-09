@@ -239,11 +239,13 @@ void Formatter::VisitEmptyStatement(ast::EmptyStatement* empty_statement) {
   ostream_ << ";";
 }
 
-void Formatter::VisitEnum(ast::Enum* enumx) {
+void Formatter::VisitEnum(ast::Enum* enum_type) {
   Indent();
-  ostream_ << "enum " << enumx->name() << " ";
+  ostream_ << "enum " << enum_type->name() << " ";
+  if (auto const enum_base = enum_type->enum_base())
+    ostream_ << ": " << enum_base << " ";
   FormatBlock block(this);
-  for (auto const member : enumx->members()) {
+  for (auto const member : enum_type->members()) {
     member->Accept(this);
     ostream_ << "," << std::endl;
   }

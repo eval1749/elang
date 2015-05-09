@@ -403,8 +403,10 @@ void Parser::ParseEnum() {
     else
       Error(ErrorCode::SyntaxEnumConflict, enum_name, present->name());
   }
-  auto const enum_node =
-      factory()->NewEnum(container_, enum_modifiers, enum_keyword, enum_name);
+  auto const enum_base =
+      AdvanceIf(TokenType::Colon) && ParseType() ? ConsumeType() : nullptr;
+  auto const enum_node = factory()->NewEnum(container_, enum_modifiers,
+                                            enum_keyword, enum_name, enum_base);
   container_->AddMember(enum_node);
   container_->AddNamedMember(enum_node);
   container_->owner()->AddNamedMember(enum_node);

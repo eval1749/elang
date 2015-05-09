@@ -84,8 +84,13 @@ ClassBody* Factory::NewClassBody(BodyNode* outer,
 Enum* Factory::NewEnum(BodyNode* container,
                        Modifiers modifiers,
                        Token* keyword,
-                       Token* name) {
-  return new (zone_) Enum(zone_, container, modifiers, keyword, name);
+                       Token* name,
+                       Type* enum_base) {
+  auto const node =
+      new (zone_) Enum(zone_, container, modifiers, keyword, name, enum_base);
+  if (enum_base)
+    SetParent(enum_base, node);
+  return node;
 }
 
 EnumMember* Factory::NewEnumMember(Enum* owner,

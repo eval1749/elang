@@ -23,12 +23,16 @@ class Factory;
 class Enum final : public NamespaceNode, WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(Enum, NamespaceNode);
 
+ public:
+  Type* enum_base() const { return enum_base_; }
+
  private:
   Enum(Zone* zone,
        BodyNode* container,
        Modifiers modifies,
        Token* keyword,
-       Token* name);
+       Token* name,
+       Type* enum_base);
 
 #if _DEBUG
   // Node
@@ -36,6 +40,8 @@ class Enum final : public NamespaceNode, WithModifiers {
   // NamedNode
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
+
+  Type* const enum_base_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);
 };

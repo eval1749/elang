@@ -22,8 +22,11 @@ Enum::Enum(Zone* zone,
            BodyNode* outer,
            Modifiers modifiers,
            Token* keyword,
-           Token* name)
-    : NamespaceNode(zone, outer, keyword, name), WithModifiers(modifiers) {
+           Token* name,
+           Type* enum_base)
+    : NamespaceNode(zone, outer, keyword, name),
+      WithModifiers(modifiers),
+      enum_base_(enum_base) {
   DCHECK_EQ(keyword->type(), TokenType::Enum);
   DCHECK(name->is_name());
   DCHECK_EQ(modifiers, Modifiers::Enum() & modifiers);

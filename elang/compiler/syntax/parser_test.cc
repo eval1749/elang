@@ -388,6 +388,16 @@ TEST_F(ParserTest, Enum) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, EnumBase) {
+  auto const source_code =
+      "enum Color : int64 {\n"
+      "  Red,\n"
+      "  Green,\n"
+      "  Blue,\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
 TEST_F(ParserTest, EnumComma) {
   auto const source_code =
       "enum Color {\n"

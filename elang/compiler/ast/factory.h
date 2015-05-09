@@ -44,7 +44,8 @@ class Factory final {
   Enum* NewEnum(BodyNode* outer,
                 Modifiers modifiers,
                 Token* keyword,
-                Token* name);
+                Token* name,
+                Type* enum_base);
   EnumMember* NewEnumMember(Enum* owner,
                             Token* name,
                             int position,
