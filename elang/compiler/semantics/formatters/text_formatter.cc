@@ -76,11 +76,13 @@ void Formatter::VisitArrayType(ArrayType* semantic) {
   for (auto array_type : array_types) {
     ostream_ << "[";
     auto separator = "";
+    auto separator2 = "";
     for (auto dimension : array_type->dimensions()) {
       ostream_ << separator;
       if (dimension >= 0)
-        ostream_ << dimension;
+        ostream_ << separator2 << dimension;
       separator = ",";
+      separator2 = " ";
     }
     ostream_ << "]";
   }

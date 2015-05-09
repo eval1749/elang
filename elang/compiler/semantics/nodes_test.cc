@@ -78,7 +78,7 @@ TEST_F(IrSemanticsTest, ArrayType) {
       << "array type should be unique by element type and dimensions";
   EXPECT_NE(type1, type3);
   EXPECT_EQ(2, type1->rank());
-  EXPECT_EQ("System.Int32[10,20]", ToString(type1));
+  EXPECT_EQ("System.Int32[10, 20]", ToString(type1));
   EXPECT_EQ("System.Int32[10]", ToString(type3));
 }
 
