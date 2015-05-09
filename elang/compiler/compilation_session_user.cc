@@ -34,10 +34,20 @@ void CompilationSessionUser::Error(ErrorCode error_code, ast::Node* node) {
   session()->AddError(error_code, node->name());
 }
 
+void CompilationSessionUser::Error(ErrorCode error_code, Token* token) {
+  session()->AddError(error_code, token);
+}
+
 void CompilationSessionUser::Error(ErrorCode error_code,
                                    ast::Node* node,
                                    ast::Node* node2) {
   session()->AddError(error_code, node->name(), node2->name());
+}
+
+void CompilationSessionUser::Error(ErrorCode error_code,
+                                   Token* token,
+                                   Token* token2) {
+  session()->AddError(error_code, token, token2);
 }
 
 ast::Class* CompilationSessionUser::PredefinedTypeOf(PredefinedName name) {

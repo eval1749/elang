@@ -22,6 +22,7 @@ class Semantics;
 class CompilationSession;
 enum class ErrorCode;
 enum class PredefinedName;
+class Token;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -35,7 +36,9 @@ class CompilationSessionUser {
 
   // Report error caused by |node|.
   void Error(ErrorCode error_code, ast::Node* node);
+  void Error(ErrorCode error_code, Token* node);
   void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
+  void Error(ErrorCode error_code, Token* node, Token* node2);
 
  protected:
   explicit CompilationSessionUser(CompilationSession* session);
