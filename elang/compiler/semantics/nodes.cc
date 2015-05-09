@@ -79,13 +79,16 @@ bool ArrayType::IsSubtypeOf(const Type* other) const {
 
 // Class
 Class::Class(Zone* zone,
-             ast::Class* ast_class,
-             const std::vector<Class*>& direct_base_classes)
-    : NamedMember(nullptr, ast_class->name()),
+             Semantic* outer,
+             Token* name,
+             const std::vector<Class*>& direct_base_classes,
+             ast::Class* ast_class)
+    : NamedMember(outer, name),
       ast_class_(ast_class),
       base_classes_(zone),
       direct_base_classes_(zone, direct_base_classes),
       members_(zone) {
+  DCHECK(outer->is<Class>() || outer->is<Namespace>()) << outer << " " << name;
   for (auto const base_class : direct_base_classes)
     ComputeBaseClasses(base_class, &base_classes_);
 }
@@ -106,7 +109,7 @@ bool Class::IsSubtypeOf(const Type* other) const {
 // Enum
 Enum::Enum(Zone* zone, Semantic* outer, Token* name, Type* enum_base)
     : NamedMember(outer, name), enum_base_(enum_base), members_(zone) {
-  DCHECK(outer->is<Class>() || outer->is<Namespace>()) << *outer << " " << name;
+  DCHECK(outer->is<Class>() || outer->is<Namespace>()) << outer << " " << name;
 }
 
 bool Enum::IsSubtypeOf(const Type* other) const {

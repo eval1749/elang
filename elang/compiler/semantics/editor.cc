@@ -29,9 +29,19 @@ sm::Factory* Editor::factory() const {
   return session()->semantics_factory();
 }
 
-void Editor::AddMember(Class* clazz, Token* name, Semantic* member) {
-  DCHECK(!FindMember(clazz, name)) << *member;
-  clazz->members_.insert(std::make_pair(name->atomic_string(), member));
+void Editor::AddMember(Semantic* container, Semantic* member) {
+  auto const name = member->name();
+  if (auto const clazz = container->as<Class>()) {
+    DCHECK(!FindMember(clazz, name)) << *member;
+    clazz->members_.insert(std::make_pair(name->atomic_string(), member));
+    return;
+  }
+  if (auto const ns = container->as<Namespace>()) {
+    DCHECK(!FindMember(ns, name)) << *member;
+    ns->members_.insert(std::make_pair(name->atomic_string(), member));
+    return;
+  }
+  NOTREACHED() << container << " " << member;
 }
 
 void Editor::AddMethod(MethodGroup* method_group, Method* method) {
@@ -48,13 +58,21 @@ MethodGroup* Editor::EnsureMethodGroup(Class* clazz, Token* name) {
     return method_group;
   auto const method_group = factory()->NewMethodGroup(clazz, name);
   if (!present)
-    AddMember(clazz, name, method_group);
+    AddMember(clazz, method_group);
   return method_group;
 }
 
-Semantic* Editor::FindMember(Class* clazz, Token* name) const {
-  auto const it = clazz->members_.find(name->atomic_string());
-  return it == clazz->members_.end() ? nullptr : it->second;
+Semantic* Editor::FindMember(Semantic* container, Token* name) const {
+  if (auto const clazz = container->as<Class>()) {
+    auto const it = clazz->members_.find(name->atomic_string());
+    return it == clazz->members_.end() ? nullptr : it->second;
+  }
+  if (auto const ns = container->as<Namespace>()) {
+    auto const it = ns->members_.find(name->atomic_string());
+    return it == ns->members_.end() ? nullptr : it->second;
+  }
+  NOTREACHED() << container << " " << name;
+  return nullptr;
 }
 
 void Editor::FixEnum(sm::Enum* enum_type,
@@ -78,7 +96,7 @@ void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
 
 Semantic* Editor::SemanticOf(ast::Node* node) const {
   auto const semantic = TrySemanticOf(node);
-  DCHECK(semantic) << *node;
+  DCHECK(semantic) << "No semantic for " << *node;
   return semantic;
 }
 

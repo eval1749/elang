@@ -166,8 +166,10 @@ class Class final : public NamedMember<Type> {
 
  private:
   Class(Zone* zone,
-        ast::Class* ast_type,
-        const std::vector<Class*>& direct_base_classes);
+        Semantic* outer,
+        Token* name,
+        const std::vector<Class*>& direct_base_classes,
+        ast::Class* ast_type);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;

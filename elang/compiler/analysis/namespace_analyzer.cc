@@ -17,10 +17,11 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics/factory.h"
-#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
+#include "elang/compiler/semantics/editor.h"
+#include "elang/compiler/semantics/factory.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -104,6 +105,20 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
       continue;
     user->Accept(this);
   }
+}
+
+void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
+  if (node == session()->global_namespace_body())
+    return;
+  auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
+  DCHECK(outer->is<sm::Namespace>()) << outer;
+  if (auto const present = editor()->FindMember(outer, node->name())) {
+    DCHECK(present->is<sm::Namespace>()) << present;
+    SetSemanticOf(node, present);
+    return;
+  }
+  auto const ns = factory()->NewNamespace(outer, node->name());
+  SetSemanticOf(node, ns);
 }
 
 // Find |name| in class tree rooted by |clazz|.
@@ -545,15 +560,18 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
     direct_base_classes.insert(direct_base_classes.begin(), result.FromJust());
   }
 
-  auto const present = resolver()->SemanticOf(ast_class)->as<sm::Class>();
-  if (present) {
+  auto const class_name = ast_class->name();
+  auto const outer = SemanticOf(class_body->parent());
+  if (auto const present = editor()->FindMember(outer, class_name)) {
     // TODO(eval1749) Check base classes are matched with |present|.
     SetSemanticOf(class_body, present);
     DidResolve(class_body);
     return;
   }
 
-  auto const clazz = factory()->NewClass(ast_class, direct_base_classes);
+  auto const clazz =
+      factory()->NewClass(outer, class_name, direct_base_classes, ast_class);
+  editor()->AddMember(outer, clazz);
   SetSemanticOf(class_body, clazz);
   SetSemanticOf(ast_class, clazz);
   DidResolve(class_body);
@@ -577,6 +595,11 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
           import->reference());
   }
   DidResolve(import);
+}
+
+void NamespaceAnalyzer::VisitNamespaceBody(ast::NamespaceBody* node) {
+  EnsureNamespace(node);
+  ast::Visitor::VisitNamespaceBody(node);
 }
 
 }  // namespace compiler

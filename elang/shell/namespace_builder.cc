@@ -81,10 +81,12 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
     DCHECK(base_class);
     base_classes.push_back(base_class);
   }
-  auto const clazz =
-      name_resolver()->factory()->NewClass(ast_class, base_classes);
+  auto const outer = session()->semantics()->SemanticOf(ast_class->parent());
+  auto const clazz = name_resolver()->factory()->NewClass(
+      outer, ast_class->name(), base_classes, ast_class);
   editor_->SetSemanticOf(ast_class, clazz);
   editor_->SetSemanticOf(ast_class_body, clazz);
+  editor_->AddMember(outer, clazz);
 
   return ast_class_body;
 }

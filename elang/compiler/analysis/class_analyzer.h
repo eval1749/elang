@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "elang/base/simple_directed_graph.h"
 #include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/visitor.h"
 
@@ -38,6 +39,7 @@ class ClassAnalyzer final : public Analyzer, private ast::Visitor {
   void VisitMethod(ast::Method* node) final;
 
   std::unique_ptr<sm::Editor> editor_;
+  SimpleDirectedGraph<ast::Node*> dependency_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzer);
 };

@@ -93,9 +93,11 @@ ArrayType* Factory::NewArrayType(sm::Type* element_type,
   return array_type_factory_->NewArrayType(element_type, dimensions);
 }
 
-Class* Factory::NewClass(ast::Class* ast_class,
-                         const std::vector<Class*>& base_classes) {
-  return new (zone()) Class(zone(), ast_class, base_classes);
+Class* Factory::NewClass(Semantic* outer,
+                         Token* name,
+                         const std::vector<Class*>& base_classes,
+                         ast::Class* ast_class) {
+  return new (zone()) Class(zone(), outer, name, base_classes, ast_class);
 }
 
 Enum* Factory::NewEnum(Semantic* outer, Token* name, Type* enum_base) {

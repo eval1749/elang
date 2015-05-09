@@ -9,14 +9,16 @@
 #include "base/logging.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/parameter_kind.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/public/compiler_error_code.h"
 
 namespace elang {
@@ -40,8 +42,19 @@ bool ClassAnalyzer::Run() {
 }
 
 // ast::Visitor
-void ClassAnalyzer::VisitEnum(ast::Enum* node) {
-  DCHECK(node);
+void ClassAnalyzer::VisitEnum(ast::Enum* ast_enum) {
+  auto const enum_base =
+      name_resolver()
+          ->ResolvePredefinedType(ast_enum->token(), PredefinedName::Int32)
+          ->as<sm::Type>();
+  auto const outer = SemanticOf(ast_enum->parent());
+  auto const enum_type = factory()->NewEnum(outer, ast_enum->name(), enum_base);
+  SetSemanticOf(ast_enum, enum_type);
+  editor_->AddMember(outer, enum_type);
+  std::vector<sm::EnumMember*> members;
+  for (auto const ast_member : ast_enum->members())
+    members.push_back(factory()->NewEnumMember(enum_type, ast_member->name()));
+  editor_->FixEnum(enum_type, members);
 }
 
 void ClassAnalyzer::VisitField(ast::Field* node) {

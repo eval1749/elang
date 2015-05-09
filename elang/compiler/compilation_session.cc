@@ -17,6 +17,9 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
+#include "elang/compiler/semantics/editor.h"
+#include "elang/compiler/semantics/factory.h"
+#include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
@@ -61,6 +64,18 @@ ast::NamespaceBody* CreateNamespaceBody(CompilationSession* session,
   return body;
 }
 
+void PopulateSemantics(CompilationSession* session) {
+  sm::Editor editor(session);
+  auto const global_namespace =
+      session->semantics_factory()->global_namespace();
+  editor.SetSemanticOf(session->global_namespace(), global_namespace);
+  editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
+  auto const system_namespace = session->semantics_factory()->NewNamespace(
+      global_namespace, session->system_namespace()->name());
+  editor.SetSemanticOf(session->system_namespace(), system_namespace);
+  editor.AddMember(global_namespace, system_namespace);
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -82,6 +97,7 @@ CompilationSession::CompilationSession()
       system_namespace_body_(CreateNamespaceBody(this,
                                                  global_namespace_body(),
                                                  system_namespace())) {
+  PopulateSemantics(this);
 }
 
 CompilationSession::~CompilationSession() {

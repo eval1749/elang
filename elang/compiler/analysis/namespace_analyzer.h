@@ -48,6 +48,7 @@ class NamespaceAnalyzer final : public Analyzer,
 
   void CheckPartialClass(ast::ClassBody* class_body);
   void DidResolve(ast::NamedNode* node);
+  void EnsureNamespace(ast::NamespaceBody* namespace_body);
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<ast::NamedNode*>* founds);
@@ -94,6 +95,7 @@ class NamespaceAnalyzer final : public Analyzer,
   void VisitAlias(ast::Alias* node);
   void VisitClassBody(ast::ClassBody* node);
   void VisitImport(ast::Import* node);
+  void VisitNamespaceBody(ast::NamespaceBody* node);
 
   SimpleDirectedGraph<ast::NamedNode*> dependency_graph_;
 
