@@ -146,11 +146,8 @@ Literal::Literal(Type* type, Token* token) : Value(type, token), data_(token) {
 }
 
 // Method
-Method::Method(MethodGroup* method_group,
-               Signature* signature,
-               ast::Method* ast_method)
+Method::Method(MethodGroup* method_group, Signature* signature)
     : NamedMember(method_group->outer(), method_group->name()),
-      ast_method_(ast_method),
       method_group_(method_group),
       signature_(signature) {
 }

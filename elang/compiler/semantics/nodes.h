@@ -273,18 +273,14 @@ class Method final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Method, Semantic);
 
  public:
-  ast::Method* ast_method() const { return ast_method_; }
   MethodGroup* method_group() const { return method_group_; }
   const ZoneVector<Parameter*>& parameters() const;
   Type* return_type() const;
   Signature* signature() const { return signature_; }
 
  private:
-  Method(MethodGroup* method_group,
-         Signature* signature,
-         ast::Method* ast_method);
+  Method(MethodGroup* method_group, Signature* signature);
 
-  ast::Method* const ast_method_;
   MethodGroup* const method_group_;
   Signature* const signature_;
 

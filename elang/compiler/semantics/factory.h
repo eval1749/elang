@@ -41,9 +41,7 @@ class Factory final : public ZoneOwner {
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);
-  Method* NewMethod(MethodGroup* method_group,
-                    Signature* signature,
-                    ast::Method* ast_method);
+  Method* NewMethod(MethodGroup* method_group, Signature* signature);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* name);
 

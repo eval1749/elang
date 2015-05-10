@@ -223,7 +223,7 @@ void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
   }
 
   auto const signature = factory()->NewSignature(return_type, parameters);
-  auto const method = factory()->NewMethod(method_group, signature, ast_method);
+  auto const method = factory()->NewMethod(method_group, signature);
   analyzer_->SetSemanticOf(ast_method, method);
 
   // Check this size with existing signatures
