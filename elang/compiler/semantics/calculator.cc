@@ -154,18 +154,7 @@ void Calculator::SetContext(Token* token) {
 }
 
 Type* Calculator::PredefinedTypeOf(PredefinedName name) const {
-  auto const name_token = session()->PredefinedNameOf(name);
-  auto const present = factory()->system_namespace()->FindMember(name_token);
-  if (!present) {
-    session()->AddError(ErrorCode::PredefinedNamesNameNotFound, name_token);
-    return factory()->NewUndefinedType(name_token);
-  }
-  auto const type = present->as<Type>();
-  if (!type) {
-    session()->AddError(ErrorCode::PredefinedNamesNameNotClass, name_token);
-    return factory()->NewUndefinedType(name_token);
-  }
-  return type;
+  return session()->PredefinedTypeOf(name);
 }
 
 Calculator::TypeProperty Calculator::PropertyOf(Type* type) {

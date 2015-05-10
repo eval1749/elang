@@ -20,26 +20,14 @@
 namespace elang {
 namespace compiler {
 
-namespace {
-sm::Type* ValueOfPredefinedType(CompilationSession* session,
-                                PredefinedName name) {
-  auto const ast_class = session->PredefinedTypeOf(name);
-  DCHECK(ast_class) << "Not in System namespace " << name;
-  auto const ir_class = session->semantics()->SemanticOf(ast_class);
-  DCHECK(ir_class) << "Not resolved " << name;
-  DCHECK(ir_class->is<sm::Class>());
-  return ir_class->as<sm::Class>();
-}
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // TypeMapper
 //
 TypeMapper::TypeMapper(CompilationSession* session, hir::Factory* factory)
     : CompilationSessionUser(session), factory_(factory) {
-#define V(Name, name, ...)                                          \
-  InstallType(ValueOfPredefinedType(session, PredefinedName::Name), \
+#define V(Name, name, ...)                                     \
+  InstallType(session->PredefinedTypeOf(PredefinedName::Name), \
               types()->name##_type());
   FOR_EACH_HIR_PRIMITIVE_TYPE(V)
 #undef V
@@ -112,7 +100,7 @@ hir::Type* TypeMapper::Map(sm::Type* type) {
 }
 
 hir::Type* TypeMapper::Map(PredefinedName name) {
-  return Map(ValueOfPredefinedType(session(), name));
+  return Map(session()->PredefinedTypeOf(name));
 }
 
 }  // namespace compiler

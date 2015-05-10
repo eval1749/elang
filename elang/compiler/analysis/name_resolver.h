@@ -17,6 +17,7 @@ namespace elang {
 namespace compiler {
 namespace ast {
 class Call;
+class Class;
 class Expression;
 class ContainerNode;
 class NamedNode;
@@ -48,8 +49,6 @@ class NameResolver final : public CompilationSessionUser {
   // Registering functions.
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
-  // Retrieving functions.
-  sm::Type* PredefinedTypeOf(PredefinedName name);
   // Resolve to |sm::Type| named |name| for |token|.
   sm::Type* ResolvePredefinedType(Token* token, PredefinedName name);
   ast::NamedNode* ResolveReference(ast::Expression* expression,

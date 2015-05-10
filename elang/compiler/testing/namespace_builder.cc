@@ -41,8 +41,7 @@ NamespaceBuilder::~NamespaceBuilder() {
 }
 
 sm::Class* NamespaceBuilder::system_object() {
-  auto const ast_class = PredefinedTypeOf(PredefinedName::Object);
-  return semantics()->SemanticOf(ast_class)->as<sm::Class>();
+  return PredefinedTypeOf(PredefinedName::Object)->as<sm::Class>();
 }
 
 ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,

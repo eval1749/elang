@@ -19,18 +19,6 @@
 namespace elang {
 namespace compiler {
 
-namespace {
-sm::Type* ValueOfPredefinedType(cm::CompilationSession* session,
-                                cm::PredefinedName name) {
-  auto const ast_class = session->PredefinedTypeOf(name);
-  DCHECK(ast_class) << "Not in System namespace " << name;
-  auto const sm_class = session->semantics()->SemanticOf(ast_class);
-  DCHECK(sm_class) << "Not resolved " << name;
-  DCHECK(sm_class->is<sm::Class>());
-  return sm_class->as<sm::Class>();
-}
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // IrTypeMapper
@@ -38,8 +26,8 @@ sm::Type* ValueOfPredefinedType(cm::CompilationSession* session,
 IrTypeMapper::IrTypeMapper(cm::CompilationSession* session,
                            ir::TypeFactory* type_factory)
     : cm::CompilationSessionUser(session), type_factory_(type_factory) {
-#define V(Name, name, ...)                                              \
-  InstallType(ValueOfPredefinedType(session, cm::PredefinedName::Name), \
+#define V(Name, name, ...)                                         \
+  InstallType(session->PredefinedTypeOf(cm::PredefinedName::Name), \
               type_factory_->name##_type());
   FOR_EACH_OPTIMIZER_PRIMITIVE_TYPE(V)
 #undef V
@@ -108,7 +96,7 @@ ir::Type* IrTypeMapper::Map(sm::Type* sm_type) {
 }
 
 ir::Type* IrTypeMapper::Map(cm::PredefinedName name) {
-  return Map(ValueOfPredefinedType(session(), name));
+  return Map(session()->PredefinedTypeOf(name));
 }
 
 }  // namespace compiler

@@ -147,11 +147,20 @@ Token* CompilationSession::PredefinedNameOf(PredefinedName name) const {
   return token_factory_->PredefinedNameOf(name);
 }
 
-ast::Class* CompilationSession::PredefinedTypeOf(PredefinedName name) {
+sm::Type* CompilationSession::PredefinedTypeOf(PredefinedName name) {
   auto const name_token = PredefinedNameOf(name);
-  auto const ast_node = system_namespace()->FindMember(name_token);
-  DCHECK(ast_node) << "Not found predefined type " << *name_token;
-  return ast_node->as<ast::Class>();
+  auto const present =
+      semantics_factory()->system_namespace()->FindMember(name_token);
+  if (!present) {
+    AddError(ErrorCode::PredefinedNamesNameNotFound, name_token);
+    return semantics_factory()->NewUndefinedType(name_token);
+  }
+  auto const type = present->as<sm::Type>();
+  if (!type) {
+    AddError(ErrorCode::PredefinedNamesNameNotClass, name_token);
+    return semantics_factory()->NewUndefinedType(name_token);
+  }
+  return type;
 }
 
 ast::NamedNode* CompilationSession::QueryAstNode(base::StringPiece16 name) {

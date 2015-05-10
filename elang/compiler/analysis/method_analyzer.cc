@@ -104,9 +104,7 @@ MethodBodyAnalyzer::MethodBodyAnalyzer(NameResolver* name_resolver,
 }
 
 sm::Type* MethodBodyAnalyzer::void_type() const {
-  return semantics()
-      ->SemanticOf(session()->PredefinedTypeOf(PredefinedName::Void))
-      ->as<sm::Type>();
+  return session()->PredefinedTypeOf(PredefinedName::Void);
 }
 
 ts::Value* MethodBodyAnalyzer::Analyze(ast::Expression* expression,

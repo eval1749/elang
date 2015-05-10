@@ -112,7 +112,7 @@ class CompilationSession final : public ZoneOwner {
   Token* PredefinedNameOf(PredefinedName name) const;
 
   // Returns predefined type as |ast::Class| of |name|.
-  ast::Class* PredefinedTypeOf(PredefinedName name);
+  sm::Type* PredefinedTypeOf(PredefinedName name);
 
   void RegisterFunction(ast::Method* method, hir::Function* function);
   void RegisterFunction(ast::Method* method, ir::Function* function);

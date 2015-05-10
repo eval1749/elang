@@ -50,7 +50,7 @@ void CompilationSessionUser::Error(ErrorCode error_code,
   session()->AddError(error_code, token, token2);
 }
 
-ast::Class* CompilationSessionUser::PredefinedTypeOf(PredefinedName name) {
+sm::Type* CompilationSessionUser::PredefinedTypeOf(PredefinedName name) {
   return session()->PredefinedTypeOf(name);
 }
 

@@ -532,8 +532,7 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   }
 
   // Other than |null| literal, the type of literal is predefined.
-  auto const ast_type = session()->PredefinedTypeOf(token->literal_type());
-  auto const literal_type = SemanticOf(ast_type)->as<sm::Type>();
+  auto const literal_type = session()->PredefinedTypeOf(token->literal_type());
   if (!literal_type) {
     // Predefined type isn't defined.
     return;

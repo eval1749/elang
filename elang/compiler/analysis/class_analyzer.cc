@@ -73,11 +73,11 @@ sm::Type* ClassAnalyzer::EnsureEnumBase(ast::Enum* enum_type) {
   auto const type =
       enum_type->enum_base()
           ? ResolveTypeReference(enum_type->enum_base(), enum_type)
-          : name_resolver()->PredefinedTypeOf(PredefinedName::Int32);
+          : session()->PredefinedTypeOf(PredefinedName::Int32);
   if (!calculator_->IsIntType(type)) {
     DCHECK(enum_type->enum_base()) << enum_type;
     Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
-    return name_resolver()->PredefinedTypeOf(PredefinedName::Int64);
+    return session()->PredefinedTypeOf(PredefinedName::Int64);
   }
   return type;
 }

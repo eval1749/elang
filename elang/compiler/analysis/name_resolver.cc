@@ -232,15 +232,6 @@ void NameResolver::DidResolveUsing(ast::NamedNode* node,
   using_map_[node] = container;
 }
 
-sm::Type* NameResolver::PredefinedTypeOf(PredefinedName name) {
-  auto const type_name = session()->PredefinedNameOf(name);
-  auto const ast_type = session()->system_namespace()->FindMember(type_name);
-  DCHECK(ast_type) << *type_name;
-  auto const type = SemanticOf(ast_type)->as<sm::Type>();
-  DCHECK(type) << *type_name;
-  return type;
-}
-
 ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
   auto const it = using_map_.find(node);

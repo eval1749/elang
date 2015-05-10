@@ -18,6 +18,7 @@ class Node;
 }
 namespace sm {
 class Semantics;
+class Type;
 }
 class CompilationSession;
 enum class ErrorCode;
@@ -47,7 +48,7 @@ class CompilationSessionUser {
   ast::Namespace* system_namespace();
   ast::NamespaceBody* system_namespace_body();
 
-  ast::Class* PredefinedTypeOf(PredefinedName name);
+  sm::Type* PredefinedTypeOf(PredefinedName name);
 
  private:
   CompilationSession* const session_;

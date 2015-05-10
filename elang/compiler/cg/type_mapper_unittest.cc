@@ -71,9 +71,7 @@ TypeMapperTest::TypeMapperTest()
 }
 
 sm::Type* TypeMapperTest::GetIr(PredefinedName name) {
-  return semantics()
-      ->SemanticOf(session()->PredefinedTypeOf(name))
-      ->as<sm::Type>();
+  return session()->PredefinedTypeOf(name);
 }
 
 hir::Type* TypeMapperTest::Map(PredefinedName name) {
