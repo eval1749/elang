@@ -4,6 +4,8 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 
+#include "elang/compiler/ast/nodes.h"
+
 namespace elang {
 namespace compiler {
 namespace {
@@ -21,10 +23,15 @@ class ClassAnalyzerTest : public testing::AnalyzerTest {
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzerTest);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// Method resolution
-//
+TEST_F(ClassAnalyzerTest, Enum) {
+  Prepare("enum Color { Red, Green, Blue }");
+  EXPECT_EQ("", AnalyzeClass());
+  auto const node = FindMember("Color");
+  auto const semantic = SemanticOf(node);
+  EXPECT_EQ("enum Color : System.Int32 {Red = 0, Green = 1, Blue = 2}",
+            ToString(semantic));
+}
+
 TEST_F(ClassAnalyzerTest, Method) {
   Prepare(
       "class Sample {"

@@ -50,6 +50,13 @@ namespace compiler {
   E(PredefinedNames, Name, NotClass)                  \
   E(PredefinedNames, Name, NotFound)                  \
   E(PredefinedNames, Name, NotNamespace)              \
+  /* Analyzer */                                      \
+  E(Semantic, Enum, EnumBase)                         \
+  E(Semantic, Enum, MemberValue)                      \
+  E(Semantic, IntAdd, Overflow)                       \
+  E(Semantic, Type, NotInteger)                       \
+  E(Semantic, UIntAdd, Overflow)                      \
+  E(Semantic, IntValue, Unbound)                      \
   /*  Parser */                                       \
   E(Syntax, Bracket, Extra)                           \
   E(Syntax, Bracket, NotClosed)                       \
