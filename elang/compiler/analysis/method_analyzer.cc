@@ -194,7 +194,7 @@ void MethodBodyAnalyzer::Run() {
     Error(ErrorCode::TypeResolverMethodAmbiguous, call);
   }
 
-  variable_tracker_->Finish(editor(), type_factory());
+  variable_tracker_->Finish(type_factory());
 }
 
 // ast::Visitor statements

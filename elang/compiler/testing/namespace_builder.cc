@@ -11,6 +11,7 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analysis/analysis.h"
+#include "elang/compiler/analysis/analysis_editor.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -21,7 +22,6 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
-#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/token.h"
@@ -33,7 +33,8 @@ namespace testing {
 
 NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
-      editor_(new sm::Editor(name_resolver->session())),
+      analysis_editor_(
+          new AnalysisEditor(name_resolver->session()->analysis())),
       name_resolver_(name_resolver) {
 }
 
@@ -79,8 +80,8 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
   auto const clazz = name_resolver()->factory()->NewClass(
       outer, ast_class->name(), base_classes, ast_class);
-  editor_->SetSemanticOf(ast_class, clazz);
-  editor_->SetSemanticOf(ast_class_body, clazz);
+  analysis_editor_->SetSemanticOf(ast_class, clazz);
+  analysis_editor_->SetSemanticOf(ast_class_body, clazz);
 
   return ast_class_body;
 }

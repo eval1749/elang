@@ -41,7 +41,7 @@ class VariableTracker final : public CompilationSessionUser, public ZoneUser {
                   ast::Method* context_method);
   ~VariableTracker();
 
-  void Finish(sm::Editor* factory, ts::Factory* type_factory);
+  void Finish(ts::Factory* type_factory);
   ts::Value* RecordGet(ast::NamedNode* variable);
   ts::Value* RecordSet(ast::NamedNode* variable);
   void RegisterVariable(ast::NamedNode* variable, ts::Value* value);

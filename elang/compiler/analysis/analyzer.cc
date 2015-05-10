@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/analysis/analysis.h"
+#include "elang/compiler/analysis/analysis_editor.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/namespace.h"
@@ -27,6 +28,7 @@ namespace compiler {
 //
 Analyzer::Analyzer(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
+      analysis_editor_(new AnalysisEditor(session()->analysis())),
       editor_(new sm::Editor(session())),
       name_resolver_(name_resolver) {
 }
@@ -44,7 +46,7 @@ sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
 
 sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
                                          ast::ContainerNode* container) {
-  if (auto const semantic = editor_->TrySemanticOf(type))
+  if (auto const semantic = TrySemanticOf(type))
     return semantic->as<sm::Type>();
   if (auto const array_type = type->as<ast::ArrayType>()) {
     auto const element_type =
@@ -68,15 +70,15 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
 }
 
 void Analyzer::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
-  editor()->SetSemanticOf(node, semantic);
+  analysis_editor_->SetSemanticOf(node, semantic);
 }
 
 sm::Semantic* Analyzer::SemanticOf(ast::Node* node) const {
-  return editor()->SemanticOf(node);
+  return analysis()->SemanticOf(node);
 }
 
 sm::Semantic* Analyzer::TrySemanticOf(ast::Node* node) const {
-  return editor()->TrySemanticOf(node);
+  return analysis_editor_->TrySemanticOf(node);
 }
 
 }  // namespace compiler

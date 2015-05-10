@@ -20,6 +20,7 @@ class Semantic;
 class Type;
 }
 
+class AnalysisEditor;
 class NameResolver;
 
 //////////////////////////////////////////////////////////////////////
@@ -48,6 +49,7 @@ class Analyzer : public CompilationSessionUser {
   sm::Semantic* TrySemanticOf(ast::Node* node) const;
 
  private:
+  std::unique_ptr<AnalysisEditor> analysis_editor_;
   std::unique_ptr<sm::Editor> editor_;
   NameResolver* const name_resolver_;
 

@@ -16,7 +16,7 @@
 
 namespace elang {
 namespace compiler {
-
+class AnalysisEditor;
 class NameResolver;
 enum class PredefinedName;
 class Token;
@@ -63,6 +63,7 @@ class NamespaceBuilder : public CompilationSessionUser {
   ast::Type* NewTypeReference(base::StringPiece name);
 
  private:
+  std::unique_ptr<AnalysisEditor> analysis_editor_;
   NameResolver* const name_resolver_;
   std::unique_ptr<sm::Editor> editor_;
 

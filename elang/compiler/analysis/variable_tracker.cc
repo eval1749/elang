@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "elang/base/zone.h"
 #include "elang/compiler/analysis/analysis.h"
+#include "elang/compiler/analysis/analysis_editor.h"
 #include "elang/compiler/analysis/type_evaluator.h"
 #include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/expressions.h"
@@ -74,7 +75,8 @@ VariableTracker::VariableTracker(CompilationSession* session,
 VariableTracker::~VariableTracker() {
 }
 
-void VariableTracker::Finish(sm::Editor* editor, ts::Factory* type_factory) {
+void VariableTracker::Finish(ts::Factory* type_factory) {
+  AnalysisEditor editor(session()->analysis());
   ts::Evaluator evaluator(type_factory);
   for (auto variable_data : variable_map_) {
     auto const variable = variable_data.first;
@@ -85,8 +87,8 @@ void VariableTracker::Finish(sm::Editor* editor, ts::Factory* type_factory) {
                           variable->name());
       continue;
     }
-    editor->SetSemanticOf(
-        variable, editor->factory()->NewVariable(
+    editor.SetSemanticOf(
+        variable, session()->semantics_factory()->NewVariable(
                       literal->value(), data->ComputeStorageClass(), variable));
   }
 }

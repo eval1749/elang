@@ -16,9 +16,6 @@ class AtomicString;
 namespace compiler {
 class CompilationSession;
 class Token;
-namespace ast {
-class Node;
-}
 namespace sm {
 class Factory;
 class Semantic;
@@ -37,9 +34,6 @@ class Editor final : public CompilationSessionUser {
   MethodGroup* EnsureMethodGroup(Class* clazz, Token* name);
   Semantic* FindMember(Semantic* container, Token* name) const;
   void FixEnumMember(EnumMember* member, Value* value);
-  void SetSemanticOf(ast::Node* node, Semantic* semantic);
-  Semantic* SemanticOf(ast::Node* node) const;
-  Semantic* TrySemanticOf(ast::Node* node) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Editor);
