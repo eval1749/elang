@@ -8,6 +8,8 @@ source_set("semantics") {
     "../*",
   ]
   sources = [
+    "calculator.cc",
+    "calculator.h",
     "editor.cc",
     "editor.h",
     "factory.cc",
