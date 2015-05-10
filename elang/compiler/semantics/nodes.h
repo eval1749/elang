@@ -225,14 +225,12 @@ class EnumMember final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(EnumMember, Semantic);
 
  public:
-  bool is_bound() const { return value_ != nullptr; }
+  bool has_value() const { return value_ != nullptr; }
   Enum* owner() const { return outer()->as<Enum>(); }
   Value* value() const;
 
  private:
-  friend class Enum;
-
-  EnumMember(Enum* owner, Token* name, Value* value);
+  EnumMember(Enum* owner, Token* name);
 
   Value* value_;
 

@@ -46,8 +46,10 @@ void Editor::FixEnumBase(Enum* enum_type, Type* enum_base) {
   enum_type->enum_base_ = enum_base;
 }
 
-void Editor::FixEnumMember(sm::EnumMember* member, Value* value) {
-  DCHECK(!member->value_) << *member << " " << value;
+void Editor::FixEnumMember(EnumMember* member, Value* value) {
+  DCHECK(value);
+  DCHECK(member->owner()->has_base()) << member;
+  DCHECK(!member->value_) << member;
   member->value_ = value;
 }
 

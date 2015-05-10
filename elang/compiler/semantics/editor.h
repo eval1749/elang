@@ -31,8 +31,8 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  void FixEnumBase(Enum* enum_type, Type* enum_base);
   Semantic* FindMember(Semantic* container, Token* name) const;
+  void FixEnumBase(Enum* enum_type, Type* enum_base);
   void FixEnumMember(EnumMember* member, Value* value);
 
  private:

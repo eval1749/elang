@@ -76,27 +76,29 @@ sm::EnumMember* ClassAnalyzer::Collector::AnalyzeEnumMember(
   auto const enum_base = enum_type->enum_base();
   auto const member_name = ast_member->name();
   calculator_->SetContext(member_name);
+  auto const member = factory()->NewEnumMember(enum_type, member_name);
   if (ast_member->expression()) {
     if (auto const literal = ast_member->expression()->as<ast::Literal>()) {
-      return factory()->NewEnumMember(
-          enum_type, member_name,
-          calculator_->NewIntValue(enum_base, literal->token()->data()));
+      editor()->FixEnumMember(member, calculator_->NewIntValue(
+                                          enum_base, literal->token()->data()));
+      return member;
     }
     analyzer_->Postpone(ast_member);
-    return factory()->NewEnumMember(enum_type, member_name, nullptr);
+    return member;
   }
   if (!ast_previous_member) {
-    return factory()->NewEnumMember(enum_type, member_name,
-                                    calculator_->Zero(enum_base));
+    editor()->FixEnumMember(member, calculator_->Zero(enum_base));
+    return member;
   }
   auto const previous_member =
       SemanticOf(ast_previous_member)->as<sm::EnumMember>();
-  if (previous_member->is_bound()) {
-    return factory()->NewEnumMember(
-        enum_type, member_name, calculator_->Add(previous_member->value(), 1));
+  if (previous_member->has_value()) {
+    editor()->FixEnumMember(member,
+                            calculator_->Add(previous_member->value(), 1));
+    return member;
   }
   analyzer_->AddDependency(ast_member, ast_previous_member);
-  return factory()->NewEnumMember(enum_type, member_name, nullptr);
+  return member;
 }
 
 sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {

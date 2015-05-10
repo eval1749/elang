@@ -131,8 +131,8 @@ bool Enum::IsSubtypeOf(const Type* other) const {
 }
 
 // EnumMember
-EnumMember::EnumMember(Enum* owner, Token* name, Value* value)
-    : NamedMember(owner, name), value_(value) {
+EnumMember::EnumMember(Enum* owner, Token* name)
+    : NamedMember(owner, name), value_(nullptr) {
 }
 
 Value* EnumMember::value() const {

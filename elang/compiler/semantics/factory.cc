@@ -127,8 +127,8 @@ Enum* Factory::NewEnum(Semantic* outer, Token* name) {
   return enum_type;
 }
 
-EnumMember* Factory::NewEnumMember(Enum* owner, Token* name, Value* value) {
-  auto const member = new (zone()) EnumMember(owner, name, value);
+EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {
+  auto const member = new (zone()) EnumMember(owner, name);
   owner->members_.push_back(member);
   return member;
 }

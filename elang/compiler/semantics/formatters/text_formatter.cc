@@ -125,7 +125,7 @@ void Formatter::VisitEnum(Enum* node) {
   auto separator = "";
   for (auto const member : node->members()) {
     ostream_ << separator << *member->name();
-    if (member->is_bound())
+    if (member->has_value())
       ostream_ << " = " << *member->value();
     separator = ", ";
   }
@@ -134,7 +134,7 @@ void Formatter::VisitEnum(Enum* node) {
 
 void Formatter::VisitEnumMember(EnumMember* node) {
   ostream_ << AsPath{node->owner()} << "." << node->name();
-  if (!node->is_bound())
+  if (!node->has_value())
     return;
   ostream_ << " = " << *node->value();
 }
