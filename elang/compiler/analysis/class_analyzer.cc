@@ -77,7 +77,7 @@ sm::Type* ClassAnalyzer::EnsureEnumBase(ast::Enum* enum_type) {
   if (!calculator_->IsIntType(type)) {
     DCHECK(enum_type->enum_base()) << enum_type;
     Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
-    return semantics_factory()->PredefinedTypeOf(PredefinedName::Int64);
+    return name_resolver()->PredefinedTypeOf(PredefinedName::Int64);
   }
   return type;
 }

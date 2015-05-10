@@ -67,8 +67,6 @@ class Factory final : public ZoneOwner {
                         StorageClass storage,
                         ast::NamedNode* variable);
 
-  Type* PredefinedTypeOf(PredefinedName name) const;
-
  private:
   class ArrayTypeFactory;
 

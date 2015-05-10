@@ -185,14 +185,6 @@ Variable* Factory::NewVariable(Type* type,
   return new (zone()) Variable(type, storage, ast_node);
 }
 
-Type* Factory::PredefinedTypeOf(PredefinedName name) const {
-  auto const name_token = token_factory_->PredefinedNameOf(name);
-  auto const type = system_namespace()->FindMember(name_token);
-  // TODO(eval1749) We should report an error and return |UndefinedType|.
-  DCHECK(type) << "No such predefined type " << name;
-  return type->as<sm::Type>();
-}
-
 }  // namespace sm
 }  // namespace compiler
 }  // namespace elang

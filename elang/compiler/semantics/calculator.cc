@@ -153,29 +153,44 @@ void Calculator::SetContext(Token* token) {
   context_ = token;
 }
 
+Type* Calculator::PredefinedTypeOf(PredefinedName name) const {
+  auto const name_token = session()->PredefinedNameOf(name);
+  auto const present = factory()->system_namespace()->FindMember(name_token);
+  if (!present) {
+    session()->AddError(ErrorCode::PredefinedNamesNameNotFound, name_token);
+    return factory()->NewUndefinedType(name_token);
+  }
+  auto const type = present->as<Type>();
+  if (!type) {
+    session()->AddError(ErrorCode::PredefinedNamesNameNotClass, name_token);
+    return factory()->NewUndefinedType(name_token);
+  }
+  return type;
+}
+
 Calculator::TypeProperty Calculator::PropertyOf(Type* type) {
   using Ty = TokenType;
 
-  if (factory()->PredefinedTypeOf(PredefinedName::Int32) == type)
+  if (PredefinedTypeOf(PredefinedName::Int32) == type)
     return TypeProperty{Ty::Int64, Ty::Int32, Ty::Int32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::Int64) == type)
+  if (PredefinedTypeOf(PredefinedName::Int64) == type)
     return TypeProperty{Ty::Int64, Ty::Int64, Ty::Int64Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::Int16) == type)
+  if (PredefinedTypeOf(PredefinedName::Int16) == type)
     return TypeProperty{Ty::Int64, Ty::Int16, Ty::Int32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::Int8) == type)
+  if (PredefinedTypeOf(PredefinedName::Int8) == type)
     return TypeProperty{Ty::Int64, Ty::Int8, Ty::Int32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::IntPtr) == type)
+  if (PredefinedTypeOf(PredefinedName::IntPtr) == type)
     return TypeProperty{Ty::Int64, Ty::Int64, Ty::Int64Literal};
 
-  if (factory()->PredefinedTypeOf(PredefinedName::Int32) == type)
+  if (PredefinedTypeOf(PredefinedName::Int32) == type)
     return TypeProperty{Ty::UInt64, Ty::UInt32, Ty::UInt32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::UInt64) == type)
+  if (PredefinedTypeOf(PredefinedName::UInt64) == type)
     return TypeProperty{Ty::UInt64, Ty::UInt64, Ty::UInt64Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::UInt16) == type)
+  if (PredefinedTypeOf(PredefinedName::UInt16) == type)
     return TypeProperty{Ty::UInt64, Ty::UInt16, Ty::UInt32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::UInt8) == type)
+  if (PredefinedTypeOf(PredefinedName::UInt8) == type)
     return TypeProperty{Ty::UInt64, Ty::UInt8, Ty::UInt32Literal};
-  if (factory()->PredefinedTypeOf(PredefinedName::UIntPtr) == type)
+  if (PredefinedTypeOf(PredefinedName::UIntPtr) == type)
     return TypeProperty{Ty::UInt64, Ty::UInt64, Ty::UInt64Literal};
 
   return TypeProperty{Ty::Illegal, Ty::Illegal, Ty::Illegal};

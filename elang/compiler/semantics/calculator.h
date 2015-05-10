@@ -12,6 +12,7 @@
 
 namespace elang {
 namespace compiler {
+enum class PredefinedName;
 class TokenData;
 enum class TokenType;
 namespace sm {
@@ -43,6 +44,7 @@ class Calculator final : public CompilationSessionUser {
   bool IsBound(Type* type, const TokenData& data);
   Value* NewInvalidValue(Type* type);
   Value* NewValue(Type* type, const TokenData& data);
+  Type* PredefinedTypeOf(PredefinedName name) const;
   TypeProperty PropertyOf(Type* type);
   Value* Unbound(Type* type, const TokenData& data);
 
