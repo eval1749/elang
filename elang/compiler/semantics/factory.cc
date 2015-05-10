@@ -186,8 +186,8 @@ Variable* Factory::NewVariable(Type* type,
 }
 
 Type* Factory::PredefinedTypeOf(PredefinedName name) const {
-  auto const name_string = token_factory_->AsAtomicString(name);
-  auto const type = system_namespace()->FindMember(name_string);
+  auto const name_token = token_factory_->PredefinedNameOf(name);
+  auto const type = system_namespace()->FindMember(name_token);
   // TODO(eval1749) We should report an error and return |UndefinedType|.
   DCHECK(type) << "No such predefined type " << name;
   return type->as<sm::Type>();

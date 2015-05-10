@@ -83,7 +83,7 @@ Token* CompilationSession::system_token() const {
 }
 
 AtomicString* CompilationSession::name_for(PredefinedName name) const {
-  return token_factory_->AsAtomicString(name);
+  return token_factory_->PredefinedNameOf(name)->atomic_string();
 }
 
 sm::Semantics* CompilationSession::semantics() const {

@@ -45,27 +45,6 @@ enum class PredefinedName {
 #undef V
 };
 
-// |kNumberOfPredefinedNames| must be synced with |FOR_EACH_PREDEFINED_NAME|.
-const size_t kNumberOfPredefinedNames =
-    static_cast<size_t>(PredefinedName::Void) + 1;
-
-//////////////////////////////////////////////////////////////////////
-//
-// PredefinedNames
-//
-class PredefinedNames final {
- public:
-  explicit PredefinedNames(TokenFactory* session);
-  ~PredefinedNames();
-
-  AtomicString* AsAtomicString(PredefinedName name) const;
-
- private:
-  std::array<AtomicString*, kNumberOfPredefinedNames> names_;
-
-  DISALLOW_COPY_AND_ASSIGN(PredefinedNames);
-};
-
 std::ostream& operator<<(std::ostream& ostream, PredefinedName name);
 
 }  // namespace compiler

@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "base/macros.h"
 #include "base/strings/string16.h"
@@ -41,7 +42,6 @@ class TokenFactory final : public ZoneUser {
   }
   Token* system_token() const { return system_token_; }
 
-  AtomicString* AsAtomicString(PredefinedName name) const;
   AtomicString* NewAtomicString(base::StringPiece16 string);
 
   // Allocate |base::StringPiece16| object in zone used for string backing
@@ -58,11 +58,13 @@ class TokenFactory final : public ZoneUser {
   Token* NewUniqueNameToken(const SourceCodeRange& location,
                             const base::char16* format);
 
+  Token* PredefinedNameOf(PredefinedName name) const;
+
  private:
   SourceCodeRange internal_code_location() const;
 
   const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
-  const std::unique_ptr<PredefinedNames> predefined_names_;
+  std::vector<Token*> predefined_names_;
   const std::unique_ptr<SourceCode> source_code_;
   Token* const system_token_;
 
