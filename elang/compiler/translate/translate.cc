@@ -25,18 +25,17 @@ bool RunPass(NameResolver* name_resolver) {
 
 }  // namespace
 
-bool CompilationSession::Compile(NameResolver* name_resolver,
+void CompilationSession::Compile(NameResolver* name_resolver,
                                  ir::Factory* factory) {
   if (!errors().empty())
-    return false;
+    return;
   if (!RunPass<NamespaceAnalyzer>(name_resolver))
-    return false;
+    return;
   if (!RunPass<ClassAnalyzer>(name_resolver))
-    return false;
+    return;
   if (!RunPass<MethodAnalyzer>(name_resolver))
-    return false;
+    return;
   Translator(this, factory).Run();
-  return errors().empty();
 }
 
 ir::Function* CompilationSession::IrFunctionOf(ast::Method* method) {

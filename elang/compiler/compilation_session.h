@@ -92,8 +92,8 @@ class CompilationSession final : public ZoneOwner {
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
 
   // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
-  bool Compile(NameResolver* name_resolver, hir::Factory* factory);
-  bool Compile(NameResolver* name_resolver, ir::Factory* factory);
+  void Compile(NameResolver* name_resolver, hir::Factory* factory);
+  void Compile(NameResolver* name_resolver, ir::Factory* factory);
 
   // Returns |hir::Function| of |method|.
   hir::Function* FunctionOf(ast::Method* method);

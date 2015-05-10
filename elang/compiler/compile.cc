@@ -26,29 +26,28 @@ bool RunPass(NameResolver* name_resolver) {
 }
 }  // namespace
 
-bool CompilationSession::Compile(NameResolver* name_resolver,
+void CompilationSession::Compile(NameResolver* name_resolver,
                                  hir::Factory* factory) {
   if (!errors().empty())
-    return false;
+    return;
   if (!RunPass<NamespaceAnalyzer>(name_resolver))
-    return false;
+    return;
   if (!RunPass<ClassAnalyzer>(name_resolver))
-    return false;
+    return;
   if (!RunPass<MethodAnalyzer>(name_resolver))
-    return false;
+    return;
 
   Zone zone;
   VariableAnalyzer variable_analyzer(&zone);
   CodeGenerator(this, factory, &variable_analyzer).Run();
   if (!errors().empty())
-    return false;
+    return;
   auto const variable_usages = variable_analyzer.Analyze();
   for (auto const method_function : function_map_) {
     auto const function = method_function.second;
     hir::Editor editor(factory, function);
     CfgToSsaConverter(&editor, variable_usages).Run();
   }
-  return errors().empty();
 }
 
 hir::Function* CompilationSession::FunctionOf(ast::Method* method) {
