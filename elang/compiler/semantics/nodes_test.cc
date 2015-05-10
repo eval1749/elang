@@ -9,10 +9,8 @@
 
 #include "base/strings/string_piece.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/compiler/analysis/analysis.h"
-#include "elang/compiler/analysis/name_resolver.h"
-#include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
@@ -34,7 +32,7 @@ class IrSemanticsTest : public testing::AnalyzerTest {
   ~IrSemanticsTest() override = default;
 
   Editor* editor() { return &editor_; }
-  Factory* factory() { return name_resolver()->factory(); }
+  Factory* factory() { return editor()->factory(); }
   Type* system_int32();
   Type* system_int64();
 
@@ -53,11 +51,11 @@ IrSemanticsTest::IrSemanticsTest() : editor_(session()) {
 }
 
 Type* IrSemanticsTest::system_int32() {
-  return analysis()->SemanticOf(FindClass("System.Int32"))->as<Type>();
+  return session()->PredefinedTypeOf(PredefinedName::Int32);
 }
 
 Type* IrSemanticsTest::system_int64() {
-  return analysis()->SemanticOf(FindClass("System.Int64"))->as<Type>();
+  return session()->PredefinedTypeOf(PredefinedName::Int64);
 }
 
 Value* IrSemanticsTest::NewLiteral(Type* type, const TokenData& data) {
