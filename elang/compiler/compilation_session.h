@@ -72,7 +72,6 @@ class CompilationSession final : public ZoneOwner {
 
   // Token
   AtomicStringFactory* atomic_string_factory() const;
-  AtomicString* name_for(PredefinedName name) const;
   Token* system_token() const;
   TokenFactory* token_factory() const { return token_factory_.get(); }
 
@@ -109,6 +108,8 @@ class CompilationSession final : public ZoneOwner {
                             const base::char16* format);
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
   Token* NewToken(const SourceCodeRange& source_range, AtomicString* name);
+
+  Token* PredefinedNameOf(PredefinedName name) const;
 
   // Returns predefined type as |ast::Class| of |name|.
   ast::Class* PredefinedTypeOf(PredefinedName name);

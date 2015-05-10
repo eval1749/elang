@@ -130,7 +130,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   if (name->is_type_name()) {
     // type keyword is mapped into |System.XXX|.
     auto const ast_class = session()->system_namespace()->FindMember(
-        session()->name_for(name->mapped_type_name()));
+        session()->PredefinedNameOf(name->mapped_type_name()));
     if (!ast_class)
       Error(ErrorCode::NameResolutionNameNotFound, node);
     ProduceResult(ast_class);
@@ -233,7 +233,7 @@ void NameResolver::DidResolveUsing(ast::NamedNode* node,
 }
 
 sm::Type* NameResolver::PredefinedTypeOf(PredefinedName name) {
-  auto const type_name = session()->name_for(name);
+  auto const type_name = session()->PredefinedNameOf(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
   DCHECK(ast_type) << *type_name;
   auto const type = SemanticOf(ast_type)->as<sm::Type>();
@@ -249,7 +249,7 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
 
 sm::Type* NameResolver::ResolvePredefinedType(Token* token,
                                               PredefinedName name) {
-  auto const type_name = session()->name_for(name);
+  auto const type_name = session()->PredefinedNameOf(name);
   auto const ast_type = session()->system_namespace()->FindMember(type_name);
   if (!ast_type) {
     session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);

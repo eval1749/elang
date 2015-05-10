@@ -82,10 +82,6 @@ Token* CompilationSession::system_token() const {
   return token_factory_->system_token();
 }
 
-AtomicString* CompilationSession::name_for(PredefinedName name) const {
-  return token_factory_->PredefinedNameOf(name)->atomic_string();
-}
-
 sm::Semantics* CompilationSession::semantics() const {
   return semantics_factory_->semantics();
 }
@@ -147,8 +143,12 @@ Token* CompilationSession::NewToken(const SourceCodeRange& location,
   return token_factory_->NewToken(location, TokenData(name));
 }
 
+Token* CompilationSession::PredefinedNameOf(PredefinedName name) const {
+  return token_factory_->PredefinedNameOf(name);
+}
+
 ast::Class* CompilationSession::PredefinedTypeOf(PredefinedName name) {
-  auto const name_token = name_for(name);
+  auto const name_token = PredefinedNameOf(name);
   auto const ast_node = system_namespace()->FindMember(name_token);
   DCHECK(ast_node) << "Not found predefined type " << *name_token;
   return ast_node->as<ast::Class>();

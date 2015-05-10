@@ -149,10 +149,10 @@ sm::Class* NamespaceAnalyzer::GetClass(ast::Class* ast_class) {
 }
 
 Token* NamespaceAnalyzer::GetDefaultBaseClassName(ast::Class* clazz) {
-  return session()->NewToken(
-      clazz->name()->location(),
-      session()->name_for(clazz->is_class() ? PredefinedName::Object
-                                            : PredefinedName::ValueType));
+  auto const name =
+      clazz->is_class() ? PredefinedName::Object : PredefinedName::ValueType;
+  auto const name_token = session()->PredefinedNameOf(name);
+  return session()->NewToken(clazz->name()->location(), name_token->data());
 }
 
 ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(
@@ -187,10 +187,8 @@ bool NamespaceAnalyzer::IsSystemObject(ast::NamedNode* node) const {
   auto const ast_class = node->as<ast::Class>();
   if (!ast_class)
     return false;
-  if (ast_class->name()->atomic_string() !=
-      session()->name_for(PredefinedName::Object)) {
+  if (ast_class->name() != session()->PredefinedNameOf(PredefinedName::Object))
     return false;
-  }
   for (auto runner = ast_class->parent(); runner; runner = runner->parent()) {
     if (runner == session()->system_namespace())
       return true;
