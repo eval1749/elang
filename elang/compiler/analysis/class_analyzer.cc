@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
+#include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
@@ -28,18 +29,47 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ClassAnalyzer
+// ClassAnalyzer::Collector
 //
-ClassAnalyzer::ClassAnalyzer(NameResolver* resolver)
-    : Analyzer(resolver),
-      calculator_(new sm::Calculator(session())),
-      editor_(new sm::Editor(session())) {
+class ClassAnalyzer::Collector final : public ast::Visitor {
+ public:
+  explicit Collector(ClassAnalyzer* analyzer);
+  ~Collector() = default;
+
+  sm::Editor* editor() const { return analyzer_->editor(); }
+  sm::Factory* factory() const { return analyzer_->factory(); }
+  CompilationSession* session() const { return analyzer_->session(); }
+
+  void Run();
+
+ private:
+  sm::EnumMember* AnalyzeEnumMember(sm::Enum* enum_type,
+                                    ast::EnumMember* ast_member,
+                                    ast::EnumMember* ast_previous_member);
+  sm::Type* EnsureEnumBase(ast::Enum* enum_type);
+  void FixEnumMember(sm::EnumMember* member, sm::Value* value);
+
+  sm::Semantic* SemanticOf(ast::Node* node) {
+    return analyzer_->SemanticOf(node);
+  }
+
+  // ast::Visitor
+  void VisitEnum(ast::Enum* node) final;
+  void VisitField(ast::Field* node) final;
+  void VisitMethod(ast::Method* node) final;
+
+  ClassAnalyzer* const analyzer_;
+  std::unique_ptr<sm::Calculator> calculator_;
+
+  DISALLOW_COPY_AND_ASSIGN(Collector);
+};
+
+ClassAnalyzer::Collector::Collector(ClassAnalyzer* analyzer)
+    : analyzer_(analyzer),
+      calculator_(new sm::Calculator(analyzer->session())) {
 }
 
-ClassAnalyzer::~ClassAnalyzer() {
-}
-
-sm::EnumMember* ClassAnalyzer::AnalyzeEnumMember(
+sm::EnumMember* ClassAnalyzer::Collector::AnalyzeEnumMember(
     sm::Enum* enum_type,
     ast::EnumMember* ast_member,
     ast::EnumMember* ast_previous_member) {
@@ -52,7 +82,7 @@ sm::EnumMember* ClassAnalyzer::AnalyzeEnumMember(
           enum_type, member_name,
           calculator_->NewIntValue(enum_base, literal->token()->data()));
     }
-    pending_nodes_.push_back(ast_member);
+    analyzer_->Postpone(ast_member);
     return factory()->NewEnumMember(enum_type, member_name, nullptr);
   }
   if (!ast_previous_member) {
@@ -65,75 +95,76 @@ sm::EnumMember* ClassAnalyzer::AnalyzeEnumMember(
     return factory()->NewEnumMember(
         enum_type, member_name, calculator_->Add(previous_member->value(), 1));
   }
-  dependency_graph_.AddEdge(ast_member, ast_previous_member);
+  analyzer_->AddDependency(ast_member, ast_previous_member);
   return factory()->NewEnumMember(enum_type, member_name, nullptr);
 }
 
-sm::Type* ClassAnalyzer::EnsureEnumBase(ast::Enum* enum_type) {
+sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {
   auto const type =
       enum_type->enum_base()
-          ? ResolveTypeReference(enum_type->enum_base(), enum_type)
+          ? analyzer_->ResolveTypeReference(enum_type->enum_base(), enum_type)
           : session()->PredefinedTypeOf(PredefinedName::Int32);
   if (!calculator_->IsIntType(type)) {
     DCHECK(enum_type->enum_base()) << enum_type;
-    Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
+    analyzer_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
     return session()->PredefinedTypeOf(PredefinedName::Int64);
   }
   return type;
 }
 
-void ClassAnalyzer::FixEnumMember(sm::EnumMember* member, sm::Value* value) {
+void ClassAnalyzer::Collector::FixEnumMember(sm::EnumMember* member,
+                                             sm::Value* value) {
   if (value->type() != member->owner()->enum_base()) {
-    Error(ErrorCode::SemanticEnumMemberValue, member->name(), value->token());
+    analyzer_->Error(ErrorCode::SemanticEnumMemberValue, member->name(),
+                     value->token());
     return;
   }
-  editor()->FixEnumMember(member, value);
+  analyzer_->editor()->FixEnumMember(member, value);
 }
 
 // The entry point of |ClassAnalyzer|.
-bool ClassAnalyzer::Run() {
+void ClassAnalyzer::Collector::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
-  return session()->errors().empty();
 }
 
 // ast::Visitor
-void ClassAnalyzer::VisitEnum(ast::Enum* ast_enum) {
+void ClassAnalyzer::Collector::VisitEnum(ast::Enum* ast_enum) {
   auto const enum_base = EnsureEnumBase(ast_enum);
   auto const outer = SemanticOf(ast_enum->parent());
   auto const enum_type = factory()->NewEnum(outer, ast_enum->name(), enum_base);
-  SetSemanticOf(ast_enum, enum_type);
+  analyzer_->SetSemanticOf(ast_enum, enum_type);
 
   ast::EnumMember* ast_previous = nullptr;
   for (auto const ast_node : ast_enum->members()) {
     auto const ast_member = ast_node->as<ast::EnumMember>();
     auto const member = AnalyzeEnumMember(enum_type, ast_member, ast_previous);
-    SetSemanticOf(ast_member, member);
+    analyzer_->SetSemanticOf(ast_member, member);
     ast_previous = ast_member;
   }
 }
 
-void ClassAnalyzer::VisitField(ast::Field* node) {
+void ClassAnalyzer::Collector::VisitField(ast::Field* node) {
   DCHECK(node);
 }
 
-void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
-  auto const return_type =
-      ResolveTypeReference(ast_method->return_type(), ast_method->owner());
+void ClassAnalyzer::Collector::VisitMethod(ast::Method* ast_method) {
+  auto const return_type = analyzer_->ResolveTypeReference(
+      ast_method->return_type(), ast_method->owner());
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
   for (auto const parameter : ast_method->parameters()) {
     auto const parameter_type =
-        ResolveTypeReference(parameter->type(), ast_method);
+        analyzer_->ResolveTypeReference(parameter->type(), ast_method);
     parameters.push_back(
         factory()->NewParameter(parameter, parameter_type, nullptr));
   }
 
   auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
   auto const method_name = ast_method->name();
-  auto const method_group = editor_->EnsureMethodGroup(clazz, method_name);
+  auto const method_group = editor()->EnsureMethodGroup(clazz, method_name);
   auto const signature = factory()->NewSignature(return_type, parameters);
   auto const method = factory()->NewMethod(method_group, signature, ast_method);
-  SetSemanticOf(ast_method, method);
+  analyzer_->SetSemanticOf(ast_method, method);
 
   // Check this size with existing signatures
   for (auto other : method_group->methods()) {
@@ -141,14 +172,37 @@ void ClassAnalyzer::VisitMethod(ast::Method* ast_method) {
       continue;
     if (!other->signature()->IsIdenticalParameters(signature))
       continue;
-    Error(other->return_type() == return_type
-              ? ErrorCode::ClassResolutionMethodDuplicate
-              : ErrorCode::ClassResolutionMethodConflict,
-          ast_method, other->ast_method());
+    analyzer_->Error(other->return_type() == return_type
+                         ? ErrorCode::ClassResolutionMethodDuplicate
+                         : ErrorCode::ClassResolutionMethodConflict,
+                     ast_method, other->ast_method());
   }
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
   // TODO(eval1749) Check |ast_method| not override static method.
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ClassAnalyzer
+//
+ClassAnalyzer::ClassAnalyzer(NameResolver* resolver) : Analyzer(resolver) {
+}
+
+ClassAnalyzer::~ClassAnalyzer() {
+}
+
+bool ClassAnalyzer::Run() {
+  Collector(this).Run();
+  return session()->errors().empty();
+}
+
+void ClassAnalyzer::AddDependency(ast::Node* from, ast::Node* to) {
+  dependency_graph_.AddEdge(from, to);
+}
+
+void ClassAnalyzer::Postpone(ast::Node* node) {
+  pending_nodes_.push_back(node);
 }
 
 }  // namespace compiler

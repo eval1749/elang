@@ -10,7 +10,6 @@
 
 #include "elang/base/simple_directed_graph.h"
 #include "elang/compiler/analysis/analyzer.h"
-#include "elang/compiler/ast/visitor.h"
 
 namespace elang {
 namespace compiler {
@@ -28,7 +27,7 @@ class Value;
 //
 // ClassAnalyzer
 //
-class ClassAnalyzer final : public Analyzer, private ast::Visitor {
+class ClassAnalyzer final : public Analyzer {
  public:
   explicit ClassAnalyzer(NameResolver* name_resolver);
   ~ClassAnalyzer() final;
@@ -38,19 +37,11 @@ class ClassAnalyzer final : public Analyzer, private ast::Visitor {
   bool Run();
 
  private:
-  sm::EnumMember* AnalyzeEnumMember(sm::Enum* enum_type,
-                                    ast::EnumMember* ast_member,
-                                    ast::EnumMember* ast_previous_member);
-  sm::Type* EnsureEnumBase(ast::Enum* enum_type);
-  void FixEnumMember(sm::EnumMember* member, sm::Value* value);
+  class Collector;
 
-  // ast::Visitor
-  void VisitEnum(ast::Enum* node) final;
-  void VisitField(ast::Field* node) final;
-  void VisitMethod(ast::Method* node) final;
+  void AddDependency(ast::Node* from, ast::Node* to);
+  void Postpone(ast::Node* node);
 
-  std::unique_ptr<sm::Calculator> calculator_;
-  std::unique_ptr<sm::Editor> editor_;
   SimpleDirectedGraph<ast::Node*> dependency_graph_;
   std::vector<ast::Node*> pending_nodes_;
 
