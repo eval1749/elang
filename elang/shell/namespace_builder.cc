@@ -84,8 +84,9 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
     base_classes.push_back(base_class);
   }
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
-  auto const clazz = name_resolver()->factory()->NewClass(
-      outer, ast_class->name(), base_classes, ast_class);
+  auto const clazz =
+      name_resolver()->factory()->NewClass(outer, ast_class->name(), ast_class);
+  editor_->FixClassBase(clazz, base_classes);
   analysis_editor_->SetSemanticOf(ast_class, clazz);
   analysis_editor_->SetSemanticOf(ast_class_body, clazz);
 

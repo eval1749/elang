@@ -23,6 +23,7 @@ enum class TokenType;
 
 namespace sm {
 class Class;
+class Editor;
 }
 
 namespace testing {
@@ -54,6 +55,7 @@ class NamespaceBuilder : public CompilationSessionUser {
  private:
   std::unique_ptr<AnalysisEditor> analysis_editor_;
   NameResolver* const name_resolver_;
+  std::unique_ptr<sm::Editor> semantic_editor_;
 
   DISALLOW_COPY_AND_ASSIGN(NamespaceBuilder);
 };

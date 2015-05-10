@@ -163,12 +163,12 @@ class Class final : public NamedMember<Type> {
   ast::Class* ast_class() const { return ast_class_; }
 
   // base classes of this class
-  const ZoneUnorderedSet<Class*>& base_classes() const { return base_classes_; }
+  const ZoneUnorderedSet<Class*>& base_classes() const;
 
   // Direct base classes of this class
-  const ZoneVector<Class*>& direct_base_classes() const {
-    return direct_base_classes_;
-  }
+  const ZoneVector<Class*>& direct_base_classes() const;
+
+  bool has_base() const { return has_base_; }
 
   // Returns true if |this| is 'class'.
   bool is_class() const;
@@ -176,18 +176,15 @@ class Class final : public NamedMember<Type> {
   Semantic* FindMember(Token* name) const;
 
  private:
-  Class(Zone* zone,
-        Semantic* outer,
-        Token* name,
-        const std::vector<Class*>& direct_base_classes,
-        ast::Class* ast_type);
+  Class(Zone* zone, Semantic* outer, Token* name, ast::Class* ast_type);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
   ast::Class* const ast_class_;
   ZoneUnorderedSet<Class*> base_classes_;
-  const ZoneVector<Class*> direct_base_classes_;
+  ZoneVector<Class*> direct_base_classes_;
+  bool has_base_;
   ZoneUnorderedMap<AtomicString*, Semantic*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);

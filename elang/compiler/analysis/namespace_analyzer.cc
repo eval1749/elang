@@ -568,8 +568,8 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
     return;
   }
 
-  auto const clazz =
-      factory()->NewClass(outer, class_name, direct_base_classes, ast_class);
+  auto const clazz = factory()->NewClass(outer, class_name, ast_class);
+  editor()->FixClassBase(clazz, direct_base_classes);
   SetSemanticOf(class_body, clazz);
   SetSemanticOf(ast_class, clazz);
   DidResolve(class_body);

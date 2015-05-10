@@ -112,8 +112,12 @@ void Formatter::VisitArrayType(ArrayType* semantic) {
   }
 }
 
-void Formatter::VisitClass(Class* semantic) {
-  ostream_ << semantic->ast_class()->NewQualifiedName();
+void Formatter::VisitClass(Class* node) {
+  if (!node->has_base()) {
+    ostream_ << "#" << AsPath{node};
+    return;
+  }
+  ostream_ << AsPath{node};
 }
 
 void Formatter::VisitEnum(Enum* node) {
@@ -121,7 +125,8 @@ void Formatter::VisitEnum(Enum* node) {
     ostream_ << "#enum " << AsPath{node};
     return;
   }
-  ostream_ << "enum " << AsPath{node} << " : " << node->enum_base() << " {";
+  ostream_ << "enum " << AsPath{node} << " : " << AsPath{node->enum_base()}
+           << " {";
   auto separator = "";
   for (auto const member : node->members()) {
     ostream_ << separator << *member->name();

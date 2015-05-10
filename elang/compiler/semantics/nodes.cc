@@ -16,14 +16,6 @@ namespace sm {
 
 namespace {
 
-void ComputeBaseClasses(Class* clazz, ZoneUnorderedSet<Class*>* classes) {
-  if (classes->count(clazz))
-    return;
-  classes->insert(clazz);
-  for (auto const base_class : clazz->direct_base_classes())
-    ComputeBaseClasses(base_class, classes);
-}
-
 Signature::Arity ComputeArity(const std::vector<Parameter*>& parameters) {
   Signature::Arity arity;
   arity.maximum = 0;
@@ -81,19 +73,24 @@ bool ArrayType::IsSubtypeOf(const Type* other) const {
 }
 
 // Class
-Class::Class(Zone* zone,
-             Semantic* outer,
-             Token* name,
-             const std::vector<Class*>& direct_base_classes,
-             ast::Class* ast_class)
+Class::Class(Zone* zone, Semantic* outer, Token* name, ast::Class* ast_class)
     : NamedMember(outer, name),
       ast_class_(ast_class),
       base_classes_(zone),
-      direct_base_classes_(zone, direct_base_classes),
+      direct_base_classes_(zone),
+      has_base_(false),
       members_(zone) {
   DCHECK(outer->is<Class>() || outer->is<Namespace>()) << outer << " " << name;
-  for (auto const base_class : direct_base_classes)
-    ComputeBaseClasses(base_class, &base_classes_);
+}
+
+const ZoneUnorderedSet<Class*>& Class::base_classes() const {
+  DCHECK(has_base()) << this;
+  return base_classes_;
+}
+
+const ZoneVector<Class*>& Class::direct_base_classes() const {
+  DCHECK(has_base()) << this;
+  return direct_base_classes_;
 }
 
 bool Class::is_class() const {

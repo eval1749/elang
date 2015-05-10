@@ -111,12 +111,8 @@ ArrayType* Factory::NewArrayType(sm::Type* element_type,
   return array_type_factory_->NewArrayType(element_type, dimensions);
 }
 
-Class* Factory::NewClass(Semantic* outer,
-                         Token* name,
-                         const std::vector<Class*>& base_classes,
-                         ast::Class* ast_class) {
-  auto const clazz =
-      new (zone()) Class(zone(), outer, name, base_classes, ast_class);
+Class* Factory::NewClass(Semantic* outer, Token* name, ast::Class* ast_class) {
+  auto const clazz = new (zone()) Class(zone(), outer, name, ast_class);
   AddMember(outer, clazz);
   return clazz;
 }

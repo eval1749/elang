@@ -14,6 +14,16 @@ namespace elang {
 namespace compiler {
 namespace sm {
 
+namespace {
+void ComputeBaseClasses(Class* clazz, ZoneUnorderedSet<Class*>* classes) {
+  if (classes->count(clazz))
+    return;
+  classes->insert(clazz);
+  for (auto const base_class : clazz->direct_base_classes())
+    ComputeBaseClasses(base_class, classes);
+}
+}  // namespace
+
 //////////////////////////////////////////////////////////////////////
 //
 // Editor
@@ -39,6 +49,16 @@ Semantic* Editor::FindMember(Semantic* container, Token* name) const {
   }
   NOTREACHED() << container << " " << name;
   return nullptr;
+}
+
+void Editor::FixClassBase(Class* clazz,
+                          const std::vector<Class*>& direct_base_classes) {
+  DCHECK(!clazz->has_base()) << clazz;
+  clazz->direct_base_classes_.assign(direct_base_classes.begin(),
+                                     direct_base_classes.end());
+  for (auto const base_class : direct_base_classes)
+    ComputeBaseClasses(base_class, &clazz->base_classes_);
+  clazz->has_base_ = true;
 }
 
 void Editor::FixEnumBase(Enum* enum_type, Type* enum_base) {

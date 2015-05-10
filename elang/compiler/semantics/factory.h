@@ -36,10 +36,7 @@ class Factory final : public ZoneOwner {
   ArrayType* NewArrayType(Type* element_type,
                           const std::vector<int>& dimensions);
 
-  Class* NewClass(Semantic* outer,
-                  Token* name,
-                  const std::vector<Class*>& base_classes,
-                  ast::Class* ast_class);
+  Class* NewClass(Semantic* outer, Token* name, ast::Class* ast_class);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);

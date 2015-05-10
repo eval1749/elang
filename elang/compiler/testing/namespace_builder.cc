@@ -22,6 +22,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/token.h"
@@ -35,7 +36,8 @@ NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
       analysis_editor_(
           new AnalysisEditor(name_resolver->session()->analysis())),
-      name_resolver_(name_resolver) {
+      name_resolver_(name_resolver),
+      semantic_editor_(new sm::Editor(name_resolver->session())) {
 }
 
 NamespaceBuilder::~NamespaceBuilder() {
@@ -78,8 +80,9 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
     base_classes.push_back(base_class);
   }
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
-  auto const clazz = name_resolver()->factory()->NewClass(
-      outer, ast_class->name(), base_classes, ast_class);
+  auto const clazz =
+      name_resolver()->factory()->NewClass(outer, ast_class->name(), ast_class);
+  semantic_editor_->FixClassBase(clazz, base_classes);
   analysis_editor_->SetSemanticOf(ast_class, clazz);
   analysis_editor_->SetSemanticOf(ast_class_body, clazz);
 

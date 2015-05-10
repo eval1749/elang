@@ -111,6 +111,23 @@ TEST_F(SemanticTest, ArrayTypeUnbound) {
             ToString(factory()->NewArrayType(int32_type(), {-1, -1, -1})));
 }
 
+TEST_F(SemanticTest, Class) {
+  auto const outer =
+      factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const class_type = factory()->NewClass(outer, NewToken("Bar"), nullptr);
+  editor()->FixClassBase(
+      class_type,
+      {session()->PredefinedTypeOf(PredefinedName::Object)->as<Class>()});
+  EXPECT_EQ("Foo.Bar", ToString(class_type));
+}
+
+TEST_F(SemanticTest, ClassIntermediate) {
+  auto const outer =
+      factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const class_type = factory()->NewClass(outer, NewToken("Bar"), nullptr);
+  EXPECT_EQ("#Foo.Bar", ToString(class_type));
+}
+
 TEST_F(SemanticTest, Enum) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
