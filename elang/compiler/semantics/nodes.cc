@@ -116,9 +116,14 @@ bool Class::IsSubtypeOf(const Type* other) const {
 }
 
 // Enum
-Enum::Enum(Zone* zone, Semantic* outer, Token* name, Type* enum_base)
-    : NamedMember(outer, name), enum_base_(enum_base), members_(zone) {
+Enum::Enum(Zone* zone, Semantic* outer, Token* name)
+    : NamedMember(outer, name), enum_base_(nullptr), members_(zone) {
   DCHECK(outer->is<Class>() || outer->is<Namespace>()) << outer << " " << name;
+}
+
+Type* Enum::enum_base() const {
+  DCHECK(enum_base_) << *this;
+  return enum_base_;
 }
 
 bool Enum::IsSubtypeOf(const Type* other) const {

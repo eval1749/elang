@@ -117,6 +117,10 @@ void Formatter::VisitClass(Class* semantic) {
 }
 
 void Formatter::VisitEnum(Enum* node) {
+  if (!node->has_base()) {
+    ostream_ << "#enum " << AsPath{node};
+    return;
+  }
   ostream_ << "enum " << AsPath{node} << " : " << node->enum_base() << " {";
   auto separator = "";
   for (auto const member : node->members()) {

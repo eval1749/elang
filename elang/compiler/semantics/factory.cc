@@ -121,8 +121,8 @@ Class* Factory::NewClass(Semantic* outer,
   return clazz;
 }
 
-Enum* Factory::NewEnum(Semantic* outer, Token* name, Type* enum_base) {
-  auto const enum_type = new (zone()) Enum(zone(), outer, name, enum_base);
+Enum* Factory::NewEnum(Semantic* outer, Token* name) {
+  auto const enum_type = new (zone()) Enum(zone(), outer, name);
   AddMember(outer, enum_type);
   return enum_type;
 }

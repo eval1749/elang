@@ -41,6 +41,11 @@ Semantic* Editor::FindMember(Semantic* container, Token* name) const {
   return nullptr;
 }
 
+void Editor::FixEnumBase(Enum* enum_type, Type* enum_base) {
+  DCHECK(!enum_type->enum_base_) << enum_type;
+  enum_type->enum_base_ = enum_base;
+}
+
 void Editor::FixEnumMember(sm::EnumMember* member, Value* value) {
   DCHECK(!member->value_) << *member << " " << value;
   member->value_ = value;

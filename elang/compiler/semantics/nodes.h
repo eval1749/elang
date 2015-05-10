@@ -201,16 +201,17 @@ class Enum final : public NamedMember<Type> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Enum, Type);
 
  public:
-  sm::Type* enum_base() const { return enum_base_; }
+  sm::Type* enum_base() const;
   const ZoneVector<EnumMember*>& members() const { return members_; }
+  bool has_base() const { return enum_base_ != nullptr; }
 
  private:
-  Enum(Zone* zone, Semantic* outer, Token* name, sm::Type* enum_base);
+  Enum(Zone* zone, Semantic* outer, Token* name);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
-  sm::Type* const enum_base_;
+  sm::Type* enum_base_;
   ZoneVector<EnumMember*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Enum);

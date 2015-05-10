@@ -40,7 +40,7 @@ class Factory final : public ZoneOwner {
                   Token* name,
                   const std::vector<Class*>& base_classes,
                   ast::Class* ast_class);
-  Enum* NewEnum(Semantic* outer, Token* name, Type* enum_base);
+  Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name, Value* value);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);

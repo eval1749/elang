@@ -115,8 +115,8 @@ TEST_F(SemanticTest, Enum) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
   auto const enum_base = int64_type();
-  auto const enum_type =
-      factory()->NewEnum(outer, NewToken("Color"), enum_base);
+  auto const enum_type = factory()->NewEnum(outer, NewToken("Color"));
+  editor()->FixEnumBase(enum_type, enum_base);
   factory()->NewEnumMember(enum_type, NewToken("Red"), nullptr);
   factory()->NewEnumMember(enum_type, NewToken("Green"), nullptr);
   factory()->NewEnumMember(
@@ -124,6 +124,13 @@ TEST_F(SemanticTest, Enum) {
       NewLiteral(enum_base, TokenData(TokenType::Int32Literal, 42)));
   EXPECT_EQ("enum Foo.Color : System.Int64 {Red, Green, Blue = 42}",
             ToString(enum_type));
+}
+
+TEST_F(SemanticTest, EnumIntermediate) {
+  auto const outer =
+      factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const enum_type = factory()->NewEnum(outer, NewToken("Color"));
+  EXPECT_EQ("#enum Foo.Color", ToString(enum_type));
 }
 
 TEST_F(SemanticTest, Namespace) {
