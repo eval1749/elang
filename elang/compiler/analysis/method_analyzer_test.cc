@@ -10,6 +10,7 @@
 
 #include "elang/compiler/testing/analyzer_test.h"
 #include "elang/compiler/testing/namespace_builder.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/class_analyzer.h"
 #include "elang/compiler/analysis/method_analyzer.h"
 #include "elang/compiler/analysis/namespace_analyzer.h"
@@ -26,7 +27,6 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -185,7 +185,7 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
 std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
   typedef std::pair<ast::Node*, sm::Semantic*> KeyValue;
   std::vector<KeyValue> key_values;
-  for (auto const key_value : semantics()->all()) {
+  for (auto const key_value : analysis()->all()) {
     if (!key_value.first->token()->location().start_offset())
       continue;
     if (key_value.first->token() != token_type)
@@ -216,7 +216,7 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
   Collector collector(method_main);
   std::stringstream ostream;
   for (auto const call : collector.calls()) {
-    if (auto const method = semantics()->SemanticOf(call->callee()))
+    if (auto const method = analysis()->SemanticOf(call->callee()))
       ostream << *method;
     else
       ostream << "Not resolved: " << *call;
@@ -238,7 +238,7 @@ std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
   Collector collector(method_main);
   std::stringstream ostream;
   for (auto const variable : collector.variables())
-    ostream << *semantics()->SemanticOf(variable) << std::endl;
+    ostream << *analysis()->SemanticOf(variable) << std::endl;
   return ostream.str();
 }
 
@@ -554,7 +554,7 @@ TEST_F(MethodAnalyzerTest, Parameter) {
   for (auto method : foo_group->methods()) {
     for (auto const parameter : method->parameters()) {
       auto const variable =
-          semantics()->SemanticOf(parameter)->as<sm::Variable>();
+          analysis()->SemanticOf(parameter)->as<sm::Variable>();
       if (!variable)
         continue;
       ostream << *parameter->name() << " " << variable->storage() << std::endl;

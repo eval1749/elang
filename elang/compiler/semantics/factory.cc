@@ -9,9 +9,9 @@
 
 #include "base/logging.h"
 #include "elang/base/zone_user.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/semantics/visitor.h"
 #include "elang/compiler/token_factory.h"
 
@@ -82,9 +82,9 @@ ArrayType* Factory::ArrayTypeFactory::NewArrayType(
 // Factory
 //
 Factory::Factory(TokenFactory* token_factory)
-    : array_type_factory_(new ArrayTypeFactory(zone())),
+    : analysis_(new Analysis()),
+      array_type_factory_(new ArrayTypeFactory(zone())),
       global_namespace_(new (zone()) Namespace(zone(), nullptr, nullptr)),
-      semantics_(new Semantics()),
       system_namespace_(
           NewNamespace(global_namespace_, token_factory->system_token())),
       token_factory_(token_factory) {

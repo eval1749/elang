@@ -12,10 +12,10 @@
 
 namespace elang {
 namespace compiler {
+class Analysis;
 class NameResolver;
 namespace sm {
 class Semantic;
-class Semantics;
 }
 namespace testing {
 
@@ -36,7 +36,7 @@ class AnalyzerTest : public CompilerTest {
   ~AnalyzerTest() override;
 
   NameResolver* name_resolver() const { return name_resolver_.get(); }
-  sm::Semantics* semantics() const;
+  Analysis* analysis() const;
 
   std::string Analyze();
   std::string AnalyzeClass();

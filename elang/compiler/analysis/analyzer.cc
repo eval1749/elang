@@ -7,6 +7,7 @@
 #include "elang/compiler/analysis/analyzer.h"
 
 #include "base/logging.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/namespace.h"
@@ -16,7 +17,6 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {

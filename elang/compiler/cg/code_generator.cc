@@ -10,6 +10,7 @@
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/base/temporary_change_value.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
@@ -22,7 +23,6 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
@@ -458,7 +458,7 @@ bool CodeGenerator::Run() {
 }
 
 sm::Semantic* CodeGenerator::ValueOf(ast::Node* node) const {
-  return semantics()->SemanticOf(node);
+  return analysis()->SemanticOf(node);
 }
 
 //

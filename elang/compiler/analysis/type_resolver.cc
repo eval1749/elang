@@ -7,6 +7,7 @@
 #include "elang/compiler/analysis/type_resolver.h"
 
 #include "base/logging.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/method_resolver.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/analysis/type_evaluator.h"
@@ -23,7 +24,6 @@
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -247,7 +247,7 @@ ts::Value* TypeResolver::Unify(ts::Value* value1, ts::Value* value2) {
 }
 
 sm::Semantic* TypeResolver::SemanticOf(ast::Node* node) {
-  return semantics()->SemanticOf(node);
+  return analysis()->SemanticOf(node);
 }
 
 // ast::Visitor

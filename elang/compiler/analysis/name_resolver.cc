@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -20,7 +21,6 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -245,7 +245,7 @@ ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,
 }
 
 sm::Semantic* NameResolver::SemanticOf(ast::NamedNode* member) const {
-  return semantics()->SemanticOf(member);
+  return analysis()->SemanticOf(member);
 }
 
 }  // namespace compiler

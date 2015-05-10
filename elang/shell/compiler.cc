@@ -18,6 +18,7 @@
 #include "elang/api/pass.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/cg/generator.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
@@ -29,7 +30,6 @@
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/source_code.h"
 #include "elang/compiler/source_code_position.h"
 #include "elang/compiler/syntax/parser.h"
@@ -295,7 +295,7 @@ void PopulateNamespace(NameResolver* name_resolver) {
 // Note: In HIR, objects are passed as pointers rather than object.
 std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
                                            NameResolver* name_resolver) {
-  auto const semantics = session->semantics();
+  auto const semantics = session->analysis();
   auto const name_main = session->NewAtomicString(L"Main");
   auto const int32_type =
       semantics->SemanticOf(session->QueryAstNode(L"System.Int32"))

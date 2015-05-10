@@ -4,9 +4,9 @@
 
 #include "elang/compiler/compilation_session_user.h"
 
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/nodes.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -18,8 +18,8 @@ CompilationSessionUser::CompilationSessionUser(CompilationSession* session)
 CompilationSessionUser::~CompilationSessionUser() {
 }
 
-sm::Semantics* CompilationSessionUser::semantics() const {
-  return session()->semantics();
+Analysis* CompilationSessionUser::analysis() const {
+  return session()->analysis();
 }
 
 ast::Namespace* CompilationSessionUser::system_namespace() {

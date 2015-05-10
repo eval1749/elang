@@ -14,10 +14,9 @@
 
 namespace elang {
 namespace compiler {
+class Analysis;
 class TokenFactory;
 namespace sm {
-
-class Semantics;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -29,7 +28,7 @@ class Factory final : public ZoneOwner {
   ~Factory();
 
   Namespace* global_namespace() { return global_namespace_; }
-  Semantics* semantics() const { return semantics_.get(); }
+  Analysis* analysis() const { return analysis_.get(); }
   Namespace* system_namespace() const { return system_namespace_; }
 
   // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
@@ -72,9 +71,9 @@ class Factory final : public ZoneOwner {
 
   void AddMember(Semantic* ns, Semantic* member);
 
+  std::unique_ptr<Analysis> analysis_;
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
   Namespace* const global_namespace_;
-  std::unique_ptr<Semantics> semantics_;
   Namespace* const system_namespace_;
   TokenFactory* const token_factory_;
 

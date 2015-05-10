@@ -7,9 +7,9 @@
 #include "elang/compiler/semantics/editor.h"
 
 #include "base/logging.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {
@@ -57,10 +57,10 @@ void Editor::FixEnumMember(sm::EnumMember* member, Value* value) {
 void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {
   DCHECK(node);
   DCHECK(semantic);
-  auto const it = semantics()->semantic_map_.find(node);
-  DCHECK(it == semantics()->semantic_map_.end())
+  auto const it = analysis()->semantic_map_.find(node);
+  DCHECK(it == analysis()->semantic_map_.end())
       << *node << " old:" << *it->second << " new:" << *semantic;
-  semantics()->semantic_map_[node] = semantic;
+  analysis()->semantic_map_[node] = semantic;
 }
 
 Semantic* Editor::SemanticOf(ast::Node* node) const {
@@ -70,8 +70,8 @@ Semantic* Editor::SemanticOf(ast::Node* node) const {
 }
 
 Semantic* Editor::TrySemanticOf(ast::Node* node) const {
-  auto const it = semantics()->semantic_map_.find(node);
-  return it == semantics()->semantic_map_.end() ? nullptr : it->second;
+  auto const it = analysis()->semantic_map_.find(node);
+  return it == analysis()->semantic_map_.end() ? nullptr : it->second;
 }
 
 }  // namespace sm

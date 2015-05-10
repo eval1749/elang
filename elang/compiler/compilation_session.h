@@ -43,9 +43,9 @@ class NodeQuery;
 
 namespace sm {
 class Factory;
-class Semantics;
 }
 
+class Analysis;
 class CompilationUnit;
 enum class ErrorCode;
 class ErrorData;
@@ -83,7 +83,7 @@ class CompilationSession final : public ZoneOwner {
   ast::NamespaceBody* system_namespace_body() const;
 
   // Semantic
-  sm::Semantics* semantics() const;
+  Analysis* analysis() const;
   sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
 
   void AddError(ErrorCode error_code, Token* token);

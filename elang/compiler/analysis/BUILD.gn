@@ -4,6 +4,8 @@
 
 static_library("analysis") {
   sources = [
+    "analysis.cc",
+    "analysis.h",
     "analyzer.cc",
     "analyzer.h",
     "class_analyzer.cc",

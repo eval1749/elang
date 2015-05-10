@@ -83,7 +83,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void EmitVariableReference(ast::NamedNode* node);
   bool NeedOutput() const;
 
-  // Shortcut for |semantics()->SemanticOf()|
+  // Shortcut for |analysis()->SemanticOf()|
   sm::Semantic* ValueOf(ast::Node* node) const;
 
   // ast::Visitor

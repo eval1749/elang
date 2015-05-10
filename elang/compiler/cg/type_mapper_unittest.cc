@@ -6,6 +6,7 @@
 
 #include "elang/compiler/cg/cg_test.h"
 
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
@@ -16,7 +17,6 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/testing/namespace_builder.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/type_factory.h"

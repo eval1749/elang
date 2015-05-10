@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 #include "base/logging.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/type_factory.h"
 #include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {

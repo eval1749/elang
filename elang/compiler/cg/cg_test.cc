@@ -8,12 +8,12 @@
 #include "elang/compiler/cg/cg_test.h"
 
 #include "base/macros.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/cg/code_generator.h"
 #include "elang/compiler/cg/cfg_to_ssa_converter.h"
 #include "elang/compiler/cg/variable_analyzer.h"
 #include "elang/compiler/compilation_session.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/factory_config.h"
@@ -89,7 +89,7 @@ std::string CgTest::GetFunction(base::StringPiece name) {
   if (!ast_method_group)
     return std::string("No such method group ") + name.as_string();
   auto const ast_method = ast_method_group->methods()[0];
-  auto const ir_function = semantics()->SemanticOf(ast_method);
+  auto const ir_function = analysis()->SemanticOf(ast_method);
   if (!ir_function)
     return std::string("Unbound ") + name.as_string();
   auto const hir_function = FunctionOf(ast_method);

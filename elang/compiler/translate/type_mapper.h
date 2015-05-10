@@ -23,7 +23,6 @@ namespace ast {
 class NamedNode;
 }
 namespace sm {
-class Semantics;
 class Type;
 }
 enum class PredefinedName;

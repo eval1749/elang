@@ -19,8 +19,6 @@ source_set("semantics") {
     "nodes.cc",
     "nodes.h",
     "nodes_forward.h",
-    "semantics.cc",
-    "semantics.h",
     "visitor.cc",
     "visitor.h",
   ]

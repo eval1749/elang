@@ -14,6 +14,7 @@
 #include "base/macros.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/class_analyzer.h"
 #include "elang/compiler/analysis/method_analyzer.h"
 #include "elang/compiler/analysis/namespace_analyzer.h"
@@ -25,7 +26,6 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/testing/namespace_builder.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -122,8 +122,8 @@ AnalyzerTest::AnalyzerTest() : name_resolver_(NewNameResolver(session())) {
 AnalyzerTest::~AnalyzerTest() {
 }
 
-sm::Semantics* AnalyzerTest::semantics() const {
-  return session()->semantics();
+Analysis* AnalyzerTest::analysis() const {
+  return session()->analysis();
 }
 
 std::string AnalyzerTest::Analyze() {
@@ -245,7 +245,7 @@ std::string AnalyzerTest::MakeClassListString(
 }
 
 sm::Semantic* AnalyzerTest::SemanticOf(ast::Node* node) {
-  return semantics()->SemanticOf(node);
+  return analysis()->SemanticOf(node);
 }
 
 std::string AnalyzerTest::ToString(sm::Semantic* semantic) {

@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/base/zone.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/type_evaluator.h"
 #include "elang/compiler/analysis/type_values.h"
 #include "elang/compiler/ast/expressions.h"
@@ -14,7 +15,6 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 
 namespace elang {
 namespace compiler {

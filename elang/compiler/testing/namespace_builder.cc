@@ -10,6 +10,7 @@
 #include "base/macros.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -23,7 +24,6 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
 
@@ -76,7 +76,7 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
     DCHECK(base_class);
     base_classes.push_back(base_class);
   }
-  auto const outer = session()->semantics()->SemanticOf(ast_class->parent());
+  auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
   auto const clazz = name_resolver()->factory()->NewClass(
       outer, ast_class->name(), base_classes, ast_class);
   editor_->SetSemanticOf(ast_class, clazz);

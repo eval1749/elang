@@ -9,13 +9,13 @@
 
 #include "base/strings/string_piece.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/source_code_range.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -53,11 +53,11 @@ IrSemanticsTest::IrSemanticsTest() : editor_(session()) {
 }
 
 Type* IrSemanticsTest::system_int32() {
-  return semantics()->SemanticOf(FindClass("System.Int32"))->as<Type>();
+  return analysis()->SemanticOf(FindClass("System.Int32"))->as<Type>();
 }
 
 Type* IrSemanticsTest::system_int64() {
-  return semantics()->SemanticOf(FindClass("System.Int64"))->as<Type>();
+  return analysis()->SemanticOf(FindClass("System.Int64"))->as<Type>();
 }
 
 Value* IrSemanticsTest::NewLiteral(Type* type, const TokenData& data) {

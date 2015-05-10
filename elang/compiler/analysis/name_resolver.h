@@ -29,8 +29,8 @@ class Semantic;
 class Type;
 }
 
+class Analysis;
 enum class PredefinedName;
-class Semantics;
 class Token;
 
 //////////////////////////////////////////////////////////////////////

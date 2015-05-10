@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/base/simple_directed_graph.h"
 #include "elang/base/zone_owner.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/type_resolver.h"
 #include "elang/compiler/analysis/type_factory.h"
 #include "elang/compiler/analysis/type_values.h"
@@ -24,7 +25,6 @@
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -156,7 +156,7 @@ void MethodBodyAnalyzer::RegisterParameters() {
 
 // The entry point of |MethodBodyAnalyzer|.
 void MethodBodyAnalyzer::Run() {
-  auto const ir_method = semantics()->SemanticOf(method_)->as<sm::Method>();
+  auto const ir_method = analysis()->SemanticOf(method_)->as<sm::Method>();
   if (!ir_method) {
     DVLOG(0) << *method_ << " isn't resolved.";
     return;
@@ -279,7 +279,7 @@ void MethodBodyAnalyzer::VisitIfStatement(ast::IfStatement* node) {
 }
 
 void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
-  auto const ir_method = semantics()->SemanticOf(method_)->as<sm::Method>();
+  auto const ir_method = analysis()->SemanticOf(method_)->as<sm::Method>();
   auto const return_type = ir_method->return_type();
   if (ir_method->return_type() == void_type()) {
     if (node->value())

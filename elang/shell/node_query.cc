@@ -8,12 +8,12 @@
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -70,7 +70,7 @@ MethodQuery::~MethodQuery() {
 
 bool MethodQuery::Match(QueryContext* context, ast::Node* node) const {
   auto const method =
-      context->session->semantics()->SemanticOf(node)->as<sm::Method>();
+      context->session->analysis()->SemanticOf(node)->as<sm::Method>();
   if (!method)
     return false;
   if (!MatchName(name_, method->ast_method()->name()))

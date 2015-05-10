@@ -9,6 +9,7 @@
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
+#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
@@ -18,7 +19,6 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"
@@ -82,8 +82,8 @@ Token* CompilationSession::system_token() const {
   return token_factory_->system_token();
 }
 
-sm::Semantics* CompilationSession::semantics() const {
-  return semantics_factory_->semantics();
+Analysis* CompilationSession::analysis() const {
+  return semantics_factory_->analysis();
 }
 
 void CompilationSession::AddError(ErrorCode error_code, Token* token) {

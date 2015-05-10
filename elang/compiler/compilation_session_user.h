@@ -17,9 +17,9 @@ class NamespaceBody;
 class Node;
 }
 namespace sm {
-class Semantics;
 class Type;
 }
+class Analysis;
 class CompilationSession;
 enum class ErrorCode;
 enum class PredefinedName;
@@ -44,7 +44,7 @@ class CompilationSessionUser {
  protected:
   explicit CompilationSessionUser(CompilationSession* session);
 
-  sm::Semantics* semantics() const;
+  Analysis* analysis() const;
   ast::Namespace* system_namespace();
   ast::NamespaceBody* system_namespace_body();
 

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_SEMANTICS_SEMANTICS_H_
-#define ELANG_COMPILER_SEMANTICS_SEMANTICS_H_
+#ifndef ELANG_COMPILER_ANALYSIS_ANALYSIS_H_
+#define ELANG_COMPILER_ANALYSIS_ANALYSIS_H_
 
 #include <unordered_map>
 
@@ -15,15 +15,16 @@ namespace elang {
 namespace compiler {
 namespace sm {
 class Editor;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
-// Semantics
+// Analysis
 //
-class Semantics final {
+class Analysis final {
  public:
-  Semantics();
-  ~Semantics();
+  Analysis();
+  ~Analysis();
 
   // Returns mapping for testing.
   const std::unordered_map<ast::Node*, sm::Semantic*> all() const {
@@ -39,11 +40,10 @@ class Semantics final {
   // Mapping from AST class, enum, and method to IR object
   std::unordered_map<ast::Node*, sm::Semantic*> semantic_map_;
 
-  DISALLOW_COPY_AND_ASSIGN(Semantics);
+  DISALLOW_COPY_AND_ASSIGN(Analysis);
 };
 
-}  // namespace sm
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_SEMANTICS_SEMANTICS_H_
+#endif  // ELANG_COMPILER_ANALYSIS_ANALYSIS_H_
