@@ -24,17 +24,17 @@ namespace sm {
 
 //////////////////////////////////////////////////////////////////////
 //
-// IrSemanticsTest
+// SemanticTest
 //
-class IrSemanticsTest : public testing::AnalyzerTest {
+class SemanticTest : public testing::AnalyzerTest {
  protected:
-  IrSemanticsTest();
-  ~IrSemanticsTest() override = default;
+  SemanticTest();
+  ~SemanticTest() override = default;
 
   Editor* editor() { return &editor_; }
   Factory* factory() { return editor()->factory(); }
-  Type* system_int32();
-  Type* system_int64();
+  Type* int32_type();
+  Type* int64_type();
 
   Value* NewLiteral(Type* type, const TokenData& data);
   Token* NewToken(const TokenData& data);
@@ -44,43 +44,43 @@ class IrSemanticsTest : public testing::AnalyzerTest {
  private:
   sm::Editor editor_;
 
-  DISALLOW_COPY_AND_ASSIGN(IrSemanticsTest);
+  DISALLOW_COPY_AND_ASSIGN(SemanticTest);
 };
 
-IrSemanticsTest::IrSemanticsTest() : editor_(session()) {
+SemanticTest::SemanticTest() : editor_(session()) {
 }
 
-Type* IrSemanticsTest::system_int32() {
+Type* SemanticTest::int32_type() {
   return session()->PredefinedTypeOf(PredefinedName::Int32);
 }
 
-Type* IrSemanticsTest::system_int64() {
+Type* SemanticTest::int64_type() {
   return session()->PredefinedTypeOf(PredefinedName::Int64);
 }
 
-Value* IrSemanticsTest::NewLiteral(Type* type, const TokenData& data) {
+Value* SemanticTest::NewLiteral(Type* type, const TokenData& data) {
   return factory()->NewLiteral(type, NewToken(data));
 }
 
-Token* IrSemanticsTest::NewToken(const TokenData& data) {
+Token* SemanticTest::NewToken(const TokenData& data) {
   return session()->NewToken(SourceCodeRange(), data);
 }
 
-Token* IrSemanticsTest::NewToken(base::StringPiece name) {
+Token* SemanticTest::NewToken(base::StringPiece name) {
   return NewToken(
       TokenData(session()->NewAtomicString(base::UTF8ToUTF16(name))));
 }
 
-std::string IrSemanticsTest::ToString(Semantic* semantic) {
+std::string SemanticTest::ToString(Semantic* semantic) {
   std::stringstream ostream;
   ostream << *semantic;
   return ostream.str();
 }
 
-TEST_F(IrSemanticsTest, ArrayType) {
-  auto const type1 = factory()->NewArrayType(system_int32(), {10, 20});
-  auto const type2 = factory()->NewArrayType(system_int32(), {10, 20});
-  auto const type3 = factory()->NewArrayType(system_int32(), {10});
+TEST_F(SemanticTest, ArrayType) {
+  auto const type1 = factory()->NewArrayType(int32_type(), {10, 20});
+  auto const type2 = factory()->NewArrayType(int32_type(), {10, 20});
+  auto const type3 = factory()->NewArrayType(int32_type(), {10});
   EXPECT_EQ(type1, type2)
       << "array type should be unique by element type and dimensions";
   EXPECT_NE(type1, type3);
@@ -93,8 +93,8 @@ TEST_F(IrSemanticsTest, ArrayType) {
 //  element_type_of(T[A]) = T
 //  element_type_of(T[A][B}) = T[B]
 //  element_type_of(T[A][B}[C]) = T[B][C]
-TEST_F(IrSemanticsTest, ArrayTypeArrayOfArray) {
-  auto const type1 = factory()->NewArrayType(system_int32(), {10});
+TEST_F(SemanticTest, ArrayTypeArrayOfArray) {
+  auto const type1 = factory()->NewArrayType(int32_type(), {10});
   auto const type2 = factory()->NewArrayType(type1, {20});
   auto const type3 = factory()->NewArrayType(type2, {30});
   EXPECT_EQ("System.Int32[10]", ToString(type1));
@@ -102,19 +102,19 @@ TEST_F(IrSemanticsTest, ArrayTypeArrayOfArray) {
   EXPECT_EQ("System.Int32[30][20][10]", ToString(type3));
 }
 
-TEST_F(IrSemanticsTest, ArrayTypeUnbound) {
+TEST_F(SemanticTest, ArrayTypeUnbound) {
   EXPECT_EQ("System.Int32[]",
-            ToString(factory()->NewArrayType(system_int32(), {-1})));
+            ToString(factory()->NewArrayType(int32_type(), {-1})));
   EXPECT_EQ("System.Int32[,]",
-            ToString(factory()->NewArrayType(system_int32(), {-1, -1})));
+            ToString(factory()->NewArrayType(int32_type(), {-1, -1})));
   EXPECT_EQ("System.Int32[,,]",
-            ToString(factory()->NewArrayType(system_int32(), {-1, -1, -1})));
+            ToString(factory()->NewArrayType(int32_type(), {-1, -1, -1})));
 }
 
-TEST_F(IrSemanticsTest, Enum) {
+TEST_F(SemanticTest, Enum) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
-  auto const enum_base = system_int64();
+  auto const enum_base = int64_type();
   auto const enum_type =
       factory()->NewEnum(outer, NewToken("Color"), enum_base);
   factory()->NewEnumMember(enum_type, NewToken("Red"), nullptr);
@@ -126,7 +126,7 @@ TEST_F(IrSemanticsTest, Enum) {
             ToString(enum_type));
 }
 
-TEST_F(IrSemanticsTest, Namespace) {
+TEST_F(SemanticTest, Namespace) {
   auto const ns1 =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
   auto const ns2 = factory()->NewNamespace(ns1, NewToken("Bar"));
