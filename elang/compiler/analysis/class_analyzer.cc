@@ -148,6 +148,58 @@ void ClassAnalyzer::Collector::VisitField(ast::Field* node) {
 }
 
 void ClassAnalyzer::Collector::VisitMethod(ast::Method* ast_method) {
+  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
+  auto const method_name = ast_method->name();
+  editor()->EnsureMethodGroup(clazz, method_name);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// ClassAnalyzer::Resolver
+//
+class ClassAnalyzer::Resolver final : public ast::Visitor {
+ public:
+  explicit Resolver(ClassAnalyzer* analyzer);
+  ~Resolver() = default;
+
+  sm::Editor* editor() const { return analyzer_->editor(); }
+  sm::Factory* factory() const { return analyzer_->factory(); }
+  CompilationSession* session() const { return analyzer_->session(); }
+
+  void Run();
+
+ private:
+  sm::EnumMember* AnalyzeEnumMember(sm::Enum* enum_type,
+                                    ast::EnumMember* ast_member,
+                                    ast::EnumMember* ast_previous_member);
+  sm::Type* EnsureEnumBase(ast::Enum* enum_type);
+  void FixEnumMember(sm::EnumMember* member, sm::Value* value);
+
+  sm::Semantic* SemanticOf(ast::Node* node) {
+    return analyzer_->SemanticOf(node);
+  }
+
+  // ast::Visitor
+  void VisitMethod(ast::Method* node) final;
+
+  ClassAnalyzer* const analyzer_;
+  std::unique_ptr<sm::Calculator> calculator_;
+
+  DISALLOW_COPY_AND_ASSIGN(Resolver);
+};
+
+ClassAnalyzer::Resolver::Resolver(ClassAnalyzer* analyzer)
+    : analyzer_(analyzer),
+      calculator_(new sm::Calculator(analyzer->session())) {
+}
+
+// The entry point of |ClassAnalyzer|.
+void ClassAnalyzer::Resolver::Run() {
+  VisitNamespaceBody(session()->global_namespace_body());
+}
+
+// ast::Visitor
+void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
   auto const return_type = analyzer_->ResolveTypeReference(
       ast_method->return_type(), ast_method->owner());
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
@@ -194,6 +246,9 @@ ClassAnalyzer::~ClassAnalyzer() {
 
 bool ClassAnalyzer::Run() {
   Collector(this).Run();
+  if (!session()->errors().empty())
+    return false;
+  Resolver(this).Run();
   return session()->errors().empty();
 }
 

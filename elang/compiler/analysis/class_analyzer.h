@@ -38,6 +38,7 @@ class ClassAnalyzer final : public Analyzer {
 
  private:
   class Collector;
+  class Resolver;
 
   void AddDependency(ast::Node* from, ast::Node* to);
   void Postpone(ast::Node* node);
