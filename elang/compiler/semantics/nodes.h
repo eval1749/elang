@@ -322,7 +322,6 @@ class Namespace final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Namespace, Semantic);
 
  public:
-  Semantic* FindMember(AtomicString* name) const;
   Semantic* FindMember(Token* name) const;
 
  private:

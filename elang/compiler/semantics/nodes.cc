@@ -171,14 +171,9 @@ Namespace::Namespace(Zone* zone, Namespace* outer, Token* name)
     : NamedMember(outer, name), members_(zone) {
 }
 
-// For |Factory::PredefinedTypeFor()|
-Semantic* Namespace::FindMember(AtomicString* name) const {
-  auto const it = members_.find(name);
-  return it == members_.end() ? nullptr : it->second;
-}
-
 Semantic* Namespace::FindMember(Token* name) const {
-  return FindMember(name->atomic_string());
+  auto const it = members_.find(name->atomic_string());
+  return it == members_.end() ? nullptr : it->second;
 }
 
 // Parameter
