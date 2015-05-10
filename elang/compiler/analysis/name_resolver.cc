@@ -238,20 +238,6 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   return it == using_map_.end() ? nullptr : it->second;
 }
 
-sm::Type* NameResolver::ResolvePredefinedType(Token* token,
-                                              PredefinedName name) {
-  auto const type_name = session()->PredefinedNameOf(name);
-  auto const ast_type = session()->system_namespace()->FindMember(type_name);
-  if (!ast_type) {
-    session()->AddError(ErrorCode::PredefinedNamesNameNotFound, token);
-    return nullptr;
-  }
-  if (auto const type = SemanticOf(ast_type)->as<sm::Type>())
-    return type;
-  session()->AddError(ErrorCode::PredefinedNamesNameNotClass, token);
-  return nullptr;
-}
-
 ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,
                                                ast::ContainerNode* container) {
   ReferenceResolver resolver(this, container);
