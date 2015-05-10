@@ -26,6 +26,7 @@ namespace sm {
 #define FOR_EACH_CONCRETE_SEMANTIC(V) \
   FOR_EACH_CONCRETE_TYPE_SEMANTIC(V)  \
   V(EnumMember)                       \
+  V(InvalidValue)                     \
   V(Literal)                          \
   V(Method)                           \
   V(MethodGroup)                      \

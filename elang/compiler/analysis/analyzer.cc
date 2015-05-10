@@ -60,7 +60,7 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
     DVLOG(0) << "Type not found: " << *type << " in " << *container
              << std::endl;
     Error(ErrorCode::AnalyzeTypeNotFound, type);
-    auto const semantic = semantics_factory()->NewUndefinedType(type);
+    auto const semantic = semantics_factory()->NewUndefinedType(type->token());
     SetSemanticOf(type, semantic);
     return semantic;
   }

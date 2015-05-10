@@ -34,7 +34,7 @@ class IrTypeMapperTest : public testing::TranslateTest {
   IrTypeMapperTest();
   ~IrTypeMapperTest() override = default;
 
-  sm::Factory* semantics_factory() { return &semantics_factory_; }
+  sm::Factory* semantics_factory() { return session()->semantics_factory(); }
   ir::TypeFactory* types() { return factory()->type_factory(); }
   IrTypeMapper* type_mapper() { return &type_mapper_; }
 
@@ -60,7 +60,6 @@ class IrTypeMapperTest : public testing::TranslateTest {
   }
 
  private:
-  sm::Factory semantics_factory_;
   cm::testing::NamespaceBuilder builder_;
   IrTypeMapper type_mapper_;
 

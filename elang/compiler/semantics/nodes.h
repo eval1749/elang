@@ -62,11 +62,14 @@ class Semantic : public Castable<Semantic>,
  public:
   virtual Token* name() const;
   virtual Semantic* outer() const;
+  Token* token() const { return token_; }
 
  protected:
-  Semantic();
+  explicit Semantic(Token* token);
 
  private:
+  Token* const token_;
+
   DISALLOW_COPY_AND_ASSIGN(Semantic);
 };
 
@@ -77,10 +80,15 @@ class Semantic : public Castable<Semantic>,
 class Value : public Semantic {
   DECLARE_ABSTRACT_SEMANTIC_CLASS(Value, Semantic);
 
+ public:
+  Type* type() const { return type_; }
+
  protected:
-  Value();
+  Value(Type* type, Token* token);
 
  private:
+  Type* const type_;
+
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
 
@@ -95,7 +103,7 @@ class Type : public Semantic {
   virtual bool IsSubtypeOf(const Type* other) const = 0;
 
  protected:
-  Type();
+  explicit Type(Token* token);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Type);
@@ -108,7 +116,8 @@ class NamedMember : public Base {
   Semantic* outer() const final { return outer_; }
 
  protected:
-  NamedMember(Semantic* outer, Token* name) : name_(name), outer_(outer) {}
+  NamedMember(Semantic* outer, Token* name)
+      : Base(name), name_(name), outer_(outer) {}
 
  private:
   Token* const name_;
@@ -164,6 +173,8 @@ class Class final : public NamedMember<Type> {
   // Returns true if |this| is 'class'.
   bool is_class() const;
 
+  Semantic* FindMember(Token* name) const;
+
  private:
   Class(Zone* zone,
         Semantic* outer,
@@ -209,22 +220,35 @@ class Enum final : public NamedMember<Type> {
 //
 // EnumMember
 //
-class EnumMember final : public NamedMember<Value> {
-  DECLARE_CONCRETE_SEMANTIC_CLASS(EnumMember, Value);
+class EnumMember final : public NamedMember<Semantic> {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(EnumMember, Semantic);
 
  public:
   bool is_bound() const { return value_ != nullptr; }
   Enum* owner() const { return outer()->as<Enum>(); }
-  Token* value() const;
+  Value* value() const;
 
  private:
   friend class Enum;
 
-  EnumMember(Enum* owner, Token* name);
+  EnumMember(Enum* owner, Token* name, Value* value);
 
-  Token* value_;
+  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// InvalidValue
+//
+class InvalidValue final : public Value {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(InvalidValue, Value);
+
+ private:
+  InvalidValue(Type* type, Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(InvalidValue);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -236,13 +260,11 @@ class Literal final : public Value {
 
  public:
   Token* data() const { return data_; }
-  Type* type() const { return type_; }
 
  private:
   Literal(Type* type, Token* token);
 
   Token* const data_;
-  Type* const type_;
 
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
@@ -300,6 +322,7 @@ class Namespace final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Namespace, Semantic);
 
  public:
+  Semantic* FindMember(AtomicString* name) const;
   Semantic* FindMember(Token* name) const;
 
  private:
@@ -388,15 +411,10 @@ class Signature final : public Type {
 class UndefinedType final : public Type {
   DECLARE_CONCRETE_SEMANTIC_CLASS(UndefinedType, Type);
 
- public:
-  ast::Type* ast_type() const { return ast_type_; }
-
  private:
-  explicit UndefinedType(ast::Type* ast_type);
+  explicit UndefinedType(Token* token);
 
   bool IsSubtypeOf(const Type* other) const final;
-
-  ast::Type* const ast_type_;
 
   DISALLOW_COPY_AND_ASSIGN(UndefinedType);
 };

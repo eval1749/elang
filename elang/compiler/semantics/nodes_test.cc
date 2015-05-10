@@ -17,6 +17,8 @@
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/source_code_range.h"
+#include "elang/compiler/token.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
@@ -36,6 +38,8 @@ class IrSemanticsTest : public testing::AnalyzerTest {
   Type* system_int32();
   Type* system_int64();
 
+  Value* NewLiteral(Type* type, const TokenData& data);
+  Token* NewToken(const TokenData& data);
   Token* NewToken(base::StringPiece name);
   std::string ToString(Semantic* node);
 
@@ -56,9 +60,16 @@ Type* IrSemanticsTest::system_int64() {
   return semantics()->SemanticOf(FindClass("System.Int64"))->as<Type>();
 }
 
+Value* IrSemanticsTest::NewLiteral(Type* type, const TokenData& data) {
+  return factory()->NewLiteral(type, NewToken(data));
+}
+
+Token* IrSemanticsTest::NewToken(const TokenData& data) {
+  return session()->NewToken(SourceCodeRange(), data);
+}
+
 Token* IrSemanticsTest::NewToken(base::StringPiece name) {
-  return session()->NewToken(
-      SourceCodeRange(),
+  return NewToken(
       TokenData(session()->NewAtomicString(base::UTF8ToUTF16(name))));
 }
 
@@ -67,8 +78,6 @@ std::string IrSemanticsTest::ToString(Semantic* semantic) {
   ostream << *semantic;
   return ostream.str();
 }
-
-// Test cases...
 
 TEST_F(IrSemanticsTest, ArrayType) {
   auto const type1 = factory()->NewArrayType(system_int32(), {10, 20});
@@ -105,16 +114,17 @@ TEST_F(IrSemanticsTest, ArrayTypeUnbound) {
 }
 
 TEST_F(IrSemanticsTest, Enum) {
-  auto const ns =
+  auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
+  auto const enum_base = system_int64();
   auto const enum_type =
-      factory()->NewEnum(ns, NewToken("Color"), system_int64());
-  std::vector<sm::EnumMember*> members{
-      factory()->NewEnumMember(enum_type, NewToken("Red")),
-      factory()->NewEnumMember(enum_type, NewToken("Green")),
-      factory()->NewEnumMember(enum_type, NewToken("Blue"))};
-  editor()->FixEnum(enum_type, members);
-  EXPECT_EQ("enum Foo.Color : System.Int64 {Red, Green, Blue}",
+      factory()->NewEnum(outer, NewToken("Color"), enum_base);
+  factory()->NewEnumMember(enum_type, NewToken("Red"), nullptr);
+  factory()->NewEnumMember(enum_type, NewToken("Green"), nullptr);
+  factory()->NewEnumMember(
+      enum_type, NewToken("Blue"),
+      NewLiteral(enum_base, TokenData(TokenType::Int32Literal, 42)));
+  EXPECT_EQ("enum Foo.Color : System.Int64 {Red, Green, Blue = 42}",
             ToString(enum_type));
 }
 

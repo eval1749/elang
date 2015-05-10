@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <memory>
+#include <sstream>
 #include <unordered_set>
 #include <vector>
 
@@ -24,6 +25,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/testing/namespace_builder.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_type.h"
@@ -240,6 +242,16 @@ std::string AnalyzerTest::MakeClassListString(
     const ZoneVector<sm::Class*>& classes) {
   return MakeClassListString(
       std::vector<sm::Class*>(classes.begin(), classes.end()));
+}
+
+sm::Semantic* AnalyzerTest::SemanticOf(ast::Node* node) {
+  return semantics()->SemanticOf(node);
+}
+
+std::string AnalyzerTest::ToString(sm::Semantic* semantic) {
+  std::stringstream ostream;
+  ostream << semantic;
+  return ostream.str();
 }
 
 }  // namespace testing

@@ -14,6 +14,7 @@ namespace elang {
 namespace compiler {
 class NameResolver;
 namespace sm {
+class Semantic;
 class Semantics;
 }
 namespace testing {
@@ -46,6 +47,8 @@ class AnalyzerTest : public CompilerTest {
   std::string GetMethodGroup(base::StringPiece name);
   std::string MakeClassListString(const std::vector<sm::Class*>& classes);
   std::string MakeClassListString(const ZoneVector<sm::Class*>& classes);
+  sm::Semantic* SemanticOf(ast::Node* node);
+  std::string ToString(sm::Semantic* semantic);
 
  private:
   std::unique_ptr<NameResolver> name_resolver_;

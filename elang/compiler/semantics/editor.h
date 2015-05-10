@@ -34,11 +34,9 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  void AddMember(Semantic* container, Semantic* member);
-  void AddMethod(MethodGroup* method_group, Method* method);
   MethodGroup* EnsureMethodGroup(Class* clazz, Token* name);
   Semantic* FindMember(Semantic* container, Token* name) const;
-  void FixEnum(Enum* enum_type, const std::vector<EnumMember*>& members);
+  void FixEnumMember(EnumMember* member, Value* value);
   void SetSemanticOf(ast::Node* node, Semantic* semantic);
   Semantic* SemanticOf(ast::Node* node) const;
   Semantic* TrySemanticOf(ast::Node* node) const;

@@ -7,6 +7,7 @@
 
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/parameter_kind.h"
 
 namespace elang {
@@ -59,7 +60,9 @@ Signature::Arity ComputeArity(const std::vector<Parameter*>& parameters) {
 ArrayType::ArrayType(Zone* zone,
                      Type* element_type,
                      const std::vector<int>& dimensions)
-    : dimensions_(zone, dimensions), element_type_(element_type) {
+    : Type(element_type->token()),
+      dimensions_(zone, dimensions),
+      element_type_(element_type) {
   DCHECK(!dimensions_.empty());
 #ifndef NDEBUG
   for (auto const dimension : dimensions_)
@@ -97,6 +100,12 @@ bool Class::is_class() const {
   return ast_class_->is_class();
 }
 
+Semantic* Class::FindMember(Token* name) const {
+  auto const it = members_.find(name->atomic_string());
+  return it == members_.end() ? nullptr : it->second;
+}
+
+// Type
 bool Class::IsSubtypeOf(const Type* other) const {
   if (this == other)
     return true;
@@ -117,17 +126,21 @@ bool Enum::IsSubtypeOf(const Type* other) const {
 }
 
 // EnumMember
-EnumMember::EnumMember(Enum* owner, Token* name)
-    : NamedMember(owner, name), value_(nullptr) {
+EnumMember::EnumMember(Enum* owner, Token* name, Value* value)
+    : NamedMember(owner, name), value_(value) {
 }
 
-Token* EnumMember::value() const {
+Value* EnumMember::value() const {
   DCHECK(value_) << *this;
   return value_;
 }
 
+// InvalidValue
+InvalidValue::InvalidValue(Type* type, Token* token) : Value(type, token) {
+}
+
 // Literal
-Literal::Literal(Type* type, Token* token) : data_(token), type_(type) {
+Literal::Literal(Type* type, Token* token) : Value(type, token), data_(token) {
 }
 
 // Method
@@ -158,16 +171,22 @@ Namespace::Namespace(Zone* zone, Namespace* outer, Token* name)
     : NamedMember(outer, name), members_(zone) {
 }
 
-Semantic* Namespace::FindMember(Token* name) const {
-  auto const it = members_.find(name->atomic_string());
+// For |Factory::PredefinedTypeFor()|
+Semantic* Namespace::FindMember(AtomicString* name) const {
+  auto const it = members_.find(name);
   return it == members_.end() ? nullptr : it->second;
+}
+
+Semantic* Namespace::FindMember(Token* name) const {
+  return FindMember(name->atomic_string());
 }
 
 // Parameter
 Parameter::Parameter(ast::Parameter* ast_parameter,
                      Type* type,
                      Value* default_value)
-    : ast_parameter_(ast_parameter),
+    : Semantic(ast_parameter->token()),
+      ast_parameter_(ast_parameter),
       default_value_(default_value),
       type_(type) {
 }
@@ -204,7 +223,7 @@ bool Parameter::IsIdentical(const Parameter& other) const {
 }
 
 // Semantic
-Semantic::Semantic() {
+Semantic::Semantic(Token* token) : token_(token) {
 }
 
 Token* Semantic::name() const {
@@ -221,7 +240,8 @@ Semantic* Semantic::outer() const {
 Signature::Signature(Zone* zone,
                      Type* return_type,
                      const std::vector<Parameter*>& parameters)
-    : arity_(ComputeArity(parameters)),
+    : Type(return_type->token()),
+      arity_(ComputeArity(parameters)),
       parameters_(zone, parameters),
       return_type_(return_type) {
 }
@@ -258,11 +278,11 @@ bool Signature::IsSubtypeOf(const Type* other) const {
 }
 
 // Type
-Type::Type() {
+Type::Type(Token* token) : Semantic(token) {
 }
 
 // UndefinedType
-UndefinedType::UndefinedType(ast::Type* ast_type) : ast_type_(ast_type) {
+UndefinedType::UndefinedType(Token* token) : Type(token) {
 }
 
 bool UndefinedType::IsSubtypeOf(const Type* other) const {
@@ -271,11 +291,14 @@ bool UndefinedType::IsSubtypeOf(const Type* other) const {
 
 // Variable
 Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
-    : ast_node_(ast_node), storage_(storage), type_(type) {
+    : Semantic(ast_node->name()),
+      ast_node_(ast_node),
+      storage_(storage),
+      type_(type) {
 }
 
 // Value
-Value::Value() {
+Value::Value(Type* type, Token* token) : Semantic(token), type_(type) {
 }
 
 }  // namespace sm

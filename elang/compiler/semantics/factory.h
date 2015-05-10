@@ -14,6 +14,7 @@
 
 namespace elang {
 namespace compiler {
+class TokenFactory;
 namespace sm {
 
 class Semantics;
@@ -24,11 +25,12 @@ class Semantics;
 //
 class Factory final : public ZoneOwner {
  public:
-  Factory();
+  explicit Factory(TokenFactory* token_factory);
   ~Factory();
 
   Namespace* global_namespace() { return global_namespace_; }
   Semantics* semantics() const { return semantics_.get(); }
+  Namespace* system_namespace() const { return system_namespace_; }
 
   // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
   // Note: it is valid that one of dimension is zero. In this case, number of
@@ -41,8 +43,8 @@ class Factory final : public ZoneOwner {
                   const std::vector<Class*>& base_classes,
                   ast::Class* ast_class);
   Enum* NewEnum(Semantic* outer, Token* name, Type* enum_base);
-  EnumMember* NewEnumMember(Enum* enum_type, Token* name);
-
+  EnumMember* NewEnumMember(Enum* enum_type, Token* name, Value* value);
+  Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(MethodGroup* method_group,
                     Signature* signature,
@@ -59,18 +61,24 @@ class Factory final : public ZoneOwner {
   Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
 
-  UndefinedType* NewUndefinedType(ast::Type* type);
+  UndefinedType* NewUndefinedType(Token* token);
 
   Variable* NewVariable(Type* type,
                         StorageClass storage,
                         ast::NamedNode* variable);
 
+  Type* PredefinedTypeOf(PredefinedName name) const;
+
  private:
   class ArrayTypeFactory;
+
+  void AddMember(Semantic* ns, Semantic* member);
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
   Namespace* const global_namespace_;
   std::unique_ptr<Semantics> semantics_;
+  Namespace* const system_namespace_;
+  TokenFactory* const token_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

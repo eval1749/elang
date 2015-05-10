@@ -82,7 +82,6 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
       outer, ast_class->name(), base_classes, ast_class);
   editor_->SetSemanticOf(ast_class, clazz);
   editor_->SetSemanticOf(ast_class_body, clazz);
-  editor_->AddMember(outer, clazz);
 
   return ast_class_body;
 }

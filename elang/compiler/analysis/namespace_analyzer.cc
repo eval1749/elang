@@ -110,6 +110,10 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
 void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
   if (node->loaded_)
     return;
+  if (node->owner() == session()->global_namespace()) {
+    SetSemanticOf(node, session()->semantics_factory()->global_namespace());
+    return;
+  }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
   DCHECK(outer->is<sm::Namespace>()) << outer;
   if (auto const present = editor()->FindMember(outer, node->name())) {
@@ -437,7 +441,7 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
 
 // The entry point of |NamespaceAnalyzer|.
 bool NamespaceAnalyzer::Run() {
-  VisitNamespaceBody(session()->global_namespace_body());
+  ast::Visitor::VisitNamespaceBody(session()->global_namespace_body());
   if (!session()->errors().empty())
     return false;
   auto succeeded = true;
@@ -571,7 +575,6 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
 
   auto const clazz =
       factory()->NewClass(outer, class_name, direct_base_classes, ast_class);
-  editor()->AddMember(outer, clazz);
   SetSemanticOf(class_body, clazz);
   SetSemanticOf(ast_class, clazz);
   DidResolve(class_body);

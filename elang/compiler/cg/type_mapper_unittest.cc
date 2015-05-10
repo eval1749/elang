@@ -34,7 +34,7 @@ class TypeMapperTest : public testing::CgTest {
   TypeMapperTest();
   ~TypeMapperTest() override = default;
 
-  sm::Factory* ir_factory() { return &ir_factory_; }
+  sm::Factory* semantics_factory() { return session()->semantics_factory(); }
   hir::TypeFactory* types() { return factory()->types(); }
   TypeMapper* type_mapper() { return &type_mapper_; }
 
@@ -55,12 +55,11 @@ class TypeMapperTest : public testing::CgTest {
 
   template <typename R, typename... T>
   sm::Signature* NewSignature(R return_type, T... params) {
-    return ir_factory()->NewSignature(GetIr(return_type),
-                                      NewParameters(params...));
+    return semantics_factory()->NewSignature(GetIr(return_type),
+                                             NewParameters(params...));
   }
 
  private:
-  sm::Factory ir_factory_;
   testing::NamespaceBuilder builder_;
   TypeMapper type_mapper_;
 
@@ -91,7 +90,7 @@ sm::Parameter* TypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_parameter = session()->ast_factory()->NewParameter(
       nullptr, ParameterKind::Required, 0, ast_type, builder_.NewName("param"),
       nullptr);
-  return ir_factory()->NewParameter(ast_parameter, type, nullptr);
+  return semantics_factory()->NewParameter(ast_parameter, type, nullptr);
 }
 
 sm::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {
@@ -102,8 +101,8 @@ TEST_F(TypeMapperTest, ArrayType) {
   std::vector<int> dimensions{-1};
   EXPECT_EQ(types()->NewPointerType(
                 types()->NewArrayType(types()->int32_type(), dimensions)),
-            Map(ir_factory()->NewArrayType(GetIr(PredefinedName::Int32),
-                                           dimensions)));
+            Map(semantics_factory()->NewArrayType(GetIr(PredefinedName::Int32),
+                                                  dimensions)));
 }
 
 TEST_F(TypeMapperTest, FunctionType) {

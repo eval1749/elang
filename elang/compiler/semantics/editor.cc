@@ -29,37 +29,11 @@ sm::Factory* Editor::factory() const {
   return session()->semantics_factory();
 }
 
-void Editor::AddMember(Semantic* container, Semantic* member) {
-  auto const name = member->name();
-  if (auto const clazz = container->as<Class>()) {
-    DCHECK(!FindMember(clazz, name)) << *member;
-    clazz->members_.insert(std::make_pair(name->atomic_string(), member));
-    return;
-  }
-  if (auto const ns = container->as<Namespace>()) {
-    DCHECK(!FindMember(ns, name)) << *member;
-    ns->members_.insert(std::make_pair(name->atomic_string(), member));
-    return;
-  }
-  NOTREACHED() << container << " " << member;
-}
-
-void Editor::AddMethod(MethodGroup* method_group, Method* method) {
-  DCHECK_EQ(method_group, method->method_group());
-  DCHECK(std::find(method_group->methods_.begin(), method_group->methods_.end(),
-                   method) == method_group->methods_.end())
-      << method;
-  method_group->methods_.push_back(method);
-}
-
 MethodGroup* Editor::EnsureMethodGroup(Class* clazz, Token* name) {
   auto const present = FindMember(clazz, name);
   if (auto const method_group = present->as<MethodGroup>())
     return method_group;
-  auto const method_group = factory()->NewMethodGroup(clazz, name);
-  if (!present)
-    AddMember(clazz, method_group);
-  return method_group;
+  return factory()->NewMethodGroup(clazz, name);
 }
 
 Semantic* Editor::FindMember(Semantic* container, Token* name) const {
@@ -75,14 +49,9 @@ Semantic* Editor::FindMember(Semantic* container, Token* name) const {
   return nullptr;
 }
 
-void Editor::FixEnum(sm::Enum* enum_type,
-                     const std::vector<EnumMember*>& members) {
-  DCHECK(enum_type->members_.empty()) << *enum_type;
-#ifndef NDEBUG
-  for (auto const member : members)
-    DCHECK_EQ(enum_type, member->owner());
-#endif
-  enum_type->members_.assign(members.begin(), members.end());
+void Editor::FixEnumMember(sm::EnumMember* member, Value* value) {
+  DCHECK(!member->value_) << *member << " " << value;
+  member->value_ = value;
 }
 
 void Editor::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {

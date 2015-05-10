@@ -9,9 +9,11 @@
 
 #include "base/logging.h"
 #include "elang/base/zone_user.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/semantics.h"
 #include "elang/compiler/semantics/visitor.h"
+#include "elang/compiler/token_factory.h"
 
 namespace {
 using elang::compiler::sm::Type;
@@ -79,13 +81,31 @@ ArrayType* Factory::ArrayTypeFactory::NewArrayType(
 //
 // Factory
 //
-Factory::Factory()
+Factory::Factory(TokenFactory* token_factory)
     : array_type_factory_(new ArrayTypeFactory(zone())),
       global_namespace_(new (zone()) Namespace(zone(), nullptr, nullptr)),
-      semantics_(new Semantics()) {
+      semantics_(new Semantics()),
+      system_namespace_(
+          NewNamespace(global_namespace_, token_factory->system_token())),
+      token_factory_(token_factory) {
 }
 
 Factory::~Factory() {
+}
+
+void Factory::AddMember(Semantic* container, Semantic* member) {
+  auto const name = member->name();
+  if (auto const clazz = container->as<Class>()) {
+    DCHECK(!clazz->FindMember(name)) << *member;
+    clazz->members_.insert(std::make_pair(name->atomic_string(), member));
+    return;
+  }
+  if (auto const ns = container->as<Namespace>()) {
+    DCHECK(!ns->FindMember(name)) << *member;
+    ns->members_.insert(std::make_pair(name->atomic_string(), member));
+    return;
+  }
+  NOTREACHED() << container << " " << member;
 }
 
 ArrayType* Factory::NewArrayType(sm::Type* element_type,
@@ -97,16 +117,26 @@ Class* Factory::NewClass(Semantic* outer,
                          Token* name,
                          const std::vector<Class*>& base_classes,
                          ast::Class* ast_class) {
-  return new (zone()) Class(zone(), outer, name, base_classes, ast_class);
+  auto const clazz =
+      new (zone()) Class(zone(), outer, name, base_classes, ast_class);
+  AddMember(outer, clazz);
+  return clazz;
 }
 
 Enum* Factory::NewEnum(Semantic* outer, Token* name, Type* enum_base) {
-  return new (zone()) Enum(zone(), outer, name, enum_base);
+  auto const enum_type = new (zone()) Enum(zone(), outer, name, enum_base);
+  AddMember(outer, enum_type);
+  return enum_type;
 }
 
-EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {
-  DCHECK(owner->members_.empty());
-  return new (zone()) EnumMember(owner, name);
+EnumMember* Factory::NewEnumMember(Enum* owner, Token* name, Value* value) {
+  auto const member = new (zone()) EnumMember(owner, name, value);
+  owner->members_.push_back(member);
+  return member;
+}
+
+Value* Factory::NewInvalidValue(Type* type, Token* token) {
+  return new (zone()) InvalidValue(type, token);
 }
 
 Literal* Factory::NewLiteral(Type* type, Token* token) {
@@ -116,17 +146,22 @@ Literal* Factory::NewLiteral(Type* type, Token* token) {
 Method* Factory::NewMethod(MethodGroup* method_group,
                            Signature* signature,
                            ast::Method* ast_method) {
-  return new (zone()) Method(method_group, signature, ast_method);
+  auto const method = new (zone()) Method(method_group, signature, ast_method);
+  method_group->methods_.push_back(method);
+  return method;
 }
 
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
-  return new (zone()) MethodGroup(zone(), owner, name);
+  auto const method_group = new (zone()) MethodGroup(zone(), owner, name);
+  AddMember(owner, method_group);
+  return method_group;
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer, Token* name) {
   DCHECK(name);
-  DCHECK(outer);
-  return new (zone()) Namespace(zone(), outer, name);
+  auto const ns = new (zone()) Namespace(zone(), outer, name);
+  AddMember(outer, ns);
+  return ns;
 }
 
 Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
@@ -140,14 +175,22 @@ Signature* Factory::NewSignature(Type* return_type,
   return new (zone()) Signature(zone(), return_type, parameters);
 }
 
-UndefinedType* Factory::NewUndefinedType(ast::Type* type) {
-  return new (zone()) UndefinedType(type);
+UndefinedType* Factory::NewUndefinedType(Token* token) {
+  return new (zone()) UndefinedType(token);
 }
 
 Variable* Factory::NewVariable(Type* type,
                                StorageClass storage,
                                ast::NamedNode* ast_node) {
   return new (zone()) Variable(type, storage, ast_node);
+}
+
+Type* Factory::PredefinedTypeOf(PredefinedName name) const {
+  auto const name_string = token_factory_->AsAtomicString(name);
+  auto const type = system_namespace()->FindMember(name_string);
+  // TODO(eval1749) We should report an error and return |UndefinedType|.
+  DCHECK(type) << "No such predefined type " << name;
+  return type->as<sm::Type>();
 }
 
 }  // namespace sm

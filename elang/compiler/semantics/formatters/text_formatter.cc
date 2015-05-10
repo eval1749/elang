@@ -135,6 +135,10 @@ void Formatter::VisitEnumMember(EnumMember* node) {
   ostream_ << " = " << *node->value();
 }
 
+void Formatter::VisitInvalidValue(InvalidValue* node) {
+  ostream_ << "InvalidValue(" << *node->type() << ", " << node->token() << ")";
+}
+
 void Formatter::VisitLiteral(Literal* literal) {
   ostream_ << *literal->data();
 }
@@ -189,7 +193,7 @@ void Formatter::VisitSignature(Signature* signature) {
 }
 
 void Formatter::VisitUndefinedType(UndefinedType* node) {
-  ostream_ << "UndefinedType(" << *node->ast_type() << ")";
+  ostream_ << "UndefinedType(" << *node->token() << ")";
 }
 
 void Formatter::VisitVariable(Variable* variable) {
