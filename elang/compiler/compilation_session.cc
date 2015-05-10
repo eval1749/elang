@@ -7,6 +7,7 @@
 
 #include "elang/compiler/compilation_session.h"
 
+#include "base/containers/adapters.h"
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
 #include "elang/compiler/analysis/analysis.h"
@@ -158,6 +159,28 @@ sm::Type* CompilationSession::PredefinedTypeOf(PredefinedName name) {
     return semantics_factory()->NewUndefinedType(name_token);
   }
   return type;
+}
+
+AtomicString* CompilationSession::QualifiedNameOf(sm::Semantic* node) {
+  std::vector<sm::Semantic*> components;
+  size_t length = 0;
+  size_t dot_length = 0;
+  for (auto runner = node; runner && runner->name(); runner = runner->outer()) {
+    components.push_back(runner);
+    length += dot_length;
+    length += runner->name()->atomic_string()->string().size();
+    dot_length = 1;
+  }
+  base::string16 name;
+  name.reserve(length);
+  auto need_dot = false;
+  for (auto const component : base::Reversed(components)) {
+    if (need_dot)
+      name.append(1, '.');
+    component->name()->atomic_string()->string().AppendToString(&name);
+    need_dot = true;
+  }
+  return NewAtomicString(name);
 }
 
 ast::NamedNode* CompilationSession::QueryAstNode(base::StringPiece16 name) {

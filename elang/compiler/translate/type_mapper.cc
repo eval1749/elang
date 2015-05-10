@@ -58,8 +58,8 @@ ir::Type* IrTypeMapper::Map(sm::Type* sm_type) {
 
   if (auto const sm_class = sm_type->as<sm::Class>()) {
     // sm::Class => ir::ExternalType(class_name)
-    auto const ir_type = type_factory_->NewExternalType(
-        session()->NewAtomicString(sm_class->ast_class()->NewQualifiedName()));
+    auto const ir_type =
+        type_factory_->NewExternalType(session()->QualifiedNameOf(sm_class));
     InstallType(sm_type, ir_type);
     return ir_type;
   }

@@ -117,6 +117,8 @@ class CompilationSession final : public ZoneOwner {
   void RegisterFunction(ast::Method* method, hir::Function* function);
   void RegisterFunction(ast::Method* method, ir::Function* function);
 
+  AtomicString* QualifiedNameOf(sm::Semantic* node);
+
   // Returns |ast::Node| which qualified name is |qualified_name|.
   ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
 

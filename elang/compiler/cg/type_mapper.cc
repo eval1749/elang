@@ -62,8 +62,8 @@ hir::Type* TypeMapper::Map(sm::Type* type) {
 
   if (auto const clazz = type->as<sm::Class>()) {
     // sm::Class => hir::ExternalType(class_name)
-    auto const hir_type = types()->NewExternalType(
-        session()->NewAtomicString(clazz->ast_class()->NewQualifiedName()));
+    auto const hir_type =
+        types()->NewExternalType(session()->QualifiedNameOf(clazz));
     InstallType(type, hir_type);
     return hir_type;
   }

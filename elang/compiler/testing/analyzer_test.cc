@@ -219,8 +219,7 @@ std::string AnalyzerTest::MakeClassListString(
   std::stringstream ostream;
   auto separator = "";
   for (auto const ir_base_class : ir_classes) {
-    ostream << separator;
-    ostream << ir_base_class->ast_class()->NewQualifiedName();
+    ostream << separator << ir_base_class;
     separator = " ";
   }
   return ostream.str();

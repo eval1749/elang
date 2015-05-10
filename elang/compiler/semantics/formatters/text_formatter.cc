@@ -66,19 +66,14 @@ struct AsPath {
 };
 
 std::ostream& operator<<(std::ostream& ostream, const AsPath& path) {
-  std::vector<Token*> names;
-  auto runner = path.last_component;
-  names.push_back(runner->name());
-  for (;;) {
-    runner = runner->outer();
-    if (!runner || !runner->name())
-      break;
-    names.push_back(runner->name());
-    runner = runner->outer();
+  std::vector<Semantic*> components;
+  for (auto runner = path.last_component; runner && runner->name();
+       runner = runner->outer()) {
+    components.push_back(runner);
   }
   auto separator = "";
-  for (auto name : base::Reversed(names)) {
-    ostream << separator << name;
+  for (auto component : base::Reversed(components)) {
+    ostream << separator << component->name();
     separator = ".";
   }
   return ostream;
