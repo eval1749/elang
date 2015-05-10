@@ -148,12 +148,10 @@ void Formatter::VisitLiteral(Literal* literal) {
 }
 
 void Formatter::VisitMethod(Method* method) {
-  // TODO(eval1749) We should output FQN for method.
-  ostream_ << *method->return_type() << " "
-           << method->ast_method()->NewQualifiedName() << "(";
+  ostream_ << *method->return_type() << " " << AsPath{method} << "(";
   auto separator = "";
   for (auto const parameter : method->parameters()) {
-    ostream_ << separator << *parameter;
+    ostream_ << separator << *parameter->type();
     separator = ", ";
   }
   ostream_ << ")";

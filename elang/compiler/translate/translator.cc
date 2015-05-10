@@ -300,14 +300,7 @@ ir::Data* Translator::TranslateMethodReference(sm::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
   // |sm::Method|.
   std::stringstream ostream;
-  ostream << *method->return_type() << " "
-          << method->ast_method()->NewQualifiedName() << "(";
-  auto separator = "";
-  for (auto const parameter : method->parameters()) {
-    ostream << separator << *parameter->type();
-    separator = ", ";
-  }
-  ostream << ")";
+  ostream << *method;
   auto const method_name =
       factory()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));
   return factory()->NewReference(MapType(method->signature()), method_name);

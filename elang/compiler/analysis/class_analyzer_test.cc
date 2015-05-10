@@ -42,10 +42,10 @@ TEST_F(ClassAnalyzerTest, Method) {
       "  }");
   EXPECT_EQ("", AnalyzeClass());
   EXPECT_EQ(
-      "System.Bool Sample.Foo(System.Int32 x)\n"
-      "System.Bool Sample.Foo(System.Float32 x)\n"
-      "System.Bool Sample.Foo(System.Float64 x)\n"
-      "System.Char Sample.Foo(System.Char x, System.Int32 y)\n",
+      "System.Bool Sample.Foo(System.Int32)\n"
+      "System.Bool Sample.Foo(System.Float32)\n"
+      "System.Bool Sample.Foo(System.Float64)\n"
+      "System.Char Sample.Foo(System.Char, System.Int32)\n",
       GetMethodGroup("Sample.Foo"));
 }
 

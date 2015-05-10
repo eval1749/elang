@@ -73,7 +73,7 @@ bool MethodQuery::Match(QueryContext* context, ast::Node* node) const {
       context->session->analysis()->SemanticOf(node)->as<sm::Method>();
   if (!method)
     return false;
-  if (!MatchName(name_, method->ast_method()->name()))
+  if (!MatchName(name_, method->name()))
     return false;
   if (return_type_ && method->return_type() != return_type_)
     return false;

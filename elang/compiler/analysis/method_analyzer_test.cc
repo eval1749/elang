@@ -520,7 +520,7 @@ TEST_F(MethodAnalyzerTest, Method) {
       "class Sample {"
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
-  EXPECT_EQ("System.Void System.Console.WriteLine(System.String string)\n",
+  EXPECT_EQ("System.Void System.Console.WriteLine(System.String)\n",
             GetCalls("Sample.Main"));
 }
 
@@ -534,9 +534,9 @@ TEST_F(MethodAnalyzerTest, Method2) {
       "    void Main() { Foo('a'); Foo(123); Foo(12.3); }"
       "  }");
   EXPECT_EQ(
-      "System.Void Sample.Foo(System.Char x)\n"
-      "System.Void Sample.Foo(System.Int32 x)\n"
-      "System.Void Sample.Foo(System.Float64 x)\n",
+      "System.Void Sample.Foo(System.Char)\n"
+      "System.Void Sample.Foo(System.Int32)\n"
+      "System.Void Sample.Foo(System.Float64)\n",
       GetCalls("Sample.Main"));
 }
 
@@ -584,8 +584,8 @@ TEST_F(MethodAnalyzerTest, TypeVariable) {
       "    void Main() { var x = Foo('a'); Foo(x); }"
       "  }");
   EXPECT_EQ(
-      "System.Char Sample.Foo(System.Char x)\n"
-      "System.Char Sample.Foo(System.Char x)\n",
+      "System.Char Sample.Foo(System.Char)\n"
+      "System.Char Sample.Foo(System.Char)\n",
       GetCalls("Sample.Main"));
 }
 

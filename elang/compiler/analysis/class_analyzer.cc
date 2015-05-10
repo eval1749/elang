@@ -235,7 +235,7 @@ void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
     analyzer_->Error(other->return_type() == return_type
                          ? ErrorCode::ClassResolutionMethodDuplicate
                          : ErrorCode::ClassResolutionMethodConflict,
-                     ast_method, other->ast_method());
+                     ast_method->name(), other->name());
   }
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
