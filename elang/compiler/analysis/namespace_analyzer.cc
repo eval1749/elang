@@ -108,7 +108,7 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
 }
 
 void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
-  if (node == session()->global_namespace_body())
+  if (node->loaded_)
     return;
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
   DCHECK(outer->is<sm::Namespace>()) << outer;

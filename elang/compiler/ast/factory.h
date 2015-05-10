@@ -9,12 +9,14 @@
 #include <vector>
 
 #include "base/strings/string_piece.h"
+#include "elang/base/zone_user.h"
 #include "elang/base/float_types.h"
 #include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/source_code_range.h"
 
 namespace elang {
 namespace compiler {
+class CompilationSession;
 class Modifiers;
 class Token;
 
@@ -24,10 +26,19 @@ namespace ast {
 //
 // Factory
 //
-class Factory final {
+class Factory final : public ZoneUser {
  public:
-  explicit Factory(Zone* zone);
+  explicit Factory(CompilationSession* session);
   ~Factory();
+
+  Namespace* global_namespace() const;
+  NamespaceBody* global_namespace_body() const {
+    return global_namespace_body_;
+  }
+  Namespace* system_namespace() const;
+  NamespaceBody* system_namespace_body() const {
+    return system_namespace_body_;
+  }
 
   // Declaration related nodes
   Alias* NewAlias(NamespaceBody* namespace_body,
@@ -176,7 +187,8 @@ class Factory final {
   Node* RememberNode(Node* node);
   void SetParent(Node* child, Node* parent);
 
-  Zone* const zone_;
+  NamespaceBody* const global_namespace_body_;
+  NamespaceBody* const system_namespace_body_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };

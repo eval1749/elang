@@ -5,29 +5,66 @@
 #ifndef ELANG_COMPILER_TOKEN_FACTORY_H_
 #define ELANG_COMPILER_TOKEN_FACTORY_H_
 
+#include <memory>
+#include <string>
+
 #include "base/macros.h"
+#include "base/strings/string16.h"
+#include "base/strings/string_piece.h"
+#include "elang/base/zone_user.h"
 
 namespace elang {
+class AtomicString;
+class AtomicStringFactory;
 class Zone;
-namespace compiler {
 
+namespace compiler {
+enum class PredefinedName;
+class PredefinedNames;
+class SourceCode;
 class SourceCodeRange;
 class Token;
 class TokenData;
+enum class TokenType;
 
 //////////////////////////////////////////////////////////////////////
 //
 // TokenFactory
 //
-class TokenFactory {
+class TokenFactory final : public ZoneUser {
  public:
   explicit TokenFactory(Zone* zone);
   ~TokenFactory();
 
+  AtomicStringFactory* atomic_string_factory() const {
+    return atomic_string_factory_.get();
+  }
+  Token* system_token() const { return system_token_; }
+
+  AtomicString* AsAtomicString(PredefinedName name) const;
+  AtomicString* NewAtomicString(base::StringPiece16 string);
+
+  // Allocate |base::StringPiece16| object in zone used for string backing
+  // store for |TokenData|.
+  base::StringPiece16* NewString(base::StringPiece16 string);
+
+  // Returns a token for referencing system object, e.g. System.Object.
+  Token* NewSystemKeyword(TokenType type, base::StringPiece16 name);
+  Token* NewSystemName(base::StringPiece16 name);
+
   Token* NewToken(const SourceCodeRange& source_range, const TokenData& data);
 
+  // Returns new unique name token.
+  Token* NewUniqueNameToken(const SourceCodeRange& location,
+                            const base::char16* format);
+
  private:
-  Zone* const zone_;
+  SourceCodeRange internal_code_location() const;
+
+  const std::unique_ptr<AtomicStringFactory> atomic_string_factory_;
+  const std::unique_ptr<PredefinedNames> predefined_names_;
+  const std::unique_ptr<SourceCode> source_code_;
+  Token* const system_token_;
 
   DISALLOW_COPY_AND_ASSIGN(TokenFactory);
 };

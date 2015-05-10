@@ -6,15 +6,14 @@
 #define ELANG_COMPILER_PREDEFINED_NAMES_H_
 
 #include <array>
-#include <ostream>
+#include <iosfwd>
 
 #include "base/macros.h"
-#include "elang/compiler/ast/nodes_forward.h"
 
 namespace elang {
 class AtomicString;
 namespace compiler {
-class CompilationSession;
+class TokenFactory;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -56,10 +55,10 @@ const size_t kNumberOfPredefinedNames =
 //
 class PredefinedNames final {
  public:
-  explicit PredefinedNames(CompilationSession* session);
+  explicit PredefinedNames(TokenFactory* session);
   ~PredefinedNames();
 
-  AtomicString* name_for(PredefinedName name) const;
+  AtomicString* AsAtomicString(PredefinedName name) const;
 
  private:
   std::array<AtomicString*, kNumberOfPredefinedNames> names_;

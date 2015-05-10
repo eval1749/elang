@@ -14,11 +14,52 @@
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/ast/visitor.h"
+#include "elang/compiler/compilation_session.h"
+#include "elang/compiler/token_factory.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
 namespace ast {
+
+namespace {
+
+Namespace* NewNamespace(Factory* factory, Namespace* outer, Token* name) {
+  auto const ns = factory->NewNamespace(outer, outer->keyword(), name);
+  if (outer)
+    outer->AddNamedMember(ns);
+  return ns;
+}
+
+NamespaceBody* NewNamespaceBody(Factory* factory,
+                                NamespaceBody* outer,
+                                Namespace* owner) {
+  auto const body = factory->NewNamespaceBody(outer, owner);
+  if (outer)
+    outer->AddMember(body);
+  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
+  body->loaded_ = true;
+  return body;
+}
+
+NamespaceBody* NewGlobalNamespaceBody(CompilationSession* session,
+                                      Factory* factory) {
+  auto const keyword = session->token_factory()->NewSystemKeyword(
+      TokenType::Namespace, L"namespace");
+  auto const name = session->token_factory()->NewSystemName(L"global");
+  auto const ns = factory->NewNamespace(nullptr, keyword, name);
+  return NewNamespaceBody(factory, nullptr, ns);
+}
+
+NamespaceBody* NewSystemNamespaceBody(CompilationSession* session,
+                                      Factory* factory) {
+  auto const name = session->token_factory()->system_token();
+  auto const outer = factory->global_namespace();
+  auto const ns = NewNamespace(factory, outer, name);
+  return NewNamespaceBody(factory, factory->global_namespace_body(), ns);
+}
+
+}  // namespace
 
 // Visitor related functions.
 #define V(Name) \
@@ -44,10 +85,21 @@ void Visitor::DoDefaultVisit(Node* node) {
 //
 // Factory
 //
-Factory::Factory(Zone* zone) : zone_(zone) {
+Factory::Factory(CompilationSession* session)
+    : ZoneUser(session->zone()),
+      global_namespace_body_(NewGlobalNamespaceBody(session, this)),
+      system_namespace_body_(NewSystemNamespaceBody(session, this)) {
 }
 
 Factory::~Factory() {
+}
+
+Namespace* Factory::global_namespace() const {
+  return global_namespace_body_->owner();
+}
+
+Namespace* Factory::system_namespace() const {
+  return system_namespace_body_->owner();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -59,7 +111,7 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
                          Token* alias_name,
                          Expression* reference) {
   auto const node =
-      new (zone_) Alias(namespace_body, keyword, alias_name, reference);
+      new (zone()) Alias(namespace_body, keyword, alias_name, reference);
   SetParent(reference, node);
   return node;
 }
@@ -68,14 +120,14 @@ Class* Factory::NewClass(NamespaceNode* outer,
                          Modifiers modifiers,
                          Token* keyword,
                          Token* name) {
-  return new (zone_) Class(zone_, outer, modifiers, keyword, name);
+  return new (zone()) Class(zone(), outer, modifiers, keyword, name);
 }
 
 ClassBody* Factory::NewClassBody(BodyNode* outer,
                                  Class* owner,
                                  const std::vector<Type*>& base_class_names) {
   auto const node =
-      new (zone_) ClassBody(zone_, outer, owner, base_class_names);
+      new (zone()) ClassBody(zone(), outer, owner, base_class_names);
   for (auto const base_class_name : base_class_names)
     SetParent(base_class_name, node);
   return node;
@@ -87,7 +139,7 @@ Enum* Factory::NewEnum(BodyNode* container,
                        Token* name,
                        Type* enum_base) {
   auto const node =
-      new (zone_) Enum(zone_, container, modifiers, keyword, name, enum_base);
+      new (zone()) Enum(zone(), container, modifiers, keyword, name, enum_base);
   if (enum_base)
     SetParent(enum_base, node);
   return node;
@@ -97,7 +149,7 @@ EnumMember* Factory::NewEnumMember(Enum* owner,
                                    Token* name,
                                    int position,
                                    Expression* expression) {
-  auto const node = new (zone_) EnumMember(owner, name, position, expression);
+  auto const node = new (zone()) EnumMember(owner, name, position, expression);
   if (expression)
     SetParent(expression, node);
   return node;
@@ -108,7 +160,8 @@ Field* Factory::NewField(ClassBody* outer,
                          Type* type,
                          Token* name,
                          Expression* expression) {
-  auto const node = new (zone_) Field(outer, modifiers, type, name, expression);
+  auto const node =
+      new (zone()) Field(outer, modifiers, type, name, expression);
   if (expression)
     SetParent(expression, node);
   if (!type->parent_)
@@ -119,7 +172,7 @@ Field* Factory::NewField(ClassBody* outer,
 Import* Factory::NewImport(NamespaceBody* namespace_body,
                            Token* keyword,
                            Expression* reference) {
-  auto const node = new (zone_) Import(namespace_body, keyword, reference);
+  auto const node = new (zone()) Import(namespace_body, keyword, reference);
   SetParent(reference, node);
   return node;
 }
@@ -130,31 +183,31 @@ Method* Factory::NewMethod(ClassBody* outer,
                            Type* return_type,
                            Token* name,
                            const std::vector<Token*>& type_parameters) {
-  auto const node = new (zone_) Method(zone_, outer, method_group, modifies,
-                                       return_type, name, type_parameters);
+  auto const node = new (zone()) Method(zone(), outer, method_group, modifies,
+                                        return_type, name, type_parameters);
   SetParent(return_type, node);
   return node;
 }
 
 MethodBody* Factory::NewMethodBody(Method* method) {
-  return new (zone_) MethodBody(zone_, method);
+  return new (zone()) MethodBody(zone(), method);
 }
 
 MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
   DCHECK(name->is_name());
-  return new (zone_) MethodGroup(zone_, owner, name);
+  return new (zone()) MethodGroup(zone(), owner, name);
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer,
                                  Token* keyword,
                                  Token* name) {
   DCHECK_EQ(keyword->type(), TokenType::Namespace);
-  return new (zone_) Namespace(zone_, outer, keyword, name);
+  return new (zone()) Namespace(zone(), outer, keyword, name);
 }
 
 NamespaceBody* Factory::NewNamespaceBody(NamespaceBody* outer,
                                          Namespace* owner) {
-  return new (zone_) NamespaceBody(zone_, outer, owner);
+  return new (zone()) NamespaceBody(zone(), outer, owner);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -164,7 +217,7 @@ NamespaceBody* Factory::NewNamespaceBody(NamespaceBody* outer,
 ArrayAccess* Factory::NewArrayAccess(Token* bracket,
                                      Expression* array,
                                      const std::vector<Expression*> indexes) {
-  auto const node = new (zone_) ArrayAccess(zone_, bracket, array, indexes);
+  auto const node = new (zone()) ArrayAccess(zone(), bracket, array, indexes);
   SetParent(array, node);
   for (auto const index : indexes)
     SetParent(index, node);
@@ -174,7 +227,7 @@ ArrayAccess* Factory::NewArrayAccess(Token* bracket,
 Assignment* Factory::NewAssignment(Token* op,
                                    Expression* left,
                                    Expression* right) {
-  auto const node = new (zone_) Assignment(op, left, right);
+  auto const node = new (zone()) Assignment(op, left, right);
   SetParent(left, node);
   SetParent(right, node);
   return node;
@@ -183,7 +236,7 @@ Assignment* Factory::NewAssignment(Token* op,
 BinaryOperation* Factory::NewBinaryOperation(Token* op,
                                              Expression* left,
                                              Expression* right) {
-  auto const node = new (zone_) BinaryOperation(op, left, right);
+  auto const node = new (zone()) BinaryOperation(op, left, right);
   SetParent(left, node);
   SetParent(right, node);
   return node;
@@ -194,7 +247,7 @@ Conditional* Factory::NewConditional(Token* op,
                                      Expression* then_expr,
                                      Expression* else_expr) {
   auto const node =
-      new (zone_) Conditional(op, cond_expr, then_expr, else_expr);
+      new (zone()) Conditional(op, cond_expr, then_expr, else_expr);
   SetParent(cond_expr, node);
   SetParent(then_expr, node);
   SetParent(else_expr, node);
@@ -204,7 +257,7 @@ Conditional* Factory::NewConditional(Token* op,
 ConstructedName* Factory::NewConstructedName(
     NameReference* reference,
     const std::vector<Type*>& arguments) {
-  auto const node = new (zone_) ConstructedName(zone_, reference, arguments);
+  auto const node = new (zone()) ConstructedName(zone(), reference, arguments);
   SetParent(reference, node);
   for (auto const argument : arguments)
     SetParent(argument, node);
@@ -213,23 +266,23 @@ ConstructedName* Factory::NewConstructedName(
 
 IncrementExpression* Factory::NewIncrementExpression(Token* op,
                                                      Expression* expr) {
-  auto const node = new (zone_) IncrementExpression(op, expr);
+  auto const node = new (zone()) IncrementExpression(op, expr);
   SetParent(expr, node);
   return node;
 }
 
 InvalidExpression* Factory::NewInvalidExpression(Token* token) {
-  return new (zone_) InvalidExpression(token);
+  return new (zone()) InvalidExpression(token);
 }
 
 Literal* Factory::NewLiteral(Token* literal) {
-  return new (zone_) Literal(literal);
+  return new (zone()) Literal(literal);
 }
 
 MemberAccess* Factory::NewMemberAccess(
     Token* name,
     const std::vector<Expression*>& components) {
-  auto const node = new (zone_) MemberAccess(zone_, name, components);
+  auto const node = new (zone()) MemberAccess(zone(), name, components);
   for (auto const component : components) {
     component->parent_ = nullptr;
     SetParent(component, node);
@@ -238,23 +291,23 @@ MemberAccess* Factory::NewMemberAccess(
 }
 
 NameReference* Factory::NewNameReference(Token* name) {
-  return new (zone_) NameReference(name);
+  return new (zone()) NameReference(name);
 }
 
 ParameterReference* Factory::NewParameterReference(Token* name,
                                                    Parameter* parameter) {
-  return new (zone_) ParameterReference(name, parameter);
+  return new (zone()) ParameterReference(name, parameter);
 }
 
 UnaryOperation* Factory::NewUnaryOperation(Token* op, Expression* expr) {
-  auto const node = new (zone_) UnaryOperation(op, expr);
+  auto const node = new (zone()) UnaryOperation(op, expr);
   SetParent(expr, node);
   return node;
 }
 
 VariableReference* Factory::NewVariableReference(Token* name,
                                                  Variable* variable) {
-  return new (zone_) VariableReference(name, variable);
+  return new (zone()) VariableReference(name, variable);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -264,19 +317,19 @@ VariableReference* Factory::NewVariableReference(Token* name,
 BlockStatement* Factory::NewBlockStatement(
     Token* keyword,
     const std::vector<Statement*> statements) {
-  auto const node = new (zone_) BlockStatement(zone_, keyword, statements);
+  auto const node = new (zone()) BlockStatement(zone(), keyword, statements);
   for (auto const statement : statements)
     SetParent(statement, node);
   return node;
 }
 
 BreakStatement* Factory::NewBreakStatement(Token* keyword) {
-  return new (zone_) BreakStatement(keyword);
+  return new (zone()) BreakStatement(keyword);
 }
 
 Call* Factory::NewCall(Expression* callee,
                        const std::vector<Expression*> arguments) {
-  auto const node = new (zone_) Call(zone_, callee, arguments);
+  auto const node = new (zone()) Call(zone(), callee, arguments);
   SetParent(callee, node);
   for (auto const argument : arguments)
     SetParent(argument, node);
@@ -287,40 +340,40 @@ CatchClause* Factory::NewCatchClause(Token* keyword,
                                      Type* type,
                                      Variable* variable,
                                      BlockStatement* block) {
-  auto const node = new (zone_) CatchClause(keyword, type, variable, block);
+  auto const node = new (zone()) CatchClause(keyword, type, variable, block);
   SetParent(type, node);
   SetParent(block, node);
   return node;
 }
 
 ContinueStatement* Factory::NewContinueStatement(Token* keyword) {
-  return new (zone_) ContinueStatement(keyword);
+  return new (zone()) ContinueStatement(keyword);
 }
 
 DoStatement* Factory::NewDoStatement(Token* keyword,
                                      Statement* statement,
                                      Expression* condition) {
-  auto const node = new (zone_) DoStatement(keyword, statement, condition);
+  auto const node = new (zone()) DoStatement(keyword, statement, condition);
   SetParent(statement, node);
   SetParent(condition, node);
   return node;
 }
 
 EmptyStatement* Factory::NewEmptyStatement(Token* keyword) {
-  return new (zone_) EmptyStatement(keyword);
+  return new (zone()) EmptyStatement(keyword);
 }
 
 ExpressionList* Factory::NewExpressionList(
     Token* keyword,
     const std::vector<Expression*>& expressions) {
-  auto const node = new (zone_) ExpressionList(keyword, expressions);
+  auto const node = new (zone()) ExpressionList(keyword, expressions);
   for (auto const expression : expressions)
     SetParent(expression, node);
   return node;
 }
 
 ExpressionStatement* Factory::NewExpressionStatement(Expression* expression) {
-  auto const node = new (zone_) ExpressionStatement(expression);
+  auto const node = new (zone()) ExpressionStatement(expression);
   SetParent(expression, node);
   return node;
 }
@@ -330,7 +383,7 @@ ForEachStatement* Factory::NewForEachStatement(Token* keyword,
                                                Expression* enumerable,
                                                Statement* statement) {
   auto const node =
-      new (zone_) ForEachStatement(keyword, variable, enumerable, statement);
+      new (zone()) ForEachStatement(keyword, variable, enumerable, statement);
   SetParent(enumerable, node);
   SetParent(statement, node);
   return node;
@@ -341,7 +394,7 @@ ForStatement* Factory::NewForStatement(Token* keyword,
                                        Expression* condition,
                                        Statement* step,
                                        Statement* statement) {
-  auto const node = new (zone_)
+  auto const node = new (zone())
       ForStatement(keyword, initializer, condition, step, statement);
   if (initializer)
     SetParent(initializer, node);
@@ -356,7 +409,7 @@ IfStatement* Factory::NewIfStatement(Token* keyword,
                                      Expression* condition,
                                      Statement* then_statement,
                                      Statement* else_statement) {
-  auto const node = new (zone_)
+  auto const node = new (zone())
       IfStatement(keyword, condition, then_statement, else_statement);
   SetParent(condition, node);
   SetParent(then_statement, node);
@@ -366,19 +419,19 @@ IfStatement* Factory::NewIfStatement(Token* keyword,
 }
 
 InvalidStatement* Factory::NewInvalidStatement(Token* token) {
-  return new (zone_) InvalidStatement(token);
+  return new (zone()) InvalidStatement(token);
 }
 
 ReturnStatement* Factory::NewReturnStatement(Token* keyword,
                                              Expression* value) {
-  auto const node = new (zone_) ReturnStatement(keyword, value);
+  auto const node = new (zone()) ReturnStatement(keyword, value);
   if (value)
     SetParent(value, node);
   return node;
 }
 
 ThrowStatement* Factory::NewThrowStatement(Token* keyword, Expression* value) {
-  auto const node = new (zone_) ThrowStatement(keyword, value);
+  auto const node = new (zone()) ThrowStatement(keyword, value);
   if (value)
     SetParent(value, node);
   return node;
@@ -389,8 +442,8 @@ TryStatement* Factory::NewTryStatement(
     BlockStatement* protected_block,
     const std::vector<CatchClause*>& catch_clauses,
     BlockStatement* finally_block) {
-  auto const node = new (zone_) TryStatement(zone_, keyword, protected_block,
-                                             catch_clauses, finally_block);
+  auto const node = new (zone()) TryStatement(zone(), keyword, protected_block,
+                                              catch_clauses, finally_block);
   SetParent(protected_block, node);
   if (finally_block)
     SetParent(finally_block, node);
@@ -402,7 +455,7 @@ UsingStatement* Factory::NewUsingStatement(Token* keyword,
                                            Expression* resource,
                                            Statement* statement) {
   auto const node =
-      new (zone_) UsingStatement(keyword, variable, resource, statement);
+      new (zone()) UsingStatement(keyword, variable, resource, statement);
   SetParent(resource, node);
   SetParent(statement, node);
   return node;
@@ -411,7 +464,7 @@ UsingStatement* Factory::NewUsingStatement(Token* keyword,
 VarDeclaration* Factory::NewVarDeclaration(Token* token,
                                            Variable* variable,
                                            Expression* expression) {
-  auto const node = new (zone_) VarDeclaration(token, variable, expression);
+  auto const node = new (zone()) VarDeclaration(token, variable, expression);
   SetParent(expression, node);
   return node;
 }
@@ -419,7 +472,7 @@ VarDeclaration* Factory::NewVarDeclaration(Token* token,
 VarStatement* Factory::NewVarStatement(
     Token* keyword,
     const std::vector<VarDeclaration*>& declarations) {
-  auto const node = new (zone_) VarStatement(zone_, keyword, declarations);
+  auto const node = new (zone()) VarStatement(zone(), keyword, declarations);
   for (auto const declaration : declarations) {
     if (!declaration->variable()->type()->parent())
       SetParent(declaration->variable()->type(), node);
@@ -431,14 +484,14 @@ VarStatement* Factory::NewVarStatement(
 WhileStatement* Factory::NewWhileStatement(Token* keyword,
                                            Expression* condition,
                                            Statement* statement) {
-  auto const node = new (zone_) WhileStatement(keyword, condition, statement);
+  auto const node = new (zone()) WhileStatement(keyword, condition, statement);
   SetParent(condition, node);
   SetParent(statement, node);
   return node;
 }
 
 YieldStatement* Factory::NewYieldStatement(Token* keyword, Expression* value) {
-  auto const node = new (zone_) YieldStatement(keyword, value);
+  auto const node = new (zone()) YieldStatement(keyword, value);
   SetParent(value, node);
   return node;
 }
@@ -450,25 +503,26 @@ YieldStatement* Factory::NewYieldStatement(Token* keyword, Expression* value) {
 ArrayType* Factory::NewArrayType(Token* op,
                                  Type* element_type,
                                  const std::vector<int>& dimensions) {
-  auto const node = new (zone_) ArrayType(zone_, op, element_type, dimensions);
+  auto const node =
+      new (zone()) ArrayType(zone(), op, element_type, dimensions);
   SetParent(element_type, node);
   return node;
 }
 
 ConstructedType* Factory::NewConstructedType(ConstructedName* reference) {
-  auto const node = new (zone_) ConstructedType(reference);
+  auto const node = new (zone()) ConstructedType(reference);
   SetParent(reference, node);
   return node;
 }
 
 InvalidType* Factory::NewInvalidType(Expression* expression) {
-  auto const node = new (zone_) InvalidType(expression);
+  auto const node = new (zone()) InvalidType(expression);
   SetParent(expression, node);
   return node;
 }
 
 OptionalType* Factory::NewOptionalType(Token* token, Type* base_type) {
-  auto const node = new (zone_) OptionalType(token, base_type);
+  auto const node = new (zone()) OptionalType(token, base_type);
   SetParent(base_type, node);
   return node;
 }
@@ -481,7 +535,7 @@ TypeMemberAccess* Factory::NewTypeMemberAccess(NamespaceBody* namespace_body,
 }
 
 TypeMemberAccess* Factory::NewTypeMemberAccess(MemberAccess* reference) {
-  auto const node = new (zone_) TypeMemberAccess(reference);
+  auto const node = new (zone()) TypeMemberAccess(reference);
   SetParent(reference, node);
   return node;
 }
@@ -494,7 +548,7 @@ TypeNameReference* Factory::NewTypeNameReference(NamespaceBody* namespace_body,
 }
 
 TypeNameReference* Factory::NewTypeNameReference(NameReference* reference) {
-  auto const node = new (zone_) TypeNameReference(reference);
+  auto const node = new (zone()) TypeNameReference(reference);
   SetParent(reference, node);
   return node;
 }
@@ -510,7 +564,7 @@ Parameter* Factory::NewParameter(Method* owner,
                                  Token* name,
                                  Expression* value) {
   auto const node =
-      new (zone_) Parameter(owner, kind, position, type, name, value);
+      new (zone()) Parameter(owner, kind, position, type, name, value);
   SetParent(type, owner);
   if (value)
     SetParent(value, owner);
@@ -518,7 +572,7 @@ Parameter* Factory::NewParameter(Method* owner,
 }
 
 Variable* Factory::NewVariable(Token* keyword, Type* type, Token* name) {
-  return new (zone_) Variable(keyword, type, name);
+  return new (zone()) Variable(keyword, type, name);
 }
 
 //////////////////////////////////////////////////////////////////////

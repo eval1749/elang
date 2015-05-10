@@ -6,15 +6,15 @@
 
 #include "elang/compiler/predefined_names.h"
 
-#include "elang/compiler/compilation_session.h"
+#include "elang/compiler/token_factory.h"
 
 namespace elang {
 namespace compiler {
 
-PredefinedNames::PredefinedNames(CompilationSession* session) {
+PredefinedNames::PredefinedNames(TokenFactory* factory) {
 #define V(Name)                                       \
   names_[static_cast<size_t>(PredefinedName::Name)] = \
-      session->NewAtomicString(L## #Name);
+      factory->NewAtomicString(L## #Name);
   FOR_EACH_PREDEFINED_NAME(V)
 #undef V
 }
@@ -22,7 +22,7 @@ PredefinedNames::PredefinedNames(CompilationSession* session) {
 PredefinedNames::~PredefinedNames() {
 }
 
-AtomicString* PredefinedNames::name_for(PredefinedName name) const {
+AtomicString* PredefinedNames::AsAtomicString(PredefinedName name) const {
   return names_[static_cast<size_t>(name)];
 }
 

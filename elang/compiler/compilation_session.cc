@@ -9,12 +9,10 @@
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
-#include "elang/base/atomic_string_factory.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_unit.h"
-#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/editor.h"
@@ -30,50 +28,18 @@ namespace compiler {
 
 namespace {
 
-ast::Namespace* CreateGlobalNamespace(CompilationSession* session,
-                                      SourceCode* source_code) {
-  auto const keyword = session->NewToken(
-      SourceCodeRange(source_code, 0, 0),
-      TokenData(TokenType::Namespace, session->NewAtomicString(L"namespace")));
-
-  return session->ast_factory()->NewNamespace(
-      nullptr, keyword, session->NewToken(keyword->location(),
-                                          session->NewAtomicString(L"global")));
-}
-
-ast::Namespace* CreateNamespace(CompilationSession* session,
-                                ast::NamespaceBody* ns_body,
-                                base::StringPiece16 name) {
-  auto const enclosing_ns = ns_body->owner();
-  auto const ns = session->ast_factory()->NewNamespace(
-      enclosing_ns, enclosing_ns->keyword(),
-      session->NewToken(enclosing_ns->keyword()->location(),
-                        session->NewAtomicString(name)));
-  enclosing_ns->AddNamedMember(ns);
-  return ns;
-}
-
-ast::NamespaceBody* CreateNamespaceBody(CompilationSession* session,
-                                        ast::NamespaceBody* outer,
-                                        ast::Namespace* owner) {
-  auto const body = session->ast_factory()->NewNamespaceBody(outer, owner);
-  if (outer)
-    outer->AddMember(body);
-  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
-  body->loaded_ = true;
-  return body;
-}
-
 void PopulateSemantics(CompilationSession* session) {
   sm::Editor editor(session);
+
   auto const global_namespace =
       session->semantics_factory()->global_namespace();
   editor.SetSemanticOf(session->global_namespace(), global_namespace);
   editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
-  auto const system_namespace = session->semantics_factory()->NewNamespace(
-      global_namespace, session->system_namespace()->name());
+
+  auto const system_namespace =
+      session->semantics_factory()->system_namespace();
   editor.SetSemanticOf(session->system_namespace(), system_namespace);
-  editor.AddMember(global_namespace, system_namespace);
+  editor.SetSemanticOf(session->system_namespace_body(), system_namespace);
 }
 
 }  // namespace
@@ -83,28 +49,41 @@ void PopulateSemantics(CompilationSession* session) {
 // CompilationSession
 //
 CompilationSession::CompilationSession()
-    : ast_factory_(new ast::Factory(zone())),
-      atomic_string_factory_(new AtomicStringFactory()),
-      predefined_names_(new PredefinedNames(this)),
-      source_code_(new StringSourceCode(L"-", L"")),
-      semantics_factory_(new sm::Factory()),
-      token_factory_(new TokenFactory(zone())),
-      global_namespace_(CreateGlobalNamespace(this, source_code_.get())),
-      global_namespace_body_(
-          CreateNamespaceBody(this, nullptr, global_namespace())),
-      system_namespace_(
-          CreateNamespace(this, global_namespace_body(), L"System")),
-      system_namespace_body_(CreateNamespaceBody(this,
-                                                 global_namespace_body(),
-                                                 system_namespace())) {
+    : token_factory_(new TokenFactory(zone())),
+      ast_factory_(new ast::Factory(this)),
+      semantics_factory_(new sm::Factory(token_factory_.get())) {
   PopulateSemantics(this);
 }
 
 CompilationSession::~CompilationSession() {
 }
 
+AtomicStringFactory* CompilationSession::atomic_string_factory() const {
+  return token_factory_->atomic_string_factory();
+}
+
+ast::Namespace* CompilationSession::global_namespace() const {
+  return ast_factory_->global_namespace();
+}
+
+ast::NamespaceBody* CompilationSession::global_namespace_body() const {
+  return ast_factory_->global_namespace_body();
+}
+
+ast::Namespace* CompilationSession::system_namespace() const {
+  return ast_factory_->system_namespace();
+}
+
+ast::NamespaceBody* CompilationSession::system_namespace_body() const {
+  return ast_factory_->system_namespace_body();
+}
+
+Token* CompilationSession::system_token() const {
+  return token_factory_->system_token();
+}
+
 AtomicString* CompilationSession::name_for(PredefinedName name) const {
-  return predefined_names_->name_for(name);
+  return token_factory_->AsAtomicString(name);
 }
 
 sm::Semantics* CompilationSession::semantics() const {
@@ -139,7 +118,7 @@ void CompilationSession::AddError(const SourceCodeRange& location,
 }
 
 AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
-  return atomic_string_factory_->NewAtomicString(string);
+  return token_factory()->NewAtomicString(string);
 }
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
@@ -150,16 +129,12 @@ CompilationUnit* CompilationSession::NewCompilationUnit(
 }
 
 base::StringPiece16* CompilationSession::NewString(base::StringPiece16 string) {
-  auto const buffer = atomic_string_factory_->NewString(string);
-  return new (Allocate(sizeof(base::StringPiece16)))
-      base::StringPiece16(buffer.data(), buffer.size());
+  return token_factory_->NewString(string);
 }
 
 Token* CompilationSession::NewUniqueNameToken(const SourceCodeRange& location,
                                               const base::char16* format) {
-  auto const name = atomic_string_factory_->NewUniqueAtomicString(format);
-  return token_factory_->NewToken(location,
-                                  TokenData(TokenType::TempName, name));
+  return token_factory_->NewUniqueNameToken(location, format);
 }
 
 Token* CompilationSession::NewToken(const SourceCodeRange& location,
