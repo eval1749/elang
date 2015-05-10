@@ -28,13 +28,6 @@ sm::Factory* Editor::factory() const {
   return session()->semantics_factory();
 }
 
-MethodGroup* Editor::EnsureMethodGroup(Class* clazz, Token* name) {
-  auto const present = FindMember(clazz, name);
-  if (auto const method_group = present->as<MethodGroup>())
-    return method_group;
-  return factory()->NewMethodGroup(clazz, name);
-}
-
 Semantic* Editor::FindMember(Semantic* container, Token* name) const {
   if (auto const clazz = container->as<Class>()) {
     auto const it = clazz->members_.find(name->atomic_string());

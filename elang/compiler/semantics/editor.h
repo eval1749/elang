@@ -31,7 +31,6 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  MethodGroup* EnsureMethodGroup(Class* clazz, Token* name);
   Semantic* FindMember(Semantic* container, Token* name) const;
   void FixEnumMember(EnumMember* member, Value* value);
 

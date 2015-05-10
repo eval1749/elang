@@ -150,7 +150,9 @@ void ClassAnalyzer::Collector::VisitField(ast::Field* node) {
 void ClassAnalyzer::Collector::VisitMethod(ast::Method* ast_method) {
   auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
   auto const method_name = ast_method->name();
-  editor()->EnsureMethodGroup(clazz, method_name);
+  if (clazz->FindMember(method_name))
+    return;
+  factory()->NewMethodGroup(clazz, method_name);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -200,6 +202,12 @@ void ClassAnalyzer::Resolver::Run() {
 
 // ast::Visitor
 void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
+  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
+  auto const method_name = ast_method->name();
+  auto const method_group =
+      clazz->FindMember(method_name)->as<sm::MethodGroup>();
+  if (!method_group)
+    return;
   auto const return_type = analyzer_->ResolveTypeReference(
       ast_method->return_type(), ast_method->owner());
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
@@ -211,9 +219,6 @@ void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
         factory()->NewParameter(parameter, parameter_type, nullptr));
   }
 
-  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
-  auto const method_name = ast_method->name();
-  auto const method_group = editor()->EnsureMethodGroup(clazz, method_name);
   auto const signature = factory()->NewSignature(return_type, parameters);
   auto const method = factory()->NewMethod(method_group, signature, ast_method);
   analyzer_->SetSemanticOf(ast_method, method);
