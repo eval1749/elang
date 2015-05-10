@@ -83,7 +83,7 @@ class CompilationSession final : public ZoneOwner {
   ast::NamespaceBody* system_namespace_body() const;
 
   // Semantic
-  Analysis* analysis() const;
+  Analysis* analysis() const { return analysis_.get(); }
   sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
 
   void AddError(ErrorCode error_code, Token* token);
@@ -128,6 +128,7 @@ class CompilationSession final : public ZoneOwner {
                 ErrorCode error_code,
                 const std::vector<Token*>& tokens);
 
+  std::unique_ptr<Analysis> analysis_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   std::vector<ErrorData*> errors_;
   // The result of compilation.

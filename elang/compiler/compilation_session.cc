@@ -49,7 +49,8 @@ void PopulateSemantics(CompilationSession* session) {
 // CompilationSession
 //
 CompilationSession::CompilationSession()
-    : token_factory_(new TokenFactory(zone())),
+    : analysis_(new Analysis()),
+      token_factory_(new TokenFactory(zone())),
       ast_factory_(new ast::Factory(this)),
       semantics_factory_(new sm::Factory(token_factory_.get())) {
   PopulateSemantics(this);
@@ -80,10 +81,6 @@ ast::NamespaceBody* CompilationSession::system_namespace_body() const {
 
 Token* CompilationSession::system_token() const {
   return token_factory_->system_token();
-}
-
-Analysis* CompilationSession::analysis() const {
-  return semantics_factory_->analysis();
 }
 
 void CompilationSession::AddError(ErrorCode error_code, Token* token) {

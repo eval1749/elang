@@ -28,7 +28,6 @@ class Factory final : public ZoneOwner {
   ~Factory();
 
   Namespace* global_namespace() { return global_namespace_; }
-  Analysis* analysis() const { return analysis_.get(); }
   Namespace* system_namespace() const { return system_namespace_; }
 
   // |dimensions| of each rank. dimensions.front() == -1 means unbound array.
@@ -71,7 +70,6 @@ class Factory final : public ZoneOwner {
 
   void AddMember(Semantic* ns, Semantic* member);
 
-  std::unique_ptr<Analysis> analysis_;
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
   Namespace* const global_namespace_;
   Namespace* const system_namespace_;
