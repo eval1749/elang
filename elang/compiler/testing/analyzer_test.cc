@@ -100,6 +100,12 @@ std::unique_ptr<NameResolver> NewNameResolver(CompilationSession* session) {
   return resolver;
 }
 
+template <typename Pass>
+bool RunPass(NameResolver* name_resolver) {
+  Pass(name_resolver).Run();
+  return name_resolver->session()->errors().empty();
+}
+
 }  // namespace
 
 //////////////////////////////////////////////////////////////////////
@@ -129,48 +135,30 @@ Analysis* AnalyzerTest::analysis() const {
 std::string AnalyzerTest::Analyze() {
   if (!Parse())
     return GetErrors();
-  {
-    NamespaceAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
-  {
-    ClassAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
-  {
-    MethodAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
+  if (!RunPass<NamespaceAnalyzer>(name_resolver()))
+    return GetErrors();
+  if (!RunPass<ClassAnalyzer>(name_resolver()))
+    return GetErrors();
+  if (!RunPass<MethodAnalyzer>(name_resolver()))
+    return GetErrors();
   return "";
 }
 
 std::string AnalyzerTest::AnalyzeClass() {
   if (!Parse())
     return GetErrors();
-  {
-    NamespaceAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
-  {
-    ClassAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
+  if (!RunPass<NamespaceAnalyzer>(name_resolver()))
+    return GetErrors();
+  if (!RunPass<ClassAnalyzer>(name_resolver()))
+    return GetErrors();
   return "";
 }
 
 std::string AnalyzerTest::AnalyzeNamespace() {
   if (!Parse())
     return GetErrors();
-  {
-    NamespaceAnalyzer analyzer(name_resolver());
-    if (!analyzer.Run())
-      return GetErrors();
-  }
+  if (!RunPass<NamespaceAnalyzer>(name_resolver()))
+    return GetErrors();
   return "";
 }
 

@@ -25,9 +25,8 @@ class MethodAnalyzer final : public Analyzer, private ast::Visitor {
   explicit MethodAnalyzer(NameResolver* name_resolver);
   ~MethodAnalyzer() final;
 
-  // The Entry Point of |MethodAnalyzer|, returns true if resolution succeeded,
-  // otherwise false.
-  bool Run();
+  // The Entry Point of |MethodAnalyzer|
+  void Run();
 
  private:
   // ast::Visitor

@@ -36,8 +36,8 @@ class Parser final : public CompilationSessionUser {
   Parser(CompilationSession* session, CompilationUnit* compilation_unit);
   ~Parser();
 
-  // Parser entry point. Returns true if parsing succeeded, otherwise false.
-  bool Run();
+  // The entry point of |Parser|.
+  void Run();
 
  private:
   class ContainerScope;

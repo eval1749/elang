@@ -222,9 +222,8 @@ ir::Node* Translator::NewDataOrTuple(const std::vector<ir::Node*> nodes) {
 }
 
 // The entry point of |Translator::|.
-bool Translator::Run() {
+void Translator::Run() {
   VisitNamespaceBody(session()->global_namespace_body());
-  return session()->errors().empty();
 }
 
 ir::Data* Translator::Translate(ast::Expression* node) {

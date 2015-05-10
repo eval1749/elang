@@ -38,7 +38,7 @@ class Translator final : public CompilationSessionUser,
   Translator(CompilationSession* session, ir::Factory* factory);
   ~Translator();
 
-  bool Run();
+  void Run();
 
  private:
   struct BreakContext;

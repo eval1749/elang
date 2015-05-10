@@ -34,7 +34,7 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
                 VariableAnalyzer* variable_analyzer);
   ~CodeGenerator();
 
-  bool Run();
+  void Run();
 
  private:
   struct Output;

@@ -249,12 +249,11 @@ ClassAnalyzer::ClassAnalyzer(NameResolver* resolver) : Analyzer(resolver) {
 ClassAnalyzer::~ClassAnalyzer() {
 }
 
-bool ClassAnalyzer::Run() {
+void ClassAnalyzer::Run() {
   Collector(this).Run();
   if (!session()->errors().empty())
-    return false;
+    return;
   Resolver(this).Run();
-  return session()->errors().empty();
 }
 
 void ClassAnalyzer::AddDependency(ast::Node* from, ast::Node* to) {

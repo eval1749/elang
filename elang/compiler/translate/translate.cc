@@ -18,9 +18,9 @@ namespace compiler {
 
 namespace {
 template <typename Pass>
-bool Run(NameResolver* name_resolver) {
-  Pass pass(name_resolver);
-  return pass.Run();
+bool RunPass(NameResolver* name_resolver) {
+  Pass(name_resolver).Run();
+  return name_resolver->session()->errors().empty();
 }
 
 }  // namespace
@@ -29,16 +29,13 @@ bool CompilationSession::Compile(NameResolver* name_resolver,
                                  ir::Factory* factory) {
   if (!errors().empty())
     return false;
-  if (!Run<NamespaceAnalyzer>(name_resolver))
+  if (!RunPass<NamespaceAnalyzer>(name_resolver))
     return false;
-  if (!Run<ClassAnalyzer>(name_resolver))
+  if (!RunPass<ClassAnalyzer>(name_resolver))
     return false;
-  if (!Run<MethodAnalyzer>(name_resolver))
+  if (!RunPass<MethodAnalyzer>(name_resolver))
     return false;
-
-  Translator translator(this, factory);
-  if (!translator.Run())
-    return false;
+  Translator(this, factory).Run();
   return errors().empty();
 }
 

@@ -90,8 +90,8 @@ std::string CompilerTest::GetWarnings() {
 
 bool CompilerTest::Parse() {
   auto const compilation_unit = session_->NewCompilationUnit(source_code());
-  Parser parser(session_.get(), compilation_unit);
-  return parser.Run();
+  Parser(session_.get(), compilation_unit).Run();
+  return session_->errors().empty();
 }
 
 void CompilerTest::Prepare(base::StringPiece16 source_text) {

@@ -438,11 +438,10 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
 }
 
 // The entry point of |NamespaceAnalyzer|.
-bool NamespaceAnalyzer::Run() {
+void NamespaceAnalyzer::Run() {
   ast::Visitor::VisitNamespaceBody(session()->global_namespace_body());
   if (!session()->errors().empty())
-    return false;
-  auto succeeded = true;
+    return;
   for (auto const node : dependency_graph_.GetAllVertices()) {
     auto const users = dependency_graph_.GetInEdges(node);
     if (users.empty())
@@ -454,9 +453,7 @@ bool NamespaceAnalyzer::Run() {
       }
       Error(ErrorCode::NameResolutionNameCycle, node, user);
     }
-    succeeded = false;
   }
-  return succeeded;
 }
 
 // ast::Visitor

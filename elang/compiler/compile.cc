@@ -20,37 +20,33 @@ namespace compiler {
 
 namespace {
 template <typename Pass>
-bool Run(NameResolver* name_resolver) {
-  Pass pass(name_resolver);
-  return pass.Run();
+bool RunPass(NameResolver* name_resolver) {
+  Pass(name_resolver).Run();
+  return name_resolver->session()->errors().empty();
 }
-
 }  // namespace
 
 bool CompilationSession::Compile(NameResolver* name_resolver,
                                  hir::Factory* factory) {
   if (!errors().empty())
     return false;
-  if (!Run<NamespaceAnalyzer>(name_resolver))
+  if (!RunPass<NamespaceAnalyzer>(name_resolver))
     return false;
-  if (!Run<ClassAnalyzer>(name_resolver))
+  if (!RunPass<ClassAnalyzer>(name_resolver))
     return false;
-  if (!Run<MethodAnalyzer>(name_resolver))
+  if (!RunPass<MethodAnalyzer>(name_resolver))
     return false;
 
   Zone zone;
   VariableAnalyzer variable_analyzer(&zone);
-  {
-    CodeGenerator generator(this, factory, &variable_analyzer);
-    if (!generator.Run())
-      return false;
-  }
+  CodeGenerator(this, factory, &variable_analyzer).Run();
+  if (!errors().empty())
+    return false;
   auto const variable_usages = variable_analyzer.Analyze();
   for (auto const method_function : function_map_) {
     auto const function = method_function.second;
     hir::Editor editor(factory, function);
-    CfgToSsaConverter pass(&editor, variable_usages);
-    pass.Run();
+    CfgToSsaConverter(&editor, variable_usages).Run();
   }
   return errors().empty();
 }

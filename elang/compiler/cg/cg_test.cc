@@ -79,7 +79,8 @@ std::string CgTest::Generate(base::StringPiece name) {
   auto const analyze_result = Analyze();
   if (!analyze_result.empty())
     return analyze_result;
-  if (!code_generator()->Run())
+  code_generator()->Run();
+  if (!session()->errors().empty())
     return GetErrors();
   return GetFunction(name);
 }

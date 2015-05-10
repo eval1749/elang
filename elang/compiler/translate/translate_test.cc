@@ -67,7 +67,8 @@ std::string TranslateTest::Translate(base::StringPiece name) {
   auto const analyze_result = Analyze();
   if (!analyze_result.empty())
     return analyze_result;
-  if (!translator_->Run())
+  translator_->Run();
+  if (!session()->errors().empty())
     return GetErrors();
   return GetFunction(name);
 }

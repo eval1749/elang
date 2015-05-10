@@ -32,9 +32,8 @@ class ClassAnalyzer final : public Analyzer {
   explicit ClassAnalyzer(NameResolver* name_resolver);
   ~ClassAnalyzer() final;
 
-  // The Entry Point of |ClassAnalyzer|, returns true if resolution succeeded,
-  // otherwise false.
-  bool Run();
+  // The Entry Point of |ClassAnalyzer|.
+  void Run();
 
  private:
   class Collector;

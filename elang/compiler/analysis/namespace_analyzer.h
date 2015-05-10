@@ -40,8 +40,8 @@ class NamespaceAnalyzer final : public Analyzer,
   explicit NamespaceAnalyzer(NameResolver* resolver);
   ~NamespaceAnalyzer();
 
-  // Returns true if resolution succeeded, otherwise false.
-  bool Run();
+  // The entry point of |NamespaceAnalyzer|.
+  void Run();
 
  private:
   struct ResolveContext;

@@ -627,9 +627,8 @@ Token* Parser::PeekToken() {
   return token_;
 }
 
-bool Parser::Run() {
+void Parser::Run() {
   ParseCompilationUnit();
-  return session()->errors().empty();
 }
 
 void Parser::ValidateClassModifiers() {
