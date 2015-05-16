@@ -12,6 +12,7 @@
 #include "elang/base/zone_unordered_set.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
@@ -586,6 +587,20 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
   SetSemanticOf(ast_class, clazz);
   DidResolve(class_body);
   DidResolve(ast_class);
+}
+
+void NamespaceAnalyzer::VisitEnum(ast::Enum* ast_enum) {
+  if (IsResolved(ast_enum))
+    return;
+  auto const ast_outer = ast_enum->parent()->as<ast::NamedNode>();
+  DCHECK(ast_outer) << ast_enum->parent();
+  auto const outer = TrySemanticOf(ast_outer);
+  if (!outer) {
+    Postpone(ast_enum, ast_outer);
+    return;
+  }
+  SetSemanticOf(ast_enum, factory()->NewEnum(outer, ast_enum->name()));
+  DidResolve(ast_enum);
 }
 
 void NamespaceAnalyzer::VisitImport(ast::Import* import) {

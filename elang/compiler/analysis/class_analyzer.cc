@@ -132,10 +132,8 @@ void ClassAnalyzer::Collector::Run() {
 // ast::Visitor
 void ClassAnalyzer::Collector::VisitEnum(ast::Enum* ast_enum) {
   auto const enum_base = EnsureEnumBase(ast_enum);
-  auto const outer = SemanticOf(ast_enum->parent());
-  auto const enum_type = factory()->NewEnum(outer, ast_enum->name());
+  auto const enum_type = SemanticOf(ast_enum)->as<sm::Enum>();
   editor()->FixEnumBase(enum_type, enum_base);
-  analyzer_->SetSemanticOf(ast_enum, enum_type);
 
   ast::EnumMember* ast_previous = nullptr;
   for (auto const ast_node : ast_enum->members()) {

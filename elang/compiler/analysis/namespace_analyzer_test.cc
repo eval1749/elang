@@ -217,9 +217,7 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsEnum) {
 
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsEnumMember) {
   Prepare("class A : E.E1 {} enum E { E1 }");
-  // TODO(eval1749) Error message should be:
-  //   "NameResolution.Name.NeitherClassNorInterface(10) E\n"
-  EXPECT_EQ("NameResolution.Name.Cycle(23) E A\n",
+  EXPECT_EQ("NameResolution.Name.NeitherNamespaceNorType(12) E.E1\n",
             AnalyzeNamespace());
 }
 

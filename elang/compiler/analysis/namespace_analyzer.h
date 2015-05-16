@@ -94,6 +94,7 @@ class NamespaceAnalyzer final : public Analyzer,
   // ast::Visitor
   void VisitAlias(ast::Alias* node);
   void VisitClassBody(ast::ClassBody* node);
+  void VisitEnum(ast::Enum* node);
   void VisitImport(ast::Import* node);
   void VisitNamespaceBody(ast::NamespaceBody* node);
 
