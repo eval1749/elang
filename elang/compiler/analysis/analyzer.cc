@@ -40,33 +40,42 @@ sm::Factory* Analyzer::semantics_factory() const {
   return editor_->factory();
 }
 
+sm::Type* Analyzer::EnsureType(ast::Type* reference, sm::Semantic* semantic) {
+  if (auto const type = semantic->as<sm::Type>())
+    return type;
+  Error(ErrorCode::AnalyzeTypeNotType, reference);
+  auto const type = semantics_factory()->NewUndefinedType(reference->token());
+  SetSemanticOf(reference, type);
+  return type;
+}
+
 sm::Semantic* Analyzer::Resolve(ast::NamedNode* ast_node) {
   return name_resolver_->SemanticOf(ast_node);
 }
 
-sm::Type* Analyzer::ResolveTypeReference(ast::Type* type,
+sm::Type* Analyzer::ResolveTypeReference(ast::Type* reference,
                                          ast::ContainerNode* container) {
-  if (auto const semantic = TrySemanticOf(type))
-    return semantic->as<sm::Type>();
-  if (auto const array_type = type->as<ast::ArrayType>()) {
+  if (auto const semantic = TrySemanticOf(reference))
+    return EnsureType(reference, semantic);
+  if (auto const array_type = reference->as<ast::ArrayType>()) {
     auto const element_type =
         ResolveTypeReference(array_type->element_type(), container);
     std::vector<int> dimensions(array_type->dimensions().begin(),
                                 array_type->dimensions().end());
     auto const value = factory()->NewArrayType(element_type, dimensions);
-    SetSemanticOf(type, value);
+    SetSemanticOf(reference, value);
     return value;
   }
-  auto const ast_node = name_resolver_->ResolveReference(type, container);
-  if (!ast_node) {
-    DVLOG(0) << "Type not found: " << *type << " in " << *container
-             << std::endl;
-    Error(ErrorCode::AnalyzeTypeNotFound, type);
-    auto const semantic = semantics_factory()->NewUndefinedType(type->token());
-    SetSemanticOf(type, semantic);
-    return semantic;
+  if (auto const semantic =
+          name_resolver_->ResolveReference(reference, container)) {
+    return EnsureType(reference, semantic);
   }
-  return SemanticOf(ast_node)->as<sm::Type>();
+
+  Error(ErrorCode::AnalyzeTypeNotFound, reference);
+  auto const semantic =
+      semantics_factory()->NewUndefinedType(reference->token());
+  SetSemanticOf(reference, semantic);
+  return semantic;
 }
 
 void Analyzer::SetSemanticOf(ast::Node* node, sm::Semantic* semantic) {

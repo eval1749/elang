@@ -73,7 +73,7 @@ class TypeResolver final : public Analyzer,
   void ProduceUnifiedResult(ts::Value* value, ast::Node* producer);
   void ProduceSemantics(ts::Value* value, ast::Node* node);
 
-  ast::NamedNode* ResolveReference(ast::Expression* expression);
+  sm::Semantic* ResolveReference(ast::Expression* expression);
 
   // Shortcut function.
   sm::Semantic* SemanticOf(ast::Node* node);

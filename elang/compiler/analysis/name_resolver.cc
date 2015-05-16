@@ -34,15 +34,16 @@ class NameResolver::ReferenceResolver final : public Analyzer,
  public:
   explicit ReferenceResolver(NameResolver* name_resolver,
                              ast::ContainerNode* container);
-  ~ReferenceResolver() = default;
+  ~ReferenceResolver() final = default;
 
-  ast::NamedNode* Resolve(ast::Expression* expression);
+  sm::Semantic* Resolve(ast::Expression* expression);
 
  private:
   void FindInClass(Token* name,
-                   ast::Class* ast_class,
-                   std::unordered_set<ast::NamedNode*>* founds);
-  void ProduceResult(ast::NamedNode* result);
+                   sm::Class* clazz,
+                   std::unordered_set<sm::Semantic*>* founds);
+  sm::Semantic* FindMember(Token* name, sm::Semantic* semantic);
+  void ProduceResult(sm::Semantic* result);
 
   // ast::Visitor
   void VisitMemberAccess(ast::MemberAccess* node) final;
@@ -51,7 +52,7 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   void VisitTypeNameReference(ast::TypeNameReference* node) final;
 
   ast::ContainerNode* const container_;
-  ast::NamedNode* result_;
+  sm::Semantic* result_;
 
   DISALLOW_COPY_AND_ASSIGN(ReferenceResolver);
 };
@@ -64,32 +65,32 @@ NameResolver::ReferenceResolver::ReferenceResolver(
 
 void NameResolver::ReferenceResolver::FindInClass(
     Token* name,
-    ast::Class* ast_class,
-    std::unordered_set<ast::NamedNode*>* founds) {
-  if (auto const present = ast_class->FindMember(name)) {
+    sm::Class* clazz,
+    std::unordered_set<sm::Semantic*>* founds) {
+  if (auto const present = clazz->FindMember(name)) {
     founds->insert(present);
     return;
   }
-  auto const ir_node = resolver()->SemanticOf(ast_class);
-  if (!ir_node) {
-    Error(ErrorCode::NameResolutionNameNotResolved, ast_class);
-    return;
-  }
-  auto const ir_class = ir_node->as<sm::Class>();
-  if (!ir_class) {
-    Error(ErrorCode::NameResolutionNameNotResolved, ast_class);
-    return;
-  }
-  for (auto const ir_base_class : ir_class->base_classes())
-    FindInClass(name, ir_base_class->ast_class(), founds);
+  for (auto const base_class : clazz->direct_base_classes())
+    FindInClass(name, base_class, founds);
 }
 
-void NameResolver::ReferenceResolver::ProduceResult(ast::NamedNode* result) {
-  DCHECK(!result_);
+sm::Semantic* NameResolver::ReferenceResolver::FindMember(
+    Token* name,
+    sm::Semantic* semantic) {
+  if (auto const clazz = semantic->as<sm::Class>())
+    return clazz->FindMember(name);
+  if (auto const ns = semantic->as<sm::Namespace>())
+    return ns->FindMember(name);
+  return nullptr;
+}
+
+void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
+  DCHECK(!result_) << *result_;
   result_ = result;
 }
 
-ast::NamedNode* NameResolver::ReferenceResolver::Resolve(
+sm::Semantic* NameResolver::ReferenceResolver::Resolve(
     ast::Expression* expression) {
   DCHECK(!result_);
   expression->Accept(this);
@@ -99,20 +100,26 @@ ast::NamedNode* NameResolver::ReferenceResolver::Resolve(
 // ast::Visitor
 void NameResolver::ReferenceResolver::VisitMemberAccess(
     ast::MemberAccess* reference) {
-  auto resolved = static_cast<ast::NamedNode*>(nullptr);
-  auto container = container_;
+  auto resolved = static_cast<sm::Semantic*>(nullptr);
   for (auto const component : reference->components()) {
     if (resolved) {
-      container = resolved->as<ast::ContainerNode>();
-      if (!container) {
-        Error(ErrorCode::NameResolutionNameNeitherNamespaceNorType, component,
+      auto const name_reference = component->as<ast::NameReference>();
+      if (!name_reference) {
+        Error(ErrorCode::NameResolutionMemberAccessNotYetImplemented,
               reference);
         ProduceResult(nullptr);
         return;
       }
+      resolved = FindMember(name_reference->name(), resolved);
+      if (!resolved) {
+        Error(ErrorCode::NameResolutionNameNotFound, component);
+        ProduceResult(nullptr);
+        return;
+      }
+      continue;
     }
 
-    resolved = resolver()->ResolveReference(component, container);
+    resolved = resolver()->ResolveReference(component, container_);
     if (!resolved) {
       ProduceResult(nullptr);
       return;
@@ -133,7 +140,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
         session()->PredefinedNameOf(name->mapped_type_name()));
     if (!ast_class)
       Error(ErrorCode::NameResolutionNameNotFound, node);
-    ProduceResult(ast_class);
+    ProduceResult(SemanticOf(ast_class));
     return;
   }
 
@@ -144,21 +151,20 @@ void NameResolver::ReferenceResolver::VisitNameReference(
     if (!container)
       continue;
 
-    std::unordered_set<ast::NamedNode*> founds;
+    std::unordered_set<sm::Semantic*> founds;
 
     if (auto const clazz = container->as<ast::Class>()) {
-      if (auto const present = clazz->FindMember(name))
-        FindInClass(name, clazz, &founds);
+      FindInClass(name, SemanticOf(clazz)->as<sm::Class>(), &founds);
 
     } else if (auto const ns_body = container->as<ast::NamespaceBody>()) {
       // Find in enclosing namespace
       if (auto const present = ns_body->owner()->FindMember(name))
-        founds.insert(present);
+        founds.insert(SemanticOf(present));
 
       // Find alias
       if (auto const alias = ns_body->FindAlias(name)) {
         if (auto const present = resolver()->GetUsingReference(alias))
-          founds.insert(present);
+          founds.insert(SemanticOf(present));
       }
 
       if (!ns_body->FindMember(name)) {
@@ -172,7 +178,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
           }
           if (auto const present = imported->FindMember(name)) {
             if (present && !present->is<ast::Namespace>())
-              founds.insert(present);
+              founds.insert(SemanticOf(present));
           }
         }
       }
@@ -181,7 +187,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
           << " container=" << *container;
       // Note: |ast::Method| holds type parameters in named node map.
       if (auto const present = container->FindMember(name))
-        founds.insert(present);
+        founds.insert(SemanticOf(present));
     }
 
     if (founds.size() == 1) {
@@ -190,12 +196,12 @@ void NameResolver::ReferenceResolver::VisitNameReference(
     }
 
     if (founds.size() > 1) {
-      Error(ErrorCode::NameResolutionNameAmbiguous, node, *founds.begin());
+      Error(ErrorCode::NameResolutionNameAmbiguous, node->token(),
+            (*founds.begin())->token());
       return;
     }
   }
 
-  DVLOG(0) << "Not found " << name << " in " << *container_ << std::endl;
   Error(ErrorCode::NameResolutionNameNotFound, node);
 }
 
@@ -238,8 +244,8 @@ ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   return it == using_map_.end() ? nullptr : it->second;
 }
 
-ast::NamedNode* NameResolver::ResolveReference(ast::Expression* expression,
-                                               ast::ContainerNode* container) {
+sm::Semantic* NameResolver::ResolveReference(ast::Expression* expression,
+                                             ast::ContainerNode* container) {
   ReferenceResolver resolver(this, container);
   return resolver.Resolve(expression);
 }

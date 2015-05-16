@@ -18,6 +18,7 @@ class MethodGroup;
 
 namespace sm {
 class Method;
+class MethodGroup;
 }
 
 namespace ts {
@@ -37,7 +38,7 @@ class MethodResolver final {
   ~MethodResolver();
 
   std::vector<sm::Method*> ComputeApplicableMethods(
-      ast::MethodGroup* method_group,
+      sm::MethodGroup* method_group,
       ts::Value* output,
       int arity);
 

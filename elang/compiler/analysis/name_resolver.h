@@ -49,8 +49,8 @@ class NameResolver final : public CompilationSessionUser {
   // Registering functions.
   void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
 
-  ast::NamedNode* ResolveReference(ast::Expression* expression,
-                                   ast::ContainerNode* container);
+  sm::Semantic* ResolveReference(ast::Expression* expression,
+                                 ast::ContainerNode* container);
   sm::Semantic* SemanticOf(ast::NamedNode* ast_node) const;
 
  private:

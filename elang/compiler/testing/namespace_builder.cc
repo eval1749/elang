@@ -71,13 +71,10 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
   // sm::Class
   std::vector<sm::Class*> base_classes;
   for (auto const base_name : ast_class_body->base_class_names()) {
-    auto const ast_base_class = name_resolver()->ResolveReference(
+    auto const base_class = name_resolver()->ResolveReference(
         base_name, ast_class_body->parent()->as<ast::ContainerNode>());
-    DCHECK(ast_base_class) << " Not found " << *base_name;
-    auto const base_class =
-        name_resolver()->SemanticOf(ast_base_class)->as<sm::Class>();
-    DCHECK(base_class);
-    base_classes.push_back(base_class);
+    DCHECK(base_class->is<sm::Class>()) << *base_class;
+    base_classes.push_back(base_class->as<sm::Class>());
   }
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
   auto const clazz =

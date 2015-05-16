@@ -233,7 +233,7 @@ ts::Value* TypeResolver::ResolveAsBool(ast::Expression* expression) {
   return result;
 }
 
-ast::NamedNode* TypeResolver::ResolveReference(ast::Expression* expression) {
+sm::Semantic* TypeResolver::ResolveReference(ast::Expression* expression) {
   return name_resolver()->ResolveReference(expression, context_method_);
 }
 
@@ -299,12 +299,12 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
     return;
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
-    auto const value = SemanticOf(ResolveReference(reference));
+    auto const value = ResolveReference(reference);
     DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
-    auto const value = SemanticOf(ResolveReference(reference));
+    auto const value = ResolveReference(reference);
     DCHECK(value) << "NYI Assign to field " << *lhs;
     return;
   }
@@ -420,7 +420,7 @@ void TypeResolver::VisitCall(ast::Call* call) {
   auto const callee = ResolveReference(call->callee());
   if (!callee)
     return;
-  auto const method_group = callee->as<ast::MethodGroup>();
+  auto const method_group = callee->as<sm::MethodGroup>();
   if (!method_group) {
     // TODO(eval1749) NYI call site other than method call.
     Error(ErrorCode::TypeResolverCalleeNotSupported, call->callee());

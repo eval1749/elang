@@ -14,6 +14,7 @@ namespace compiler {
   E(Error, Code, Zero)                                \
   /* Analyzer */                                      \
   E(Analyze, Type, NotFound)                          \
+  E(Analyze, Type, NotType)                           \
   /* Class Analyzer */                                \
   E(ClassResolution, Method, Conflict)                \
   E(ClassResolution, Method, Duplicate)               \
@@ -36,6 +37,7 @@ namespace compiler {
   E(NameResolution, Class, NotResolved)               \
   E(NameResolution, Class, Partial)                   \
   E(NameResolution, Import, NeitherNamespaceNorType)  \
+  E(NameResolution, MemberAccess, NotYetImplemented)  \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
   E(NameResolution, Name, NeitherClassNorInterface)   \

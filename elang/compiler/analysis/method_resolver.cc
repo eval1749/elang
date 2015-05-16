@@ -32,15 +32,12 @@ bool MethodResolver::IsApplicable(const sm::Method* method, int arity) {
 
 // TODO(eval1749) We should pass to exclude `void` methods.
 std::vector<sm::Method*> MethodResolver::ComputeApplicableMethods(
-    ast::MethodGroup* method_group,
+    sm::MethodGroup* method_group,
     ts::Value* output,
     int arity) {
   std::vector<sm::Method*> methods;
   // TODO(eval1749) We should check base classes.
-  for (auto const ast_method : method_group->methods()) {
-    auto const method =
-        name_resolver()->SemanticOf(ast_method)->as<sm::Method>();
-    DCHECK(method) << " Not resolved: " << *ast_method;
+  for (auto const method : method_group->methods()) {
     if (!IsApplicable(method, arity))
       continue;
     methods.push_back(method);
