@@ -134,7 +134,7 @@ void NamespaceAnalyzer::FindInClass(
     founds->insert(present);
     return;
   }
-  for (auto const base_class : clazz->base_classes())
+  for (auto const base_class : clazz->direct_base_classes())
     FindInClass(name, base_class, founds);
 }
 
