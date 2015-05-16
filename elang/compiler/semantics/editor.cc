@@ -38,19 +38,6 @@ sm::Factory* Editor::factory() const {
   return session()->semantics_factory();
 }
 
-Semantic* Editor::FindMember(Semantic* container, Token* name) const {
-  if (auto const clazz = container->as<Class>()) {
-    auto const it = clazz->members_.find(name->atomic_string());
-    return it == clazz->members_.end() ? nullptr : it->second;
-  }
-  if (auto const ns = container->as<Namespace>()) {
-    auto const it = ns->members_.find(name->atomic_string());
-    return it == ns->members_.end() ? nullptr : it->second;
-  }
-  NOTREACHED() << container << " " << name;
-  return nullptr;
-}
-
 void Editor::FixClassBase(Class* clazz,
                           const std::vector<Class*>& direct_base_classes) {
   DCHECK(!clazz->has_base()) << clazz;

@@ -31,7 +31,6 @@ class Editor final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  Semantic* FindMember(Semantic* container, Token* name) const;
   void FixClassBase(Class* clazz, const std::vector<Class*>& base_classes);
   void FixEnumBase(Enum* enum_type, Type* enum_base);
   void FixEnumMember(EnumMember* member, Value* value);

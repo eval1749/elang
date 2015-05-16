@@ -116,7 +116,7 @@ void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
   }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
   DCHECK(outer->is<sm::Namespace>()) << outer;
-  if (auto const present = editor()->FindMember(outer, node->name())) {
+  if (auto const present = outer->FindMember(node->name())) {
     DCHECK(present->is<sm::Namespace>()) << present;
     SetSemanticOf(node, present);
     return;
@@ -561,7 +561,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
 
   auto const class_name = ast_class->name();
   auto const outer = SemanticOf(class_body->parent());
-  if (auto const present = editor()->FindMember(outer, class_name)) {
+  if (auto const present = outer->FindMember(class_name)) {
     // TODO(eval1749) Check base classes are matched with |present|.
     SetSemanticOf(class_body, present);
     DidResolve(class_body);
