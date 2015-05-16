@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <algorithm>
+
 #include "base/logging.h"
 #include "elang/compiler/semantics/nodes.h"
 
@@ -123,6 +125,13 @@ Type* Enum::enum_base() const {
   return enum_base_;
 }
 
+Semantic* Enum::FindMember(Token* name) const {
+  auto const it = std::find_if(
+      members_.begin(), members_.end(),
+      [name](const EnumMember* member) { return member->name() == name; });
+  return it == members_.end() ? nullptr : *it;
+}
+
 bool Enum::IsSubtypeOf(const Type* other) const {
   return this == other;
 }
@@ -227,6 +236,10 @@ Token* Semantic::name() const {
 
 Semantic* Semantic::outer() const {
   NOTREACHED() << *this;
+  return nullptr;
+}
+
+Semantic* Semantic::FindMember(Token* name) const {
   return nullptr;
 }
 

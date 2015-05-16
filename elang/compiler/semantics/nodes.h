@@ -64,6 +64,8 @@ class Semantic : public Castable<Semantic>,
   virtual Semantic* outer() const;
   Token* token() const { return token_; }
 
+  virtual sm::Semantic* FindMember(Token* name) const;
+
  protected:
   explicit Semantic(Token* token);
 
@@ -173,7 +175,8 @@ class Class final : public NamedMember<Type> {
   // Returns true if |this| is 'class'.
   bool is_class() const;
 
-  Semantic* FindMember(Token* name) const;
+  // Node
+  Semantic* FindMember(Token* name) const final;
 
  private:
   Class(Zone* zone, Semantic* outer, Token* name, ast::Class* ast_type);
@@ -201,6 +204,9 @@ class Enum final : public NamedMember<Type> {
   sm::Type* enum_base() const;
   const ZoneVector<EnumMember*>& members() const { return members_; }
   bool has_base() const { return enum_base_ != nullptr; }
+
+  // Node
+  Semantic* FindMember(Token* name) const final;
 
  private:
   Enum(Zone* zone, Semantic* outer, Token* name);
@@ -314,7 +320,8 @@ class Namespace final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Namespace, Semantic);
 
  public:
-  Semantic* FindMember(Token* name) const;
+  // Node
+  Semantic* FindMember(Token* name) const final;
 
  private:
   Namespace(Zone* zone, Namespace* outer, Token* name);
