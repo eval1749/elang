@@ -86,7 +86,7 @@ Conditional::Conditional(Token* op,
 
 // ConstructedName
 ConstructedName::ConstructedName(Zone* zone,
-                                 NameReference* reference,
+                                 Expression* reference,
                                  const std::vector<Type*>& args)
     : Expression(reference->name()),
       arguments_(zone, args),
@@ -116,11 +116,8 @@ InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
 Literal::Literal(Token* literal) : Expression(literal) {
 }
 
-MemberAccess::MemberAccess(Zone* zone,
-                           Token* name,
-                           const std::vector<Expression*>& components)
-    : Expression(name), components_(zone, components) {
-  DCHECK_GE(components.size(), 2u);
+MemberAccess::MemberAccess(Expression* container, Token* member)
+    : Expression(member), container_(container), member_(member) {
 }
 
 // NameReference

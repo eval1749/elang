@@ -103,7 +103,7 @@ TEST_F(NamespaceAnalyzerTest, AliasErrorAlreadyExists) {
       "namespace N3 { class A {} }"
       "namespace N3 { using A = N1.N2.A; }");
   EXPECT_EQ("NameResolution.Alias.Duplicate(78) A A\n", AnalyzeNamespace())
-    << "Alias name must be unique in namespace.";
+      << "Alias name must be unique in namespace.";
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.
@@ -235,8 +235,8 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorCircularlyDependencyNested) {
       "}");
   EXPECT_EQ(
       "NameResolution.Name.Cycle(6) A B\n"
-      "NameResolution.Name.Cycle(22) B C\n"
-      "NameResolution.Name.Cycle(44) C A\n",
+      "NameResolution.Name.Cycle(22) B A\n"
+      "NameResolution.Name.Cycle(22) B C\n",
       AnalyzeNamespace());
 }
 

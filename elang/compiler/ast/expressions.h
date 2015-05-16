@@ -146,15 +146,15 @@ class ConstructedName final : public Expression {
 
  public:
   const ZoneVector<Type*>& arguments() const { return arguments_; }
-  NameReference* reference() const { return reference_; }
+  Expression* reference() const { return reference_; }
 
  private:
   ConstructedName(Zone* zone,
-                  NameReference* reference,
+                  Expression* reference,
                   const std::vector<Type*>& arguments);
 
   const ZoneVector<Type*> arguments_;
-  NameReference* const reference_;
+  Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructedName);
 };
@@ -199,19 +199,19 @@ class Literal final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(Literal);
 };
 
-// Represents type components connected by '.', e.g. |G<S, T>.F<X>.A|.
+// Represents member acesss, e.g. |container.member|.
 class MemberAccess final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(MemberAccess, Expression);
 
  public:
-  const ZoneVector<Expression*>& components() const { return components_; }
+  Expression* container() const { return container_; }
+  Token* member() const { return member_; }
 
  private:
-  MemberAccess(Zone* zone,
-               Token* name,
-               const std::vector<Expression*>& components);
+  MemberAccess(Expression* container, Token* member);
 
-  const ZoneVector<Expression*> components_;
+  Expression* const container_;
+  Token* const member_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
 };

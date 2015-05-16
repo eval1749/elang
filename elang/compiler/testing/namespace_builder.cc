@@ -116,23 +116,23 @@ ast::Type* NamespaceBuilder::NewTypeReference(TokenType keyword) {
       session()->ast_factory()->NewNameReference(NewKeyword(keyword)));
 }
 
-ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece name) {
-  std::vector<ast::Expression*> names;
-  for (size_t pos = 0; pos < name.size(); ++pos) {
-    auto dot_pos = name.find('.', pos);
+ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece reference) {
+  ast::Type* last = nullptr;
+  for (size_t pos = 0; pos < reference.size(); ++pos) {
+    auto dot_pos = reference.find('.', pos);
     if (dot_pos == std::string::npos)
-      dot_pos = name.size();
-    names.push_back(session()->ast_factory()->NewNameReference(
-        NewName(name.substr(pos, dot_pos - pos))));
+      dot_pos = reference.size();
+    auto const name = NewName(reference.substr(pos, dot_pos - pos));
     pos = dot_pos;
+    if (last) {
+      last = session()->ast_factory()->NewTypeMemberAccess(
+          session()->ast_factory()->NewMemberAccess(last, name));
+      continue;
+    }
+    last = session()->ast_factory()->NewTypeNameReference(
+        session()->ast_factory()->NewNameReference(name));
   }
-  DCHECK(!names.empty());
-  if (names.size() == 1) {
-    return session()->ast_factory()->NewTypeNameReference(
-        names[0]->as<ast::NameReference>());
-  }
-  return session()->ast_factory()->NewTypeMemberAccess(
-      session()->ast_factory()->NewMemberAccess(names[0]->token(), names));
+  return last;
 }
 
 }  // namespace testing

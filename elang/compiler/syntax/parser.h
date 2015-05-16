@@ -88,8 +88,8 @@ class Parser final : public CompilationSessionUser {
   bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
-  void ParsePrimaryExpressionName(Token* name);
   void ParsePrimaryExpressionPost();
+  void ParseTypeArguments();
   bool ParseUnaryExpression();
   ExpressionCategory PeekTokenCategory();
   ast::Expression* ProduceBinaryOperation(Token* op_token,
@@ -155,12 +155,7 @@ class Parser final : public CompilationSessionUser {
   bool ParseType();
   std::vector<Token*> ParseTypeParameterList();
   bool ParseTypePost();
-  ast::Expression* ProduceMemberAccess(
-      const std::vector<ast::Expression*>& names);
   ast::Type* ProduceType(ast::Type* type);
-  ast::Type* ProduceTypeMemberAccess(
-      const std::vector<ast::Expression*>& names);
-  ast::Type* ProduceTypeMemberAccess(ast::MemberAccess* node);
   ast::Type* ProduceTypeNameReference(ast::NameReference* node);
   ast::Type* ProduceTypeNameReference(Token* token);
 

@@ -37,7 +37,7 @@ namespace compiler {
   E(NameResolution, Class, NotResolved)               \
   E(NameResolution, Class, Partial)                   \
   E(NameResolution, Import, NeitherNamespaceNorType)  \
-  E(NameResolution, MemberAccess, NotYetImplemented)  \
+  E(NameResolution, MemberAccess, NotFound)           \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
   E(NameResolution, Name, NeitherClassNorInterface)   \

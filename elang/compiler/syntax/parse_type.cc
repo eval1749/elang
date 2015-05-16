@@ -8,7 +8,6 @@
 #include "elang/compiler/syntax/parser.h"
 
 #include "base/logging.h"
-#include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
@@ -100,7 +99,6 @@ bool Parser::ParseNamespaceOrTypeName() {
   enum class State {
     ConstructedType,
     Dot,
-    Finish,
     Name,
     Start,
   };
@@ -110,7 +108,6 @@ bool Parser::ParseNamespaceOrTypeName() {
     return false;
   }
   // List of |ast::ConstructedName| or |ast::NameReference|.
-  std::vector<ast::Expression*> components;
   auto state = State::Start;
   for (;;) {
     switch (state) {
@@ -119,15 +116,14 @@ bool Parser::ParseNamespaceOrTypeName() {
           state = State::Dot;
           continue;
         }
-        state = State::Finish;
-        continue;
+        return true;
       case State::Dot:
-      case State::Start:
         if (!PeekToken()->is_name()) {
           Error(ErrorCode::SyntaxTypeName);
           return false;
         }
-        components.push_back(factory()->NewNameReference(ConsumeToken()));
+        ProduceType(factory()->NewTypeMemberAccess(
+            factory()->NewMemberAccess(ConsumeType(), ConsumeToken())));
         state = State::Name;
         continue;
       case State::Name:
@@ -136,6 +132,7 @@ bool Parser::ParseNamespaceOrTypeName() {
           continue;
         }
         if (AdvanceIf(TokenType::LeftAngleBracket)) {
+          auto const generic_type = ConsumeType();
           // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
           std::vector<ast::Type*> type_args;
           do {
@@ -145,21 +142,20 @@ bool Parser::ParseNamespaceOrTypeName() {
           } while (AdvanceIf(TokenType::Comma));
           if (!AdvanceIf(TokenType::RightAngleBracket))
             Error(ErrorCode::SyntaxTypeRightAngleBracket);
-          if (components.empty()) {
-            Error(ErrorCode::SyntaxTypeTypeArgument);
-          } else {
-            components.back() = factory()->NewConstructedName(
-                components.back()->as<ast::NameReference>(), type_args);
-          }
+          ProduceType(factory()->NewConstructedType(
+              factory()->NewConstructedName(generic_type, type_args)));
           state = State::ConstructedType;
           continue;
         }
-        state = State::Finish;
-        break;
-      case State::Finish:
-        DCHECK(!components.empty());
-        ProduceTypeMemberAccess(components);
         return true;
+      case State::Start:
+        if (!PeekToken()->is_name()) {
+          Error(ErrorCode::SyntaxTypeName);
+          return false;
+        }
+        ProduceTypeNameReference(ConsumeToken());
+        state = State::Name;
+        continue;
     }
   }
 }
@@ -225,52 +221,9 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
   return type_params;
 }
 
-ast::Expression* Parser::ProduceMemberAccess(
-    const std::vector<ast::Expression*>& names) {
-  DCHECK(!names.empty());
-  DCHECK(!names.front()->is<ast::MemberAccess>());
-  if (names.size() == 1)
-    return ProduceExpressionOrType(names.front());
-  // TODO(eval1749) We should use |base::string16| for creating name for
-  // |MemberAccess|
-  std::stringstream buffer;
-  auto separator = "";
-  for (auto const name : names) {
-    buffer << separator << name->token();
-    separator = ".";
-  }
-  auto const name_token = session()->NewToken(
-      SourceCodeRange(compilation_unit_->source_code(),
-                      names.front()->token()->location().start_offset(),
-                      names.back()->token()->location().end_offset()),
-      TokenData(TokenType::SimpleName,
-                session()->NewAtomicString(base::UTF8ToUTF16(buffer.str()))));
-  return ProduceExpression(factory()->NewMemberAccess(name_token, names));
-}
-
 ast::Type* Parser::ProduceType(ast::Type* type) {
   ProduceExpressionOrType(type);
   return type;
-}
-
-ast::Type* Parser::ProduceTypeMemberAccess(
-    const std::vector<ast::Expression*>& names) {
-  ProduceMemberAccess(names);
-  auto const expression = ConsumeExpressionOrType();
-  if (auto const type = expression->as<ast::Type>())
-    return ProduceType(type);
-  if (auto const node = expression->as<ast::ConstructedName>())
-    return ProduceType(factory()->NewConstructedType(node));
-  if (auto const node = expression->as<ast::MemberAccess>())
-    return ProduceType(factory()->NewTypeMemberAccess(node));
-  if (auto const node = expression->as<ast::NameReference>())
-    return ProduceTypeNameReference(node);
-  NOTREACHED();
-  return ProduceType(factory()->NewInvalidType(expression));
-}
-
-ast::Type* Parser::ProduceTypeMemberAccess(ast::MemberAccess* node) {
-  return ProduceType(factory()->NewTypeMemberAccess(node));
 }
 
 ast::Type* Parser::ProduceTypeNameReference(ast::NameReference* node) {

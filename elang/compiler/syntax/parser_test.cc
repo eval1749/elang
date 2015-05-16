@@ -711,13 +711,12 @@ TEST_F(ParserTest, ImportErrorDuplicate) {
   Prepare(
       "using A.B;"
       "using A.B;");
-  EXPECT_EQ("Syntax.UsingDirective.Duplicate(16) A.B A.B\n", Format());
+  EXPECT_EQ("Syntax.UsingDirective.Duplicate(18) B B\n", Format());
 }
 
 TEST_F(ParserTest, ImportErrorInvalid) {
-  auto const source_code = "using A.B<T>;\n";
-  Prepare(source_code);
-  EXPECT_EQ(source_code, Format()) << "Using static members in class.";
+  Prepare("using A.B<T>;");
+  EXPECT_EQ("Syntax.UsingDirective.Import(8) B\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////

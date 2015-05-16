@@ -255,7 +255,7 @@ Conditional* Factory::NewConditional(Token* op,
 }
 
 ConstructedName* Factory::NewConstructedName(
-    NameReference* reference,
+    Expression* reference,
     const std::vector<Type*>& arguments) {
   auto const node = new (zone()) ConstructedName(zone(), reference, arguments);
   SetParent(reference, node);
@@ -279,14 +279,9 @@ Literal* Factory::NewLiteral(Token* literal) {
   return new (zone()) Literal(literal);
 }
 
-MemberAccess* Factory::NewMemberAccess(
-    Token* name,
-    const std::vector<Expression*>& components) {
-  auto const node = new (zone()) MemberAccess(zone(), name, components);
-  for (auto const component : components) {
-    component->parent_ = nullptr;
-    SetParent(component, node);
-  }
+MemberAccess* Factory::NewMemberAccess(Expression* container, Token* member) {
+  auto const node = new (zone()) MemberAccess(container, member);
+  SetParent(container, node);
   return node;
 }
 

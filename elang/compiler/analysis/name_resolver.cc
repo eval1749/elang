@@ -81,41 +81,28 @@ void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
 
 sm::Semantic* NameResolver::ReferenceResolver::Resolve(
     ast::Expression* expression) {
-  DCHECK(!result_);
+  DCHECK(!result_) << *result_;
   expression->Accept(this);
   return result_;
 }
 
 // ast::Visitor
 void NameResolver::ReferenceResolver::VisitMemberAccess(
-    ast::MemberAccess* reference) {
-  auto resolved = static_cast<sm::Semantic*>(nullptr);
-  for (auto const component : reference->components()) {
-    if (resolved) {
-      auto const name_reference = component->as<ast::NameReference>();
-      if (!name_reference) {
-        Error(ErrorCode::NameResolutionMemberAccessNotYetImplemented,
-              reference);
-        ProduceResult(nullptr);
-        return;
-      }
-      resolved = resolved->FindMember(name_reference->name());
-      if (!resolved) {
-        Error(ErrorCode::NameResolutionNameNotFound, component);
-        ProduceResult(nullptr);
-        return;
-      }
-      continue;
-    }
-
-    resolved = resolver()->ResolveReference(component, container_);
-    if (!resolved) {
-      ProduceResult(nullptr);
-      return;
-    }
+    ast::MemberAccess* node) {
+  auto const container =
+      resolver()->ResolveReference(node->container(), container_);
+  if (!container) {
+    ProduceResult(nullptr);
+    return;
   }
-  DCHECK(resolved);
-  ProduceResult(resolved);
+
+  auto const semantic = container->FindMember(node->member());
+  if (!semantic) {
+    Error(ErrorCode::NameResolutionMemberAccessNotFound, node);
+    ProduceResult(nullptr);
+    return;
+  }
+  ProduceResult(semantic);
 }
 
 // Algorithm of this function should be equivalent to

@@ -211,7 +211,7 @@ void Formatter::VisitContinueStatement(
 }
 
 void Formatter::VisitConstructedName(ast::ConstructedName* cons_name) {
-  VisitNameReference(cons_name->reference());
+  Traverse(cons_name->reference());
   ostream_ << "<";
   auto separator = "";
   for (auto const type_arg : cons_name->arguments()) {
@@ -406,13 +406,9 @@ void Formatter::VisitLiteral(ast::Literal* operation) {
   ostream_ << operation->token();
 }
 
-void Formatter::VisitMemberAccess(ast::MemberAccess* member_access) {
-  auto separator = "";
-  for (auto const component : member_access->components()) {
-    ostream_ << separator;
-    Visit(component);
-    separator = ".";
-  }
+void Formatter::VisitMemberAccess(ast::MemberAccess* node) {
+  Traverse(node->container());
+  ostream_ << '.' << node->member();
 }
 
 void Formatter::VisitMethod(ast::Method* method) {

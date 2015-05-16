@@ -43,10 +43,12 @@ class Formatter final : public ast::Visitor {
  private:
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node) final;
+  void VisitAlias(ast::Alias* node) final;
   void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitArrayType(ast::ArrayType* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitClass(ast::Class* node) final;
+  void VisitClassBody(ast::ClassBody* node) final;
   void VisitEnum(ast::Enum* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitImport(ast::Import* node) final;
@@ -77,6 +79,10 @@ void Formatter::Format(const ast::Node* node) {
 
 void Formatter::DoDefaultVisit(ast::Node* node) {
   ostream_ << node->class_name() << "@" << static_cast<void*>(&node);
+}
+
+void Formatter::VisitAlias(ast::Alias* node) {
+  ostream_ << "using " << node->name() << " = " << node->reference();
 }
 
 void Formatter::VisitArrayAccess(ast::ArrayAccess* node) {
@@ -123,6 +129,10 @@ void Formatter::VisitCall(ast::Call* node) {
   ostream_ << ")";
 }
 
+void Formatter::VisitClassBody(ast::ClassBody* node) {
+  ostream_ << "class " << GetQualifiedName(node) << " {...}";
+}
+
 void Formatter::VisitEnum(ast::Enum* node) {
   ostream_ << "enum " << node->name();
   if (!node->enum_base())
@@ -143,11 +153,8 @@ void Formatter::VisitLiteral(ast::Literal* node) {
 }
 
 void Formatter::VisitMemberAccess(ast::MemberAccess* node) {
-  auto separator = "";
-  for (auto const component : node->components()) {
-    ostream_ << separator << *component;
-    separator = ".";
-  }
+  Traverse(node->container());
+  ostream_ << "." << node->member();
 }
 
 void Formatter::VisitMethod(ast::Method* node) {
@@ -181,7 +188,7 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
 }
 
 void Formatter::VisitParameter(ast::Parameter* node) {
-  ostream_ << *node->name();
+  ostream_ << *node->name() << " {...}";
 }
 
 void Formatter::VisitParameterReference(ast::ParameterReference* node) {

@@ -217,7 +217,9 @@ bool Parser::ParsePrimaryExpression() {
       // should be type name.
       ProduceTypeNameReference(name);
     } else {
-      ParsePrimaryExpressionName(name);
+      ProduceExpression(factory()->NewNameReference(name));
+      if (AdvanceIf(TokenType::LeftAngleBracket))
+        ParseTypeArguments();
     }
     ParsePrimaryExpressionPost();
     return true;
@@ -249,31 +251,6 @@ bool Parser::ParsePrimaryExpression() {
   return false;
 }
 
-void Parser::ParsePrimaryExpressionName(Token* name) {
-  DCHECK(name->is_name());
-  auto const reference = factory()->NewNameReference(name);
-  if (!AdvanceIf(TokenType::LeftAngleBracket)) {
-    ProduceExpression(reference);
-    return;
-  }
-  std::vector<ast::Type*> type_args;
-  do {
-    if (!ParseType()) {
-      // TODO(eval1749) Skip to right angle bracket.
-      break;
-    }
-    type_args.push_back(ConsumeType());
-  } while (AdvanceIf(TokenType::Comma));
-  if (type_args.empty()) {
-    Error(ErrorCode::SyntaxMemberAccessTypeArgument);
-    ProduceExpression(reference);
-    return;
-  }
-  if (!AdvanceIf(TokenType::RightAngleBracket))
-    Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
-  ProduceExpression(factory()->NewConstructedName(reference, type_args));
-}
-
 void Parser::ParsePrimaryExpressionPost() {
   for (;;) {
     if (AdvanceIf(TokenType::Dot)) {
@@ -285,18 +262,11 @@ void Parser::ParsePrimaryExpressionPost() {
         Error(ErrorCode::SyntaxMemberAccessName, ConsumeToken());
         return;
       }
-      std::vector<ast::Expression*> components;
       auto const container = ConsumeExpressionOrType();
-      if (auto const member_access = container->as<ast::MemberAccess>()) {
-        components.insert(components.begin(),
-                          member_access->components().begin(),
-                          member_access->components().end());
-      } else {
-        components.push_back(container);
-      }
-      ParsePrimaryExpressionName(ConsumeToken());
-      components.push_back(ConsumeExpression());
-      ProduceMemberAccess(components);
+      auto const member = ConsumeToken();
+      ProduceExpression(factory()->NewMemberAccess(container, member));
+      if (AdvanceIf(TokenType::LeftAngleBracket))
+        ParseTypeArguments();
       continue;
     }
 
@@ -374,6 +344,25 @@ void Parser::ParsePrimaryExpressionPost() {
   }
 }
 
+void Parser::ParseTypeArguments() {
+  auto const generic_type = ConsumeExpressionAsType();
+  std::vector<ast::Type*> type_args;
+  do {
+    if (!ParseType()) {
+      // TODO(eval1749) Skip to right angle bracket.
+      break;
+    }
+    type_args.push_back(ConsumeType());
+  } while (AdvanceIf(TokenType::Comma));
+  if (type_args.empty()) {
+    Error(ErrorCode::SyntaxMemberAccessTypeArgument);
+    return;
+  }
+  if (!AdvanceIf(TokenType::RightAngleBracket))
+    Error(ErrorCode::SyntaxMemberAccessRightAngleBracket);
+  ProduceExpression(factory()->NewConstructedName(generic_type, type_args));
+}
+
 // UnaryExpression ::=
 //  PrimaryExpression |
 //  '++' UnaryExpression |
@@ -412,7 +401,7 @@ ast::Expression* Parser::ProduceExpression(ast::Expression* expression) {
 }
 
 ast::Expression* Parser::ProduceExpressionOrType(ast::Expression* expression) {
-  DCHECK(!expression_);
+  DCHECK(!expression_) << expression_;
   return expression_ = expression;
 }
 

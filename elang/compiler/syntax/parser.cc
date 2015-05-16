@@ -575,7 +575,7 @@ void Parser::ParseUsingDirectives() {
       // ImportNamespace ::= 'using' QualfiedName ';'
       auto const qualified_name = MakeQualifiedNameToken(thing);
       if (!qualified_name) {
-        Error(ErrorCode::SyntaxUsingDirectiveImport);
+        Error(ErrorCode::SyntaxUsingDirectiveImport, thing->token());
         AdvanceIf(TokenType::SemiColon);
         continue;
       }

@@ -96,13 +96,15 @@ void NamespaceAnalyzer::CheckPartialClass(ast::ClassBody* class_body) {
 }
 
 void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
-  DCHECK(!resolved_nodes_.count(node));
+  DCHECK(!resolved_nodes_.count(node)) << node;
+  DVLOG(1) << "DidResolve " << node;
   resolved_nodes_.insert(node);
   std::vector<ast::NamedNode*> users(dependency_graph_.GetInEdges(node));
   for (auto const user : users) {
     dependency_graph_.RemoveEdge(user, node);
     if (HasDependency(user))
       continue;
+    DVLOG(1) << " Try " << user << " by " << node;
     user->Accept(this);
   }
 }
@@ -123,6 +125,8 @@ void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
   }
   auto const ns = factory()->NewNamespace(outer, node->name());
   SetSemanticOf(node, ns);
+  SetSemanticOf(node->owner(), ns);
+  DidResolve(node->owner());
 }
 
 // Find |name| in class tree rooted by |clazz|.
@@ -160,10 +164,9 @@ ast::Expression* NamespaceAnalyzer::GetDefaultBaseClassNameAccess(
   return session()->ast_factory()->NewTypeMemberAccess(
       session()->system_namespace_body(),
       session()->ast_factory()->NewMemberAccess(
-          clazz->name(), {session()->ast_factory()->NewNameReference(
-                              session()->system_namespace()->name()),
-                          session()->ast_factory()->NewNameReference(
-                              GetDefaultBaseClassName(clazz))}));
+          session()->ast_factory()->NewNameReference(
+              session()->system_namespace()->name()),
+          GetDefaultBaseClassName(clazz)));
 }
 
 ast::NamedNode* NamespaceAnalyzer::GetResolvedReference(
@@ -178,7 +181,7 @@ bool NamespaceAnalyzer::HasDependency(ast::NamedNode* node) const {
 }
 
 bool NamespaceAnalyzer::IsResolved(ast::NamedNode* node) const {
-  if (resolver()->SemanticOf(node))
+  if (TrySemanticOf(node))
     return true;
   return !!resolved_nodes_.count(node);
 }
@@ -202,6 +205,7 @@ bool NamespaceAnalyzer::IsVisited(ast::NamedNode* node) const {
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::Postpone(ast::NamedNode* node,
                                                    ast::NamedNode* using_node) {
+  DVLOG(1) << "Postpone " << node << " by " << using_node;
   dependency_graph_.AddEdge(node, using_node);
   return Nothing<ast::NamedNode*>();
 }
@@ -301,30 +305,38 @@ Maybe<sm::Class*> NamespaceAnalyzer::ResolveDefaultBaseClass(
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveMemberAccess(
     const ResolveContext& start_context,
-    ast::MemberAccess* reference) {
+    ast::MemberAccess* node) {
   ResolveContext context(start_context);
-  context.member_access = reference;
-  auto resolved = static_cast<ast::NamedNode*>(nullptr);
-  for (auto const component : reference->components()) {
-    if (resolved) {
-      auto const container = resolved->as<ast::ContainerNode>();
-      if (!container) {
-        Error(ErrorCode::NameResolutionNameNeitherNamespaceNorType, component,
-              reference);
-        return Remember(reference, nullptr);
-      }
-      context.container = container;
+  context.member_access = node;
+  auto const result = ResolveReference(context, node->container());
+  if (result.IsNothing())
+    return result;
+  if (!result.FromJust())
+    return Remember(node, nullptr);
+  auto const resolved = result.FromJust();
+  if (!IsResolved(resolved))
+    return Postpone(context.node, resolved);
+  if (auto const clazz = resolved->as<ast::Class>()) {
+    std::unordered_set<ast::NamedNode*> founds;
+    FindInClass(node->member(), SemanticOf(clazz)->as<sm::Class>(), &founds);
+    if (founds.empty()) {
+      Error(ErrorCode::NameResolutionNameNotResolved, node->name());
+      return Remember(node, nullptr);
     }
-
-    auto const result = ResolveReference(context, component);
-    if (result.IsNothing())
-      return result;
-    if (!result.FromJust())
-      return Remember(reference, nullptr);
-    resolved = result.FromJust();
+    if (founds.size() >= 2u) {
+      Error(ErrorCode::NameResolutionNameAmbiguous, node);
+      return Remember(node, nullptr);
+    }
+    return Remember(node, *founds.begin());
   }
-  DCHECK(resolved);
-  return Remember(reference, resolved);
+  if (auto const ns = resolved->as<ast::Namespace>()) {
+    if (auto const present = ns->FindMember(node->member()))
+      return Remember(node, present);
+    Error(ErrorCode::NameResolutionNameNotFound, node);
+    return Remember(node, nullptr);
+  }
+  Error(ErrorCode::NameResolutionNameNeitherNamespaceNorType, node);
+  return Remember(node, nullptr);
 }
 
 Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveNameReference(

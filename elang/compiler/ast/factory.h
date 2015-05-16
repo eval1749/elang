@@ -93,13 +93,12 @@ class Factory final : public ZoneUser {
                               Expression* cond_expr,
                               Expression* then_expr,
                               Expression* else_expr);
-  ConstructedName* NewConstructedName(NameReference* name,
+  ConstructedName* NewConstructedName(Expression* reference,
                                       const std::vector<Type*>& arguments);
   IncrementExpression* NewIncrementExpression(Token* op, Expression* expr);
   InvalidExpression* NewInvalidExpression(Token* token);
   Literal* NewLiteral(Token* literal);
-  MemberAccess* NewMemberAccess(Token* name,
-                                const std::vector<Expression*>& members);
+  MemberAccess* NewMemberAccess(Expression* container, Token* member);
   NameReference* NewNameReference(Token* name);
   ParameterReference* NewParameterReference(Token* name, Parameter* param);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
