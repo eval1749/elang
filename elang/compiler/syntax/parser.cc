@@ -371,14 +371,12 @@ bool Parser::ParseClass() {
 //      UsingDirective*
 //      GlobalAttribute*
 //      NamedNodeDecl*
-bool Parser::ParseCompilationUnit() {
+void Parser::ParseCompilationUnit() {
   ParseUsingDirectives();
-  if (!ParseNamedNodes())
-    return false;
-  if (PeekToken() == TokenType::EndOfSource)
-    return true;
+  ParseNamedNodes();
+  if (!session()->errors().empty() || PeekToken() == TokenType::EndOfSource)
+    return;
   Error(ErrorCode::SyntaxCompilationUnitInvalid, token_);
-  return false;
 }
 
 // EnumDecl := EnumModifier* "enum" Name EnumBase? "{" EnumField* "}"

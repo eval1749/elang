@@ -70,10 +70,7 @@ TEST_F(ParserTest, AliasErrorReference) {
 // Bracket statement
 //
 TEST_F(ParserTest, BracketErrorExtra) {
-  EXPECT_EQ(
-      "Syntax.Bracket.Extra(0) }\n"
-      "Syntax.CompilationUnit.Invalid(0) }\n",
-      Format("}"));
+  EXPECT_EQ("Syntax.Bracket.Extra(0) }\n", Format("}"));
 }
 
 TEST_F(ParserTest, BracketErrorNotClosed) {

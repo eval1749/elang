@@ -67,7 +67,7 @@ class Parser final : public CompilationSessionUser {
   bool ParseClass();
   void ParseEnum();
   void ParseFunction();
-  bool ParseCompilationUnit();
+  void ParseCompilationUnit();
   bool ParseNamespace();
   bool ParseNamespace(Token* namespace_keyword,
                       const std::vector<Token*>& names,
