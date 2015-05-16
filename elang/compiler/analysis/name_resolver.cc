@@ -42,7 +42,6 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<sm::Semantic*>* founds);
-  sm::Semantic* FindMember(Token* name, sm::Semantic* semantic);
   void ProduceResult(sm::Semantic* result);
 
   // ast::Visitor
@@ -75,16 +74,6 @@ void NameResolver::ReferenceResolver::FindInClass(
     FindInClass(name, base_class, founds);
 }
 
-sm::Semantic* NameResolver::ReferenceResolver::FindMember(
-    Token* name,
-    sm::Semantic* semantic) {
-  if (auto const clazz = semantic->as<sm::Class>())
-    return clazz->FindMember(name);
-  if (auto const ns = semantic->as<sm::Namespace>())
-    return ns->FindMember(name);
-  return nullptr;
-}
-
 void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
   DCHECK(!result_) << *result_;
   result_ = result;
@@ -110,7 +99,7 @@ void NameResolver::ReferenceResolver::VisitMemberAccess(
         ProduceResult(nullptr);
         return;
       }
-      resolved = FindMember(name_reference->name(), resolved);
+      resolved = resolved->FindMember(name_reference->name());
       if (!resolved) {
         Error(ErrorCode::NameResolutionNameNotFound, component);
         ProduceResult(nullptr);
