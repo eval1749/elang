@@ -76,7 +76,7 @@ TEST_F(ParserTest, BracketErrorExtra) {
 TEST_F(ParserTest, BracketErrorNotClosed) {
   EXPECT_EQ(
       "Syntax.Bracket.NotClosed(12) { )\n"
-      "Syntax.Namespace.RightCurryBracket(14) )\n",
+      "Syntax.Namespace.Invalid(14) )\n",
       Format("namespace A { )"));
 }
 

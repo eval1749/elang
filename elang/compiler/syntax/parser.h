@@ -72,7 +72,7 @@ class Parser final : public CompilationSessionUser {
   bool ParseNamespace(Token* namespace_keyword,
                       const std::vector<Token*>& names,
                       size_t index);
-  bool ParseNamedNodes();
+  void ParseNamedNodes();
   void ParseUsingDirectives();
   Token* PeekToken();
   void ValidateClassModifiers();

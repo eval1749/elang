@@ -490,10 +490,9 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     return Error(ErrorCode::SyntaxNamespaceLeftCurryBracket);
   ParseUsingDirectives();
-  if (!ParseNamedNodes())
-    return false;
+  ParseNamedNodes();
   if (!AdvanceIf(TokenType::RightCurryBracket))
-    return Error(ErrorCode::SyntaxNamespaceRightCurryBracket);
+    return false;
   AdvanceIf(TokenType::SemiColon);
   return true;
 }
@@ -501,7 +500,9 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
 // NamedNodeDecl ::= NamespaceDecl | TypeDecl
 // TypeDecl ::= ClassDecl | InterfaceDecl | StructDecl | EnumDecl |
 //              FunctionDecl
-bool Parser::ParseNamedNodes() {
+void Parser::ParseNamedNodes() {
+  auto is_namespace = container_->owner() != session()->global_namespace();
+  auto skipping = false;
   for (;;) {
     modifiers_->Reset();
     while (modifiers_->Add(PeekToken()))
@@ -511,23 +512,47 @@ bool Parser::ParseNamedNodes() {
       case TokenType::Interface:
       case TokenType::Struct:
         if (!ParseClass())
-          return false;
-        break;
+          return;
+        continue;
       case TokenType::Enum:
         ParseEnum();
-        break;
+        continue;
       case TokenType::Function:
         ParseFunction();
-        break;
+        continue;
       case TokenType::Namespace:
         if (!ParseNamespace())
-          return false;
+          return;
+        continue;
+      case TokenType::EndOfSource:
+        return;
+      case TokenType::RightCurryBracket:
+        if (is_namespace)
+          return;
+        Advance();
+        skipping = false;
+        continue;
+      case TokenType::SemiColon:
+        if (skipping) {
+          skipping = false;
+          Advance();
+          continue;
+        }
+        break;
+      case TokenType::Using:
+        skipping = true;
         break;
       default:
-        // TODO(eval1749) Report unmatched right bracket if there is no
-        // matching bracket.
-        return true;
+        if (skipping) {
+          Advance();
+          continue;
+        }
+        break;
     }
+    if (is_namespace)
+      Error(ErrorCode::SyntaxNamespaceInvalid, ConsumeToken());
+    else
+      Error(ErrorCode::SyntaxCompilationUnitInvalid, ConsumeToken());
   }
 }
 
