@@ -17,6 +17,7 @@ namespace elang {
 namespace compiler {
 
 enum class ErrorCode;
+class ErrorSink;
 class Token;
 
 //////////////////////////////////////////////////////////////////////
@@ -30,7 +31,7 @@ class ErrorData final : public ZoneAllocated {
   const ZoneVector<Token*>& tokens() const { return tokens_; }
 
  private:
-  friend class CompilationSession;
+  friend class ErrorSink;
 
   ErrorData(Zone* zone,
             const SourceCodeRange& location,

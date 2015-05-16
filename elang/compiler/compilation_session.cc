@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <algorithm>
 #include <string>
 
 #include "elang/compiler/compilation_session.h"
@@ -17,7 +16,6 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
-#include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/string_source_code.h"
@@ -50,7 +48,8 @@ void PopulateSemantics(CompilationSession* session) {
 // CompilationSession
 //
 CompilationSession::CompilationSession()
-    : analysis_(new Analysis()),
+    : ErrorSink(zone()),
+      analysis_(new Analysis()),
       token_factory_(new TokenFactory(zone())),
       ast_factory_(new ast::Factory(this)),
       semantics_factory_(new sm::Factory(token_factory_.get())) {
@@ -82,33 +81,6 @@ ast::NamespaceBody* CompilationSession::system_namespace_body() const {
 
 Token* CompilationSession::system_token() const {
   return token_factory_->system_token();
-}
-
-void CompilationSession::AddError(ErrorCode error_code, Token* token) {
-  AddError(token->location(), error_code, std::vector<Token*>{token});
-}
-
-void CompilationSession::AddError(ErrorCode error_code,
-                                  Token* token1,
-                                  Token* token2) {
-  AddError(token1->location(), error_code, std::vector<Token*>{token1, token2});
-}
-
-void CompilationSession::AddError(const SourceCodeRange& location,
-                                  ErrorCode error_code) {
-  AddError(location, error_code, std::vector<Token*>());
-}
-
-void CompilationSession::AddError(const SourceCodeRange& location,
-                                  ErrorCode error_code,
-                                  const std::vector<Token*>& tokens) {
-  std::vector<ErrorData*>* list =
-      error_code > ErrorCode::WarningCodeZero ? &warnings_ : &errors_;
-  list->push_back(new (zone()) ErrorData(zone(), location, error_code, tokens));
-  std::sort(
-      list->begin(), list->end(), [](const ErrorData* a, const ErrorData* b) {
-        return a->location().start_offset() < b->location().start_offset();
-      });
 }
 
 AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {

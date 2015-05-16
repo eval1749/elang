@@ -13,6 +13,7 @@
 #include "base/strings/string16.h"
 #include "base/strings/string_piece.h"
 #include "elang/base/zone_owner.h"
+#include "elang/compiler/error_sink.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/token_data.h"
 
@@ -47,11 +48,8 @@ class Factory;
 
 class Analysis;
 class CompilationUnit;
-enum class ErrorCode;
-class ErrorData;
 class NameResolver;
 enum class PredefinedName;
-class SourceCodeRange;
 class Token;
 class TokenFactory;
 enum class TokenType;
@@ -62,13 +60,10 @@ namespace ir = optimizer;
 //
 // CompilationSession
 //
-class CompilationSession final : public ZoneOwner {
+class CompilationSession final : public ZoneOwner, public ErrorSink {
  public:
   CompilationSession();
   ~CompilationSession();
-
-  const std::vector<ErrorData*>& errors() const { return errors_; }
-  const std::vector<ErrorData*>& warnings() const { return warnings_; }
 
   // Token
   AtomicStringFactory* atomic_string_factory() const;
@@ -85,11 +80,6 @@ class CompilationSession final : public ZoneOwner {
   // Semantic
   Analysis* analysis() const { return analysis_.get(); }
   sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
-
-  void AddError(ErrorCode error_code, Token* token);
-  void AddError(ErrorCode error_code, Token* token1, Token* token2);
-  // Lexer uses this.
-  void AddError(const SourceCodeRange& location, ErrorCode error_code);
 
   // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
   void Compile(NameResolver* name_resolver, hir::Factory* factory);
@@ -126,17 +116,11 @@ class CompilationSession final : public ZoneOwner {
   std::vector<ast::Node*> QueryAstNodes(const ast::NodeQuery& query);
 
  private:
-  void AddError(const SourceCodeRange& location,
-                ErrorCode error_code,
-                const std::vector<Token*>& tokens);
-
   std::unique_ptr<Analysis> analysis_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
-  std::vector<ErrorData*> errors_;
   // The result of compilation.
   std::unordered_map<ast::Method*, hir::Function*> function_map_;
   std::unordered_map<ast::Method*, ir::Function*> ir_function_map_;
-  std::vector<ErrorData*> warnings_;
 
   const std::unique_ptr<TokenFactory> token_factory_;
 
