@@ -62,7 +62,7 @@ class Parser final : public CompilationSessionUser {
   bool Error(ErrorCode error_code);
   bool Error(ErrorCode error_code, Token* token);
   bool Error(ErrorCode error_code, Token* token, Token* token2);
-  Token* Parser::NewUniqueNameToken(const base::char16* format);
+  Token* NewUniqueNameToken(const base::char16* format);
 
   bool ParseClass();
   void ParseEnum();
