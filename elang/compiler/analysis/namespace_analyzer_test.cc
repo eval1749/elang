@@ -221,6 +221,12 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsEnumMember) {
             AnalyzeNamespace());
 }
 
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsField) {
+  Prepare("class A : B.F {} class B { int F; }");
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(12) B.F\n",
+            AnalyzeNamespace());
+}
+
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsMethod) {
   Prepare("class A : B.M {} class B { void M() {} }");
   EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(12) B.M\n",
