@@ -209,6 +209,26 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsStruct) {
             AnalyzeNamespace());
 }
 
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsEnum) {
+  Prepare("class A : E {} enum E { E1 }");
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(10) E\n",
+            AnalyzeNamespace());
+}
+
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsEnumMember) {
+  Prepare("class A : E.E1 {} enum E { E1 }");
+  // TODO(eval1749) Error message should be:
+  //   "NameResolution.Name.NeitherClassNorInterface(10) E\n"
+  EXPECT_EQ("NameResolution.Name.Cycle(23) E A\n",
+            AnalyzeNamespace());
+}
+
+TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsMethod) {
+  Prepare("class A : B.M {} class B { void M() {} }");
+  EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(12) B.M\n",
+            AnalyzeNamespace());
+}
+
 TEST_F(NamespaceAnalyzerTest, ClassErrorBaseClassIsNamespace) {
   Prepare("namespace N1 { class A : N1 {} }");
   EXPECT_EQ("NameResolution.Name.NeitherClassNorInterface(25) N1\n",
