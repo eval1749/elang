@@ -126,9 +126,12 @@ Type* Enum::enum_base() const {
 }
 
 Semantic* Enum::FindMember(Token* name) const {
-  auto const it = std::find_if(
-      members_.begin(), members_.end(),
-      [name](const EnumMember* member) { return member->name() == name; });
+  DCHECK(name->is_name()) << name;
+  auto const key = name->atomic_string();
+  auto const it = std::find_if(members_.begin(), members_.end(),
+                               [key](const EnumMember* member) {
+                                 return member->name()->atomic_string() == key;
+                               });
   return it == members_.end() ? nullptr : *it;
 }
 
