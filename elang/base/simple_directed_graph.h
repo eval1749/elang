@@ -5,6 +5,9 @@
 #ifndef ELANG_BASE_SIMPLE_DIRECTED_GRAPH_H_
 #define ELANG_BASE_SIMPLE_DIRECTED_GRAPH_H_
 
+#include <algorithm>
+#include <stack>
+#include <unordered_set>
 #include <vector>
 
 #include "base/logging.h"
@@ -12,7 +15,7 @@
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_owner.h"
 #include "elang/base/zone_unordered_map.h"
-#include "elang/base/zone_unordered_set.h"
+#include "elang/base/zone_vector.h"
 
 namespace elang {
 
@@ -38,8 +41,8 @@ class SimpleDirectedGraph : public ZoneOwner {
 
  private:
   struct Vertex : ZoneAllocated {
-    ZoneUnorderedSet<Vertex*> ins;
-    ZoneUnorderedSet<Vertex*> outs;
+    ZoneVector<Vertex*> ins;
+    ZoneVector<Vertex*> outs;
     T data;
     Vertex(Zone* zone, const T& data) : data(data), ins(zone), outs(zone) {}
   };
@@ -58,8 +61,10 @@ template <typename T>
 void SimpleDirectedGraph<T>::AddEdge(const T& from, const T& to) {
   auto const from_vertex = GetOrNewVertex(from);
   auto const to_vertex = GetOrNewVertex(to);
-  from_vertex->outs.insert(to_vertex);
-  to_vertex->ins.insert(from_vertex);
+  if (HasEdge(from, to))
+    return;
+  from_vertex->outs.push_back(to_vertex);
+  to_vertex->ins.push_back(from_vertex);
 }
 
 template <typename T>
@@ -74,21 +79,21 @@ std::vector<T> SimpleDirectedGraph<T>::GetAllVertices() const {
 template <typename T>
 std::vector<T> SimpleDirectedGraph<T>::GetInEdges(const T& data) const {
   auto const vertex = GetOrNewVertex(data);
-  std::vector<T> ins(vertex->ins.size());
-  ins.resize(0);
-  for (const auto& in : vertex->ins)
-    ins.push_back(in->data);
-  return ins;
+  std::vector<T> from_list(vertex->ins.size());
+  from_list.resize(0);
+  for (auto const from_vertex : vertex->ins)
+    from_list.push_back(from_vertex->data);
+  return std::move(from_list);
 }
 
 template <typename T>
 std::vector<T> SimpleDirectedGraph<T>::GetOutEdges(const T& data) const {
   auto const vertex = GetOrNewVertex(data);
-  std::vector<T> outs(vertex->outs.size());
-  outs.resize(0);
-  for (const auto& out : vertex->outs)
-    outs.push_back(out->data);
-  return outs;
+  std::vector<T> to_list(vertex->outs.size());
+  to_list.resize(0);
+  for (auto const to_vertex : vertex->outs)
+    to_list.push_back(to_vertex->data);
+  return std::move(to_list);
 }
 
 template <typename T>
@@ -106,7 +111,9 @@ template <typename T>
 bool SimpleDirectedGraph<T>::HasEdge(const T& from, const T& to) const {
   auto const from_vertex = GetOrNewVertex(from);
   auto const to_vertex = GetOrNewVertex(to);
-  return from_vertex->outs.count(to_vertex);
+  auto const it =
+      std::find(from_vertex->outs.begin(), from_vertex->outs.end(), to_vertex);
+  return it != from_vertex->outs.end();
 }
 
 template <typename T>
@@ -126,11 +133,13 @@ void SimpleDirectedGraph<T>::RemoveEdge(const T& from, const T& to) {
   auto const from_vertex = GetOrNewVertex(from);
   auto const to_vertex = GetOrNewVertex(to);
 
-  auto const from_it = from_vertex->outs.find(to_vertex);
+  auto const from_it =
+      std::find(from_vertex->outs.begin(), from_vertex->outs.end(), to_vertex);
   DCHECK(from_it != from_vertex->outs.end());
   from_vertex->outs.erase(from_it);
 
-  auto const to_it = to_vertex->ins.find(from_vertex);
+  auto const to_it =
+      std::find(to_vertex->ins.begin(), to_vertex->ins.end(), from_vertex);
   DCHECK(to_it != to_vertex->ins.end());
   to_vertex->ins.erase(to_it);
 }
