@@ -82,7 +82,7 @@ void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
 sm::Semantic* NameResolver::ReferenceResolver::Resolve(
     ast::Expression* expression) {
   DCHECK(!result_) << *result_;
-  expression->Accept(this);
+  Traverse(expression);
   return result_;
 }
 

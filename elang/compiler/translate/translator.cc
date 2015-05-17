@@ -228,7 +228,7 @@ void Translator::Run() {
 
 ir::Data* Translator::Translate(ast::Expression* node) {
   DCHECK(!visit_result_);
-  node->Accept(this);
+  Traverse(node);
   if (!visit_result_) {
     DCHECK(!session()->errors().empty());
     return void_value();
@@ -308,7 +308,7 @@ ir::Data* Translator::TranslateMethodReference(sm::Method* method) {
 
 void Translator::TranslateStatement(ast::Statement* node) {
   DCHECK(!visit_result_);
-  node->Accept(this);
+  Traverse(node);
   DCHECK(!visit_result_);
 }
 

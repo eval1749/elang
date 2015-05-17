@@ -261,7 +261,7 @@ void CodeGenerator::Generate(ast::Statement* statement) {
   DCHECK(!output_);
   if (!statement)
     return;
-  statement->Accept(this);
+  Traverse(statement);
 }
 
 // Generate:
@@ -342,7 +342,7 @@ void CodeGenerator::GenerateDoOrWhile(ast::DoOrWhileStatement* node) {
 
 hir::Value* CodeGenerator::GenerateValue(ast::Expression* expression) {
   ScopedOutput output(this);
-  expression->Accept(this);
+  Traverse(expression);
   DCHECK(output_->value);
   return output_->value;
 }
@@ -721,12 +721,12 @@ void CodeGenerator::VisitDoStatement(ast::DoStatement* node) {
 
 void CodeGenerator::VisitExpressionList(ast::ExpressionList* node) {
   for (auto const expression : node->expressions())
-    expression->Accept(this);
+    Traverse(expression);
 }
 
 void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
   DCHECK(!output_);
-  node->expression()->Accept(this);
+  Traverse(node->expression());
 }
 
 // VisitForStatement generates following blocks:

@@ -82,12 +82,12 @@ void Formatter::IndentPlusOne() {
 std::string Formatter::Run(ast::Node* node) {
   ostream_.clear();
   depth_ = 0;
-  node->Accept(this);
+  Traverse(node);
   return ostream_.str();
 }
 
 void Formatter::Visit(ast::Node* node) {
-  node->Accept(this);
+  Traverse(node);
 }
 
 // ast::Visitor
@@ -246,7 +246,7 @@ void Formatter::VisitEnum(ast::Enum* enum_type) {
     ostream_ << ": " << enum_base << " ";
   FormatBlock block(this);
   for (auto const member : enum_type->members()) {
-    member->Accept(this);
+    Traverse(member);
     ostream_ << "," << std::endl;
   }
 }

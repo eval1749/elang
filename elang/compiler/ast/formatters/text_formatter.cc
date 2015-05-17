@@ -72,7 +72,7 @@ Formatter::Formatter(std::ostream* ostream) : ostream_(*ostream) {
 }
 
 void Formatter::Format(const ast::Node* node) {
-  const_cast<ast::Node*>(node)->Accept(this);
+  Traverse(node);
 }
 
 // Visitor

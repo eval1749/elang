@@ -106,7 +106,7 @@ void NamespaceAnalyzer::DidResolve(ast::NamedNode* node) {
     if (HasDependency(user))
       continue;
     DVLOG(1) << " Try " << user << " by " << node;
-    user->Accept(this);
+    Traverse(user);
   }
 }
 

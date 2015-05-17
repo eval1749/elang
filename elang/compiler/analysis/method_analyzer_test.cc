@@ -67,23 +67,23 @@ Collector::Collector(ast::Method* method) {
   auto const body = method->body();
   if (!body)
     return;
-  body->Accept(this);
+  Traverse(body);
 }
 
 // ast::Visitor statements
 void Collector::VisitBlockStatement(ast::BlockStatement* node) {
   for (auto const child : node->statements())
-    child->Accept(this);
+    Traverse(child);
 }
 
 void Collector::VisitExpressionStatement(ast::ExpressionStatement* node) {
-  node->expression()->Accept(this);
+  Traverse(node->expression());
 }
 
 void Collector::VisitForEachStatement(ast::ForEachStatement* node) {
   variables_.push_back(node->variable());
-  node->enumerable()->Accept(this);
-  node->statement()->Accept(this);
+  Traverse(node->enumerable());
+  Traverse(node->statement());
 }
 
 void Collector::VisitVarStatement(ast::VarStatement* node) {
@@ -92,14 +92,14 @@ void Collector::VisitVarStatement(ast::VarStatement* node) {
     auto const value = variable->value();
     if (!value)
       continue;
-    value->Accept(this);
+    Traverse(value);
   }
 }
 
 // ast::Visitor expressions
 void Collector::VisitCall(ast::Call* node) {
   for (auto const child : node->arguments())
-    child->Accept(this);
+    Traverse(child);
   calls_.push_back(node);
 }
 
