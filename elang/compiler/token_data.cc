@@ -170,6 +170,19 @@ bool TokenData::is_contextual_keyword() const {
   return GetTokenDetails(type_)[0] == 'C';
 }
 
+bool TokenData::is_float32() const {
+  return type_ == TokenType::Float32;
+}
+
+bool TokenData::is_float64() const {
+  return type_ == TokenType::Float64;
+}
+
+bool TokenData::is_integer() const {
+  auto const detail = GetTokenDetails(type_)[1];
+  return detail == 'I' || detail == 'U';
+}
+
 bool TokenData::is_keyword() const {
   auto const detail = GetTokenDetails(type_)[0];
   return detail == 'C' || detail == 'K';

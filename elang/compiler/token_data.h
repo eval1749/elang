@@ -47,6 +47,9 @@ class TokenData {
   int32_t int32_data() const;
   int64_t int64_data() const;
   bool is_contextual_keyword() const;
+  bool is_float32() const;
+  bool is_float64() const;
+  bool is_integer() const;
   bool is_keyword() const;
   bool is_left_bracket() const;
   bool is_literal() const;
