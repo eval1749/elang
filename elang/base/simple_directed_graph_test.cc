@@ -26,8 +26,7 @@ class SimpleDirectedGraphTest : public ::testing::Test {
 
 std::vector<int> Sort(const std::vector<int>& vector) {
   auto result = vector;
-  std::sort(result.begin(), result.end(),
-            [](int a, int b) { return a < b; });
+  std::sort(result.begin(), result.end(), [](int a, int b) { return a < b; });
   return result;
 }
 
@@ -79,6 +78,11 @@ TEST_F(SimpleDirectedGraphTest, GetInEdges) {
 TEST_F(SimpleDirectedGraphTest, GetOutEdges) {
   EXPECT_EQ((std::vector<int>{2, 3}), Sort(graph()->GetOutEdges(1)));
   EXPECT_EQ(std::vector<int>{4}, Sort(graph()->GetOutEdges(2)));
+}
+
+TEST_F(SimpleDirectedGraphTest, PostOrderListOf) {
+  auto const ordered = graph()->PostOrderListOf(1);
+  EXPECT_EQ((std::vector<int>{4, 2, 3, 1}), ordered);
 }
 
 TEST_F(SimpleDirectedGraphTest, RemoveEdge) {

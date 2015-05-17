@@ -37,6 +37,7 @@ class SimpleDirectedGraph : public ZoneOwner {
   bool HasEdge(const T& from, const T& to) const;
   bool HasInEdge(const T& data) const;
   bool HasOutEdge(const T& data) const;
+  std::vector<T> PostOrderListOf(const T& start) const;
   void RemoveEdge(const T& from, const T& to);
 
  private:
@@ -126,6 +127,32 @@ template <typename T>
 bool SimpleDirectedGraph<T>::HasOutEdge(const T& data) const {
   auto const vertex = GetOrNewVertex(data);
   return !vertex->outs.empty();
+}
+
+template <typename T>
+std::vector<T> SimpleDirectedGraph<T>::PostOrderListOf(const T& start) const {
+  std::vector<T> ordered;
+  std::unordered_set<T> visited;
+  std::stack<T> stack;
+  stack.push(start);
+  visited.insert(start);
+  while (!stack.empty()) {
+    auto const from = stack.top();
+    auto should_pop = true;
+    for (auto to : GetOutEdges(from)) {
+      if (visited.count(to))
+        continue;
+      stack.push(to);
+      visited.insert(to);
+      should_pop = false;
+      break;
+    }
+    if (!should_pop)
+      continue;
+    stack.pop();
+    ordered.push_back(from);
+  }
+  return std::move(ordered);
 }
 
 template <typename T>
