@@ -29,24 +29,25 @@ class NameResolver;
 //
 class Analyzer : public CompilationSessionUser {
  public:
-  NameResolver* name_resolver() const { return name_resolver_; }
-
- protected:
-  explicit Analyzer(NameResolver* resolver);
-  virtual ~Analyzer();
-
   sm::Editor* editor() const { return editor_.get(); }
   sm::Factory* factory() const { return semantics_factory(); }
-  NameResolver* resolver() const { return name_resolver_; }
-  sm::Factory* semantics_factory() const;
+  NameResolver* name_resolver() const { return name_resolver_; }
 
-  // Shortcut to |NameResolver|.
-  sm::Semantic* Resolve(ast::NamedNode* ast_node);
   sm::Type* ResolveTypeReference(ast::Type* reference,
                                  ast::ContainerNode* container);
   sm::Semantic* SemanticOf(ast::Node* node) const;
   void SetSemanticOf(ast::Node* node, sm::Semantic* semantic);
   sm::Semantic* TrySemanticOf(ast::Node* node) const;
+
+ protected:
+  explicit Analyzer(NameResolver* resolver);
+  virtual ~Analyzer();
+
+  NameResolver* resolver() const { return name_resolver_; }
+  sm::Factory* semantics_factory() const;
+
+  // Shortcut to |NameResolver|.
+  sm::Semantic* Resolve(ast::NamedNode* ast_node);
 
  private:
   sm::Type* EnsureType(ast::Type* reference, sm::Semantic* semantic);
