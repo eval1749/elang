@@ -50,6 +50,7 @@ class Formatter final : public ast::Visitor {
   void VisitClass(ast::Class* node) final;
   void VisitClassBody(ast::ClassBody* node) final;
   void VisitEnum(ast::Enum* node) final;
+  void VisitEnumMember(ast::EnumMember* node) final;
   void VisitLiteral(ast::Literal* node) final;
   void VisitImport(ast::Import* node) final;
   void VisitMemberAccess(ast::MemberAccess* node) final;
@@ -138,6 +139,11 @@ void Formatter::VisitEnum(ast::Enum* node) {
   if (!node->enum_base())
     return;
   ostream_ << " : " << *node->enum_base();
+}
+
+void Formatter::VisitEnumMember(ast::EnumMember* node) {
+  ostream_ << "enum " << GetQualifiedName(node->parent()->as<ast::Enum>())
+           << " {" << node->name() << "}";
 }
 
 void Formatter::VisitClass(ast::Class* node) {
