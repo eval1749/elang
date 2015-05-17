@@ -75,11 +75,12 @@ void Collector::AnalyzeEnumMember(sm::Enum* enum_type,
   DCHECK(member) << ast_member;
   if (ast_member->expression()) {
     auto const value = evaluator_->Evaluate(member, ast_member->expression());
-    auto const literal = value->as<sm::Literal>();
-    if (!literal)
+    if (!calculator().IsTypeOf(value, enum_base)) {
+      Error(ErrorCode::AnalyzeExpressionType, ast_member->expression(),
+            enum_base->name());
       return;
-    editor()->FixEnumMember(
-        member, calculator().NewIntValue(enum_base, literal->token()->data()));
+    }
+    editor()->FixEnumMember(member, calculator().CastAs(value, enum_base));
     return;
   }
   if (!ast_previous_member) {

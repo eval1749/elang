@@ -14,6 +14,7 @@ namespace compiler {
   E(Error, Code, Zero)                                \
   /* Analyzer */                                      \
   E(Analyze, Expression, NotConstant)                 \
+  E(Analyze, Expression, Type)                        \
   E(Analyze, Type, NotFound)                          \
   E(Analyze, Type, NotType)                           \
   /* Class Analyzer */                                \
@@ -57,9 +58,8 @@ namespace compiler {
   E(Semantic, Enum, EnumBase)                         \
   E(Semantic, Enum, MemberValue)                      \
   E(Semantic, IntAdd, Overflow)                       \
-  E(Semantic, Type, NotInteger)                       \
   E(Semantic, UIntAdd, Overflow)                      \
-  E(Semantic, IntValue, Unbound)                      \
+  E(Semantic, Value, Type)                            \
   /*  Parser */                                       \
   E(Syntax, Bracket, Extra)                           \
   E(Syntax, Bracket, NotClosed)                       \

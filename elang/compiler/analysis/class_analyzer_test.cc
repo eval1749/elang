@@ -40,6 +40,20 @@ TEST_F(ClassAnalyzerTest, EnumConstExpr) {
   EXPECT_EQ("Color.Blue = 5", ToString(SemanticOf(FindMember("Color.Blue"))));
 }
 
+TEST_F(ClassAnalyzerTest, EnumErrorNotInt) {
+  Prepare("enum Color { Red = 'C', Green = 1.0, Blue = \"str\" }");
+  EXPECT_EQ(
+      "Analyze.Expression.Type(19) 'C' Int32\n"
+      "Analyze.Expression.Type(32) 1 Int32\n"
+      "Analyze.Expression.Type(44) \"str\" Int32\n",
+      AnalyzeClass());
+}
+
+TEST_F(ClassAnalyzerTest, EnumErrorOverflow) {
+  Prepare("enum Color : int8 { Red = 127, Green, Blue }");
+  EXPECT_EQ("Semantic.Value.Type(31) 128 Int8\n", AnalyzeClass());
+}
+
 TEST_F(ClassAnalyzerTest, Method) {
   Prepare(
       "class Sample {"

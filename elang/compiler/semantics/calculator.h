@@ -31,7 +31,10 @@ class Calculator final : public CompilationSessionUser {
 
   Value* Add(Value* left, int right);
   Value* Add(Value* left, Value* right);
-  bool IsIntType(Type* type);
+  Value* CastAs(Value* value, Type* type);
+  bool IsIntType(Type* type) const;
+  bool IsTypeOf(const TokenData& data, Type* type) const;
+  bool IsTypeOf(sm::Value* value, Type* type) const;
   Value* NewIntValue(Type* type, const TokenData& data);
   void SetContext(Token* token);
   Value* Zero(Type* type);
@@ -41,12 +44,12 @@ class Calculator final : public CompilationSessionUser {
 
   Factory* factory() const;
 
-  bool IsBound(Type* type, const TokenData& data);
+  bool IsBound(const TokenData& data, Type* type) const;
   Value* NewInvalidValue(Type* type);
+  Token* NewToken(const TokenData& data);
   Value* NewValue(Type* type, const TokenData& data);
   Type* PredefinedTypeOf(PredefinedName name) const;
-  TypeProperty PropertyOf(Type* type);
-  Value* Unbound(Type* type, const TokenData& data);
+  TypeProperty PropertyOf(Type* type) const;
 
   Token* context_;
 

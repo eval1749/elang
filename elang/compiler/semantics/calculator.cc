@@ -28,21 +28,67 @@ bool IsBoundData(const TokenData& data) {
       std::is_arithmetic<IntType>::value && std::is_integral<IntType>::value,
       "IntType should be an integral type.");
   if (std::is_signed<IntType>::value) {
-    auto const i64 = data.int64_data();
-    return i64 >= std::numeric_limits<IntType>::min() &&
-           i64 <= std::numeric_limits<IntType>::max();
+    switch (data.type()) {
+      case TokenType::Int32Literal:
+      case TokenType::Int64Literal:
+        return data.int64_data() >=
+                   static_cast<int64_t>(std::numeric_limits<IntType>::min()) &&
+               data.int64_data() <=
+                   static_cast<int64_t>(std::numeric_limits<IntType>::max());
+      case TokenType::UInt32Literal:
+      case TokenType::UInt64Literal:
+        return data.uint64_data() <=
+               static_cast<uint64_t>(std::numeric_limits<IntType>::max());
+    }
+    return false;
   }
-  auto const u64 = data.uint64_data();
-  return u64 <= std::numeric_limits<IntType>::max();
+  switch (data.type()) {
+    case TokenType::Int32Literal:
+    case TokenType::Int64Literal:
+      return data.int64_data() >= 0 &&
+             data.int64_data() <=
+                 static_cast<int64_t>(std::numeric_limits<IntType>::max());
+    case TokenType::UInt32Literal:
+    case TokenType::UInt64Literal:
+      return data.uint64_data() <=
+             static_cast<uint64_t>(std::numeric_limits<IntType>::max());
+  }
+  return false;
+}
+
+template <>
+bool IsBoundData<float32_t>(const TokenData& data) {
+  if (data.is_float32())
+    return true;
+  if (!data.is_float64())
+    return false;
+  auto const f64 = static_cast<float64_t>(data.f32_data());
+  return f64 >= std::numeric_limits<float32_t>::min() &&
+         f64 >= std::numeric_limits<float32_t>::max();
+}
+
+template <>
+bool IsBoundData<float64_t>(const TokenData& data) {
+  return data.is_float64() || data.is_float32();
 }
 
 template <>
 bool IsBoundData<int64_t>(const TokenData& data) {
-  return true;
+  switch (data.type()) {
+    case TokenType::Int32Literal:
+    case TokenType::Int64Literal:
+    case TokenType::UInt32Literal:
+      return true;
+    case TokenType::UInt64Literal:
+      return data.uint64_data() <=
+             static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+  }
+  return false;
 }
+
 template <>
 bool IsBoundData<uint64_t>(const TokenData& data) {
-  return true;
+  return data.is_integer();
 }
 
 }  // namespace
@@ -81,6 +127,11 @@ Value* Calculator::Add(Value* left_value, Value* right_value) {
   auto const type = left_value->type();
   DCHECK_EQ(type, right_value->type()) << *left_value << " " << *right_value;
 
+  if (left_value->is<sm::InvalidValue>())
+    return left_value;
+  if (right_value->is<sm::InvalidValue>())
+    return right_value;
+
   auto const property = PropertyOf(type);
   auto const left = left_value->as<Literal>()->data();
   auto const right = right_value->as<Literal>()->data();
@@ -107,26 +158,74 @@ Value* Calculator::Add(Value* left_value, Value* right_value) {
   return NewInvalidValue(type);
 }
 
-bool Calculator::IsBound(Type* type, const TokenData& data) {
+Value* Calculator::CastAs(Value* value, Type* type) {
+  if (value->type() == type)
+    return value;
+  if (value->is<sm::InvalidValue>())
+    return factory()->NewInvalidValue(type, value->token());
+  auto const literal = value->as<sm::Literal>();
+  DCHECK(literal) << value;
+  return factory()->NewLiteral(type, literal->data());
+}
+
+bool Calculator::IsBound(const TokenData& data, Type* type) const {
   switch (PropertyOf(type).type) {
+    case TokenType::Float32:
+      return IsBoundData<float32_t>(data);
+    case TokenType::Float64:
+      return IsBoundData<float64_t>(data);
+    case TokenType::Int16:
+      return IsBoundData<int16_t>(data);
     case TokenType::Int32:
       return IsBoundData<int32_t>(data);
+    case TokenType::Int64:
+      return IsBoundData<int64_t>(data);
+    case TokenType::Int8:
+      return IsBoundData<int8_t>(data);
+    case TokenType::UInt16:
+      return IsBoundData<uint16_t>(data);
+    case TokenType::UInt32:
+      return IsBoundData<uint32_t>(data);
+    case TokenType::UInt64:
+      return IsBoundData<uint64_t>(data);
+    case TokenType::UInt8:
+      return IsBoundData<uint8_t>(data);
   }
   return false;
 }
 
-bool Calculator::IsIntType(Type* type) {
+bool Calculator::IsIntType(Type* type) const {
   auto const property = PropertyOf(type);
   return property.format == TokenType::Int64 ||
          property.format == TokenType::UInt64;
 }
 
+bool Calculator::IsTypeOf(const TokenData& data, Type* type) const {
+  auto const property = PropertyOf(type);
+  switch (property.format) {
+    case TokenType::Float32:
+    case TokenType::Float64:
+    case TokenType::Int64:
+    case TokenType::UInt64:
+      return IsBound(data, type);
+  }
+  return false;
+}
+
+bool Calculator::IsTypeOf(sm::Value* value, sm::Type* type) const {
+  if (value->type() == type)
+    return true;
+  auto const literal = value->as<sm::Literal>();
+  if (!literal)
+    return false;
+  return IsTypeOf(literal->token()->data(), type);
+}
+
 Value* Calculator::NewIntValue(Type* type, const TokenData& data) {
-  if (IsBound(type, data))
+  DCHECK(data.is_integer()) << data;
+  if (IsTypeOf(data, type))
     return NewValue(type, data);
-  if (IsIntType(type))
-    return NewInvalidValue(type);
-  Error(ErrorCode::SemanticTypeNotInteger, type->token());
+  Error(ErrorCode::SemanticValueType, NewToken(data), type->token());
   return NewInvalidValue(type);
 }
 
@@ -136,16 +235,12 @@ Value* Calculator::NewInvalidValue(Type* type) {
 }
 
 Value* Calculator::NewValue(Type* type, const TokenData& data) {
-  DCHECK(context_) << "You should call SetContext()";
-  return factory()->NewLiteral(type,
-                               session()->NewToken(context_->location(), data));
+  return factory()->NewLiteral(type, NewToken(data));
 }
 
-Value* Calculator::Unbound(Type* type, const TokenData& data) {
+Token* Calculator::NewToken(const TokenData& data) {
   DCHECK(context_) << "You should call SetContext()";
-  Error(ErrorCode::SemanticIntValueUnbound, type->token(),
-        session()->NewToken(context_->location(), data));
-  return NewInvalidValue(type);
+  return session()->NewToken(context_->location(), data);
 }
 
 void Calculator::SetContext(Token* token) {
@@ -157,7 +252,7 @@ Type* Calculator::PredefinedTypeOf(PredefinedName name) const {
   return session()->PredefinedTypeOf(name);
 }
 
-Calculator::TypeProperty Calculator::PropertyOf(Type* type) {
+Calculator::TypeProperty Calculator::PropertyOf(Type* type) const {
   using Ty = TokenType;
 
   if (PredefinedTypeOf(PredefinedName::Int32) == type)
