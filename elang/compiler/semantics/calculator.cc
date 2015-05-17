@@ -108,7 +108,7 @@ struct Calculator::TypeProperty {
 // Calculator
 //
 Calculator::Calculator(CompilationSession* session)
-    : CompilationSessionUser(session) {
+    : CompilationSessionUser(session), context_(nullptr) {
 }
 
 Calculator::~Calculator() {
@@ -124,17 +124,17 @@ Value* Calculator::Add(Value* left, int right) {
 }
 
 Value* Calculator::Add(Value* left_value, Value* right_value) {
-  auto const type = left_value->type();
-  DCHECK_EQ(type, right_value->type()) << *left_value << " " << *right_value;
-
-  if (left_value->is<sm::InvalidValue>())
+  auto const type = AdjustType(left_value->type(), right_value->type());
+  auto const adjusted_left = CastAs(left_value, type);
+  auto const adjusted_right = CastAs(right_value, type);
+  if (!adjusted_left->is<sm::Literal>())
     return left_value;
-  if (right_value->is<sm::InvalidValue>())
+  if (!adjusted_right->is<sm::Literal>())
     return right_value;
 
   auto const property = PropertyOf(type);
-  auto const left = left_value->as<Literal>()->data();
-  auto const right = right_value->as<Literal>()->data();
+  auto const left = adjusted_left->as<Literal>()->data();
+  auto const right = adjusted_right->as<Literal>()->data();
 
   if (property.format == TokenType::Int64) {
     auto const sum = left->int64_data() + right->int64_data();
@@ -158,10 +158,38 @@ Value* Calculator::Add(Value* left_value, Value* right_value) {
   return NewInvalidValue(type);
 }
 
+Type* Calculator::AdjustType(Type* type1, Type* type2) const {
+  if (type1 == type2)
+    return type1;
+  auto const property1 = PropertyOf(type1);
+  if (property1.format == TokenType::Float64)
+    return type1;
+  auto const property2 = PropertyOf(type2);
+  if (property2.format == TokenType::Float64)
+    return type2;
+  if (property1.format == TokenType::Float32)
+    return type1;
+  if (property2.format == TokenType::Float32)
+    return type2;
+  if (property1.format == TokenType::UInt64)
+    return type1;
+  if (property2.format == TokenType::UInt64)
+    return type2;
+  if (property1.format == TokenType::Int64)
+    return type1;
+  if (property2.format == TokenType::Int64)
+    return type2;
+  if (property1.format == TokenType::UInt32)
+    return type1;
+  if (property2.format == TokenType::UInt32)
+    return type2;
+  return PredefinedTypeOf(PredefinedName::Int32);
+}
+
 Value* Calculator::CastAs(Value* value, Type* type) {
   if (value->type() == type)
     return value;
-  if (value->is<sm::InvalidValue>())
+  if (!IsTypeOf(value, type))
     return factory()->NewInvalidValue(type, value->token());
   auto const literal = value->as<sm::Literal>();
   DCHECK(literal) << value;

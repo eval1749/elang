@@ -44,6 +44,7 @@ class Calculator final : public CompilationSessionUser {
 
   Factory* factory() const;
 
+  Type* AdjustType(Type* type1, Type* type2) const;
   bool IsBound(const TokenData& data, Type* type) const;
   Value* NewInvalidValue(Type* type);
   Token* NewToken(const TokenData& data);
