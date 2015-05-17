@@ -446,7 +446,7 @@ hir::Value* CodeGenerator::NewMethodReference(sm::Method* method) {
 
 // The entry point of |CodeGenerator|.
 void CodeGenerator::Run() {
-  VisitNamespaceBody(session()->global_namespace_body());
+  Traverse(session()->global_namespace_body());
 }
 
 sm::Semantic* CodeGenerator::ValueOf(ast::Node* node) const {
