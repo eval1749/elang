@@ -51,12 +51,20 @@ bool Enum::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 EnumMember::EnumMember(Enum* owner,
                        Token* name,
-                       int position,
-                       Expression* expression)
+                       Expression* explicit_expression,
+                       Expression* implicit_expression)
     : NamedNode(owner, name, name),
-      expression_(expression),
-      position_(position) {
+      explicit_expression_(explicit_expression),
+      implicit_expression_(implicit_expression) {
   DCHECK(name->is_name());
+  if (explicit_expression_)
+    DCHECK(!implicit_expression_);
+  else
+    DCHECK(implicit_expression_);
+}
+
+Enum* EnumMember::owner() const {
+  return parent()->as<Enum>();
 }
 
 #if _DEBUG

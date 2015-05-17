@@ -147,11 +147,18 @@ Enum* Factory::NewEnum(BodyNode* container,
 
 EnumMember* Factory::NewEnumMember(Enum* owner,
                                    Token* name,
-                                   int position,
-                                   Expression* expression) {
-  auto const node = new (zone()) EnumMember(owner, name, position, expression);
-  if (expression)
-    SetParent(expression, node);
+                                   Expression* explicit_expression,
+                                   Expression* implicit_expression) {
+  if (explicit_expression)
+    DCHECK(!implicit_expression);
+  else
+    DCHECK(implicit_expression);
+  auto const node = new (zone())
+      EnumMember(owner, name, explicit_expression, implicit_expression);
+  if (explicit_expression)
+    SetParent(explicit_expression, node);
+  if (implicit_expression)
+    SetParent(implicit_expression, node);
   return node;
 }
 

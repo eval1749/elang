@@ -59,8 +59,8 @@ class Factory final : public ZoneUser {
                 Type* enum_base);
   EnumMember* NewEnumMember(Enum* owner,
                             Token* name,
-                            int position,
-                            Expression* expression);
+                            Expression* explicit_expression,
+                            Expression* implicit_expression);
   Field* NewField(ClassBody* class_body,
                   Modifiers modifiers,
                   Type* type,

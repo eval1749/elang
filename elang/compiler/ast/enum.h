@@ -54,11 +54,15 @@ class EnumMember final : public NamedNode {
   DECLARE_CONCRETE_AST_NODE_CLASS(EnumMember, NamedNode);
 
  public:
-  Expression* expression() const { return expression_; }
-  int position() const { return position_; }
+  Expression* expression() const { return explicit_expression_; }
+  Expression* implicit_expression() const { return implicit_expression_; }
+  Enum* owner() const;
 
  private:
-  EnumMember(Enum* owner, Token* name, int position, Expression* expression);
+  EnumMember(Enum* owner,
+             Token* name,
+             Expression* explicit_expression,
+             Expression* implicit_expression);
 
 #if _DEBUG
   // Node
@@ -67,8 +71,8 @@ class EnumMember final : public NamedNode {
   bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
-  Expression* const expression_;
-  int const position_;
+  Expression* const implicit_expression_;
+  Expression* const explicit_expression_;
 
   DISALLOW_COPY_AND_ASSIGN(EnumMember);
 };

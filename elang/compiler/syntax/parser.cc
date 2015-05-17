@@ -408,24 +408,40 @@ void Parser::ParseEnum() {
   container_->AddMember(enum_node);
   container_->AddNamedMember(enum_node);
   container_->owner()->AddNamedMember(enum_node);
-  // TODO(eval1749) NYI EnumBase ::= ':' IntegralType
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     Error(ErrorCode::SyntaxEnumLeftCurryBracket);
-  auto position = 0;
+  ast::EnumMember* last_member = nullptr;
   while (PeekToken()->is_name()) {
     auto const member_name = ConsumeToken();
-    auto member_value = static_cast<ast::Expression*>(nullptr);
+    ast::Expression* explicit_value = nullptr;
     if (AdvanceIf(TokenType::Assign)) {
       if (ParseExpression())
-        member_value = ConsumeExpression();
+        explicit_value = ConsumeExpression();
       else
         Error(ErrorCode::SyntaxEnumExpression);
     }
-    auto const enum_member = factory()->NewEnumMember(enum_node, member_name,
-                                                      position, member_value);
-    enum_node->AddNamedMember(enum_member);
-    enum_node->AddMember(enum_member);
-    ++position;
+    ast::Expression* implicit_value = nullptr;
+    if (!explicit_value) {
+      if (last_member) {
+        auto const add = session()->NewToken(member_name->location(),
+                                             TokenData(TokenType::Add));
+        auto const left = factory()->NewNameReference(last_member->name());
+        auto const one = session()->NewToken(
+            member_name->location(), TokenData(TokenType::Int32Literal, 1));
+        auto const right = factory()->NewLiteral(one);
+        implicit_value = factory()->NewBinaryOperation(add, left, right);
+      } else {
+        auto const zero = session()->NewToken(
+            member_name->location(),
+            TokenData(TokenType::Int32Literal, static_cast<uint64_t>(0)));
+        implicit_value = factory()->NewLiteral(zero);
+      }
+    }
+    auto const member = factory()->NewEnumMember(
+        enum_node, member_name, explicit_value, implicit_value);
+    enum_node->AddNamedMember(member);
+    enum_node->AddMember(member);
+    last_member = member;
     if (PeekToken() == TokenType::RightCurryBracket)
       break;
     if (AdvanceIf(TokenType::Comma))
