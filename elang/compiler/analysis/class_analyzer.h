@@ -12,7 +12,7 @@
 namespace elang {
 namespace compiler {
 class CompilationSession;
-class ConstExprEvaluator;
+class ConstExprAnalyzer;
 class NameResolver;
 namespace sm {
 class Calculator;
@@ -35,7 +35,8 @@ class ClassAnalyzer final {
   void Run();
 
  private:
-  const std::unique_ptr<ConstExprEvaluator> evaluator_;
+  const std::unique_ptr<sm::Editor> editor_;
+  const std::unique_ptr<ConstExprAnalyzer> analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzer);
 };

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_ANALYSIS_CONST_EXPR_EVALUATOR_H_
-#define ELANG_COMPILER_ANALYSIS_CONST_EXPR_EVALUATOR_H_
+#ifndef ELANG_COMPILER_ANALYSIS_CONST_EXPR_ANALYZER_H_
+#define ELANG_COMPILER_ANALYSIS_CONST_EXPR_ANALYZER_H_
 
 #include <memory>
 
@@ -17,26 +17,37 @@ namespace compiler {
 class NameResolver;
 namespace sm {
 class Calculator;
+class Editor;
 class Semantic;
 class Value;
 }
 
 //////////////////////////////////////////////////////////////////////
 //
-// ConstExprEvaluator
+// ConstExprAnalyzer
 //
-class ConstExprEvaluator final : public Analyzer, public ast::Visitor {
+class ConstExprAnalyzer final : public Analyzer, public ast::Visitor {
  public:
-  explicit ConstExprEvaluator(NameResolver* name_resolver);
-  ~ConstExprEvaluator() = default;
+  ConstExprAnalyzer(NameResolver* name_resolver, sm::Editor* editor);
+  ~ConstExprAnalyzer() = default;
 
-  sm::Calculator& calculator() const { return *calculator_; }
+  sm::Calculator* calculator() const { return calculator_.get(); }
+  sm::Editor* editor() const { return editor_; }
 
-  void AddDependency(sm::Semantic* from, sm::Semantic* to);
-  sm::Value* Evaluate(sm::Semantic* context, ast::Node* expression);
+  void AnalyzeEnumMember(ast::EnumMember* node);
+  void Run();
 
  private:
+  enum class State {
+    Finalized,
+    Finalizing,
+    Running,
+  };
+
+  void AddDependency(ast::Node* from, ast::Node* to);
+  sm::Value* Evaluate(ast::Node* context, ast::Expression* expression);
   sm::Value* Evaluate(ast::Node* node);
+  ast::Expression* ExpressionOf(ast::EnumMember* node);
   void ProcessReference(ast::Expression* node);
   void ProduceResult(sm::Value* value);
   sm::Type* TypeFromToken(Token* token);
@@ -49,14 +60,16 @@ class ConstExprEvaluator final : public Analyzer, public ast::Visitor {
   void VisitNameReference(ast::NameReference* node) final;
 
   const std::unique_ptr<sm::Calculator> calculator_;
-  sm::Semantic* context_;
-  SimpleDirectedGraph<sm::Semantic*> dependency_graph_;
+  ast::Node* context_;
+  SimpleDirectedGraph<ast::Node*> dependency_graph_;
+  sm::Editor* const editor_;
   sm::Value* result_;
+  State state_;
 
-  DISALLOW_COPY_AND_ASSIGN(ConstExprEvaluator);
+  DISALLOW_COPY_AND_ASSIGN(ConstExprAnalyzer);
 };
 
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_ANALYSIS_CONST_EXPR_EVALUATOR_H_
+#endif  // ELANG_COMPILER_ANALYSIS_CONST_EXPR_ANALYZER_H_

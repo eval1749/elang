@@ -13,6 +13,7 @@ namespace compiler {
 #define FOR_EACH_COMPILER_ERROR_CODE(E, W)            \
   E(Error, Code, Zero)                                \
   /* Analyzer */                                      \
+  E(Analyze, Expression, Cycle)                       \
   E(Analyze, Expression, NotConstant)                 \
   E(Analyze, Expression, Type)                        \
   E(Analyze, Type, NotFound)                          \

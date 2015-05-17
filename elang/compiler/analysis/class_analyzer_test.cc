@@ -33,11 +33,48 @@ TEST_F(ClassAnalyzerTest, Enum) {
 }
 
 TEST_F(ClassAnalyzerTest, EnumConstExpr) {
-  Prepare("enum Color { Red = 1, Green = Red + 2, Blue = Red + 4}");
+  Prepare("enum Color { Red = 1, Green = Red + 2, Blue = Red + 4 }");
   EXPECT_EQ("", AnalyzeClass());
   EXPECT_EQ("Color.Red = 1", ToString(SemanticOf(FindMember("Color.Red"))));
   EXPECT_EQ("Color.Green = 3", ToString(SemanticOf(FindMember("Color.Green"))));
   EXPECT_EQ("Color.Blue = 5", ToString(SemanticOf(FindMember("Color.Blue"))));
+}
+
+TEST_F(ClassAnalyzerTest, EnumConstExprForwardReference) {
+  Prepare("enum Color { Red = Blue, Green = Blue + 2, Blue = 1}");
+  EXPECT_EQ("", AnalyzeClass());
+  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf(FindMember("Color.Red"))));
+  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf(FindMember("Color.Green"))));
+  EXPECT_EQ("Color.Blue = 1", ToString(SemanticOf(FindMember("Color.Blue"))));
+}
+
+TEST_F(ClassAnalyzerTest, EnumConstExprWithAnotherEnum) {
+  Prepare("enum E1 { M = E2.N } enum E2 { N = 42 }");
+  EXPECT_EQ("", AnalyzeClass());
+  EXPECT_EQ("E1.M = 42", ToString(SemanticOf(FindMember("E1.M"))));
+  EXPECT_EQ("E2.N = 42", ToString(SemanticOf(FindMember("E2.N"))));
+}
+
+TEST_F(ClassAnalyzerTest, EnumErrorCycle) {
+  Prepare("enum Color { Red = Green, Green = Blue, Blue = Red }");
+  EXPECT_EQ(
+      "Analyze.Expression.Cycle(13) Red Green\n"
+      "Analyze.Expression.Cycle(26) Green Blue\n"
+      "Analyze.Expression.Cycle(40) Blue Red\n",
+      AnalyzeClass());
+}
+
+TEST_F(ClassAnalyzerTest, EnumErrorCycleSelf) {
+  Prepare("enum Color { Red = Red }");
+  EXPECT_EQ("Analyze.Expression.Cycle(13) Red Red\n", AnalyzeClass());
+}
+
+TEST_F(ClassAnalyzerTest, EnumErrorCycleWithAnotherEnum) {
+  Prepare("enum E1 { M = E2.N } enum E2 { N = E1.M }");
+  EXPECT_EQ(
+      "Analyze.Expression.Cycle(10) M E2.N\n"
+      "Analyze.Expression.Cycle(31) N E1.M\n",
+      AnalyzeClass());
 }
 
 TEST_F(ClassAnalyzerTest, EnumErrorNotInt) {

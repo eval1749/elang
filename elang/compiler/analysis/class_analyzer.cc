@@ -8,7 +8,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/analysis/analyzer.h"
-#include "elang/compiler/analysis/const_expr_evaluator.h"
+#include "elang/compiler/analysis/const_expr_analyzer.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
@@ -35,85 +35,41 @@ namespace {
 //
 // Collector
 //
-class Collector final : public Analyzer, public ast::Visitor {
+class Collector final : public ast::Visitor {
  public:
-  explicit Collector(ConstExprEvaluator* evaluator);
+  explicit Collector(ConstExprAnalyzer* analyzer);
   ~Collector() = default;
 
   void Run();
 
  private:
-  sm::Calculator& calculator() const { return evaluator_->calculator(); }
+  CompilationSession* session() const { return analyzer_->session(); }
 
-  void AnalyzeEnumMember(sm::Enum* enum_type,
-                         ast::EnumMember* ast_member,
-                         ast::EnumMember* ast_previous_member);
   sm::Type* EnsureEnumBase(ast::Enum* enum_type);
-  void FixEnumMember(sm::EnumMember* member, sm::Value* value);
 
   // ast::Visitor
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
   void VisitMethod(ast::Method* node) final;
 
-  ConstExprEvaluator* const evaluator_;
+  ConstExprAnalyzer* const analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 
-Collector::Collector(ConstExprEvaluator* analyzer)
-    : Analyzer(analyzer->name_resolver()), evaluator_(analyzer) {
-}
-
-void Collector::AnalyzeEnumMember(sm::Enum* enum_type,
-                                  ast::EnumMember* ast_member,
-                                  ast::EnumMember* ast_previous_member) {
-  auto const enum_base = enum_type->enum_base();
-  auto const member_name = ast_member->name();
-  calculator().SetContext(member_name);
-  auto const member = SemanticOf(ast_member)->as<sm::EnumMember>();
-  DCHECK(member) << ast_member;
-  if (ast_member->expression()) {
-    auto const value = evaluator_->Evaluate(member, ast_member->expression());
-    if (!calculator().IsTypeOf(value, enum_base)) {
-      Error(ErrorCode::AnalyzeExpressionType, ast_member->expression(),
-            enum_base->name());
-      return;
-    }
-    editor()->FixEnumMember(member, calculator().CastAs(value, enum_base));
-    return;
-  }
-  if (!ast_previous_member) {
-    editor()->FixEnumMember(member, calculator().Zero(enum_base));
-    return;
-  }
-  auto const previous_member =
-      SemanticOf(ast_previous_member)->as<sm::EnumMember>();
-  if (previous_member->has_value()) {
-    editor()->FixEnumMember(member,
-                            calculator().Add(previous_member->value(), 1));
-    return;
-  }
-  evaluator_->AddDependency(member, previous_member);
+Collector::Collector(ConstExprAnalyzer* analyzer) : analyzer_(analyzer) {
 }
 
 sm::Type* Collector::EnsureEnumBase(ast::Enum* enum_type) {
   auto const type =
       enum_type->enum_base()
-          ? evaluator_->ResolveTypeReference(enum_type->enum_base(), enum_type)
+          ? analyzer_->ResolveTypeReference(enum_type->enum_base(), enum_type)
           : session()->PredefinedTypeOf(PredefinedName::Int32);
-  if (calculator().IsIntType(type))
+  if (analyzer_->calculator()->IsIntType(type))
     return type;
   DCHECK(enum_type->enum_base()) << enum_type;
-  evaluator_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
+  analyzer_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
   return session()->PredefinedTypeOf(PredefinedName::Int64);
-}
-
-void Collector::FixEnumMember(sm::EnumMember* member, sm::Value* value) {
-  if (value->type() == member->owner()->enum_base())
-    return editor()->FixEnumMember(member, value);
-  evaluator_->Error(ErrorCode::SemanticEnumMemberValue, member->name(),
-                    value->token());
 }
 
 // The entry point of |Collector|.
@@ -124,15 +80,10 @@ void Collector::Run() {
 // ast::Visitor
 void Collector::VisitEnum(ast::Enum* ast_enum) {
   auto const enum_base = EnsureEnumBase(ast_enum);
-  auto const enum_type = SemanticOf(ast_enum)->as<sm::Enum>();
-  editor()->FixEnumBase(enum_type, enum_base);
-
-  ast::EnumMember* ast_previous = nullptr;
-  for (auto const ast_node : ast_enum->members()) {
-    auto const ast_member = ast_node->as<ast::EnumMember>();
-    AnalyzeEnumMember(enum_type, ast_member, ast_previous);
-    ast_previous = ast_member;
-  }
+  auto const enum_type = analyzer_->SemanticOf(ast_enum)->as<sm::Enum>();
+  analyzer_->editor()->FixEnumBase(enum_type, enum_base);
+  for (auto const ast_node : ast_enum->members())
+    analyzer_->AnalyzeEnumMember(ast_node->as<ast::EnumMember>());
 }
 
 void Collector::VisitField(ast::Field* node) {
@@ -140,11 +91,12 @@ void Collector::VisitField(ast::Field* node) {
 }
 
 void Collector::VisitMethod(ast::Method* ast_method) {
-  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
+  auto const clazz =
+      analyzer_->SemanticOf(ast_method->owner())->as<sm::Class>();
   auto const method_name = ast_method->name();
   if (clazz->FindMember(method_name))
     return;
-  factory()->NewMethodGroup(clazz, method_name);
+  analyzer_->factory()->NewMethodGroup(clazz, method_name);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -153,29 +105,29 @@ void Collector::VisitMethod(ast::Method* ast_method) {
 //
 class Resolver final : public ast::Visitor {
  public:
-  explicit Resolver(ConstExprEvaluator* analyzer);
+  explicit Resolver(ConstExprAnalyzer* analyzer);
   ~Resolver() = default;
 
-  sm::Editor* editor() const { return evaluator_->editor(); }
-  sm::Factory* factory() const { return evaluator_->factory(); }
-  CompilationSession* session() const { return evaluator_->session(); }
+  sm::Editor* editor() const { return analyzer_->editor(); }
+  sm::Factory* factory() const { return analyzer_->factory(); }
+  CompilationSession* session() const { return analyzer_->session(); }
 
   void Run();
 
  private:
   sm::Semantic* SemanticOf(ast::Node* node) {
-    return evaluator_->SemanticOf(node);
+    return analyzer_->SemanticOf(node);
   }
 
   // ast::Visitor
   void VisitMethod(ast::Method* node) final;
 
-  ConstExprEvaluator* const evaluator_;
+  ConstExprAnalyzer* const analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(Resolver);
 };
 
-Resolver::Resolver(ConstExprEvaluator* analyzer) : evaluator_(analyzer) {
+Resolver::Resolver(ConstExprAnalyzer* analyzer) : analyzer_(analyzer) {
 }
 
 // The entry point of |Resolver|.
@@ -191,20 +143,20 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
       clazz->FindMember(method_name)->as<sm::MethodGroup>();
   if (!method_group)
     return;
-  auto const return_type = evaluator_->ResolveTypeReference(
+  auto const return_type = analyzer_->ResolveTypeReference(
       ast_method->return_type(), ast_method->owner());
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
   for (auto const parameter : ast_method->parameters()) {
     auto const parameter_type =
-        evaluator_->ResolveTypeReference(parameter->type(), ast_method);
+        analyzer_->ResolveTypeReference(parameter->type(), ast_method);
     parameters.push_back(
         factory()->NewParameter(parameter, parameter_type, nullptr));
   }
 
   auto const signature = factory()->NewSignature(return_type, parameters);
   auto const method = factory()->NewMethod(method_group, signature);
-  evaluator_->SetSemanticOf(ast_method, method);
+  analyzer_->SetSemanticOf(ast_method, method);
 
   // Check this size with existing signatures
   for (auto other : method_group->methods()) {
@@ -212,10 +164,10 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
       continue;
     if (!other->signature()->IsIdenticalParameters(signature))
       continue;
-    evaluator_->Error(other->return_type() == return_type
-                          ? ErrorCode::ClassResolutionMethodDuplicate
-                          : ErrorCode::ClassResolutionMethodConflict,
-                      ast_method->name(), other->name());
+    analyzer_->Error(other->return_type() == return_type
+                         ? ErrorCode::ClassResolutionMethodDuplicate
+                         : ErrorCode::ClassResolutionMethodConflict,
+                     ast_method->name(), other->name());
   }
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
@@ -229,17 +181,21 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
 // ClassAnalyzer
 //
 ClassAnalyzer::ClassAnalyzer(NameResolver* resolver)
-    : evaluator_(new ConstExprEvaluator(resolver)) {
+    : editor_(new sm::Editor(resolver->session())),
+      analyzer_(new ConstExprAnalyzer(resolver, editor_.get())) {
 }
 
 ClassAnalyzer::~ClassAnalyzer() {
 }
 
 void ClassAnalyzer::Run() {
-  Collector(evaluator_.get()).Run();
-  if (evaluator_->session()->HasError())
+  Collector(analyzer_.get()).Run();
+  if (analyzer_->session()->HasError())
     return;
-  Resolver(evaluator_.get()).Run();
+  analyzer_->Run();
+  if (analyzer_->session()->HasError())
+    return;
+  Resolver(analyzer_.get()).Run();
 }
 
 }  // namespace compiler

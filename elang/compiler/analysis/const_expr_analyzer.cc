@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "elang/compiler/analysis/const_expr_evaluator.h"
+#include "elang/compiler/analysis/const_expr_analyzer.h"
 
 #include "base/logging.h"
 #include "elang/compiler/analysis/analyzer.h"
@@ -20,6 +20,7 @@
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics/calculator.h"
+#include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/token.h"
@@ -41,57 +42,106 @@ ast::ContainerNode* ContainerOf(ast::Node* node) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ConstExprEvaluator
+// ConstExprAnalyzer
 //
-ConstExprEvaluator::ConstExprEvaluator(NameResolver* name_resolver)
+ConstExprAnalyzer::ConstExprAnalyzer(NameResolver* name_resolver,
+                                     sm::Editor* editor)
     : Analyzer(name_resolver),
       calculator_(new sm::Calculator(name_resolver->session())),
       context_(nullptr),
-      result_(nullptr) {
+      editor_(editor),
+      result_(nullptr),
+      state_(State::Running) {
 }
 
-void ConstExprEvaluator::AddDependency(sm::Semantic* from, sm::Semantic* to) {
+void ConstExprAnalyzer::AddDependency(ast::Node* from, ast::Node* to) {
+  DCHECK(state_ == State::Running);
   dependency_graph_.AddEdge(from, to);
 }
 
-sm::Value* ConstExprEvaluator::Evaluate(sm::Semantic* context,
-                                        ast::Node* expression) {
+void ConstExprAnalyzer::AnalyzeEnumMember(ast::EnumMember* node) {
+  auto const expression = ExpressionOf(node);
+  auto const value = Evaluate(node, expression);
+  if (!value)
+    return;
+  auto const member = SemanticOf(node)->as<sm::EnumMember>();
+  if (value->is<sm::InvalidValue>())
+    return editor_->FixEnumMember(member, value);
+  auto const enum_type = member->owner();
+  auto const enum_base = enum_type->enum_base();
+  auto const adjusted_value = calculator()->CastAs(value, enum_base);
+  if (adjusted_value->is<sm::InvalidValue>())
+    Error(ErrorCode::AnalyzeExpressionType, expression, enum_base->name());
+  editor_->FixEnumMember(member, adjusted_value);
+}
+
+sm::Value* ConstExprAnalyzer::Evaluate(ast::Node* context,
+                                       ast::Expression* expression) {
+  DCHECK(state_ != State::Finalized);
   DCHECK(!context_) << context_;
   context_ = context;
+  calculator_->SetContext(context_->name());
   auto const value = Evaluate(expression);
-  DCHECK(context_);
+  DCHECK_EQ(context_, context);
   context_ = nullptr;
   return value;
 }
 
-sm::Value* ConstExprEvaluator::Evaluate(ast::Node* node) {
+sm::Value* ConstExprAnalyzer::Evaluate(ast::Node* node) {
   DCHECK(context_);
   DCHECK(!result_) << result_;
   Traverse(node);
-  DCHECK(result_ || session()->HasError());
+  DCHECK(result_ || session()->HasError() ||
+         dependency_graph_.HasOutEdge(context_))
+      << node << " in " << context_;
   auto const value = result_;
   result_ = nullptr;
   return value;
 }
 
-void ConstExprEvaluator::ProcessReference(ast::Expression* node) {
+ast::Expression* ConstExprAnalyzer::ExpressionOf(ast::EnumMember* node) {
+  if (auto const expression = node->expression())
+    return expression;
+  return node->implicit_expression();
+}
+
+void ConstExprAnalyzer::ProcessReference(ast::Expression* node) {
   auto const semantic =
       name_resolver()->ResolveReference(node, ContainerOf(node));
   if (auto const enum_member = semantic->as<sm::EnumMember>()) {
     if (enum_member->has_value())
       return ProduceResult(enum_member->value());
-    return AddDependency(context_, enum_member);
+    if (state_ == State::Running)
+      return AddDependency(context_, node);
+    DCHECK(state_ == State::Finalizing);
+    Error(ErrorCode::AnalyzeExpressionCycle, context_, node);
+    return;
   }
   Error(ErrorCode::AnalyzeExpressionNotConstant, node);
 }
 
-void ConstExprEvaluator::ProduceResult(sm::Value* value) {
+void ConstExprAnalyzer::ProduceResult(sm::Value* value) {
   DCHECK(context_);
   DCHECK(!result_) << result_;
   result_ = value;
 }
 
-sm::Type* ConstExprEvaluator::TypeFromToken(Token* token) {
+void ConstExprAnalyzer::Run() {
+  state_ = State::Finalizing;
+  auto const root = session()->global_namespace_body();
+  for (auto const node : dependency_graph_.GetAllVertices()) {
+    if (dependency_graph_.HasInEdge(node))
+      continue;
+    dependency_graph_.AddEdge(root, node);
+  }
+  for (auto const node : dependency_graph_.PostOrderListOf(root)) {
+    if (auto const ast_member = node->as<ast::EnumMember>())
+      AnalyzeEnumMember(ast_member);
+  }
+  state_ = State::Finalized;
+}
+
+sm::Type* ConstExprAnalyzer::TypeFromToken(Token* token) {
   switch (token->type()) {
     case TokenType::CharacterLiteral:
       return session()->PredefinedTypeOf(PredefinedName::Char);
@@ -119,11 +169,13 @@ sm::Type* ConstExprEvaluator::TypeFromToken(Token* token) {
 }
 
 // ast::Visitor
-void ConstExprEvaluator::DoDefaultVisit(ast::Node* node) {
+void ConstExprAnalyzer::DoDefaultVisit(ast::Node* node) {
+  if (state_ != State::Running)
+    return;
   Error(ErrorCode::AnalyzeExpressionNotConstant, node);
 }
 
-void ConstExprEvaluator::VisitBinaryOperation(ast::BinaryOperation* node) {
+void ConstExprAnalyzer::VisitBinaryOperation(ast::BinaryOperation* node) {
   auto const left = Evaluate(node->left());
   if (!left)
     return;
@@ -138,16 +190,16 @@ void ConstExprEvaluator::VisitBinaryOperation(ast::BinaryOperation* node) {
   NOTREACHED();
 }
 
-void ConstExprEvaluator::VisitLiteral(ast::Literal* node) {
+void ConstExprAnalyzer::VisitLiteral(ast::Literal* node) {
   auto const type = TypeFromToken(node->token());
   ProduceResult(factory()->NewLiteral(type, node->token()));
 }
 
-void ConstExprEvaluator::VisitMemberAccess(ast::MemberAccess* node) {
+void ConstExprAnalyzer::VisitMemberAccess(ast::MemberAccess* node) {
   ProcessReference(node);
 }
 
-void ConstExprEvaluator::VisitNameReference(ast::NameReference* node) {
+void ConstExprAnalyzer::VisitNameReference(ast::NameReference* node) {
   ProcessReference(node);
 }
 
