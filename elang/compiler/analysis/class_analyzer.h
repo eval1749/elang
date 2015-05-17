@@ -6,10 +6,8 @@
 #define ELANG_COMPILER_ANALYSIS_CLASS_ANALYZER_H_
 
 #include <memory>
-#include <vector>
 
-#include "elang/base/simple_directed_graph.h"
-#include "elang/compiler/analysis/analyzer.h"
+#include "base/macros.h"
 
 namespace elang {
 namespace compiler {
@@ -27,23 +25,20 @@ class Value;
 //
 // ClassAnalyzer
 //
-class ClassAnalyzer final : public Analyzer {
+class ClassAnalyzer final {
  public:
   explicit ClassAnalyzer(NameResolver* name_resolver);
-  ~ClassAnalyzer() final;
+  ~ClassAnalyzer();
 
   // The Entry Point of |ClassAnalyzer|.
   void Run();
 
  private:
   class Collector;
+  class ConstantAnalyzer;
   class Resolver;
 
-  void AddDependency(ast::Node* from, ast::Node* to);
-  void Postpone(ast::Node* node);
-
-  SimpleDirectedGraph<ast::Node*> dependency_graph_;
-  std::vector<ast::Node*> pending_nodes_;
+  const std::unique_ptr<ConstantAnalyzer> analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzer);
 };

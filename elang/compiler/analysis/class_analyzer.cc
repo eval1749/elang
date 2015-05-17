@@ -7,6 +7,8 @@
 #include "elang/compiler/analysis/class_analyzer.h"
 
 #include "base/logging.h"
+#include "elang/base/simple_directed_graph.h"
+#include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
@@ -29,44 +31,74 @@ namespace compiler {
 
 //////////////////////////////////////////////////////////////////////
 //
+// ClassAnalyzer::ConstantAnalyzer
+//
+class ClassAnalyzer::ConstantAnalyzer final : public Analyzer,
+                                              public ast::Visitor {
+ public:
+  explicit ConstantAnalyzer(NameResolver* name_resolver);
+  ~ConstantAnalyzer() = default;
+
+  sm::Calculator& calculator() const { return *calculator_; }
+
+  void AddDependency(ast::Node* from, ast::Node* to);
+  sm::Semantic* Evaluate(sm::Semantic* owner, ast::Node* expression);
+  void Postpone(ast::Node* node);
+
+ private:
+  SimpleDirectedGraph<ast::Node*> dependency_graph_;
+  std::vector<ast::Node*> pending_nodes_;
+  const std::unique_ptr<sm::Calculator> calculator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstantAnalyzer);
+};
+
+ClassAnalyzer::ConstantAnalyzer::ConstantAnalyzer(NameResolver* name_resolver)
+    : Analyzer(name_resolver),
+      calculator_(new sm::Calculator(name_resolver->session())) {
+}
+
+void ClassAnalyzer::ConstantAnalyzer::AddDependency(ast::Node* from,
+                                                    ast::Node* to) {
+  dependency_graph_.AddEdge(from, to);
+}
+
+void ClassAnalyzer::ConstantAnalyzer::Postpone(ast::Node* node) {
+  pending_nodes_.push_back(node);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // ClassAnalyzer::Collector
 //
-class ClassAnalyzer::Collector final : public ast::Visitor {
+class ClassAnalyzer::Collector final : public Analyzer, public ast::Visitor {
  public:
-  explicit Collector(ClassAnalyzer* analyzer);
+  explicit Collector(ConstantAnalyzer* analyzer);
   ~Collector() = default;
-
-  sm::Editor* editor() const { return analyzer_->editor(); }
-  sm::Factory* factory() const { return analyzer_->factory(); }
-  CompilationSession* session() const { return analyzer_->session(); }
 
   void Run();
 
  private:
+  sm::Calculator& calculator() const { return analyzer_->calculator(); }
+
   void AnalyzeEnumMember(sm::Enum* enum_type,
                          ast::EnumMember* ast_member,
                          ast::EnumMember* ast_previous_member);
   sm::Type* EnsureEnumBase(ast::Enum* enum_type);
   void FixEnumMember(sm::EnumMember* member, sm::Value* value);
 
-  sm::Semantic* SemanticOf(ast::Node* node) {
-    return analyzer_->SemanticOf(node);
-  }
-
   // ast::Visitor
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
   void VisitMethod(ast::Method* node) final;
 
-  ClassAnalyzer* const analyzer_;
-  std::unique_ptr<sm::Calculator> calculator_;
+  ConstantAnalyzer* const analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 
-ClassAnalyzer::Collector::Collector(ClassAnalyzer* analyzer)
-    : analyzer_(analyzer),
-      calculator_(new sm::Calculator(analyzer->session())) {
+ClassAnalyzer::Collector::Collector(ConstantAnalyzer* analyzer)
+    : Analyzer(analyzer->name_resolver()), analyzer_(analyzer) {
 }
 
 void ClassAnalyzer::Collector::AnalyzeEnumMember(
@@ -75,12 +107,12 @@ void ClassAnalyzer::Collector::AnalyzeEnumMember(
     ast::EnumMember* ast_previous_member) {
   auto const enum_base = enum_type->enum_base();
   auto const member_name = ast_member->name();
-  calculator_->SetContext(member_name);
+  calculator().SetContext(member_name);
   auto const member = SemanticOf(ast_member)->as<sm::EnumMember>();
   DCHECK(member) << ast_member;
   if (ast_member->expression()) {
     if (auto const literal = ast_member->expression()->as<ast::Literal>()) {
-      editor()->FixEnumMember(member, calculator_->NewIntValue(
+      editor()->FixEnumMember(member, calculator().NewIntValue(
                                           enum_base, literal->token()->data()));
       return;
     }
@@ -88,14 +120,14 @@ void ClassAnalyzer::Collector::AnalyzeEnumMember(
     return;
   }
   if (!ast_previous_member) {
-    editor()->FixEnumMember(member, calculator_->Zero(enum_base));
+    editor()->FixEnumMember(member, calculator().Zero(enum_base));
     return;
   }
   auto const previous_member =
       SemanticOf(ast_previous_member)->as<sm::EnumMember>();
   if (previous_member->has_value()) {
     editor()->FixEnumMember(member,
-                            calculator_->Add(previous_member->value(), 1));
+                            calculator().Add(previous_member->value(), 1));
     return;
   }
   analyzer_->AddDependency(ast_member, ast_previous_member);
@@ -106,7 +138,7 @@ sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {
       enum_type->enum_base()
           ? analyzer_->ResolveTypeReference(enum_type->enum_base(), enum_type)
           : session()->PredefinedTypeOf(PredefinedName::Int32);
-  if (calculator_->IsIntType(type))
+  if (calculator().IsIntType(type))
     return type;
   DCHECK(enum_type->enum_base()) << enum_type;
   analyzer_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
@@ -116,7 +148,7 @@ sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {
 void ClassAnalyzer::Collector::FixEnumMember(sm::EnumMember* member,
                                              sm::Value* value) {
   if (value->type() == member->owner()->enum_base())
-    return analyzer_->editor()->FixEnumMember(member, value);
+    return editor()->FixEnumMember(member, value);
   analyzer_->Error(ErrorCode::SemanticEnumMemberValue, member->name(),
                    value->token());
 }
@@ -158,7 +190,7 @@ void ClassAnalyzer::Collector::VisitMethod(ast::Method* ast_method) {
 //
 class ClassAnalyzer::Resolver final : public ast::Visitor {
  public:
-  explicit Resolver(ClassAnalyzer* analyzer);
+  explicit Resolver(ConstantAnalyzer* analyzer);
   ~Resolver() = default;
 
   sm::Editor* editor() const { return analyzer_->editor(); }
@@ -175,15 +207,13 @@ class ClassAnalyzer::Resolver final : public ast::Visitor {
   // ast::Visitor
   void VisitMethod(ast::Method* node) final;
 
-  ClassAnalyzer* const analyzer_;
-  std::unique_ptr<sm::Calculator> calculator_;
+  ConstantAnalyzer* const analyzer_;
 
   DISALLOW_COPY_AND_ASSIGN(Resolver);
 };
 
-ClassAnalyzer::Resolver::Resolver(ClassAnalyzer* analyzer)
-    : analyzer_(analyzer),
-      calculator_(new sm::Calculator(analyzer->session())) {
+ClassAnalyzer::Resolver::Resolver(ConstantAnalyzer* analyzer)
+    : analyzer_(analyzer) {
 }
 
 // The entry point of |Resolver|.
@@ -234,25 +264,18 @@ void ClassAnalyzer::Resolver::VisitMethod(ast::Method* ast_method) {
 //
 // ClassAnalyzer
 //
-ClassAnalyzer::ClassAnalyzer(NameResolver* resolver) : Analyzer(resolver) {
+ClassAnalyzer::ClassAnalyzer(NameResolver* resolver)
+    : analyzer_(new ConstantAnalyzer(resolver)) {
 }
 
 ClassAnalyzer::~ClassAnalyzer() {
 }
 
 void ClassAnalyzer::Run() {
-  Collector(this).Run();
-  if (session()->HasError())
+  Collector(analyzer_.get()).Run();
+  if (analyzer_->session()->HasError())
     return;
-  Resolver(this).Run();
-}
-
-void ClassAnalyzer::AddDependency(ast::Node* from, ast::Node* to) {
-  dependency_graph_.AddEdge(from, to);
-}
-
-void ClassAnalyzer::Postpone(ast::Node* node) {
-  pending_nodes_.push_back(node);
+  Resolver(analyzer_.get()).Run();
 }
 
 }  // namespace compiler
