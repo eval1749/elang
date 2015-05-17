@@ -12,6 +12,8 @@ static_library("analysis") {
     "analyzer.h",
     "class_analyzer.cc",
     "class_analyzer.h",
+    "const_expr_evaluator.cc",
+    "const_expr_evaluator.h",
     "method_analyzer.cc",
     "method_analyzer.h",
     "method_resolver.cc",
