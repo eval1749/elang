@@ -106,27 +106,24 @@ sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {
       enum_type->enum_base()
           ? analyzer_->ResolveTypeReference(enum_type->enum_base(), enum_type)
           : session()->PredefinedTypeOf(PredefinedName::Int32);
-  if (!calculator_->IsIntType(type)) {
-    DCHECK(enum_type->enum_base()) << enum_type;
-    analyzer_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
-    return session()->PredefinedTypeOf(PredefinedName::Int64);
-  }
-  return type;
+  if (calculator_->IsIntType(type))
+    return type;
+  DCHECK(enum_type->enum_base()) << enum_type;
+  analyzer_->Error(ErrorCode::SemanticEnumEnumBase, enum_type->enum_base());
+  return session()->PredefinedTypeOf(PredefinedName::Int64);
 }
 
 void ClassAnalyzer::Collector::FixEnumMember(sm::EnumMember* member,
                                              sm::Value* value) {
-  if (value->type() != member->owner()->enum_base()) {
-    analyzer_->Error(ErrorCode::SemanticEnumMemberValue, member->name(),
-                     value->token());
-    return;
-  }
-  analyzer_->editor()->FixEnumMember(member, value);
+  if (value->type() == member->owner()->enum_base())
+    return analyzer_->editor()->FixEnumMember(member, value);
+  analyzer_->Error(ErrorCode::SemanticEnumMemberValue, member->name(),
+                   value->token());
 }
 
-// The entry point of |ClassAnalyzer|.
+// The entry point of |Collector|.
 void ClassAnalyzer::Collector::Run() {
-  VisitNamespaceBody(session()->global_namespace_body());
+  Traverse(session()->global_namespace_body());
 }
 
 // ast::Visitor
@@ -172,12 +169,6 @@ class ClassAnalyzer::Resolver final : public ast::Visitor {
   void Run();
 
  private:
-  sm::EnumMember* AnalyzeEnumMember(sm::Enum* enum_type,
-                                    ast::EnumMember* ast_member,
-                                    ast::EnumMember* ast_previous_member);
-  sm::Type* EnsureEnumBase(ast::Enum* enum_type);
-  void FixEnumMember(sm::EnumMember* member, sm::Value* value);
-
   sm::Semantic* SemanticOf(ast::Node* node) {
     return analyzer_->SemanticOf(node);
   }
@@ -196,9 +187,9 @@ ClassAnalyzer::Resolver::Resolver(ClassAnalyzer* analyzer)
       calculator_(new sm::Calculator(analyzer->session())) {
 }
 
-// The entry point of |ClassAnalyzer|.
+// The entry point of |Resolver|.
 void ClassAnalyzer::Resolver::Run() {
-  VisitNamespaceBody(session()->global_namespace_body());
+  Traverse(session()->global_namespace_body());
 }
 
 // ast::Visitor
