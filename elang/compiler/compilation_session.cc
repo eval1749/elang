@@ -155,19 +155,20 @@ AtomicString* CompilationSession::QualifiedNameOf(sm::Semantic* node) {
   return NewAtomicString(name);
 }
 
-ast::NamedNode* CompilationSession::QueryAstNode(base::StringPiece16 name) {
+ast::NamedNode* CompilationSession::QueryAstNode(
+    base::StringPiece16 reference) {
   auto enclosing = static_cast<ast::ContainerNode*>(global_namespace());
   auto found = static_cast<ast::NamedNode*>(nullptr);
-  for (size_t pos = 0u; pos < name.length(); ++pos) {
-    auto dot_pos = name.find('.', pos);
+  for (size_t pos = 0u; pos < reference.length(); ++pos) {
+    auto dot_pos = reference.find('.', pos);
     if (dot_pos == base::StringPiece::npos)
-      dot_pos = name.length();
-    auto const simple_name = NewAtomicString(name.substr(pos, dot_pos - pos));
-    found = enclosing->FindMember(simple_name);
+      dot_pos = reference.length();
+    auto const name = NewAtomicString(reference.substr(pos, dot_pos - pos));
+    found = enclosing->FindMember(name);
     if (!found)
       return nullptr;
     pos = dot_pos;
-    if (pos == name.length())
+    if (pos == reference.length())
       break;
     enclosing = found->as<ast::NamespaceNode>();
     if (!enclosing)
