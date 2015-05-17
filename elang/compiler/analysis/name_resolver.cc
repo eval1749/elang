@@ -11,6 +11,7 @@
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/analyzer.h"
 #include "elang/compiler/ast/class.h"
+#include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
@@ -159,7 +160,8 @@ void NameResolver::ReferenceResolver::VisitNameReference(
         }
       }
     } else {
-      DCHECK(container->is<ast::Method>() || container->is<ast::Namespace>())
+      DCHECK(container->is<ast::Enum>() || container->is<ast::Method>() ||
+             container->is<ast::Namespace>())
           << " container=" << *container;
       // Note: |ast::Method| holds type parameters in named node map.
       if (auto const present = container->FindMember(name))

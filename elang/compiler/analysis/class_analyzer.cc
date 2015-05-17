@@ -25,9 +25,22 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/token.h"
+#include "elang/compiler/token_type.h"
 
 namespace elang {
 namespace compiler {
+
+namespace {
+ast::ContainerNode* ContainerOf(ast::Node* node) {
+  for (auto runner = node; runner; runner = runner->parent()) {
+    if (auto const container = runner->as<ast::ContainerNode>())
+      return container;
+  }
+  NOTREACHED() << node;
+  return nullptr;
+}
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -41,30 +54,140 @@ class ClassAnalyzer::ConstantAnalyzer final : public Analyzer,
 
   sm::Calculator& calculator() const { return *calculator_; }
 
-  void AddDependency(ast::Node* from, ast::Node* to);
-  sm::Semantic* Evaluate(sm::Semantic* owner, ast::Node* expression);
-  void Postpone(ast::Node* node);
+  void AddDependency(sm::Semantic* from, sm::Semantic* to);
+  sm::Value* Evaluate(sm::Semantic* context, ast::Node* expression);
 
  private:
-  SimpleDirectedGraph<ast::Node*> dependency_graph_;
-  std::vector<ast::Node*> pending_nodes_;
+  sm::Value* Evaluate(ast::Node* node);
+  void ProcessReference(ast::Expression* node);
+  void ProduceResult(sm::Value* value);
+  sm::Type* TypeFromToken(Token* token);
+
+  // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) final;
+  void VisitBinaryOperation(ast::BinaryOperation* node) final;
+  void VisitLiteral(ast::Literal* node) final;
+  void VisitMemberAccess(ast::MemberAccess* node) final;
+  void VisitNameReference(ast::NameReference* node) final;
+
   const std::unique_ptr<sm::Calculator> calculator_;
+  sm::Semantic* context_;
+  SimpleDirectedGraph<sm::Semantic*> dependency_graph_;
+  sm::Value* result_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantAnalyzer);
 };
 
 ClassAnalyzer::ConstantAnalyzer::ConstantAnalyzer(NameResolver* name_resolver)
     : Analyzer(name_resolver),
-      calculator_(new sm::Calculator(name_resolver->session())) {
+      calculator_(new sm::Calculator(name_resolver->session())),
+      context_(nullptr),
+      result_(nullptr) {
 }
 
-void ClassAnalyzer::ConstantAnalyzer::AddDependency(ast::Node* from,
-                                                    ast::Node* to) {
+void ClassAnalyzer::ConstantAnalyzer::AddDependency(sm::Semantic* from,
+                                                    sm::Semantic* to) {
   dependency_graph_.AddEdge(from, to);
 }
 
-void ClassAnalyzer::ConstantAnalyzer::Postpone(ast::Node* node) {
-  pending_nodes_.push_back(node);
+sm::Value* ClassAnalyzer::ConstantAnalyzer::Evaluate(sm::Semantic* context,
+                                                     ast::Node* expression) {
+  DCHECK(!context_) << context_;
+  context_ = context;
+  auto const value = Evaluate(expression);
+  DCHECK(context_);
+  context_ = nullptr;
+  return value;
+}
+
+sm::Value* ClassAnalyzer::ConstantAnalyzer::Evaluate(ast::Node* node) {
+  DCHECK(context_);
+  DCHECK(!result_) << result_;
+  Traverse(node);
+  DCHECK(result_ || session()->HasError());
+  auto const value = result_;
+  result_ = nullptr;
+  return value;
+}
+
+void ClassAnalyzer::ConstantAnalyzer::ProcessReference(ast::Expression* node) {
+  auto const semantic =
+      name_resolver()->ResolveReference(node, ContainerOf(node));
+  if (auto const enum_member = semantic->as<sm::EnumMember>()) {
+    if (enum_member->has_value())
+      return ProduceResult(enum_member->value());
+    return AddDependency(context_, enum_member);
+  }
+  Error(ErrorCode::AnalyzeExpressionNotConstant, node);
+}
+
+void ClassAnalyzer::ConstantAnalyzer::ProduceResult(sm::Value* value) {
+  DCHECK(context_);
+  DCHECK(!result_) << result_;
+  result_ = value;
+}
+
+sm::Type* ClassAnalyzer::ConstantAnalyzer::TypeFromToken(Token* token) {
+  switch (token->type()) {
+    case TokenType::CharacterLiteral:
+      return session()->PredefinedTypeOf(PredefinedName::Char);
+    case TokenType::FalseLiteral:
+      return session()->PredefinedTypeOf(PredefinedName::Bool);
+    case TokenType::Float32Literal:
+      return session()->PredefinedTypeOf(PredefinedName::Float32);
+    case TokenType::Float64Literal:
+      return session()->PredefinedTypeOf(PredefinedName::Float64);
+    case TokenType::Int32Literal:
+      return session()->PredefinedTypeOf(PredefinedName::Int32);
+    case TokenType::Int64Literal:
+      return session()->PredefinedTypeOf(PredefinedName::Int64);
+    case TokenType::StringLiteral:
+      return session()->PredefinedTypeOf(PredefinedName::String);
+    case TokenType::TrueLiteral:
+      return session()->PredefinedTypeOf(PredefinedName::Bool);
+    case TokenType::UInt32Literal:
+      return session()->PredefinedTypeOf(PredefinedName::UInt32);
+    case TokenType::UInt64Literal:
+      return session()->PredefinedTypeOf(PredefinedName::UInt64);
+  }
+  NOTREACHED() << token;
+  return nullptr;
+}
+
+// ast::Visitor
+void ClassAnalyzer::ConstantAnalyzer::DoDefaultVisit(ast::Node* node) {
+  Error(ErrorCode::AnalyzeExpressionNotConstant, node);
+}
+
+void ClassAnalyzer::ConstantAnalyzer::VisitBinaryOperation(
+    ast::BinaryOperation* node) {
+  auto const left = Evaluate(node->left());
+  if (!left)
+    return;
+  auto const right = Evaluate(node->right());
+  if (!right)
+    return;
+  switch (node->token()->type()) {
+    case TokenType::Add:
+      ProduceResult(calculator_->Add(left, right));
+      return;
+  }
+  NOTREACHED();
+}
+
+void ClassAnalyzer::ConstantAnalyzer::VisitLiteral(ast::Literal* node) {
+  auto const type = TypeFromToken(node->token());
+  ProduceResult(factory()->NewLiteral(type, node->token()));
+}
+
+void ClassAnalyzer::ConstantAnalyzer::VisitMemberAccess(
+    ast::MemberAccess* node) {
+  ProcessReference(node);
+}
+
+void ClassAnalyzer::ConstantAnalyzer::VisitNameReference(
+    ast::NameReference* node) {
+  ProcessReference(node);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -111,12 +234,12 @@ void ClassAnalyzer::Collector::AnalyzeEnumMember(
   auto const member = SemanticOf(ast_member)->as<sm::EnumMember>();
   DCHECK(member) << ast_member;
   if (ast_member->expression()) {
-    if (auto const literal = ast_member->expression()->as<ast::Literal>()) {
-      editor()->FixEnumMember(member, calculator().NewIntValue(
-                                          enum_base, literal->token()->data()));
+    auto const value = analyzer_->Evaluate(member, ast_member->expression());
+    auto const literal = value->as<sm::Literal>();
+    if (!literal)
       return;
-    }
-    analyzer_->Postpone(ast_member);
+    editor()->FixEnumMember(
+        member, calculator().NewIntValue(enum_base, literal->token()->data()));
     return;
   }
   if (!ast_previous_member) {
@@ -130,7 +253,7 @@ void ClassAnalyzer::Collector::AnalyzeEnumMember(
                             calculator().Add(previous_member->value(), 1));
     return;
   }
-  analyzer_->AddDependency(ast_member, ast_previous_member);
+  analyzer_->AddDependency(member, previous_member);
 }
 
 sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {

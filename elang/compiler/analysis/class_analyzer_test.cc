@@ -32,6 +32,14 @@ TEST_F(ClassAnalyzerTest, Enum) {
             ToString(semantic));
 }
 
+TEST_F(ClassAnalyzerTest, EnumConstExpr) {
+  Prepare("enum Color { Red = 1, Green = Red + 2, Blue = Red + 4}");
+  EXPECT_EQ("", AnalyzeClass());
+  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf(FindMember("Color.Red"))));
+  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf(FindMember("Color.Green"))));
+  EXPECT_EQ("Color.Blue = 5", ToString(SemanticOf(FindMember("Color.Blue"))));
+}
+
 TEST_F(ClassAnalyzerTest, Method) {
   Prepare(
       "class Sample {"
