@@ -423,6 +423,7 @@ void Parser::ParseEnum() {
     }
     auto const enum_member = factory()->NewEnumMember(enum_node, member_name,
                                                       position, member_value);
+    enum_node->AddNamedMember(enum_member);
     enum_node->AddMember(enum_member);
     ++position;
     if (PeekToken() == TokenType::RightCurryBracket)
