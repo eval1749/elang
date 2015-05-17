@@ -39,6 +39,7 @@ class CompilationSessionUser {
   void Error(ErrorCode error_code, ast::Node* node);
   void Error(ErrorCode error_code, Token* node);
   void Error(ErrorCode error_code, ast::Node* node, ast::Node* node2);
+  void Error(ErrorCode error_code, ast::Node* node, Token* token);
   void Error(ErrorCode error_code, Token* node, Token* node2);
 
  protected:

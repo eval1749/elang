@@ -57,6 +57,12 @@ void CompilationSessionUser::Error(ErrorCode error_code,
 }
 
 void CompilationSessionUser::Error(ErrorCode error_code,
+                                   ast::Node* node,
+                                   Token* token) {
+  session()->AddError(error_code, PrettyTokenFor(node), token);
+}
+
+void CompilationSessionUser::Error(ErrorCode error_code,
                                    Token* token,
                                    Token* token2) {
   session()->AddError(error_code, token, token2);
