@@ -453,7 +453,7 @@ Maybe<ast::NamedNode*> NamespaceAnalyzer::ResolveReference(
 // The entry point of |NamespaceAnalyzer|.
 void NamespaceAnalyzer::Run() {
   Traverse(session()->global_namespace_body());
-  if (!session()->errors().empty())
+  if (session()->HasError())
     return;
   for (auto const node : dependency_graph_.GetAllVertices()) {
     auto const users = dependency_graph_.GetInEdges(node);

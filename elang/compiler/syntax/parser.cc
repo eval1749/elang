@@ -374,7 +374,7 @@ bool Parser::ParseClass() {
 void Parser::ParseCompilationUnit() {
   ParseUsingDirectives();
   ParseNamedNodes();
-  if (!session()->errors().empty() || PeekToken() == TokenType::EndOfSource)
+  if (session()->HasError() || PeekToken() == TokenType::EndOfSource)
     return;
   Error(ErrorCode::SyntaxCompilationUnitInvalid, token_);
 }

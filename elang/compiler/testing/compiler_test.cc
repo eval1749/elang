@@ -91,7 +91,7 @@ std::string CompilerTest::GetWarnings() {
 bool CompilerTest::Parse() {
   auto const compilation_unit = session_->NewCompilationUnit(source_code());
   Parser(session_.get(), compilation_unit).Run();
-  return session_->errors().empty();
+  return !session_->HasError();
 }
 
 void CompilerTest::Prepare(base::StringPiece16 source_text) {

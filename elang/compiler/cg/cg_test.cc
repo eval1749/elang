@@ -80,7 +80,7 @@ std::string CgTest::Generate(base::StringPiece name) {
   if (!analyze_result.empty())
     return analyze_result;
   code_generator()->Run();
-  if (!session()->errors().empty())
+  if (session()->HasError())
     return GetErrors();
   return GetFunction(name);
 }

@@ -243,7 +243,7 @@ ClassAnalyzer::~ClassAnalyzer() {
 
 void ClassAnalyzer::Run() {
   Collector(this).Run();
-  if (!session()->errors().empty())
+  if (session()->HasError())
     return;
   Resolver(this).Run();
 }

@@ -103,7 +103,7 @@ std::unique_ptr<NameResolver> NewNameResolver(CompilationSession* session) {
 template <typename Pass>
 bool RunPass(NameResolver* name_resolver) {
   Pass(name_resolver).Run();
-  return name_resolver->session()->errors().empty();
+  return !name_resolver->session()->HasError();
 }
 
 }  // namespace

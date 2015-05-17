@@ -30,6 +30,7 @@ class ErrorSink {
   void AddError(ErrorCode error_code, Token* token1, Token* token2);
   // Lexer uses this.
   void AddError(const SourceCodeRange& location, ErrorCode error_code);
+  bool HasError() const { return !errors_.empty(); }
 
  protected:
   explicit ErrorSink(Zone* zone);

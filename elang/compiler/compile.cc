@@ -22,13 +22,13 @@ namespace {
 template <typename Pass>
 bool RunPass(NameResolver* name_resolver) {
   Pass(name_resolver).Run();
-  return name_resolver->session()->errors().empty();
+  return !name_resolver->session()->HasError();
 }
 }  // namespace
 
 void CompilationSession::Compile(NameResolver* name_resolver,
                                  hir::Factory* factory) {
-  if (!errors().empty())
+  if (HasError())
     return;
   if (!RunPass<NamespaceAnalyzer>(name_resolver))
     return;
@@ -40,7 +40,7 @@ void CompilationSession::Compile(NameResolver* name_resolver,
   Zone zone;
   VariableAnalyzer variable_analyzer(&zone);
   CodeGenerator(this, factory, &variable_analyzer).Run();
-  if (!errors().empty())
+  if (HasError())
     return;
   auto const variable_usages = variable_analyzer.Analyze();
   for (auto const method_function : function_map_) {

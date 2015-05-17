@@ -230,7 +230,7 @@ ir::Data* Translator::Translate(ast::Expression* node) {
   DCHECK(!visit_result_);
   Traverse(node);
   if (!visit_result_) {
-    DCHECK(!session()->errors().empty());
+    DCHECK(session()->HasError());
     return void_value();
   }
   auto const result = visit_result_;
