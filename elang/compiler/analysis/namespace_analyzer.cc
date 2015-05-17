@@ -599,7 +599,12 @@ void NamespaceAnalyzer::VisitEnum(ast::Enum* ast_enum) {
     Postpone(ast_enum, ast_outer);
     return;
   }
-  SetSemanticOf(ast_enum, factory()->NewEnum(outer, ast_enum->name()));
+  auto const enum_type = factory()->NewEnum(outer, ast_enum->name());
+  for (auto const ast_member : ast_enum->members()) {
+    auto const member = factory()->NewEnumMember(enum_type, ast_member->name());
+    SetSemanticOf(ast_member, member);
+  }
+  SetSemanticOf(ast_enum, enum_type);
   DidResolve(ast_enum);
 }
 

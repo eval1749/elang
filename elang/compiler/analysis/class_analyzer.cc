@@ -43,9 +43,9 @@ class ClassAnalyzer::Collector final : public ast::Visitor {
   void Run();
 
  private:
-  sm::EnumMember* AnalyzeEnumMember(sm::Enum* enum_type,
-                                    ast::EnumMember* ast_member,
-                                    ast::EnumMember* ast_previous_member);
+  void AnalyzeEnumMember(sm::Enum* enum_type,
+                         ast::EnumMember* ast_member,
+                         ast::EnumMember* ast_previous_member);
   sm::Type* EnsureEnumBase(ast::Enum* enum_type);
   void FixEnumMember(sm::EnumMember* member, sm::Value* value);
 
@@ -69,36 +69,36 @@ ClassAnalyzer::Collector::Collector(ClassAnalyzer* analyzer)
       calculator_(new sm::Calculator(analyzer->session())) {
 }
 
-sm::EnumMember* ClassAnalyzer::Collector::AnalyzeEnumMember(
+void ClassAnalyzer::Collector::AnalyzeEnumMember(
     sm::Enum* enum_type,
     ast::EnumMember* ast_member,
     ast::EnumMember* ast_previous_member) {
   auto const enum_base = enum_type->enum_base();
   auto const member_name = ast_member->name();
   calculator_->SetContext(member_name);
-  auto const member = factory()->NewEnumMember(enum_type, member_name);
+  auto const member = SemanticOf(ast_member)->as<sm::EnumMember>();
+  DCHECK(member) << ast_member;
   if (ast_member->expression()) {
     if (auto const literal = ast_member->expression()->as<ast::Literal>()) {
       editor()->FixEnumMember(member, calculator_->NewIntValue(
                                           enum_base, literal->token()->data()));
-      return member;
+      return;
     }
     analyzer_->Postpone(ast_member);
-    return member;
+    return;
   }
   if (!ast_previous_member) {
     editor()->FixEnumMember(member, calculator_->Zero(enum_base));
-    return member;
+    return;
   }
   auto const previous_member =
       SemanticOf(ast_previous_member)->as<sm::EnumMember>();
   if (previous_member->has_value()) {
     editor()->FixEnumMember(member,
                             calculator_->Add(previous_member->value(), 1));
-    return member;
+    return;
   }
   analyzer_->AddDependency(ast_member, ast_previous_member);
-  return member;
 }
 
 sm::Type* ClassAnalyzer::Collector::EnsureEnumBase(ast::Enum* enum_type) {
@@ -135,8 +135,7 @@ void ClassAnalyzer::Collector::VisitEnum(ast::Enum* ast_enum) {
   ast::EnumMember* ast_previous = nullptr;
   for (auto const ast_node : ast_enum->members()) {
     auto const ast_member = ast_node->as<ast::EnumMember>();
-    auto const member = AnalyzeEnumMember(enum_type, ast_member, ast_previous);
-    analyzer_->SetSemanticOf(ast_member, member);
+    AnalyzeEnumMember(enum_type, ast_member, ast_previous);
     ast_previous = ast_member;
   }
 }
