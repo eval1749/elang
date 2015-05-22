@@ -63,6 +63,7 @@ class Factory final : public ZoneUser {
                             Expression* implicit_expression);
   Field* NewField(ClassBody* class_body,
                   Modifiers modifiers,
+                  Token* keyword,
                   Type* type,
                   Token* name,
                   Expression* expression);

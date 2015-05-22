@@ -164,11 +164,12 @@ EnumMember* Factory::NewEnumMember(Enum* owner,
 
 Field* Factory::NewField(ClassBody* outer,
                          Modifiers modifiers,
+                         Token* keyword,
                          Type* type,
                          Token* name,
                          Expression* expression) {
   auto const node =
-      new (zone()) Field(outer, modifiers, type, name, expression);
+      new (zone()) Field(outer, modifiers, keyword, type, name, expression);
   if (expression)
     SetParent(expression, node);
   if (!type->parent_)

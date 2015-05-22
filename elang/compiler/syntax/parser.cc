@@ -298,8 +298,9 @@ bool Parser::ParseClass() {
     //    Type Name TypeParameterList? ParameterDecl ';'
     //    Type Name TypeParameterList? ParameterDecl '{'
     //    Statement* '}'
-    if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
-      ProduceTypeNameReference(var_keyword);
+    Token* keyword = ConsumeTokenIf(TokenType::Var);
+    if (keyword) {
+      ProduceTypeNameReference(keyword);
     } else if (!ParseType()) {
       return Error(ErrorCode::SyntaxClassRightCurryBracket);
     }
@@ -326,6 +327,11 @@ bool Parser::ParseClass() {
 
     // FieldDecl ::= Type Name ('=' Expression)? ';'
     //
+    if (!keyword) {
+      keyword = session()->NewToken(
+          member_name->location(),
+          TokenData(TokenType::Var, session()->NewAtomicString(L"var")));
+    }
     if (auto const present = container_->FindMember(member_name)) {
       if (present->is<ast::Field>()) {
         Error(ErrorCode::SyntaxClassMemberDuplicate, member_name,
@@ -340,8 +346,8 @@ bool Parser::ParseClass() {
       if (!ParseExpression())
         return false;
       auto const field =
-          factory()->NewField(class_body, member_modifiers, member_type,
-                              member_name, ConsumeExpression());
+          factory()->NewField(class_body, member_modifiers, keyword,
+                              member_type, member_name, ConsumeExpression());
       class_body->AddMember(field);
       class_body->AddNamedMember(field);
       clazz->AddNamedMember(field);
@@ -356,8 +362,9 @@ bool Parser::ParseClass() {
         Error(ErrorCode::SyntaxClassMemberVarField, member_name);
     }
 
-    auto const field = factory()->NewField(class_body, member_modifiers,
-                                           member_type, member_name, nullptr);
+    auto const field =
+        factory()->NewField(class_body, member_modifiers, keyword, member_type,
+                            member_name, nullptr);
     class_body->AddMember(field);
     class_body->AddNamedMember(field);
     clazz->AddNamedMember(field);

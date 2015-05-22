@@ -83,13 +83,15 @@ bool ClassBody::CanBeNamedMemberOf(ContainerNode* container) const {
 //
 Field::Field(ClassBody* outer,
              Modifiers modifiers,
+             Token* keyword,
              Type* type,
              Token* name,
              Expression* expression)
-    : NamedNode(outer, name, name),
+    : NamedNode(outer, keyword, name),
       WithModifiers(modifiers),
       expression_(expression),
       type_(type) {
+  DCHECK(keyword == TokenType::Const || keyword == TokenType::Var);
   DCHECK_EQ(modifiers, Modifiers::Field() & modifiers);
 }
 

@@ -87,6 +87,7 @@ class Field final : public NamedNode, public WithModifiers {
  private:
   Field(ClassBody* outer,
         Modifiers modifiers,
+        Token* keyword,
         Type* Type,
         Token* name,
         Expression* expression);
