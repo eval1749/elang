@@ -112,26 +112,26 @@ class Parser final : public CompilationSessionUser {
   bool IsBound(ast::Variable* variable) const;
   bool IsInLoop() const;
   bool IsInStatement(TokenType keyword) const;
-  bool ParseBlockStatement(Token* keyword);
-  bool ParseBreakStatement(Token* keyword);
-  bool ParseConstStatement(Token* keyword);
-  bool ParseContinueStatement(Token* keyword);
-  bool ParseDoStatement(Token* keyword);
-  bool ParseForStatement(Token* keyword);
-  bool ParseIfStatement(Token* keyword);
+  void ParseBlockStatement(Token* keyword);
+  void ParseBreakStatement(Token* keyword);
+  void ParseConstStatement(Token* keyword);
+  void ParseContinueStatement(Token* keyword);
+  void ParseDoStatement(Token* keyword);
+  void ParseForStatement(Token* keyword);
+  void ParseIfStatement(Token* keyword);
   void ParseMethod(Modifiers modifiers,
                    ast::Type* method_type,
                    Token* method_name,
                    const std::vector<Token*> type_parameters);
-  bool ParseReturnStatement(Token* keyword);
-  bool ParseThrowStatement(Token* keyword);
-  bool ParseTryStatement(Token* keyword);
-  bool ParseStatement();
-  bool ParseWhileStatement(Token* keyword);
-  bool ParseUsingStatement(Token* keyword);
-  bool ParseVarStatement(Token* keyword);
+  void ParseReturnStatement(Token* keyword);
+  void ParseThrowStatement(Token* keyword);
+  void ParseTryStatement(Token* keyword);
+  void ParseStatement();
+  void ParseWhileStatement(Token* keyword);
+  void ParseUsingStatement(Token* keyword);
+  void ParseVarStatement(Token* keyword);
   void ParseVariables(Token* keyword, ast::Type* type);
-  bool ParseYieldStatement(Token* keyword);
+  void ParseYieldStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);
 
   // Produce local variable or parameter reference at |name| token.

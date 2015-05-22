@@ -87,11 +87,7 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
       "    )\n"
       "  }\n"
       "}\n");
-  EXPECT_EQ(
-      "Syntax.Bracket.NotClosed(8) { )\n"
-      "Syntax.Type.Name(29) )\n"
-      "Syntax.Class.RightCurryBracket(29) )\n",
-      Format());
+  EXPECT_EQ("Syntax.Bracket.NotClosed(8) { )\n", Format());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -269,10 +265,7 @@ TEST_F(ParserTest, ConditionalErrorColon) {
       "}\n";
   // TODO(eval1749) We should not report 'Unreachable'. When we skip to ';',
   // we can avoid 'Unreachable'.
-  EXPECT_EQ(
-      "Syntax.Expression.ConditionalColon(44) ;\n"
-      "Syntax.Statement.Unreachable(44) ;\n",
-      Format(source_code))
+  EXPECT_EQ("Syntax.Expression.ConditionalColon(44) ;\n", Format(source_code))
       << "Expect ':' after '?'";
 }
 
@@ -283,7 +276,10 @@ TEST_F(ParserTest, ConditionalErrorElse) {
       "    return x ? y :\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Expression.ConditionalElse(49) }\n", Format(source_code))
+  EXPECT_EQ(
+      "Syntax.Expression.ConditionalElse(49) }\n"
+      "Syntax.Return.SemiColon(49) }\n",
+      Format(source_code))
       << "Nothing after ':'";
 }
 
@@ -294,7 +290,10 @@ TEST_F(ParserTest, ConditionalErrorThen) {
       "    return x ?\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Expression.ConditionalThen(45) }\n", Format(source_code))
+  EXPECT_EQ(
+      "Syntax.Expression.ConditionalThen(45) }\n"
+      "Syntax.Return.SemiColon(45) }\n",
+      Format(source_code))
       << "Nothing after '?'";
 }
 
@@ -528,9 +527,7 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
       "Syntax.Expression.LeftAngleBracket(35) <\n"
       "Syntax.Var.Assign(37) >\n"
       "Syntax.Var.Initializer(37) >\n"
-      "Syntax.Var.SemiColon(37) >\n"
-      "Syntax.Type.Name(37) >\n"
-      "Syntax.Class.RightCurryBracket(37) >\n",
+      "Syntax.Var.SemiColon(37) >\n",
       Format());
 }
 
