@@ -3,10 +3,9 @@
 // found in the LICENSE file.
 
 #include <algorithm>
+#include <ostream>
 #include <string>
 #include <vector>
-
-#include "elang/compiler/semantics/formatters/text_formatter.h"
 
 #include "base/containers/adapters.h"
 #include "base/logging.h"
@@ -210,8 +209,7 @@ void Formatter::VisitVariable(Variable* variable) {
 }  // namespace
 
 std::ostream& operator<<(std::ostream& ostream, const Semantic& semantic) {
-  Formatter formatter(&ostream);
-  formatter.Format(&semantic);
+  Formatter(&ostream).Format(&semantic);
   return ostream;
 }
 
@@ -230,21 +228,6 @@ std::ostream& operator<<(std::ostream& ostream, StorageClass storage_class) {
   };
   return ostream << texts[std::min(static_cast<size_t>(storage_class),
                                    arraysize(texts) - 1)];
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// TextFormatter
-//
-TextFormatter::TextFormatter(std::ostream* ostream) : ostream_(*ostream) {
-}
-
-TextFormatter::~TextFormatter() {
-}
-
-void TextFormatter::Format(const Semantic* semantic) {
-  Formatter formatter(&ostream_);
-  formatter.Format(semantic);
 }
 
 }  // namespace sm
