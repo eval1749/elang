@@ -39,6 +39,7 @@ class Factory final : public ZoneOwner {
   Class* NewClass(Semantic* outer, Token* name, ast::Class* ast_class);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
+  Field* NewField(Class* owner, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(MethodGroup* method_group, Signature* signature);

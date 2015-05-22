@@ -149,6 +149,15 @@ Value* EnumMember::value() const {
   return value_;
 }
 
+// Field
+Field::Field(Class* owner, Token* name)
+    : NamedMember(owner, name), value_(nullptr) {
+}
+
+Class* Field::owner() const {
+  return outer()->as<Class>();
+}
+
 // InvalidValue
 InvalidValue::InvalidValue(Type* type, Token* token) : Value(type, token) {
 }

@@ -158,6 +158,13 @@ TEST_F(SemanticTest, EnumMemberIntermediate) {
   EXPECT_EQ("Foo.Color.Red", ToString(enum_member));
 }
 
+TEST_F(SemanticTest, Field) {
+  auto const class_type = factory()->NewClass(factory()->global_namespace(),
+                                              NewToken("Foo"), nullptr);
+  auto const field = factory()->NewField(class_type, NewToken("field_"));
+  EXPECT_EQ("Foo.field_", ToString(field));
+}
+
 TEST_F(SemanticTest, Namespace) {
   auto const ns1 =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));

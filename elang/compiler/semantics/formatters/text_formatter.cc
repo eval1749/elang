@@ -143,6 +143,10 @@ void Formatter::VisitInvalidValue(InvalidValue* node) {
   ostream_ << "InvalidValue(" << *node->type() << ", " << node->token() << ")";
 }
 
+void Formatter::VisitField(Field* node) {
+  ostream_ << AsPath{node};
+}
+
 void Formatter::VisitLiteral(Literal* literal) {
   ostream_ << *literal->data();
 }

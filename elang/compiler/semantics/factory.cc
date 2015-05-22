@@ -129,6 +129,12 @@ EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {
   return member;
 }
 
+Field* Factory::NewField(Class* owner, Token* name) {
+  auto const field = new (zone()) Field(owner, name);
+  AddMember(owner, field);
+  return field;
+}
+
 Value* Factory::NewInvalidValue(Type* type, Token* token) {
   return new (zone()) InvalidValue(type, token);
 }

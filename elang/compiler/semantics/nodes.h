@@ -242,6 +242,26 @@ class EnumMember final : public NamedMember<Semantic> {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Field
+//
+class Field final : public NamedMember<Semantic> {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Field, Semantic);
+
+ public:
+  bool has_value() const { return value_ != nullptr; }
+  Class* owner() const;
+  Value* value() const;
+
+ private:
+  Field(Class* owner, Token* name);
+
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(Field);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // InvalidValue
 //
 class InvalidValue final : public Value {
