@@ -97,6 +97,7 @@ class Parser final : public CompilationSessionUser {
                               ast::Expression* right);
   void ProduceExpression(ast::Expression* expression);
   void ProduceExpressionOrType(ast::Expression* expression);
+  void ProduceInvalidExpression(Token* token);
   void ProduceIncrementExpression(Token* op_token, ast::Expression* expression);
   void ProduceNameReference(Token* token);
   void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);

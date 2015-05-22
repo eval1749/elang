@@ -205,7 +205,7 @@ bool Parser::ParsePrimaryExpression() {
         ProduceVariableReference(name, param);
       } else {
         Error(ErrorCode::SyntaxExpressionLabel, name);
-        ProduceExpression(NewInvalidExpression(name));
+        ProduceInvalidExpression(name);
       }
       ParsePrimaryExpressionPost();
       return true;
@@ -240,7 +240,7 @@ bool Parser::ParsePrimaryExpression() {
     // ParenthesizedExpression:
     // '(' Expression ')'
     if (!ParseExpression())
-      ProduceExpression(NewInvalidExpression(parenthesis));
+      ProduceInvalidExpression(parenthesis);
     ParsePrimaryExpressionPost();
     if (!AdvanceIf(TokenType::RightParenthesis))
       Error(ErrorCode::SyntaxExpressionRightParenthesis);
@@ -409,6 +409,10 @@ void Parser::ProduceBinaryOperation(Token* op_token,
                                     ast::Expression* left,
                                     ast::Expression* right) {
   ProduceExpression(factory()->NewBinaryOperation(op_token, left, right));
+}
+
+void Parser::ProduceInvalidExpression(Token* token) {
+  ProduceExpression(NewInvalidExpression(token));
 }
 
 void Parser::ProduceNameReference(Token* token) {

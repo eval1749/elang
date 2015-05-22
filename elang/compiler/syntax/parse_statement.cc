@@ -300,7 +300,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         if (variables.size() != 1u)
           Error(ErrorCode::SyntaxForColon);
         if (!ParseExpression())
-          ProduceExpression(NewInvalidExpression(colon));
+          ProduceInvalidExpression(colon);
         if (!AdvanceIf(TokenType::RightParenthesis))
           Error(ErrorCode::SyntaxForRightParenthesis);
         auto const enumerable = ConsumeExpression();
@@ -326,7 +326,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
         }
         if (!AdvanceIf(TokenType::Comma)) {
           Error(ErrorCode::SyntaxForInit);
-          ProduceExpression(NewInvalidExpression(PeekToken()));
+          ProduceInvalidExpression(PeekToken());
         }
         continue;
 
@@ -383,7 +383,7 @@ bool Parser::ParseForStatement(Token* for_keyword) {
           continue;
         }
         if (!ParseExpression())
-          ProduceExpression(NewInvalidExpression(for_keyword));
+          ProduceInvalidExpression(for_keyword);
         state = State::TypeOrExpression;
         break;
 
@@ -868,7 +868,7 @@ void Parser::ProduceVariableReference(Token* name, ast::NamedNode* thing) {
   if (auto const param = thing->as<ast::Parameter>())
     return ProduceExpression(factory()->NewParameterReference(name, param));
   NOTREACHED();
-  ProduceExpression(NewInvalidExpression(name));
+  ProduceInvalidExpression(name);
 }
 
 }  // namespace compiler
