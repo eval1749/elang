@@ -394,36 +394,35 @@ Parser::ExpressionCategory Parser::PeekTokenCategory() {
   return static_cast<ExpressionCategory>(PeekToken()->precedence());
 }
 
-ast::Expression* Parser::ProduceExpression(ast::Expression* expression) {
+void Parser::ProduceExpression(ast::Expression* expression) {
   if (expression->is<ast::Type>())
     Error(ErrorCode::SyntaxExpressionType, expression->token());
-  return ProduceExpressionOrType(expression);
+  ProduceExpressionOrType(expression);
 }
 
-ast::Expression* Parser::ProduceExpressionOrType(ast::Expression* expression) {
+void Parser::ProduceExpressionOrType(ast::Expression* expression) {
   DCHECK(!expression_) << expression_;
-  return expression_ = expression;
+  expression_ = expression;
 }
 
-ast::Expression* Parser::ProduceBinaryOperation(Token* op_token,
-                                                ast::Expression* left,
-                                                ast::Expression* right) {
-  return ProduceExpression(
-      factory()->NewBinaryOperation(op_token, left, right));
+void Parser::ProduceBinaryOperation(Token* op_token,
+                                    ast::Expression* left,
+                                    ast::Expression* right) {
+  ProduceExpression(factory()->NewBinaryOperation(op_token, left, right));
 }
 
-ast::Expression* Parser::ProduceNameReference(Token* token) {
-  return ProduceExpression(factory()->NewNameReference(token));
+void Parser::ProduceNameReference(Token* token) {
+  ProduceExpression(factory()->NewNameReference(token));
 }
 
-ast::Expression* Parser::ProduceIncrementExpression(Token* op_token,
-                                                    ast::Expression* place) {
-  return ProduceExpression(factory()->NewIncrementExpression(op_token, place));
+void Parser::ProduceIncrementExpression(Token* op_token,
+                                        ast::Expression* place) {
+  ProduceExpression(factory()->NewIncrementExpression(op_token, place));
 }
 
-ast::Expression* Parser::ProduceUnaryOperation(Token* op_token,
-                                               ast::Expression* expression) {
-  return ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
+void Parser::ProduceUnaryOperation(Token* op_token,
+                                   ast::Expression* expression) {
+  ProduceExpression(factory()->NewUnaryOperation(op_token, expression));
 }
 
 Token* Parser::TryConsumeUnaryOperator() {

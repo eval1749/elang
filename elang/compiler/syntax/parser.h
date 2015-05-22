@@ -92,16 +92,14 @@ class Parser final : public CompilationSessionUser {
   void ParseTypeArguments();
   bool ParseUnaryExpression();
   ExpressionCategory PeekTokenCategory();
-  ast::Expression* ProduceBinaryOperation(Token* op_token,
-                                          ast::Expression* left,
-                                          ast::Expression* right);
-  ast::Expression* ProduceExpression(ast::Expression* expression);
-  ast::Expression* ProduceExpressionOrType(ast::Expression* expression);
-  ast::Expression* ProduceIncrementExpression(Token* op_token,
-                                              ast::Expression* expression);
-  ast::Expression* ProduceNameReference(Token* token);
-  ast::Expression* ProduceUnaryOperation(Token* op_token,
-                                         ast::Expression* expression);
+  void ProduceBinaryOperation(Token* op_token,
+                              ast::Expression* left,
+                              ast::Expression* right);
+  void ProduceExpression(ast::Expression* expression);
+  void ProduceExpressionOrType(ast::Expression* expression);
+  void ProduceIncrementExpression(Token* op_token, ast::Expression* expression);
+  void ProduceNameReference(Token* token);
+  void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
   Token* TryConsumeUnaryOperator();
 
   // in "parse_statement.cc"
@@ -133,11 +131,10 @@ class Parser final : public CompilationSessionUser {
   bool ParseVarStatement(Token* keyword);
   void ParseVariables(Token* keyword, ast::Type* type);
   bool ParseYieldStatement(Token* keyword);
-  ast::Statement* ProduceStatement(ast::Statement* statement);
+  void ProduceStatement(ast::Statement* statement);
 
   // Produce local variable or parameter reference at |name| token.
-  ast::Expression* ProduceVariableReference(Token* name,
-                                            ast::NamedNode* variable);
+  void ProduceVariableReference(Token* name, ast::NamedNode* variable);
 
   // in "parse_type.cc"
   // Returns last produced expression.
@@ -155,9 +152,9 @@ class Parser final : public CompilationSessionUser {
   bool ParseType();
   std::vector<Token*> ParseTypeParameterList();
   bool ParseTypePost();
-  ast::Type* ProduceType(ast::Type* type);
-  ast::Type* ProduceTypeNameReference(ast::NameReference* node);
-  ast::Type* ProduceTypeNameReference(Token* token);
+  void ProduceType(ast::Type* type);
+  void ProduceTypeNameReference(ast::NameReference* node);
+  void ProduceTypeNameReference(Token* token);
 
   CompilationUnit* compilation_unit_;
   ast::BodyNode* container_;

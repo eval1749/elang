@@ -221,17 +221,16 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
   return type_params;
 }
 
-ast::Type* Parser::ProduceType(ast::Type* type) {
+void Parser::ProduceType(ast::Type* type) {
   ProduceExpressionOrType(type);
-  return type;
 }
 
-ast::Type* Parser::ProduceTypeNameReference(ast::NameReference* node) {
-  return ProduceType(factory()->NewTypeNameReference(node));
+void Parser::ProduceTypeNameReference(ast::NameReference* node) {
+  ProduceType(factory()->NewTypeNameReference(node));
 }
 
-ast::Type* Parser::ProduceTypeNameReference(Token* token) {
-  return ProduceType(NewTypeNameReference(token));
+void Parser::ProduceTypeNameReference(Token* token) {
+  ProduceType(NewTypeNameReference(token));
 }
 
 }  // namespace compiler

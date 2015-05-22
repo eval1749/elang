@@ -847,13 +847,12 @@ bool Parser::ParseStatement() {
   return true;
 }
 
-ast::Statement* Parser::ProduceStatement(ast::Statement* statement) {
+void Parser::ProduceStatement(ast::Statement* statement) {
   DCHECK(!statement_);
-  return statement_ = statement;
+  statement_ = statement;
 }
 
-ast::Expression* Parser::ProduceVariableReference(Token* name,
-                                                  ast::NamedNode* thing) {
+void Parser::ProduceVariableReference(Token* name, ast::NamedNode* thing) {
   DCHECK(name->is_name());
   auto enclosing_space = static_cast<LocalDeclarationSpace*>(nullptr);
   for (auto runner = declaration_space_; runner; runner = runner->outer()) {
@@ -869,7 +868,7 @@ ast::Expression* Parser::ProduceVariableReference(Token* name,
   if (auto const param = thing->as<ast::Parameter>())
     return ProduceExpression(factory()->NewParameterReference(name, param));
   NOTREACHED();
-  return ProduceExpression(NewInvalidExpression(name));
+  ProduceExpression(NewInvalidExpression(name));
 }
 
 }  // namespace compiler
