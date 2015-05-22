@@ -133,7 +133,7 @@ void Formatter::VisitEnum(Enum* node) {
 }
 
 void Formatter::VisitEnumMember(EnumMember* node) {
-  ostream_ << AsPath{node->owner()} << "." << node->name();
+  ostream_ << AsPath{node};
   if (!node->has_value())
     return;
   ostream_ << " = " << *node->value();
