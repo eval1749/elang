@@ -5,7 +5,7 @@
 #ifndef ELANG_COMPILER_SEMANTICS_NODES_FORWARD_H_
 #define ELANG_COMPILER_SEMANTICS_NODES_FORWARD_H_
 
-#include <ostream>
+#include <iosfwd>
 
 namespace elang {
 namespace compiler {
