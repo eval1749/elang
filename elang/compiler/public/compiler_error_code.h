@@ -131,10 +131,12 @@ namespace compiler {
   E(Syntax, Finally, LeftCurryBracket)                \
   /* For */                                           \
   E(Syntax, For, Colon)                               \
+  E(Syntax, For, Condition)                           \
   E(Syntax, For, Init)                                \
   E(Syntax, For, LeftParenthesis)                     \
   E(Syntax, For, RightParenthesis)                    \
   E(Syntax, For, SemiColon)                           \
+  E(Syntax, For, Step)                                \
   E(Syntax, For, Var)                                 \
   /* If */                                            \
   E(Syntax, If, Condition)                            \

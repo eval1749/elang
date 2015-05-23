@@ -23,6 +23,13 @@
 namespace elang {
 namespace compiler {
 
+namespace {
+// This function should handle same token as |Parser::ParseTypeAfterName()|.
+bool CanPartOfTypeReference(Token* token) {
+  return token == TokenType::LeftAngleBracket || token == TokenType::Dot;
+}
+}  // namespace
+
 ast::Type* Parser::ConsumeExpressionAsType() {
   auto const expression = ConsumeExpressionOrType();
   if (auto const type = expression->as<ast::Type>())
@@ -216,6 +223,28 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
       Error(ErrorCode::SyntaxClassTypeParamInvalid);
   }
   return type_params;
+}
+
+Token* Parser::ParseVarTypeAndName() {
+  if (PeekToken()->is_type_name()) {
+    if (!ParseType())
+      ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
+  }
+  if (!PeekToken()->is_name()) {
+    ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    return PeekToken();
+  }
+  auto const name = ConsumeToken();
+  if (!CanPartOfTypeReference(PeekToken())) {
+    ProduceType(factory()->NewTypeVariable(name));
+    return name;
+  }
+  ProduceTypeNameReference(name);
+  if (PeekToken()->is_name())
+    return ConsumeToken();
+  ParseTypeAfterName();
+  return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
 }
 
 void Parser::ProduceType(ast::Type* type) {

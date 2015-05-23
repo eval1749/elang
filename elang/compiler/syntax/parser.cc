@@ -146,6 +146,20 @@ bool Parser::AdvanceIf(TokenType type) {
   return true;
 }
 
+Token* Parser::ConsumeName(ErrorCode error_code) {
+  DCHECK(token_);
+  if (PeekToken()->is_name())
+    return ConsumeToken();
+  return session()->NewUniqueNameToken(token_->location(), L"@var%d");
+}
+
+Token* Parser::ConsumeOperator(TokenType type, ErrorCode error_code) {
+  DCHECK(token_);
+  if (auto const token = ConsumeTokenIf(type))
+    return token;
+  return session()->NewToken(token_->location(), TokenData(type));
+}
+
 void Parser::ConsumeSemiColon(ErrorCode error_code) {
   if (AdvanceIf(TokenType::SemiColon))
     return;
