@@ -188,7 +188,6 @@ namespace compiler {
   E(Syntax, UsingDirective, SemiColon)                \
   /* Var */                                           \
   E(Syntax, Var, Assign)                              \
-  E(Syntax, Var, Comma)                               \
   E(Syntax, Var, Const)                               \
   E(Syntax, Var, Duplicate)                           \
   E(Syntax, Var, Initializer)                         \

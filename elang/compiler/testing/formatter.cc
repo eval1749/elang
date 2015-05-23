@@ -589,14 +589,17 @@ void Formatter::VisitVarDeclaration(ast::VarDeclaration* node) {
   Visit(node->value());
 }
 
-void Formatter::VisitVarStatement(ast::VarStatement* var_statement) {
-  if (var_statement->keyword() == TokenType::Const)
+void Formatter::VisitVarStatement(ast::VarStatement* node) {
+  if (node->keyword() == TokenType::Const)
     ostream_ << "const ";
   auto is_first = true;
-  for (auto const variable : var_statement->variables()) {
+  for (auto const variable : node->variables()) {
     if (is_first) {
-      Visit(variable->type());
-      ostream_ << " ";
+      if (node->keyword() != TokenType::Const ||
+          !variable->type()->is<ast::TypeVariable>()) {
+        Visit(variable->type());
+        ostream_ << " ";
+      }
       is_first = false;
     } else {
       ostream_ << ", ";

@@ -213,15 +213,13 @@ void Parser::ParseBreakStatement(Token* break_keyword) {
     Error(ErrorCode::SyntaxBreakInvalid);
 }
 
-// ConstStatement ::= 'const' ('var' | Type) (Name '=' Expression)+ ';'
+// ConstStatement ::= 'const' Type? VarDecl (',' VarDecl)*
+// VarDecl ::= Name '=' Expression
 void Parser::ParseConstStatement(Token* const_keyword) {
   DCHECK_EQ(const_keyword, TokenType::Const);
-  auto type = static_cast<ast::Type*>(nullptr);
-  if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
-    type = factory()->NewTypeVariable(var_keyword);
-  else if (ParseType())
-    type = ConsumeType();
-  ParseVariables(const_keyword, type);
+  auto const maybe_name = ParseVarTypeAndName();
+  auto const type = ConsumeType();
+  ParseVariables(const_keyword, type, maybe_name);
   ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
 }
 
@@ -663,41 +661,80 @@ void Parser::ParseUsingStatement(Token* using_keyword) {
 }
 
 // |keyword| is 'const', 'var' or token of |type|.
-void Parser::ParseVariables(Token* keyword, ast::Type* type) {
-  if (!PeekToken()->is_name())
-    Error(ErrorCode::SyntaxVarName);
+void Parser::ParseVariables(Token* keyword,
+                            ast::Type* type,
+                            Token* maybe_name) {
   std::vector<ast::VarDeclaration*> variables;
-  while (PeekToken()->is_name()) {
-    auto const name = ConsumeToken();
-    auto const assign = ConsumeTokenIf(TokenType::Assign);
-    if (!assign)
+  for (;;) {
+    if (!maybe_name->is_name()) {
+      Error(ErrorCode::SyntaxVarName, maybe_name);
+      if (maybe_name == TokenType::SemiColon)
+        break;
+      maybe_name =
+          session()->NewUniqueNameToken(maybe_name->location(), L"@var%d");
+    }
+    auto const name = maybe_name;
+    auto const assign = PeekToken() == TokenType::Assign
+                            ? ConsumeToken()
+                            : session()->NewToken(PeekToken()->location(),
+                                                  TokenData(TokenType::Assign));
+    if (assign != TokenType::Assign)
       Error(ErrorCode::SyntaxVarAssign);
     auto const variable = factory()->NewVariable(keyword, type, name);
     if (FindLocalMember(name))
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
       declaration_space_->AddMember(variable);
-    auto const init = ParseExpression() ? ConsumeExpression() : nullptr;
-    if (assign && init) {
-      variables.push_back(factory()->NewVarDeclaration(assign, variable, init));
-      declaration_space_->RecordBind(variable);
-    }
-    if (!init)
+    if (!ParseExpression()) {
       Error(ErrorCode::SyntaxVarInitializer);
+      ProduceInvalidExpression(assign);
+    }
+    auto const init = ConsumeExpression();
+    variables.push_back(factory()->NewVarDeclaration(assign, variable, init));
+    declaration_space_->RecordBind(variable);
     if (!AdvanceIf(TokenType::Comma))
       break;
-    if (!PeekToken()->is_name())
-      Error(ErrorCode::SyntaxVarComma);
+    if (PeekToken() == TokenType::SemiColon) {
+      Error(ErrorCode::SyntaxVarName);
+      break;
+    }
+    maybe_name = ConsumeToken();
   }
+  if (variables.empty())
+    return ProduceStatement(factory()->NewInvalidStatement(keyword));
   ProduceStatement(factory()->NewVarStatement(keyword, variables));
 }
 
-// VarStatement ::= 'var' VarDecl (',' VarDecl)* ';'
+// VarStatement ::= 'var' Type? VarDecl (',' VarDecl)* ';'
 // VarDecl ::= Name ('=' Expression')
 void Parser::ParseVarStatement(Token* var_keyword) {
   DCHECK_EQ(var_keyword, TokenType::Var);
-  ParseVariables(var_keyword, factory()->NewTypeVariable(var_keyword));
+  auto const maybe_name = ParseVarTypeAndName();
+  auto const type = ConsumeType();
+  ParseVariables(var_keyword, type, maybe_name);
   ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
+}
+
+Token* Parser::ParseVarTypeAndName() {
+  if (PeekToken()->is_type_name()) {
+    if (!ParseType())
+      ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
+  }
+  if (!PeekToken()->is_name()) {
+    ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    return PeekToken();
+  }
+  auto const name = ConsumeToken();
+  if (PeekToken() == TokenType::Assign) {
+    ProduceType(factory()->NewTypeVariable(name));
+    return name;
+  }
+  ProduceTypeNameReference(name);
+  if (PeekToken()->is_name())
+    return ConsumeToken();
+  ParseTypeAfterName();
+  return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
 }
 
 // WhileStatement ::= while' '(' Expression ') Statement
@@ -803,7 +840,10 @@ void Parser::ParseStatement() {
     //    Type VariableDeclarator (',' VariableDeclarator)*
     // VariableDeclarator ::= Name ('=' Expression)
     auto const type = ConsumeType();
-    ParseVariables(type->token(), type);
+    auto const var_keyword = session()->NewToken(
+        type->token()->location(),
+        TokenData(TokenType::Var, session()->NewAtomicString(L"var")));
+    ParseVariables(var_keyword, type, ConsumeToken());
     ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
     return;
   }

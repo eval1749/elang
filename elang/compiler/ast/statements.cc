@@ -180,7 +180,7 @@ VarDeclaration::VarDeclaration(Token* token,
     : NamedNode(nullptr, token, variable->name()),
       value_(value),
       variable_(variable) {
-  DCHECK(token == TokenType::Assign || token == TokenType::Colon);
+  DCHECK(token == TokenType::Assign || token == TokenType::Colon) << token;
   DCHECK(value_);
   DCHECK(variable_);
 }

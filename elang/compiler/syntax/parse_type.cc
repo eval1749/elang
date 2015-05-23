@@ -96,68 +96,13 @@ void Parser::ParseArrayType(Token* bracket) {
 //   QualifiedAliasMember |
 //   NamespaceOrTypeName '.' Name TypeArgumentList
 bool Parser::ParseNamespaceOrTypeName() {
-  enum class State {
-    ConstructedType,
-    Dot,
-    Name,
-    Start,
-  };
-
   if (!PeekToken()->is_name()) {
     Error(ErrorCode::SyntaxTypeName);
     return false;
   }
-  // List of |ast::ConstructedName| or |ast::NameReference|.
-  auto state = State::Start;
-  for (;;) {
-    switch (state) {
-      case State::ConstructedType:
-        if (AdvanceIf(TokenType::Dot)) {
-          state = State::Dot;
-          continue;
-        }
-        return true;
-      case State::Dot:
-        if (!PeekToken()->is_name()) {
-          Error(ErrorCode::SyntaxTypeName);
-          return false;
-        }
-        ProduceType(factory()->NewTypeMemberAccess(
-            factory()->NewMemberAccess(ConsumeType(), ConsumeToken())));
-        state = State::Name;
-        continue;
-      case State::Name:
-        if (AdvanceIf(TokenType::Dot)) {
-          state = State::Dot;
-          continue;
-        }
-        if (AdvanceIf(TokenType::LeftAngleBracket)) {
-          auto const generic_type = ConsumeType();
-          // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
-          std::vector<ast::Type*> type_args;
-          do {
-            if (!ParseType())
-              return false;
-            type_args.push_back(ConsumeType());
-          } while (AdvanceIf(TokenType::Comma));
-          if (!AdvanceIf(TokenType::RightAngleBracket))
-            Error(ErrorCode::SyntaxTypeRightAngleBracket);
-          ProduceType(factory()->NewConstructedType(
-              factory()->NewConstructedName(generic_type, type_args)));
-          state = State::ConstructedType;
-          continue;
-        }
-        return true;
-      case State::Start:
-        if (!PeekToken()->is_name()) {
-          Error(ErrorCode::SyntaxTypeName);
-          return false;
-        }
-        ProduceTypeNameReference(ConsumeToken());
-        state = State::Name;
-        continue;
-    }
-  }
+  ProduceTypeNameReference(ConsumeToken());
+  ParseTypeAfterName();
+  return true;
 }
 
 // Type ::= ValueType | ReferenceType | TypeParameter
@@ -186,6 +131,58 @@ bool Parser::ParseType() {
   if (!ParseNamespaceOrTypeName())
     return false;
   return ParseTypePost();
+}
+
+void Parser::ParseTypeAfterName() {
+  enum class State {
+    ConstructedType,
+    Dot,
+    Name,
+  };
+
+  auto state = State::Name;
+  for (;;) {
+    switch (state) {
+      case State::ConstructedType:
+        if (AdvanceIf(TokenType::Dot)) {
+          state = State::Dot;
+          continue;
+        }
+        return;
+      case State::Dot:
+        if (!PeekToken()->is_name()) {
+          Error(ErrorCode::SyntaxTypeName);
+          ProduceType(factory()->NewInvalidType(ConsumeType()));
+          return;
+        }
+        ProduceType(factory()->NewTypeMemberAccess(
+            factory()->NewMemberAccess(ConsumeType(), ConsumeToken())));
+        state = State::Name;
+        continue;
+      case State::Name:
+        if (AdvanceIf(TokenType::Dot)) {
+          state = State::Dot;
+          continue;
+        }
+        if (AdvanceIf(TokenType::LeftAngleBracket)) {
+          auto const generic_type = ConsumeType();
+          // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
+          std::vector<ast::Type*> type_args;
+          do {
+            if (!ParseType())
+              return ProduceType(factory()->NewInvalidType(generic_type));
+            type_args.push_back(ConsumeType());
+          } while (AdvanceIf(TokenType::Comma));
+          if (!AdvanceIf(TokenType::RightAngleBracket))
+            Error(ErrorCode::SyntaxTypeRightAngleBracket);
+          ProduceType(factory()->NewConstructedType(
+              factory()->NewConstructedName(generic_type, type_args)));
+          state = State::ConstructedType;
+          continue;
+        }
+        return;
+    }
+  }
 }
 
 // NullableType ::= NonNullableValueType '?'

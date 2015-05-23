@@ -305,13 +305,13 @@ TEST_F(ParserTest, ConstBasic) {
   auto const source_code =
       "class A {\n"
       "  void Run(int x) {\n"
-      "    const var b = 3;\n"
+      "    const b = 3;\n"
       "  }\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
   EXPECT_EQ(
       "Syntax.Var.NotUsed(25) x\n"
-      "Syntax.Var.NotUsed(44) b\n",
+      "Syntax.Var.NotUsed(40) b\n",
       GetWarnings());
 }
 
@@ -525,7 +525,6 @@ TEST_F(ParserTest, ExpressionErrorLeftAngleBracket) {
   EXPECT_EQ(
       "Syntax.Type.NotType(34) x\n"
       "Syntax.Expression.LeftAngleBracket(35) <\n"
-      "Syntax.Var.Assign(37) >\n"
       "Syntax.Var.Initializer(37) >\n"
       "Syntax.Var.SemiColon(37) >\n",
       Format());
@@ -1032,7 +1031,7 @@ TEST_F(ParserTest, VarErrorComma) {
       "    int x = 0, ;\n"
       "  }\n"
       "}\n";
-  EXPECT_EQ("Syntax.Var.Comma(38) ;\n", Format(source_code));
+  EXPECT_EQ("Syntax.Var.Name(38) ;\n", Format(source_code));
 }
 
 TEST_F(ParserTest, VarErrorDuplicate) {

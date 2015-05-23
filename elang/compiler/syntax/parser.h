@@ -133,7 +133,9 @@ class Parser final : public CompilationSessionUser {
   void ParseWhileStatement(Token* keyword);
   void ParseUsingStatement(Token* keyword);
   void ParseVarStatement(Token* keyword);
-  void ParseVariables(Token* keyword, ast::Type* type);
+  // Returns name followed by optional type.
+  Token* ParseVarTypeAndName();
+  void ParseVariables(Token* keyword, ast::Type* type, Token* maybe_name);
   void ParseYieldStatement(Token* keyword);
   void ProduceStatement(ast::Statement* statement);
 
@@ -154,6 +156,7 @@ class Parser final : public CompilationSessionUser {
   void ParseArrayType(Token* bracket);
   bool ParseNamespaceOrTypeName();
   bool ParseType();
+  void ParseTypeAfterName();
   std::vector<Token*> ParseTypeParameterList();
   bool ParseTypePost();
   void ProduceType(ast::Type* type);
