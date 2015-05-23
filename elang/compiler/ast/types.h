@@ -126,6 +126,16 @@ class TypeNameReference final : public Type {
   DISALLOW_COPY_AND_ASSIGN(TypeNameReference);
 };
 
+// TypeVariable
+class TypeVariable final : public Type {
+  DECLARE_CONCRETE_AST_NODE_CLASS(TypeVariable, Type);
+
+ private:
+  explicit TypeVariable(Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(TypeVariable);
+};
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

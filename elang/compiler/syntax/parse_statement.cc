@@ -218,7 +218,7 @@ void Parser::ParseConstStatement(Token* const_keyword) {
   DCHECK_EQ(const_keyword, TokenType::Const);
   auto type = static_cast<ast::Type*>(nullptr);
   if (auto const var_keyword = ConsumeTokenIf(TokenType::Var))
-    type = NewTypeNameReference(var_keyword);
+    type = factory()->NewTypeVariable(var_keyword);
   else if (ParseType())
     type = ConsumeType();
   ParseVariables(const_keyword, type);
@@ -361,8 +361,8 @@ void Parser::ParseForStatement(Token* for_keyword) {
           state = State::SemiColon;
           continue;
         }
-        if (PeekToken() == TokenType::Var) {
-          ProduceTypeNameReference(ConsumeToken());
+        if (auto const var_keyword = ConsumeTokenIf(TokenType::Var)) {
+          ProduceType(factory()->NewTypeVariable(var_keyword));
           state = State::Type;
           continue;
         }
@@ -640,7 +640,7 @@ void Parser::ParseUsingStatement(Token* using_keyword) {
       Error(ErrorCode::SyntaxUsingRightParenthesis);
 
     LocalDeclarationSpace using_scope(this, using_keyword);
-    auto const var_type = NewTypeNameReference(var_keyword);
+    auto const var_type = factory()->NewTypeVariable(var_keyword);
     auto const variable =
         factory()->NewVariable(using_keyword, var_type, var_name);
     using_scope.AddMember(variable);
@@ -696,7 +696,7 @@ void Parser::ParseVariables(Token* keyword, ast::Type* type) {
 // VarDecl ::= Name ('=' Expression')
 void Parser::ParseVarStatement(Token* var_keyword) {
   DCHECK_EQ(var_keyword, TokenType::Var);
-  ParseVariables(var_keyword, NewTypeNameReference(var_keyword));
+  ParseVariables(var_keyword, factory()->NewTypeVariable(var_keyword));
   ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
 }
 

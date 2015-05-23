@@ -556,6 +556,10 @@ TypeNameReference* Factory::NewTypeNameReference(NameReference* reference) {
   return node;
 }
 
+TypeVariable* Factory::NewTypeVariable(Token* token) {
+  return new (zone()) TypeVariable(token);
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Misc

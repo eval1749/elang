@@ -64,6 +64,10 @@ Token* TypeNameReference::name() const {
   return reference_->name();
 }
 
+// TypeVariable
+TypeVariable::TypeVariable(Token* token) : Type(token) {
+}
+
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

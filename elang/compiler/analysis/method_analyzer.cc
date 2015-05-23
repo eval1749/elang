@@ -124,7 +124,7 @@ void MethodBodyAnalyzer::AnalyzeAsBool(ast::Expression* expression) {
 
 ts::Value* MethodBodyAnalyzer::AnalyzeVariable(ast::Variable* variable,
                                                ts::Value* super) {
-  if (variable->type()->name() == TokenType::Var) {
+  if (variable->type()->is<ast::TypeVariable>()) {
     // Assign type variable for variable declared with `var`.
     auto const type_variable = type_factory()->NewVariable(variable, super);
     variable_tracker_->RegisterVariable(variable, type_variable);

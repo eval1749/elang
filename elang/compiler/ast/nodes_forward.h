@@ -70,7 +70,8 @@ namespace ast {
   V(InvalidType)              \
   V(OptionalType)             \
   V(TypeMemberAccess)         \
-  V(TypeNameReference)
+  V(TypeNameReference)        \
+  V(TypeVariable)
 
 #define FOR_EACH_CONCRETE_AST_NODE(V) \
   FOR_EACH_DECLARATION_NODE(V)        \

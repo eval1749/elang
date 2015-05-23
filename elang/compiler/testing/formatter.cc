@@ -550,6 +550,10 @@ void Formatter::VisitTypeNameReference(ast::TypeNameReference* type) {
   Visit(type->reference());
 }
 
+void Formatter::VisitTypeVariable(ast::TypeVariable* type) {
+  ostream_ << "var";
+}
+
 void Formatter::VisitUnaryOperation(ast::UnaryOperation* operation) {
   if (operation->op() == TokenType::PostDecrement ||
       operation->op() == TokenType::PostIncrement) {

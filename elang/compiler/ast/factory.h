@@ -173,6 +173,7 @@ class Factory final : public ZoneUser {
   TypeNameReference* NewTypeNameReference(NamespaceBody* namespace_body,
                                           NameReference* node);
   TypeNameReference* NewTypeNameReference(NameReference* node);
+  TypeVariable* NewTypeVariable(Token* token);
 
   // Misc nodes
   Parameter* NewParameter(Method* owner,

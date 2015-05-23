@@ -63,6 +63,7 @@ class Formatter final : public ast::Visitor {
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitTypeMemberAccess(ast::TypeMemberAccess* node) final;
   void VisitTypeNameReference(ast::TypeNameReference* node) final;
+  void VisitTypeVariable(ast::TypeVariable* node) final;
 
   std::ostream& ostream_;
 
@@ -207,6 +208,10 @@ void Formatter::VisitTypeMemberAccess(ast::TypeMemberAccess* node) {
 
 void Formatter::VisitTypeNameReference(ast::TypeNameReference* node) {
   VisitNameReference(node->reference());
+}
+
+void Formatter::VisitTypeVariable(ast::TypeVariable* node) {
+  ostream_ << "var";
 }
 
 }  // namespace
