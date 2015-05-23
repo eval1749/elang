@@ -551,17 +551,18 @@ void Parser::ParseReturnStatement(Token* return_keyword) {
 // Note: We can omit Expression if throw-statement in catch-clause.
 void Parser::ParseThrowStatement(Token* throw_keyword) {
   DCHECK_EQ(throw_keyword, TokenType::Throw);
-  auto value = static_cast<ast::Expression*>(nullptr);
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!IsInStatement(TokenType::Catch))
       Error(ErrorCode::SyntaxThrowInvalid);
-  } else {
-    if (ParseExpression()) {
-      value = ConsumeExpression();
-      ConsumeSemiColon(ErrorCode::SyntaxThrowSemiColon);
-    }
+    ProduceStatement(factory()->NewThrowStatement(throw_keyword, nullptr));
+    return;
   }
-  ProduceStatement(factory()->NewThrowStatement(throw_keyword, value));
+
+  if (!ParseExpression())
+    ProduceInvalidExpression(PeekToken());
+  ProduceStatement(
+      factory()->NewThrowStatement(throw_keyword, ConsumeExpression()));
+  ConsumeSemiColon(ErrorCode::SyntaxThrowSemiColon);
 }
 
 // TryStatement ::= 'try' Block CatchClause* ('finally' Block)?
