@@ -88,7 +88,6 @@ class Parser final : public CompilationSessionUser {
   ast::Expression* ConsumeExpression();
   ast::Expression* ConsumeExpressionOrType();
   ast::Expression* NewInvalidExpression(Token* token);
-  bool ParseExpression();
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
   void ParsePrimaryExpressionPost();
@@ -105,6 +104,7 @@ class Parser final : public CompilationSessionUser {
   void ProduceNameReference(Token* token);
   void ProduceUnaryOperation(Token* op_token, ast::Expression* expression);
   Token* TryConsumeUnaryOperator();
+  bool TryParseExpression();
 
   // in "parse_statement.cc"
   // Returns last produced statement.

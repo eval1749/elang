@@ -348,7 +348,7 @@ bool Parser::ParseClass() {
     }
     ValidateFieldModifiers();
     if (AdvanceIf(TokenType::Assign)) {
-      if (!ParseExpression())
+      if (!TryParseExpression())
         return false;
       auto const field =
           factory()->NewField(class_body, member_modifiers, keyword,
@@ -425,7 +425,7 @@ void Parser::ParseEnum() {
     auto const member_name = ConsumeToken();
     ast::Expression* explicit_value = nullptr;
     if (AdvanceIf(TokenType::Assign)) {
-      if (ParseExpression())
+      if (TryParseExpression())
         explicit_value = ConsumeExpression();
       else
         Error(ErrorCode::SyntaxEnumExpression);

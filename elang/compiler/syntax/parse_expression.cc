@@ -91,57 +91,6 @@ ast::Expression* Parser::NewInvalidExpression(Token* token) {
   return factory()->NewInvalidExpression(token);
 }
 
-bool Parser::ParseExpression() {
-  // Expression ::= ConditionalExpression | Assignment
-  if (!ParseExpressionSub(ExpressionCategory::NullCoalescing)) {
-    DCHECK(!expression_);
-    return false;
-  }
-
-  if (PeekToken() == TokenType::QuestionMark) {
-    // ConditionalExpression ::=
-    //     NullCoalescingExpression ||
-    //     NullCoalescingExpression '?' Expression ':' Expression
-    auto const cond_part = ConsumeExpression();
-    auto const op_question = ConsumeToken();
-    if (!ParseExpression()) {
-      Error(ErrorCode::SyntaxExpressionConditionalThen);
-      DCHECK(!expression_);
-      return false;
-    }
-    auto const then_part = ConsumeExpression();
-    if (!AdvanceIf(TokenType::Colon))
-      return Error(ErrorCode::SyntaxExpressionConditionalColon);
-    if (!ParseExpression()) {
-      Error(ErrorCode::SyntaxExpressionConditionalElse);
-      DCHECK(!expression_);
-      return false;
-    }
-    auto const else_part = ConsumeExpression();
-    ProduceExpression(factory()->NewConditional(op_question, cond_part,
-                                                then_part, else_part));
-    return true;
-  }
-
-  if (PeekTokenCategory() == ExpressionCategory::Assignment) {
-    // Assignment ::= UnaryExpression AssignmentOperator Expression
-    // AssignmentOperator ::= '=' | '+=' | '*=' | '/=' | '/=' ...
-    // Note: Assignment is right-associative |a = b = c| == |a = (b = c)|.
-    auto const op_assign = ConsumeToken();
-    auto const lhs = ConsumeExpression();
-    // TODO(eval1749) Check |lhs| is unary expression.
-    if (!ParseExpression()) {
-      DCHECK(!expression_);
-      return false;
-    }
-    auto const rhs = ConsumeExpression();
-    ProduceExpression(factory()->NewAssignment(op_assign, lhs, rhs));
-    return true;
-  }
-
-  return !!expression_;
-}
-
 bool Parser::ParseExpressionSub(ExpressionCategory category) {
   if (category == ExpressionCategory::Primary)
     return ParsePrimaryExpression();
@@ -239,7 +188,7 @@ bool Parser::ParsePrimaryExpression() {
   if (auto const parenthesis = ConsumeTokenIf(TokenType::LeftParenthesis)) {
     // ParenthesizedExpression:
     // '(' Expression ')'
-    if (!ParseExpression())
+    if (!TryParseExpression())
       ProduceInvalidExpression(parenthesis);
     ParsePrimaryExpressionPost();
     if (!AdvanceIf(TokenType::RightParenthesis))
@@ -277,7 +226,7 @@ void Parser::ParsePrimaryExpressionPost() {
       std::vector<ast::Expression*> arguments;
       if (PeekToken() != TokenType::RightParenthesis) {
         do {
-          if (ParseExpression())
+          if (TryParseExpression())
             arguments.push_back(ConsumeExpression());
           else
             Error(ErrorCode::SyntaxExpressionCall);
@@ -318,7 +267,7 @@ void Parser::ParsePrimaryExpressionPost() {
       auto const array = ConsumeExpression();
       std::vector<ast::Expression*> indexes;
       do {
-        if (ParseExpression()) {
+        if (TryParseExpression()) {
           indexes.push_back(ConsumeExpression());
         } else {
           Error(ErrorCode::SyntaxExpressionArrayAccess);
@@ -437,6 +386,57 @@ Token* Parser::TryConsumeUnaryOperator() {
   if (PeekToken() == TokenType::Sub)
     return ConsumeTokenAs(TokenType::UnarySub);
   return nullptr;
+}
+
+bool Parser::TryParseExpression() {
+  // Expression ::= ConditionalExpression | Assignment
+  if (!ParseExpressionSub(ExpressionCategory::NullCoalescing)) {
+    DCHECK(!expression_);
+    return false;
+  }
+
+  if (PeekToken() == TokenType::QuestionMark) {
+    // ConditionalExpression ::=
+    //     NullCoalescingExpression ||
+    //     NullCoalescingExpression '?' Expression ':' Expression
+    auto const cond_part = ConsumeExpression();
+    auto const op_question = ConsumeToken();
+    if (!TryParseExpression()) {
+      Error(ErrorCode::SyntaxExpressionConditionalThen);
+      DCHECK(!expression_);
+      return false;
+    }
+    auto const then_part = ConsumeExpression();
+    if (!AdvanceIf(TokenType::Colon))
+      return Error(ErrorCode::SyntaxExpressionConditionalColon);
+    if (!TryParseExpression()) {
+      Error(ErrorCode::SyntaxExpressionConditionalElse);
+      DCHECK(!expression_);
+      return false;
+    }
+    auto const else_part = ConsumeExpression();
+    ProduceExpression(factory()->NewConditional(op_question, cond_part,
+                                                then_part, else_part));
+    return true;
+  }
+
+  if (PeekTokenCategory() == ExpressionCategory::Assignment) {
+    // Assignment ::= UnaryExpression AssignmentOperator Expression
+    // AssignmentOperator ::= '=' | '+=' | '*=' | '/=' | '/=' ...
+    // Note: Assignment is right-associative |a = b = c| == |a = (b = c)|.
+    auto const op_assign = ConsumeToken();
+    auto const lhs = ConsumeExpression();
+    // TODO(eval1749) Check |lhs| is unary expression.
+    if (!TryParseExpression()) {
+      DCHECK(!expression_);
+      return false;
+    }
+    auto const rhs = ConsumeExpression();
+    ProduceExpression(factory()->NewAssignment(op_assign, lhs, rhs));
+    return true;
+  }
+
+  return !!expression_;
 }
 
 }  // namespace compiler

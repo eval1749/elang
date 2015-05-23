@@ -241,7 +241,7 @@ void Parser::ParseDoStatement(Token* do_keyword) {
     Error(ErrorCode::SyntaxDoWhile);
   if (!AdvanceIf(TokenType::LeftParenthesis))
     Error(ErrorCode::SyntaxDoLeftParenthesis);
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const condition = ConsumeExpression();
   if (!AdvanceIf(TokenType::RightParenthesis))
@@ -284,7 +284,7 @@ void Parser::ParseForStatement(Token* for_keyword) {
         DCHECK(!variables.empty());
         if (variables.size() != 1u)
           Error(ErrorCode::SyntaxForColon);
-        if (!ParseExpression())
+        if (!TryParseExpression())
           ProduceInvalidExpression(colon);
         if (!AdvanceIf(TokenType::RightParenthesis))
           Error(ErrorCode::SyntaxForRightParenthesis);
@@ -298,7 +298,7 @@ void Parser::ParseForStatement(Token* for_keyword) {
       }
 
       case State::Comma:
-        if (ParseExpression())
+        if (TryParseExpression())
           state = State::Initializer;
         continue;
 
@@ -330,13 +330,13 @@ void Parser::ParseForStatement(Token* for_keyword) {
         }
         auto const initializer = ConsumeStatement();
         auto condition =
-            PeekToken() != TokenType::SemiColon && ParseExpression()
+            PeekToken() != TokenType::SemiColon && TryParseExpression()
                 ? ConsumeExpression()
                 : static_cast<ast::Expression*>(nullptr);
         ConsumeSemiColon(ErrorCode::SyntaxForSemiColon);
         std::vector<ast::Expression*> steps;
         if (PeekToken() != TokenType::RightParenthesis) {
-          while (ParseExpression()) {
+          while (TryParseExpression()) {
             steps.push_back(ConsumeExpression());
             if (!AdvanceIf(TokenType::Comma))
               break;
@@ -364,7 +364,7 @@ void Parser::ParseForStatement(Token* for_keyword) {
           state = State::Type;
           continue;
         }
-        if (!ParseExpression())
+        if (!TryParseExpression())
           ProduceInvalidExpression(for_keyword);
         state = State::TypeOrExpression;
         break;
@@ -395,7 +395,7 @@ void Parser::ParseForStatement(Token* for_keyword) {
           continue;
         }
 
-        if (!ParseExpression()) {
+        if (!TryParseExpression()) {
           ProduceType(type);
           continue;
         }
@@ -431,7 +431,7 @@ void Parser::ParseIfStatement(Token* if_keyword) {
   DCHECK_EQ(if_keyword, TokenType::If);
   if (!AdvanceIf(TokenType::LeftParenthesis))
     Error(ErrorCode::SyntaxIfLeftParenthesis);
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const condition = ConsumeExpression();
   if (!AdvanceIf(TokenType::RightParenthesis))
@@ -538,7 +538,7 @@ void Parser::ParseReturnStatement(Token* return_keyword) {
     return ProduceStatement(
         factory()->NewReturnStatement(return_keyword, nullptr));
   }
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const value = ConsumeExpression();
   ConsumeSemiColon(ErrorCode::SyntaxReturnSemiColon);
@@ -556,7 +556,7 @@ void Parser::ParseThrowStatement(Token* throw_keyword) {
     return;
   }
 
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   ProduceStatement(
       factory()->NewThrowStatement(throw_keyword, ConsumeExpression()));
@@ -632,7 +632,7 @@ void Parser::ParseUsingStatement(Token* using_keyword) {
     auto const var_name = ConsumeToken();
     if (!AdvanceIf(TokenType::Assign))
       Error(ErrorCode::SyntaxUsingAssign);
-    if (!ParseExpression())
+    if (!TryParseExpression())
       ProduceInvalidExpression(PeekToken());
     if (!AdvanceIf(TokenType::RightParenthesis))
       Error(ErrorCode::SyntaxUsingRightParenthesis);
@@ -650,7 +650,7 @@ void Parser::ParseUsingStatement(Token* using_keyword) {
     return;
   }
 
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const resource = ConsumeExpression();
   if (!AdvanceIf(TokenType::RightParenthesis))
@@ -685,7 +685,7 @@ void Parser::ParseVariables(Token* keyword,
       Error(ErrorCode::SyntaxVarDuplicate, name);
     else
       declaration_space_->AddMember(variable);
-    if (!ParseExpression()) {
+    if (!TryParseExpression()) {
       Error(ErrorCode::SyntaxVarInitializer);
       ProduceInvalidExpression(assign);
     }
@@ -742,7 +742,7 @@ void Parser::ParseWhileStatement(Token* while_keyword) {
   DCHECK_EQ(while_keyword, TokenType::While);
   if (!AdvanceIf(TokenType::LeftParenthesis))
     Error(ErrorCode::SyntaxWhileLeftParenthesis);
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const condition = ConsumeExpression();
   if (!AdvanceIf(TokenType::RightParenthesis))
@@ -757,7 +757,7 @@ void Parser::ParseWhileStatement(Token* while_keyword) {
 // YieldStatement ::= 'yield' expression ';'
 void Parser::ParseYieldStatement(Token* yield_keyword) {
   DCHECK_EQ(yield_keyword, TokenType::Yield);
-  if (!ParseExpression())
+  if (!TryParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const value = ConsumeExpression();
   ProduceStatement(factory()->NewYieldStatement(yield_keyword, value));
@@ -832,7 +832,7 @@ void Parser::ParseStatement() {
     return ProduceStatement(factory()->NewEmptyStatement(semi_colon));
 
   // ExpressionStatement ::= Expression ';'
-  if (!ParseExpression())
+  if (!TryParseExpression())
     return ProduceStatement(factory()->NewInvalidStatement(ConsumeToken()));
 
   if (PeekToken()->is_name()) {
