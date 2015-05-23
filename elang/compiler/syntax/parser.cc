@@ -146,6 +146,12 @@ bool Parser::AdvanceIf(TokenType type) {
   return true;
 }
 
+void Parser::ConsumeSemiColon(ErrorCode error_code) {
+  if (AdvanceIf(TokenType::SemiColon))
+    return;
+  Error(error_code);
+}
+
 Token* Parser::ConsumeToken() {
   DCHECK(token_);
   auto const result = token_;
@@ -252,8 +258,7 @@ bool Parser::ParseClass() {
   ContainerScope container_scope(this, class_body);
 
   if (class_modifiers.HasExtern()) {
-    if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxClassSemiColon);
+    ConsumeSemiColon(ErrorCode::SyntaxClassSemiColon);
     return true;
   }
 
@@ -351,8 +356,7 @@ bool Parser::ParseClass() {
       class_body->AddMember(field);
       class_body->AddNamedMember(field);
       clazz->AddNamedMember(field);
-      if (!AdvanceIf(TokenType::SemiColon))
-        Error(ErrorCode::SyntaxClassMemberSemiColon);
+      ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
       continue;
     }
 
@@ -368,8 +372,7 @@ bool Parser::ParseClass() {
     class_body->AddMember(field);
     class_body->AddNamedMember(field);
     clazz->AddNamedMember(field);
-    if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxClassMemberSemiColon);
+    ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
   }
 }
 
@@ -633,8 +636,7 @@ void Parser::ParseUsingDirectives() {
         ns_body->AddImport(factory()->NewImport(ns_body, using_keyword, thing));
       }
     }
-    if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxUsingDirectiveSemiColon);
+    ConsumeSemiColon(ErrorCode::SyntaxUsingDirectiveSemiColon);
   }
 }
 

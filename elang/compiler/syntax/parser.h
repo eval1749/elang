@@ -48,6 +48,9 @@ class Parser final : public CompilationSessionUser {
   void Advance();
   bool AdvanceIf(TokenType type);
 
+  // If curren token isn't semi-conlon, report error with |error_code|.
+  void ConsumeSemiColon(ErrorCode error_code);
+
   // Returns current token and advance to next token.
   Token* ConsumeToken();
 

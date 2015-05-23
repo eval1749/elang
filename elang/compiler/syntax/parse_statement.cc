@@ -208,8 +208,7 @@ void Parser::ParseBlockStatement(Token* bracket) {
 void Parser::ParseBreakStatement(Token* break_keyword) {
   DCHECK_EQ(break_keyword, TokenType::Break);
   ProduceStatement(factory()->NewBreakStatement(break_keyword));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxBreakSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxBreakSemiColon);
   if (!IsInLoop())
     Error(ErrorCode::SyntaxBreakInvalid);
 }
@@ -223,15 +222,13 @@ void Parser::ParseConstStatement(Token* const_keyword) {
   else if (ParseType())
     type = ConsumeType();
   ParseVariables(const_keyword, type);
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxVarSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
 }
 
 void Parser::ParseContinueStatement(Token* continue_keyword) {
   DCHECK_EQ(continue_keyword, TokenType::Continue);
   ProduceStatement(factory()->NewContinueStatement(continue_keyword));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxContinueSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxContinueSemiColon);
   if (!IsInLoop())
     Error(ErrorCode::SyntaxContinueInvalid);
 }
@@ -251,8 +248,7 @@ void Parser::ParseDoStatement(Token* do_keyword) {
   auto const condition = ConsumeExpression();
   if (!AdvanceIf(TokenType::RightParenthesis))
     Error(ErrorCode::SyntaxDoRightParenthesis);
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxDoSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxDoSemiColon);
   ProduceStatement(factory()->NewDoStatement(do_keyword, statement, condition));
 }
 
@@ -339,8 +335,7 @@ void Parser::ParseForStatement(Token* for_keyword) {
             PeekToken() != TokenType::SemiColon && ParseExpression()
                 ? ConsumeExpression()
                 : static_cast<ast::Expression*>(nullptr);
-        if (!AdvanceIf(TokenType::SemiColon))
-          Error(ErrorCode::SyntaxForSemiColon);
+        ConsumeSemiColon(ErrorCode::SyntaxForSemiColon);
         std::vector<ast::Expression*> steps;
         if (PeekToken() != TokenType::RightParenthesis) {
           while (ParseExpression()) {
@@ -548,8 +543,7 @@ void Parser::ParseReturnStatement(Token* return_keyword) {
   if (!ParseExpression())
     ProduceInvalidExpression(PeekToken());
   auto const value = ConsumeExpression();
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxReturnSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxReturnSemiColon);
   ProduceStatement(factory()->NewReturnStatement(return_keyword, value));
 }
 
@@ -564,8 +558,7 @@ void Parser::ParseThrowStatement(Token* throw_keyword) {
   } else {
     if (ParseExpression()) {
       value = ConsumeExpression();
-      if (!AdvanceIf(TokenType::SemiColon))
-        Error(ErrorCode::SyntaxThrowSemiColon);
+      ConsumeSemiColon(ErrorCode::SyntaxThrowSemiColon);
     }
   }
   ProduceStatement(factory()->NewThrowStatement(throw_keyword, value));
@@ -703,8 +696,7 @@ void Parser::ParseVariables(Token* keyword, ast::Type* type) {
 void Parser::ParseVarStatement(Token* var_keyword) {
   DCHECK_EQ(var_keyword, TokenType::Var);
   ParseVariables(var_keyword, NewTypeNameReference(var_keyword));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxVarSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
 }
 
 // WhileStatement ::= while' '(' Expression ') Statement
@@ -731,8 +723,7 @@ void Parser::ParseYieldStatement(Token* yield_keyword) {
     ProduceInvalidExpression(PeekToken());
   auto const value = ConsumeExpression();
   ProduceStatement(factory()->NewYieldStatement(yield_keyword, value));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxStatementSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxStatementSemiColon);
 }
 
 // Parses statement in following grammar:
@@ -812,15 +803,13 @@ void Parser::ParseStatement() {
     // VariableDeclarator ::= Name ('=' Expression)
     auto const type = ConsumeType();
     ParseVariables(type->token(), type);
-    if (!AdvanceIf(TokenType::SemiColon))
-      Error(ErrorCode::SyntaxVarSemiColon);
+    ConsumeSemiColon(ErrorCode::SyntaxVarSemiColon);
     return;
   }
 
   // Expression statement
   ProduceStatement(factory()->NewExpressionStatement(ConsumeExpression()));
-  if (!AdvanceIf(TokenType::SemiColon))
-    Error(ErrorCode::SyntaxStatementSemiColon);
+  ConsumeSemiColon(ErrorCode::SyntaxStatementSemiColon);
 }
 
 void Parser::ProduceStatement(ast::Statement* statement) {
