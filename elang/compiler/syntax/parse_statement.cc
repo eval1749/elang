@@ -262,7 +262,6 @@ void Parser::ParseForStatement(Token* for_keyword) {
 
   enum class State {
     Colon,
-    Comma,
     Initializer,
     SemiColon,
     Start,
@@ -294,11 +293,6 @@ void Parser::ParseForStatement(Token* for_keyword) {
             ConsumeStatement()));
         return;
       }
-
-      case State::Comma:
-        if (TryParseExpression())
-          state = State::Initializer;
-        continue;
 
       case State::Initializer:
         initializers.push_back(ConsumeExpression());
