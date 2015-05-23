@@ -88,6 +88,7 @@ class Parser final : public CompilationSessionUser {
   ast::Expression* ConsumeExpression();
   ast::Expression* ConsumeExpressionOrType();
   ast::Expression* NewInvalidExpression(Token* token);
+  void ParseExpression(ErrorCode error_code);
   bool ParseExpressionSub(ExpressionCategory category);
   bool ParsePrimaryExpression();
   void ParsePrimaryExpressionPost();

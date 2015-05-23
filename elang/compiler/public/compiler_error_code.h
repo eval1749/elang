@@ -98,6 +98,7 @@ namespace compiler {
   E(Syntax, Continue, Invalid)                        \
   E(Syntax, Continue, SemiColon)                      \
   /* Do */                                            \
+  E(Syntax, Do, Condition)                            \
   E(Syntax, Do, LeftParenthesis)                      \
   E(Syntax, Do, RightParenthesis)                     \
   E(Syntax, Do, SemiColon)                            \
@@ -112,16 +113,20 @@ namespace compiler {
   E(Syntax, Enum, RightCurryBracket)                  \
   /* Expression */                                    \
   E(Syntax, Expression, ArrayAccess)                  \
+  E(Syntax, Expression, Assignment)                   \
   E(Syntax, Expression, Call)                         \
   E(Syntax, Expression, ConditionalColon)             \
   E(Syntax, Expression, ConditionalElse)              \
   E(Syntax, Expression, ConditionalThen)              \
   E(Syntax, Expression, Label)                        \
   E(Syntax, Expression, LeftAngleBracket)             \
+  E(Syntax, Expression, Parenthesis)                  \
   E(Syntax, Expression, RightParenthesis)             \
   E(Syntax, Expression, RightSquareBracket)           \
   E(Syntax, Expression, Type)                         \
   E(Syntax, Expression, UnboundVariable)              \
+  /* Field */                                         \
+  E(Syntax, Field, Expression)                        \
   /* Finally */                                       \
   E(Syntax, Finally, LeftCurryBracket)                \
   /* For */                                           \
@@ -132,6 +137,7 @@ namespace compiler {
   E(Syntax, For, SemiColon)                           \
   E(Syntax, For, Var)                                 \
   /* If */                                            \
+  E(Syntax, If, Condition)                            \
   E(Syntax, If, LeftParenthesis)                      \
   E(Syntax, If, RightParenthesis)                     \
   /* MemberAccess */                                  \
@@ -159,11 +165,13 @@ namespace compiler {
   E(Syntax, Namespace, LeftCurryBracket)              \
   E(Syntax, Namespace, RightCurryBracket)             \
   /* Return */                                        \
+  E(Syntax, Return, Expression)                       \
   E(Syntax, Return, SemiColon)                        \
   /* Statement */                                     \
   E(Syntax, Statement, SemiColon)                     \
   E(Syntax, Statement, Unreachable)                   \
   /* Throw */                                         \
+  E(Syntax, Throw, Expression)                        \
   E(Syntax, Throw, Invalid)                           \
   E(Syntax, Throw, SemiColon)                         \
   /* Try */                                           \
@@ -177,6 +185,7 @@ namespace compiler {
   E(Syntax, Type, TypeArgument)                       \
   /* Using */                                         \
   E(Syntax, Using, Assign)                            \
+  E(Syntax, Using, Expression)                        \
   E(Syntax, Using, LeftParenthesis)                   \
   E(Syntax, Using, RightParenthesis)                  \
   E(Syntax, Using, Name)                              \
@@ -195,8 +204,11 @@ namespace compiler {
   E(Syntax, Var, SemiColon)                           \
   E(Syntax, Var, Type)                                \
   /* While */                                         \
+  E(Syntax, While, Condition)                         \
   E(Syntax, While, LeftParenthesis)                   \
   E(Syntax, While, RightParenthesis)                  \
+  /* Yield */                                         \
+  E(Syntax, Yield, Expression)                        \
   /* Lexer */                                         \
   E(Token, AtMark, Invalid)                           \
   E(Token, AtMarkString, Unclosed)                    \

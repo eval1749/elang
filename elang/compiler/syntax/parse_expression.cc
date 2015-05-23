@@ -91,6 +91,14 @@ ast::Expression* Parser::NewInvalidExpression(Token* token) {
   return factory()->NewInvalidExpression(token);
 }
 
+void Parser::ParseExpression(ErrorCode error_code) {
+  auto const token = PeekToken();
+  if (TryParseExpression())
+    return;
+  ProduceInvalidExpression(token);
+  Error(error_code, token);
+}
+
 bool Parser::ParseExpressionSub(ExpressionCategory category) {
   if (category == ExpressionCategory::Primary)
     return ParsePrimaryExpression();
@@ -188,8 +196,7 @@ bool Parser::ParsePrimaryExpression() {
   if (auto const parenthesis = ConsumeTokenIf(TokenType::LeftParenthesis)) {
     // ParenthesizedExpression:
     // '(' Expression ')'
-    if (!TryParseExpression())
-      ProduceInvalidExpression(parenthesis);
+    ParseExpression(ErrorCode::SyntaxExpressionParenthesis);
     ParsePrimaryExpressionPost();
     if (!AdvanceIf(TokenType::RightParenthesis))
       Error(ErrorCode::SyntaxExpressionRightParenthesis);
@@ -226,10 +233,8 @@ void Parser::ParsePrimaryExpressionPost() {
       std::vector<ast::Expression*> arguments;
       if (PeekToken() != TokenType::RightParenthesis) {
         do {
-          if (TryParseExpression())
-            arguments.push_back(ConsumeExpression());
-          else
-            Error(ErrorCode::SyntaxExpressionCall);
+          ParseExpression(ErrorCode::SyntaxExpressionCall);
+          arguments.push_back(ConsumeExpression());
         } while (AdvanceIf(TokenType::Comma));
       }
       if (!AdvanceIf(TokenType::RightParenthesis))
@@ -267,12 +272,8 @@ void Parser::ParsePrimaryExpressionPost() {
       auto const array = ConsumeExpression();
       std::vector<ast::Expression*> indexes;
       do {
-        if (TryParseExpression()) {
-          indexes.push_back(ConsumeExpression());
-        } else {
-          Error(ErrorCode::SyntaxExpressionArrayAccess);
-          indexes.push_back(NewInvalidExpression(bracket));
-        }
+        ParseExpression(ErrorCode::SyntaxExpressionArrayAccess);
+        indexes.push_back(ConsumeExpression());
         if (PeekToken() == TokenType::RightSquareBracket)
           break;
       } while (AdvanceIf(TokenType::Comma));
@@ -401,19 +402,18 @@ bool Parser::TryParseExpression() {
     //     NullCoalescingExpression '?' Expression ':' Expression
     auto const cond_part = ConsumeExpression();
     auto const op_question = ConsumeToken();
-    if (!TryParseExpression()) {
-      Error(ErrorCode::SyntaxExpressionConditionalThen);
-      DCHECK(!expression_);
-      return false;
-    }
+    ParseExpression(ErrorCode::SyntaxExpressionConditionalThen);
     auto const then_part = ConsumeExpression();
-    if (!AdvanceIf(TokenType::Colon))
-      return Error(ErrorCode::SyntaxExpressionConditionalColon);
-    if (!TryParseExpression()) {
-      Error(ErrorCode::SyntaxExpressionConditionalElse);
-      DCHECK(!expression_);
-      return false;
+    if (!AdvanceIf(TokenType::Colon)) {
+      if (then_part->is<ast::InvalidExpression>()) {
+        ProduceExpression(then_part);
+        return true;
+      }
+      Error(ErrorCode::SyntaxExpressionConditionalColon);
+      ProduceInvalidExpression(PeekToken());
+      return true;
     }
+    ParseExpression(ErrorCode::SyntaxExpressionConditionalElse);
     auto const else_part = ConsumeExpression();
     ProduceExpression(factory()->NewConditional(op_question, cond_part,
                                                 then_part, else_part));
@@ -427,10 +427,7 @@ bool Parser::TryParseExpression() {
     auto const op_assign = ConsumeToken();
     auto const lhs = ConsumeExpression();
     // TODO(eval1749) Check |lhs| is unary expression.
-    if (!TryParseExpression()) {
-      DCHECK(!expression_);
-      return false;
-    }
+    ParseExpression(ErrorCode::SyntaxExpressionAssignment);
     auto const rhs = ConsumeExpression();
     ProduceExpression(factory()->NewAssignment(op_assign, lhs, rhs));
     return true;
