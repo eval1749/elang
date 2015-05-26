@@ -478,7 +478,7 @@ void Parser::ParseFunction() {
 //  NamespaceDecl ::= "namespace" QualifiedName Namespace ";"?
 //  Namespace ::= "{" ExternAliasDirective* UsingDirective*
 //                        NamedNodeDecl* "}"
-bool Parser::ParseNamespace() {
+void Parser::ParseNamespace() {
   auto const namespace_keyword = ConsumeToken();
   DCHECK_EQ(namespace_keyword->type(), TokenType::Namespace);
   std::vector<Token*> names;
@@ -496,10 +496,10 @@ bool Parser::ParseNamespace() {
     Error(ErrorCode::SyntaxNamespaceAnonymous);
     names.push_back(NewUniqueNameToken(L"ns%d"));
   }
-  return ParseNamespace(namespace_keyword, names, 0);
+  ParseNamespace(namespace_keyword, names, 0);
 }
 
-bool Parser::ParseNamespace(Token* namespace_keyword,
+void Parser::ParseNamespace(Token* namespace_keyword,
                             const std::vector<Token*>& names,
                             size_t index) {
   auto const ns_body = container_->as<ast::NamespaceBody>();
@@ -524,14 +524,14 @@ bool Parser::ParseNamespace(Token* namespace_keyword,
   ContainerScope container_scope(this, new_ns_body);
   if (index + 1 < names.size())
     return ParseNamespace(namespace_keyword, names, index + 1);
-  if (!AdvanceIf(TokenType::LeftCurryBracket))
-    return Error(ErrorCode::SyntaxNamespaceLeftCurryBracket);
+  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
+    Error(ErrorCode::SyntaxNamespaceLeftCurryBracket);
+    return;
+  }
   ParseUsingDirectives();
   ParseNamedNodes();
-  if (!AdvanceIf(TokenType::RightCurryBracket))
-    return false;
+  AdvanceIf(TokenType::RightCurryBracket);
   AdvanceIf(TokenType::SemiColon);
-  return true;
 }
 
 // NamedNodeDecl ::= NamespaceDecl | TypeDecl
@@ -558,8 +558,7 @@ void Parser::ParseNamedNodes() {
         ParseFunction();
         continue;
       case TokenType::Namespace:
-        if (!ParseNamespace())
-          return;
+        ParseNamespace();
         continue;
       case TokenType::EndOfSource:
         return;

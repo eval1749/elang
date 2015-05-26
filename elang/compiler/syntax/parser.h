@@ -75,8 +75,8 @@ class Parser final : public CompilationSessionUser {
   void ParseFunction();
   void ParseField(Token* keyword, ast::Type* type, Token* name);
   void ParseCompilationUnit();
-  bool ParseNamespace();
-  bool ParseNamespace(Token* namespace_keyword,
+  void ParseNamespace();
+  void ParseNamespace(Token* namespace_keyword,
                       const std::vector<Token*>& names,
                       size_t index);
   void ParseNamedNodes();
