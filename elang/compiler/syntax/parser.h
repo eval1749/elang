@@ -69,7 +69,7 @@ class Parser final : public CompilationSessionUser {
   void Error(ErrorCode error_code, Token* token, Token* token2);
   Token* NewUniqueNameToken(const base::char16* format);
 
-  bool ParseClass();
+  void ParseClass();
   void ParseEnum();
   void ParseFunction();
   void ParseField(Token* keyword, ast::Type* type, Token* name);

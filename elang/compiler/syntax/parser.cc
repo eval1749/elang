@@ -212,16 +212,14 @@ Token* Parser::NewUniqueNameToken(const base::char16* format) {
 //
 // ClassBody ::= '{' ClassMemberDecl* '}'
 //
-bool Parser::ParseClass() {
+void Parser::ParseClass() {
   ValidateClassModifiers();
   // TODO(eval1749) Support partial class.
   auto const class_modifiers = modifiers_->Get();
   auto const class_keyword = ConsumeToken();
   auto const class_name = ConsumeToken();
-  if (!class_name->is_name()) {
-    Error(ErrorCode::SyntaxClassName, class_name);
-    return false;
-  }
+  if (!class_name->is_name())
+    return Error(ErrorCode::SyntaxClassName, class_name);
   auto clazz = static_cast<ast::Class*>(nullptr);
   auto const local = container_->FindMember(class_name);
   auto const global = container_->owner()->FindMember(class_name);
@@ -269,10 +267,8 @@ bool Parser::ParseClass() {
 
   ContainerScope container_scope(this, class_body);
 
-  if (class_modifiers.HasExtern()) {
-    ConsumeSemiColon(ErrorCode::SyntaxClassSemiColon);
-    return true;
-  }
+  if (class_modifiers.HasExtern())
+    return ConsumeSemiColon(ErrorCode::SyntaxClassSemiColon);
 
   // ClassBody ::= "{" ClassMemberDeclaration* "}"
   // ClassMemberDeclaration ::=
@@ -286,10 +282,8 @@ bool Parser::ParseClass() {
   //    FinalizerDecl |
   //    StaticConstructorDecl |
   //    TypeDecl
-  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
-    Error(ErrorCode::SyntaxClassLeftCurryBracket);
-    return false;
-  }
+  if (!AdvanceIf(TokenType::LeftCurryBracket))
+    return Error(ErrorCode::SyntaxClassLeftCurryBracket);
 
   for (;;) {
     modifiers_->Reset();
@@ -309,8 +303,7 @@ bool Parser::ParseClass() {
         ParseFunction();
         continue;
       case TokenType::RightCurryBracket:
-        Advance();
-        return true;
+        return Advance();
     }
 
     // FieldDecl ::= 'var' Type? name ('=' Expression) ';'
@@ -327,10 +320,8 @@ bool Parser::ParseClass() {
     auto const member_modifiers = modifiers_->Get();
     auto const member_type = ParseAndConsumeType();
     auto const member_name = ConsumeToken();
-    if (!member_name->is_name()) {
-      Error(ErrorCode::SyntaxClassMemberName);
-      return false;
-    }
+    if (!member_name->is_name())
+      return Error(ErrorCode::SyntaxClassMemberName);
     if (AdvanceIf(TokenType::LeftAngleBracket)) {
       auto const type_parameters = ParseTypeParameterList();
       if (!AdvanceIf(TokenType::LeftParenthesis)) {
@@ -551,8 +542,7 @@ void Parser::ParseNamedNodes() {
       case TokenType::Class:
       case TokenType::Interface:
       case TokenType::Struct:
-        if (!ParseClass())
-          return;
+        ParseClass();
         continue;
       case TokenType::Enum:
         ParseEnum();
