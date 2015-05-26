@@ -298,11 +298,7 @@ void Parser::ParseTypeArguments() {
   auto const generic_type = ConsumeExpressionAsType();
   std::vector<ast::Type*> type_args;
   do {
-    if (!ParseType()) {
-      // TODO(eval1749) Skip to right angle bracket.
-      break;
-    }
-    type_args.push_back(ConsumeType());
+    type_args.push_back(ParseAndConsumeType());
   } while (AdvanceIf(TokenType::Comma));
   if (type_args.empty()) {
     Error(ErrorCode::SyntaxMemberAccessTypeArgument);

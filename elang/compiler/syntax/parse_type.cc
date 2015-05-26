@@ -64,6 +64,11 @@ ast::Type* Parser::NewTypeNameReference(Token* name) {
   return factory()->NewTypeNameReference(factory()->NewNameReference(name));
 }
 
+ast::Type* Parser::ParseAndConsumeType() {
+  ParseType();
+  return ConsumeType();
+}
+
 // ArrayType ::= Type ('[' ','* ']')+
 // Note: This function produces unbound array type. Bound array type are
 // created by array initializer expression.
@@ -124,10 +129,11 @@ bool Parser::ParseNamespaceOrTypeName() {
 // FloatingPointType ::= 'float32' | 'float64'
 // EnumType ::= TypeName
 // ReferenceType ::= ClassType | InterfaceType | ArrayType | FunctionType
-bool Parser::ParseType() {
+void Parser::ParseType() {
   if (PeekToken() == TokenType::Var) {
     // |var| isn't valid type name. Caller of |ParseType()| should handle |var|.
-    return false;
+    Error(ErrorCode::SyntaxTypeName);
+    return ProduceInvalidType(ConsumeToken());
   }
 
   if (PeekToken()->is_type_name()) {
@@ -136,8 +142,8 @@ bool Parser::ParseType() {
   }
 
   if (!ParseNamespaceOrTypeName())
-    return false;
-  return ParseTypePost();
+    return ProduceInvalidType(ConsumeToken());
+  ParseTypePost();
 }
 
 void Parser::ParseTypeAfterName() {
@@ -159,8 +165,7 @@ void Parser::ParseTypeAfterName() {
       case State::Dot:
         if (!PeekToken()->is_name()) {
           Error(ErrorCode::SyntaxTypeName);
-          ProduceType(factory()->NewInvalidType(ConsumeType()));
-          return;
+          return ProduceType(factory()->NewInvalidType(ConsumeType()));
         }
         ProduceType(factory()->NewTypeMemberAccess(
             factory()->NewMemberAccess(ConsumeType(), ConsumeToken())));
@@ -176,9 +181,7 @@ void Parser::ParseTypeAfterName() {
           // TypeArgumentList ::= '<' Type (',' TypeName)* '>'
           std::vector<ast::Type*> type_args;
           do {
-            if (!ParseType())
-              return ProduceType(factory()->NewInvalidType(generic_type));
-            type_args.push_back(ConsumeType());
+            type_args.push_back(ParseAndConsumeType());
           } while (AdvanceIf(TokenType::Comma));
           if (!AdvanceIf(TokenType::RightAngleBracket))
             Error(ErrorCode::SyntaxTypeRightAngleBracket);
@@ -199,12 +202,11 @@ void Parser::ParseTypeAfterName() {
 // NonArrayType ::= ValueType | ClassType | InterfaceType | FunctionType |
 //                  TypeParameter
 // RankSpecifier ::= '[' ','* ']'
-bool Parser::ParseTypePost() {
+void Parser::ParseTypePost() {
   if (auto const optional_marker = ConsumeTokenIf(TokenType::OptionalType))
     ProduceType(factory()->NewOptionalType(optional_marker, ConsumeType()));
   if (auto const bracket = ConsumeTokenIf(TokenType::LeftSquareBracket))
     ParseArrayType(bracket);
-  return true;
 }
 
 // TypeParameterList ::= '<' TypeParameter (',' TypeParameter)* '>'
@@ -227,12 +229,11 @@ std::vector<Token*> Parser::ParseTypeParameterList() {
 
 Token* Parser::ParseVarTypeAndName() {
   if (PeekToken()->is_type_name()) {
-    if (!ParseType())
-      ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    ParseType();
     return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
   }
   if (!PeekToken()->is_name()) {
-    ProduceType(factory()->NewInvalidType(NewInvalidExpression(PeekToken())));
+    ProduceInvalidType(PeekToken());
     return PeekToken();
   }
   auto const name = ConsumeToken();
@@ -245,6 +246,10 @@ Token* Parser::ParseVarTypeAndName() {
     return ConsumeToken();
   ParseTypeAfterName();
   return PeekToken()->is_name() ? ConsumeToken() : PeekToken();
+}
+
+void Parser::ProduceInvalidType(Token* token) {
+  ProduceType(factory()->NewInvalidType(NewInvalidExpression(token)));
 }
 
 void Parser::ProduceType(ast::Type* type) {

@@ -324,10 +324,8 @@ bool Parser::ParseClass() {
     //    Type Name TypeParameterList? ParameterDecl ';'
     //    Type Name TypeParameterList? ParameterDecl '{'
     //    Statement* '}'
-    if (!ParseType())
-      return Error(ErrorCode::SyntaxClassRightCurryBracket);
     auto const member_modifiers = modifiers_->Get();
-    auto const member_type = ConsumeType();
+    auto const member_type = ParseAndConsumeType();
     auto const member_name = ConsumeToken();
     if (!member_name->is_name())
       return Error(ErrorCode::SyntaxClassMemberName);
@@ -390,7 +388,7 @@ void Parser::ParseEnum() {
       Error(ErrorCode::SyntaxEnumConflict, enum_name, present->name());
   }
   auto const enum_base =
-      AdvanceIf(TokenType::Colon) && ParseType() ? ConsumeType() : nullptr;
+      AdvanceIf(TokenType::Colon) ? ParseAndConsumeType() : nullptr;
   auto const enum_node = factory()->NewEnum(container_, enum_modifiers,
                                             enum_keyword, enum_name, enum_base);
   container_->AddMember(enum_node);

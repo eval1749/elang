@@ -522,7 +522,7 @@ void Parser::ParseMethod(Modifiers method_modifiers,
     std::vector<ast::Parameter*> parameters;
     auto position = 0;
     for (;;) {
-      auto const param_type = ParseType() ? ConsumeType() : nullptr;
+      auto const param_type = ParseAndConsumeType();
       if (!PeekToken()->is_name())
         Error(ErrorCode::SyntaxMethodParameter);
       auto const param_name =
@@ -611,9 +611,7 @@ void Parser::ParseTryStatement(Token* try_keyword) {
   while (auto const catch_keyword = ConsumeTokenIf(TokenType::Catch)) {
     if (!AdvanceIf(TokenType::LeftParenthesis))
       Error(ErrorCode::SyntaxCatchLeftParenthesis);
-    if (!ParseType())
-      continue;
-    auto const catch_type = ConsumeType();
+    auto const catch_type = ParseAndConsumeType();
     auto catch_var = static_cast<ast::Variable*>(nullptr);
     StatementScope catch_scope(this, catch_keyword);
     LocalDeclarationSpace catch_var_scope(this, catch_keyword);

@@ -158,12 +158,14 @@ class Parser final : public CompilationSessionUser {
   // name references, |expression| may not be type name.
   bool MaybeTypeName(ast::Expression* expression) const;
   ast::Type* NewTypeNameReference(Token* token);
+  ast::Type* ParseAndConsumeType();
   void ParseArrayType(Token* bracket);
   bool ParseNamespaceOrTypeName();
-  bool ParseType();
+  void ParseType();
   void ParseTypeAfterName();
   std::vector<Token*> ParseTypeParameterList();
-  bool ParseTypePost();
+  void ParseTypePost();
+  void ProduceInvalidType(Token* token);
   void ProduceType(ast::Type* type);
   void ProduceTypeNameReference(ast::NameReference* node);
   void ProduceTypeNameReference(Token* token);
