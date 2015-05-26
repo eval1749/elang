@@ -86,7 +86,6 @@ namespace compiler {
   E(Syntax, ClassMember, Name)                        \
   E(Syntax, ClassMember, Parenthesis)                 \
   E(Syntax, ClassMember, SemiColon)                   \
-  E(Syntax, ClassMember, VarField)                    \
   /* Break */                                         \
   E(Syntax, Break, Invalid)                           \
   E(Syntax, Break, SemiColon)                         \
@@ -94,6 +93,8 @@ namespace compiler {
   E(Syntax, Catch, LeftCurryBracket)                  \
   E(Syntax, Catch, LeftParenthesis)                   \
   E(Syntax, Catch, RightParenthesis)                  \
+  /* const */                                         \
+  E(Syntax, Const, Assign)                            \
   /* Continue */                                      \
   E(Syntax, Continue, Invalid)                        \
   E(Syntax, Continue, SemiColon)                      \

@@ -165,6 +165,23 @@ TEST_F(ParserTest, ClassBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+TEST_F(ParserTest, ClassConst) {
+  auto const source_code =
+      "class Foo {\n"
+      "  const X = 1;\n"
+      "  const int Y = 42;\n"
+      "}\n";
+  EXPECT_EQ(source_code, Format(source_code));
+}
+
+TEST_F(ParserTest, ClassConstErrror) {
+  auto const source_code =
+      "class Foo {\n"
+      "  const X;\n"
+      "}\n";
+  EXPECT_EQ("Syntax.Const.Assign(21) ;\n", Format(source_code));
+}
+
 TEST_F(ParserTest, ClassField) {
   auto const source_code =
       "class A {\n"
@@ -203,7 +220,7 @@ TEST_F(ParserTest, ClassErrorFieldDuplicate) {
 
 TEST_F(ParserTest, ClassErrorFieldVar) {
   Prepare("class A { var x; }");
-  EXPECT_EQ("Syntax.ClassMember.VarField(14) x\n", Format())
+  EXPECT_EQ("Syntax.Var.Assign(15) ;\n", Format())
       << "var field must be initialized";
 }
 

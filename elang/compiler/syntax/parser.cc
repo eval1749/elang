@@ -306,6 +306,13 @@ void Parser::ParseClass() {
         return Advance();
     }
 
+    // ConstDecl ::= 'var' Type? name ('=' Expression) ';'
+    if (auto const keyword = ConsumeTokenIf(TokenType::Const)) {
+      auto const name = ParseVarTypeAndName();
+      ParseField(keyword, ConsumeType(), name);
+      continue;
+    }
+
     // FieldDecl ::= 'var' Type? name ('=' Expression) ';'
     if (auto const keyword = ConsumeTokenIf(TokenType::Var)) {
       auto const name = ParseVarTypeAndName();
@@ -431,7 +438,7 @@ void Parser::ParseEnum() {
 // FieldDecl ::= 'var' Type? Name ('=' Expression)? ';' |
 //               Type Name ('=' Expression)? ';'
 void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
-  DCHECK_EQ(keyword, TokenType::Var);
+  DCHECK(keyword == TokenType::Const || keyword == TokenType::Var);
   DCHECK(name->is_name());
   if (auto const present = container_->FindMember(name)) {
     if (present->is<ast::Field>())
@@ -453,9 +460,11 @@ void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
     return;
   }
 
-  // |var| field must have initial value.
-  if (type->is<ast::TypeVariable>())
-    Error(ErrorCode::SyntaxClassMemberVarField, name);
+  // |const| and |var| field must have initial value.
+  if (keyword == TokenType::Const)
+    Error(ErrorCode::SyntaxConstAssign);
+  else if (type->is<ast::TypeVariable>())
+    Error(ErrorCode::SyntaxVarAssign);
 
   auto const field =
       factory()->NewField(class_body, modifiers, keyword, type, name, nullptr);
