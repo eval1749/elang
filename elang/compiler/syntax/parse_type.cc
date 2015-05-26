@@ -107,14 +107,13 @@ void Parser::ParseArrayType(Token* bracket) {
 //   Name TypeArgumentList |
 //   QualifiedAliasMember |
 //   NamespaceOrTypeName '.' Name TypeArgumentList
-bool Parser::ParseNamespaceOrTypeName() {
+void Parser::ParseNamespaceOrTypeName() {
   if (!PeekToken()->is_name()) {
     Error(ErrorCode::SyntaxTypeName);
-    return false;
+    return ProduceInvalidType(PeekToken());
   }
   ProduceTypeNameReference(ConsumeToken());
   ParseTypeAfterName();
-  return true;
 }
 
 // Type ::= ValueType | ReferenceType | TypeParameter
@@ -141,8 +140,7 @@ void Parser::ParseType() {
     return ParseTypePost();
   }
 
-  if (!ParseNamespaceOrTypeName())
-    return ProduceInvalidType(ConsumeToken());
+  ParseNamespaceOrTypeName();
   ParseTypePost();
 }
 

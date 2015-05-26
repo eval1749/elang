@@ -257,11 +257,10 @@ bool Parser::ParseClass() {
   // ClassBase
   std::vector<ast::Type*> base_class_names;
   if (AdvanceIf(TokenType::Colon)) {
-    while (ParseNamespaceOrTypeName()) {
+    do {
+      ParseNamespaceOrTypeName();
       base_class_names.push_back(ConsumeType());
-      if (!AdvanceIf(TokenType::Comma))
-        break;
-    }
+    } while (AdvanceIf(TokenType::Comma));
   }
 
   auto const class_body =
@@ -601,10 +600,7 @@ void Parser::ParseUsingDirectives() {
   auto const ns_body = container_->as<ast::NamespaceBody>();
   DCHECK(ns_body);
   while (auto const using_keyword = ConsumeTokenIf(TokenType::Using)) {
-    if (!ParseNamespaceOrTypeName()) {
-      AdvanceIf(TokenType::SemiColon);
-      continue;
-    }
+    ParseNamespaceOrTypeName();
     auto const thing = ConsumeType();
     if (AdvanceIf(TokenType::Assign)) {
       // AliasDef ::= 'using' Name '='  NamespaceOrTypeName ';'
@@ -623,14 +619,13 @@ void Parser::ParseUsingDirectives() {
         Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
               present->name());
       }
-      if (ParseNamespaceOrTypeName()) {
-        auto const reference = ConsumeType();
-        if (is_valid) {
-          auto const alias = factory()->NewAlias(ns_body, using_keyword,
-                                                 alias_name, reference);
-          ns_body->AddNamedMember(alias);
-          ns_body->AddMember(alias);
-        }
+      ParseNamespaceOrTypeName();
+      auto const reference = ConsumeType();
+      if (is_valid) {
+        auto const alias = factory()->NewAlias(ns_body, using_keyword,
+                                               alias_name, reference);
+        ns_body->AddNamedMember(alias);
+        ns_body->AddMember(alias);
       }
     } else {
       // ImportNamespace ::= 'using' QualfiedName ';'

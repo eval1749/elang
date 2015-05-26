@@ -160,7 +160,7 @@ class Parser final : public CompilationSessionUser {
   ast::Type* NewTypeNameReference(Token* token);
   ast::Type* ParseAndConsumeType();
   void ParseArrayType(Token* bracket);
-  bool ParseNamespaceOrTypeName();
+  void ParseNamespaceOrTypeName();
   void ParseType();
   void ParseTypeAfterName();
   std::vector<Token*> ParseTypeParameterList();
