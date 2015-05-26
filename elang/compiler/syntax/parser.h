@@ -73,6 +73,7 @@ class Parser final : public CompilationSessionUser {
   bool ParseClass();
   void ParseEnum();
   void ParseFunction();
+  void ParseField(Token* keyword, ast::Type* type, Token* name);
   void ParseCompilationUnit();
   bool ParseNamespace();
   bool ParseNamespace(Token* namespace_keyword,

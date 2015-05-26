@@ -313,17 +313,19 @@ bool Parser::ParseClass() {
         return true;
     }
 
+    // FieldDecl ::= 'var' Type? name ('=' Expression) ';'
+    if (auto const keyword = ConsumeTokenIf(TokenType::Var)) {
+      auto const name = ParseVarTypeAndName();
+      ParseField(keyword, ConsumeType(), name);
+      continue;
+    }
+
     // MethodDecl ::=
     //    Type Name TypeParameterList? ParameterDecl ';'
     //    Type Name TypeParameterList? ParameterDecl '{'
     //    Statement* '}'
-    Token* keyword = ConsumeTokenIf(TokenType::Var);
-    if (keyword) {
-      ProduceTypeNameReference(keyword);
-    } else if (!ParseType()) {
+    if (!ParseType())
       return Error(ErrorCode::SyntaxClassRightCurryBracket);
-    }
-    // TODO(eval1749) Validate FieldMoifiers
     auto const member_modifiers = modifiers_->Get();
     auto const member_type = ConsumeType();
     auto const member_name = ConsumeToken();
@@ -344,48 +346,11 @@ bool Parser::ParseClass() {
       continue;
     }
 
-    // FieldDecl ::= Type Name ('=' Expression)? ';'
-    //
-    if (!keyword) {
-      keyword = session()->NewToken(
-          member_name->location(),
-          TokenData(TokenType::Var, session()->NewAtomicString(L"var")));
-    }
-    if (auto const present = container_->FindMember(member_name)) {
-      if (present->is<ast::Field>()) {
-        Error(ErrorCode::SyntaxClassMemberDuplicate, member_name,
-              present->name());
-      } else {
-        Error(ErrorCode::SyntaxClassMemberConflict, member_name,
-              present->name());
-      }
-    }
-    ValidateFieldModifiers();
-    if (AdvanceIf(TokenType::Assign)) {
-      ParseExpression(ErrorCode::SyntaxFieldExpression);
-      auto const field =
-          factory()->NewField(class_body, member_modifiers, keyword,
-                              member_type, member_name, ConsumeExpression());
-      class_body->AddMember(field);
-      class_body->AddNamedMember(field);
-      clazz->AddNamedMember(field);
-      ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
-      continue;
-    }
-
-    // |var| field must have initial value.
-    if (auto const name_ref = member_type->as<ast::TypeNameReference>()) {
-      if (name_ref->name() == TokenType::Var)
-        Error(ErrorCode::SyntaxClassMemberVarField, member_name);
-    }
-
-    auto const field =
-        factory()->NewField(class_body, member_modifiers, keyword, member_type,
-                            member_name, nullptr);
-    class_body->AddMember(field);
-    class_body->AddNamedMember(field);
-    clazz->AddNamedMember(field);
-    ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
+    // FieldDecl ::= Type Name ('=' Expression) ';'
+    auto const keyword = session()->NewToken(
+        member_name->location(),
+        TokenData(TokenType::Var, session()->NewAtomicString(L"var")));
+    ParseField(keyword, member_type, member_name);
   }
 }
 
@@ -470,6 +435,43 @@ void Parser::ParseEnum() {
   }
   if (!AdvanceIf(TokenType::RightCurryBracket))
     Error(ErrorCode::SyntaxEnumRightCurryBracket);
+}
+
+// FieldDecl ::= 'var' Type? Name ('=' Expression)? ';' |
+//               Type Name ('=' Expression)? ';'
+void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
+  DCHECK_EQ(keyword, TokenType::Var);
+  DCHECK(name->is_name());
+  if (auto const present = container_->FindMember(name)) {
+    if (present->is<ast::Field>())
+      Error(ErrorCode::SyntaxClassMemberDuplicate, name, present->name());
+    else
+      Error(ErrorCode::SyntaxClassMemberConflict, name, present->name());
+  }
+  auto const class_body = container_->as<ast::ClassBody>();
+  auto const modifiers = modifiers_->Get();
+  ValidateFieldModifiers();
+  if (AdvanceIf(TokenType::Assign)) {
+    ParseExpression(ErrorCode::SyntaxFieldExpression);
+    auto const field = factory()->NewField(class_body, modifiers, keyword, type,
+                                           name, ConsumeExpression());
+    class_body->AddMember(field);
+    class_body->AddNamedMember(field);
+    class_body->owner()->AddNamedMember(field);
+    ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
+    return;
+  }
+
+  // |var| field must have initial value.
+  if (type->is<ast::TypeVariable>())
+    Error(ErrorCode::SyntaxClassMemberVarField, name);
+
+  auto const field =
+      factory()->NewField(class_body, modifiers, keyword, type, name, nullptr);
+  class_body->AddMember(field);
+  class_body->AddNamedMember(field);
+  class_body->owner()->AddNamedMember(field);
+  ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
 void Parser::ParseFunction() {
