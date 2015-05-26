@@ -64,10 +64,9 @@ class Parser final : public CompilationSessionUser {
   // Returns |Token*| and consume it if current token is |type|.
   Token* ConsumeTokenIf(TokenType type);
 
-  // Always returns false for simplify error processing.
-  bool Error(ErrorCode error_code);
-  bool Error(ErrorCode error_code, Token* token);
-  bool Error(ErrorCode error_code, Token* token, Token* token2);
+  void Error(ErrorCode error_code);
+  void Error(ErrorCode error_code, Token* token);
+  void Error(ErrorCode error_code, Token* token, Token* token2);
   Token* NewUniqueNameToken(const base::char16* format);
 
   bool ParseClass();

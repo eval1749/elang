@@ -179,20 +179,18 @@ Token* Parser::ConsumeTokenIf(TokenType type) {
   return ConsumeToken();
 }
 
-bool Parser::Error(ErrorCode error_code, Token* token, Token* token2) {
+void Parser::Error(ErrorCode error_code, Token* token, Token* token2) {
   DCHECK(token);
   session()->AddError(error_code, token, token2);
-  return false;
 }
 
-bool Parser::Error(ErrorCode error_code, Token* token) {
+void Parser::Error(ErrorCode error_code, Token* token) {
   DCHECK(token);
   session()->AddError(error_code, token);
-  return false;
 }
 
-bool Parser::Error(ErrorCode error_code) {
-  return Error(error_code, token_);
+void Parser::Error(ErrorCode error_code) {
+  Error(error_code, token_);
 }
 
 Token* Parser::NewUniqueNameToken(const base::char16* format) {
@@ -220,9 +218,10 @@ bool Parser::ParseClass() {
   auto const class_modifiers = modifiers_->Get();
   auto const class_keyword = ConsumeToken();
   auto const class_name = ConsumeToken();
-  if (!class_name->is_name())
-    return Error(ErrorCode::SyntaxClassName, class_name);
-
+  if (!class_name->is_name()) {
+    Error(ErrorCode::SyntaxClassName, class_name);
+    return false;
+  }
   auto clazz = static_cast<ast::Class*>(nullptr);
   auto const local = container_->FindMember(class_name);
   auto const global = container_->owner()->FindMember(class_name);
@@ -287,8 +286,10 @@ bool Parser::ParseClass() {
   //    FinalizerDecl |
   //    StaticConstructorDecl |
   //    TypeDecl
-  if (!AdvanceIf(TokenType::LeftCurryBracket))
-    return Error(ErrorCode::SyntaxClassLeftCurryBracket);
+  if (!AdvanceIf(TokenType::LeftCurryBracket)) {
+    Error(ErrorCode::SyntaxClassLeftCurryBracket);
+    return false;
+  }
 
   for (;;) {
     modifiers_->Reset();
@@ -326,8 +327,10 @@ bool Parser::ParseClass() {
     auto const member_modifiers = modifiers_->Get();
     auto const member_type = ParseAndConsumeType();
     auto const member_name = ConsumeToken();
-    if (!member_name->is_name())
-      return Error(ErrorCode::SyntaxClassMemberName);
+    if (!member_name->is_name()) {
+      Error(ErrorCode::SyntaxClassMemberName);
+      return false;
+    }
     if (AdvanceIf(TokenType::LeftAngleBracket)) {
       auto const type_parameters = ParseTypeParameterList();
       if (!AdvanceIf(TokenType::LeftParenthesis)) {
