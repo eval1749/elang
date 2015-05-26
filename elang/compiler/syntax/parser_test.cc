@@ -171,6 +171,7 @@ TEST_F(ParserTest, ClassField) {
       "  int x;\n"
       "  B y = null;\n"
       "  var z = 0;\n"
+      "  var int w = 42;\n"
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
 }

@@ -272,13 +272,18 @@ void Formatter::VisitExpressionStatement(ast::ExpressionStatement* statement) {
 
 void Formatter::VisitField(ast::Field* field) {
   Indent();
-  Traverse(field->type());
-  ostream_ << " " << field->name();
+  if (field->keyword()->location() != field->name()->location())
+    ostream_ << field->keyword() << ' ';
+  if (!field->type()->is<ast::TypeVariable>()) {
+    Traverse(field->type());
+    ostream_ << ' ';
+  }
+  ostream_ << field->name();
   if (auto const expression = field->expression()) {
     ostream_ << " = ";
     Traverse(expression);
   }
-  ostream_ << ";" << std::endl;
+  ostream_ << ';' << std::endl;
 }
 
 void Formatter::VisitForEachStatement(ast::ForEachStatement* statement) {
