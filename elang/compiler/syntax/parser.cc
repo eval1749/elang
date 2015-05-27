@@ -309,7 +309,7 @@ void Parser::ParseClass() {
     // ConstDecl ::= 'var' Type? name ('=' Expression) ';'
     if (auto const keyword = ConsumeTokenIf(TokenType::Const)) {
       auto const name = ParseVarTypeAndName();
-      ParseField(keyword, ConsumeType(), name);
+      ParseConst(keyword, ConsumeType(), name);
       continue;
     }
 
@@ -363,6 +363,33 @@ void Parser::ParseCompilationUnit() {
   if (session()->HasError() || PeekToken() == TokenType::EndOfSource)
     return;
   Error(ErrorCode::SyntaxCompilationUnitInvalid, token_);
+}
+
+// ConstDecl ::= 'const' Type? Name '=' Expression ';'
+void Parser::ParseConst(Token* keyword, ast::Type* type, Token* name) {
+  DCHECK_EQ(keyword, TokenType::Const);
+  DCHECK(name->is_name());
+  if (auto const present = container_->FindMember(name)) {
+    if (present->is<ast::Const>())
+      Error(ErrorCode::SyntaxClassMemberDuplicate, name, present->name());
+    else
+      Error(ErrorCode::SyntaxClassMemberConflict, name, present->name());
+  }
+  auto const class_body = container_->as<ast::ClassBody>();
+  auto const modifiers = modifiers_->Get();
+  ValidateFieldModifiers();
+  if (AdvanceIf(TokenType::Assign)) {
+    ParseExpression(ErrorCode::SyntaxFieldExpression);
+  } else {
+    Error(ErrorCode::SyntaxConstAssign);
+    ProduceInvalidExpression(PeekToken());
+  }
+  auto const node = factory()->NewConst(class_body, modifiers, keyword, type,
+                                        name, ConsumeExpression());
+  class_body->AddMember(node);
+  class_body->AddNamedMember(node);
+  class_body->owner()->AddNamedMember(node);
+  ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
 // EnumDecl := EnumModifier* "enum" Name EnumBase? "{" EnumField* "}"
@@ -438,7 +465,7 @@ void Parser::ParseEnum() {
 // FieldDecl ::= 'var' Type? Name ('=' Expression)? ';' |
 //               Type Name ('=' Expression)? ';'
 void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
-  DCHECK(keyword == TokenType::Const || keyword == TokenType::Var);
+  DCHECK_EQ(keyword, TokenType::Var);
   DCHECK(name->is_name());
   if (auto const present = container_->FindMember(name)) {
     if (present->is<ast::Field>())
@@ -451,26 +478,16 @@ void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
   ValidateFieldModifiers();
   if (AdvanceIf(TokenType::Assign)) {
     ParseExpression(ErrorCode::SyntaxFieldExpression);
-    auto const field = factory()->NewField(class_body, modifiers, keyword, type,
-                                           name, ConsumeExpression());
-    class_body->AddMember(field);
-    class_body->AddNamedMember(field);
-    class_body->owner()->AddNamedMember(field);
-    ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
-    return;
+  } else {
+    if (type->is<ast::TypeVariable>())
+      Error(ErrorCode::SyntaxVarAssign);
+    ProduceExpression(factory()->NewNoExpression(PeekToken()));
   }
-
-  // |const| and |var| field must have initial value.
-  if (keyword == TokenType::Const)
-    Error(ErrorCode::SyntaxConstAssign);
-  else if (type->is<ast::TypeVariable>())
-    Error(ErrorCode::SyntaxVarAssign);
-
-  auto const field =
-      factory()->NewField(class_body, modifiers, keyword, type, name, nullptr);
-  class_body->AddMember(field);
-  class_body->AddNamedMember(field);
-  class_body->owner()->AddNamedMember(field);
+  auto const node = factory()->NewField(class_body, modifiers, keyword, type,
+                                        name, ConsumeExpression());
+  class_body->AddMember(node);
+  class_body->AddNamedMember(node);
+  class_body->owner()->AddNamedMember(node);
   ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
@@ -623,8 +640,8 @@ void Parser::ParseUsingDirectives() {
       ParseNamespaceOrTypeName();
       auto const reference = ConsumeType();
       if (is_valid) {
-        auto const alias = factory()->NewAlias(ns_body, using_keyword,
-                                               alias_name, reference);
+        auto const alias =
+            factory()->NewAlias(ns_body, using_keyword, alias_name, reference);
         ns_body->AddNamedMember(alias);
         ns_body->AddMember(alias);
       }

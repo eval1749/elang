@@ -70,6 +70,7 @@ class Parser final : public CompilationSessionUser {
   Token* NewUniqueNameToken(const base::char16* format);
 
   void ParseClass();
+  void ParseConst(Token* keyword, ast::Type* type, Token* name);
   void ParseEnum();
   void ParseFunction();
   void ParseField(Token* keyword, ast::Type* type, Token* name);
