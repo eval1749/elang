@@ -37,6 +37,7 @@ class Factory final : public ZoneOwner {
                           const std::vector<int>& dimensions);
 
   Class* NewClass(Semantic* outer, Token* name, ast::Class* ast_class);
+  Const* NewConst(Class* owner, Token* name);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
   Field* NewField(Class* owner, Token* name);

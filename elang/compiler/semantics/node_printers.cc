@@ -114,6 +114,15 @@ void Formatter::VisitClass(Class* node) {
   ostream_ << AsPath{node};
 }
 
+void Formatter::VisitConst(Const* node) {
+  if (node->has_value()) {
+    ostream_ << "const " << node->type() << " " << AsPath{node} << " = "
+             << node->value();
+    return;
+  }
+  ostream_ << "const ? " << AsPath{node} << " = ?";
+}
+
 void Formatter::VisitEnum(Enum* node) {
   if (!node->has_base()) {
     ostream_ << "#enum " << AsPath{node};

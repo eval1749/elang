@@ -193,6 +193,25 @@ class Class final : public NamedMember<Type> {
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 
+// |Const| represents |const| class member.
+class Const final : public NamedMember<Semantic> {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(Const, Semantic);
+
+ public:
+  bool has_value() const { return value_ != nullptr; }
+  Class* owner() const;
+  Type* type() const;
+  Value* value() const;
+
+ private:
+  Const(Class* owner, Token* name);
+
+  Type* type_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(Const);
+};
+
 //////////////////////////////////////////////////////////////////////
 //
 // Enum

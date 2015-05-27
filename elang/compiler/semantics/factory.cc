@@ -117,6 +117,12 @@ Class* Factory::NewClass(Semantic* outer, Token* name, ast::Class* ast_class) {
   return clazz;
 }
 
+Const* Factory::NewConst(Class* owner, Token* name) {
+  auto const node = new (zone()) Const(owner, name);
+  AddMember(owner, node);
+  return node;
+}
+
 Enum* Factory::NewEnum(Semantic* outer, Token* name) {
   auto const enum_type = new (zone()) Enum(zone(), outer, name);
   AddMember(outer, enum_type);

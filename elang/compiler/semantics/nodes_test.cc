@@ -128,6 +128,13 @@ TEST_F(SemanticTest, ClassIntermediate) {
   EXPECT_EQ("#Foo.Bar", ToString(class_type));
 }
 
+TEST_F(SemanticTest, Const) {
+  auto const clazz = factory()->NewClass(factory()->global_namespace(),
+                                         NewToken("Foo"), nullptr);
+  auto const node = factory()->NewConst(clazz, NewToken("Bar"));
+  EXPECT_EQ("const ? Foo.Bar = ?", ToString(node));
+}
+
 TEST_F(SemanticTest, Enum) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));

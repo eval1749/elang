@@ -114,6 +114,25 @@ bool Class::IsSubtypeOf(const Type* other) const {
   return !!other_class->base_classes().count(const_cast<Class*>(this));
 }
 
+// Const
+Const::Const(Class* owner, Token* name)
+    : NamedMember(owner, name), type_(nullptr), value_(nullptr) {
+}
+
+Class* Const::owner() const {
+  return outer()->as<Class>();
+}
+
+Type* Const::type() const {
+  DCHECK(type_) << *this;
+  return type_;
+}
+
+Value* Const::value() const {
+  DCHECK(value_) << *this;
+  return value_;
+}
+
 // Enum
 Enum::Enum(Zone* zone, Semantic* outer, Token* name)
     : NamedMember(outer, name), enum_base_(nullptr), members_(zone) {
