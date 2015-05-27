@@ -75,6 +75,38 @@ class ClassBody final : public BodyNode, public WithModifiers {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Const
+//
+class Const final : public NamedNode, public WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Const, NamedNode);
+
+ public:
+  Expression* expression() const { return expression_; }
+  Type* type() const { return type_; }
+
+ private:
+  Const(ClassBody* outer,
+        Modifiers modifiers,
+        Token* keyword,
+        Type* Type,
+        Token* name,
+        Expression* expression);
+
+#if _DEBUG
+  // Node
+  bool CanBeMemberOf(ContainerNode* container) const final;
+  // NamedNode
+  bool CanBeNamedMemberOf(ContainerNode* container) const final;
+#endif
+
+  Expression* const expression_;
+  Type* const type_;
+
+  DISALLOW_COPY_AND_ASSIGN(Const);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Field
 //
 class Field final : public NamedNode, public WithModifiers {

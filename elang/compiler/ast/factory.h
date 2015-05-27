@@ -52,6 +52,12 @@ class Factory final : public ZoneUser {
   ClassBody* NewClassBody(BodyNode* outer,
                           Class* owner,
                           const std::vector<Type*>& base_class_names);
+  Const* NewConst(ClassBody* class_body,
+                  Modifiers modifiers,
+                  Token* keyword,
+                  Type* type,
+                  Token* name,
+                  Expression* expression);
   Enum* NewEnum(BodyNode* outer,
                 Modifiers modifiers,
                 Token* keyword,

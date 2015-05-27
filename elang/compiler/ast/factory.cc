@@ -133,6 +133,20 @@ ClassBody* Factory::NewClassBody(BodyNode* outer,
   return node;
 }
 
+Const* Factory::NewConst(ClassBody* outer,
+                         Modifiers modifiers,
+                         Token* keyword,
+                         Type* type,
+                         Token* name,
+                         Expression* expression) {
+  auto const node =
+      new (zone()) Const(outer, modifiers, keyword, type, name, expression);
+  SetParent(expression, node);
+  if (!type->parent_)
+    SetParent(type, outer);
+  return node;
+}
+
 Enum* Factory::NewEnum(BodyNode* container,
                        Modifiers modifiers,
                        Token* keyword,

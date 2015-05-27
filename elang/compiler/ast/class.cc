@@ -79,6 +79,36 @@ bool ClassBody::CanBeNamedMemberOf(ContainerNode* container) const {
 
 //////////////////////////////////////////////////////////////////////
 //
+// Const
+//
+Const::Const(ClassBody* outer,
+             Modifiers modifiers,
+             Token* keyword,
+             Type* type,
+             Token* name,
+             Expression* expression)
+    : NamedNode(outer, keyword, name),
+      WithModifiers(modifiers),
+      expression_(expression),
+      type_(type) {
+  DCHECK_EQ(keyword, TokenType::Const);
+  DCHECK_EQ(modifiers, Modifiers::Const() & modifiers);
+}
+
+#if _DEBUG
+// Node
+bool Const::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::ClassBody>();
+}
+
+// NamedNode
+bool Const::CanBeNamedMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>() || container->is<ast::ClassBody>();
+}
+#endif
+
+//////////////////////////////////////////////////////////////////////
+//
 // Field
 //
 Field::Field(ClassBody* outer,
@@ -91,7 +121,7 @@ Field::Field(ClassBody* outer,
       WithModifiers(modifiers),
       expression_(expression),
       type_(type) {
-  DCHECK(keyword == TokenType::Const || keyword == TokenType::Var);
+  DCHECK_EQ(keyword, TokenType::Var);
   DCHECK_EQ(modifiers, Modifiers::Field() & modifiers);
 }
 

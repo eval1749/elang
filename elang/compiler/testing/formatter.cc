@@ -200,6 +200,18 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
   class_body->AcceptForMembers(this);
 }
 
+void Formatter::VisitConst(ast::Const* node) {
+  Indent();
+  ostream_ << "const";
+  if (!node->type()->is<ast::TypeVariable>()) {
+    ostream_ << ' ';
+    Traverse(node->type());
+  }
+  ostream_ << " " << node->name() << " = ";
+  Traverse(node->expression());
+  ostream_ << ';' << std::endl;
+}
+
 void Formatter::VisitContinueStatement(
     ast::ContinueStatement* continue_statement) {
   __assume(continue_statement);

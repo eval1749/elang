@@ -23,6 +23,7 @@ namespace ast {
   V(Alias)                           \
   V(Import)                          \
   V(Class)                           \
+  V(Const)                           \
   V(Enum)                            \
   V(Field)                           \
   V(Method)                          \
