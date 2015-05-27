@@ -39,8 +39,15 @@ namespace compiler {
   E(NameResolution, Class, NotClass)                  \
   E(NameResolution, Class, NotResolved)               \
   E(NameResolution, Class, Partial)                   \
+  E(NameResolution, Const, Conflict)                  \
+  E(NameResolution, Const, Duplicate)                 \
+  E(NameResolution, Enum, Conflict)                   \
+  E(NameResolution, Enum, Duplicate)                  \
+  E(NameResolution, Field, Conflict)                  \
+  E(NameResolution, Field, Duplicate)                 \
   E(NameResolution, Import, NeitherNamespaceNorType)  \
   E(NameResolution, MemberAccess, NotFound)           \
+  E(NameResolution, Method, Conflict)                 \
   E(NameResolution, Name, Ambiguous)                  \
   E(NameResolution, Name, Cycle)                      \
   E(NameResolution, Name, NeitherClassNorInterface)   \
