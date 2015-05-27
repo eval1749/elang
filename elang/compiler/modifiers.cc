@@ -58,6 +58,11 @@ Modifiers Modifiers::Class() {
                    Modifier::Public, Modifier::Static);
 }
 
+Modifiers Modifiers::Const() {
+  return Modifiers(Modifier::New,
+                   Modifier::Private, Modifier::Protected, Modifier::Public);
+}
+
 Modifiers Modifiers::Enum() {
   return Modifiers(Modifier::New, Modifier::Private, Modifier::Protected,
                    Modifier::Public);

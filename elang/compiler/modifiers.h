@@ -61,6 +61,7 @@ class Modifiers final {
   ~Modifiers();
 
   static Modifiers Class();
+  static Modifiers Const();
   static Modifiers Enum();
   static Modifiers Field();
   static Modifiers Method();
