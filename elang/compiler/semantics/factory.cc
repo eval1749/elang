@@ -9,6 +9,7 @@
 
 #include "base/logging.h"
 #include "elang/base/zone_user.h"
+#include "elang/compiler/modifiers.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/visitor.h"
@@ -111,8 +112,12 @@ ArrayType* Factory::NewArrayType(sm::Type* element_type,
   return array_type_factory_->NewArrayType(element_type, dimensions);
 }
 
-Class* Factory::NewClass(Semantic* outer, Token* name, ast::Class* ast_class) {
-  auto const clazz = new (zone()) Class(zone(), outer, name, ast_class);
+Class* Factory::NewClass(Semantic* outer,
+                         Modifiers modifiers,
+                         Token* name,
+                         ast::Class* ast_class) {
+  auto const clazz =
+      new (zone()) Class(zone(), outer, modifiers, name, ast_class);
   AddMember(outer, clazz);
   return clazz;
 }

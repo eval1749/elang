@@ -15,6 +15,7 @@
 namespace elang {
 namespace compiler {
 class Analysis;
+class Modifiers;
 class TokenFactory;
 namespace sm {
 
@@ -36,7 +37,10 @@ class Factory final : public ZoneOwner {
   ArrayType* NewArrayType(Type* element_type,
                           const std::vector<int>& dimensions);
 
-  Class* NewClass(Semantic* outer, Token* name, ast::Class* ast_class);
+  Class* NewClass(Semantic* outer,
+                  Modifiers modifiers,
+                  Token* name,
+                  ast::Class* ast_class);
   Const* NewConst(Class* owner, Token* name);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);

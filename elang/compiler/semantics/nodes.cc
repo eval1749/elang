@@ -75,8 +75,13 @@ bool ArrayType::IsSubtypeOf(const Type* other) const {
 }
 
 // Class
-Class::Class(Zone* zone, Semantic* outer, Token* name, ast::Class* ast_class)
+Class::Class(Zone* zone,
+             Semantic* outer,
+             Modifiers modifiers,
+             Token* name,
+             ast::Class* ast_class)
     : NamedMember(outer, name),
+      WithModifiers(modifiers),
       ast_class_(ast_class),
       base_classes_(zone),
       direct_base_classes_(zone),

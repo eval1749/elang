@@ -36,6 +36,8 @@ class SemanticTest : public testing::AnalyzerTest {
   Type* int32_type();
   Type* int64_type();
 
+  Class* NewClass(Semantic* outer, base::StringPiece name);
+  Class* NewClass(base::StringPiece name);
   Value* NewLiteral(Type* type, const TokenData& data);
   Token* NewToken(const TokenData& data);
   Token* NewToken(base::StringPiece name);
@@ -56,6 +58,14 @@ Type* SemanticTest::int32_type() {
 
 Type* SemanticTest::int64_type() {
   return session()->PredefinedTypeOf(PredefinedName::Int64);
+}
+
+Class* SemanticTest::NewClass(Semantic* outer, base::StringPiece name) {
+  return factory()->NewClass(outer, Modifiers(), NewToken(name), nullptr);
+}
+
+Class* SemanticTest::NewClass(base::StringPiece name) {
+  return NewClass(factory()->global_namespace(), name);
 }
 
 Value* SemanticTest::NewLiteral(Type* type, const TokenData& data) {
@@ -114,7 +124,7 @@ TEST_F(SemanticTest, ArrayTypeUnbound) {
 TEST_F(SemanticTest, Class) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
-  auto const class_type = factory()->NewClass(outer, NewToken("Bar"), nullptr);
+  auto const class_type = NewClass(outer, "Bar");
   editor()->FixClassBase(
       class_type,
       {session()->PredefinedTypeOf(PredefinedName::Object)->as<Class>()});
@@ -124,13 +134,12 @@ TEST_F(SemanticTest, Class) {
 TEST_F(SemanticTest, ClassIntermediate) {
   auto const outer =
       factory()->NewNamespace(factory()->global_namespace(), NewToken("Foo"));
-  auto const class_type = factory()->NewClass(outer, NewToken("Bar"), nullptr);
+  auto const class_type = NewClass(outer, "Bar");
   EXPECT_EQ("#Foo.Bar", ToString(class_type));
 }
 
 TEST_F(SemanticTest, Const) {
-  auto const clazz = factory()->NewClass(factory()->global_namespace(),
-                                         NewToken("Foo"), nullptr);
+  auto const clazz = NewClass("Foo");
   auto const node = factory()->NewConst(clazz, NewToken("Bar"));
   EXPECT_EQ("const ? Foo.Bar = ?", ToString(node));
 }
@@ -166,8 +175,7 @@ TEST_F(SemanticTest, EnumMemberIntermediate) {
 }
 
 TEST_F(SemanticTest, Field) {
-  auto const class_type = factory()->NewClass(factory()->global_namespace(),
-                                              NewToken("Foo"), nullptr);
+  auto const class_type = NewClass("Foo");
   auto const field = factory()->NewField(class_type, NewToken("field_"));
   EXPECT_EQ("Foo.field_", ToString(field));
 }

@@ -14,6 +14,7 @@
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/semantics/nodes_forward.h"
+#include "elang/compiler/with_modifiers.h"
 
 namespace elang {
 namespace compiler {
@@ -157,7 +158,7 @@ class ArrayType final : public Type {
 //
 // Class
 //
-class Class final : public NamedMember<Type> {
+class Class final : public NamedMember<Type>, public WithModifiers {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Class, Type);
 
  public:
@@ -179,7 +180,11 @@ class Class final : public NamedMember<Type> {
   Semantic* FindMember(Token* name) const final;
 
  private:
-  Class(Zone* zone, Semantic* outer, Token* name, ast::Class* ast_type);
+  Class(Zone* zone,
+        Semantic* outer,
+        Modifiers modifiers,
+        Token* name,
+        ast::Class* ast_type);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
