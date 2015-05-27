@@ -40,6 +40,7 @@ namespace ast {
   V(Literal)                        \
   V(MemberAccess)                   \
   V(NameReference)                  \
+  V(NoExpression)                   \
   V(ParameterReference)             \
   V(UnaryOperation)                 \
   V(VariableReference)

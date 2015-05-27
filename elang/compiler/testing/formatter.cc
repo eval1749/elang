@@ -279,7 +279,8 @@ void Formatter::VisitField(ast::Field* field) {
     ostream_ << ' ';
   }
   ostream_ << field->name();
-  if (auto const expression = field->expression()) {
+  auto const expression = field->expression();
+  if (!expression->is<ast::NoExpression>()) {
     ostream_ << " = ";
     Traverse(expression);
   }
@@ -491,6 +492,11 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
   ostream_ << "namespace " << ns_body->name() << " ";
   FormatBlock block(this);
   ns_body->AcceptForMembers(this);
+}
+
+void Formatter::VisitNoExpression(ast::NoExpression* node) {
+  DCHECK(node);
+  NOTREACHED();
 }
 
 void Formatter::VisitOptionalType(ast::OptionalType* type) {

@@ -229,6 +229,16 @@ class NameReference final : public Expression {
   DISALLOW_COPY_AND_ASSIGN(NameReference);
 };
 
+// Represents no-expression for field class member.
+class NoExpression final : public Expression {
+  DECLARE_CONCRETE_AST_NODE_CLASS(NoExpression, Expression);
+
+ private:
+  explicit NoExpression(Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(NoExpression);
+};
+
 // Represents parameter reference
 class ParameterReference final : public Expression {
   DECLARE_CONCRETE_AST_NODE_CLASS(ParameterReference, Expression);

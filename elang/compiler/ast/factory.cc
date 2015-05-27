@@ -170,8 +170,7 @@ Field* Factory::NewField(ClassBody* outer,
                          Expression* expression) {
   auto const node =
       new (zone()) Field(outer, modifiers, keyword, type, name, expression);
-  if (expression)
-    SetParent(expression, node);
+  SetParent(expression, node);
   if (!type->parent_)
     SetParent(type, outer);
   return node;
@@ -295,6 +294,10 @@ MemberAccess* Factory::NewMemberAccess(Expression* container, Token* member) {
 
 NameReference* Factory::NewNameReference(Token* name) {
   return new (zone()) NameReference(name);
+}
+
+Expression* Factory::NewNoExpression(Token* token) {
+  return new (zone()) NoExpression(token);
 }
 
 ParameterReference* Factory::NewParameterReference(Token* name,

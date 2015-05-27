@@ -126,6 +126,12 @@ NameReference::NameReference(Token* name) : Expression(name) {
       << name;
 }
 
+// NoExpression
+NoExpression::NoExpression(Token* token) : Expression(token) {
+  // We should have non-null |token| for source code location.
+  DCHECK(token);
+}
+
 // ParameterReference
 ParameterReference::ParameterReference(Token* name, Parameter* parameter)
     : Expression(name), parameter_(parameter) {

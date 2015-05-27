@@ -101,6 +101,7 @@ class Factory final : public ZoneUser {
   Literal* NewLiteral(Token* literal);
   MemberAccess* NewMemberAccess(Expression* container, Token* member);
   NameReference* NewNameReference(Token* name);
+  Expression* NewNoExpression(Token* token);
   ParameterReference* NewParameterReference(Token* name, Parameter* param);
   UnaryOperation* NewUnaryOperation(Token* op, Expression* expr);
   VariableReference* NewVariableReference(Token* name, Variable* var);
