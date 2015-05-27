@@ -53,6 +53,8 @@ static_library("compiler") {
     "token_factory.h",
     "token_type.cc",
     "token_type.h",
+    "with_modifiers.cc",
+    "with_modifiers.h",
   ]
 
   deps = [

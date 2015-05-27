@@ -6,7 +6,7 @@
 #define ELANG_COMPILER_AST_ENUM_H_
 
 #include "elang/compiler/ast/container_node.h"
-#include "elang/compiler/ast/with_modifiers.h"
+#include "elang/compiler/with_modifiers.h"
 
 namespace elang {
 namespace compiler {

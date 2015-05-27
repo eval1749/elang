@@ -31,8 +31,6 @@ static_library("ast") {
     "types.h",
     "visitor.cc",
     "visitor.h",
-    "with_modifiers.cc",
-    "with_modifiers.h",
   ]
 
   deps = [
