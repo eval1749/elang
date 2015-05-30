@@ -12,6 +12,8 @@ static_library("analysis") {
     "analyzer.h",
     "class_analyzer.cc",
     "class_analyzer.h",
+    "class_tree_builder.cc",
+    "class_tree_builder.h",
     "const_expr_analyzer.cc",
     "const_expr_analyzer.h",
     "method_analyzer.cc",
@@ -51,6 +53,7 @@ source_set("compiler_analysis_test") {
   testonly = true
   sources = [
     "class_analyzer_test.cc",
+    "class_tree_builder_test.cc",
     "method_analyzer_test.cc",
     "namespace_analyzer_test.cc",
     "name_resolver_test.cc",
