@@ -61,7 +61,7 @@ class CompilerTest : public ::testing::Test {
 
  private:
   const std::unique_ptr<CompilationSession> session_;
-  std::unique_ptr<StringSourceCode> source_code_;
+  std::vector<std::unique_ptr<StringSourceCode>> source_codes_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerTest);
 };

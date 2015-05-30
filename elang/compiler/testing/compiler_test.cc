@@ -56,7 +56,7 @@ CompilerTest::~CompilerTest() {
 // Since we don't want to include "string_source_code.h" in "compiler_test.h",
 // we implement |source_code()| function here.
 SourceCode* CompilerTest::source_code() const {
-  return source_code_.get();
+  return source_codes_.back().get();
 }
 
 ast::Class* CompilerTest::FindClass(base::StringPiece name) {
@@ -89,13 +89,17 @@ std::string CompilerTest::GetWarnings() {
 }
 
 bool CompilerTest::Parse() {
-  auto const compilation_unit = session_->NewCompilationUnit(source_code());
-  Parser(session_.get(), compilation_unit).Run();
+  for (auto const& source_code : source_codes_) {
+    auto const compilation_unit =
+        session_->NewCompilationUnit(source_code.get());
+    Parser(session_.get(), compilation_unit).Run();
+  }
   return !session_->HasError();
 }
 
 void CompilerTest::Prepare(base::StringPiece16 source_text) {
-  source_code_.reset(new StringSourceCode(L"testing", source_text));
+  source_codes_.push_back(
+      std::make_unique<StringSourceCode>(L"testing", source_text));
 }
 
 void CompilerTest::Prepare(base::StringPiece source_text) {
