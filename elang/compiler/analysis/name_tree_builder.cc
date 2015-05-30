@@ -103,7 +103,8 @@ void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
     return;
   }
   if (auto const present_class = present->as<sm::Class>()) {
-    if (node->IsPartial() && present_class->IsPartial()) {
+    if (!present_class->has_base() && node->IsPartial() &&
+        present_class->IsPartial()) {
       editor_->SetSemanticOf(node, present_class);
       return ast::Visitor::VisitClassBody(node);
     }

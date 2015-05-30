@@ -106,6 +106,11 @@ TEST_F(NameTreeBuilderTest, ClassErrorDuplicate) {
   EXPECT_EQ("Syntax.Class.Duplicate(6) A A\n", BuildNameTree());
 }
 
+TEST_F(NameTreeBuilderTest, ClassErrorDuplicate2) {
+  Prepare("namespace System { class Object {} }");
+  EXPECT_EQ("Syntax.Class.Duplicate(25) Object Object\n", BuildNameTree());
+}
+
 TEST_F(NameTreeBuilderTest, ConstBasic) {
   Prepare("class A { const int B = 2; }");
   EXPECT_EQ("", BuildNameTree());
