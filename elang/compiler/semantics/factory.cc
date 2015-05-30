@@ -9,6 +9,7 @@
 
 #include "base/logging.h"
 #include "elang/base/zone_user.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
@@ -116,8 +117,23 @@ Class* Factory::NewClass(Semantic* outer,
                          Modifiers modifiers,
                          Token* name,
                          ast::Class* ast_class) {
+  struct Local {
+    static Class::Kind KindOf(ast::Class* ast_class) {
+      if (!ast_class)
+        return Class::Kind::Clazz;
+      if (ast_class->is_class())
+        return Class::Kind::Clazz;
+      if (ast_class->is_interface())
+        return Class::Kind::Interface;
+      if (ast_class->is_struct())
+        return Class::Kind::Struct;
+      NOTREACHED() << ast_class;
+      return Class::Kind::Clazz;
+    }
+  };
+  auto const kind = Local::KindOf(ast_class);
   auto const clazz =
-      new (zone()) Class(zone(), outer, modifiers, name, ast_class);
+      new (zone()) Class(zone(), outer, kind, modifiers, name, ast_class);
   AddMember(outer, clazz);
   return clazz;
 }
@@ -144,6 +160,15 @@ Field* Factory::NewField(Class* owner, Token* name) {
   auto const field = new (zone()) Field(owner, name);
   AddMember(owner, field);
   return field;
+}
+
+Class* Factory::NewInterface(Semantic* outer,
+                             Modifiers modifiers,
+                             Token* name) {
+  auto const clazz = new (zone())
+      Class(zone(), outer, Class::Kind::Interface, modifiers, name, nullptr);
+  AddMember(outer, clazz);
+  return clazz;
 }
 
 Value* Factory::NewInvalidValue(Type* type, Token* token) {
@@ -182,6 +207,13 @@ Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
 Signature* Factory::NewSignature(Type* return_type,
                                  const std::vector<Parameter*>& parameters) {
   return new (zone()) Signature(zone(), return_type, parameters);
+}
+
+Class* Factory::NewStruct(Semantic* outer, Modifiers modifiers, Token* name) {
+  auto const clazz = new (zone())
+      Class(zone(), outer, Class::Kind::Struct, modifiers, name, nullptr);
+  AddMember(outer, clazz);
+  return clazz;
 }
 
 UndefinedType* Factory::NewUndefinedType(Token* token) {

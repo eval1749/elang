@@ -30,16 +30,22 @@ NameTreeBuilder::NameTreeBuilder(CompilationSession* session,
 NameTreeBuilder::~NameTreeBuilder() {
 }
 
-void NameTreeBuilder::Run() {
-  Traverse(session()->global_namespace_body());
-  for (auto const alias : aliases_) {
-    auto const outer = SemanticOf(alias->parent());
-    auto const present = outer->FindMember(alias->name());
-    if (!present)
-      continue;
-    Error(ErrorCode::NameResolutionAliasConflict, alias->name(),
-          present->name());
+sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
+  auto const outer = SemanticOf(node->parent());
+  if (node->owner()->is_class()) {
+    return session()->semantics_factory()->NewClass(
+        outer, node->modifiers(), node->name(), node->owner());
   }
+  if (node->owner()->is_interface()) {
+    return session()->semantics_factory()->NewInterface(
+        outer, node->modifiers(), node->name());
+  }
+  if (node->owner()->is_struct()) {
+    return session()->semantics_factory()->NewStruct(outer, node->modifiers(),
+                                                     node->name());
+  }
+  NOTREACHED() << node;
+  return nullptr;
 }
 
 void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
@@ -63,6 +69,18 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
   editor_->SetSemanticOf(node->owner(), ns);
 }
 
+void NameTreeBuilder::Run() {
+  Traverse(session()->global_namespace_body());
+  for (auto const alias : aliases_) {
+    auto const outer = SemanticOf(alias->parent());
+    auto const present = outer->FindMember(alias->name());
+    if (!present)
+      continue;
+    Error(ErrorCode::NameResolutionAliasConflict, alias->name(),
+          present->name());
+  }
+}
+
 sm::Semantic* NameTreeBuilder::SemanticOf(ast::Node* node) const {
   return editor_->SemanticOf(node);
 }
@@ -80,9 +98,7 @@ void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
   if (!present) {
-    editor_->SetSemanticOf(
-        node, session()->semantics_factory()->NewClass(
-                  outer, node->modifiers(), node->name(), node->owner()));
+    editor_->SetSemanticOf(node, NewClass(node));
     ast::Visitor::VisitClassBody(node);
     return;
   }

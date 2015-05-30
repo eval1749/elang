@@ -204,6 +204,12 @@ bool NamespaceAnalyzer::IsVisited(ast::NamedNode* node) const {
   return !!visited_nodes_.count(node);
 }
 
+sm::Class* NamespaceAnalyzer::NewClass(ast::Class* ast_class) {
+  auto const outer = SemanticOf(ast_class->parent());
+  return factory()->NewClass(outer, ast_class->modifiers(), ast_class->name(),
+                             ast_class);
+}
+
 Maybe<ast::NamedNode*> NamespaceAnalyzer::Postpone(ast::NamedNode* node,
                                                    ast::NamedNode* using_node) {
   DVLOG(1) << "Postpone " << node << " by " << using_node;
@@ -581,8 +587,7 @@ void NamespaceAnalyzer::VisitClassBody(ast::ClassBody* class_body) {
     return;
   }
 
-  auto const clazz =
-      factory()->NewClass(outer, ast_class->modifiers(), class_name, ast_class);
+  auto const clazz = NewClass(ast_class);
   editor()->FixClassBase(clazz, direct_base_classes);
   SetSemanticOf(class_body, clazz);
   SetSemanticOf(ast_class, clazz);

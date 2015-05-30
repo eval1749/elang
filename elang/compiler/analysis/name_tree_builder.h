@@ -15,6 +15,7 @@ namespace elang {
 namespace compiler {
 class AnalysisEditor;
 namespace sm {
+class Class;
 class Namespace;
 class Semantic;
 }
@@ -33,6 +34,7 @@ class NameTreeBuilder final : public CompilationSessionUser,
   void Run();
 
  private:
+  sm::Class* NewClass(ast::ClassBody* node);
   void ProcessNamespaceBody(ast::NamespaceBody* node);
   sm::Semantic* SemanticOf(ast::Node* node) const;
 

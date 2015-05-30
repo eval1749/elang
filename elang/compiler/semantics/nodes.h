@@ -177,14 +177,23 @@ class Class final : public NamedMember<Type>, public WithModifiers {
   bool has_base() const { return has_base_; }
 
   // Returns true if |this| is 'class'.
-  bool is_class() const;
+  bool is_class() const { return kind_ == Kind::Clazz; }
+  bool is_interface() const { return kind_ == Kind::Interface; }
+  bool is_struct() const { return kind_ == Kind::Struct; }
 
   // Node
   Semantic* FindMemberByString(AtomicString* name) const final;
 
  private:
+  enum class Kind {
+    Clazz,
+    Interface,
+    Struct,
+  };
+
   Class(Zone* zone,
         Semantic* outer,
+        Kind kind,
         Modifiers modifiers,
         Token* name,
         ast::Class* ast_type);
@@ -196,6 +205,7 @@ class Class final : public NamedMember<Type>, public WithModifiers {
   ZoneUnorderedSet<Class*> base_classes_;
   ZoneVector<Class*> direct_base_classes_;
   bool has_base_;
+  Kind const kind_;
   ZoneUnorderedMap<AtomicString*, Semantic*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(Class);

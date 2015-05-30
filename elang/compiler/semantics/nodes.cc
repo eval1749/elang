@@ -77,6 +77,7 @@ bool ArrayType::IsSubtypeOf(const Type* other) const {
 // Class
 Class::Class(Zone* zone,
              Semantic* outer,
+             Kind kind,
              Modifiers modifiers,
              Token* name,
              ast::Class* ast_class)
@@ -86,6 +87,7 @@ Class::Class(Zone* zone,
       base_classes_(zone),
       direct_base_classes_(zone),
       has_base_(false),
+      kind_(kind),
       members_(zone) {
   DCHECK(outer->is<Class>() || outer->is<Namespace>()) << outer << " " << name;
 }
@@ -98,10 +100,6 @@ const ZoneUnorderedSet<Class*>& Class::base_classes() const {
 const ZoneVector<Class*>& Class::direct_base_classes() const {
   DCHECK(has_base()) << this;
   return direct_base_classes_;
-}
-
-bool Class::is_class() const {
-  return ast_class_->is_class();
 }
 
 Semantic* Class::FindMemberByString(AtomicString* name) const {

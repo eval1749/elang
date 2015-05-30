@@ -68,6 +68,7 @@ class NamespaceAnalyzer final : public Analyzer,
   bool IsResolved(ast::NamedNode* node) const;
   bool IsSystemObject(ast::NamedNode* node) const;
   bool IsVisited(ast::NamedNode* node) const;
+  sm::Class* NewClass(ast::Class* clazz);
 
   Maybe<ast::NamedNode*> Postpone(ast::NamedNode* node,
                                   ast::NamedNode* using_node);

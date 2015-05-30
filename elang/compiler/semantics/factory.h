@@ -45,6 +45,7 @@ class Factory final : public ZoneOwner {
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
   Field* NewField(Class* owner, Token* name);
+  Class* NewInterface(Semantic* outer, Modifiers modifiers, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(MethodGroup* method_group, Signature* signature);
@@ -59,7 +60,7 @@ class Factory final : public ZoneOwner {
   // Allocate |Signature| for analyzer
   Signature* NewSignature(Type* return_type,
                           const std::vector<Parameter*>& parameters);
-
+  Class* NewStruct(Semantic* outer, Modifiers modifiers, Token* name);
   UndefinedType* NewUndefinedType(Token* token);
 
   Variable* NewVariable(Type* type,
