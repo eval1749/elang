@@ -67,10 +67,22 @@ sm::Semantic* NameTreeBuilderTest::SemanticOf(base::StringPiece path) const {
   return SemanticOf(base::UTF8ToUTF16(path));
 }
 
+// Note: MS C# compiler doesn't report error if alias A isn't used.
+TEST_F(NameTreeBuilderTest, AliasErrorAmbiguous) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 { class A {} }"
+      "namespace N3 {"
+      "  using A = N1.N2.A;"
+      "  class B : A {}"  // A can be N1.N2.A or N3.A.
+      "}");
+  EXPECT_EQ("NameResolution.Alias.Conflict(79) A A\n", BuildNameTree());
+}
+
 TEST_F(NameTreeBuilderTest, AliasConflict) {
   Prepare(
       "namespace N1 { using A = N1; }"
-      "namespace N1 { class A{} }");
+      "namespace N1 { class A {} }");
   EXPECT_EQ("NameResolution.Alias.Conflict(21) A A\n", BuildNameTree());
 }
 
