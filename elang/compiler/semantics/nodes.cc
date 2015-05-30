@@ -104,8 +104,8 @@ bool Class::is_class() const {
   return ast_class_->is_class();
 }
 
-Semantic* Class::FindMember(Token* name) const {
-  auto const it = members_.find(name->atomic_string());
+Semantic* Class::FindMemberByString(AtomicString* name) const {
+  auto const it = members_.find(name);
   return it == members_.end() ? nullptr : it->second;
 }
 
@@ -149,12 +149,10 @@ Type* Enum::enum_base() const {
   return enum_base_;
 }
 
-Semantic* Enum::FindMember(Token* name) const {
-  DCHECK(name->is_name()) << name;
-  auto const key = name->atomic_string();
+Semantic* Enum::FindMemberByString(AtomicString* name) const {
   auto const it = std::find_if(members_.begin(), members_.end(),
-                               [key](const EnumMember* member) {
-                                 return member->name()->atomic_string() == key;
+                               [name](const EnumMember* member) {
+                                 return member->name()->atomic_string() == name;
                                });
   return it == members_.end() ? nullptr : *it;
 }
@@ -215,8 +213,8 @@ Namespace::Namespace(Zone* zone, Namespace* outer, Token* name)
     : NamedMember(outer, name), members_(zone) {
 }
 
-Semantic* Namespace::FindMember(Token* name) const {
-  auto const it = members_.find(name->atomic_string());
+Semantic* Namespace::FindMemberByString(AtomicString* name) const {
+  auto const it = members_.find(name);
   return it == members_.end() ? nullptr : it->second;
 }
 
@@ -275,7 +273,15 @@ Semantic* Semantic::outer() const {
   return nullptr;
 }
 
+Semantic* Semantic::FindMember(AtomicString* name) const {
+  return FindMemberByString(name);
+}
+
 Semantic* Semantic::FindMember(Token* name) const {
+  return FindMemberByString(name->atomic_string());
+}
+
+Semantic* Semantic::FindMemberByString(AtomicString* name) const {
   return nullptr;
 }
 

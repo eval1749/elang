@@ -17,6 +17,7 @@
 #include "elang/compiler/with_modifiers.h"
 
 namespace elang {
+class AtomicString;
 namespace compiler {
 namespace sm {
 
@@ -65,10 +66,12 @@ class Semantic : public Castable<Semantic>,
   virtual Semantic* outer() const;
   Token* token() const { return token_; }
 
-  virtual sm::Semantic* FindMember(Token* name) const;
+  sm::Semantic* FindMember(AtomicString* name) const;
+  sm::Semantic* FindMember(Token* name) const;
 
  protected:
   explicit Semantic(Token* token);
+  virtual sm::Semantic* FindMemberByString(AtomicString* name) const;
 
  private:
   Token* const token_;
@@ -177,7 +180,7 @@ class Class final : public NamedMember<Type>, public WithModifiers {
   bool is_class() const;
 
   // Node
-  Semantic* FindMember(Token* name) const final;
+  Semantic* FindMemberByString(AtomicString* name) const final;
 
  private:
   Class(Zone* zone,
@@ -230,7 +233,7 @@ class Enum final : public NamedMember<Type> {
   bool has_base() const { return enum_base_ != nullptr; }
 
   // Node
-  Semantic* FindMember(Token* name) const final;
+  Semantic* FindMemberByString(AtomicString* name) const final;
 
  private:
   Enum(Zone* zone, Semantic* outer, Token* name);
@@ -365,7 +368,7 @@ class Namespace final : public NamedMember<Semantic> {
 
  public:
   // Node
-  Semantic* FindMember(Token* name) const final;
+  Semantic* FindMemberByString(AtomicString* name) const final;
 
  private:
   Namespace(Zone* zone, Namespace* outer, Token* name);
