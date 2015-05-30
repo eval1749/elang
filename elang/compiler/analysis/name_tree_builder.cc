@@ -27,8 +27,40 @@ NameTreeBuilder::NameTreeBuilder(CompilationSession* session,
     : CompilationSessionUser(session), editor_(editor) {
 }
 
+NameTreeBuilder::~NameTreeBuilder() {
+}
+
 void NameTreeBuilder::Run() {
   Traverse(session()->global_namespace_body());
+  for (auto const alias : aliases_) {
+    auto const outer = SemanticOf(alias->parent());
+    auto const present = outer->FindMember(alias->name());
+    if (!present)
+      continue;
+    Error(ErrorCode::NameResolutionAliasConflict, alias->name(),
+          present->name());
+  }
+}
+
+void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
+  if (node->loaded_)
+    return;
+  if (node->owner() == session()->global_namespace()) {
+    editor_->SetSemanticOf(node,
+                           session()->semantics_factory()->global_namespace());
+    return;
+  }
+  auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
+  DCHECK(outer->is<sm::Namespace>()) << outer;
+  if (auto const present = outer->FindMember(node->name())) {
+    DCHECK(present->is<sm::Namespace>()) << present;
+    editor_->SetSemanticOf(node, present);
+    return;
+  }
+  auto const ns =
+      session()->semantics_factory()->NewNamespace(outer, node->name());
+  editor_->SetSemanticOf(node, ns);
+  editor_->SetSemanticOf(node->owner(), ns);
 }
 
 sm::Semantic* NameTreeBuilder::SemanticOf(ast::Node* node) const {
@@ -36,18 +68,29 @@ sm::Semantic* NameTreeBuilder::SemanticOf(ast::Node* node) const {
 }
 
 // NameTreeBuilder - ast::Visitor
+void NameTreeBuilder::VisitAlias(ast::Alias* node) {
+  aliases_.push_back(node);
+}
+
 void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
+  if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
+    if (ns->loaded_)
+      return;
+  }
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(
         node, session()->semantics_factory()->NewClass(
                   outer, node->modifiers(), node->name(), node->owner()));
+    ast::Visitor::VisitClassBody(node);
     return;
   }
   if (auto const present_class = present->as<sm::Class>()) {
-    if (node->IsPartial() && present_class->IsPartial())
-      return;
+    if (node->IsPartial() && present_class->IsPartial()) {
+      editor_->SetSemanticOf(node, present_class);
+      return ast::Visitor::VisitClassBody(node);
+    }
     return Error(ErrorCode::NameResolutionClassDuplicate, node,
                  present->name());
   }
@@ -71,11 +114,15 @@ void NameTreeBuilder::VisitConst(ast::Const* node) {
 }
 
 void NameTreeBuilder::VisitEnum(ast::Enum* node) {
-  auto const owner = SemanticOf(node->parent());
-  auto const present = owner->FindMember(node->name());
+  if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
+    if (ns->loaded_)
+      return;
+  }
+  auto const outer = SemanticOf(node->parent());
+  auto const present = outer->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(
-        node, session()->semantics_factory()->NewEnum(owner, node->name()));
+        node, session()->semantics_factory()->NewEnum(outer, node->name()));
     return;
   }
   if (present->is<sm::Field>()) {
@@ -114,24 +161,8 @@ void NameTreeBuilder::VisitMethod(ast::Method* node) {
 }
 
 void NameTreeBuilder::VisitNamespaceBody(ast::NamespaceBody* node) {
-  if (node->loaded_)
-    return;
-  if (node->owner() == session()->global_namespace()) {
-    editor_->SetSemanticOf(node,
-                           session()->semantics_factory()->global_namespace());
-    return;
-  }
-  auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
-  DCHECK(outer->is<sm::Namespace>()) << outer;
-  if (auto const present = outer->FindMember(node->name())) {
-    DCHECK(present->is<sm::Namespace>()) << present;
-    editor_->SetSemanticOf(node, present);
-    return;
-  }
-  auto const ns =
-      session()->semantics_factory()->NewNamespace(outer, node->name());
-  editor_->SetSemanticOf(node, ns);
-  editor_->SetSemanticOf(node->owner(), ns);
+  ProcessNamespaceBody(node);
+  ast::Visitor::VisitNamespaceBody(node);
 }
 
 }  // namespace compiler

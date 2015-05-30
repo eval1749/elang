@@ -30,6 +30,7 @@ namespace compiler {
   E(Method, Return, NotVoid)                          \
   E(Method, Return, Void)                             \
   /* Namespace Analyzer */                            \
+  E(NameResolution, Alias, Conflict)                  \
   E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
   E(NameResolution, Class, Conflict)                  \

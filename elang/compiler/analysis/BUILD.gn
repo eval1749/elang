@@ -52,8 +52,9 @@ source_set("compiler_analysis_test") {
   sources = [
     "class_analyzer_test.cc",
     "method_analyzer_test.cc",
-    "name_resolver_test.cc",
     "namespace_analyzer_test.cc",
+    "name_resolver_test.cc",
+    "name_tree_builder_test.cc",
   ]
   public_deps = [
     "//testing/gtest",
