@@ -73,23 +73,23 @@ SystemNamespaceBuilder::SystemNamespaceBuilder(NameResolver* name_resolver)
     : NamespaceBuilder(name_resolver) {
   NewClass("Object", "");
   NewClass("ValueType", "Object");
-  NewClass("Enum", "ValueType");
+  NewStruct("Enum", "ValueType");
 
-  NewClass("Bool", "ValueType");
-  NewClass("Char", "ValueType");
-  NewClass("Float32", "ValueType");
-  NewClass("Float64", "ValueType");
-  NewClass("Int16", "ValueType");
-  NewClass("Int32", "ValueType");
-  NewClass("Int64", "ValueType");
-  NewClass("Int8", "ValueType");
-  NewClass("IntPtr", "ValueType");
-  NewClass("UInt16", "ValueType");
-  NewClass("UInt32", "ValueType");
-  NewClass("UInt64", "ValueType");
-  NewClass("UInt8", "ValueType");
-  NewClass("UIntPtr", "ValueType");
-  NewClass("Void", "ValueType");
+  NewStruct("Bool", "ValueType");
+  NewStruct("Char", "ValueType");
+  NewStruct("Float32", "ValueType");
+  NewStruct("Float64", "ValueType");
+  NewStruct("Int16", "ValueType");
+  NewStruct("Int32", "ValueType");
+  NewStruct("Int64", "ValueType");
+  NewStruct("Int8", "ValueType");
+  NewStruct("IntPtr", "ValueType");
+  NewStruct("UInt16", "ValueType");
+  NewStruct("UInt32", "ValueType");
+  NewStruct("UInt64", "ValueType");
+  NewStruct("UInt8", "ValueType");
+  NewStruct("UIntPtr", "ValueType");
+  NewStruct("Void", "ValueType");
 
   NewClass("String", "Object");
 }

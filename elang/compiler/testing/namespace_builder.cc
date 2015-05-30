@@ -47,11 +47,14 @@ sm::Class* NamespaceBuilder::system_object() {
   return PredefinedTypeOf(PredefinedName::Object)->as<sm::Class>();
 }
 
-ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
+ast::ClassBody* NamespaceBuilder::NewClass(TokenType token_type,
+                                           base::StringPiece name,
                                            base::StringPiece base_names) {
+  DCHECK(token_type == TokenType::Class || token_type == TokenType::Struct);
+  auto const modifiers = Modifiers(Modifier::Public);
   auto const ast_class = session()->ast_factory()->NewClass(
-      session()->system_namespace(), Modifiers(Modifier::Public),
-      NewKeyword(TokenType::Class), NewName(name));
+      session()->system_namespace(), modifiers, NewKeyword(token_type),
+      NewName(name));
   session()->system_namespace()->AddNamedMember(ast_class);
 
   std::vector<ast::Type*> base_class_names;
@@ -77,13 +80,21 @@ ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
     base_classes.push_back(base_class->as<sm::Class>());
   }
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
-  auto const clazz = name_resolver()->factory()->NewClass(
-      outer, Modifiers(Modifier::Public), ast_class->name(), ast_class);
+  auto const clazz = token_type == TokenType::Class
+                         ? name_resolver()->factory()->NewClass(
+                               outer, modifiers, ast_class->name(), ast_class)
+                         : name_resolver()->factory()->NewStruct(
+                               outer, modifiers, ast_class->name());
   semantic_editor_->FixClassBase(clazz, base_classes);
   analysis_editor_->SetSemanticOf(ast_class, clazz);
   analysis_editor_->SetSemanticOf(ast_class_body, clazz);
 
   return ast_class_body;
+}
+
+ast::ClassBody* NamespaceBuilder::NewClass(base::StringPiece name,
+                                           base::StringPiece base_names) {
+  return NewClass(TokenType::Class, name, base_names);
 }
 
 Token* NamespaceBuilder::NewKeyword(TokenType type) {
@@ -109,6 +120,11 @@ ast::Parameter* NamespaceBuilder::NewParameter(ast::Method* method,
   return session()->ast_factory()->NewParameter(
       method, ParameterKind::Required, position, NewTypeReference(type),
       NewName(name), nullptr);
+}
+
+ast::ClassBody* NamespaceBuilder::NewStruct(base::StringPiece name,
+                                            base::StringPiece base_names) {
+  return NewClass(TokenType::Struct, name, base_names);
 }
 
 ast::Type* NamespaceBuilder::NewTypeReference(TokenType keyword) {

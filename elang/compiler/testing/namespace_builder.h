@@ -43,6 +43,8 @@ class NamespaceBuilder : public CompilationSessionUser {
 
   ast::ClassBody* NewClass(base::StringPiece name,
                            base::StringPiece base_names);
+  ast::ClassBody* NewStruct(base::StringPiece name,
+                            base::StringPiece base_names);
   Token* NewKeyword(TokenType type);
   Token* NewName(base::StringPiece name);
   ast::Parameter* NewParameter(ast::Method* method,
@@ -53,6 +55,9 @@ class NamespaceBuilder : public CompilationSessionUser {
   ast::Type* NewTypeReference(base::StringPiece name);
 
  private:
+  ast::ClassBody* NewClass(TokenType token_type,
+                           base::StringPiece name,
+                           base::StringPiece base_names);
   std::unique_ptr<AnalysisEditor> analysis_editor_;
   NameResolver* const name_resolver_;
   std::unique_ptr<sm::Editor> semantic_editor_;
