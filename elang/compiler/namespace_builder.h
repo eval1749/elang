@@ -36,6 +36,7 @@ class NamespaceBuilder : public CompilationSessionUser {
   explicit NamespaceBuilder(NameResolver* name_resolver);
   ~NamespaceBuilder();
 
+  ast::Factory* ast_factory() const;
   NameResolver* name_resolver() { return name_resolver_; }
   sm::Class* system_object();
 

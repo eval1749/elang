@@ -42,6 +42,10 @@ NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
 NamespaceBuilder::~NamespaceBuilder() {
 }
 
+ast::Factory* NamespaceBuilder::ast_factory() const {
+  return session()->ast_factory();
+}
+
 sm::Class* NamespaceBuilder::system_object() {
   return PredefinedTypeOf(PredefinedName::Object)->as<sm::Class>();
 }

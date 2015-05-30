@@ -24,8 +24,6 @@ executable("shell") {
 source_set("shell_library") {
   visibility = [ ":*" ]
   sources = [
-    "namespace_builder.cc",
-    "namespace_builder.h",
     "node_query.cc",
     "node_query.h",
     "pass_record.cc",

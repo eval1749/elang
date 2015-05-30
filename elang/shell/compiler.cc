@@ -26,6 +26,7 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
+#include "elang/compiler/namespace_builder.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/factory.h"
@@ -49,7 +50,6 @@
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/types.h"
-#include "elang/shell/namespace_builder.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/pass_record.h"
 #include "elang/shell/source_file_stream.h"
@@ -231,23 +231,23 @@ void PopulateNamespace(NameResolver* name_resolver) {
 
   builder.NewClass("Object", "");
   builder.NewClass("ValueType", "Object");
-  builder.NewClass("Enum", "ValueType");
+  builder.NewStruct("Enum", "ValueType");
 
-  builder.NewClass("Bool", "ValueType");
-  builder.NewClass("Char", "ValueType");
-  builder.NewClass("Float32", "ValueType");
-  builder.NewClass("Float64", "ValueType");
-  builder.NewClass("Int16", "ValueType");
-  builder.NewClass("Int32", "ValueType");
-  builder.NewClass("Int64", "ValueType");
-  builder.NewClass("Int8", "ValueType");
-  builder.NewClass("IntPtr", "ValueType");
-  builder.NewClass("UInt16", "ValueType");
-  builder.NewClass("UInt32", "ValueType");
-  builder.NewClass("UInt64", "ValueType");
-  builder.NewClass("UInt8", "ValueType");
-  builder.NewClass("UIntPtr", "ValueType");
-  builder.NewClass("Void", "ValueType");
+  builder.NewStruct("Bool", "ValueType");
+  builder.NewStruct("Char", "ValueType");
+  builder.NewStruct("Float32", "ValueType");
+  builder.NewStruct("Float64", "ValueType");
+  builder.NewStruct("Int16", "ValueType");
+  builder.NewStruct("Int32", "ValueType");
+  builder.NewStruct("Int64", "ValueType");
+  builder.NewStruct("Int8", "ValueType");
+  builder.NewStruct("IntPtr", "ValueType");
+  builder.NewStruct("UInt16", "ValueType");
+  builder.NewStruct("UInt32", "ValueType");
+  builder.NewStruct("UInt64", "ValueType");
+  builder.NewStruct("UInt8", "ValueType");
+  builder.NewStruct("UIntPtr", "ValueType");
+  builder.NewStruct("Void", "ValueType");
 
   builder.NewClass("String", "Object");
 
