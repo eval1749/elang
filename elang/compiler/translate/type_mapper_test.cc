@@ -12,11 +12,11 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/namespace_builder.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/testing/namespace_builder.h"
 #include "elang/compiler/translate/type_mapper.h"
 #include "elang/optimizer/factory.h"
 #include "elang/optimizer/type_factory.h"
@@ -60,7 +60,7 @@ class IrTypeMapperTest : public testing::TranslateTest {
   }
 
  private:
-  cm::testing::NamespaceBuilder builder_;
+  NamespaceBuilder builder_;
   IrTypeMapper type_mapper_;
 
   DISALLOW_COPY_AND_ASSIGN(IrTypeMapperTest);

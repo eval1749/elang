@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include "elang/compiler/testing/analyzer_test.h"
-#include "elang/compiler/testing/namespace_builder.h"
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/class_analyzer.h"
 #include "elang/compiler/analysis/method_analyzer.h"
@@ -24,9 +22,11 @@
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/modifiers.h"
+#include "elang/compiler/namespace_builder.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/testing/analyzer_test.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -108,7 +108,7 @@ void Collector::VisitCall(ast::Call* node) {
 // MyNamespaceBuilder
 // Installs classes and methods for testing.
 //
-class MyNamespaceBuilder final : public testing::NamespaceBuilder {
+class MyNamespaceBuilder final : public NamespaceBuilder {
  public:
   explicit MyNamespaceBuilder(NameResolver* name_resolver);
   ~MyNamespaceBuilder() = default;

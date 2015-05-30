@@ -13,11 +13,11 @@
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/cg/type_mapper.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/namespace_builder.h"
 #include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
-#include "elang/compiler/testing/namespace_builder.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/type_factory.h"
 #include "elang/hir/types.h"
@@ -60,7 +60,7 @@ class TypeMapperTest : public testing::CgTest {
   }
 
  private:
-  testing::NamespaceBuilder builder_;
+  NamespaceBuilder builder_;
   TypeMapper type_mapper_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeMapperTest);

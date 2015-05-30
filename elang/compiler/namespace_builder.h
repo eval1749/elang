@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef ELANG_COMPILER_TESTING_NAMESPACE_BUILDER_H_
-#define ELANG_COMPILER_TESTING_NAMESPACE_BUILDER_H_
+#ifndef ELANG_COMPILER_NAMESPACE_BUILDER_H_
+#define ELANG_COMPILER_NAMESPACE_BUILDER_H_
 
 #include <string>
 #include <vector>
@@ -25,8 +25,6 @@ namespace sm {
 class Class;
 class Editor;
 }
-
-namespace testing {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -65,8 +63,7 @@ class NamespaceBuilder : public CompilationSessionUser {
   DISALLOW_COPY_AND_ASSIGN(NamespaceBuilder);
 };
 
-}  // namespace testing
 }  // namespace compiler
 }  // namespace elang
 
-#endif  // ELANG_COMPILER_TESTING_NAMESPACE_BUILDER_H_
+#endif  // ELANG_COMPILER_NAMESPACE_BUILDER_H_

@@ -21,6 +21,8 @@ static_library("compiler") {
     "modifiers.h",
     "modifiers_builder.cc",
     "modifiers_builder.h",
+    "namespace_builder.cc",
+    "namespace_builder.h",
     "parameter_kind.cc",
     "parameter_kind.h",
     "predefined_names.cc",
@@ -82,8 +84,6 @@ source_set("test_support") {
     "testing/compiler_test.h",
     "testing/formatter.cc",
     "testing/formatter.h",
-    "testing/namespace_builder.cc",
-    "testing/namespace_builder.h",
   ]
   public_deps = [
     ":compiler",

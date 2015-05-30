@@ -5,7 +5,7 @@
 #include "elang/compiler/testing/analyzer_test.h"
 
 #include "elang/compiler/analysis/namespace_analyzer.h"
-#include "elang/compiler/testing/namespace_builder.h"
+#include "elang/compiler/namespace_builder.h"
 
 namespace elang {
 namespace compiler {
@@ -275,7 +275,7 @@ TEST_F(NamespaceAnalyzerTest, ClassErrorDuplicateWithExtern) {
   Prepare("namespace System { class A {} }");
   EXPECT_TRUE(Parse());
   // Simulate extern module.
-  testing::NamespaceBuilder builder(name_resolver());
+  NamespaceBuilder builder(name_resolver());
   builder.NewClass("A", "Object");
   NamespaceAnalyzer resolver(name_resolver());
   resolver.Run();

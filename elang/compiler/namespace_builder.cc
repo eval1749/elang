@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "elang/compiler/testing/namespace_builder.h"
+#include "elang/compiler/namespace_builder.h"
 
 #include <algorithm>
 
@@ -30,7 +30,6 @@
 
 namespace elang {
 namespace compiler {
-namespace testing {
 
 NamespaceBuilder::NamespaceBuilder(NameResolver* name_resolver)
     : CompilationSessionUser(name_resolver->session()),
@@ -151,6 +150,5 @@ ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece reference) {
   return last;
 }
 
-}  // namespace testing
 }  // namespace compiler
 }  // namespace elang

@@ -33,6 +33,9 @@ namespace compiler {
   E(NameResolution, Alias, Conflict)                  \
   E(NameResolution, Alias, Duplicate)                 \
   E(NameResolution, Alias, NeitherNamespaceNorType)   \
+  E(NameResolution, BaseClass, Conflict)              \
+  E(NameResolution, BaseClass, Duplicate)             \
+  E(NameResolution, BaseClass, NotInterface)          \
   E(NameResolution, Class, Conflict)                  \
   E(NameResolution, Class, Containing)                \
   E(NameResolution, Class, Duplicate)                 \
