@@ -27,6 +27,7 @@ class Class;
 class CompilationSession;
 enum class ErrorCode;
 class NameResolver;
+class NameResolverEditor;
 class Token;
 
 //////////////////////////////////////////////////////////////////////
@@ -100,6 +101,7 @@ class NamespaceAnalyzer final : public Analyzer,
   void VisitNamespaceBody(ast::NamespaceBody* node);
 
   SimpleDirectedGraph<ast::NamedNode*> dependency_graph_;
+  const std::unique_ptr<NameResolverEditor> editor_;
 
   // Cache for mapping reference to resolved entity for alias target and
   // base class list.

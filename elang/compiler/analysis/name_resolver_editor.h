@@ -1,0 +1,40 @@
+// Copyright 2014-2015 Project Vogue. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#ifndef ELANG_COMPILER_ANALYSIS_NAME_RESOLVER_EDITOR_H_
+#define ELANG_COMPILER_ANALYSIS_NAME_RESOLVER_EDITOR_H_
+
+#include "base/macros.h"
+
+namespace elang {
+namespace compiler {
+class NameResolver;
+namespace ast {
+class Alias;
+class ContainerNode;
+class Import;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// NameResolverEditor
+//
+class NameResolverEditor final {
+ public:
+  explicit NameResolverEditor(NameResolver* resolver);
+  ~NameResolverEditor();
+
+  void RegisterAlias(ast::Alias* alias, ast::ContainerNode* resolved);
+  void RegisterImport(ast::Import* import, ast::ContainerNode* resolved);
+
+ private:
+  NameResolver* const resolver_;
+
+  DISALLOW_COPY_AND_ASSIGN(NameResolverEditor);
+};
+
+}  // namespace compiler
+}  // namespace elang
+
+#endif  // ELANG_COMPILER_ANALYSIS_NAME_RESOLVER_EDITOR_H_

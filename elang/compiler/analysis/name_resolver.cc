@@ -208,14 +208,6 @@ sm::Factory* NameResolver::factory() const {
   return session()->semantic_factory();
 }
 
-void NameResolver::DidResolveUsing(ast::NamedNode* node,
-                                   ast::ContainerNode* container) {
-  DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
-  DCHECK(container->is<ast::Class>() || container->is<ast::Namespace>());
-  DCHECK(!using_map_.count(node));
-  using_map_[node] = container;
-}
-
 ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
   DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
   auto const it = using_map_.find(node);

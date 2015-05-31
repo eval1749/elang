@@ -11,6 +11,7 @@
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_unordered_set.h"
 #include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/analysis/name_resolver_editor.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/enum.h"
 #include "elang/compiler/ast/expressions.h"
@@ -56,7 +57,7 @@ NamespaceAnalyzer::ResolveContext::ResolveContext(ast::NamedNode* node,
 // NamespaceAnalyzer
 //
 NamespaceAnalyzer::NamespaceAnalyzer(NameResolver* resolver)
-    : Analyzer(resolver) {
+    : Analyzer(resolver), editor_(new NameResolverEditor(resolver)) {
 }
 
 NamespaceAnalyzer::~NamespaceAnalyzer() {
@@ -508,7 +509,7 @@ void NamespaceAnalyzer::VisitAlias(ast::Alias* alias) {
     return;
   auto const container = result.FromJust()->as<ast::ContainerNode>();
   if (container->is<ast::Class>() || container->is<ast::Namespace>()) {
-    resolver()->DidResolveUsing(alias, container);
+    editor_->RegisterAlias(alias, container);
   } else if (result.FromJust()) {
     // Note: we've already report "not found" in |ResolveReference()|.
     Error(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
@@ -625,7 +626,7 @@ void NamespaceAnalyzer::VisitImport(ast::Import* import) {
     return;
   auto const container = result.FromJust()->as<ast::ContainerNode>();
   if (container->is<ast::Namespace>()) {
-    resolver()->DidResolveUsing(import, container);
+    editor_->RegisterImport(import, container);
   } else if (result.FromJust()) {
     Error(ErrorCode::NameResolutionImportNeitherNamespaceNorType,
           import->reference());

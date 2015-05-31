@@ -22,6 +22,8 @@ static_library("analysis") {
     "method_resolver.h",
     "name_resolver.cc",
     "name_resolver.h",
+    "name_resolver_editor.cc",
+    "name_resolver_editor.h",
     "name_tree_builder.cc",
     "name_tree_builder.h",
     "namespace_analyzer.cc",

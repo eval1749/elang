@@ -30,6 +30,7 @@ class Type;
 }
 
 class Analysis;
+class NameResolverEditor;
 enum class PredefinedName;
 class Token;
 
@@ -46,14 +47,12 @@ class NameResolver final : public CompilationSessionUser {
 
   sm::Factory* factory() const;
 
-  // Registering functions.
-  void DidResolveUsing(ast::NamedNode* ast_node, ast::ContainerNode* container);
-
   sm::Semantic* ResolveReference(ast::Expression* expression,
                                  ast::ContainerNode* container);
   sm::Semantic* SemanticOf(ast::NamedNode* ast_node) const;
 
  private:
+  friend class NameResolverEditor;
   class ReferenceResolver;
 
   // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
