@@ -144,7 +144,7 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
   if (!method_group)
     return;
   auto const return_type = analyzer_->ResolveTypeReference(
-      ast_method->return_type(), ast_method->owner());
+      ast_method->return_type(), ast_method);
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
   for (auto const parameter : ast_method->parameters()) {

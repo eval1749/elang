@@ -122,6 +122,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   }
 
   for (ast::Node* runner = container_; runner; runner = runner->parent()) {
+    DCHECK(!runner->is<ast::Class>() && !runner->is<ast::Namespace>());
     auto const container = SemanticOf(runner);
     if (!container) {
       DCHECK(runner->is<ast::Method>()) << runner;
@@ -152,9 +153,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
         resolver()->FindWithImports(name, ns_body, &founds);
       }
     } else {
-      // TODO(eval1749) We should not accept |sm::Namespace|.
-      DCHECK(container->is<sm::Enum>() || container->is<sm::Method>() ||
-             container->is<sm::Namespace>())
+      DCHECK(container->is<sm::Enum>() || container->is<sm::Method>())
           << container << " runner=" << runner;
     }
 
