@@ -140,22 +140,20 @@ void NameResolver::ReferenceResolver::VisitNameReference(
 
       // Find alias
       if (auto const alias = ns_body->FindAlias(name)) {
-        auto const it = resolver()->alias_map_.find(alias);
-        if (it != resolver()->alias_map_.end())
-          founds.insert(SemanticOf(it->second));
+        if (auto const present = resolver()->RealNameOf(alias))
+          founds.insert(present);
       }
 
       if (!ns_body->FindMember(name)) {
         // When |name| isn't defined in namespace body, looking in imported
         // namespaces.
         for (auto const pair : ns_body->imports()) {
-          auto const it = resolver()->import_map_.find(pair.second);
-          if (it == resolver()->import_map_.end())
+          auto const imported_ns = resolver()->ImportedNamespaceOf(pair.second);
+          if (!imported_ns)
             continue;
-          auto const imported = it->second;
-          if (auto const present = imported->FindMember(name)) {
-            if (present && !present->is<ast::Namespace>())
-              founds.insert(SemanticOf(present));
+          if (auto const present = imported_ns->FindMember(name)) {
+            if (present && !present->is<sm::Namespace>())
+              founds.insert(present);
           }
         }
       }
@@ -208,9 +206,15 @@ sm::Factory* NameResolver::factory() const {
   return session()->semantic_factory();
 }
 
+sm::Semantic* NameResolver::RealNameOf(ast::Alias* alias) const {
+  auto const it = alias_map_.find(alias);
+  DCHECK(it != alias_map_.end());
+  return it->second;
+}
+
 sm::Namespace* NameResolver::ImportedNamespaceOf(ast::Import* import) const {
-  auto const it = import_map2_.find(import);
-  DCHECK(it != import_map2_.end());
+  auto const it = import_map_.find(import);
+  DCHECK(it != import_map_.end());
   return it->second;
 }
 

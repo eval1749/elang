@@ -57,10 +57,10 @@ class NameResolver final : public CompilationSessionUser {
   class ReferenceResolver;
 
   sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
+  sm::Semantic* RealNameOf(ast::Alias* alias) const;
 
-  std::unordered_map<ast::Alias*, ast::ContainerNode*> alias_map_;
-  std::unordered_map<ast::Import*, ast::ContainerNode*> import_map_;
-  std::unordered_map<ast::Import*, sm::Namespace*> import_map2_;
+  std::unordered_map<ast::Alias*, sm::Semantic*> alias_map_;
+  std::unordered_map<ast::Import*, sm::Namespace*> import_map_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };

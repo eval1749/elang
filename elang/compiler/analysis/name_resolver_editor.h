@@ -17,6 +17,7 @@ class Import;
 }
 namespace sm {
 class Namespace;
+class Semantic;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -32,6 +33,7 @@ class NameResolverEditor final {
 
   sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
   void RegisterAlias(ast::Alias* alias, ast::ContainerNode* resolved);
+  void RegisterAlias(ast::Alias* alias, sm::Semantic* resolved);
   void RegisterImport(ast::Import* import, ast::ContainerNode* resolved);
   void RegisterImport(ast::Import* import, sm::Namespace* ns);
 

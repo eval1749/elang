@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "elang/compiler/analysis/name_resolver.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/semantics/nodes.h"
 
 namespace elang {
 namespace compiler {
@@ -31,20 +32,26 @@ sm::Namespace* NameResolverEditor::ImportedNamespaceOf(
 
 void NameResolverEditor::RegisterAlias(ast::Alias* alias,
                                        ast::ContainerNode* resolved) {
+  RegisterAlias(alias, resolver_->SemanticOf(resolved));
+}
+
+void NameResolverEditor::RegisterAlias(ast::Alias* alias,
+                                       sm::Semantic* resolved) {
+  DCHECK(!resolved || resolved->is<sm::Class>() ||
+         resolved->is<sm::Namespace>());
   DCHECK(!resolver_->alias_map_.count(alias));
   resolver_->alias_map_.insert(std::make_pair(alias, resolved));
 }
 
 void NameResolverEditor::RegisterImport(ast::Import* import,
                                         ast::ContainerNode* resolved) {
-  DCHECK(!resolver_->import_map_.count(import));
-  resolver_->import_map_.insert(std::make_pair(import, resolved));
+  RegisterImport(import, resolver_->SemanticOf(resolved)->as<sm::Namespace>());
 }
 
 void NameResolverEditor::RegisterImport(ast::Import* import,
                                         sm::Namespace* resolved) {
-  DCHECK(!resolver_->import_map2_.count(import));
-  resolver_->import_map2_.insert(std::make_pair(import, resolved));
+  DCHECK(!resolver_->import_map_.count(import));
+  resolver_->import_map_.insert(std::make_pair(import, resolved));
 }
 
 }  // namespace compiler
