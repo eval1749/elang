@@ -36,10 +36,8 @@ sm::Factory* NameTreeBuilder::factory() const {
 
 sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
   auto const outer = SemanticOf(node->parent());
-  if (node->owner()->is_class()) {
-    return factory()->NewClass(outer, node->modifiers(), node->name(),
-                               node->owner());
-  }
+  if (node->owner()->is_class())
+    return factory()->NewClass(outer, node->modifiers(), node->name());
   if (node->owner()->is_interface())
     return factory()->NewInterface(outer, node->modifiers(), node->name());
   if (node->owner()->is_struct())

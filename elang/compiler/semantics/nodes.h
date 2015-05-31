@@ -166,9 +166,6 @@ class Class final : public NamedMember<Type>, public WithModifiers {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Class, Type);
 
  public:
-  // Associated AST class object.
-  ast::Class* ast_class() const { return ast_class_; }
-
   // base classes of this class
   const ZoneUnorderedSet<Class*>& base_classes() const;
 
@@ -196,13 +193,11 @@ class Class final : public NamedMember<Type>, public WithModifiers {
         Semantic* outer,
         Kind kind,
         Modifiers modifiers,
-        Token* name,
-        ast::Class* ast_type);
+        Token* name);
 
   // Type
   bool IsSubtypeOf(const Type* other) const final;
 
-  ast::Class* const ast_class_;
   ZoneUnorderedSet<Class*> base_classes_;
   ZoneVector<Class*> direct_base_classes_;
   bool has_base_;

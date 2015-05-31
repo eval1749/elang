@@ -39,6 +39,7 @@ class Method;
 class NamedNode;
 class Namespace;
 class NamespaceBody;
+class Node;
 class NodeQuery;
 }
 
@@ -50,6 +51,8 @@ class Analysis;
 class CompilationUnit;
 class NameResolver;
 enum class PredefinedName;
+class SourceCode;
+class SourceCodeRange;
 class Token;
 class TokenFactory;
 enum class TokenType;

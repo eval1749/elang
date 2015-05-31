@@ -85,7 +85,7 @@ ast::ClassBody* NamespaceBuilder::NewClass(TokenType token_type,
   auto const outer = session()->analysis()->SemanticOf(ast_class->parent());
   auto const clazz = token_type == TokenType::Class
                          ? name_resolver()->factory()->NewClass(
-                               outer, modifiers, ast_class->name(), ast_class)
+                               outer, modifiers, ast_class->name())
                          : name_resolver()->factory()->NewStruct(
                                outer, modifiers, ast_class->name());
   semantic_editor_->FixClassBase(clazz, base_classes);

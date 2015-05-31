@@ -61,7 +61,7 @@ Type* SemanticTest::int64_type() {
 }
 
 Class* SemanticTest::NewClass(Semantic* outer, base::StringPiece name) {
-  return factory()->NewClass(outer, Modifiers(), NewToken(name), nullptr);
+  return factory()->NewClass(outer, Modifiers(), NewToken(name));
 }
 
 Class* SemanticTest::NewClass(base::StringPiece name) {

@@ -79,11 +79,9 @@ Class::Class(Zone* zone,
              Semantic* outer,
              Kind kind,
              Modifiers modifiers,
-             Token* name,
-             ast::Class* ast_class)
+             Token* name)
     : NamedMember(outer, name),
       WithModifiers(modifiers),
-      ast_class_(ast_class),
       base_classes_(zone),
       direct_base_classes_(zone),
       has_base_(false),

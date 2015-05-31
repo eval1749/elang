@@ -9,13 +9,17 @@
 #include <vector>
 
 #include "elang/base/zone_owner.h"
-#include "elang/compiler/ast/nodes_forward.h"
 #include "elang/compiler/semantics/nodes_forward.h"
 
 namespace elang {
 namespace compiler {
+namespace ast {
+class NamedNode;
+class Parameter;
+}
 class Analysis;
 class Modifiers;
+class Token;
 class TokenFactory;
 namespace sm {
 
@@ -37,10 +41,7 @@ class Factory final : public ZoneOwner {
   ArrayType* NewArrayType(Type* element_type,
                           const std::vector<int>& dimensions);
 
-  Class* NewClass(Semantic* outer,
-                  Modifiers modifiers,
-                  Token* name,
-                  ast::Class* ast_class);
+  Class* NewClass(Semantic* outer, Modifiers modifiers, Token* name);
   Const* NewConst(Class* owner, Token* name);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);

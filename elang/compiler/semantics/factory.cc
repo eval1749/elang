@@ -113,27 +113,9 @@ ArrayType* Factory::NewArrayType(sm::Type* element_type,
   return array_type_factory_->NewArrayType(element_type, dimensions);
 }
 
-Class* Factory::NewClass(Semantic* outer,
-                         Modifiers modifiers,
-                         Token* name,
-                         ast::Class* ast_class) {
-  struct Local {
-    static Class::Kind KindOf(ast::Class* ast_class) {
-      if (!ast_class)
-        return Class::Kind::Clazz;
-      if (ast_class->is_class())
-        return Class::Kind::Clazz;
-      if (ast_class->is_interface())
-        return Class::Kind::Interface;
-      if (ast_class->is_struct())
-        return Class::Kind::Struct;
-      NOTREACHED() << ast_class;
-      return Class::Kind::Clazz;
-    }
-  };
-  auto const kind = Local::KindOf(ast_class);
+Class* Factory::NewClass(Semantic* outer, Modifiers modifiers, Token* name) {
   auto const clazz =
-      new (zone()) Class(zone(), outer, kind, modifiers, name, ast_class);
+      new (zone()) Class(zone(), outer, Class::Kind::Clazz, modifiers, name);
   AddMember(outer, clazz);
   return clazz;
 }
@@ -166,7 +148,7 @@ Class* Factory::NewInterface(Semantic* outer,
                              Modifiers modifiers,
                              Token* name) {
   auto const clazz = new (zone())
-      Class(zone(), outer, Class::Kind::Interface, modifiers, name, nullptr);
+      Class(zone(), outer, Class::Kind::Interface, modifiers, name);
   AddMember(outer, clazz);
   return clazz;
 }
@@ -210,8 +192,8 @@ Signature* Factory::NewSignature(Type* return_type,
 }
 
 Class* Factory::NewStruct(Semantic* outer, Modifiers modifiers, Token* name) {
-  auto const clazz = new (zone())
-      Class(zone(), outer, Class::Kind::Struct, modifiers, name, nullptr);
+  auto const clazz =
+      new (zone()) Class(zone(), outer, Class::Kind::Struct, modifiers, name);
   AddMember(outer, clazz);
   return clazz;
 }
