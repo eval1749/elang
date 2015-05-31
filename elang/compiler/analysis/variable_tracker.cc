@@ -88,8 +88,9 @@ void VariableTracker::Finish(ts::Factory* type_factory) {
       continue;
     }
     editor.SetSemanticOf(
-        variable, session()->semantic_factory()->NewVariable(
-                      literal->value(), data->ComputeStorageClass(), variable));
+        variable,
+        session()->semantic_factory()->NewVariable(
+            literal->value(), data->ComputeStorageClass(), variable->name()));
   }
 }
 

@@ -10,13 +10,10 @@
 #include "base/containers/adapters.h"
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/enum.h"
-#include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/types.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/visitor.h"
 #include "elang/compiler/parameter_kind.h"
+#include "elang/compiler/token.h"
 
 namespace base {
 std::ostream& operator<<(std::ostream& ostream,
@@ -212,7 +209,7 @@ void Formatter::VisitUndefinedType(UndefinedType* node) {
 
 void Formatter::VisitVariable(Variable* variable) {
   ostream_ << variable->storage() << " " << *variable->type() << " "
-           << variable->ast_node()->name();
+           << variable->name();
 }
 
 }  // namespace

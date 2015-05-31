@@ -603,7 +603,7 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
   // Loop head
   auto const pointer_variable = session()->semantic_factory()->NewVariable(
       analysis()->SemanticOf(node->variable())->as<sm::Variable>()->type(),
-      sm::StorageClass::Local, node->variable());
+      sm::StorageClass::Local, node->variable()->name());
 
   auto const element_type = array_type->as<ir::ArrayType>()->element_type();
   auto const element_pointer_type = NewPointerType(element_type);

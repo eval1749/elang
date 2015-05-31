@@ -9,11 +9,11 @@
 
 #include "base/logging.h"
 #include "elang/base/zone_user.h"
-#include "elang/compiler/ast/class.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/nodes.h"
 #include "elang/compiler/semantics/visitor.h"
+#include "elang/compiler/token.h"
 #include "elang/compiler/token_factory.h"
 
 namespace {
@@ -204,10 +204,8 @@ UndefinedType* Factory::NewUndefinedType(Token* token) {
   return new (zone()) UndefinedType(token);
 }
 
-Variable* Factory::NewVariable(Type* type,
-                               StorageClass storage,
-                               ast::NamedNode* ast_node) {
-  return new (zone()) Variable(type, storage, ast_node);
+Variable* Factory::NewVariable(Type* type, StorageClass storage, Token* name) {
+  return new (zone()) Variable(type, storage, name);
 }
 
 }  // namespace sm

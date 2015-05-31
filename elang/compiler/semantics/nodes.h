@@ -20,9 +20,6 @@
 namespace elang {
 class AtomicString;
 namespace compiler {
-namespace ast {
-class NamedNode;
-}
 enum class ParameterKind;
 class Token;
 namespace sm {
@@ -490,14 +487,16 @@ class Variable final : public Semantic {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Variable, Semantic);
 
  public:
-  ast::NamedNode* ast_node() const { return ast_node_; }
   StorageClass storage() const { return storage_; }
   Type* type() const { return type_; }
 
- private:
-  Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node);
+  // Semantic
+  Token* name() const final;
 
-  ast::NamedNode* const ast_node_;
+ private:
+  Variable(Type* type, StorageClass storage, Token* name);
+
+  Token* const name_;
   StorageClass const storage_;
   Type* const type_;
 

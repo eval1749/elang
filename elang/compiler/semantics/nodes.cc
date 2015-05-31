@@ -6,10 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/semantics/nodes.h"
-
-#include "elang/compiler/ast/class.h"
-#include "elang/compiler/ast/method.h"
-#include "elang/compiler/ast/types.h"
+#include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
@@ -339,11 +336,12 @@ bool UndefinedType::IsSubtypeOf(const Type* other) const {
 }
 
 // Variable
-Variable::Variable(Type* type, StorageClass storage, ast::NamedNode* ast_node)
-    : Semantic(ast_node->name()),
-      ast_node_(ast_node),
-      storage_(storage),
-      type_(type) {
+Variable::Variable(Type* type, StorageClass storage, Token* name)
+    : Semantic(name), name_(name), storage_(storage), type_(type) {
+}
+
+Token* Variable::name() const {
+  return name_;
 }
 
 // Value

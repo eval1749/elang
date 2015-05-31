@@ -13,9 +13,6 @@
 
 namespace elang {
 namespace compiler {
-namespace ast {
-class NamedNode;
-}
 class Analysis;
 class Modifiers;
 enum class ParameterKind;
@@ -65,10 +62,7 @@ class Factory final : public ZoneOwner {
                           const std::vector<Parameter*>& parameters);
   Class* NewStruct(Semantic* outer, Modifiers modifiers, Token* name);
   UndefinedType* NewUndefinedType(Token* token);
-
-  Variable* NewVariable(Type* type,
-                        StorageClass storage,
-                        ast::NamedNode* variable);
+  Variable* NewVariable(Type* type, StorageClass storage, Token* name);
 
  private:
   class ArrayTypeFactory;
