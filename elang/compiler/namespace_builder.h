@@ -17,6 +17,7 @@ namespace elang {
 namespace compiler {
 class AnalysisEditor;
 class NameResolver;
+enum class ParameterKind;
 enum class PredefinedName;
 class Token;
 enum class TokenType;
@@ -24,6 +25,9 @@ enum class TokenType;
 namespace sm {
 class Class;
 class Editor;
+class Method;
+class Parameter;
+class Semantic;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -46,17 +50,20 @@ class NamespaceBuilder : public CompilationSessionUser {
                             base::StringPiece base_names);
   Token* NewKeyword(TokenType type);
   Token* NewName(base::StringPiece name);
-  ast::Parameter* NewParameter(ast::Method* method,
-                               int position,
-                               base::StringPiece type,
-                               base::StringPiece name);
+  sm::Parameter* NewParameter(ParameterKind kind,
+                              int position,
+                              base::StringPiece type,
+                              base::StringPiece name);
   ast::Type* NewTypeReference(TokenType keyword);
   ast::Type* NewTypeReference(base::StringPiece name);
+  sm::Semantic* SemanticOf(base::StringPiece16 name) const;
+  sm::Semantic* SemanticOf(base::StringPiece name) const;
 
  private:
   ast::ClassBody* NewClass(TokenType token_type,
                            base::StringPiece name,
                            base::StringPiece base_names);
+
   std::unique_ptr<AnalysisEditor> analysis_editor_;
   NameResolver* const name_resolver_;
   std::unique_ptr<sm::Editor> semantic_editor_;

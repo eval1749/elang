@@ -116,13 +116,12 @@ Token* NamespaceBuilder::NewName(base::StringPiece name) {
       SourceCodeRange(), session()->NewAtomicString(base::UTF8ToUTF16(name)));
 }
 
-ast::Parameter* NamespaceBuilder::NewParameter(ast::Method* method,
-                                               int position,
-                                               base::StringPiece type,
-                                               base::StringPiece name) {
-  return session()->ast_factory()->NewParameter(
-      method, ParameterKind::Required, position, NewTypeReference(type),
-      NewName(name), nullptr);
+sm::Parameter* NamespaceBuilder::NewParameter(ParameterKind kind,
+                                              int position,
+                                              base::StringPiece type,
+                                              base::StringPiece name) {
+  return session()->semantic_factory()->NewParameter(
+      kind, position, SemanticOf(type)->as<sm::Type>(), NewName(name), nullptr);
 }
 
 ast::ClassBody* NamespaceBuilder::NewStruct(base::StringPiece name,
@@ -139,7 +138,7 @@ ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece reference) {
   ast::Type* last = nullptr;
   for (size_t pos = 0; pos < reference.size(); ++pos) {
     auto dot_pos = reference.find('.', pos);
-    if (dot_pos == std::string::npos)
+    if (dot_pos == base::StringPiece::npos)
       dot_pos = reference.size();
     auto const name = NewName(reference.substr(pos, dot_pos - pos));
     pos = dot_pos;
@@ -152,6 +151,32 @@ ast::Type* NamespaceBuilder::NewTypeReference(base::StringPiece reference) {
         session()->ast_factory()->NewNameReference(name));
   }
   return last;
+}
+
+sm::Semantic* NamespaceBuilder::SemanticOf(base::StringPiece16 path) const {
+  sm::Semantic* enclosing = session()->semantic_factory()->global_namespace();
+  sm::Semantic* found = static_cast<sm::Semantic*>(nullptr);
+  for (size_t pos = 0u; pos < path.length(); ++pos) {
+    auto dot_pos = path.find('.', pos);
+    if (dot_pos == base::StringPiece16::npos)
+      dot_pos = path.length();
+    auto const name =
+        session()->NewAtomicString(path.substr(pos, dot_pos - pos));
+    found = enclosing->FindMember(name);
+    if (!found)
+      return nullptr;
+    pos = dot_pos;
+    if (pos == path.length())
+      break;
+    enclosing = found;
+    if (!enclosing)
+      return nullptr;
+  }
+  return found;
+}
+
+sm::Semantic* NamespaceBuilder::SemanticOf(base::StringPiece path) const {
+  return SemanticOf(base::UTF8ToUTF16(path));
 }
 
 }  // namespace compiler

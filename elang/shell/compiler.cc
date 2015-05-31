@@ -255,36 +255,32 @@ void PopulateNamespace(NameResolver* name_resolver) {
   //   public static void WriteLine(String string);
   //   public static void WriteLine(String string, Object object);
   // }
-  auto const console_class_body = builder.NewClass("Console", "Object");
-  auto const console_class = console_class_body->owner();
+  auto const session = name_resolver->session();
+  auto const console_class =
+      session->analysis()
+          ->SemanticOf(builder.NewClass("Console", "Object"))
+          ->as<sm::Class>();
 
-  auto const write_line = builder.ast_factory()->NewMethodGroup(
+  auto const write_line = session->semantic_factory()->NewMethodGroup(
       console_class, builder.NewName("WriteLine"));
 
-  auto const write_line_string = builder.ast_factory()->NewMethod(
-      console_class_body, write_line,
+  session->semantic_factory()->NewMethod(
+      write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      builder.NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string->SetParameters({
-      builder.NewParameter(write_line_string, 0, "System.String", "string"),
-  });
+      session->semantic_factory()->NewSignature(
+          builder.SemanticOf("System.Void")->as<sm::Type>(),
+          {builder.NewParameter(ParameterKind::Required, 0, "System.String",
+                                "string")}));
 
-  auto const write_line_string_object = builder.ast_factory()->NewMethod(
-      console_class_body, write_line,
+  session->semantic_factory()->NewMethod(
+      write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      builder.NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string_object->SetParameters({
-      builder.NewParameter(write_line_string_object, 0, "System.String",
-                           "string"),
-      builder.NewParameter(write_line_string_object, 1, "System.Object",
-                           "object"),
-  });
-
-  write_line->AddMethod(write_line_string);
-  console_class_body->AddMember(write_line_string);
-  write_line->AddMethod(write_line_string_object);
-  console_class_body->AddMember(write_line_string_object);
-  console_class->AddNamedMember(write_line);
+      session->semantic_factory()->NewSignature(
+          builder.SemanticOf("System.Void")->as<sm::Type>(),
+          {builder.NewParameter(ParameterKind::Required, 0, "System.String",
+                                "string"),
+           builder.NewParameter(ParameterKind::Required, 0, "System.Object",
+                                "object")}));
 }
 
 // Collect methods having following signature:

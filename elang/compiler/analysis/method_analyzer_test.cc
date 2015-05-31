@@ -23,6 +23,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/modifiers.h"
 #include "elang/compiler/namespace_builder.h"
+#include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/predefined_names.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
@@ -126,35 +127,32 @@ MyNamespaceBuilder::MyNamespaceBuilder(NameResolver* name_resolver)
 void MyNamespaceBuilder::Build() {
   // public class Console {
   //   public static void WriteLine(String string);
+  //   public static void WriteLine(String string, Object object);
   // }
-  auto const console_class_body = NewClass("Console", "Object");
-  auto const console_class = console_class_body->owner();
+  auto const console_class = session()
+                                 ->analysis()
+                                 ->SemanticOf(NewClass("Console", "Object"))
+                                 ->as<sm::Class>();
 
-  auto const write_line = session()->ast_factory()->NewMethodGroup(
+  auto const write_line = session()->semantic_factory()->NewMethodGroup(
       console_class, NewName("WriteLine"));
 
-  auto const write_line_string = session()->ast_factory()->NewMethod(
-      console_class_body, write_line,
+  session()->semantic_factory()->NewMethod(
+      write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string->SetParameters({
-      NewParameter(write_line_string, 0, "System.String", "string"),
-  });
+      session()->semantic_factory()->NewSignature(
+          SemanticOf("System.Void")->as<sm::Type>(),
+          {NewParameter(ParameterKind::Required, 0, "System.String",
+                        "string")}));
 
-  auto const write_line_string_object = session()->ast_factory()->NewMethod(
-      console_class_body, write_line,
+  session()->semantic_factory()->NewMethod(
+      write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      NewTypeReference(TokenType::Void), write_line->name(), {});
-  write_line_string_object->SetParameters({
-      NewParameter(write_line_string_object, 0, "System.String", "string"),
-      NewParameter(write_line_string_object, 1, "System.Object", "object"),
-  });
-
-  write_line->AddMethod(write_line_string);
-  console_class_body->AddMember(write_line_string);
-  write_line->AddMethod(write_line_string_object);
-  console_class_body->AddMember(write_line_string_object);
-  console_class->AddNamedMember(write_line);
+      session()->semantic_factory()->NewSignature(
+          SemanticOf("System.Void")->as<sm::Type>(),
+          {NewParameter(ParameterKind::Required, 0, "System.String", "string"),
+           NewParameter(ParameterKind::Required, 0, "System.Object",
+                        "object")}));
 }
 
 //////////////////////////////////////////////////////////////////////
