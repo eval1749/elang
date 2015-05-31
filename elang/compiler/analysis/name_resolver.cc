@@ -43,6 +43,9 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<sm::Semantic*>* founds);
+  void FindWithImports(Token* name,
+                       ast::NamespaceBody* ns_body,
+                       std::unordered_set<sm::Semantic*>* founds);
   void ProduceResult(sm::Semantic* result);
 
   // ast::Visitor
@@ -73,6 +76,30 @@ void NameResolver::ReferenceResolver::FindInClass(
   }
   for (auto const base_class : clazz->direct_base_classes())
     FindInClass(name, base_class, founds);
+}
+
+void NameResolver::ReferenceResolver::FindWithImports(
+    Token* name,
+    ast::NamespaceBody* ns_body,
+    std::unordered_set<sm::Semantic*>* founds) {
+  for (auto const pair : ns_body->imports()) {
+    auto const imported_ns = resolver()->ImportedNamespaceOf(pair.second);
+    if (!imported_ns)
+      continue;
+    auto const present = imported_ns->FindMember(name);
+    if (!present)
+      continue;
+    if (present->is<sm::Namespace>()) {
+      // Import directive doesn't import nested namespace.
+      // Example:
+      //   namespace N1.N2 { class A {} }
+      //   namespace N3 { using N1; class B : N2.A {} }
+      // Reference |N2.A| is undefined, since |using N1| doesn't import
+      // nested namespace N1.N2.
+      continue;
+    }
+    founds->insert(present);
+  }
 }
 
 void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
@@ -107,7 +134,7 @@ void NameResolver::ReferenceResolver::VisitMemberAccess(
 }
 
 // Algorithm of this function should be equivalent to
-// |NamespaceAnalyzer::ResolveNameReference()|.
+// |ClassTreeBuilder::ResolveNameReference()|.
 void NameResolver::ReferenceResolver::VisitNameReference(
     ast::NameReference* node) {
   auto const name = node->name();
@@ -122,54 +149,44 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   }
 
   for (ast::Node* runner = container_; runner; runner = runner->parent()) {
-    auto const container = runner->is<ast::ClassBody>()
-                               ? runner->as<ast::ClassBody>()->owner()
-                               : runner->as<ast::ContainerNode>();
-    if (!container)
+    auto const container = SemanticOf(runner);
+    if (!container) {
+      DCHECK(runner->is<ast::Method>()) << runner;
       continue;
+    }
 
     std::unordered_set<sm::Semantic*> founds;
 
-    if (auto const clazz = container->as<ast::Class>()) {
-      FindInClass(name, SemanticOf(clazz)->as<sm::Class>(), &founds);
+    // Find in container
+    if (auto const present = container->FindMember(name))
+      founds.insert(present);
 
-    } else if (auto const ns_body = container->as<ast::NamespaceBody>()) {
-      // Find in enclosing namespace
-      if (auto const present = ns_body->owner()->FindMember(name))
-        founds.insert(SemanticOf(present));
+    if (auto const clazz = container->as<sm::Class>()) {
+      if (founds.empty())
+        FindInClass(name, clazz, &founds);
 
+    } else if (auto const ns_body = runner->as<ast::NamespaceBody>()) {
+      DCHECK(container->is<sm::Namespace>());
       // Find alias
       if (auto const alias = ns_body->FindAlias(name)) {
         if (auto const present = resolver()->RealNameOf(alias))
           founds.insert(present);
       }
 
-      if (!ns_body->FindMember(name)) {
+      if (founds.empty()) {
         // When |name| isn't defined in namespace body, looking in imported
         // namespaces.
-        for (auto const pair : ns_body->imports()) {
-          auto const imported_ns = resolver()->ImportedNamespaceOf(pair.second);
-          if (!imported_ns)
-            continue;
-          if (auto const present = imported_ns->FindMember(name)) {
-            if (present && !present->is<sm::Namespace>())
-              founds.insert(present);
-          }
-        }
+        FindWithImports(name, ns_body, &founds);
       }
     } else {
-      DCHECK(container->is<ast::Enum>() || container->is<ast::Method>() ||
-             container->is<ast::Namespace>())
-          << " container=" << *container;
-      // Note: |ast::Method| holds type parameters in named node map.
-      if (auto const present = container->FindMember(name))
-        founds.insert(SemanticOf(present));
+      // TODO(eval1749) We should not accept |sm::Namespace|.
+      DCHECK(container->is<sm::Enum>() || container->is<sm::Method>() ||
+             container->is<sm::Namespace>())
+          << container << " runner=" << runner;
     }
 
-    if (founds.size() == 1) {
-      ProduceResult(*founds.begin());
-      return;
-    }
+    if (founds.size() == 1)
+      return ProduceResult(*founds.begin());
 
     if (founds.size() > 1) {
       Error(ErrorCode::NameResolutionNameAmbiguous, node->token(),

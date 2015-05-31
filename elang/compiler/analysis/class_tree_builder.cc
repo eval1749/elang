@@ -317,6 +317,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
       return outer;
     std::unordered_set<sm::Semantic*> founds;
     if (auto const ns_body = runner->as<ast::NamespaceBody>()) {
+      DCHECK(outer->is<sm::Namespace>());
       if (auto const present = outer->FindMember(name))
         founds.insert(present);
       if (auto const alias = ns_body->FindMember(name)->as<ast::Alias>()) {
