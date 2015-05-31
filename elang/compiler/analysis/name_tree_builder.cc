@@ -88,7 +88,7 @@ void NameTreeBuilder::VisitAlias(ast::Alias* node) {
 void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
   if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
     if (ns->loaded_)
-      return ast::Visitor::VisitClassBody(node);
+      return;
   }
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
