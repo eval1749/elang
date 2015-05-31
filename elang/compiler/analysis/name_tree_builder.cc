@@ -30,20 +30,20 @@ NameTreeBuilder::NameTreeBuilder(CompilationSession* session,
 NameTreeBuilder::~NameTreeBuilder() {
 }
 
+sm::Factory* NameTreeBuilder::factory() const {
+  return session()->semantic_factory();
+}
+
 sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
   auto const outer = SemanticOf(node->parent());
   if (node->owner()->is_class()) {
-    return session()->semantic_factory()->NewClass(outer, node->modifiers(),
-                                                   node->name(), node->owner());
+    return factory()->NewClass(outer, node->modifiers(), node->name(),
+                               node->owner());
   }
-  if (node->owner()->is_interface()) {
-    return session()->semantic_factory()->NewInterface(outer, node->modifiers(),
-                                                       node->name());
-  }
-  if (node->owner()->is_struct()) {
-    return session()->semantic_factory()->NewStruct(outer, node->modifiers(),
-                                                    node->name());
-  }
+  if (node->owner()->is_interface())
+    return factory()->NewInterface(outer, node->modifiers(), node->name());
+  if (node->owner()->is_struct())
+    return factory()->NewStruct(outer, node->modifiers(), node->name());
   NOTREACHED() << node;
   return nullptr;
 }
@@ -52,8 +52,7 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
   if (node->loaded_)
     return;
   if (node->owner() == session()->global_namespace()) {
-    editor_->SetSemanticOf(node,
-                           session()->semantic_factory()->global_namespace());
+    editor_->SetSemanticOf(node, factory()->global_namespace());
     return;
   }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
@@ -63,8 +62,7 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
     editor_->SetSemanticOf(node, present);
     return;
   }
-  auto const ns =
-      session()->semantic_factory()->NewNamespace(outer, node->name());
+  auto const ns = factory()->NewNamespace(outer, node->name());
   editor_->SetSemanticOf(node, ns);
   editor_->SetSemanticOf(node->owner(), ns);
 }
@@ -117,8 +115,7 @@ void NameTreeBuilder::VisitConst(ast::Const* node) {
       SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
-    editor_->SetSemanticOf(
-        node, session()->semantic_factory()->NewConst(owner, node->name()));
+    editor_->SetSemanticOf(node, factory()->NewConst(owner, node->name()));
     return;
   }
   if (present->is<sm::Const>()) {
@@ -140,11 +137,10 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
     return Error(ErrorCode::NameTreeEnumConflict, node, present->name());
   }
 
-  auto const enum_type =
-      session()->semantic_factory()->NewEnum(outer, node->name());
+  auto const enum_type = factory()->NewEnum(outer, node->name());
   for (auto const member : node->members()) {
-    editor_->SetSemanticOf(member, session()->semantic_factory()->NewEnumMember(
-                                       enum_type, member->name()));
+    editor_->SetSemanticOf(member,
+                           factory()->NewEnumMember(enum_type, member->name()));
   }
   editor_->SetSemanticOf(node, enum_type);
 }
@@ -154,8 +150,7 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
       SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
-    editor_->SetSemanticOf(
-        node, session()->semantic_factory()->NewField(owner, node->name()));
+    editor_->SetSemanticOf(node, factory()->NewField(owner, node->name()));
     return;
   }
   if (present->is<sm::Field>())
@@ -168,7 +163,7 @@ void NameTreeBuilder::VisitMethod(ast::Method* node) {
       SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
-    session()->semantic_factory()->NewMethodGroup(owner, node->name());
+    factory()->NewMethodGroup(owner, node->name());
     return;
   }
   if (present->is<sm::MethodGroup>())
