@@ -21,6 +21,18 @@ namespace compiler {
   /* Class Analyzer */                                \
   E(ClassResolution, Method, Conflict)                \
   E(ClassResolution, Method, Duplicate)               \
+  /* Class Tree */                                    \
+  E(ClassTree, Alias, NeitherNamespaceNorType)        \
+  E(ClassTree, Alias, NotUsed)                        \
+  E(ClassTree, BaseClass, Conflict)                   \
+  E(ClassTree, BaseClass, Duplicate)                  \
+  E(ClassTree, BaseClass, Self)                       \
+  E(ClassTree, Name, Ambiguous)                       \
+  E(ClassTree, Name, Cycle)                           \
+  E(ClassTree, Name, NotClass)                        \
+  E(ClassTree, Name, NotFound)                        \
+  E(ClassTree, Name, NotInterface)                    \
+  E(ClassTree, Name, NotStruct)                       \
   /* Code Generator */                                \
   E(CodeGenerator, Expression, NotYetImplemented)     \
   E(CodeGenerator, Return, None)                      \

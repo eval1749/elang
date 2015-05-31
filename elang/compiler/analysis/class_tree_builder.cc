@@ -102,11 +102,11 @@ void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
       continue;
     auto const base_class = present->as<sm::Class>();
     if (!base_class) {
-      Error(ErrorCode::NameResolutionNameNotClass, base_class_name);
+      Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
       continue;
     }
     if (clazz == base_class) {
-      Error(ErrorCode::NameResolutionBaseClassSelf, base_class_name);
+      Error(ErrorCode::ClassTreeBaseClassSelf, base_class_name);
       continue;
     }
     MarkDepdency(clazz, base_class);
@@ -171,16 +171,16 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
       auto const base_class = present->as<sm::Class>();
       if (!base_class) {
         if (clazz->is_class())
-          Error(ErrorCode::NameResolutionNameNotClass, base_class_name);
+          Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
         else if (clazz->is_struct())
-          Error(ErrorCode::NameResolutionNameNotStruct, base_class_name);
+          Error(ErrorCode::ClassTreeNameNotStruct, base_class_name);
         else
-          Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
+          Error(ErrorCode::ClassTreeNameNotInterface, base_class_name);
         continue;
       }
       DCHECK(IsFixed(base_class)) << base_class_name;
       if (direct_presents.count(base_class)) {
-        Error(ErrorCode::NameResolutionBaseClassDuplicate, base_class_name);
+        Error(ErrorCode::ClassTreeBaseClassDuplicate, base_class_name);
         continue;
       }
       direct_presents.insert(base_class);
@@ -192,13 +192,13 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
         continue;
       }
       if (position != 1 || clazz->is_interface()) {
-        Error(ErrorCode::NameResolutionNameNotInterface, base_class_name);
+        Error(ErrorCode::ClassTreeNameNotInterface, base_class_name);
         continue;
       }
       if (clazz->is_class() && base_class->is_struct())
-        Error(ErrorCode::NameResolutionNameNotClass, base_class_name);
+        Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
       else if (clazz->is_struct() && base_class->is_class())
-        Error(ErrorCode::NameResolutionNameNotStruct, base_class_name);
+        Error(ErrorCode::ClassTreeNameNotStruct, base_class_name);
       base_class_candidates.push_back(base_class);
     }
   }
@@ -213,7 +213,7 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
 
   if (base_class_candidates.size() >= 2) {
     for (auto const base_class : base_class_candidates)
-      Error(ErrorCode::NameResolutionBaseClassConflict, base_class->name());
+      Error(ErrorCode::ClassTreeBaseClassConflict, base_class->name());
     return;
   }
 
@@ -242,8 +242,7 @@ void ClassTreeBuilder::MarkDepdency(sm::Class* clazz, sm::Class* using_class) {
   if (dependency_graph_.HasEdge(clazz, using_class))
     return;
   if (dependency_graph_.HasEdge(using_class, clazz)) {
-    Error(ErrorCode::NameResolutionNameCycle, clazz->name(),
-          using_class->name());
+    Error(ErrorCode::ClassTreeNameCycle, clazz->name(), using_class->name());
     return;
   }
   dependency_graph_.AddEdge(clazz, using_class);
@@ -278,18 +277,18 @@ sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
     return container;
   auto const clazz = container->as<sm::Class>();
   if (!clazz) {
-    Error(ErrorCode::NameResolutionNameNotFound, node);
+    Error(ErrorCode::ClassTreeNameNotFound, node);
     return NewUndefinedType(node);
   }
   std::unordered_set<sm::Semantic*> founds;
   FindInClass(node->name(), clazz, &founds);
   if (founds.empty()) {
-    Error(ErrorCode::NameResolutionNameNotFound, node);
+    Error(ErrorCode::ClassTreeNameNotFound, node);
     return NewUndefinedType(node);
   }
   if (founds.size() >= 2) {
     for (auto const found : founds)
-      Error(ErrorCode::NameResolutionNameAmbiguous, node, found->name());
+      Error(ErrorCode::ClassTreeNameAmbiguous, node, found->name());
     return NewUndefinedType(node);
   }
   return *founds.begin();
@@ -343,11 +342,11 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
     if (founds.size() == 1)
       return *founds.begin();
     if (founds.size() >= 2) {
-      Error(ErrorCode::NameResolutionNameAmbiguous, node);
+      Error(ErrorCode::ClassTreeNameAmbiguous, node);
       return NewUndefinedType(node);
     }
   }
-  Error(ErrorCode::NameResolutionNameNotFound, node);
+  Error(ErrorCode::ClassTreeNameNotFound, node);
   return NewUndefinedType(node);
 }
 
@@ -364,12 +363,11 @@ void ClassTreeBuilder::Run() {
       FixClass(clazz);
   }
   for (auto const alias : unused_aliases_) {
-    Error(ErrorCode::NameResolutionAliasNotUsed, alias->name());
+    Error(ErrorCode::ClassTreeAliasNotUsed, alias->name());
     auto const result = Resolve(alias->reference(), alias->parent()->parent());
     if (IsNamespaceOrType(result))
       continue;
-    Error(ErrorCode::NameResolutionAliasNeitherNamespaceNorType,
-          alias->reference());
+    Error(ErrorCode::ClassTreeAliasNeitherNamespaceNorType, alias->reference());
   }
 }
 

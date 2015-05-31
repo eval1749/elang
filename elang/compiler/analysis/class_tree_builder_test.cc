@@ -115,7 +115,7 @@ TEST_F(ClassTreeBuilderTest, AliasErrorNotFound) {
       "  using R1 = Foo;"  // |Foo| isn't defined anywhere.
       "  class A : R1 {}"
       "}");
-  EXPECT_EQ("NameResolution.Name.NotFound(26) Foo\n", BuildClassTree())
+  EXPECT_EQ("ClassTree.Name.NotFound(26) Foo\n", BuildClassTree())
       << "Alias references non-existing thing Foo.";
 }
 
@@ -126,8 +126,8 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScope) {
       "namespace N3 { using R = N1.N2; }"
       "namespace N3 { class B : R.A {} }");  // Error: R unknown
   EXPECT_EQ(
-      "NameResolution.Alias.NotUsed(51) R\n"
-      "NameResolution.Name.NotFound(88) R\n",
+      "ClassTree.Alias.NotUsed(51) R\n"
+      "ClassTree.Name.NotFound(88) R\n",
       BuildClassTree());
 }
 
@@ -141,8 +141,8 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScopeHide) {
       "  class B : R.A {}"  // Error: R has no member A.
       "}");
   EXPECT_EQ(
-      "NameResolution.Alias.NotUsed(6) R\n"
-      "NameResolution.Name.NotFound(86) R.A\n",
+      "ClassTree.Alias.NotUsed(6) R\n"
+      "ClassTree.Name.NotFound(86) R.A\n",
       BuildClassTree());
 }
 
@@ -156,10 +156,10 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScopeResolution) {
       "  using R3 = R1.N2;"  // Error: R1 is unknown.
       "}");
   EXPECT_EQ(
-      "NameResolution.Alias.NotUsed(40) R1\n"
-      "NameResolution.Alias.NotUsed(56) R2\n"
-      "NameResolution.Alias.NotUsed(75) R3\n"
-      "NameResolution.Name.NotFound(80) R1\n",
+      "ClassTree.Alias.NotUsed(40) R1\n"
+      "ClassTree.Alias.NotUsed(56) R2\n"
+      "ClassTree.Alias.NotUsed(75) R3\n"
+      "ClassTree.Name.NotFound(80) R1\n",
       BuildClassTree());
 }
 
