@@ -26,33 +26,31 @@ class ClassAnalyzerTest : public testing::AnalyzerTest {
 TEST_F(ClassAnalyzerTest, Enum) {
   Prepare("enum Color { Red, Green, Blue }");
   EXPECT_EQ("", AnalyzeClass());
-  auto const node = FindMember("Color");
-  auto const semantic = SemanticOf(node);
   EXPECT_EQ("enum Color : System.Int32 {Red = 0, Green = 1, Blue = 2}",
-            ToString(semantic));
+            ToString(SemanticOf("Color")));
 }
 
 TEST_F(ClassAnalyzerTest, EnumConstExpr) {
   Prepare("enum Color { Red = 1, Green = Red + 2, Blue = Red + 4 }");
   EXPECT_EQ("", AnalyzeClass());
-  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf(FindMember("Color.Red"))));
-  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf(FindMember("Color.Green"))));
-  EXPECT_EQ("Color.Blue = 5", ToString(SemanticOf(FindMember("Color.Blue"))));
+  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf("Color.Red")));
+  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf("Color.Green")));
+  EXPECT_EQ("Color.Blue = 5", ToString(SemanticOf("Color.Blue")));
 }
 
 TEST_F(ClassAnalyzerTest, EnumConstExprForwardReference) {
   Prepare("enum Color { Red = Blue, Green = Blue + 2, Blue = 1}");
   EXPECT_EQ("", AnalyzeClass());
-  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf(FindMember("Color.Red"))));
-  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf(FindMember("Color.Green"))));
-  EXPECT_EQ("Color.Blue = 1", ToString(SemanticOf(FindMember("Color.Blue"))));
+  EXPECT_EQ("Color.Red = 1", ToString(SemanticOf("Color.Red")));
+  EXPECT_EQ("Color.Green = 3", ToString(SemanticOf("Color.Green")));
+  EXPECT_EQ("Color.Blue = 1", ToString(SemanticOf("Color.Blue")));
 }
 
 TEST_F(ClassAnalyzerTest, EnumConstExprWithAnotherEnum) {
   Prepare("enum E1 { M = E2.N } enum E2 { N = 42 }");
   EXPECT_EQ("", AnalyzeClass());
-  EXPECT_EQ("E1.M = 42", ToString(SemanticOf(FindMember("E1.M"))));
-  EXPECT_EQ("E2.N = 42", ToString(SemanticOf(FindMember("E2.N"))));
+  EXPECT_EQ("E1.M = 42", ToString(SemanticOf("E1.M")));
+  EXPECT_EQ("E2.N = 42", ToString(SemanticOf("E2.N")));
 }
 
 TEST_F(ClassAnalyzerTest, EnumErrorCycle) {

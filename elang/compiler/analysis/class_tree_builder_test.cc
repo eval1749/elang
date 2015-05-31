@@ -30,8 +30,6 @@ class ClassTreeBuilderTest : public testing::AnalyzerTest {
 
   std::string BaseClassesOf(base::StringPiece path);
   std::string BuildClassTree();
-  sm::Semantic* SemanticOf(base::StringPiece16 path) const;
-  sm::Semantic* SemanticOf(base::StringPiece path) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ClassTreeBuilderTest);
@@ -60,32 +58,6 @@ std::string ClassTreeBuilderTest::BuildClassTree() {
   sm::Editor semantic_editor(session());
   ClassTreeBuilder(name_resolver(), &semantic_editor).Run();
   return GetErrors();
-}
-
-sm::Semantic* ClassTreeBuilderTest::SemanticOf(base::StringPiece16 path) const {
-  sm::Semantic* enclosing = session()->semantic_factory()->global_namespace();
-  sm::Semantic* found = static_cast<sm::Semantic*>(nullptr);
-  for (size_t pos = 0u; pos < path.length(); ++pos) {
-    auto dot_pos = path.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = path.length();
-    auto const name =
-        session()->NewAtomicString(path.substr(pos, dot_pos - pos));
-    found = enclosing->FindMember(name);
-    if (!found)
-      return nullptr;
-    pos = dot_pos;
-    if (pos == path.length())
-      break;
-    enclosing = found;
-    if (!enclosing)
-      return nullptr;
-  }
-  return found;
-}
-
-sm::Semantic* ClassTreeBuilderTest::SemanticOf(base::StringPiece path) const {
-  return SemanticOf(base::UTF8ToUTF16(path));
 }
 
 TEST_F(ClassTreeBuilderTest, AliasBasic) {

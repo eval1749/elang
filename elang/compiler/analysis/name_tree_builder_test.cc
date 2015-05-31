@@ -26,8 +26,6 @@ class NameTreeBuilderTest : public testing::AnalyzerTest {
   ~NameTreeBuilderTest() override = default;
 
   std::string BuildNameTree();
-  sm::Semantic* SemanticOf(base::StringPiece16 path) const;
-  sm::Semantic* SemanticOf(base::StringPiece path) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NameTreeBuilderTest);
@@ -39,32 +37,6 @@ std::string NameTreeBuilderTest::BuildNameTree() {
   AnalysisEditor editor(session()->analysis());
   NameTreeBuilder(session(), &editor).Run();
   return GetErrors();
-}
-
-sm::Semantic* NameTreeBuilderTest::SemanticOf(base::StringPiece16 path) const {
-  sm::Semantic* enclosing = session()->semantic_factory()->global_namespace();
-  sm::Semantic* found = static_cast<sm::Semantic*>(nullptr);
-  for (size_t pos = 0u; pos < path.length(); ++pos) {
-    auto dot_pos = path.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = path.length();
-    auto const name =
-        session()->NewAtomicString(path.substr(pos, dot_pos - pos));
-    found = enclosing->FindMember(name);
-    if (!found)
-      return nullptr;
-    pos = dot_pos;
-    if (pos == path.length())
-      break;
-    enclosing = found;
-    if (!enclosing)
-      return nullptr;
-  }
-  return found;
-}
-
-sm::Semantic* NameTreeBuilderTest::SemanticOf(base::StringPiece path) const {
-  return SemanticOf(base::UTF8ToUTF16(path));
 }
 
 // Note: MS C# compiler doesn't report error if alias A isn't used.

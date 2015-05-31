@@ -166,8 +166,30 @@ std::string AnalyzerTest::MakeClassListString(
       std::vector<sm::Class*>(classes.begin(), classes.end()));
 }
 
-sm::Semantic* AnalyzerTest::SemanticOf(ast::Node* node) {
-  return analysis()->SemanticOf(node);
+sm::Semantic* AnalyzerTest::SemanticOf(base::StringPiece16 path) const {
+  sm::Semantic* enclosing = session()->semantic_factory()->global_namespace();
+  sm::Semantic* found = static_cast<sm::Semantic*>(nullptr);
+  for (size_t pos = 0u; pos < path.length(); ++pos) {
+    auto dot_pos = path.find('.', pos);
+    if (dot_pos == base::StringPiece::npos)
+      dot_pos = path.length();
+    auto const name =
+        session()->NewAtomicString(path.substr(pos, dot_pos - pos));
+    found = enclosing->FindMember(name);
+    if (!found)
+      return nullptr;
+    pos = dot_pos;
+    if (pos == path.length())
+      break;
+    enclosing = found;
+    if (!enclosing)
+      return nullptr;
+  }
+  return found;
+}
+
+sm::Semantic* AnalyzerTest::SemanticOf(base::StringPiece path) const {
+  return SemanticOf(base::UTF8ToUTF16(path));
 }
 
 std::string AnalyzerTest::ToString(sm::Semantic* semantic) {
