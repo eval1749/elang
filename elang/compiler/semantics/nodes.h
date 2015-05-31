@@ -68,6 +68,7 @@ class Semantic : public Castable<Semantic>,
 
   sm::Semantic* FindMember(AtomicString* name) const;
   sm::Semantic* FindMember(Token* name) const;
+  bool IsDescendantOf(const Semantic* other) const;
 
  protected:
   explicit Semantic(Token* token);

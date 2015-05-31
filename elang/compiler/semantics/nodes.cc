@@ -283,6 +283,15 @@ Semantic* Semantic::FindMemberByString(AtomicString* name) const {
   return nullptr;
 }
 
+bool Semantic::IsDescendantOf(const Semantic* other) const {
+  DCHECK(other);
+  for (auto runner = outer(); runner; runner = runner->outer()) {
+    if (runner == other)
+      return true;
+  }
+  return false;
+}
+
 // Signature
 Signature::Signature(Zone* zone,
                      Type* return_type,
