@@ -208,5 +208,136 @@ TEST_F(ClassTreeBuilderTest, AliasToAliasDeep) {
   EXPECT_EQ("N1.N2.A.B.C", BaseClassesOf("N1.D"));
 }
 
+TEST_F(ClassTreeBuilderTest, ClassBasic) {
+  Prepare("class A : C {} class B : A {} class C {}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("C", BaseClassesOf("A"));
+  EXPECT_EQ("A", BaseClassesOf("B"));
+}
+
+TEST_F(ClassTreeBuilderTest, ClassNested) {
+  Prepare("class A { class B {} }");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("System.Object", BaseClassesOf("A"));
+  EXPECT_EQ("System.Object", BaseClassesOf("A.B"));
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseNotInterface) {
+  Prepare(
+      "class A : B, C {}"  // C must be an interface.
+      "class B {}"
+      "class C {}");
+  EXPECT_EQ("ClassTree.BaseClass.NotInterface(13) C\n", BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseStruct) {
+  Prepare(
+      "class A : S {}"
+      "struct S {}");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(10) S\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsInterface) {
+  Prepare(
+      "class A : B, C {}"
+      "interface B {}"
+      "class C {}");
+  EXPECT_EQ("ClassTree.BaseClass.NotInterface(13) C\n", BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsStruct) {
+  Prepare(
+      "class A : B {}"
+      "struct B {}");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(10) B\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsEnum) {
+  Prepare("class A : E {} enum E { E1 }");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(10) E\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsEnumMember) {
+  Prepare("class A : E.E1 {} enum E { E1 }");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(12) E.E1\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsField) {
+  Prepare("class A : B.F {} class B { int F; }");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(12) B.F\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsMethod) {
+  Prepare("class A : B.M {} class B { void M() {} }");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(12) B.M\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorBaseClassIsNamespace) {
+  Prepare("namespace N1 { class A : N1 {} }");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherClassNorInterface(25) N1\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorCircularlyDependency) {
+  Prepare(
+      "class A : B {}"
+      "class B : C {}"
+      "class C : A {}");
+  EXPECT_EQ(
+      "ClassTree.Class.Cycle(6) A B\n"
+      "ClassTree.Class.Cycle(20) B C\n"
+      "ClassTree.Class.Cycle(34) C A\n",
+      BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorCircularlyDependencyNested) {
+  Prepare(
+      "class A : B.C {}"     // A depends on B and C.
+      "class B : A {"        // B depends on A.
+      "  public class C {}"  // C depends on B.
+      "}");
+  EXPECT_EQ(
+      "ClassTree.Class.Cycle(6) A C\n"
+      "ClassTree.Class.Cycle(22) B A\n"
+      "ClassTree.Class.Cycle(44) C B\n",
+      BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorDuplicate) {
+  Prepare("namespace System { class Int32 {} }");
+  // Note: class 'System.Int32' i installed by |ClassTreeBuilderTest|, before
+  // paring.
+  EXPECT_EQ("Syntax.Class.Duplicate(25) Int32 Int32\n", BuildClassTree());
+}
+
+#if 0
+TEST_F(ClassTreeBuilderTest, ClassErrorDuplicateWithExtern) {
+  Prepare("namespace System { class A {} }");
+  EXPECT_TRUE(Parse());
+  // Simulate extern module.
+  NamespaceBuilder builder(name_resolver());
+  builder.NewClass("A", "Object");
+  ClassTreeBuilder resolver(name_resolver());
+  resolver.Run();
+  EXPECT_EQ("ClassTree.Class.Duplicate(25) A A\n", GetErrors());
+}
+#endif
+
+TEST_F(ClassTreeBuilderTest, ClassErrorNestedDependency) {
+  Prepare("class A { class B : A {} }");
+  EXPECT_EQ("ClassTree.BaseClass.Containing(20) A B\n", BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ClassErrorSelfReference) {
+  Prepare("class A : A {}");
+  EXPECT_EQ("ClassTree.BaseClass.Self(6) A A\n", BuildClassTree());
+}
+
 }  // namespace compiler
 }  // namespace elang

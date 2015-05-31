@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <set>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "elang/compiler/analysis/class_tree_builder.h"
@@ -98,17 +100,15 @@ void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
     MarkDepdency(clazz, outer_class);
   for (auto const base_class_name : node->base_class_names()) {
     auto const present = Resolve(base_class_name, outer);
-    if (!present)
+    if (!present) {
+      unresolved_names_.insert(base_class_name);
       continue;
+    }
     auto const base_class = present->as<sm::Class>();
-    if (!base_class) {
-      Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
+    if (!base_class)
       continue;
-    }
-    if (clazz == base_class) {
-      Error(ErrorCode::ClassTreeBaseClassSelf, base_class_name);
-      continue;
-    }
+    if (clazz == base_class)
+      Error(ErrorCode::ClassTreeBaseClassSelf, node, base_class_name);
     MarkDepdency(clazz, base_class);
   }
   auto const default_base_class = DefaultBaseClassFor(clazz);
@@ -165,19 +165,10 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
     auto position = 0;
     for (auto const base_class_name : class_body->base_class_names()) {
       ++position;
-      auto const present = Resolve(base_class_name, outer);
-      if (!present)
+      auto const base_class =
+          ValidateBaseClass(clazz, position, base_class_name, outer);
+      if (!base_class)
         continue;
-      auto const base_class = present->as<sm::Class>();
-      if (!base_class) {
-        if (clazz->is_class())
-          Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
-        else if (clazz->is_struct())
-          Error(ErrorCode::ClassTreeNameNotStruct, base_class_name);
-        else
-          Error(ErrorCode::ClassTreeNameNotInterface, base_class_name);
-        continue;
-      }
       DCHECK(IsFixed(base_class)) << base_class_name;
       if (direct_presents.count(base_class)) {
         Error(ErrorCode::ClassTreeBaseClassDuplicate, base_class_name);
@@ -191,14 +182,6 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
         interfaces.push_back(base_class);
         continue;
       }
-      if (position != 1 || clazz->is_interface()) {
-        Error(ErrorCode::ClassTreeNameNotInterface, base_class_name);
-        continue;
-      }
-      if (clazz->is_class() && base_class->is_struct())
-        Error(ErrorCode::ClassTreeNameNotClass, base_class_name);
-      else if (clazz->is_struct() && base_class->is_class())
-        Error(ErrorCode::ClassTreeNameNotStruct, base_class_name);
       base_class_candidates.push_back(base_class);
     }
   }
@@ -237,14 +220,10 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
 }
 
 void ClassTreeBuilder::MarkDepdency(sm::Class* clazz, sm::Class* using_class) {
-  if (IsFixed(using_class))
+  if (IsFixed(clazz) && IsFixed(using_class))
     return;
   if (dependency_graph_.HasEdge(clazz, using_class))
     return;
-  if (dependency_graph_.HasEdge(using_class, clazz)) {
-    Error(ErrorCode::ClassTreeNameCycle, clazz->name(), using_class->name());
-    return;
-  }
   dependency_graph_.AddEdge(clazz, using_class);
 }
 
@@ -348,16 +327,21 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
 
 void ClassTreeBuilder::Run() {
   Traverse(session()->global_namespace_body());
+  auto const all_classes = dependency_graph_.GetAllVertices();
   std::vector<sm::Class*> leaf_classes;
-  for (auto const clazz : dependency_graph_.GetAllVertices()) {
+  for (auto const clazz : all_classes) {
     if (dependency_graph_.HasInEdge(clazz))
       continue;
     leaf_classes.push_back(clazz);
   }
+  std::unordered_set<sm::Class*> processed;
   for (auto const leaf_class : leaf_classes) {
-    for (auto const clazz : dependency_graph_.PostOrderListOf(leaf_class))
+    for (auto const clazz : dependency_graph_.PostOrderListOf(leaf_class)) {
       FixClass(clazz);
+      processed.insert(clazz);
+    }
   }
+  // Check unused aliases resolve-able
   for (auto const alias : unused_aliases_) {
     Error(ErrorCode::ClassTreeAliasNotUsed, alias->name());
     auto const result = Resolve(alias->reference(), alias->parent()->parent());
@@ -365,10 +349,75 @@ void ClassTreeBuilder::Run() {
       continue;
     Error(ErrorCode::ClassTreeAliasNeitherNamespaceNorType, alias->reference());
   }
+  // Report cycle classes
+  std::set<std::pair<sm::Class*, sm::Class*>> cycles;
+  for (auto const clazz : all_classes) {
+    if (processed.count(clazz))
+      continue;
+    for (auto const using_class : dependency_graph_.GetOutEdges(clazz)) {
+      if (IsFixed(using_class))
+        continue;
+      auto const key = std::make_pair(using_class, clazz);
+      if (cycles.count(key))
+        continue;
+      cycles.insert(key);
+      if (clazz == using_class)
+        continue;
+      Error(ErrorCode::ClassTreeClassCycle, clazz->name(), using_class->name());
+    }
+  }
 }
 
 sm::Semantic* ClassTreeBuilder::SemanticOf(ast::Node* node) const {
   return session()->analysis()->SemanticOf(node);
+}
+
+sm::Class* ClassTreeBuilder::ValidateBaseClass(sm::Class* clazz,
+                                               int position,
+                                               ast::Node* base_class_name,
+                                               ast::Node* container) {
+  if (unresolved_names_.count(base_class_name))
+    return nullptr;
+  auto const present = Resolve(base_class_name, container);
+  if (!present)
+    return nullptr;
+  // TODO(eval1749) Check |base_class| isn't |final|.
+  // TODO(eval1749) We should check accessibility of |base_class|.
+  auto const base_class = present->as<sm::Class>();
+  if (base_class) {
+    auto const outer = clazz->outer();
+    if (base_class == outer || outer->IsDescendantOf(base_class)) {
+      Error(ErrorCode::ClassTreeBaseClassContaining, base_class_name,
+            clazz->name());
+      return nullptr;
+    }
+    if (base_class->is_interface())
+      return base_class;
+  }
+
+  if (clazz->is_interface() || position >= 2) {
+    Error(ErrorCode::ClassTreeBaseClassNotInterface, base_class_name);
+    return nullptr;
+  }
+
+  if (clazz->is_class()) {
+    if (base_class && base_class->is_class())
+      return base_class;
+    Error(ErrorCode::ClassTreeBaseClassNeitherClassNorInterface,
+          base_class_name);
+    return nullptr;
+  }
+
+  if (clazz->is_struct()) {
+    if (base_class && base_class->is_struct())
+      return base_class;
+    Error(ErrorCode::ClassTreeBaseClassNeitherStructNorInterface,
+          base_class_name);
+    return nullptr;
+  }
+
+  NOTREACHED() << clazz << " " << base_class_name;
+  return nullptr;
 }
 
 // ast::Visitor member function implementations

@@ -53,6 +53,10 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   sm::Semantic* ResolveNameReference(ast::NameReference* node,
                                      ast::Node* context_node);
   sm::Semantic* SemanticOf(ast::Node* node) const;
+  sm::Class* ValidateBaseClass(sm::Class* clazz,
+                               int position,
+                               ast::Node* base_class_name,
+                               ast::Node* outer);
 
   // ast::Visitor
   void VisitAlias(ast::Alias* node) final;
@@ -61,6 +65,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   std::unordered_map<sm::Class*, ClassData*> class_data_map_;
   SimpleDirectedGraph<sm::Class*> dependency_graph_;
   sm::Editor* const semantic_editor_;
+  std::unordered_set<ast::Node*> unresolved_names_;
   std::unordered_set<ast::Alias*> unused_aliases_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassTreeBuilder);

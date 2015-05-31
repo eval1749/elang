@@ -25,14 +25,16 @@ namespace compiler {
   E(ClassTree, Alias, NeitherNamespaceNorType)        \
   E(ClassTree, Alias, NotUsed)                        \
   E(ClassTree, BaseClass, Conflict)                   \
+  E(ClassTree, BaseClass, Containing)                 \
   E(ClassTree, BaseClass, Duplicate)                  \
+  E(ClassTree, BaseClass, NeitherClassNorInterface)   \
+  E(ClassTree, BaseClass, NeitherStructNorInterface)  \
+  E(ClassTree, BaseClass, NotFound)                   \
+  E(ClassTree, BaseClass, NotInterface)               \
   E(ClassTree, BaseClass, Self)                       \
+  E(ClassTree, Class, Cycle)                          \
   E(ClassTree, Name, Ambiguous)                       \
-  E(ClassTree, Name, Cycle)                           \
-  E(ClassTree, Name, NotClass)                        \
   E(ClassTree, Name, NotFound)                        \
-  E(ClassTree, Name, NotInterface)                    \
-  E(ClassTree, Name, NotStruct)                       \
   /* Code Generator */                                \
   E(CodeGenerator, Expression, NotYetImplemented)     \
   E(CodeGenerator, Return, None)                      \
