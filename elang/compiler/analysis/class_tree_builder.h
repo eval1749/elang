@@ -19,6 +19,7 @@ namespace compiler {
 namespace sm {
 class Class;
 class Editor;
+class Namespace;
 class Semantic;
 }
 
@@ -45,6 +46,9 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<sm::Semantic*>* founds);
+  void FindWithImports(Token* name,
+                       ast::NamespaceBody* ns_body,
+                       std::unordered_set<sm::Semantic*>* founds);
   void FixClass(sm::Class* clazz);
   void MarkDepdency(sm::Class* clazz, sm::Class* using_class);
   sm::Semantic* Resolve(ast::Node* node, ast::Node* context_node);
@@ -60,11 +64,13 @@ class ClassTreeBuilder final : public CompilationSessionUser,
 
   // ast::Visitor
   void VisitAlias(ast::Alias* node) final;
+  void VisitImport(ast::Import* node) final;
   void VisitClassBody(ast::ClassBody* node) final;
 
   std::unordered_map<sm::Class*, ClassData*> class_data_map_;
   SimpleDirectedGraph<sm::Class*> dependency_graph_;
   sm::Editor* const semantic_editor_;
+  std::unordered_map<ast::Import*, sm::Namespace*> import_map_;
   std::unordered_set<ast::Node*> unresolved_names_;
   std::unordered_set<ast::Alias*> unused_aliases_;
 

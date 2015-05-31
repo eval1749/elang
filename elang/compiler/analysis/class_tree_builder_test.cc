@@ -339,5 +339,72 @@ TEST_F(ClassTreeBuilderTest, ClassErrorSelfReference) {
   EXPECT_EQ("ClassTree.BaseClass.Self(6) A A\n", BuildClassTree());
 }
 
+TEST_F(ClassTreeBuilderTest, ImportBasic) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1.N2;"
+      "  class B : A {}"
+      "}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("N1.N2.A", BaseClassesOf("N3.B"));
+}
+
+TEST_F(ClassTreeBuilderTest, ImportConfusing) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N1 = N2;"
+      "  class B : N1.A {}"
+      "}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("N2.A", BaseClassesOf("N3.B"));
+}
+
+TEST_F(ClassTreeBuilderTest, ImportErrorAmbiguous) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N2;"
+      "  class B : A {}"  // A is ambiguous
+      "}");
+  EXPECT_EQ("ClassTree.Name.Ambiguous(102) A\n", BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ImportErrorNestNamespace) {
+  Prepare(
+      "namespace N1.N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  class B : N2.A {}"
+      "}");
+  EXPECT_EQ("ClassTree.Name.NotFound(67) N2\n", BuildClassTree())
+      << "using N1 should not import namespace N1.N2 into N3.";
+}
+
+TEST_F(ClassTreeBuilderTest, ImportNotNamespace) {
+  Prepare("using System.Object;");
+  EXPECT_EQ("ClassTree.Import.NotNamespace(13) System.Object\n",
+            BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, ImportNotAmbiguous) {
+  Prepare(
+      "namespace N1 { class A {} }"
+      "namespace N2 { class A {} }"
+      "namespace N3 {"
+      "  using N1;"
+      "  using N2;"
+      "  using A = N1.A;"
+      "  class B : A {}"  // A means N1.A
+      "}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("N1.A", BaseClassesOf("N3.B"));
+}
+
 }  // namespace compiler
 }  // namespace elang

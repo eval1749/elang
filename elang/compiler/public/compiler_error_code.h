@@ -33,6 +33,7 @@ namespace compiler {
   E(ClassTree, BaseClass, NotInterface)               \
   E(ClassTree, BaseClass, Self)                       \
   E(ClassTree, Class, Cycle)                          \
+  E(ClassTree, Import, NotNamespace)                  \
   E(ClassTree, Name, Ambiguous)                       \
   E(ClassTree, Name, NotFound)                        \
   /* Code Generator */                                \
