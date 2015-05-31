@@ -26,14 +26,14 @@ NameResolverEditor::~NameResolverEditor() {
 
 void NameResolverEditor::RegisterAlias(ast::Alias* alias,
                                        ast::ContainerNode* resolved) {
-  DCHECK(!resolver_->using_map_.count(alias));
-  resolver_->using_map_.insert(std::make_pair(alias, resolved));
+  DCHECK(!resolver_->alias_map_.count(alias));
+  resolver_->alias_map_.insert(std::make_pair(alias, resolved));
 }
 
 void NameResolverEditor::RegisterImport(ast::Import* import,
                                         ast::ContainerNode* resolved) {
-  DCHECK(!resolver_->using_map_.count(import));
-  resolver_->using_map_.insert(std::make_pair(import, resolved));
+  DCHECK(!resolver_->import_map_.count(import));
+  resolver_->import_map_.insert(std::make_pair(import, resolved));
 }
 
 }  // namespace compiler

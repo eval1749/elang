@@ -16,10 +16,12 @@
 namespace elang {
 namespace compiler {
 namespace ast {
+class Alias;
 class Call;
 class Class;
 class Expression;
 class ContainerNode;
+class Import;
 class NamedNode;
 }
 namespace sm {
@@ -55,11 +57,8 @@ class NameResolver final : public CompilationSessionUser {
   friend class NameResolverEditor;
   class ReferenceResolver;
 
-  // Returns |ContainerNode| associated to |Alias| or |Import| |node|.
-  ast::ContainerNode* GetUsingReference(ast::NamedNode* node);
-
-  // Mapping from |Alias| or |Import| to |ContainerNode|.
-  std::unordered_map<ast::NamedNode*, ast::ContainerNode*> using_map_;
+  std::unordered_map<ast::Alias*, ast::ContainerNode*> alias_map_;
+  std::unordered_map<ast::Import*, ast::ContainerNode*> import_map_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };

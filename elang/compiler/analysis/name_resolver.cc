@@ -140,19 +140,19 @@ void NameResolver::ReferenceResolver::VisitNameReference(
 
       // Find alias
       if (auto const alias = ns_body->FindAlias(name)) {
-        if (auto const present = resolver()->GetUsingReference(alias))
-          founds.insert(SemanticOf(present));
+        auto const it = resolver()->alias_map_.find(alias);
+        if (it != resolver()->alias_map_.end())
+          founds.insert(SemanticOf(it->second));
       }
 
       if (!ns_body->FindMember(name)) {
         // When |name| isn't defined in namespace body, looking in imported
         // namespaces.
         for (auto const pair : ns_body->imports()) {
-          auto const imported = resolver()->GetUsingReference(pair.second);
-          if (!imported) {
-            DVLOG(0) << "Not found: " << *pair.second;
+          auto const it = resolver()->import_map_.find(pair.second);
+          if (it == resolver()->import_map_.end())
             continue;
-          }
+          auto const imported = it->second;
           if (auto const present = imported->FindMember(name)) {
             if (present && !present->is<ast::Namespace>())
               founds.insert(SemanticOf(present));
@@ -206,12 +206,6 @@ NameResolver::~NameResolver() {
 
 sm::Factory* NameResolver::factory() const {
   return session()->semantic_factory();
-}
-
-ast::ContainerNode* NameResolver::GetUsingReference(ast::NamedNode* node) {
-  DCHECK(node->is<ast::Alias>() || node->is<ast::Import>());
-  auto const it = using_map_.find(node);
-  return it == using_map_.end() ? nullptr : it->second;
 }
 
 sm::Semantic* NameResolver::ResolveReference(ast::Expression* expression,
