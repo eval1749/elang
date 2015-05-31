@@ -23,7 +23,6 @@ namespace compiler {
   E(ClassResolution, Method, Duplicate)               \
   /* Class Tree */                                    \
   E(ClassTree, Alias, NeitherNamespaceNorType)        \
-  E(ClassTree, Alias, NotUsed)                        \
   E(ClassTree, BaseClass, Conflict)                   \
   E(ClassTree, BaseClass, Containing)                 \
   E(ClassTree, BaseClass, Duplicate)                  \

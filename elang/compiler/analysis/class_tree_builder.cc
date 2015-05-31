@@ -341,10 +341,8 @@ void ClassTreeBuilder::Run() {
     }
   }
   // Check unused aliases resolve-able
-  for (auto const alias : unused_aliases_) {
-    Error(ErrorCode::ClassTreeAliasNotUsed, alias->name());
+  for (auto const alias : unused_aliases_)
     ResolveAlias(alias);
-  }
   // Report cycle classes
   std::set<std::pair<sm::Class*, sm::Class*>> cycles;
   for (auto const clazz : all_classes) {

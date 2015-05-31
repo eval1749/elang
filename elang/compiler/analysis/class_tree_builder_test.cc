@@ -131,10 +131,7 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScope) {
       "namespace N1.N2 { class A {} }"
       "namespace N3 { using R = N1.N2; }"
       "namespace N3 { class B : R.A {} }");  // Error: R unknown
-  EXPECT_EQ(
-      "ClassTree.Alias.NotUsed(51) R\n"
-      "ClassTree.Name.NotFound(88) R\n",
-      BuildClassTree());
+  EXPECT_EQ("ClassTree.Name.NotFound(88) R\n", BuildClassTree());
 }
 
 // Note: MS C# compiler doesn't report error for unused alias.
@@ -146,10 +143,7 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScopeHide) {
       "  class R {}"        // Class R hides alias R in toplevel.
       "  class B : R.A {}"  // Error: R has no member A.
       "}");
-  EXPECT_EQ(
-      "ClassTree.Alias.NotUsed(6) R\n"
-      "ClassTree.Name.NotFound(86) R.A\n",
-      BuildClassTree());
+  EXPECT_EQ("ClassTree.Name.NotFound(86) R.A\n", BuildClassTree());
 }
 
 // Note: MS C# compiler doesn't report error if alias R1 isn't used.
@@ -161,12 +155,7 @@ TEST_F(ClassTreeBuilderTest, AliasErrorScopeResolution) {
       "  using R2 = N1.N2;"
       "  using R3 = R1.N2;"  // Error: R1 is unknown.
       "}");
-  EXPECT_EQ(
-      "ClassTree.Alias.NotUsed(40) R1\n"
-      "ClassTree.Alias.NotUsed(56) R2\n"
-      "ClassTree.Alias.NotUsed(75) R3\n"
-      "ClassTree.Name.NotFound(80) R1\n",
-      BuildClassTree());
+  EXPECT_EQ("ClassTree.Name.NotFound(80) R1\n", BuildClassTree());
 }
 
 TEST_F(ClassTreeBuilderTest, AliasExtent) {
