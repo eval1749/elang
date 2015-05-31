@@ -250,7 +250,7 @@ void ClassTreeBuilder::MarkDepdency(sm::Class* clazz, sm::Class* using_class) {
 }
 
 sm::Type* ClassTreeBuilder::NewUndefinedType(ast::Node* node) {
-  return session()->semantics_factory()->NewUndefinedType(node->name());
+  return session()->semantic_factory()->NewUndefinedType(node->name());
 }
 
 sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,

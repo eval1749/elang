@@ -33,16 +33,16 @@ NameTreeBuilder::~NameTreeBuilder() {
 sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
   auto const outer = SemanticOf(node->parent());
   if (node->owner()->is_class()) {
-    return session()->semantics_factory()->NewClass(
-        outer, node->modifiers(), node->name(), node->owner());
+    return session()->semantic_factory()->NewClass(outer, node->modifiers(),
+                                                   node->name(), node->owner());
   }
   if (node->owner()->is_interface()) {
-    return session()->semantics_factory()->NewInterface(
-        outer, node->modifiers(), node->name());
+    return session()->semantic_factory()->NewInterface(outer, node->modifiers(),
+                                                       node->name());
   }
   if (node->owner()->is_struct()) {
-    return session()->semantics_factory()->NewStruct(outer, node->modifiers(),
-                                                     node->name());
+    return session()->semantic_factory()->NewStruct(outer, node->modifiers(),
+                                                    node->name());
   }
   NOTREACHED() << node;
   return nullptr;
@@ -53,7 +53,7 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
     return;
   if (node->owner() == session()->global_namespace()) {
     editor_->SetSemanticOf(node,
-                           session()->semantics_factory()->global_namespace());
+                           session()->semantic_factory()->global_namespace());
     return;
   }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
@@ -64,7 +64,7 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
     return;
   }
   auto const ns =
-      session()->semantics_factory()->NewNamespace(outer, node->name());
+      session()->semantic_factory()->NewNamespace(outer, node->name());
   editor_->SetSemanticOf(node, ns);
   editor_->SetSemanticOf(node->owner(), ns);
 }
@@ -120,7 +120,7 @@ void NameTreeBuilder::VisitConst(ast::Const* node) {
   auto const present = owner->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(
-        node, session()->semantics_factory()->NewConst(owner, node->name()));
+        node, session()->semantic_factory()->NewConst(owner, node->name()));
     return;
   }
   if (present->is<sm::Const>()) {
@@ -139,7 +139,7 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
   auto const present = outer->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(
-        node, session()->semantics_factory()->NewEnum(outer, node->name()));
+        node, session()->semantic_factory()->NewEnum(outer, node->name()));
     return;
   }
   if (present->is<sm::Field>()) {
@@ -154,7 +154,7 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
   auto const present = owner->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(
-        node, session()->semantics_factory()->NewField(owner, node->name()));
+        node, session()->semantic_factory()->NewField(owner, node->name()));
     return;
   }
   if (present->is<sm::Field>()) {
@@ -169,7 +169,7 @@ void NameTreeBuilder::VisitMethod(ast::Method* node) {
       SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
-    session()->semantics_factory()->NewMethodGroup(owner, node->name());
+    session()->semantic_factory()->NewMethodGroup(owner, node->name());
     return;
   }
   if (present->is<sm::MethodGroup>())

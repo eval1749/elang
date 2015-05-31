@@ -30,7 +30,7 @@ class NameResolver;
 class Analyzer : public CompilationSessionUser {
  public:
   sm::Editor* editor() const { return editor_.get(); }
-  sm::Factory* factory() const { return semantics_factory(); }
+  sm::Factory* factory() const { return semantic_factory(); }
   NameResolver* name_resolver() const { return name_resolver_; }
 
   sm::Type* ResolveTypeReference(ast::Type* reference,
@@ -44,7 +44,7 @@ class Analyzer : public CompilationSessionUser {
   virtual ~Analyzer();
 
   NameResolver* resolver() const { return name_resolver_; }
-  sm::Factory* semantics_factory() const;
+  sm::Factory* semantic_factory() const;
 
   // Shortcut to |NameResolver|.
   sm::Semantic* Resolve(ast::NamedNode* ast_node);

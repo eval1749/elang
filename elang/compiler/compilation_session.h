@@ -79,7 +79,7 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
 
   // Semantic
   Analysis* analysis() const { return analysis_.get(); }
-  sm::Factory* semantics_factory() const { return semantics_factory_.get(); }
+  sm::Factory* semantic_factory() const { return semantic_factory_.get(); }
 
   // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
   void Compile(NameResolver* name_resolver, hir::Factory* factory);
@@ -128,7 +128,7 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
   const std::unique_ptr<ast::Factory> ast_factory_;
 
   // |sm::Factory| Factory| depends on |TokenFactory|.
-  const std::unique_ptr<sm::Factory> semantics_factory_;
+  const std::unique_ptr<sm::Factory> semantic_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationSession);
 };

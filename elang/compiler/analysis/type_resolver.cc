@@ -543,8 +543,8 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
     return;
   DCHECK(!SemanticOf(ast_literal));
   SetSemanticOf(ast_literal,
-                semantics_factory()->NewLiteral(result_literal->value(),
-                                                ast_literal->token()));
+                semantic_factory()->NewLiteral(result_literal->value(),
+                                               ast_literal->token()));
   ProduceResult(result_literal, ast_literal);
 }
 

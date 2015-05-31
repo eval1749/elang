@@ -63,7 +63,7 @@ std::string ClassTreeBuilderTest::BuildClassTree() {
 }
 
 sm::Semantic* ClassTreeBuilderTest::SemanticOf(base::StringPiece16 path) const {
-  sm::Semantic* enclosing = session()->semantics_factory()->global_namespace();
+  sm::Semantic* enclosing = session()->semantic_factory()->global_namespace();
   sm::Semantic* found = static_cast<sm::Semantic*>(nullptr);
   for (size_t pos = 0u; pos < path.length(); ++pos) {
     auto dot_pos = path.find('.', pos);

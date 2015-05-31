@@ -30,13 +30,11 @@ namespace {
 void PopulateSemantics(CompilationSession* session) {
   AnalysisEditor editor(session->analysis());
 
-  auto const global_namespace =
-      session->semantics_factory()->global_namespace();
+  auto const global_namespace = session->semantic_factory()->global_namespace();
   editor.SetSemanticOf(session->global_namespace(), global_namespace);
   editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
 
-  auto const system_namespace =
-      session->semantics_factory()->system_namespace();
+  auto const system_namespace = session->semantic_factory()->system_namespace();
   editor.SetSemanticOf(session->system_namespace(), system_namespace);
   editor.SetSemanticOf(session->system_namespace_body(), system_namespace);
 }
@@ -52,7 +50,7 @@ CompilationSession::CompilationSession()
       analysis_(new Analysis()),
       token_factory_(new TokenFactory(zone())),
       ast_factory_(new ast::Factory(this)),
-      semantics_factory_(new sm::Factory(token_factory_.get())) {
+      semantic_factory_(new sm::Factory(token_factory_.get())) {
   PopulateSemantics(this);
 }
 
@@ -120,15 +118,15 @@ Token* CompilationSession::PredefinedNameOf(PredefinedName name) const {
 sm::Type* CompilationSession::PredefinedTypeOf(PredefinedName name) {
   auto const name_token = PredefinedNameOf(name);
   auto const present =
-      semantics_factory()->system_namespace()->FindMember(name_token);
+      semantic_factory()->system_namespace()->FindMember(name_token);
   if (!present) {
     AddError(ErrorCode::PredefinedNamesNameNotFound, name_token);
-    return semantics_factory()->NewUndefinedType(name_token);
+    return semantic_factory()->NewUndefinedType(name_token);
   }
   auto const type = present->as<sm::Type>();
   if (!type) {
     AddError(ErrorCode::PredefinedNamesNameNotClass, name_token);
-    return semantics_factory()->NewUndefinedType(name_token);
+    return semantic_factory()->NewUndefinedType(name_token);
   }
   return type;
 }

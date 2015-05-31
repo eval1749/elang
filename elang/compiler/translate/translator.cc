@@ -601,7 +601,7 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
   auto const break_block = builder_->NewMergeBlock();
 
   // Loop head
-  auto const pointer_variable = session()->semantics_factory()->NewVariable(
+  auto const pointer_variable = session()->semantic_factory()->NewVariable(
       analysis()->SemanticOf(node->variable())->as<sm::Variable>()->type(),
       sm::StorageClass::Local, node->variable());
 

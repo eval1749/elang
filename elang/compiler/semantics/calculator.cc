@@ -115,7 +115,7 @@ Calculator::~Calculator() {
 }
 
 Factory* Calculator::factory() const {
-  return session()->semantics_factory();
+  return session()->semantic_factory();
 }
 
 Value* Calculator::Add(Value* left, int right) {

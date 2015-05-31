@@ -114,7 +114,7 @@ void NamespaceAnalyzer::EnsureNamespace(ast::NamespaceBody* node) {
   if (node->loaded_)
     return;
   if (node->owner() == session()->global_namespace()) {
-    SetSemanticOf(node, session()->semantics_factory()->global_namespace());
+    SetSemanticOf(node, session()->semantic_factory()->global_namespace());
     return;
   }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();

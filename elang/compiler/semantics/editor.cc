@@ -35,7 +35,7 @@ Editor::~Editor() {
 }
 
 sm::Factory* Editor::factory() const {
-  return session()->semantics_factory();
+  return session()->semantic_factory();
 }
 
 void Editor::FixClassBase(Class* clazz,

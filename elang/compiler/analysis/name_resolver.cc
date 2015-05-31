@@ -205,7 +205,7 @@ NameResolver::~NameResolver() {
 }
 
 sm::Factory* NameResolver::factory() const {
-  return session()->semantics_factory();
+  return session()->semantic_factory();
 }
 
 void NameResolver::DidResolveUsing(ast::NamedNode* node,

@@ -34,7 +34,7 @@ class IrTypeMapperTest : public testing::TranslateTest {
   IrTypeMapperTest();
   ~IrTypeMapperTest() override = default;
 
-  sm::Factory* semantics_factory() { return session()->semantics_factory(); }
+  sm::Factory* semantic_factory() { return session()->semantic_factory(); }
   ir::TypeFactory* types() { return factory()->type_factory(); }
   IrTypeMapper* type_mapper() { return &type_mapper_; }
 
@@ -55,8 +55,8 @@ class IrTypeMapperTest : public testing::TranslateTest {
 
   template <typename R, typename... T>
   sm::Signature* NewSignature(R return_type, T... params) {
-    return semantics_factory()->NewSignature(GetIr(return_type),
-                                             NewParameters(params...));
+    return semantic_factory()->NewSignature(GetIr(return_type),
+                                            NewParameters(params...));
   }
 
  private:
@@ -89,7 +89,7 @@ sm::Parameter* IrTypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_parameter = session()->ast_factory()->NewParameter(
       nullptr, cm::ParameterKind::Required, 0, ast_type,
       builder_.NewName("param"), nullptr);
-  return semantics_factory()->NewParameter(ast_parameter, type, nullptr);
+  return semantic_factory()->NewParameter(ast_parameter, type, nullptr);
 }
 
 sm::Parameter* IrTypeMapperTest::NewParameter(cm::PredefinedName name) {
@@ -100,7 +100,7 @@ TEST_F(IrTypeMapperTest, ArrayType) {
   std::vector<int> dimensions{-1};
   EXPECT_EQ(types()->NewPointerType(
                 types()->NewArrayType(types()->int32_type(), dimensions)),
-            Map(semantics_factory()->NewArrayType(
+            Map(semantic_factory()->NewArrayType(
                 GetIr(cm::PredefinedName::Int32), dimensions)));
 }
 

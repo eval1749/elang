@@ -36,7 +36,7 @@ Analyzer::Analyzer(NameResolver* name_resolver)
 Analyzer::~Analyzer() {
 }
 
-sm::Factory* Analyzer::semantics_factory() const {
+sm::Factory* Analyzer::semantic_factory() const {
   return editor_->factory();
 }
 
@@ -44,7 +44,7 @@ sm::Type* Analyzer::EnsureType(ast::Type* reference, sm::Semantic* semantic) {
   if (auto const type = semantic->as<sm::Type>())
     return type;
   Error(ErrorCode::AnalyzeTypeNotType, reference);
-  auto const type = semantics_factory()->NewUndefinedType(reference->token());
+  auto const type = semantic_factory()->NewUndefinedType(reference->token());
   SetSemanticOf(reference, type);
   return type;
 }
@@ -73,7 +73,7 @@ sm::Type* Analyzer::ResolveTypeReference(ast::Type* reference,
 
   Error(ErrorCode::AnalyzeTypeNotFound, reference);
   auto const semantic =
-      semantics_factory()->NewUndefinedType(reference->token());
+      semantic_factory()->NewUndefinedType(reference->token());
   SetSemanticOf(reference, semantic);
   return semantic;
 }
