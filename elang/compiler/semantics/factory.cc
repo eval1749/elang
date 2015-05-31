@@ -161,8 +161,10 @@ Literal* Factory::NewLiteral(Type* type, Token* token) {
   return new (zone()) Literal(type, token);
 }
 
-Method* Factory::NewMethod(MethodGroup* method_group, Signature* signature) {
-  auto const method = new (zone()) Method(method_group, signature);
+Method* Factory::NewMethod(MethodGroup* method_group,
+                           Modifiers modifiers,
+                           Signature* signature) {
+  auto const method = new (zone()) Method(method_group, modifiers, signature);
   method_group->methods_.push_back(method);
   return method;
 }

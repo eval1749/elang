@@ -336,14 +336,16 @@ class Method final : public NamedMember<Semantic> {
 
  public:
   MethodGroup* method_group() const { return method_group_; }
+  Modifiers modifiers() const { return modifiers_; }
   const ZoneVector<Parameter*>& parameters() const;
   Type* return_type() const;
   Signature* signature() const { return signature_; }
 
  private:
-  Method(MethodGroup* method_group, Signature* signature);
+  Method(MethodGroup* method_group, Modifiers modifiers, Signature* signature);
 
   MethodGroup* const method_group_;
+  Modifiers const modifiers_;
   Signature* const signature_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);

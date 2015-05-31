@@ -46,7 +46,9 @@ class Factory final : public ZoneOwner {
   Class* NewInterface(Semantic* outer, Modifiers modifiers, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);
-  Method* NewMethod(MethodGroup* method_group, Signature* signature);
+  Method* NewMethod(MethodGroup* method_group,
+                    Modifiers modifiers,
+                    Signature* signature);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* name);
 

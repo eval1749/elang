@@ -148,7 +148,8 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
   }
 
   auto const signature = factory()->NewSignature(return_type, parameters);
-  auto const method = factory()->NewMethod(method_group, signature);
+  auto const method =
+      factory()->NewMethod(method_group, ast_method->modifiers(), signature);
   analyzer_->SetSemanticOf(ast_method, method);
 
   // Check this size with existing signatures
