@@ -244,6 +244,18 @@ sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
   return nullptr;
 }
 
+// Reference of |ast::Alias| are resolved in enclosing container of
+// enclosing container of |ast::Alias|, e.g. looking into namespace N1 in
+// below example:
+//
+//  namespace N1 {
+//    namespace N2 {
+//      using R1 = A;
+//      class A {}
+//      class B : R1 {}  // base_class_of(B) == N1.A
+//    }
+//    class A {}
+//  }
 sm::Semantic* ClassTreeBuilder::ResolveAlias(ast::Alias* alias) {
   auto const present = Resolve(alias->reference(), alias->parent()->parent());
   if (!present)

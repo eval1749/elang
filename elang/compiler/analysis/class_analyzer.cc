@@ -50,7 +50,6 @@ class Collector final : public ast::Visitor {
   // ast::Visitor
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
-  void VisitMethod(ast::Method* node) final;
 
   ConstExprAnalyzer* const analyzer_;
 
@@ -88,15 +87,6 @@ void Collector::VisitEnum(ast::Enum* ast_enum) {
 
 void Collector::VisitField(ast::Field* node) {
   DCHECK(node);
-}
-
-void Collector::VisitMethod(ast::Method* ast_method) {
-  auto const clazz =
-      analyzer_->SemanticOf(ast_method->owner())->as<sm::Class>();
-  auto const method_name = ast_method->name();
-  if (clazz->FindMember(method_name))
-    return;
-  analyzer_->factory()->NewMethodGroup(clazz, method_name);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -137,14 +127,15 @@ void Resolver::Run() {
 
 // ast::Visitor
 void Resolver::VisitMethod(ast::Method* ast_method) {
-  auto const clazz = SemanticOf(ast_method->owner())->as<sm::Class>();
-  auto const method_name = ast_method->name();
+  auto const class_body = ast_method->parent()->as<ast::ClassBody>();
+  DCHECK(class_body) << ast_method;
+  auto const clazz = SemanticOf(class_body);
   auto const method_group =
-      clazz->FindMember(method_name)->as<sm::MethodGroup>();
-  if (!method_group)
-    return;
-  auto const return_type = analyzer_->ResolveTypeReference(
-      ast_method->return_type(), ast_method);
+      clazz->FindMember(ast_method->name())->as<sm::MethodGroup>();
+  DCHECK(method_group) << ast_method << " "
+                       << clazz->FindMember(ast_method->name());
+  auto const return_type =
+      analyzer_->ResolveTypeReference(ast_method->return_type(), ast_method);
   std::vector<sm::Parameter*> parameters(ast_method->parameters().size());
   parameters.resize(0);
   for (auto const parameter : ast_method->parameters()) {
@@ -172,6 +163,7 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
   // TODO(eval1749) Check |ast_method| not override static method.
+  // TODO(eval1749) Calculate value of default parameters
 }
 
 }  // namespace
