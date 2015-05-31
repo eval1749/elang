@@ -25,9 +25,11 @@ NameResolverEditor::NameResolverEditor(NameResolver* resolver)
 NameResolverEditor::~NameResolverEditor() {
 }
 
-sm::Namespace* NameResolverEditor::ImportedNamespaceOf(
-    ast::Import* import) const {
-  return resolver_->ImportedNamespaceOf(import);
+void NameResolverEditor::FindWithImports(
+    Token* name,
+    ast::NamespaceBody* ns_body,
+    std::unordered_set<sm::Semantic*>* founds) {
+  return resolver_->FindWithImports(name, ns_body, founds);
 }
 
 void NameResolverEditor::RegisterAlias(ast::Alias* alias,

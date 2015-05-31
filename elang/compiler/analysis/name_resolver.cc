@@ -43,9 +43,6 @@ class NameResolver::ReferenceResolver final : public Analyzer,
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<sm::Semantic*>* founds);
-  void FindWithImports(Token* name,
-                       ast::NamespaceBody* ns_body,
-                       std::unordered_set<sm::Semantic*>* founds);
   void ProduceResult(sm::Semantic* result);
 
   // ast::Visitor
@@ -76,30 +73,6 @@ void NameResolver::ReferenceResolver::FindInClass(
   }
   for (auto const base_class : clazz->direct_base_classes())
     FindInClass(name, base_class, founds);
-}
-
-void NameResolver::ReferenceResolver::FindWithImports(
-    Token* name,
-    ast::NamespaceBody* ns_body,
-    std::unordered_set<sm::Semantic*>* founds) {
-  for (auto const pair : ns_body->imports()) {
-    auto const imported_ns = resolver()->ImportedNamespaceOf(pair.second);
-    if (!imported_ns)
-      continue;
-    auto const present = imported_ns->FindMember(name);
-    if (!present)
-      continue;
-    if (present->is<sm::Namespace>()) {
-      // Import directive doesn't import nested namespace.
-      // Example:
-      //   namespace N1.N2 { class A {} }
-      //   namespace N3 { using N1; class B : N2.A {} }
-      // Reference |N2.A| is undefined, since |using N1| doesn't import
-      // nested namespace N1.N2.
-      continue;
-    }
-    founds->insert(present);
-  }
 }
 
 void NameResolver::ReferenceResolver::ProduceResult(sm::Semantic* result) {
@@ -176,7 +149,7 @@ void NameResolver::ReferenceResolver::VisitNameReference(
       if (founds.empty()) {
         // When |name| isn't defined in namespace body, looking in imported
         // namespaces.
-        FindWithImports(name, ns_body, &founds);
+        resolver()->FindWithImports(name, ns_body, &founds);
       }
     } else {
       // TODO(eval1749) We should not accept |sm::Namespace|.
@@ -221,6 +194,29 @@ NameResolver::~NameResolver() {
 
 sm::Factory* NameResolver::factory() const {
   return session()->semantic_factory();
+}
+
+void NameResolver::FindWithImports(Token* name,
+                                   ast::NamespaceBody* ns_body,
+                                   std::unordered_set<sm::Semantic*>* founds) {
+  for (auto const pair : ns_body->imports()) {
+    auto const imported_ns = ImportedNamespaceOf(pair.second);
+    if (!imported_ns)
+      continue;
+    auto const present = imported_ns->FindMember(name);
+    if (!present)
+      continue;
+    if (present->is<sm::Namespace>()) {
+      // Import directive doesn't import nested namespace.
+      // Example:
+      //   namespace N1.N2 { class A {} }
+      //   namespace N3 { using N1; class B : N2.A {} }
+      // Reference |N2.A| is undefined, since |using N1| doesn't import
+      // nested namespace N1.N2.
+      continue;
+    }
+    founds->insert(present);
+  }
 }
 
 sm::Semantic* NameResolver::RealNameOf(ast::Alias* alias) const {

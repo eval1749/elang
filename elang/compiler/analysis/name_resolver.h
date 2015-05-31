@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "base/macros.h"
 #include "elang/compiler/compilation_session_user.h"
@@ -56,6 +57,9 @@ class NameResolver final : public CompilationSessionUser {
   friend class NameResolverEditor;
   class ReferenceResolver;
 
+  void FindWithImports(Token* name,
+                       ast::NamespaceBody* ns_body,
+                       std::unordered_set<sm::Semantic*>* founds);
   sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
   sm::Semantic* RealNameOf(ast::Alias* alias) const;
 

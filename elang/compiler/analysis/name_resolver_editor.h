@@ -5,15 +5,19 @@
 #ifndef ELANG_COMPILER_ANALYSIS_NAME_RESOLVER_EDITOR_H_
 #define ELANG_COMPILER_ANALYSIS_NAME_RESOLVER_EDITOR_H_
 
+#include <unordered_set>
+
 #include "base/macros.h"
 
 namespace elang {
 namespace compiler {
 class NameResolver;
+class Token;
 namespace ast {
 class Alias;
 class ContainerNode;
 class Import;
+class NamespaceBody;
 }
 namespace sm {
 class Namespace;
@@ -31,7 +35,9 @@ class NameResolverEditor final {
 
   NameResolver* resolver() const { return resolver_; }
 
-  sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
+  void FindWithImports(Token* name,
+                       ast::NamespaceBody* ns_body,
+                       std::unordered_set<sm::Semantic*>* founds);
   void RegisterAlias(ast::Alias* alias, ast::ContainerNode* resolved);
   void RegisterAlias(ast::Alias* alias, sm::Semantic* resolved);
   void RegisterImport(ast::Import* import, ast::ContainerNode* resolved);

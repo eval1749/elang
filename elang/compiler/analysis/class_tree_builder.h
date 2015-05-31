@@ -49,9 +49,6 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   void FindInClass(Token* name,
                    sm::Class* clazz,
                    std::unordered_set<sm::Semantic*>* founds);
-  void FindWithImports(Token* name,
-                       ast::NamespaceBody* ns_body,
-                       std::unordered_set<sm::Semantic*>* founds);
   void FixClass(sm::Class* clazz);
   void MarkDepdency(sm::Class* clazz, sm::Class* using_class);
   sm::Semantic* Resolve(ast::Node* node, ast::Node* context_node);

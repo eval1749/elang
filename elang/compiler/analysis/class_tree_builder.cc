@@ -154,30 +154,6 @@ void ClassTreeBuilder::FindInClass(Token* name,
   }
 }
 
-void ClassTreeBuilder::FindWithImports(
-    Token* name,
-    ast::NamespaceBody* ns_body,
-    std::unordered_set<sm::Semantic*>* founds) {
-  for (auto const pair : ns_body->imports()) {
-    auto const imported_ns = resolver_editor_->ImportedNamespaceOf(pair.second);
-    if (!imported_ns)
-      continue;
-    auto const present = imported_ns->FindMember(name);
-    if (!present)
-      continue;
-    if (present->is<sm::Namespace>()) {
-      // Import directive doesn't import nested namespace.
-      // Example:
-      //   namespace N1.N2 { class A {} }
-      //   namespace N3 { using N1; class B : N2.A {} }
-      // Reference |N2.A| is undefined, since |using N1| doesn't import
-      // nested namespace N1.N2.
-      continue;
-    }
-    founds->insert(present);
-  }
-}
-
 void ClassTreeBuilder::FixClass(sm::Class* clazz) {
   if (IsFixed(clazz))
     return;
@@ -328,7 +304,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
         founds.insert(resolved);
       }
       if (founds.empty())
-        FindWithImports(name, ns_body, &founds);
+        resolver_editor_->FindWithImports(name, ns_body, &founds);
     } else if (auto const clazz = outer->as<sm::Class>()) {
       if (auto const present = outer->FindMember(name))
         return present;
