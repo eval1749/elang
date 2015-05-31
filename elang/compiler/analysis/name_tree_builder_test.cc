@@ -145,6 +145,9 @@ TEST_F(NameTreeBuilderTest, EnumBasic) {
   Prepare("enum Color { Red, Green, Blue }");
   EXPECT_EQ("", BuildNameTree());
   EXPECT_EQ("#enum Color", ToString(SemanticOf("Color")));
+  EXPECT_EQ("Color.Red", ToString(SemanticOf("Color.Red")));
+  EXPECT_EQ("Color.Green", ToString(SemanticOf("Color.Green")));
+  EXPECT_EQ("Color.Blue", ToString(SemanticOf("Color.Blue")));
 }
 
 TEST_F(NameTreeBuilderTest, EnumErrorConflict) {

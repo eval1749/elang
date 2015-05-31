@@ -134,14 +134,19 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
   }
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
-  if (!present) {
-    editor_->SetSemanticOf(
-        node, session()->semantic_factory()->NewEnum(outer, node->name()));
-    return;
+  if (present) {
+    if (present->is<sm::Enum>())
+      return Error(ErrorCode::NameTreeEnumDuplicate, node, present->name());
+    return Error(ErrorCode::NameTreeEnumConflict, node, present->name());
   }
-  if (present->is<sm::Enum>())
-    return Error(ErrorCode::NameTreeEnumDuplicate, node, present->name());
-  Error(ErrorCode::NameTreeEnumConflict, node, present->name());
+
+  auto const enum_type =
+      session()->semantic_factory()->NewEnum(outer, node->name());
+  for (auto const member : node->members()) {
+    editor_->SetSemanticOf(member, session()->semantic_factory()->NewEnumMember(
+                                       enum_type, member->name()));
+  }
+  editor_->SetSemanticOf(node, enum_type);
 }
 
 void NameTreeBuilder::VisitField(ast::Field* node) {
