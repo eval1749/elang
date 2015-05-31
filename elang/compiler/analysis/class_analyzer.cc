@@ -141,8 +141,10 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
   for (auto const parameter : ast_method->parameters()) {
     auto const parameter_type =
         analyzer_->ResolveTypeReference(parameter->type(), ast_method);
+    // TODO(eval1749) Calculate value of default parameters
     parameters.push_back(
-        factory()->NewParameter(parameter, parameter_type, nullptr));
+        factory()->NewParameter(parameter->kind(), parameter->position(),
+                                parameter_type, parameter->name(), nullptr));
   }
 
   auto const signature = factory()->NewSignature(return_type, parameters);
@@ -163,7 +165,6 @@ void Resolver::VisitMethod(ast::Method* ast_method) {
   // TODO(eval1749) Check whether |ast_method| overload methods in base class
   // with 'new', 'override' modifiers, or not
   // TODO(eval1749) Check |ast_method| not override static method.
-  // TODO(eval1749) Calculate value of default parameters
 }
 
 }  // namespace

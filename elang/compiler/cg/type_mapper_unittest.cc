@@ -9,6 +9,7 @@
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/cg/type_mapper.h"
@@ -88,7 +89,9 @@ sm::Parameter* TypeMapperTest::NewParameter(sm::Type* type) {
   auto const ast_parameter = session()->ast_factory()->NewParameter(
       nullptr, ParameterKind::Required, 0, ast_type, builder_.NewName("param"),
       nullptr);
-  return semantic_factory()->NewParameter(ast_parameter, type, nullptr);
+  return semantic_factory()->NewParameter(ast_parameter->kind(),
+                                          ast_parameter->position(), type,
+                                          ast_parameter->name(), nullptr);
 }
 
 sm::Parameter* TypeMapperTest::NewParameter(PredefinedName name) {

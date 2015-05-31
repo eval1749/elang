@@ -180,10 +180,12 @@ Namespace* Factory::NewNamespace(Namespace* outer, Token* name) {
   return ns;
 }
 
-Parameter* Factory::NewParameter(ast::Parameter* ast_parameter,
+Parameter* Factory::NewParameter(ParameterKind kind,
+                                 int position,
                                  Type* type,
+                                 Token* name,
                                  Value* default_value) {
-  return new (zone()) Parameter(ast_parameter, type, default_value);
+  return new (zone()) Parameter(kind, position, type, name, default_value);
 }
 
 Signature* Factory::NewSignature(Type* return_type,

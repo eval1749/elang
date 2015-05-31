@@ -10,7 +10,6 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/types.h"
-#include "elang/compiler/parameter_kind.h"
 
 namespace elang {
 namespace compiler {
@@ -215,12 +214,16 @@ Semantic* Namespace::FindMemberByString(AtomicString* name) const {
 }
 
 // Parameter
-Parameter::Parameter(ast::Parameter* ast_parameter,
+Parameter::Parameter(ParameterKind kind,
+                     int position,
                      Type* type,
+                     Token* name,
                      Value* default_value)
-    : Semantic(ast_parameter->token()),
-      ast_parameter_(ast_parameter),
+    : Semantic(name),
       default_value_(default_value),
+      kind_(kind),
+      name_(name),
+      position_(position),
       type_(type) {
 }
 
@@ -239,16 +242,8 @@ bool Parameter::is_rest() const {
   return kind() == ParameterKind::Rest;
 }
 
-ParameterKind Parameter::kind() const {
-  return ast_parameter_->kind();
-}
-
 Token* Parameter::name() const {
-  return ast_parameter_->name();
-}
-
-int Parameter::position() const {
-  return ast_parameter_->position();
+  return name_;
 }
 
 bool Parameter::IsIdentical(const Parameter& other) const {

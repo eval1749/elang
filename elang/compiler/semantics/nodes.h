@@ -8,17 +8,23 @@
 #include <vector>
 
 #include "elang/base/castable.h"
+#include "elang/base/visitable.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_unordered_map.h"
 #include "elang/base/zone_unordered_set.h"
 #include "elang/base/zone_vector.h"
-#include "elang/compiler/ast/nodes_forward.h"
+#include "elang/compiler/parameter_kind.h"
 #include "elang/compiler/semantics/nodes_forward.h"
 #include "elang/compiler/with_modifiers.h"
 
 namespace elang {
 class AtomicString;
 namespace compiler {
+namespace ast {
+class NamedNode;
+}
+enum class ParameterKind;
+class Token;
 namespace sm {
 
 #define DECLARE_SEMANTIC_CLASS(self, super) \
@@ -397,20 +403,26 @@ class Parameter final : public Semantic {
 
   Value* default_value() const { return default_value_; }
   bool is_rest() const;
-  ParameterKind kind() const;
-  int position() const;
+  ParameterKind kind() const { return kind_; }
+  int position() const { return position_; }
   Type* type() const { return type_; }
 
   bool IsIdentical(const Parameter& other) const;
 
-  // Node
+  // Semantic
   Token* name() const final;
 
  private:
-  Parameter(ast::Parameter* ast_parameter, Type* type, Value* default_value);
+  Parameter(ParameterKind kind,
+            int position,
+            Type* type,
+            Token* name,
+            Value* default_value);
 
-  ast::Parameter* const ast_parameter_;
   Value* const default_value_;
+  ParameterKind const kind_;
+  Token* const name_;
+  int const position_;
   Type* const type_;
 
   DISALLOW_COPY_AND_ASSIGN(Parameter);

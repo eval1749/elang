@@ -15,10 +15,10 @@ namespace elang {
 namespace compiler {
 namespace ast {
 class NamedNode;
-class Parameter;
 }
 class Analysis;
 class Modifiers;
+enum class ParameterKind;
 class Token;
 class TokenFactory;
 namespace sm {
@@ -54,8 +54,10 @@ class Factory final : public ZoneOwner {
   Namespace* NewNamespace(Namespace* outer, Token* name);
 
   // Allocate |Parameter| for analyzer
-  Parameter* NewParameter(ast::Parameter* parameter,
+  Parameter* NewParameter(ParameterKind kind,
+                          int position,
                           Type* type,
+                          Token* name,
                           Value* default_value);
 
   // Allocate |Signature| for analyzer
