@@ -153,6 +153,11 @@ TEST_F(NameTreeBuilderTest, EnumErrorConflict) {
   EXPECT_EQ("Syntax.Class.Conflict(6) Color Color\n", BuildNameTree());
 }
 
+TEST_F(NameTreeBuilderTest, EnumErrorConflict2) {
+  Prepare("class A { int Color; enum Color { Red } }");
+  EXPECT_EQ("Syntax.Enum.Conflict(26) Color Color\n", BuildNameTree());
+}
+
 TEST_F(NameTreeBuilderTest, EnumErrorDuplicate) {
   Prepare("enum Color { Red }");
   Prepare("enum Color { Blue }");

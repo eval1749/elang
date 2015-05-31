@@ -139,9 +139,8 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
         node, session()->semantic_factory()->NewEnum(outer, node->name()));
     return;
   }
-  if (present->is<sm::Field>()) {
+  if (present->is<sm::Enum>())
     return Error(ErrorCode::NameTreeEnumDuplicate, node, present->name());
-  }
   Error(ErrorCode::NameTreeEnumConflict, node, present->name());
 }
 
@@ -154,9 +153,8 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
         node, session()->semantic_factory()->NewField(owner, node->name()));
     return;
   }
-  if (present->is<sm::Field>()) {
+  if (present->is<sm::Field>())
     return Error(ErrorCode::NameTreeFieldDuplicate, node, present->name());
-  }
   Error(ErrorCode::NameTreeFieldConflict, node, present->name());
 }
 
