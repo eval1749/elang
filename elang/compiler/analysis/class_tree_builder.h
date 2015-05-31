@@ -47,7 +47,6 @@ class ClassTreeBuilder final : public CompilationSessionUser,
                    std::unordered_set<sm::Semantic*>* founds);
   void FixClass(sm::Class* clazz);
   void MarkDepdency(sm::Class* clazz, sm::Class* using_class);
-  sm::Type* NewUndefinedType(ast::Node* node);
   sm::Semantic* Resolve(ast::Node* node, ast::Node* context_node);
   sm::Semantic* ResolveMemberAccess(ast::MemberAccess* node,
                                     ast::Node* context_node);

@@ -98,7 +98,7 @@ void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
     MarkDepdency(clazz, outer_class);
   for (auto const base_class_name : node->base_class_names()) {
     auto const present = Resolve(base_class_name, outer);
-    if (present->is<sm::UndefinedType>())
+    if (!present)
       continue;
     auto const base_class = present->as<sm::Class>();
     if (!base_class) {
@@ -166,7 +166,7 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
     for (auto const base_class_name : class_body->base_class_names()) {
       ++position;
       auto const present = Resolve(base_class_name, outer);
-      if (present->is<sm::UndefinedType>())
+      if (!present)
         continue;
       auto const base_class = present->as<sm::Class>();
       if (!base_class) {
@@ -248,10 +248,6 @@ void ClassTreeBuilder::MarkDepdency(sm::Class* clazz, sm::Class* using_class) {
   dependency_graph_.AddEdge(clazz, using_class);
 }
 
-sm::Type* ClassTreeBuilder::NewUndefinedType(ast::Node* node) {
-  return session()->semantic_factory()->NewUndefinedType(node->name());
-}
-
 sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
                                         ast::Node* context_node) {
   if (auto const ref = node->as<ast::MemberAccess>())
@@ -263,13 +259,13 @@ sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
   if (auto const ref = node->as<ast::TypeNameReference>())
     return Resolve(ref->reference(), context_node);
   NOTREACHED() << node;
-  return NewUndefinedType(node);
+  return nullptr;
 }
 
 sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
                                                     ast::Node* context_node) {
   auto const container = Resolve(node->container(), context_node);
-  if (container->is<sm::UndefinedType>())
+  if (!container)
     return container;
   if (auto const member = container->FindMember(node->name()))
     return member;
@@ -278,18 +274,18 @@ sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
   auto const clazz = container->as<sm::Class>();
   if (!clazz) {
     Error(ErrorCode::ClassTreeNameNotFound, node);
-    return NewUndefinedType(node);
+    return nullptr;
   }
   std::unordered_set<sm::Semantic*> founds;
   FindInClass(node->name(), clazz, &founds);
   if (founds.empty()) {
     Error(ErrorCode::ClassTreeNameNotFound, node);
-    return NewUndefinedType(node);
+    return nullptr;
   }
   if (founds.size() >= 2) {
     for (auto const found : founds)
       Error(ErrorCode::ClassTreeNameAmbiguous, node, found->name());
-    return NewUndefinedType(node);
+    return nullptr;
   }
   return *founds.begin();
 }
@@ -313,7 +309,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
       if (founds.empty()) {
         for (auto const pair : ns_body->imports()) {
           auto const imported = Resolve(pair.second->reference(), ns_body);
-          if (imported->is<sm::UndefinedType>())
+          if (!imported)
             continue;
           if (!IsFixed(imported))
             return imported;
@@ -343,11 +339,11 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
       return *founds.begin();
     if (founds.size() >= 2) {
       Error(ErrorCode::ClassTreeNameAmbiguous, node);
-      return NewUndefinedType(node);
+      return nullptr;
     }
   }
   Error(ErrorCode::ClassTreeNameNotFound, node);
-  return NewUndefinedType(node);
+  return nullptr;
 }
 
 void ClassTreeBuilder::Run() {
@@ -365,7 +361,7 @@ void ClassTreeBuilder::Run() {
   for (auto const alias : unused_aliases_) {
     Error(ErrorCode::ClassTreeAliasNotUsed, alias->name());
     auto const result = Resolve(alias->reference(), alias->parent()->parent());
-    if (IsNamespaceOrType(result))
+    if (!result || IsNamespaceOrType(result))
       continue;
     Error(ErrorCode::ClassTreeAliasNeitherNamespaceNorType, alias->reference());
   }
