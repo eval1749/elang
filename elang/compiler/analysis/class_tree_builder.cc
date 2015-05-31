@@ -268,6 +268,17 @@ sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
   return nullptr;
 }
 
+sm::Semantic* ClassTreeBuilder::ResolveAlias(ast::Alias* alias) {
+  auto const present = Resolve(alias->reference(), alias->parent()->parent());
+  if (!present)
+    return nullptr;
+  if (!IsNamespaceOrType(present)) {
+    Error(ErrorCode::ClassTreeAliasNeitherNamespaceNorType, alias);
+    return nullptr;
+  }
+  return present;
+}
+
 sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
                                                     ast::Node* context_node) {
   auto const container = Resolve(node->container(), context_node);
@@ -310,7 +321,10 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
         founds.insert(present);
       if (auto const alias = ns_body->FindMember(name)->as<ast::Alias>()) {
         unused_aliases_.erase(alias);
-        founds.insert(Resolve(alias->reference(), ns_body->parent()));
+        auto const resolved = ResolveAlias(alias);
+        if (!resolved)
+          return nullptr;
+        founds.insert(resolved);
       }
       if (founds.empty())
         FindWithImports(name, ns_body, &founds);
@@ -332,6 +346,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
   return nullptr;
 }
 
+// The entry point of |ClassTreeBuilder|.
 void ClassTreeBuilder::Run() {
   Traverse(session()->global_namespace_body());
   auto const all_classes = dependency_graph_.GetAllVertices();
@@ -351,10 +366,7 @@ void ClassTreeBuilder::Run() {
   // Check unused aliases resolve-able
   for (auto const alias : unused_aliases_) {
     Error(ErrorCode::ClassTreeAliasNotUsed, alias->name());
-    auto const result = Resolve(alias->reference(), alias->parent()->parent());
-    if (!result || IsNamespaceOrType(result))
-      continue;
-    Error(ErrorCode::ClassTreeAliasNeitherNamespaceNorType, alias->reference());
+    ResolveAlias(alias);
   }
   // Report cycle classes
   std::set<std::pair<sm::Class*, sm::Class*>> cycles;

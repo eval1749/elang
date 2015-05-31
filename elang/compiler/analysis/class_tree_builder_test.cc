@@ -119,6 +119,12 @@ TEST_F(ClassTreeBuilderTest, AliasErrorNotFound) {
       << "Alias references non-existing thing Foo.";
 }
 
+TEST_F(ClassTreeBuilderTest, AliasErrorNeitherNamespaceNorType) {
+  Prepare("enum Color { Red }");
+  Prepare("using R = Color.Red; class A : R {}");
+  EXPECT_EQ("ClassTree.Alias.NeitherNamespaceNorType(6) R\n", BuildClassTree());
+}
+
 // Scope of using alias directive is limited into namespace body.
 TEST_F(ClassTreeBuilderTest, AliasErrorScope) {
   Prepare(

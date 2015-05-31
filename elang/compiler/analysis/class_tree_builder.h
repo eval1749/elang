@@ -55,6 +55,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   void FixClass(sm::Class* clazz);
   void MarkDepdency(sm::Class* clazz, sm::Class* using_class);
   sm::Semantic* Resolve(ast::Node* node, ast::Node* context_node);
+  sm::Semantic* ResolveAlias(ast::Alias* alias);
   sm::Semantic* ResolveMemberAccess(ast::MemberAccess* node,
                                     ast::Node* context_node);
   sm::Semantic* ResolveNameReference(ast::NameReference* node,
