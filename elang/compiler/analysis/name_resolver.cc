@@ -208,6 +208,12 @@ sm::Factory* NameResolver::factory() const {
   return session()->semantic_factory();
 }
 
+sm::Namespace* NameResolver::ImportedNamespaceOf(ast::Import* import) const {
+  auto const it = import_map2_.find(import);
+  DCHECK(it != import_map2_.end());
+  return it->second;
+}
+
 sm::Semantic* NameResolver::ResolveReference(ast::Expression* expression,
                                              ast::ContainerNode* container) {
   ReferenceResolver resolver(this, container);

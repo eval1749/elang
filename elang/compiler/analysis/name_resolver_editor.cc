@@ -24,6 +24,11 @@ NameResolverEditor::NameResolverEditor(NameResolver* resolver)
 NameResolverEditor::~NameResolverEditor() {
 }
 
+sm::Namespace* NameResolverEditor::ImportedNamespaceOf(
+    ast::Import* import) const {
+  return resolver_->ImportedNamespaceOf(import);
+}
+
 void NameResolverEditor::RegisterAlias(ast::Alias* alias,
                                        ast::ContainerNode* resolved) {
   DCHECK(!resolver_->alias_map_.count(alias));
@@ -34,6 +39,12 @@ void NameResolverEditor::RegisterImport(ast::Import* import,
                                         ast::ContainerNode* resolved) {
   DCHECK(!resolver_->import_map_.count(import));
   resolver_->import_map_.insert(std::make_pair(import, resolved));
+}
+
+void NameResolverEditor::RegisterImport(ast::Import* import,
+                                        sm::Namespace* resolved) {
+  DCHECK(!resolver_->import_map2_.count(import));
+  resolver_->import_map2_.insert(std::make_pair(import, resolved));
 }
 
 }  // namespace compiler

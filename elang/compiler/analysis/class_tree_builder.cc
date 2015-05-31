@@ -12,6 +12,8 @@
 #include "elang/base/zone_allocated.h"
 #include "elang/base/zone_vector.h"
 #include "elang/compiler/analysis/analysis.h"
+#include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/analysis/name_resolver_editor.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
@@ -76,9 +78,10 @@ void ClassTreeBuilder::ClassData::AddClassBody(ast::ClassBody* class_body) {
 //
 // ClassTreeBuilder
 //
-ClassTreeBuilder::ClassTreeBuilder(CompilationSession* session,
-                                   sm::Editor* editor)
-    : CompilationSessionUser(session), semantic_editor_(editor) {
+ClassTreeBuilder::ClassTreeBuilder(NameResolver* resolver, sm::Editor* editor)
+    : CompilationSessionUser(resolver->session()),
+      resolver_editor_(new NameResolverEditor(resolver)),
+      semantic_editor_(editor) {
 }
 
 ClassTreeBuilder::~ClassTreeBuilder() {
@@ -156,10 +159,7 @@ void ClassTreeBuilder::FindWithImports(
     ast::NamespaceBody* ns_body,
     std::unordered_set<sm::Semantic*>* founds) {
   for (auto const pair : ns_body->imports()) {
-    auto const import = pair.second;
-    auto const it = import_map_.find(import);
-    DCHECK(it != import_map_.end());
-    auto const imported_ns = it->second;
+    auto const imported_ns = resolver_editor_->ImportedNamespaceOf(pair.second);
     if (!imported_ns)
       continue;
     auto const present = imported_ns->FindMember(name);
@@ -433,19 +433,15 @@ void ClassTreeBuilder::VisitAlias(ast::Alias* node) {
 }
 
 void ClassTreeBuilder::VisitImport(ast::Import* node) {
-  DCHECK(!import_map_.count(node)) << node;
   auto const context = node->parent()->parent();
   auto const imported = Resolve(node->reference(), context);
-  if (!imported) {
-    import_map_.insert(std::make_pair(node, nullptr));
-    return;
-  }
-  if (auto const ns = imported->as<sm::Namespace>()) {
-    import_map_.insert(std::make_pair(node, ns));
-    return;
-  }
+  if (!imported)
+    return resolver_editor_->RegisterImport(
+        node, static_cast<sm::Namespace*>(nullptr));
+  if (auto const ns = imported->as<sm::Namespace>())
+    return resolver_editor_->RegisterImport(node, ns);
   Error(ErrorCode::ClassTreeImportNotNamespace, node->reference());
-  import_map_.insert(std::make_pair(node, nullptr));
+  resolver_editor_->RegisterImport(node, static_cast<sm::Namespace*>(nullptr));
 }
 
 void ClassTreeBuilder::VisitClassBody(ast::ClassBody* node) {

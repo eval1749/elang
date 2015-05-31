@@ -15,6 +15,9 @@ class Alias;
 class ContainerNode;
 class Import;
 }
+namespace sm {
+class Namespace;
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -25,8 +28,12 @@ class NameResolverEditor final {
   explicit NameResolverEditor(NameResolver* resolver);
   ~NameResolverEditor();
 
+  NameResolver* resolver() const { return resolver_; }
+
+  sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
   void RegisterAlias(ast::Alias* alias, ast::ContainerNode* resolved);
   void RegisterImport(ast::Import* import, ast::ContainerNode* resolved);
+  void RegisterImport(ast::Import* import, sm::Namespace* ns);
 
  private:
   NameResolver* const resolver_;

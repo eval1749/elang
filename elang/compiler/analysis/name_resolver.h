@@ -26,9 +26,8 @@ class NamedNode;
 }
 namespace sm {
 class Factory;
-class Method;
+class Namespace;
 class Semantic;
-class Type;
 }
 
 class Analysis;
@@ -57,8 +56,11 @@ class NameResolver final : public CompilationSessionUser {
   friend class NameResolverEditor;
   class ReferenceResolver;
 
+  sm::Namespace* ImportedNamespaceOf(ast::Import* import) const;
+
   std::unordered_map<ast::Alias*, ast::ContainerNode*> alias_map_;
   std::unordered_map<ast::Import*, ast::ContainerNode*> import_map_;
+  std::unordered_map<ast::Import*, sm::Namespace*> import_map2_;
 
   DISALLOW_COPY_AND_ASSIGN(NameResolver);
 };

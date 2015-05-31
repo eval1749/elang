@@ -5,6 +5,7 @@
 #ifndef ELANG_COMPILER_ANALYSIS_CLASS_TREE_BUILDER_H_
 #define ELANG_COMPILER_ANALYSIS_CLASS_TREE_BUILDER_H_
 
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -22,6 +23,8 @@ class Editor;
 class Namespace;
 class Semantic;
 }
+class NameResolver;
+class NameResolverEditor;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -31,7 +34,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
                                public ast::Visitor,
                                public ZoneOwner {
  public:
-  ClassTreeBuilder(CompilationSession* session, sm::Editor* editor);
+  ClassTreeBuilder(NameResolver* resolver_editor, sm::Editor* editor);
   ~ClassTreeBuilder() final;
 
   // The Entry Point of |ClassTreeBuilder|
@@ -69,8 +72,8 @@ class ClassTreeBuilder final : public CompilationSessionUser,
 
   std::unordered_map<sm::Class*, ClassData*> class_data_map_;
   SimpleDirectedGraph<sm::Class*> dependency_graph_;
+  std::unique_ptr<NameResolverEditor> const resolver_editor_;
   sm::Editor* const semantic_editor_;
-  std::unordered_map<ast::Import*, sm::Namespace*> import_map_;
   std::unordered_set<ast::Node*> unresolved_names_;
   std::unordered_set<ast::Alias*> unused_aliases_;
 

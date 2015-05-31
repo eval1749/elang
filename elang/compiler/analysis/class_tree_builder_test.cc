@@ -58,7 +58,7 @@ std::string ClassTreeBuilderTest::BuildClassTree() {
   if (session()->HasError())
     return GetErrors();
   sm::Editor semantic_editor(session());
-  ClassTreeBuilder(session(), &semantic_editor).Run();
+  ClassTreeBuilder(name_resolver(), &semantic_editor).Run();
   return GetErrors();
 }
 
