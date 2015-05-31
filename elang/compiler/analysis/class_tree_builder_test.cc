@@ -406,5 +406,48 @@ TEST_F(ClassTreeBuilderTest, ImportNotAmbiguous) {
   EXPECT_EQ("N1.A", BaseClassesOf("N3.B"));
 }
 
+TEST_F(ClassTreeBuilderTest, InterfaceBasic) {
+  Prepare(
+      "interface I {}"
+      "interface J {}"
+      "interface K : I {}"
+      "interface L : K, J {}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("K J", BaseClassesOf("L"));
+}
+
+TEST_F(ClassTreeBuilderTest, InterfaceErrorBaseClass) {
+  Prepare(
+      "class A {}"
+      "interface I : A {}");
+  EXPECT_EQ("ClassTree.BaseClass.NotInterface(24) A\n", BuildClassTree());
+}
+
+TEST_F(ClassTreeBuilderTest, PredefinedTypes) {
+  Prepare("class A {}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("", BaseClassesOf("System.Object"));
+  EXPECT_EQ("System.Object", BaseClassesOf("System.ValueType"));
+  EXPECT_EQ("System.ValueType", BaseClassesOf("System.Bool"));
+  EXPECT_EQ("System.ValueType", BaseClassesOf("System.Void"));
+}
+
+TEST_F(ClassTreeBuilderTest, StructBasic) {
+  Prepare(
+      "interface I {}"
+      "interface J {}"
+      "struct S : I, J {}");
+  EXPECT_EQ("", BuildClassTree());
+  EXPECT_EQ("System.ValueType I J", BaseClassesOf("S"));
+}
+
+TEST_F(ClassTreeBuilderTest, StructErrorBaseClass) {
+  Prepare(
+      "class A {}"
+      "struct S : A {}");
+  EXPECT_EQ("ClassTree.BaseClass.NeitherStructNorInterface(21) A\n",
+            BuildClassTree());
+}
+
 }  // namespace compiler
 }  // namespace elang
