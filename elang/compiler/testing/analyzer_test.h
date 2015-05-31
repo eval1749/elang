@@ -25,13 +25,6 @@ namespace testing {
 //
 class AnalyzerTest : public CompilerTest {
  protected:
-  struct ClassOrString {
-    sm::Class* ir_class;
-    std::string message;
-    explicit ClassOrString(sm::Class* ir_class) : ir_class(ir_class) {}
-    ClassOrString(const char* format, base::StringPiece name);
-  };
-
   AnalyzerTest();
   ~AnalyzerTest() override;
 
@@ -41,9 +34,6 @@ class AnalyzerTest : public CompilerTest {
   std::string Analyze();
   std::string AnalyzeClass();
   std::string AnalyzeNamespace();
-  std::string GetBaseClasses(base::StringPiece name);
-  ClassOrString GetClass(base::StringPiece name);
-  std::string GetDirectBaseClasses(base::StringPiece name);
   std::string GetMethodGroup(base::StringPiece name);
   std::string MakeClassListString(const std::vector<sm::Class*>& classes);
   std::string MakeClassListString(const ZoneVector<sm::Class*>& classes);

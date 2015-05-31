@@ -2,14 +2,65 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <deque>
+#include <string>
+#include <vector>
+
 #include "elang/compiler/testing/analyzer_test.h"
 
+#include "base/strings/stringprintf.h"
 #include "elang/compiler/analysis/namespace_analyzer.h"
+#include "elang/compiler/analysis/name_resolver.h"
+#include "elang/compiler/ast/class.h"
 #include "elang/compiler/namespace_builder.h"
+#include "elang/compiler/semantics/nodes.h"
 
 namespace elang {
 namespace compiler {
+
 namespace {
+
+//////////////////////////////////////////////////////////////////////
+//
+// ClassOrStrig
+//
+struct ClassOrString {
+  sm::Class* ir_class;
+  std::string message;
+  explicit ClassOrString(sm::Class* ir_class) : ir_class(ir_class) {}
+  ClassOrString(const char* format, base::StringPiece name);
+};
+
+ClassOrString::ClassOrString(const char* format, base::StringPiece name)
+    : ir_class(nullptr),
+      message(base::StringPrintf(format, name.as_string().c_str())) {
+}
+
+std::vector<sm::Class*> ComputeBaseClassList(
+    const ZoneVector<sm::Class*>& direct_base_classes) {
+  std::vector<sm::Class*> base_classes(direct_base_classes.size());
+  base_classes.resize(0);
+  std::unordered_set<sm::Class*> seen;
+  std::deque<sm::Class*> pending_classes(direct_base_classes.begin(),
+                                         direct_base_classes.end());
+  while (!pending_classes.empty()) {
+    auto const current = pending_classes.front();
+    pending_classes.pop_front();
+    if (seen.count(current))
+      continue;
+    base_classes.push_back(current);
+    seen.insert(current);
+    for (auto base_class : current->direct_base_classes()) {
+      if (seen.count(base_class))
+        continue;
+      pending_classes.push_back(base_class);
+    }
+  }
+  DCHECK_GE(base_classes.size(), direct_base_classes.size());
+  return base_classes;
+}
+
+}  // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -20,9 +71,45 @@ class NamespaceAnalyzerTest : public testing::AnalyzerTest {
   NamespaceAnalyzerTest() = default;
   ~NamespaceAnalyzerTest() override = default;
 
+  std::string GetBaseClasses(base::StringPiece name);
+  ClassOrString GetClass(base::StringPiece name);
+  std::string GetDirectBaseClasses(base::StringPiece name);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(NamespaceAnalyzerTest);
 };
+
+ClassOrString NamespaceAnalyzerTest::GetClass(base::StringPiece name) {
+  auto const member = FindMember(name);
+  if (!member)
+    return ClassOrString("No such class %s", name);
+  auto const ast_class = member->as<ast::Class>();
+  if (!ast_class)
+    return ClassOrString("%s isn't class", name);
+  auto const resolved = name_resolver()->SemanticOf(ast_class);
+  if (!resolved)
+    return ClassOrString("%s isn't resolved", name);
+  auto const ir_class = resolved->as<sm::Class>();
+  if (!ir_class)
+    return ClassOrString("%s isn't resolved to class", name);
+  return ClassOrString(ir_class);
+}
+
+std::string NamespaceAnalyzerTest::GetBaseClasses(base::StringPiece name) {
+  auto const thing = GetClass(name);
+  if (!thing.ir_class)
+    return thing.message;
+  return MakeClassListString(
+      ComputeBaseClassList(thing.ir_class->direct_base_classes()));
+}
+
+std::string NamespaceAnalyzerTest::GetDirectBaseClasses(
+    base::StringPiece name) {
+  auto const thing = GetClass(name);
+  if (!thing.ir_class)
+    return thing.message;
+  return MakeClassListString(thing.ir_class->direct_base_classes());
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -441,6 +528,5 @@ TEST_F(NamespaceAnalyzerTest, StructErrorBaseClass) {
   EXPECT_EQ("NameResolution.Name.NotInterface(21) A\n", AnalyzeNamespace());
 }
 
-}  // namespace
 }  // namespace compiler
 }  // namespace elang

@@ -36,30 +36,6 @@ namespace testing {
 
 namespace {
 
-std::vector<sm::Class*> ComputeBaseClassList(
-    const ZoneVector<sm::Class*>& direct_base_classes) {
-  std::vector<sm::Class*> base_classes(direct_base_classes.size());
-  base_classes.resize(0);
-  std::unordered_set<sm::Class*> seen;
-  std::deque<sm::Class*> pending_classes(direct_base_classes.begin(),
-                                         direct_base_classes.end());
-  while (!pending_classes.empty()) {
-    auto const current = pending_classes.front();
-    pending_classes.pop_front();
-    if (seen.count(current))
-      continue;
-    base_classes.push_back(current);
-    seen.insert(current);
-    for (auto base_class : current->direct_base_classes()) {
-      if (seen.count(base_class))
-        continue;
-      pending_classes.push_back(base_class);
-    }
-  }
-  DCHECK_GE(base_classes.size(), direct_base_classes.size());
-  return base_classes;
-}
-
 class SystemNamespaceBuilder final : public NamespaceBuilder {
  public:
   explicit SystemNamespaceBuilder(NameResolver* name_resolver);
@@ -110,16 +86,6 @@ bool RunPass(NameResolver* name_resolver) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// AnalyzerTest::ClassOrStrig
-//
-AnalyzerTest::ClassOrString::ClassOrString(const char* format,
-                                           base::StringPiece name)
-    : ir_class(nullptr),
-      message(base::StringPrintf(format, name.as_string().c_str())) {
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // AnalyzerTest
 //
 AnalyzerTest::AnalyzerTest() : name_resolver_(NewNameResolver(session())) {
@@ -160,37 +126,6 @@ std::string AnalyzerTest::AnalyzeNamespace() {
   if (!RunPass<NamespaceAnalyzer>(name_resolver()))
     return GetErrors();
   return "";
-}
-
-std::string AnalyzerTest::GetBaseClasses(base::StringPiece name) {
-  auto const thing = GetClass(name);
-  if (!thing.ir_class)
-    return thing.message;
-  return MakeClassListString(
-      ComputeBaseClassList(thing.ir_class->direct_base_classes()));
-}
-
-AnalyzerTest::ClassOrString AnalyzerTest::GetClass(base::StringPiece name) {
-  auto const member = FindMember(name);
-  if (!member)
-    return ClassOrString("No such class %s", name);
-  auto const ast_class = member->as<ast::Class>();
-  if (!ast_class)
-    return ClassOrString("%s isn't class", name);
-  auto const resolved = name_resolver_->SemanticOf(ast_class);
-  if (!resolved)
-    return ClassOrString("%s isn't resolved", name);
-  auto const ir_class = resolved->as<sm::Class>();
-  if (!ir_class)
-    return ClassOrString("%s isn't resolved to class", name);
-  return ClassOrString(ir_class);
-}
-
-std::string AnalyzerTest::GetDirectBaseClasses(base::StringPiece name) {
-  auto const thing = GetClass(name);
-  if (!thing.ir_class)
-    return thing.message;
-  return MakeClassListString(thing.ir_class->direct_base_classes());
 }
 
 std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
