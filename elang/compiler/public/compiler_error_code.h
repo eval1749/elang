@@ -64,6 +64,17 @@ namespace compiler {
   E(NameResolution, Name, NotResolved)                \
   E(NameResolution, Name, NotStruct)                  \
   E(NameResolution, SystemObject, HasBaseClass)       \
+  /* NameTree */                                      \
+  E(NameTree, Alias, Conflict)                        \
+  E(NameTree, Class, Duplicate)                       \
+  E(NameTree, Class, Conflict)                        \
+  E(NameTree, Const, Duplicate)                       \
+  E(NameTree, Const, Conflict)                        \
+  E(NameTree, Enum, Duplicate)                        \
+  E(NameTree, Enum, Conflict)                         \
+  E(NameTree, Field, Conflict)                        \
+  E(NameTree, Field, Duplicate)                       \
+  E(NameTree, Method, Conflict)                       \
   /*  Predefined names */                             \
   E(PredefinedNames, Name, NotClass)                  \
   E(PredefinedNames, Name, NotFound)                  \

@@ -76,14 +76,14 @@ TEST_F(NameTreeBuilderTest, AliasErrorAmbiguous) {
       "  using A = N1.N2.A;"
       "  class B : A {}"  // A can be N1.N2.A or N3.A.
       "}");
-  EXPECT_EQ("NameResolution.Alias.Conflict(79) A A\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Alias.Conflict(79) A A\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, AliasConflict) {
   Prepare(
       "namespace N1 { using A = N1; }"
       "namespace N1 { class A {} }");
-  EXPECT_EQ("NameResolution.Alias.Conflict(21) A A\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Alias.Conflict(21) A A\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, AliasErrorDuplicate) {
@@ -132,13 +132,13 @@ TEST_F(NameTreeBuilderTest, ConstBasic) {
 TEST_F(NameTreeBuilderTest, ConstErrorConflict) {
   Prepare("partial class A { const int B = 2; }");
   Prepare("partial class A { int B; }");
-  EXPECT_EQ("NameResolution.Field.Conflict(22) B B\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Field.Conflict(22) B B\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, ConstErrorDuplicate) {
   Prepare("partial class A { const int B = 2; }");
   Prepare("partial class A { const int B = 2; }");
-  EXPECT_EQ("NameResolution.Const.Duplicate(28) B B\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Const.Duplicate(28) B B\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, EnumBasic) {
@@ -168,13 +168,13 @@ TEST_F(NameTreeBuilderTest, FieldBasic) {
 TEST_F(NameTreeBuilderTest, FieldErrorConflict) {
   Prepare("partial class A { void B() {} }");
   Prepare("partial class A { int B; }");
-  EXPECT_EQ("NameResolution.Field.Conflict(22) B B\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Field.Conflict(22) B B\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, FieldErrorDuplicate) {
   Prepare("partial class A { int B = 2; }");
   Prepare("partial class A { int B = 2; }");
-  EXPECT_EQ("NameResolution.Field.Duplicate(22) B B\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Field.Duplicate(22) B B\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, MethodBasic) {

@@ -76,8 +76,7 @@ void NameTreeBuilder::Run() {
     auto const present = outer->FindMember(alias->name());
     if (!present)
       continue;
-    Error(ErrorCode::NameResolutionAliasConflict, alias->name(),
-          present->name());
+    Error(ErrorCode::NameTreeAliasConflict, alias->name(), present->name());
   }
 }
 
@@ -108,10 +107,9 @@ void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
       editor_->SetSemanticOf(node, present_class);
       return ast::Visitor::VisitClassBody(node);
     }
-    return Error(ErrorCode::NameResolutionClassDuplicate, node,
-                 present->name());
+    return Error(ErrorCode::NameTreeClassDuplicate, node, present->name());
   }
-  Error(ErrorCode::NameResolutionClassConflict, node, present->name());
+  Error(ErrorCode::NameTreeClassConflict, node, present->name());
 }
 
 void NameTreeBuilder::VisitConst(ast::Const* node) {
@@ -124,10 +122,9 @@ void NameTreeBuilder::VisitConst(ast::Const* node) {
     return;
   }
   if (present->is<sm::Const>()) {
-    return Error(ErrorCode::NameResolutionConstDuplicate, node,
-                 present->name());
+    return Error(ErrorCode::NameTreeConstDuplicate, node, present->name());
   }
-  Error(ErrorCode::NameResolutionConstConflict, node, present->name());
+  Error(ErrorCode::NameTreeConstConflict, node, present->name());
 }
 
 void NameTreeBuilder::VisitEnum(ast::Enum* node) {
@@ -143,9 +140,9 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
     return;
   }
   if (present->is<sm::Field>()) {
-    return Error(ErrorCode::NameResolutionEnumDuplicate, node, present->name());
+    return Error(ErrorCode::NameTreeEnumDuplicate, node, present->name());
   }
-  Error(ErrorCode::NameResolutionEnumConflict, node, present->name());
+  Error(ErrorCode::NameTreeEnumConflict, node, present->name());
 }
 
 void NameTreeBuilder::VisitField(ast::Field* node) {
@@ -158,10 +155,9 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
     return;
   }
   if (present->is<sm::Field>()) {
-    return Error(ErrorCode::NameResolutionFieldDuplicate, node,
-                 present->name());
+    return Error(ErrorCode::NameTreeFieldDuplicate, node, present->name());
   }
-  Error(ErrorCode::NameResolutionFieldConflict, node, present->name());
+  Error(ErrorCode::NameTreeFieldConflict, node, present->name());
 }
 
 void NameTreeBuilder::VisitMethod(ast::Method* node) {
@@ -174,7 +170,7 @@ void NameTreeBuilder::VisitMethod(ast::Method* node) {
   }
   if (present->is<sm::MethodGroup>())
     return;
-  Error(ErrorCode::NameResolutionMethodConflict, node->name());
+  Error(ErrorCode::NameTreeMethodConflict, node->name());
 }
 
 void NameTreeBuilder::VisitNamespaceBody(ast::NamespaceBody* node) {
