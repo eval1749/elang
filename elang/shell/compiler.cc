@@ -27,6 +27,7 @@
 #include "elang/compiler/compilation_session.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/namespace_builder.h"
+#include "elang/compiler/predefined_names.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/public/compiler_error_data.h"
 #include "elang/compiler/semantics/factory.h"
@@ -291,19 +292,12 @@ void PopulateNamespace(NameResolver* name_resolver) {
 // Note: In HIR, objects are passed as pointers rather than object.
 std::vector<ast::Node*> CollectMainMethods(CompilationSession* session,
                                            NameResolver* name_resolver) {
-  auto const semantics = session->analysis();
   auto const name_main = session->NewAtomicString(L"Main");
-  auto const int32_type =
-      semantics->SemanticOf(session->QueryAstNode(L"System.Int32"))
-          ->as<sm::Type>();
-  auto const string_type =
-      semantics->SemanticOf(session->QueryAstNode(L"System.String"))
-          ->as<sm::Type>();
+  auto const int32_type = session->PredefinedTypeOf(PredefinedName::Int32);
+  auto const string_type = session->PredefinedTypeOf(PredefinedName::String);
   auto const string_array_type =
       name_resolver->factory()->NewArrayType(string_type, {-1});
-  auto const void_type =
-      semantics->SemanticOf(session->QueryAstNode(L"System.Void"))
-          ->as<sm::Type>();
+  auto const void_type = session->PredefinedTypeOf(PredefinedName::Void);
 
   MethodQuery query1(name_main, void_type, {});
   MethodQuery query2(name_main, void_type, {ParameterQuery(string_array_type)});
