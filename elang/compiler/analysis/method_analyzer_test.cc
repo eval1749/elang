@@ -202,16 +202,11 @@ std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
 }
 
 std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
-  auto const analyze_result = Analyze();
-  if (!analyze_result.empty())
-    return analyze_result;
-
-  auto const method_group = FindMember(method_name)->as<ast::MethodGroup>();
-  if (!method_group)
+  auto const method = FindMember(method_name)->as<ast::Method>();
+  if (!method)
     return std::string("Not found: ") + method_name.as_string();
 
-  auto const method_main = method_group->methods()[0];
-  Collector collector(method_main);
+  Collector collector(method);
   std::stringstream ostream;
   for (auto const call : collector.calls()) {
     if (auto const method = analysis()->SemanticOf(call->callee()))
@@ -224,16 +219,11 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
 }
 
 std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
-  auto const analyze_result = Analyze();
-  if (!analyze_result.empty())
-    return analyze_result;
-
-  auto const method_group = FindMember(method_name)->as<ast::MethodGroup>();
-  if (!method_group)
+  auto const method = FindMember(method_name)->as<ast::Method>();
+  if (!method)
     return std::string("Not found: ") + method_name.as_string();
 
-  auto const method_main = method_group->methods()[0];
-  Collector collector(method_main);
+  Collector collector(method);
   std::stringstream ostream;
   for (auto const variable : collector.variables())
     ostream << *analysis()->SemanticOf(variable) << std::endl;
@@ -386,7 +376,7 @@ TEST_F(MethodAnalyzerTest, Conditional) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, ConditionalErrorBool) {
@@ -416,7 +406,7 @@ TEST_F(MethodAnalyzerTest, Do) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, DoErrorCondition) {
@@ -436,7 +426,7 @@ TEST_F(MethodAnalyzerTest, For) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, ForErrorCondition) {
@@ -458,6 +448,7 @@ TEST_F(MethodAnalyzerTest, ForEach) {
       "      Console.WriteLine(arg);"
       "  }"
       "}");
+  ASSERT_EQ("", Analyze());
   EXPECT_EQ(
       "ReadOnly System.String[] args\n"
       "ReadOnly System.String arg\n",
@@ -476,7 +467,7 @@ TEST_F(MethodAnalyzerTest, ForEachError) {
   EXPECT_EQ(
       "TypeResolver.ForEach.ElementType(75) arg\n"
       "TypeResolver.Expression.Invalid(110) arg\n",
-      VariablesOf("Sample.Main"));
+      Analyze());
 }
 
 // 'if' statement
@@ -488,7 +479,7 @@ TEST_F(MethodAnalyzerTest, If) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, IfErrorCondition) {
@@ -506,7 +497,7 @@ TEST_F(MethodAnalyzerTest, Increment) {
       "class Sample {"
       "  void Foo() { var x = 0; ++x; x++; }"
       "}");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
   EXPECT_EQ("System.Int32\n", QuerySemantics(TokenType::Increment));
   EXPECT_EQ("System.Int32\n", QuerySemantics(TokenType::PostIncrement));
 }
@@ -518,6 +509,7 @@ TEST_F(MethodAnalyzerTest, Method) {
       "class Sample {"
       "    void Main() { Console.WriteLine(\"Hello world!\"); }"
       "  }");
+  ASSERT_EQ("", Analyze());
   EXPECT_EQ("System.Void System.Console.WriteLine(System.String)\n",
             GetCalls("Sample.Main"));
 }
@@ -531,6 +523,7 @@ TEST_F(MethodAnalyzerTest, Method2) {
       "    static void Foo(float64 x) {}"
       "    void Main() { Foo('a'); Foo(123); Foo(12.3); }"
       "  }");
+  ASSERT_EQ("", Analyze());
   EXPECT_EQ(
       "System.Void Sample.Foo(System.Char)\n"
       "System.Void Sample.Foo(System.Int32)\n"
@@ -545,9 +538,9 @@ TEST_F(MethodAnalyzerTest, Parameter) {
       "    char Foo(char ch) { ch = 'a'; return ch; }"  // Local
       "    void Foo(float32 f32) {}"                    // Void == no references
       "  }");
-  EXPECT_EQ("", Analyze());
-  auto const foo_group = FindMember("Sample.Foo")->as<ast::MethodGroup>();
-  ASSERT_TRUE(foo_group);
+  ASSERT_EQ("", Analyze());
+  auto const foo_group =
+      FindMember("Sample.Foo")->as<ast::Method>()->method_group();
   std::stringstream ostream;
   for (auto method : foo_group->methods()) {
     for (auto const parameter : method->parameters()) {
@@ -570,7 +563,7 @@ TEST_F(MethodAnalyzerTest, ReturnError) {
   EXPECT_EQ(
       "Method.Return.Void(30) return\n"
       "Method.Return.NotVoid(56) return\n",
-      GetCalls("Sample.Foo"));
+      Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, TypeVariable) {
@@ -581,6 +574,7 @@ TEST_F(MethodAnalyzerTest, TypeVariable) {
       "    static int Foo(int x) {}"
       "    void Main() { var x = Foo('a'); Foo(x); }"
       "  }");
+  ASSERT_EQ("", Analyze());
   EXPECT_EQ(
       "System.Char Sample.Foo(System.Char)\n"
       "System.Char Sample.Foo(System.Char)\n",
@@ -606,7 +600,7 @@ TEST_F(MethodAnalyzerTest, While) {
       "    bool Cond() { return true; }"
       "    int Foo(int x) { return x; }"
       "  }");
-  EXPECT_EQ("", Analyze());
+  ASSERT_EQ("", Analyze());
 }
 
 TEST_F(MethodAnalyzerTest, WhileErrorCondition) {

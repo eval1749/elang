@@ -51,7 +51,7 @@ class NameResolver final : public CompilationSessionUser {
 
   sm::Semantic* ResolveReference(ast::Expression* expression,
                                  ast::ContainerNode* container);
-  sm::Semantic* SemanticOf(ast::NamedNode* ast_node) const;
+  sm::Semantic* SemanticOf(ast::Node* ast_node) const;
 
  private:
   friend class NameResolverEditor;

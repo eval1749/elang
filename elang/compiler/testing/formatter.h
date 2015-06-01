@@ -15,6 +15,7 @@
 
 namespace elang {
 namespace compiler {
+class CompilationSession;
 namespace testing {
 
 //////////////////////////////////////////////////////////////////////
@@ -26,7 +27,7 @@ class Formatter final : public ast::Visitor {
   Formatter();
   ~Formatter() = default;
 
-  std::string Run(ast::Node* node);
+  std::string Run(CompilationSession* session);
 
  private:
   enum class NewlineAtEnd {

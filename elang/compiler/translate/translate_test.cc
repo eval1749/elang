@@ -50,10 +50,9 @@ std::string TranslateTest::FormatFunction(ir::Function* function) {
 }
 
 std::string TranslateTest::GetFunction(base::StringPiece name) {
-  auto const ast_method_group = FindMember(name)->as<ast::MethodGroup>();
-  if (!ast_method_group)
-    return std::string("No such method group ") + name.as_string();
-  auto const ast_method = ast_method_group->methods()[0];
+  auto const ast_method = FindMember(name)->as<ast::Method>();
+  if (!ast_method)
+    return std::string("No such method ") + name.as_string();
   auto const sm_function = analysis()->SemanticOf(ast_method);
   if (!sm_function)
     return std::string("Unbound ") + name.as_string();

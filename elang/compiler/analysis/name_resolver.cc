@@ -236,8 +236,8 @@ sm::Semantic* NameResolver::ResolveReference(ast::Expression* expression,
   return resolver.Resolve(expression);
 }
 
-sm::Semantic* NameResolver::SemanticOf(ast::NamedNode* member) const {
-  return analysis()->SemanticOf(member);
+sm::Semantic* NameResolver::SemanticOf(ast::Node* node) const {
+  return analysis()->SemanticOf(node);
 }
 
 }  // namespace compiler

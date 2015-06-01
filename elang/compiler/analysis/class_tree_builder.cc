@@ -102,7 +102,7 @@ void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
   if (auto const outer_class = clazz->outer()->as<sm::Class>())
     MarkDepdency(clazz, outer_class);
   for (auto const base_class_name : node->base_class_names()) {
-    auto const present = Resolve(base_class_name, outer);
+    auto const present = Resolve(node, base_class_name, outer);
     if (!present) {
       unresolved_names_.insert(base_class_name);
       continue;
@@ -163,13 +163,12 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
   std::vector<sm::Class*> interfaces;
   auto const class_data = ClassDataFor(clazz);
   for (auto const class_body : class_data->class_bodies()) {
-    auto const outer = class_body->parent();
     std::unordered_set<sm::Class*> direct_presents;
     auto position = 0;
     for (auto const base_class_name : class_body->base_class_names()) {
       ++position;
       auto const base_class =
-          ValidateBaseClass(clazz, position, base_class_name, outer);
+          ValidateBaseClass(class_body, clazz, position, base_class_name);
       if (!base_class)
         continue;
       DCHECK(IsFixed(base_class)) << base_class_name;
@@ -230,16 +229,17 @@ void ClassTreeBuilder::MarkDepdency(sm::Class* clazz, sm::Class* using_class) {
   dependency_graph_.AddEdge(clazz, using_class);
 }
 
-sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
+sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* client,
+                                        ast::Node* node,
                                         ast::Node* context_node) {
   if (auto const ref = node->as<ast::MemberAccess>())
-    return ResolveMemberAccess(ref, context_node);
+    return ResolveMemberAccess(client, ref, context_node);
   if (auto const ref = node->as<ast::NameReference>())
-    return ResolveNameReference(ref, context_node);
+    return ResolveNameReference(client, ref, context_node);
   if (auto const ref = node->as<ast::TypeMemberAccess>())
-    return Resolve(ref->reference(), context_node);
+    return Resolve(client, ref->reference(), context_node);
   if (auto const ref = node->as<ast::TypeNameReference>())
-    return Resolve(ref->reference(), context_node);
+    return Resolve(client, ref->reference(), context_node);
   NOTREACHED() << node;
   return nullptr;
 }
@@ -257,7 +257,7 @@ sm::Semantic* ClassTreeBuilder::Resolve(ast::Node* node,
 //    class A {}
 //  }
 sm::Semantic* ClassTreeBuilder::ResolveAlias(ast::Alias* alias) {
-  auto const present = Resolve(alias->reference(), alias->parent()->parent());
+  auto const present = Resolve(alias, alias->reference(), alias->parent());
   if (!present)
     return nullptr;
   if (!IsNamespaceOrType(present)) {
@@ -267,9 +267,10 @@ sm::Semantic* ClassTreeBuilder::ResolveAlias(ast::Alias* alias) {
   return present;
 }
 
-sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
+sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::Node* client,
+                                                    ast::MemberAccess* node,
                                                     ast::Node* context_node) {
-  auto const container = Resolve(node->container(), context_node);
+  auto const container = Resolve(client, node->container(), context_node);
   if (!container)
     return container;
   if (auto const member = container->FindMember(node->name()))
@@ -295,8 +296,12 @@ sm::Semantic* ClassTreeBuilder::ResolveMemberAccess(ast::MemberAccess* node,
   return *founds.begin();
 }
 
-sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
+sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::Node* client,
+                                                     ast::NameReference* node,
                                                      ast::Node* context_node) {
+  auto const ignoring_container =
+      client->is<ast::Alias>() || client->is<ast::Import>() ? context_node
+                                                            : nullptr;
   auto const name = node->name();
   for (auto runner = context_node; runner;
        runner = runner->parent()->as<ast::ContainerNode>()) {
@@ -304,7 +309,11 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
     if (!IsFixed(outer))
       return outer;
     std::unordered_set<sm::Semantic*> founds;
-    if (auto const ns_body = runner->as<ast::NamespaceBody>()) {
+    if (runner == ignoring_container) {
+      DCHECK(outer->is<sm::Namespace>());
+      if (auto const present = outer->FindMember(name)->as<sm::Namespace>())
+        founds.insert(present);
+    } else if (auto const ns_body = runner->as<ast::NamespaceBody>()) {
       DCHECK(outer->is<sm::Namespace>());
       if (auto const present = outer->FindMember(name))
         founds.insert(present);
@@ -337,7 +346,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::NameReference* node,
 
 // The entry point of |ClassTreeBuilder|.
 void ClassTreeBuilder::Run() {
-  Traverse(session()->global_namespace_body());
+  session()->Apply(this);
   auto const all_classes = dependency_graph_.GetAllVertices();
   std::vector<sm::Class*> leaf_classes;
   for (auto const clazz : all_classes) {
@@ -378,13 +387,14 @@ sm::Semantic* ClassTreeBuilder::SemanticOf(ast::Node* node) const {
   return session()->analysis()->SemanticOf(node);
 }
 
-sm::Class* ClassTreeBuilder::ValidateBaseClass(sm::Class* clazz,
+sm::Class* ClassTreeBuilder::ValidateBaseClass(ast::ClassBody* class_body,
+                                               sm::Class* clazz,
                                                int position,
-                                               ast::Node* base_class_name,
-                                               ast::Node* container) {
+                                               ast::Node* base_class_name) {
   if (unresolved_names_.count(base_class_name))
     return nullptr;
-  auto const present = Resolve(base_class_name, container);
+  auto const present =
+      Resolve(class_body, base_class_name, class_body->parent());
   if (!present)
     return nullptr;
   // TODO(eval1749) Check |base_class| isn't |final|.
@@ -432,8 +442,7 @@ void ClassTreeBuilder::VisitAlias(ast::Alias* node) {
 }
 
 void ClassTreeBuilder::VisitImport(ast::Import* node) {
-  auto const context = node->parent()->parent();
-  auto const imported = Resolve(node->reference(), context);
+  auto const imported = Resolve(node, node->reference(), node->parent());
   if (!imported)
     return resolver_editor_->RegisterImport(
         node, static_cast<sm::Namespace*>(nullptr));

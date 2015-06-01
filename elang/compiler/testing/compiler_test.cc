@@ -64,7 +64,7 @@ ast::Class* CompilerTest::FindClass(base::StringPiece name) {
   return member ? member->as<ast::Class>() : nullptr;
 }
 
-ast::NamedNode* CompilerTest::FindMember(base::StringPiece qualified_name) {
+ast::Node* CompilerTest::FindMember(base::StringPiece qualified_name) {
   return session()->QueryAstNode(base::UTF8ToUTF16(qualified_name));
 }
 
@@ -77,7 +77,7 @@ std::string CompilerTest::Format() {
   if (!Parse())
     return GetErrors();
   Formatter formatter;
-  return formatter.Run(session_->global_namespace_body());
+  return formatter.Run(session_.get());
 }
 
 std::string CompilerTest::GetErrors() {

@@ -41,7 +41,8 @@ class Namespace;
 class NamespaceBody;
 class Node;
 class NodeQuery;
-}
+class Visitor;
+}  // namespace ast
 
 namespace sm {
 class Factory;
@@ -84,6 +85,8 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
   Analysis* analysis() const { return analysis_.get(); }
   sm::Factory* semantic_factory() const { return semantic_factory_.get(); }
 
+  void Apply(ast::Visitor* visitor);
+
   // Generate HIR functions. See "compile.cc" for implementation of |Compile()|.
   void Compile(NameResolver* name_resolver, hir::Factory* factory);
   void Compile(NameResolver* name_resolver, ir::Factory* factory);
@@ -113,7 +116,7 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
   AtomicString* QualifiedNameOf(sm::Semantic* node);
 
   // Returns |ast::Node| which qualified name is |qualified_name|.
-  ast::NamedNode* QueryAstNode(base::StringPiece16 qualified_name);
+  ast::Node* QueryAstNode(base::StringPiece16 qualified_name);
 
   // Returns list of |ast::Node| matched to |query|.
   std::vector<ast::Node*> QueryAstNodes(const ast::NodeQuery& query);

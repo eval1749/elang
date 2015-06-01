@@ -79,10 +79,10 @@ void Formatter::IndentPlusOne() {
   --depth_;
 }
 
-std::string Formatter::Run(ast::Node* node) {
+std::string Formatter::Run(CompilationSession* session) {
   ostream_.clear();
   depth_ = 0;
-  Traverse(node);
+  session->Apply(this);
   return ostream_.str();
 }
 

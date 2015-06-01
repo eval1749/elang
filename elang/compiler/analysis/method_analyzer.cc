@@ -323,7 +323,7 @@ MethodAnalyzer::~MethodAnalyzer() {
 
 // The entry point of |MethodAnalyzer|.
 void MethodAnalyzer::Run() {
-  Traverse(session()->global_namespace_body());
+  session()->Apply(this);
 }
 
 // ast::Visitor

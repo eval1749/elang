@@ -14,6 +14,7 @@
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/public/compiler_error_code.h"
 #include "elang/compiler/semantics/factory.h"
@@ -81,13 +82,20 @@ Token* CompilationSession::system_token() const {
   return token_factory_->system_token();
 }
 
+void CompilationSession::Apply(ast::Visitor* visitor) {
+  for (auto const& compilation_unit : compilation_units_)
+    visitor->Traverse(compilation_unit->namespace_body());
+}
+
 AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
   return token_factory()->NewAtomicString(string);
 }
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
     SourceCode* source_code) {
-  auto unit = std::make_unique<CompilationUnit>(this, source_code);
+  auto const namespace_body =
+      ast_factory()->NewNamespaceBody(nullptr, global_namespace());
+  auto unit = std::make_unique<CompilationUnit>(namespace_body, source_code);
   compilation_units_.push_back(std::move(unit));
   return compilation_units_.back().get();
 }
@@ -153,26 +161,49 @@ AtomicString* CompilationSession::QualifiedNameOf(sm::Semantic* node) {
   return NewAtomicString(name);
 }
 
-ast::NamedNode* CompilationSession::QueryAstNode(
-    base::StringPiece16 reference) {
-  auto enclosing = static_cast<ast::ContainerNode*>(global_namespace());
-  auto found = static_cast<ast::NamedNode*>(nullptr);
-  for (size_t pos = 0u; pos < reference.length(); ++pos) {
-    auto dot_pos = reference.find('.', pos);
-    if (dot_pos == base::StringPiece::npos)
-      dot_pos = reference.length();
-    auto const name = NewAtomicString(reference.substr(pos, dot_pos - pos));
-    found = enclosing->FindMember(name);
-    if (!found)
+ast::Node* CompilationSession::QueryAstNode(base::StringPiece16 path) {
+  struct Local {
+    static ast::Node* Find(const std::vector<AtomicString*> names,
+                           size_t position,
+                           ast::Node* node) {
+      if (node->name()->atomic_string() != names[position])
+        return nullptr;
+      auto const next_position = position + 1;
+      if (next_position == names.size())
+        return node;
+      auto const container = node->as<ast::ContainerNode>();
+      if (!container)
+        return nullptr;
+      for (auto const member : container->members()) {
+        if (auto const found = Find(names, next_position, member))
+          return found;
+      }
       return nullptr;
+    }
+  };
+  std::vector<AtomicString*> names;
+  for (size_t pos = 0u; pos < path.length(); ++pos) {
+    auto dot_pos = path.find('.', pos);
+    if (dot_pos == base::StringPiece16::npos)
+      dot_pos = path.length();
+    names.push_back(NewAtomicString(path.substr(pos, dot_pos - pos)));
     pos = dot_pos;
-    if (pos == reference.length())
-      break;
-    enclosing = found->as<ast::NamespaceNode>();
-    if (!enclosing)
-      return nullptr;
   }
-  return found;
+  if (names.empty())
+    return nullptr;
+  for (auto const& compilation_unit : compilation_units_) {
+    for (auto const member : compilation_unit->namespace_body()->members()) {
+      if (auto const found = Local::Find(names, 0, member))
+        return found;
+    }
+  }
+  // TODO(eval1749) Once we get rid of |ast::Namespace|, we should remove
+  // below code.
+  for (auto const member : global_namespace_body()->members()) {
+    if (auto const found = Local::Find(names, 0, member))
+      return found;
+  }
+  return nullptr;
 }
 
 }  // namespace compiler

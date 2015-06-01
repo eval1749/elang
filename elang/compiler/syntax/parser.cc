@@ -112,9 +112,7 @@ void Parser::ModifierParser::Reset() {
 Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
     : CompilationSessionUser(session),
       compilation_unit_(compilation_unit),
-      container_(session->ast_factory()->NewNamespaceBody(
-          session->global_namespace_body(),
-          session->global_namespace())),
+      container_(compilation_unit->namespace_body()),
       declaration_space_(nullptr),
       expression_(nullptr),
       last_source_offset_(0),
@@ -123,7 +121,6 @@ Parser::Parser(CompilationSession* session, CompilationUnit* compilation_unit)
       statement_(nullptr),
       statement_scope_(nullptr),
       token_(nullptr) {
-  session->global_namespace_body()->AddMember(container_);
 }
 
 Parser::~Parser() {

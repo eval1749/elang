@@ -13,10 +13,9 @@ namespace elang {
 namespace compiler {
 
 namespace ast {
-class Namespace;
+class NamespaceBody;
 }
 
-class CompilationSession;
 class SourceCode;
 
 //////////////////////////////////////////////////////////////////////
@@ -25,12 +24,14 @@ class SourceCode;
 //
 class CompilationUnit {
  public:
-  CompilationUnit(CompilationSession* session, SourceCode* source_code);
+  CompilationUnit(ast::NamespaceBody* namespace_body, SourceCode* source_code);
   ~CompilationUnit();
 
+  ast::NamespaceBody* namespace_body() const { return namespace_body_; }
   SourceCode* source_code() const { return source_code_; }
 
  private:
+  ast::NamespaceBody* const namespace_body_;
   SourceCode* const source_code_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilationUnit);

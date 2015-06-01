@@ -66,7 +66,7 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
 }
 
 void NameTreeBuilder::Run() {
-  Traverse(session()->global_namespace_body());
+  session()->Apply(this);
   for (auto const alias : aliases_) {
     auto const outer = SemanticOf(alias->parent());
     auto const present = outer->FindMember(alias->name());

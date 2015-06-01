@@ -73,7 +73,7 @@ sm::Type* Collector::EnsureEnumBase(ast::Enum* enum_type) {
 
 // The entry point of |Collector|.
 void Collector::Run() {
-  Traverse(session()->global_namespace_body());
+  session()->Apply(this);
 }
 
 // ast::Visitor
@@ -122,7 +122,7 @@ Resolver::Resolver(ConstExprAnalyzer* analyzer) : analyzer_(analyzer) {
 
 // The entry point of |Resolver|.
 void Resolver::Run() {
-  Traverse(session()->global_namespace_body());
+  session()->Apply(this);
 }
 
 // ast::Visitor

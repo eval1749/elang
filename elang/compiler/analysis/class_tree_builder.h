@@ -51,17 +51,21 @@ class ClassTreeBuilder final : public CompilationSessionUser,
                    std::unordered_set<sm::Semantic*>* founds);
   void FixClass(sm::Class* clazz);
   void MarkDepdency(sm::Class* clazz, sm::Class* using_class);
-  sm::Semantic* Resolve(ast::Node* node, ast::Node* context_node);
+  sm::Semantic* Resolve(ast::Node* client,
+                        ast::Node* node,
+                        ast::Node* context_node);
   sm::Semantic* ResolveAlias(ast::Alias* alias);
-  sm::Semantic* ResolveMemberAccess(ast::MemberAccess* node,
+  sm::Semantic* ResolveMemberAccess(ast::Node* client,
+                                    ast::MemberAccess* node,
                                     ast::Node* context_node);
-  sm::Semantic* ResolveNameReference(ast::NameReference* node,
+  sm::Semantic* ResolveNameReference(ast::Node* client,
+                                     ast::NameReference* node,
                                      ast::Node* context_node);
   sm::Semantic* SemanticOf(ast::Node* node) const;
-  sm::Class* ValidateBaseClass(sm::Class* clazz,
+  sm::Class* ValidateBaseClass(ast::ClassBody* class_body,
+                               sm::Class* clazz,
                                int position,
-                               ast::Node* base_class_name,
-                               ast::Node* outer);
+                               ast::Node* base_class_name);
 
   // ast::Visitor
   void VisitAlias(ast::Alias* node) final;

@@ -128,15 +128,17 @@ void ConstExprAnalyzer::ProduceResult(sm::Value* value) {
 
 void ConstExprAnalyzer::Run() {
   state_ = State::Finalizing;
-  auto const root = session()->global_namespace_body();
+  std::vector<ast::Node*> leaf_nodes;
   for (auto const node : dependency_graph_.GetAllVertices()) {
     if (dependency_graph_.HasInEdge(node))
       continue;
-    dependency_graph_.AddEdge(root, node);
+    leaf_nodes.push_back(node);
   }
-  for (auto const node : dependency_graph_.PostOrderListOf(root)) {
-    if (auto const ast_member = node->as<ast::EnumMember>())
-      AnalyzeEnumMember(ast_member);
+  for (auto const leaf_node : leaf_nodes) {
+    for (auto const node : dependency_graph_.PostOrderListOf(leaf_node)) {
+      if (auto const ast_member = node->as<ast::EnumMember>())
+        AnalyzeEnumMember(ast_member);
+    }
   }
   state_ = State::Finalized;
 }
