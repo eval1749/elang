@@ -75,9 +75,6 @@ class TokenTypeQuery : public NodeQuery {
   DISALLOW_COPY_AND_ASSIGN(TokenTypeQuery);
 };
 
-std::vector<ast::Node*> QueryAllNodes(CompilationSession* session,
-                                      const NodeQuery* query);
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
