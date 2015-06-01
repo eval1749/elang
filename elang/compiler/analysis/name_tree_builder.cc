@@ -53,8 +53,26 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
     editor_->SetSemanticOf(node, factory()->global_namespace());
     return;
   }
+  // Check duplicated aliases
+  {
+    std::unordered_map<AtomicString*, ast::Alias*> aliases_;
+    for (auto const member : node->members()) {
+      auto const alias = member->as<ast::Alias>();
+      if (!alias)
+        continue;
+      auto const key = alias->name()->atomic_string();
+      auto const it = aliases_.find(key);
+      if (it != aliases_.end()) {
+        Error(ErrorCode::NameTreeAliasDuplicate, alias->name(),
+              it->second->name());
+        continue;
+      }
+      aliases_.insert(std::make_pair(key, alias));
+    }
+  }
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
-  DCHECK(outer->is<sm::Namespace>()) << outer;
+  if (!outer->is<sm::Namespace>())
+    return;
   if (auto const present = outer->FindMember(node->name())) {
     if (!present->is<sm::Namespace>()) {
       Error(ErrorCode::NameTreeNamespaceConflict, node->name(),

@@ -80,6 +80,7 @@ namespace compiler {
   E(NameResolution, SystemObject, HasBaseClass)       \
   /* NameTree */                                      \
   E(NameTree, Alias, Conflict)                        \
+  E(NameTree, Alias, Duplicate)                       \
   E(NameTree, Class, Duplicate)                       \
   E(NameTree, Class, Conflict)                        \
   E(NameTree, Const, Duplicate)                       \
