@@ -181,15 +181,14 @@ void Formatter::VisitClass(ast::Class* clazz) {
   NOTREACHED();
 }
 
-void Formatter::VisitClassBody(ast::ClassBody* class_body) {
-  auto const clazz = class_body->owner();
+void Formatter::VisitClassBody(ast::ClassBody* node) {
   Indent();
-  ostream_ << clazz->modifiers();
-  if (clazz->modifiers().value())
+  ostream_ << node->modifiers();
+  if (node->modifiers().value())
     ostream_ << " ";
-  ostream_ << clazz->token() << " " << clazz->name();
+  ostream_ << node->token() << " " << node->name();
   auto separator = " : ";
-  for (auto const base_class_name : class_body->base_class_names()) {
+  for (auto const base_class_name : node->base_class_names()) {
     ostream_ << separator;
     Traverse(base_class_name);
     separator = ", ";
@@ -197,7 +196,7 @@ void Formatter::VisitClassBody(ast::ClassBody* class_body) {
 
   ostream_ << " ";
   FormatBlock block(this);
-  class_body->AcceptForMembers(this);
+  node->AcceptForMembers(this);
 }
 
 void Formatter::VisitConst(ast::Const* node) {
