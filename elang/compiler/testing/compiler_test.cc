@@ -59,11 +59,6 @@ SourceCode* CompilerTest::source_code() const {
   return source_codes_.back().get();
 }
 
-ast::Class* CompilerTest::FindClass(base::StringPiece name) {
-  auto const member = FindMember(name);
-  return member ? member->as<ast::Class>() : nullptr;
-}
-
 ast::Node* CompilerTest::FindMember(base::StringPiece qualified_name) {
   return session()->QueryAstNode(base::UTF8ToUTF16(qualified_name));
 }
