@@ -256,32 +256,28 @@ void PopulateNamespace(NameResolver* name_resolver) {
   //   public static void WriteLine(String string);
   //   public static void WriteLine(String string, Object object);
   // }
-  auto const session = name_resolver->session();
-  auto const console_class =
-      session->analysis()
-          ->SemanticOf(builder.NewClass("Console", "Object"))
-          ->as<sm::Class>();
+  auto const session = builder.session();
+  auto const factory = session->semantic_factory();
+  auto const console_class = builder.NewClass("Console", "Object");
 
   auto const write_line = session->semantic_factory()->NewMethodGroup(
       console_class, builder.NewName("WriteLine"));
 
-  session->semantic_factory()->NewMethod(
+  factory->NewMethod(
       write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      session->semantic_factory()->NewSignature(
-          builder.SemanticOf("System.Void")->as<sm::Type>(),
-          {builder.NewParameter(ParameterKind::Required, 0, "System.String",
-                                "string")}));
+      factory->NewSignature(builder.SemanticOf("System.Void")->as<sm::Type>(),
+                            {builder.NewParameter(ParameterKind::Required, 0,
+                                                  "System.String", "string")}));
 
-  session->semantic_factory()->NewMethod(
+  factory->NewMethod(
       write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      session->semantic_factory()->NewSignature(
-          builder.SemanticOf("System.Void")->as<sm::Type>(),
-          {builder.NewParameter(ParameterKind::Required, 0, "System.String",
-                                "string"),
-           builder.NewParameter(ParameterKind::Required, 0, "System.Object",
-                                "object")}));
+      factory->NewSignature(builder.SemanticOf("System.Void")->as<sm::Type>(),
+                            {builder.NewParameter(ParameterKind::Required, 0,
+                                                  "System.String", "string"),
+                             builder.NewParameter(ParameterKind::Required, 0,
+                                                  "System.Object", "object")}));
 }
 
 // Collect methods having following signature:

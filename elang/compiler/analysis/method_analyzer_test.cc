@@ -130,26 +130,23 @@ void MyNamespaceBuilder::Build() {
   //   public static void WriteLine(String string);
   //   public static void WriteLine(String string, Object object);
   // }
-  auto const console_class = session()
-                                 ->analysis()
-                                 ->SemanticOf(NewClass("Console", "Object"))
-                                 ->as<sm::Class>();
+  auto const console_class = NewClass("Console", "Object");
+  auto const factory = session()->semantic_factory();
 
-  auto const write_line = session()->semantic_factory()->NewMethodGroup(
-      console_class, NewName("WriteLine"));
+  auto const write_line =
+      factory->NewMethodGroup(console_class, NewName("WriteLine"));
 
-  session()->semantic_factory()->NewMethod(
+  factory->NewMethod(
       write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      session()->semantic_factory()->NewSignature(
-          SemanticOf("System.Void")->as<sm::Type>(),
-          {NewParameter(ParameterKind::Required, 0, "System.String",
-                        "string")}));
+      factory->NewSignature(SemanticOf("System.Void")->as<sm::Type>(),
+                            {NewParameter(ParameterKind::Required, 0,
+                                          "System.String", "string")}));
 
-  session()->semantic_factory()->NewMethod(
+  factory->NewMethod(
       write_line,
       Modifiers(Modifier::Extern, Modifier::Public, Modifier::Static),
-      session()->semantic_factory()->NewSignature(
+      factory->NewSignature(
           SemanticOf("System.Void")->as<sm::Type>(),
           {NewParameter(ParameterKind::Required, 0, "System.String", "string"),
            NewParameter(ParameterKind::Required, 0, "System.Object",
