@@ -7,9 +7,9 @@
 
 #include "elang/compiler/cg/code_generator.h"
 
+#include "base/auto_reset.h"
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/base/temporary_change_value.h"
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -487,12 +487,12 @@ void CodeGenerator::VisitMethod(ast::Method* ast_method) {
     return;
   auto const function = factory()->NewFunction(
       type_mapper()->Map(method->signature())->as<hir::FunctionType>());
-  TemporaryChangeValue<hir::Function*> function_scope(function_, function);
+  base::AutoReset<hir::Function*> function_scope(&function_, function);
   session()->RegisterFunction(ast_method, function);
   variable_analyzer_->RegisterFunction(function);
 
   hir::Editor editor(factory(), function_);
-  TemporaryChangeValue<hir::Editor*> editor_scope(editor_, &editor);
+  base::AutoReset<hir::Editor*> editor_scope(&editor_, &editor);
   editor.Edit(function->entry_block());
 
   EmitParameterBindings(ast_method);

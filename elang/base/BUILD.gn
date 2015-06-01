@@ -36,7 +36,6 @@ component("base") {
     "maybe.h",
     "ordered_list.h",
     "simple_directed_graph.h",
-    "temporary_change_value.h",
     "tree_algorithm.h",
     "visitable.h",
     "work_list.h",
@@ -98,7 +97,6 @@ source_set("test_files") {
     "iterator_on_iterator_test.cc",
     "ordered_list_test.cc",
     "simple_directed_graph_test.cc",
-    "temporary_change_value_test.cc",
     "tree_algorithm_test.cc",
     "work_list_test.cc",
   ]

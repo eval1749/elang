@@ -7,9 +7,9 @@
 
 #include "elang/compiler/translate/translator.h"
 
+#include "base/auto_reset.h"
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
-#include "elang/base/temporary_change_value.h"
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -366,7 +366,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
   session()->RegisterFunction(ast_method, function);
 
   auto const builder = std::make_unique<Builder>(factory(), function);
-  TemporaryChangeValue<Builder*> builder_scope(builder_, builder.get());
+  base::AutoReset<Builder*> builder_scope(&builder_, builder.get());
 
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression
