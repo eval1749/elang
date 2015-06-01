@@ -2,20 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <utility>
-
 #include "elang/compiler/compilation_session.h"
 
-#include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/class_analyzer.h"
 #include "elang/compiler/analysis/method_analyzer.h"
 #include "elang/compiler/analysis/namespace_analyzer.h"
 #include "elang/compiler/analysis/name_resolver.h"
-#include "elang/compiler/ast/method.h"
 #include "elang/compiler/cg/code_generator.h"
 #include "elang/compiler/cg/cfg_to_ssa_converter.h"
 #include "elang/compiler/cg/variable_analyzer.h"
-#include "elang/compiler/semantics/nodes.h"
 #include "elang/hir/editor.h"
 #include "elang/hir/factory.h"
 #include "elang/hir/values.h"
@@ -55,19 +50,15 @@ void CompilationSession::Compile(NameResolver* name_resolver,
   }
 }
 
-hir::Function* CompilationSession::FunctionOf(ast::Method* ast_method) {
-  auto const method = analysis()->SemanticOf(ast_method)->as<sm::Method>();
-  DCHECK(method) << ast_method;
+hir::Function* CompilationSession::FunctionOf(ast::Method* method) {
   auto const it = function_map_.find(method);
   return it == function_map_.end() ? nullptr : it->second;
 }
 
-void CompilationSession::RegisterFunction(ast::Method* ast_method,
+void CompilationSession::RegisterFunction(ast::Method* method,
                                           hir::Function* function) {
-  auto const method = analysis()->SemanticOf(ast_method)->as<sm::Method>();
-  DCHECK(method) << ast_method;
   DCHECK(!function_map_.count(method));
-  function_map_.insert(std::make_pair(method, function));
+  function_map_[method] = function;
 }
 
 }  // namespace compiler

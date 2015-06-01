@@ -45,7 +45,6 @@ class NodeQuery;
 
 namespace sm {
 class Factory;
-class Method;
 }
 
 class Analysis;
@@ -123,8 +122,8 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
   std::unique_ptr<Analysis> analysis_;
   std::vector<std::unique_ptr<CompilationUnit>> compilation_units_;
   // The result of compilation.
-  std::unordered_map<sm::Method*, hir::Function*> function_map_;
-  std::unordered_map<sm::Method*, ir::Function*> ir_function_map_;
+  std::unordered_map<ast::Method*, hir::Function*> function_map_;
+  std::unordered_map<ast::Method*, ir::Function*> ir_function_map_;
 
   const std::unique_ptr<TokenFactory> token_factory_;
 
