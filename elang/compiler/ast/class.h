@@ -48,6 +48,9 @@ class ClassBody final : public BodyNode, public WithModifiers {
     return base_class_names_;
   }
 
+  bool is_class() const;
+  bool is_interface() const;
+  bool is_struct() const;
   Class* owner() const;
 
  private:

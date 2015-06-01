@@ -56,6 +56,18 @@ Class* ClassBody::owner() const {
   return BodyNode::owner()->as<ast::Class>();
 }
 
+bool ClassBody::is_class() const {
+  return keyword() == TokenType::Class;
+}
+
+bool ClassBody::is_interface() const {
+  return keyword() == TokenType::Interface;
+}
+
+bool ClassBody::is_struct() const {
+  return keyword() == TokenType::Struct;
+}
+
 #if _DEBUG
 // Node
 bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
