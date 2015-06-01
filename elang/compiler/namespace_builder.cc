@@ -58,7 +58,6 @@ ast::ClassBody* NamespaceBuilder::NewClass(TokenType token_type,
   auto const ast_class = session()->ast_factory()->NewClass(
       session()->system_namespace(), modifiers, NewKeyword(token_type),
       NewName(name));
-  session()->system_namespace()->AddNamedMember(ast_class);
 
   std::vector<ast::Type*> base_class_names;
   for (size_t pos = 0; pos < base_names.size(); ++pos) {
@@ -72,7 +71,6 @@ ast::ClassBody* NamespaceBuilder::NewClass(TokenType token_type,
   auto const ast_class_body = session()->ast_factory()->NewClassBody(
       session()->system_namespace_body(), ast_class, base_class_names);
   session()->system_namespace_body()->AddMember(ast_class_body);
-  session()->system_namespace_body()->AddNamedMember(ast_class);
 
   // sm::Class
   std::vector<sm::Class*> base_classes;
