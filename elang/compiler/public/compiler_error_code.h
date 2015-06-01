@@ -89,6 +89,7 @@ namespace compiler {
   E(NameTree, Field, Conflict)                        \
   E(NameTree, Field, Duplicate)                       \
   E(NameTree, Method, Conflict)                       \
+  E(NameTree, Namespace, Conflict)                    \
   /*  Predefined names */                             \
   E(PredefinedNames, Name, NotClass)                  \
   E(PredefinedNames, Name, NotFound)                  \

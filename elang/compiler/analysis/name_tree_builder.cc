@@ -56,7 +56,10 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
   auto const outer = SemanticOf(node->outer())->as<sm::Namespace>();
   DCHECK(outer->is<sm::Namespace>()) << outer;
   if (auto const present = outer->FindMember(node->name())) {
-    DCHECK(present->is<sm::Namespace>()) << present;
+    if (!present->is<sm::Namespace>()) {
+      Error(ErrorCode::NameTreeNamespaceConflict, node->name(),
+            present->name());
+    }
     editor_->SetSemanticOf(node, present);
     return;
   }
