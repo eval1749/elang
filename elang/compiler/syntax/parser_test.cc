@@ -54,12 +54,14 @@ TEST_F(ParserTest, AliasErrorDot) {
   EXPECT_EQ("Syntax.Type.Name(13) ;\n", Format("using R1 = A.;\n"));
 }
 
+#if 0
 TEST_F(ParserTest, AliasErrorDuplicate) {
   auto const source_code =
       "using R1 = A;\n"
       "using R1 = B;\n";
   EXPECT_EQ("Syntax.UsingDirective.Duplicate(20) R1 R1\n", Format(source_code));
 }
+#endif
 
 TEST_F(ParserTest, AliasErrorReference) {
   EXPECT_EQ("Syntax.Type.Name(11) ;\n", Format("using R1 = ;\n"));
@@ -193,20 +195,26 @@ TEST_F(ParserTest, ClassField) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+#if 0
 TEST_F(ParserTest, ClassErrorConflictWithAlias) {
   Prepare("using R = N1.A; class R {}");
   EXPECT_EQ("Syntax.Class.Conflict(22) R R\n", Format());
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, ClassErrorConflictWithNamespace) {
   Prepare("namespace N1 {} class N1 {}");
   EXPECT_EQ("Syntax.Class.Conflict(22) N1 N1\n", Format());
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, ClassErrorDuplicate) {
   Prepare("class A {} class A {}");
   EXPECT_EQ("Syntax.Class.Duplicate(17) A A\n", Format());
 }
+#endif
 
 #if 0
 // TODO(eval1749) Should we detect method and field conflict in parser?
@@ -216,10 +224,12 @@ TEST_F(ParserTest, ClassErrorFieldConflict) {
 }
 #endif
 
+#if 0
 TEST_F(ParserTest, ClassErrorFieldDuplicate) {
   Prepare("class A { int x; bool x; }");
   EXPECT_EQ("Syntax.ClassMember.Duplicate(22) x x\n", Format());
 }
+#endif
 
 TEST_F(ParserTest, ClassErrorFieldVar) {
   Prepare("class A { var x; }");
@@ -227,6 +237,7 @@ TEST_F(ParserTest, ClassErrorFieldVar) {
       << "var field must be initialized";
 }
 
+#if 0
 TEST_F(ParserTest, ClassErrorPartial) {
   auto const source_code =
       "partial class A {\n"
@@ -235,7 +246,9 @@ TEST_F(ParserTest, ClassErrorPartial) {
       "}\n";
   EXPECT_EQ("Syntax.Class.Partial(26) A\n", Format(source_code));
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, ClassErrorPartial2) {
   auto const source_code =
       "class A {\n"
@@ -244,6 +257,7 @@ TEST_F(ParserTest, ClassErrorPartial2) {
       "}\n";
   EXPECT_EQ("Syntax.Class.Partial(26) A\n", Format(source_code));
 }
+#endif
 
 TEST_F(ParserTest, ClassPartial) {
   auto const source_code =
@@ -425,19 +439,23 @@ TEST_F(ParserTest, EnumComma) {
   EXPECT_EQ(source_code, Format(source_code)) << "Comma following last member";
 }
 
+#if 0
 TEST_F(ParserTest, EnumErrorConflict) {
   auto const source_code =
       "class A {}"
       "enum A { M }";
   EXPECT_EQ("Syntax.Enum.Conflict(15) A A\n", Format(source_code));
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, EnumErrorDuplicate) {
   auto const source_code =
       "enum A { B }"
       "enum A { M }";
   EXPECT_EQ("Syntax.Enum.Duplicate(17) A A\n", Format(source_code));
 }
+#endif
 
 TEST_F(ParserTest, EnumValue) {
   auto const source_code =
@@ -721,12 +739,14 @@ TEST_F(ParserTest, ImportBasic) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+#if 0
 TEST_F(ParserTest, ImportErrorDuplicate) {
   Prepare(
       "using A.B;"
       "using A.B;");
   EXPECT_EQ("Syntax.UsingDirective.Duplicate(18) B B\n", Format());
 }
+#endif
 
 TEST_F(ParserTest, ImportErrorInvalid) {
   Prepare("using A.B<T>;");
@@ -846,19 +866,23 @@ TEST_F(ParserTest, NamespaceErrorAnonymous) {
   EXPECT_EQ("Syntax.Namespace.Anonymous(10) {\n", Format(source_code));
 }
 
+#if 0
 TEST_F(ParserTest, NamespaceErrorConflictWithAlias) {
   auto const source_code =
       "using R1 = B;\n"
       "namespace R1 {}\n";
   EXPECT_EQ("Syntax.Namespace.Conflict(24) R1 using\n", Format(source_code));
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, NamespaceErrorConflictWithClass) {
   auto const source_code =
       "class A {}\n"
       "namespace A {}\n";
   EXPECT_EQ("Syntax.Namespace.Conflict(21) A class\n", Format(source_code));
 }
+#endif
 
 TEST_F(ParserTest, NamespaceErrorEndsWithDot) {
   auto const source_code = "namespace N1. {}";

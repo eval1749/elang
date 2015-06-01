@@ -25,10 +25,7 @@ namespace ast {
 namespace {
 
 Namespace* NewNamespace(Factory* factory, Namespace* outer, Token* name) {
-  auto const ns = factory->NewNamespace(outer, outer->keyword(), name);
-  if (outer)
-    outer->AddNamedMember(ns);
-  return ns;
+  return factory->NewNamespace(outer, outer->keyword(), name);
 }
 
 NamespaceBody* NewNamespaceBody(Factory* factory,

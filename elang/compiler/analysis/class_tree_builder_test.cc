@@ -284,7 +284,7 @@ TEST_F(ClassTreeBuilderTest, ClassErrorDuplicate) {
   Prepare("namespace System { class Int32 {} }");
   // Note: class 'System.Int32' i installed by |ClassTreeBuilderTest|, before
   // paring.
-  EXPECT_EQ("Syntax.Class.Duplicate(25) Int32 Int32\n", BuildClassTree());
+  EXPECT_EQ("NameTree.Class.Duplicate(25) Int32 Int32\n", BuildClassTree());
 }
 
 #if 0

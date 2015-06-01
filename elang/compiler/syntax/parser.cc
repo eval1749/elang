@@ -242,7 +242,6 @@ void Parser::ParseClass() {
   if (!clazz) {
     clazz = factory()->NewClass(container_->owner(), class_modifiers,
                                 class_keyword, class_name);
-    container_->owner()->AddNamedMember(clazz);
   }
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
@@ -260,7 +259,6 @@ void Parser::ParseClass() {
   auto const class_body =
       factory()->NewClassBody(container_, clazz, base_class_names);
   container_->AddMember(class_body);
-  container_->AddNamedMember(clazz);
 
   ContainerScope container_scope(this, class_body);
 
@@ -384,8 +382,6 @@ void Parser::ParseConst(Token* keyword, ast::Type* type, Token* name) {
   auto const node = factory()->NewConst(class_body, modifiers, keyword, type,
                                         name, ConsumeExpression());
   class_body->AddMember(node);
-  class_body->AddNamedMember(node);
-  class_body->owner()->AddNamedMember(node);
   ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
@@ -416,8 +412,6 @@ void Parser::ParseEnum() {
   auto const enum_node = factory()->NewEnum(container_, enum_modifiers,
                                             enum_keyword, enum_name, enum_base);
   container_->AddMember(enum_node);
-  container_->AddNamedMember(enum_node);
-  container_->owner()->AddNamedMember(enum_node);
   if (!AdvanceIf(TokenType::LeftCurryBracket))
     Error(ErrorCode::SyntaxEnumLeftCurryBracket);
   ast::EnumMember* last_member = nullptr;
@@ -447,7 +441,6 @@ void Parser::ParseEnum() {
     }
     auto const member = factory()->NewEnumMember(
         enum_node, member_name, explicit_value, implicit_value);
-    enum_node->AddNamedMember(member);
     enum_node->AddMember(member);
     last_member = member;
     if (PeekToken() == TokenType::RightCurryBracket)
@@ -483,8 +476,6 @@ void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
   auto const node = factory()->NewField(class_body, modifiers, keyword, type,
                                         name, ConsumeExpression());
   class_body->AddMember(node);
-  class_body->AddNamedMember(node);
-  class_body->owner()->AddNamedMember(node);
   ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
@@ -533,11 +524,9 @@ void Parser::ParseNamespace(Token* namespace_keyword,
   if (!new_namespace) {
     new_namespace =
         factory()->NewNamespace(ns_body->owner(), namespace_keyword, name);
-    ns_body->owner()->AddNamedMember(new_namespace);
   }
   auto const new_ns_body = factory()->NewNamespaceBody(ns_body, new_namespace);
   ns_body->AddMember(new_ns_body);
-  ns_body->AddNamedMember(new_namespace);
   ContainerScope container_scope(this, new_ns_body);
   if (index + 1 < names.size())
     return ParseNamespace(namespace_keyword, names, index + 1);
@@ -639,7 +628,6 @@ void Parser::ParseUsingDirectives() {
       if (is_valid) {
         auto const alias =
             factory()->NewAlias(ns_body, using_keyword, alias_name, reference);
-        ns_body->AddNamedMember(alias);
         ns_body->AddMember(alias);
       }
     } else {

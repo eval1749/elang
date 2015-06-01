@@ -60,7 +60,7 @@ TEST_F(NameTreeBuilderTest, AliasConflict) {
 
 TEST_F(NameTreeBuilderTest, AliasErrorDuplicate) {
   Prepare("namespace N1 { using A = N1; using A = N2; }");
-  EXPECT_EQ("Syntax.UsingDirective.Duplicate(35) A A\n", BuildNameTree())
+  EXPECT_EQ("NameTree.Alias.Duplicate(35) A A\n", BuildNameTree())
       << "Alias name must be unique in namespace.";
 }
 
@@ -81,18 +81,18 @@ TEST_F(NameTreeBuilderTest, ClassBasicPartial) {
 TEST_F(NameTreeBuilderTest, ClassErrorConflict) {
   Prepare("class A {}");
   Prepare("namespace A {}");
-  EXPECT_EQ("Syntax.Namespace.Conflict(10) A class\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Namespace.Conflict(10) A A\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, ClassErrorDuplicate) {
   Prepare("class A {}");
   Prepare("class A {}");
-  EXPECT_EQ("Syntax.Class.Duplicate(6) A A\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Class.Duplicate(6) A A\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, ClassErrorDuplicate2) {
   Prepare("namespace System { class Object {} }");
-  EXPECT_EQ("Syntax.Class.Duplicate(25) Object Object\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Class.Duplicate(25) Object Object\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, ConstBasic) {
@@ -125,18 +125,18 @@ TEST_F(NameTreeBuilderTest, EnumBasic) {
 TEST_F(NameTreeBuilderTest, EnumErrorConflict) {
   Prepare("enum Color { Red }");
   Prepare("class Color {}");
-  EXPECT_EQ("Syntax.Class.Conflict(6) Color Color\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Class.Conflict(6) Color Color\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, EnumErrorConflict2) {
   Prepare("class A { int Color; enum Color { Red } }");
-  EXPECT_EQ("Syntax.Enum.Conflict(26) Color Color\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Enum.Conflict(26) Color Color\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, EnumErrorDuplicate) {
   Prepare("enum Color { Red }");
   Prepare("enum Color { Blue }");
-  EXPECT_EQ("Syntax.Enum.Duplicate(5) Color Color\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Enum.Duplicate(5) Color Color\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, FieldBasic) {
