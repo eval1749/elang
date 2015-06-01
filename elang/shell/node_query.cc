@@ -37,7 +37,7 @@ struct QueryContext : ast::Visitor {
   CompilationSession* session;
 
   // ast::Visitor
-  void DoDefaultVisit(ast::Node* node);
+  void DoDefaultVisit(ast::Node* node) final;
 };
 
 void QueryContext::DoDefaultVisit(ast::Node* node) {
@@ -46,8 +46,8 @@ void QueryContext::DoDefaultVisit(ast::Node* node) {
   auto const container = node->as<ast::ContainerNode>();
   if (!container)
     return;
-  for (auto const it : container->named_members())
-    it.second->Accept(this);
+  for (auto const member : container->members())
+    Traverse(member);
 }
 
 // MethodQuery
@@ -167,7 +167,7 @@ std::vector<ast::Node*> QueryAllNodes(CompilationSession* session,
   QueryContext context;
   context.query = query;
   context.session = session;
-  static_cast<ast::Node*>(session->global_namespace())->Accept(&context);
+  session->Apply(&context);
   return context.nodes;
 }
 
