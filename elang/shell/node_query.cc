@@ -38,7 +38,6 @@ struct QueryContext : ast::Visitor {
 
   // ast::Visitor
   void DoDefaultVisit(ast::Node* node);
-  void VisitMethodGroup(ast::MethodGroup* node);
 };
 
 void QueryContext::DoDefaultVisit(ast::Node* node) {
@@ -49,13 +48,6 @@ void QueryContext::DoDefaultVisit(ast::Node* node) {
     return;
   for (auto const it : container->named_members())
     it.second->Accept(this);
-}
-
-void QueryContext::VisitMethodGroup(ast::MethodGroup* node) {
-  DoDefaultVisit(node);
-  for (auto const method : node->methods()) {
-    static_cast<ast::Node*>(method)->Accept(this);
-  }
 }
 
 // MethodQuery

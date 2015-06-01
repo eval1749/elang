@@ -39,7 +39,6 @@ struct QueryContext : Visitor {
  private:
   // Visitor
   void DoDefaultTraverse(Node* node);
-  void VisitMethodGroup(MethodGroup* node);
   void VisitMethod(Method* node);
 
   // Visitor statements
@@ -57,12 +56,6 @@ void QueryContext::DoDefaultTraverse(Node* node) {
     return;
   for (auto const it : container->named_members())
     Traverse(it.second);
-}
-
-void QueryContext::VisitMethodGroup(MethodGroup* node) {
-  DoDefaultTraverse(node);
-  for (auto const method : node->methods())
-    Traverse(method);
 }
 
 void QueryContext::VisitMethod(Method* node) {
@@ -107,8 +100,7 @@ NameQuery::~NameQuery() {
 }
 
 bool NameQuery::Match(QueryContext* context, Node* node) const {
-  auto const named = node->as<NamedNode>();
-  return named && named->name()->atomic_string() == name_;
+  return node->name()->is_name() && node->name()->atomic_string() == name_;
 }
 
 // NodeQuery
@@ -153,7 +145,7 @@ std::vector<ast::Node*> CompilationSession::QueryAstNodes(
   ast::QueryContext context;
   context.query = &query;
   context.session = this;
-  context.Traverse(global_namespace());
+  Apply(&context);
   return context.nodes;
 }
 

@@ -199,24 +199,18 @@ Import* Factory::NewImport(NamespaceBody* namespace_body,
 }
 
 Method* Factory::NewMethod(ClassBody* outer,
-                           MethodGroup* method_group,
                            Modifiers modifies,
                            Type* return_type,
                            Token* name,
                            const std::vector<Token*>& type_parameters) {
-  auto const node = new (zone()) Method(zone(), outer, method_group, modifies,
-                                        return_type, name, type_parameters);
+  auto const node = new (zone())
+      Method(zone(), outer, modifies, return_type, name, type_parameters);
   SetParent(return_type, node);
   return node;
 }
 
 MethodBody* Factory::NewMethodBody(Method* method) {
   return new (zone()) MethodBody(zone(), method);
-}
-
-MethodGroup* Factory::NewMethodGroup(Class* owner, Token* name) {
-  DCHECK(name->is_name());
-  return new (zone()) MethodGroup(zone(), owner, name);
 }
 
 Namespace* Factory::NewNamespace(Namespace* outer,

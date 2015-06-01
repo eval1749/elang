@@ -16,7 +16,6 @@ namespace ast {
 // Method
 Method::Method(Zone* zone,
                ClassBody* outer,
-               MethodGroup* method_group,
                Modifiers modifiers,
                Type* return_type,
                Token* name,
@@ -24,12 +23,10 @@ Method::Method(Zone* zone,
     : NamespaceNode(zone, outer, name, name),
       WithModifiers(modifiers),
       body_(nullptr),
-      method_group_(method_group),
       parameters_(zone),
       return_type_(return_type),
       type_parameters_(zone, type_parameters) {
   DCHECK(name->is_name());
-  DCHECK_EQ(method_group_->name()->atomic_string(), name->atomic_string());
   DCHECK_EQ(modifiers, Modifiers::Method() & modifiers);
 }
 
@@ -66,29 +63,6 @@ MethodBody::MethodBody(Zone* zone, Method* method)
 // NamedNode
 bool MethodBody::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::Method>();
-}
-#endif
-
-// MethodGroup
-MethodGroup::MethodGroup(Zone* zone, Class* owner, Token* name)
-    : NamedNode(owner, name, name), methods_(zone) {
-  DCHECK(name->is_name());
-}
-
-Class* MethodGroup::owner() const {
-  return parent()->as<ast::Class>();
-}
-
-void MethodGroup::AddMethod(Method* method) {
-  DCHECK_EQ(method->method_group(), this);
-  DCHECK(std::find(methods_.begin(), methods_.end(), method) == methods_.end());
-  methods_.push_back(method);
-}
-
-#if _DEBUG
-// NamedNode
-bool MethodGroup::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::ClassBody>();
 }
 #endif
 

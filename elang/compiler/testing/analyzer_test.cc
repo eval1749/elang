@@ -12,7 +12,6 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/analysis/class_analyzer.h"
@@ -126,26 +125,6 @@ std::string AnalyzerTest::AnalyzeNamespace() {
   if (!RunPass<NamespaceAnalyzer>(name_resolver()))
     return GetErrors();
   return "";
-}
-
-std::string AnalyzerTest::GetMethodGroup(base::StringPiece name) {
-  auto const ast_node = FindMember(name);
-  if (!ast_node)
-    return base::StringPrintf("%s isn't found", name.as_string().c_str());
-  auto const ast_method = ast_node->as<ast::Method>();
-  if (!ast_method)
-    return base::StringPrintf("%s isn't a method", name.as_string().c_str());
-  auto const ast_method_group = ast_method->method_group();
-  std::stringstream ostream;
-  for (auto const ast_method : ast_method_group->methods()) {
-    auto const ir_method = name_resolver()->SemanticOf(ast_method);
-    if (!ir_method) {
-      ostream << "Not resolved " << ast_method->token() << std::endl;
-      continue;
-    }
-    ostream << *ir_method << std::endl;
-  }
-  return ostream.str();
 }
 
 std::string AnalyzerTest::MakeClassListString(

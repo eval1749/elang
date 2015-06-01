@@ -34,7 +34,6 @@ class AnalyzerTest : public CompilerTest {
   std::string Analyze();
   std::string AnalyzeClass();
   std::string AnalyzeNamespace();
-  std::string GetMethodGroup(base::StringPiece name);
   std::string MakeClassListString(const std::vector<sm::Class*>& classes);
   std::string MakeClassListString(const ZoneVector<sm::Class*>& classes);
   sm::Semantic* SemanticOf(base::StringPiece16 path) const;

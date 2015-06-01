@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <sstream>
+
 #include "elang/compiler/testing/analyzer_test.h"
 
-#include "elang/compiler/ast/nodes.h"
+#include "base/strings/stringprintf.h"
+#include "elang/compiler/semantics/nodes.h"
 
 namespace elang {
 namespace compiler {
@@ -19,9 +22,21 @@ class ClassAnalyzerTest : public testing::AnalyzerTest {
   ClassAnalyzerTest() = default;
   ~ClassAnalyzerTest() override = default;
 
+  std::string GetMethodGroup(base::StringPiece name);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(ClassAnalyzerTest);
 };
+
+std::string ClassAnalyzerTest::GetMethodGroup(base::StringPiece name) {
+  auto const method_group = SemanticOf(name)->as<sm::MethodGroup>();
+  if (!method_group)
+    return base::StringPrintf("not found %s", name.as_string());
+  std::stringstream ostream;
+  for (auto const method : method_group->methods())
+    ostream << *method << std::endl;
+  return ostream.str();
+}
 
 TEST_F(ClassAnalyzerTest, Enum) {
   Prepare("enum Color { Red, Green, Blue }");

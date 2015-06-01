@@ -27,7 +27,6 @@ class Method final : public NamespaceNode, public WithModifiers {
   // method.
   Statement* body() const { return body_; }
 
-  MethodGroup* method_group() const { return method_group_; }
   Class* owner() const;
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() const { return return_type_; }
@@ -41,7 +40,6 @@ class Method final : public NamespaceNode, public WithModifiers {
  private:
   Method(Zone* zone,
          ClassBody* owner,
-         MethodGroup* method_group,
          Modifiers modifies,
          Type* return_type,
          Token* name,
@@ -56,7 +54,6 @@ class Method final : public NamespaceNode, public WithModifiers {
   // syntax |int Foo(int x) => x + 1;|. It can be |nullptr| on parsing error,
   // or abstract/external method.
   Statement* body_;
-  MethodGroup* const method_group_;
   ZoneVector<Parameter*> parameters_;
   Type* const return_type_;
   const ZoneVector<Token*> type_parameters_;
@@ -80,32 +77,6 @@ class MethodBody final : public BodyNode {
 #endif
 
   DISALLOW_COPY_AND_ASSIGN(MethodBody);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
-// MethodGroup
-//
-class MethodGroup final : public NamedNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(MethodGroup, NamedNode);
-
- public:
-  const ZoneVector<Method*>& methods() const { return methods_; }
-  Class* owner() const;
-
-  void AddMethod(Method* method);
-
- private:
-  MethodGroup(Zone* zone, Class* owner, Token* name);
-
-#if _DEBUG
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
-#endif
-
-  ZoneVector<Method*> methods_;
-
-  DISALLOW_COPY_AND_ASSIGN(MethodGroup);
 };
 
 // Represents parameter.

@@ -166,7 +166,7 @@ TEST_F(NameTreeBuilderTest, MethodBasic) {
 TEST_F(NameTreeBuilderTest, MethodErrorConflict) {
   Prepare("partial class A { int B; }");
   Prepare("partial class A { void B() {} }");
-  EXPECT_EQ("Syntax.ClassMember.Conflict(23) B B\n", BuildNameTree());
+  EXPECT_EQ("NameTree.Method.Conflict(23) B B\n", BuildNameTree());
 }
 
 TEST_F(NameTreeBuilderTest, MethodErrorDuplicate) {

@@ -53,7 +53,6 @@ class Formatter final : public ast::Visitor {
   void VisitImport(ast::Import* node) final;
   void VisitMemberAccess(ast::MemberAccess* node) final;
   void VisitMethod(ast::Method* node) final;
-  void VisitMethodGroup(ast::MethodGroup* node) final;
   void VisitNameReference(ast::NameReference* node) final;
   void VisitNamespace(ast::Namespace* node) final;
   void VisitNamespaceBody(ast::NamespaceBody* node) final;
@@ -176,9 +175,6 @@ void Formatter::VisitMethod(ast::Method* node) {
   ostream_ << ")";
 }
 
-void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
-  ostream_ << "method group " << GetQualifiedName(node);
-}
 void Formatter::VisitNameReference(ast::NameReference* node) {
   ostream_ << *node->name();
 }

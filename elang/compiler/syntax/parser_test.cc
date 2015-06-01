@@ -208,10 +208,13 @@ TEST_F(ParserTest, ClassErrorDuplicate) {
   EXPECT_EQ("Syntax.Class.Duplicate(17) A A\n", Format());
 }
 
+#if 0
+// TODO(eval1749) Should we detect method and field conflict in parser?
 TEST_F(ParserTest, ClassErrorFieldConflict) {
   Prepare("class A { int x() {} bool x; }");
   EXPECT_EQ("Syntax.ClassMember.Conflict(26) x x\n", Format());
 }
+#endif
 
 TEST_F(ParserTest, ClassErrorFieldDuplicate) {
   Prepare("class A { int x; bool x; }");

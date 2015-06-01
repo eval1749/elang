@@ -18,6 +18,7 @@
 #include "elang/compiler/ast/factory.h"
 #include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/query/node_queries.h"
 #include "elang/compiler/ast/statements.h"
 #include "elang/compiler/ast/visitor.h"
 #include "elang/compiler/compilation_session.h"
@@ -539,10 +540,11 @@ TEST_F(MethodAnalyzerTest, Parameter) {
       "    void Foo(float32 f32) {}"                    // Void == no references
       "  }");
   ASSERT_EQ("", Analyze());
-  auto const foo_group =
-      FindMember("Sample.Foo")->as<ast::Method>()->method_group();
+  ast::NameQuery query(session()->NewAtomicString(L"Foo"));
+  auto const nodes = session()->QueryAstNodes(query);
   std::stringstream ostream;
-  for (auto method : foo_group->methods()) {
+  for (auto node : nodes) {
+    auto const method = node->as<ast::Method>();
     for (auto const parameter : method->parameters()) {
       auto const variable =
           analysis()->SemanticOf(parameter)->as<sm::Variable>();

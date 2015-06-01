@@ -166,7 +166,7 @@ void NameTreeBuilder::VisitMethod(ast::Method* node) {
   }
   if (present->is<sm::MethodGroup>())
     return;
-  Error(ErrorCode::NameTreeMethodConflict, node->name());
+  Error(ErrorCode::NameTreeMethodConflict, node->name(), present->name());
 }
 
 void NameTreeBuilder::VisitNamespaceBody(ast::NamespaceBody* node) {

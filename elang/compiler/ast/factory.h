@@ -77,13 +77,11 @@ class Factory final : public ZoneUser {
                     Token* keyword,
                     Expression* reference);
   Method* NewMethod(ClassBody* outer,
-                    MethodGroup* method_group,
                     Modifiers modifies,
                     Type* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters);
   MethodBody* NewMethodBody(Method* method);
-  MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
 

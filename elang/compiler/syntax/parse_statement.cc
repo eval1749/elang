@@ -493,25 +493,10 @@ void Parser::ParseMethod(Modifiers method_modifiers,
 
   auto const owner = container_->owner()->as<ast::Class>();
   DCHECK(owner);
-  auto method_group = static_cast<ast::MethodGroup*>(nullptr);
-  if (auto const present = owner->FindMember(method_name)) {
-    method_group = present->as<ast::MethodGroup>();
-    if (!method_group)
-      Error(ErrorCode::SyntaxClassMemberConflict, method_name, present->name());
-  }
-  if (!method_group) {
-    method_group = factory()->NewMethodGroup(owner, method_name);
-    owner->AddNamedMember(method_group);
-  }
-
-  if (!container_->FindMember(method_name))
-    container_->AddNamedMember(method_group);
 
   auto const class_body = container_->as<ast::ClassBody>();
-  auto const method =
-      factory()->NewMethod(class_body, method_group, method_modifiers,
-                           method_type, method_name, type_parameters);
-  method_group->AddMethod(method);
+  auto const method = factory()->NewMethod(
+      class_body, method_modifiers, method_type, method_name, type_parameters);
   container_->AddMember(method);
   auto const method_body = factory()->NewMethodBody(method);
   method->AddMember(method_body);

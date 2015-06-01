@@ -84,7 +84,6 @@ namespace ast {
   V(ClassBody)                        \
   V(EnumMember)                       \
   V(MethodBody)                       \
-  V(MethodGroup)                      \
   V(NamespaceBody)                    \
   V(Parameter)                        \
   V(VarDeclaration)                   \

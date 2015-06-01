@@ -470,11 +470,6 @@ void Formatter::VisitMethodBody(ast::MethodBody* node) {
   NOTREACHED();
 }
 
-void Formatter::VisitMethodGroup(ast::MethodGroup* node) {
-  DCHECK(node);
-  NOTREACHED();
-}
-
 void Formatter::VisitNameReference(ast::NameReference* operation) {
   ostream_ << operation->token();
 }
