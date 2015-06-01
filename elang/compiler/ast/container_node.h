@@ -23,24 +23,17 @@ class ContainerNode : public NamedNode {
  public:
   // List of members ordered by source code location.
   const ZoneVector<Node*> members() const { return members_; }
-  const ZoneUnorderedMap<AtomicString*, NamedNode*> named_members() const {
-    return named_members_;
-  }
 
   // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
   // member.
   void AcceptForMembers(Visitor* visitor);
   void AddMember(Node* member);
-  void AddNamedMember(NamedNode* member);
-  NamedNode* FindMember(AtomicString* name) const;
-  NamedNode* FindMember(Token* name) const;
 
  protected:
   ContainerNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
 
  private:
   ZoneVector<Node*> members_;
-  ZoneUnorderedMap<AtomicString*, NamedNode*> named_members_;
 
   DISALLOW_COPY_AND_ASSIGN(ContainerNode);
 };

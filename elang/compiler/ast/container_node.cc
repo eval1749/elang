@@ -18,7 +18,7 @@ ContainerNode::ContainerNode(Zone* zone,
                              ContainerNode* parent,
                              Token* keyword,
                              Token* name)
-    : NamedNode(parent, keyword, name), members_(zone), named_members_(zone) {
+    : NamedNode(parent, keyword, name), members_(zone) {
 }
 
 void ContainerNode::AcceptForMembers(Visitor* visitor) {
@@ -29,21 +29,6 @@ void ContainerNode::AcceptForMembers(Visitor* visitor) {
 void ContainerNode::AddMember(Node* member) {
   DCHECK(member->CanBeMemberOf(this)) << *member << " " << *this;
   members_.push_back(member);
-}
-
-void ContainerNode::AddNamedMember(NamedNode* member) {
-  DCHECK(member->CanBeNamedMemberOf(this));
-  auto const name = member->name()->atomic_string();
-  named_members_[name] = member;
-}
-
-NamedNode* ContainerNode::FindMember(AtomicString* name) const {
-  auto const it = named_members_.find(name);
-  return it == named_members_.end() ? nullptr : it->second;
-}
-
-NamedNode* ContainerNode::FindMember(Token* name) const {
-  return FindMember(name->atomic_string());
 }
 
 // BodyNode
