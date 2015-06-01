@@ -121,10 +121,12 @@ Class* Factory::NewClass(NamespaceNode* outer,
 }
 
 ClassBody* Factory::NewClassBody(BodyNode* outer,
-                                 Class* owner,
+                                 Modifiers modifiers,
+                                 Token* keyword,
+                                 Token* name,
                                  const std::vector<Type*>& base_class_names) {
-  auto const node =
-      new (zone()) ClassBody(zone(), outer, owner, base_class_names);
+  auto const node = new (zone())
+      ClassBody(zone(), outer, modifiers, keyword, name, base_class_names);
   for (auto const base_class_name : base_class_names)
     SetParent(base_class_name, node);
   return node;

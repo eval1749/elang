@@ -45,15 +45,13 @@ bool Class::is_struct() const {
 //
 ClassBody::ClassBody(Zone* zone,
                      BodyNode* outer,
-                     Class* owner,
+                     Modifiers modifiers,
+                     Token* keyword,
+                     Token* name,
                      const std::vector<Type*>& base_class_names)
-    : BodyNode(zone, outer, owner),
-      WithModifiers(owner->modifiers()),
+    : BodyNode(zone, outer, keyword, name),
+      WithModifiers(modifiers),
       base_class_names_(zone, base_class_names) {
-}
-
-Class* ClassBody::owner() const {
-  return BodyNode::owner()->as<ast::Class>();
 }
 
 bool ClassBody::is_class() const {
@@ -71,8 +69,7 @@ bool ClassBody::is_struct() const {
 #if _DEBUG
 // Node
 bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::ClassBody>() ||
-         container->is<ast::NamespaceBody>();
+  return container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
 }
 #endif
 

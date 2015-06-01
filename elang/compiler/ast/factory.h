@@ -50,7 +50,9 @@ class Factory final : public ZoneUser {
                   Token* keyword,
                   Token* name);
   ClassBody* NewClassBody(BodyNode* outer,
-                          Class* owner,
+                          Modifiers modifiers,
+                          Token* keyword,
+                          Token* name,
                           const std::vector<Type*>& base_class_names);
   Const* NewConst(ClassBody* class_body,
                   Modifiers modifiers,

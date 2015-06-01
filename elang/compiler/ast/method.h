@@ -27,7 +27,7 @@ class Method final : public NamespaceNode, public WithModifiers {
   // method.
   Statement* body() const { return body_; }
 
-  Class* owner() const;
+  ClassBody* owner() const;
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() const { return return_type_; }
 

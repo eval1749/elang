@@ -491,9 +491,6 @@ void Parser::ParseMethod(Modifiers method_modifiers,
                          const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
 
-  auto const owner = container_->owner()->as<ast::Class>();
-  DCHECK(owner);
-
   auto const class_body = container_->as<ast::ClassBody>();
   auto const method = factory()->NewMethod(
       class_body, method_modifiers, method_type, method_name, type_parameters);

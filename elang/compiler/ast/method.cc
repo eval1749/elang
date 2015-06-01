@@ -30,8 +30,8 @@ Method::Method(Zone* zone,
   DCHECK_EQ(modifiers, Modifiers::Method() & modifiers);
 }
 
-ast::Class* Method::owner() const {
-  return parent()->as<ast::ClassBody>()->owner();
+ast::ClassBody* Method::owner() const {
+  return parent()->as<ast::ClassBody>();
 }
 
 #if _DEBUG

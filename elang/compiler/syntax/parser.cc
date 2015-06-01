@@ -217,8 +217,7 @@ void Parser::ParseClass() {
   auto const class_name = ConsumeToken();
   if (!class_name->is_name())
     return Error(ErrorCode::SyntaxClassName, class_name);
-  auto const clazz = factory()->NewClass(container_->owner(), class_modifiers,
-                                         class_keyword, class_name);
+
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
     ParseTypeParameterList();
@@ -232,8 +231,8 @@ void Parser::ParseClass() {
     } while (AdvanceIf(TokenType::Comma));
   }
 
-  auto const class_body =
-      factory()->NewClassBody(container_, clazz, base_class_names);
+  auto const class_body = factory()->NewClassBody(
+      container_, class_modifiers, class_keyword, class_name, base_class_names);
   container_->AddMember(class_body);
 
   ContainerScope container_scope(this, class_body);

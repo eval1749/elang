@@ -51,12 +51,13 @@ class ClassBody final : public BodyNode, public WithModifiers {
   bool is_class() const;
   bool is_interface() const;
   bool is_struct() const;
-  Class* owner() const;
 
  private:
   ClassBody(Zone* zone,
             BodyNode* outer,
-            Class* owner,
+            Modifiers modifiers,
+            Token* keyword,
+            Token* name,
             const std::vector<Type*>& base_class_names);
 
 #if _DEBUG
