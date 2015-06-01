@@ -100,8 +100,12 @@ void NamespaceBody::AddImport(Import* import) {
 }
 
 Alias* NamespaceBody::FindAlias(Token* name) const {
-  auto const present = FindMember(name);
-  return present ? present->as<ast::Alias>() : nullptr;
+  for (auto const member : members()) {
+    auto const alias = member->as<ast::Alias>();
+    if (alias && alias->name()->atomic_string() == name->atomic_string())
+      return alias;
+  }
+  return nullptr;
 }
 
 Import* NamespaceBody::FindImport(Token* name) const {
