@@ -217,32 +217,8 @@ void Parser::ParseClass() {
   auto const class_name = ConsumeToken();
   if (!class_name->is_name())
     return Error(ErrorCode::SyntaxClassName, class_name);
-  auto clazz = static_cast<ast::Class*>(nullptr);
-  auto const local = container_->FindMember(class_name);
-  auto const global = container_->owner()->FindMember(class_name);
-  if (auto const present = local ? local : global) {
-    clazz = present->as<ast::Class>();
-    if (!clazz) {
-      Error(ErrorCode::SyntaxClassConflict, class_name, present->name());
-    } else if (clazz->IsPartial()) {
-      if (!class_modifiers.HasPartial()) {
-        // Existing declaration has 'partial' but this doesn't.
-        Error(ErrorCode::SyntaxClassPartial, class_name);
-      } else if (clazz->modifiers() != class_modifiers) {
-        Error(ErrorCode::SyntaxClassPartialModifiers, class_name);
-      }
-    } else if (class_modifiers.HasPartial()) {
-      // Existing declaration has no 'partial' but this has.
-      Error(ErrorCode::SyntaxClassPartial, class_name);
-    } else {
-      // Both existing and this declaration don't have 'partial'.
-      Error(ErrorCode::SyntaxClassDuplicate, class_name, clazz->name());
-    }
-  }
-  if (!clazz) {
-    clazz = factory()->NewClass(container_->owner(), class_modifiers,
-                                class_keyword, class_name);
-  }
+  auto const clazz = factory()->NewClass(container_->owner(), class_modifiers,
+                                         class_keyword, class_name);
   // TypeParameterList
   if (AdvanceIf(TokenType::LeftAngleBracket))
     ParseTypeParameterList();
@@ -364,12 +340,6 @@ void Parser::ParseCompilationUnit() {
 void Parser::ParseConst(Token* keyword, ast::Type* type, Token* name) {
   DCHECK_EQ(keyword, TokenType::Const);
   DCHECK(name->is_name());
-  if (auto const present = container_->FindMember(name)) {
-    if (present->is<ast::Const>())
-      Error(ErrorCode::SyntaxClassMemberDuplicate, name, present->name());
-    else
-      Error(ErrorCode::SyntaxClassMemberConflict, name, present->name());
-  }
   auto const class_body = container_->as<ast::ClassBody>();
   auto const modifiers = modifiers_->Get();
   ValidateFieldModifiers();
@@ -399,14 +369,6 @@ void Parser::ParseEnum() {
     token_ = session()->NewUniqueNameToken(token_->location(), L"enum%d");
   }
   auto const enum_name = ConsumeToken();
-  auto const local = container_->FindMember(enum_name);
-  auto const global = container_->owner()->FindMember(enum_name);
-  if (auto const present = local ? local : global) {
-    if (present->is<ast::Enum>())
-      Error(ErrorCode::SyntaxEnumDuplicate, enum_name, present->name());
-    else
-      Error(ErrorCode::SyntaxEnumConflict, enum_name, present->name());
-  }
   auto const enum_base =
       AdvanceIf(TokenType::Colon) ? ParseAndConsumeType() : nullptr;
   auto const enum_node = factory()->NewEnum(container_, enum_modifiers,
@@ -457,12 +419,6 @@ void Parser::ParseEnum() {
 void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
   DCHECK_EQ(keyword, TokenType::Var);
   DCHECK(name->is_name());
-  if (auto const present = container_->FindMember(name)) {
-    if (present->is<ast::Field>())
-      Error(ErrorCode::SyntaxClassMemberDuplicate, name, present->name());
-    else
-      Error(ErrorCode::SyntaxClassMemberConflict, name, present->name());
-  }
   auto const class_body = container_->as<ast::ClassBody>();
   auto const modifiers = modifiers_->Get();
   ValidateFieldModifiers();
@@ -513,18 +469,8 @@ void Parser::ParseNamespace(Token* namespace_keyword,
   auto const ns_body = container_->as<ast::NamespaceBody>();
   DCHECK(ns_body);
   auto const name = names[index];
-  ast::Namespace* new_namespace = nullptr;
-  auto const local = container_->FindMember(name);
-  auto const global = container_->owner()->FindMember(name);
-  if (auto const present = local ? local : global) {
-    new_namespace = present->as<ast::Namespace>();
-    if (!new_namespace)
-      Error(ErrorCode::SyntaxNamespaceConflict, name, present->keyword());
-  }
-  if (!new_namespace) {
-    new_namespace =
-        factory()->NewNamespace(ns_body->owner(), namespace_keyword, name);
-  }
+  auto const new_namespace =
+      factory()->NewNamespace(ns_body->owner(), namespace_keyword, name);
   auto const new_ns_body = factory()->NewNamespaceBody(ns_body, new_namespace);
   ns_body->AddMember(new_ns_body);
   ContainerScope container_scope(this, new_ns_body);
@@ -614,22 +560,12 @@ void Parser::ParseUsingDirectives() {
         AdvanceIf(TokenType::SemiColon);
         continue;
       }
-      auto is_valid = true;
       auto const alias_name = type_name_ref->name();
-      // Note: 'using' directive comes before other declarations. We don't
-      // need to use enclosing namespace's |FindMember()|.
-      if (auto const present = ns_body->FindMember(alias_name)) {
-        is_valid = false;
-        Error(ErrorCode::SyntaxUsingDirectiveDuplicate, alias_name,
-              present->name());
-      }
       ParseNamespaceOrTypeName();
       auto const reference = ConsumeType();
-      if (is_valid) {
-        auto const alias =
-            factory()->NewAlias(ns_body, using_keyword, alias_name, reference);
-        ns_body->AddMember(alias);
-      }
+      auto const alias =
+          factory()->NewAlias(ns_body, using_keyword, alias_name, reference);
+      ns_body->AddMember(alias);
     } else {
       // ImportNamespace ::= 'using' QualfiedName ';'
       auto const qualified_name = MakeQualifiedNameToken(thing);
