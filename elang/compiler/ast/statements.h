@@ -169,6 +169,7 @@ class ExpressionList : public Statement {
   const std::vector<Expression*>& expressions() const { return expressions_; }
 
  protected:
+  // Since |expressions| can be empty, we should have |keyword| paramter.
   ExpressionList(Token* keyword, const std::vector<Expression*>& expressions);
 
  private:
