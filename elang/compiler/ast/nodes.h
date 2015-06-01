@@ -85,10 +85,6 @@ class NamedNode : public Node {
   Token* keyword() const { return token(); }
   Token* name() const override;
 
-#if _DEBUG
-  virtual bool CanBeNamedMemberOf(ContainerNode* container) const;
-#endif
-
   base::string16 NewQualifiedName() const;
 
  protected:

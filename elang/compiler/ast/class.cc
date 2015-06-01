@@ -39,14 +39,6 @@ bool Class::is_struct() const {
   return keyword() == TokenType::Struct;
 }
 
-#if _DEBUG
-// NamedNode
-bool Class::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::Namespace>() ||
-         container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
-}
-#endif
-
 //////////////////////////////////////////////////////////////////////
 //
 // ClassBody
@@ -69,11 +61,6 @@ Class* ClassBody::owner() const {
 bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::Class>() || container->is<ast::ClassBody>() ||
          container->is<ast::NamespaceBody>();
-}
-
-// NamedNode
-bool ClassBody::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::BodyNode>();
 }
 #endif
 
@@ -100,11 +87,6 @@ Const::Const(ClassBody* outer,
 bool Const::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::ClassBody>();
 }
-
-// NamedNode
-bool Const::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::ClassBody>();
-}
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -129,11 +111,6 @@ Field::Field(ClassBody* outer,
 // Node
 bool Field::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::ClassBody>();
-}
-
-// NamedNode
-bool Field::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::ClassBody>();
 }
 #endif
 

@@ -30,8 +30,6 @@ class Alias final : public NamedNode {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Expression* const reference_;
@@ -77,8 +75,6 @@ class Namespace final : public NamespaceNode {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   DISALLOW_COPY_AND_ASSIGN(Namespace);

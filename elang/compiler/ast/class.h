@@ -33,11 +33,6 @@ class Class final : public NamespaceNode, public WithModifiers {
         Token* keyword,
         Token* name);
 
-#if _DEBUG
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
-#endif
-
   DISALLOW_COPY_AND_ASSIGN(Class);
 };
 
@@ -64,8 +59,6 @@ class ClassBody final : public BodyNode, public WithModifiers {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   const ZoneVector<Type*> base_class_names_;
@@ -95,8 +88,6 @@ class Const final : public NamedNode, public WithModifiers {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Expression* const expression_;
@@ -127,8 +118,6 @@ class Field final : public NamedNode, public WithModifiers {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Expression* const expression_;

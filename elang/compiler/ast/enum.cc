@@ -37,12 +37,6 @@ Enum::Enum(Zone* zone,
 bool Enum::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
 }
-
-// NamedNode
-bool Enum::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Class>() || container->is<ast::Namespace>() ||
-         CanBeMemberOf(container);
-}
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -70,11 +64,6 @@ Enum* EnumMember::owner() const {
 #if _DEBUG
 // Node
 bool EnumMember::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Enum>();
-}
-
-// NamedNode
-bool EnumMember::CanBeNamedMemberOf(ContainerNode* container) const {
   return container->is<ast::Enum>();
 }
 #endif

@@ -30,11 +30,6 @@ Alias::Alias(NamespaceBody* namespace_body,
 bool Alias::CanBeMemberOf(ContainerNode* container) const {
   return container->is<ast::NamespaceBody>();
 }
-
-// NamedNode
-bool Alias::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::NamespaceBody>();
-}
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -70,11 +65,6 @@ Namespace::Namespace(Zone* zone, Namespace* parent, Token* keyword, Token* name)
 bool Namespace::CanBeMemberOf(ContainerNode* container) const {
   DCHECK(container);
   return false;
-}
-
-// NamedNode
-bool Namespace::CanBeNamedMemberOf(ContainerNode* container) const {
-  return container->is<ast::Namespace>() || container->is<ast::NamespaceBody>();
 }
 #endif
 

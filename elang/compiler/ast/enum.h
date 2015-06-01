@@ -37,8 +37,6 @@ class Enum final : public NamespaceNode, WithModifiers {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Type* const enum_base_;
@@ -67,8 +65,6 @@ class EnumMember final : public NamedNode {
 #if _DEBUG
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
-  // NamedNode
-  bool CanBeNamedMemberOf(ContainerNode* container) const final;
 #endif
 
   Expression* const implicit_expression_;

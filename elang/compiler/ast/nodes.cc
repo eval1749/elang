@@ -64,13 +64,6 @@ Token* NamedNode::name() const {
   return name_;
 }
 
-#if _DEBUG
-bool NamedNode::CanBeNamedMemberOf(ContainerNode* container) const {
-  DCHECK(container);
-  return false;
-}
-#endif
-
 base::string16 NamedNode::NewQualifiedName() const {
   std::vector<AtomicString*> ancestors;
   size_t length = 0u;
