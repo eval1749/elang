@@ -24,11 +24,21 @@
 #include "elang/compiler/semantics/editor.h"
 #include "elang/compiler/semantics/factory.h"
 #include "elang/compiler/semantics/nodes.h"
+#include "elang/compiler/token.h"
 
 namespace elang {
 namespace compiler {
 
 namespace {
+
+ast::Alias* FindAlias(Token* name, ast::NamespaceBody* ns_body) {
+  for (auto const member : ns_body->members()) {
+    auto const alias = member->as<ast::Alias>();
+    if (alias && alias->name()->atomic_string() == name->atomic_string())
+      return alias;
+  }
+  return nullptr;
+}
 
 bool IsFixed(sm::Semantic* semantic) {
   if (auto const clazz = semantic->as<sm::Class>())
@@ -317,7 +327,7 @@ sm::Semantic* ClassTreeBuilder::ResolveNameReference(ast::Node* client,
       DCHECK(outer->is<sm::Namespace>());
       if (auto const present = outer->FindMember(name))
         founds.insert(present);
-      if (auto const alias = ns_body->FindMember(name)->as<ast::Alias>()) {
+      if (auto const alias = FindAlias(name, ns_body)) {
         unused_aliases_.erase(alias);
         auto const resolved = ResolveAlias(alias);
         if (!resolved)
