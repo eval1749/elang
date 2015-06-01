@@ -7,8 +7,6 @@
 #include <sstream>
 #include <vector>
 
-#include "elang/compiler/ast/formatters/text_formatter.h"
-
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
 #include "elang/compiler/ast/class.h"
@@ -229,21 +227,6 @@ std::ostream& operator<<(std::ostream& ostream, const Node* node) {
   if (!node)
     return ostream << "nil";
   return ostream << *node;
-}
-
-//////////////////////////////////////////////////////////////////////
-//
-// TextFormatter
-//
-TextFormatter::TextFormatter(std::ostream* ostream) : ostream_(*ostream) {
-}
-
-TextFormatter::~TextFormatter() {
-}
-
-void TextFormatter::Format(const Node* node) {
-  Formatter formatter(&ostream_);
-  formatter.Format(node);
 }
 
 }  // namespace ast
