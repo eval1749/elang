@@ -113,11 +113,15 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   auto const name = node->name();
   if (name->is_type_name()) {
     // type keyword is mapped into |System.XXX|.
-    auto const ast_class = session()->system_namespace()->FindMember(
-        session()->PredefinedNameOf(name->mapped_type_name()));
-    if (!ast_class)
-      Error(ErrorCode::NameResolutionNameNotFound, node);
-    ProduceResult(SemanticOf(ast_class));
+    auto const clazz =
+        session()->semantic_factory()->system_namespace()->FindMember(
+            session()->PredefinedNameOf(name->mapped_type_name()));
+    if (clazz) {
+      ProduceResult(clazz);
+      return;
+    }
+    Error(ErrorCode::NameResolutionNameNotFound, node);
+    ProduceResult(session()->semantic_factory()->NewUndefinedType(name));
     return;
   }
 
