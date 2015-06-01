@@ -92,9 +92,11 @@ TEST_F(ClassTreeBuilderTest, AliasErrorNotFound) {
 }
 
 TEST_F(ClassTreeBuilderTest, AliasErrorNeitherNamespaceNorType) {
-  Prepare("enum Color { Red }");
-  Prepare("using R = Color.Red; class A : R {}");
-  EXPECT_EQ("ClassTree.Alias.NeitherNamespaceNorType(6) R\n", BuildClassTree());
+  Prepare(
+      "enum Color { Red }"
+      "namespace N1 { using R = Color.Red; class A : R {} }");
+  EXPECT_EQ("ClassTree.Alias.NeitherNamespaceNorType(39) R\n",
+            BuildClassTree());
 }
 
 // Scope of using alias directive is limited into namespace body.
@@ -151,14 +153,16 @@ TEST_F(ClassTreeBuilderTest, AliasLayout) {
 
 TEST_F(ClassTreeBuilderTest, AliasToAlias) {
   Prepare(
-      "using R1 = A.B;"
       "class A { class B { class C {} } }"
       "namespace N1 {"
-      "  using R2 = R1;"
-      "  class D : R2.C {}"
+      "  using R1 = A.B;"
+      "namespace N2 {"
+      "    using R2 = R1;"
+      "    class D : R2.C {}"
+      "  }"
       "}");
   ASSERT_EQ("", BuildClassTree());
-  EXPECT_EQ("A.B.C", BaseClassesOf("N1.D"));
+  EXPECT_EQ("A.B.C", BaseClassesOf("N1.N2.D"));
 }
 
 TEST_F(ClassTreeBuilderTest, AliasToAliasDeep) {
