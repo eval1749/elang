@@ -49,8 +49,8 @@ class BodyNode : public ContainerNode {
   NamespaceNode* owner() const { return owner_; }
 
  protected:
-  BodyNode(Zone* zone, BodyNode* parent, Token* keyword, Token* name);
-  BodyNode(Zone* zone, BodyNode* parent, NamespaceNode* owner);
+  BodyNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
+  BodyNode(Zone* zone, ContainerNode* parent, NamespaceNode* owner);
 
  private:
   NamespaceNode* const owner_;
