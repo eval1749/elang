@@ -33,9 +33,6 @@ void PopulateSemantics(CompilationSession* session) {
 
   auto const global_namespace = session->semantic_factory()->global_namespace();
   editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
-
-  auto const system_namespace = session->semantic_factory()->system_namespace();
-  editor.SetSemanticOf(session->system_namespace_body(), system_namespace);
 }
 
 }  // namespace
@@ -62,10 +59,6 @@ AtomicStringFactory* CompilationSession::atomic_string_factory() const {
 
 ast::NamespaceBody* CompilationSession::global_namespace_body() const {
   return ast_factory_->global_namespace_body();
-}
-
-ast::NamespaceBody* CompilationSession::system_namespace_body() const {
-  return ast_factory_->system_namespace_body();
 }
 
 Token* CompilationSession::system_token() const {
