@@ -49,7 +49,7 @@ sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
 void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
   if (node->loaded_)
     return;
-  if (node->owner() == session()->global_namespace()) {
+  if (!node->parent()) {
     editor_->SetSemanticOf(node, factory()->global_namespace());
     return;
   }
