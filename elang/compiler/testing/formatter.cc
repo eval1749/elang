@@ -479,16 +479,6 @@ void Formatter::VisitNamespace(ast::Namespace* node) {
 }
 
 void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
-  // TODO(eval1749) We should have specific way to detect loaded classes.
-  if (ns_body->loaded_) {
-    for (auto const member : ns_body->members()) {
-      auto const node = member->as<ast::NamespaceBody>();
-      if (!node)
-        continue;
-      VisitNamespaceBody(node);
-    }
-    return;
-  }
   if (!ns_body->owner()->parent()) {
     // We don't print "namespace" text for global namespace.
     ns_body->AcceptForMembers(this);
