@@ -27,6 +27,7 @@ class Class;
 }
 
 class CompilationSession;
+class CompilationUnit;
 class SourceCode;
 class StringSourceCode;
 enum class TokenType;
@@ -42,6 +43,9 @@ class CompilerTest : public ::testing::Test {
   CompilerTest();
   ~CompilerTest() override;
 
+  const std::vector<CompilationUnit*> compilation_units() const {
+    return compilation_units_;
+  }
   CompilationSession* session() const { return session_.get(); }
 
   // Since we don't want to include "string_source_code.h" in "compiler_test.h",
@@ -59,6 +63,7 @@ class CompilerTest : public ::testing::Test {
   std::vector<ast::Node*> QueryAstNodes(TokenType token_type);
 
  private:
+  std::vector<CompilationUnit*> compilation_units_;
   const std::unique_ptr<CompilationSession> session_;
   std::vector<std::unique_ptr<StringSourceCode>> source_codes_;
 

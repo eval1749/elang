@@ -87,6 +87,7 @@ bool CompilerTest::Parse() {
   for (auto const& source_code : source_codes_) {
     auto const compilation_unit =
         session_->NewCompilationUnit(source_code.get());
+    compilation_units_.push_back(compilation_unit);
     Parser(session_.get(), compilation_unit).Run();
   }
   return !session_->HasError();
