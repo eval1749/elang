@@ -40,8 +40,8 @@ class Class final : public NamespaceNode, public WithModifiers {
 //
 // ClassBody
 //
-class ClassBody final : public BodyNode, public WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, BodyNode);
+class ClassBody final : public ContainerNode, public WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, ContainerNode);
 
  public:
   const ZoneVector<Type*>& base_class_names() const {

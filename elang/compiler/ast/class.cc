@@ -49,7 +49,7 @@ ClassBody::ClassBody(Zone* zone,
                      Token* keyword,
                      Token* name,
                      const std::vector<Type*>& base_class_names)
-    : BodyNode(zone, outer, keyword, name),
+    : ContainerNode(zone, outer, keyword, name),
       WithModifiers(modifiers),
       base_class_names_(zone, base_class_names) {
 }
