@@ -34,10 +34,6 @@ Analysis* CompilationSessionUser::analysis() const {
   return session()->analysis();
 }
 
-ast::NamespaceBody* CompilationSessionUser::system_namespace_body() {
-  return session()->system_namespace_body();
-}
-
 void CompilationSessionUser::Error(ErrorCode error_code, ast::Node* node) {
   session()->AddError(error_code, PrettyTokenFor(node));
 }
