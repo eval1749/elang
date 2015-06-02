@@ -39,7 +39,7 @@ BodyNode::BodyNode(Zone* zone, BodyNode* parent, Token* keyword, Token* name)
 BodyNode::BodyNode(Zone* zone, BodyNode* parent, NamespaceNode* owner)
     : ContainerNode(zone, parent, owner->keyword(), owner->name()),
       owner_(owner) {
-  DCHECK(owner->is<ast::Namespace>() || owner->is<ast::Method>());
+  DCHECK(owner->is<ast::Method>());
 }
 
 // NamespaceNode
