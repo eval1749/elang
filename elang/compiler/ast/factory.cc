@@ -158,13 +158,6 @@ MethodBody* Factory::NewMethodBody(Method* method) {
   return new (zone()) MethodBody(zone(), method);
 }
 
-Namespace* Factory::NewNamespace(Namespace* outer,
-                                 Token* keyword,
-                                 Token* name) {
-  DCHECK_EQ(keyword->type(), TokenType::Namespace);
-  return new (zone()) Namespace(zone(), outer, keyword, name);
-}
-
 NamespaceBody* Factory::NewNamespaceBody(NamespaceBody* outer,
                                          Token* keyword,
                                          Token* name) {
