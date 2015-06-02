@@ -66,7 +66,7 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
   return node;
 }
 
-ClassBody* Factory::NewClassBody(BodyNode* outer,
+ClassBody* Factory::NewClassBody(ContainerNode* outer,
                                  Modifiers modifiers,
                                  Token* keyword,
                                  Token* name,
@@ -92,7 +92,7 @@ Const* Factory::NewConst(ClassBody* outer,
   return node;
 }
 
-Enum* Factory::NewEnum(BodyNode* container,
+Enum* Factory::NewEnum(ContainerNode* container,
                        Modifiers modifiers,
                        Token* keyword,
                        Token* name,

@@ -36,7 +36,7 @@ class Factory final : public ZoneUser {
                   Token* keyword,
                   Token* alias_name,
                   Expression* reference);
-  ClassBody* NewClassBody(BodyNode* outer,
+  ClassBody* NewClassBody(ContainerNode* outer,
                           Modifiers modifiers,
                           Token* keyword,
                           Token* name,
@@ -47,7 +47,7 @@ class Factory final : public ZoneUser {
                   Type* type,
                   Token* name,
                   Expression* expression);
-  Enum* NewEnum(BodyNode* outer,
+  Enum* NewEnum(ContainerNode* outer,
                 Modifiers modifiers,
                 Token* keyword,
                 Token* name,

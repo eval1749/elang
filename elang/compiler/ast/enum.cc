@@ -19,7 +19,7 @@ namespace ast {
 // Enum
 //
 Enum::Enum(Zone* zone,
-           BodyNode* outer,
+           ContainerNode* outer,
            Modifiers modifiers,
            Token* keyword,
            Token* name,

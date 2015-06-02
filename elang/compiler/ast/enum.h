@@ -28,7 +28,7 @@ class Enum final : public NamespaceNode, WithModifiers {
 
  private:
   Enum(Zone* zone,
-       BodyNode* container,
+       ContainerNode* container,
        Modifiers modifies,
        Token* keyword,
        Token* name,

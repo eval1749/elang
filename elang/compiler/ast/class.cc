@@ -44,7 +44,7 @@ bool Class::is_struct() const {
 // ClassBody
 //
 ClassBody::ClassBody(Zone* zone,
-                     BodyNode* outer,
+                     ContainerNode* outer,
                      Modifiers modifiers,
                      Token* keyword,
                      Token* name,

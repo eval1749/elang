@@ -54,7 +54,7 @@ class ClassBody final : public BodyNode, public WithModifiers {
 
  private:
   ClassBody(Zone* zone,
-            BodyNode* outer,
+            ContainerNode* outer,
             Modifiers modifiers,
             Token* keyword,
             Token* name,
