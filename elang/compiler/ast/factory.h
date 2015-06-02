@@ -38,10 +38,6 @@ class Factory final : public ZoneUser {
                   Token* keyword,
                   Token* alias_name,
                   Expression* reference);
-  Class* NewClass(NamespaceNode* outer,
-                  Modifiers modifiers,
-                  Token* keyword,
-                  Token* name);
   ClassBody* NewClassBody(BodyNode* outer,
                           Modifiers modifiers,
                           Token* keyword,

@@ -79,13 +79,6 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
   return node;
 }
 
-Class* Factory::NewClass(NamespaceNode* outer,
-                         Modifiers modifiers,
-                         Token* keyword,
-                         Token* name) {
-  return new (zone()) Class(zone(), outer, modifiers, keyword, name);
-}
-
 ClassBody* Factory::NewClassBody(BodyNode* outer,
                                  Modifiers modifiers,
                                  Token* keyword,
