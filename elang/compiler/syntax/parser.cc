@@ -45,7 +45,7 @@ Token* MakeQualifiedNameToken(ast::Node* thing) {
 // ContainerScope
 //
 Parser::ContainerScope::ContainerScope(Parser* parser,
-                                       ast::BodyNode* new_container)
+                                       ast::ContainerNode* new_container)
     : container_(parser->container_), parser_(parser) {
   parser->container_ = new_container;
 }

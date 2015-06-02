@@ -171,7 +171,7 @@ class Parser final : public CompilationSessionUser {
   void ProduceTypeNameReference(Token* token);
 
   CompilationUnit* compilation_unit_;
-  ast::BodyNode* container_;
+  ast::ContainerNode* container_;
   LocalDeclarationSpace* declaration_space_;
   std::vector<Token*> delimiters_;
   ast::Expression* expression_;
@@ -187,12 +187,12 @@ class Parser final : public CompilationSessionUser {
 
 class Parser::ContainerScope final {
  public:
-  ContainerScope(Parser* parser, ast::BodyNode* new_container);
+  ContainerScope(Parser* parser, ast::ContainerNode* new_container);
   ~ContainerScope();
 
  private:
   Parser* const parser_;
-  ast::BodyNode* const container_;
+  ast::ContainerNode* const container_;
 
   DISALLOW_COPY_AND_ASSIGN(ContainerScope);
 };
