@@ -22,17 +22,6 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
-namespace {
-
-Namespace* NewGlobalNamespace(CompilationSession* session, Factory* factory) {
-  auto const keyword = session->token_factory()->NewSystemKeyword(
-      TokenType::Namespace, L"namespace");
-  auto const name = session->token_factory()->NewSystemName(L"global");
-  return factory->NewNamespace(nullptr, keyword, name);
-}
-
-}  // namespace
-
 // Visitor related functions.
 #define V(Name) \
   void Name::Accept(Visitor* visitor) { visitor->Visit##Name(this); }
@@ -57,9 +46,7 @@ void Visitor::DoDefaultVisit(Node* node) {
 //
 // Factory
 //
-Factory::Factory(CompilationSession* session)
-    : ZoneUser(session->zone()),
-      global_namespace_(NewGlobalNamespace(session, this)) {
+Factory::Factory(CompilationSession* session) : ZoneUser(session->zone()) {
 }
 
 Factory::~Factory() {
