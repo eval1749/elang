@@ -102,9 +102,6 @@ class NamespaceBody final : public BodyNode {
   // Returns |Import| named by |name| in this namespace or null if not found.
   Import* FindImport(Token* name) const;
 
-  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
-  bool loaded_;
-
  private:
   NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
 

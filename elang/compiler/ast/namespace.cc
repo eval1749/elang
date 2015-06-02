@@ -73,7 +73,7 @@ bool Namespace::CanBeMemberOf(ContainerNode* container) const {
 // NamespaceBody
 //
 NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
-    : BodyNode(zone, outer, owner), import_map_(zone), loaded_(false) {
+    : BodyNode(zone, outer, owner), import_map_(zone) {
 }
 
 NamespaceBody* NamespaceBody::outer() const {
