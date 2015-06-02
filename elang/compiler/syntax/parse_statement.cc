@@ -495,10 +495,8 @@ void Parser::ParseMethod(Modifiers method_modifiers,
   auto const method = factory()->NewMethod(
       class_body, method_modifiers, method_type, method_name, type_parameters);
   container_->AddMember(method);
-  auto const method_body = factory()->NewMethodBody(method);
-  method->AddMember(method_body);
 
-  ContainerScope container_scope(this, method_body);
+  ContainerScope container_scope(this, method);
   LocalDeclarationSpace method_space(this, PeekToken());
   if (!AdvanceIf(TokenType::RightParenthesis)) {
     std::vector<ast::Parameter*> parameters;
