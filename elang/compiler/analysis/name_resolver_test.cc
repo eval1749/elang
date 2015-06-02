@@ -13,7 +13,9 @@
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/compilation_session.h"
+#include "elang/compiler/compilation_unit.h"
 #include "elang/compiler/source_code_range.h"
+#include "elang/compiler/string_source_code.h"
 #include "elang/compiler/token_data.h"
 #include "elang/compiler/token_type.h"
 
@@ -79,8 +81,10 @@ ast::Type* NameResolverTest::NewTypeReference(base::StringPiece reference) {
 }
 
 TEST_F(NameResolverTest, SystemInt32) {
+  Prepare("");
+  ASSERT_EQ("", Analyze());
   auto const ref = NewTypeReference("System.Int32");
-  auto const context = session()->global_namespace_body();
+  auto const context = compilation_units().front()->namespace_body();
   auto const node = name_resolver()->ResolveReference(ref, context);
   EXPECT_EQ("System.Int32", ToString(node));
 }
