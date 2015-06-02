@@ -34,10 +34,6 @@ Analysis* CompilationSessionUser::analysis() const {
   return session()->analysis();
 }
 
-ast::Namespace* CompilationSessionUser::system_namespace() {
-  return session()->system_namespace();
-}
-
 ast::NamespaceBody* CompilationSessionUser::system_namespace_body() {
   return session()->system_namespace_body();
 }

@@ -46,7 +46,6 @@ class CompilationSessionUser {
   explicit CompilationSessionUser(CompilationSession* session);
 
   Analysis* analysis() const;
-  ast::Namespace* system_namespace();
   ast::NamespaceBody* system_namespace_body();
 
   sm::Type* PredefinedTypeOf(PredefinedName name);
