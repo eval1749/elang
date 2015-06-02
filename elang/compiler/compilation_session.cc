@@ -26,17 +26,6 @@
 namespace elang {
 namespace compiler {
 
-namespace {
-
-void PopulateSemantics(CompilationSession* session) {
-  AnalysisEditor editor(session->analysis());
-
-  auto const global_namespace = session->semantic_factory()->global_namespace();
-  editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
-}
-
-}  // namespace
-
 //////////////////////////////////////////////////////////////////////
 //
 // CompilationSession
@@ -47,7 +36,6 @@ CompilationSession::CompilationSession()
       token_factory_(new TokenFactory(zone())),
       ast_factory_(new ast::Factory(this)),
       semantic_factory_(new sm::Factory(token_factory_.get())) {
-  PopulateSemantics(this);
 }
 
 CompilationSession::~CompilationSession() {
@@ -55,10 +43,6 @@ CompilationSession::~CompilationSession() {
 
 AtomicStringFactory* CompilationSession::atomic_string_factory() const {
   return token_factory_->atomic_string_factory();
-}
-
-ast::NamespaceBody* CompilationSession::global_namespace_body() const {
-  return ast_factory_->global_namespace_body();
 }
 
 Token* CompilationSession::system_token() const {
