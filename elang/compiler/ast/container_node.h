@@ -40,26 +40,6 @@ class ContainerNode : public NamedNode {
 
 //////////////////////////////////////////////////////////////////////
 //
-// BodyNode
-//
-class BodyNode : public ContainerNode {
-  DECLARE_ABSTRACT_AST_NODE_CLASS(BodyNode, ContainerNode);
-
- public:
-  NamespaceNode* owner() const { return owner_; }
-
- protected:
-  BodyNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
-  BodyNode(Zone* zone, ContainerNode* parent, NamespaceNode* owner);
-
- private:
-  NamespaceNode* const owner_;
-
-  DISALLOW_COPY_AND_ASSIGN(BodyNode);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // NamespaceNode
 //
 class NamespaceNode : public ContainerNode {

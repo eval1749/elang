@@ -31,20 +31,6 @@ void ContainerNode::AddMember(Node* member) {
   members_.push_back(member);
 }
 
-// BodyNode
-BodyNode::BodyNode(Zone* zone,
-                   ContainerNode* parent,
-                   Token* keyword,
-                   Token* name)
-    : ContainerNode(zone, parent, keyword, name), owner_(nullptr) {
-}
-
-BodyNode::BodyNode(Zone* zone, ContainerNode* parent, NamespaceNode* owner)
-    : ContainerNode(zone, parent, owner->keyword(), owner->name()),
-      owner_(owner) {
-  DCHECK(owner->is<ast::Method>());
-}
-
 // NamespaceNode
 NamespaceNode::NamespaceNode(Zone* zone,
                              ContainerNode* outer,

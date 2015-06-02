@@ -88,7 +88,6 @@ namespace ast {
   V(Variable)
 
 #define FOR_EACH_ABSTRACT_AST_NODE(V) \
-  V(BodyNode)                         \
   V(ContainerNode)                    \
   V(DoOrWhileStatement)               \
   V(Expression)                       \
