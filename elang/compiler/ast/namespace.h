@@ -66,8 +66,8 @@ class Import final : public NamedNode {
 //
 // NamespaceBody
 //
-class NamespaceBody final : public BodyNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(NamespaceBody, BodyNode);
+class NamespaceBody final : public ContainerNode {
+  DECLARE_CONCRETE_AST_NODE_CLASS(NamespaceBody, ContainerNode);
 
  public:
   typedef ZoneUnorderedMap<AtomicString*, Import*> ImportMap;

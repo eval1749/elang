@@ -59,7 +59,7 @@ NamespaceBody::NamespaceBody(Zone* zone,
                              NamespaceBody* outer,
                              Token* keyword,
                              Token* name)
-    : BodyNode(zone, outer, keyword, name), import_map_(zone) {
+    : ContainerNode(zone, outer, keyword, name), import_map_(zone) {
 }
 
 NamespaceBody* NamespaceBody::outer() const {
