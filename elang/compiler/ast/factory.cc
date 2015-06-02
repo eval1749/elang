@@ -34,8 +34,6 @@ NamespaceBody* NewNamespaceBody(Factory* factory,
   auto const body = factory->NewNamespaceBody(outer, owner);
   if (outer)
     outer->AddMember(body);
-  // TODO(eval1749) We should use Creator::Parser, Loader, etc.
-  body->loaded_ = true;
   return body;
 }
 
