@@ -68,8 +68,6 @@ base::string16 NamedNode::NewQualifiedName() const {
   std::vector<AtomicString*> ancestors;
   size_t length = 0u;
   for (const ast::Node* runner = this; runner; runner = runner->parent()) {
-    if (auto const ns_body = runner->as<ast::NamespaceBody>())
-      runner = ns_body->owner();
     if (!runner->parent())
       break;
     auto const name_token = runner->name();
