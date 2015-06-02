@@ -82,7 +82,6 @@ namespace ast {
   V(CatchClause)                      \
   V(ClassBody)                        \
   V(EnumMember)                       \
-  V(MethodBody)                       \
   V(NamespaceBody)                    \
   V(Parameter)                        \
   V(VarDeclaration)                   \

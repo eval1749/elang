@@ -61,24 +61,6 @@ class Method final : public NamespaceNode, public WithModifiers {
   DISALLOW_COPY_AND_ASSIGN(Method);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// MethodBody
-//
-class MethodBody final : public BodyNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(MethodBody, BodyNode);
-
- private:
-  MethodBody(Zone* zone, Method* method);
-
-#if _DEBUG
-  // Node
-  bool CanBeMemberOf(ContainerNode* container) const final;
-#endif
-
-  DISALLOW_COPY_AND_ASSIGN(MethodBody);
-};
-
 // Represents parameter.
 class Parameter final : public NamedNode {
   DECLARE_CONCRETE_AST_NODE_CLASS(Parameter, NamedNode);

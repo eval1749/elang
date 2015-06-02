@@ -54,18 +54,6 @@ void Method::SetBody(Statement* body) {
   body_ = body;
 }
 
-// MethodBody
-MethodBody::MethodBody(Zone* zone, Method* method)
-    : BodyNode(zone, method->parent()->as<ast::ClassBody>(), method) {
-}
-
-#if _DEBUG
-// NamedNode
-bool MethodBody::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::Method>();
-}
-#endif
-
 // Parameter
 Parameter::Parameter(Method* owner,
                      ParameterKind kind,

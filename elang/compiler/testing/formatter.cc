@@ -464,11 +464,6 @@ void Formatter::VisitMethod(ast::Method* method) {
   ostream_ << ";" << std::endl;
 }
 
-void Formatter::VisitMethodBody(ast::MethodBody* node) {
-  DCHECK(node);
-  NOTREACHED();
-}
-
 void Formatter::VisitNameReference(ast::NameReference* operation) {
   ostream_ << operation->token();
 }
