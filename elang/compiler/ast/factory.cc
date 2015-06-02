@@ -24,26 +24,11 @@ namespace ast {
 
 namespace {
 
-Namespace* NewNamespace(Factory* factory, Namespace* outer, Token* name) {
-  return factory->NewNamespace(outer, outer->keyword(), name);
-}
-
-NamespaceBody* NewNamespaceBody(Factory* factory,
-                                NamespaceBody* outer,
-                                Namespace* owner) {
-  auto const body = factory->NewNamespaceBody(outer, owner);
-  if (outer)
-    outer->AddMember(body);
-  return body;
-}
-
-NamespaceBody* NewGlobalNamespaceBody(CompilationSession* session,
-                                      Factory* factory) {
+Namespace* NewGlobalNamespace(CompilationSession* session, Factory* factory) {
   auto const keyword = session->token_factory()->NewSystemKeyword(
       TokenType::Namespace, L"namespace");
   auto const name = session->token_factory()->NewSystemName(L"global");
-  auto const ns = factory->NewNamespace(nullptr, keyword, name);
-  return NewNamespaceBody(factory, nullptr, ns);
+  return factory->NewNamespace(nullptr, keyword, name);
 }
 
 }  // namespace
@@ -74,14 +59,10 @@ void Visitor::DoDefaultVisit(Node* node) {
 //
 Factory::Factory(CompilationSession* session)
     : ZoneUser(session->zone()),
-      global_namespace_body_(NewGlobalNamespaceBody(session, this)) {
+      global_namespace_(NewGlobalNamespace(session, this)) {
 }
 
 Factory::~Factory() {
-}
-
-Namespace* Factory::global_namespace() const {
-  return global_namespace_body_->owner();
 }
 
 //////////////////////////////////////////////////////////////////////

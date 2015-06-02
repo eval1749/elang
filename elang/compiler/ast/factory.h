@@ -31,10 +31,7 @@ class Factory final : public ZoneUser {
   explicit Factory(CompilationSession* session);
   ~Factory();
 
-  Namespace* global_namespace() const;
-  NamespaceBody* global_namespace_body() const {
-    return global_namespace_body_;
-  }
+  Namespace* global_namespace() const { return global_namespace_; }
 
   // Declaration related nodes
   Alias* NewAlias(NamespaceBody* namespace_body,
@@ -191,7 +188,7 @@ class Factory final : public ZoneUser {
   Node* RememberNode(Node* node);
   void SetParent(Node* child, Node* parent);
 
-  NamespaceBody* const global_namespace_body_;
+  Namespace* const global_namespace_;
 
   DISALLOW_COPY_AND_ASSIGN(Factory);
 };
