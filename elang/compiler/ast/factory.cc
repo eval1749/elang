@@ -154,10 +154,6 @@ Method* Factory::NewMethod(ClassBody* outer,
   return node;
 }
 
-MethodBody* Factory::NewMethodBody(Method* method) {
-  return new (zone()) MethodBody(zone(), method);
-}
-
 NamespaceBody* Factory::NewNamespaceBody(NamespaceBody* outer,
                                          Token* keyword,
                                          Token* name) {

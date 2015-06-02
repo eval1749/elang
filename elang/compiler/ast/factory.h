@@ -70,7 +70,6 @@ class Factory final : public ZoneUser {
                     Type* type,
                     Token* name,
                     const std::vector<Token*>& type_parameters);
-  MethodBody* NewMethodBody(Method* method);
   NamespaceBody* NewNamespaceBody(NamespaceBody* outer,
                                   Token* keyword,
                                   Token* name);
