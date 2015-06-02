@@ -180,12 +180,6 @@ ast::Node* CompilationSession::QueryAstNode(base::StringPiece16 path) {
         return found;
     }
   }
-  // TODO(eval1749) Once we get rid of |ast::Namespace|, we should remove
-  // below code.
-  for (auto const member : global_namespace_body()->members()) {
-    if (auto const found = Local::Find(names, 0, member))
-      return found;
-  }
   return nullptr;
 }
 
