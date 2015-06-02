@@ -81,7 +81,6 @@ void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
   }
   auto const ns = factory()->NewNamespace(outer, node->name());
   editor_->SetSemanticOf(node, ns);
-  editor_->SetSemanticOf(node->owner(), ns);
 }
 
 void NameTreeBuilder::Run() {
