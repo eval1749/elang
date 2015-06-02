@@ -46,14 +46,6 @@ NamespaceBody* NewGlobalNamespaceBody(CompilationSession* session,
   return NewNamespaceBody(factory, nullptr, ns);
 }
 
-NamespaceBody* NewSystemNamespaceBody(CompilationSession* session,
-                                      Factory* factory) {
-  auto const name = session->token_factory()->system_token();
-  auto const outer = factory->global_namespace();
-  auto const ns = NewNamespace(factory, outer, name);
-  return NewNamespaceBody(factory, factory->global_namespace_body(), ns);
-}
-
 }  // namespace
 
 // Visitor related functions.
@@ -82,8 +74,7 @@ void Visitor::DoDefaultVisit(Node* node) {
 //
 Factory::Factory(CompilationSession* session)
     : ZoneUser(session->zone()),
-      global_namespace_body_(NewGlobalNamespaceBody(session, this)),
-      system_namespace_body_(NewSystemNamespaceBody(session, this)) {
+      global_namespace_body_(NewGlobalNamespaceBody(session, this)) {
 }
 
 Factory::~Factory() {
@@ -91,10 +82,6 @@ Factory::~Factory() {
 
 Namespace* Factory::global_namespace() const {
   return global_namespace_body_->owner();
-}
-
-Namespace* Factory::system_namespace() const {
-  return system_namespace_body_->owner();
 }
 
 //////////////////////////////////////////////////////////////////////
