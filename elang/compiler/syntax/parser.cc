@@ -489,7 +489,7 @@ void Parser::ParseNamespace(Token* namespace_keyword,
 // TypeDecl ::= ClassDecl | InterfaceDecl | StructDecl | EnumDecl |
 //              FunctionDecl
 void Parser::ParseNamedNodes() {
-  auto is_namespace = container_->owner() != session()->global_namespace();
+  auto is_top_level = container_ == compilation_unit_->namespace_body();
   auto skipping = false;
   for (;;) {
     modifiers_->Reset();
@@ -513,7 +513,7 @@ void Parser::ParseNamedNodes() {
       case TokenType::EndOfSource:
         return;
       case TokenType::RightCurryBracket:
-        if (is_namespace)
+        if (!is_top_level)
           return;
         Advance();
         skipping = false;
@@ -535,10 +535,11 @@ void Parser::ParseNamedNodes() {
         }
         break;
     }
-    if (is_namespace)
-      Error(ErrorCode::SyntaxNamespaceInvalid, ConsumeToken());
-    else
+    if (is_top_level) {
       Error(ErrorCode::SyntaxCompilationUnitInvalid, ConsumeToken());
+      return;
+    }
+    Error(ErrorCode::SyntaxNamespaceInvalid, ConsumeToken());
   }
 }
 
