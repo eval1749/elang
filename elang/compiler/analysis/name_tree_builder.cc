@@ -47,8 +47,6 @@ sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
 }
 
 void NameTreeBuilder::ProcessNamespaceBody(ast::NamespaceBody* node) {
-  if (node->loaded_)
-    return;
   if (!node->parent()) {
     editor_->SetSemanticOf(node, factory()->global_namespace());
     return;
@@ -107,10 +105,6 @@ void NameTreeBuilder::VisitAlias(ast::Alias* node) {
 }
 
 void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
-  if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
-    if (ns->loaded_)
-      return;
-  }
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
   if (!present) {
@@ -144,10 +138,6 @@ void NameTreeBuilder::VisitConst(ast::Const* node) {
 }
 
 void NameTreeBuilder::VisitEnum(ast::Enum* node) {
-  if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
-    if (ns->loaded_)
-      return;
-  }
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
   if (present) {
