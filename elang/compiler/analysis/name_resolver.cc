@@ -126,7 +126,6 @@ void NameResolver::ReferenceResolver::VisitNameReference(
   }
 
   for (ast::Node* runner = container_; runner; runner = runner->parent()) {
-    DCHECK(!runner->is<ast::Namespace>());
     auto const container = SemanticOf(runner);
     if (!container) {
       DCHECK(runner->is<ast::Method>()) << runner;

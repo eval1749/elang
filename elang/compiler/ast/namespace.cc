@@ -53,23 +53,6 @@ bool Import::CanBeMemberOf(ContainerNode* container) const {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace
-//
-Namespace::Namespace(Zone* zone, Namespace* parent, Token* keyword, Token* name)
-    : NamespaceNode(zone, parent, keyword, name) {
-  DCHECK_EQ(keyword, TokenType::Namespace);
-}
-
-#if _DEBUG
-// Node
-bool Namespace::CanBeMemberOf(ContainerNode* container) const {
-  DCHECK(container);
-  return false;
-}
-#endif
-
-//////////////////////////////////////////////////////////////////////
-//
 // NamespaceBody
 //
 NamespaceBody::NamespaceBody(Zone* zone,

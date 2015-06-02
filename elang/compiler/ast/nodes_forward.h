@@ -26,8 +26,7 @@ namespace ast {
   V(Const)                           \
   V(Enum)                            \
   V(Field)                           \
-  V(Method)                          \
-  V(Namespace)
+  V(Method)
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
   V(ArrayAccess)                    \

@@ -473,11 +473,6 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
   ostream_ << operation->token();
 }
 
-void Formatter::VisitNamespace(ast::Namespace* node) {
-  DCHECK(node);
-  NOTREACHED();
-}
-
 void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
   if (!ns_body->parent()) {
     // We don't print "namespace" text for global namespace.

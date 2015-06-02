@@ -64,24 +64,6 @@ class Import final : public NamedNode {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Namespace
-//
-class Namespace final : public NamespaceNode {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Namespace, NamespaceNode);
-
- private:
-  Namespace(Zone* zone, Namespace* outer, Token* keyword, Token* name);
-
-#if _DEBUG
-  // Node
-  bool CanBeMemberOf(ContainerNode* container) const final;
-#endif
-
-  DISALLOW_COPY_AND_ASSIGN(Namespace);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // NamespaceBody
 //
 class NamespaceBody final : public BodyNode {

@@ -54,7 +54,6 @@ class Formatter final : public ast::Visitor {
   void VisitMemberAccess(ast::MemberAccess* node) final;
   void VisitMethod(ast::Method* node) final;
   void VisitNameReference(ast::NameReference* node) final;
-  void VisitNamespace(ast::Namespace* node) final;
   void VisitNamespaceBody(ast::NamespaceBody* node) final;
   void VisitParameter(ast::Parameter* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
@@ -177,14 +176,6 @@ void Formatter::VisitMethod(ast::Method* node) {
 
 void Formatter::VisitNameReference(ast::NameReference* node) {
   ostream_ << *node->name();
-}
-
-void Formatter::VisitNamespace(ast::Namespace* node) {
-  if (!node->parent()) {
-    ostream_ << "global_namespace";
-    return;
-  }
-  ostream_ << "namespace " << GetQualifiedName(node);
 }
 
 void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
