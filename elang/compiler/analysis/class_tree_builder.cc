@@ -89,12 +89,6 @@ ClassTreeBuilder::~ClassTreeBuilder() {
 
 void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
   auto const clazz = SemanticOf(node)->as<sm::Class>();
-  if (auto const ns = node->parent()->as<ast::NamespaceBody>()) {
-    if (ns->loaded_) {
-      DCHECK(IsFixed(clazz)) << clazz;
-      return;
-    }
-  }
   DCHECK(!IsFixed(clazz)) << clazz;
   auto const outer = node->parent()->as<ast::ContainerNode>();
   auto const class_data = ClassDataFor(clazz);
