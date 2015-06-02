@@ -479,7 +479,7 @@ void Formatter::VisitNamespace(ast::Namespace* node) {
 }
 
 void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
-  if (!ns_body->owner()->parent()) {
+  if (!ns_body->parent()) {
     // We don't print "namespace" text for global namespace.
     ns_body->AcceptForMembers(this);
     return;
