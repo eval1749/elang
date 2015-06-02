@@ -61,7 +61,9 @@ AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
 CompilationUnit* CompilationSession::NewCompilationUnit(
     SourceCode* source_code) {
   auto const namespace_body = ast_factory()->NewNamespaceBody(
-      nullptr, ast_factory()->global_namespace());
+      nullptr,
+      token_factory_->NewSystemKeyword(TokenType::Namespace, L"keyword"),
+      token_factory_->NewSystemName(L"toplevel"));
   auto unit = std::make_unique<CompilationUnit>(namespace_body, source_code);
   compilation_units_.push_back(std::move(unit));
   return compilation_units_.back().get();

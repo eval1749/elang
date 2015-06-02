@@ -92,7 +92,6 @@ class NamespaceBody final : public BodyNode {
 
   const ImportMap& imports() const { return import_map_; }
   NamespaceBody* outer() const;
-  Namespace* owner() const;
 
   void AddImport(Import* import);
 
@@ -103,7 +102,7 @@ class NamespaceBody final : public BodyNode {
   Import* FindImport(Token* name) const;
 
  private:
-  NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner);
+  NamespaceBody(Zone* zone, NamespaceBody* outer, Token* keyword, Token* name);
 
 #if _DEBUG
   // Node

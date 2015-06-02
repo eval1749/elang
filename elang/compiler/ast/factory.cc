@@ -186,8 +186,9 @@ Namespace* Factory::NewNamespace(Namespace* outer,
 }
 
 NamespaceBody* Factory::NewNamespaceBody(NamespaceBody* outer,
-                                         Namespace* owner) {
-  return new (zone()) NamespaceBody(zone(), outer, owner);
+                                         Token* keyword,
+                                         Token* name) {
+  return new (zone()) NamespaceBody(zone(), outer, keyword, name);
 }
 
 //////////////////////////////////////////////////////////////////////

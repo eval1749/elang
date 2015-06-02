@@ -78,7 +78,9 @@ class Factory final : public ZoneUser {
                     const std::vector<Token*>& type_parameters);
   MethodBody* NewMethodBody(Method* method);
   Namespace* NewNamespace(Namespace* outer, Token* keyword, Token* name);
-  NamespaceBody* NewNamespaceBody(NamespaceBody* outer, Namespace* owner);
+  NamespaceBody* NewNamespaceBody(NamespaceBody* outer,
+                                  Token* keyword,
+                                  Token* name);
 
   // Expression nodes
   ArrayAccess* NewArrayAccess(Token* bracket,

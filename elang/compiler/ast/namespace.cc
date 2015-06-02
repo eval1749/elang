@@ -72,16 +72,15 @@ bool Namespace::CanBeMemberOf(ContainerNode* container) const {
 //
 // NamespaceBody
 //
-NamespaceBody::NamespaceBody(Zone* zone, NamespaceBody* outer, Namespace* owner)
-    : BodyNode(zone, outer, owner), import_map_(zone) {
+NamespaceBody::NamespaceBody(Zone* zone,
+                             NamespaceBody* outer,
+                             Token* keyword,
+                             Token* name)
+    : BodyNode(zone, outer, keyword, name), import_map_(zone) {
 }
 
 NamespaceBody* NamespaceBody::outer() const {
   return parent()->as<ast::NamespaceBody>();
-}
-
-Namespace* NamespaceBody::owner() const {
-  return BodyNode::owner()->as<ast::Namespace>();
 }
 
 void NamespaceBody::AddImport(Import* import) {

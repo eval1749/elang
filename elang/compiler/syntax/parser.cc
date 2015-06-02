@@ -468,9 +468,8 @@ void Parser::ParseNamespace(Token* namespace_keyword,
   auto const ns_body = container_->as<ast::NamespaceBody>();
   DCHECK(ns_body);
   auto const name = names[index];
-  auto const new_namespace =
-      factory()->NewNamespace(ns_body->owner(), namespace_keyword, name);
-  auto const new_ns_body = factory()->NewNamespaceBody(ns_body, new_namespace);
+  auto const new_ns_body =
+      factory()->NewNamespaceBody(ns_body, namespace_keyword, name);
   ns_body->AddMember(new_ns_body);
   ContainerScope container_scope(this, new_ns_body);
   if (index + 1 < names.size())
