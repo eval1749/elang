@@ -188,7 +188,11 @@ void Formatter::VisitNamespace(ast::Namespace* node) {
 }
 
 void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
-  ostream_ << *node->owner();
+  if (!node->parent()) {
+    ostream_ << "global_namespace";
+    return;
+  }
+  ostream_ << "namespace " << GetQualifiedName(node);
 }
 
 void Formatter::VisitParameter(ast::Parameter* node) {
