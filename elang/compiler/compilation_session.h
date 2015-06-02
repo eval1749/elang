@@ -76,9 +76,7 @@ class CompilationSession final : public ZoneOwner, public ErrorSink {
 
   // AST nodes
   ast::Factory* ast_factory() const { return ast_factory_.get(); }
-  ast::Namespace* global_namespace() const;
   ast::NamespaceBody* global_namespace_body() const;
-  ast::Namespace* system_namespace() const;
   ast::NamespaceBody* system_namespace_body() const;
 
   // Semantic

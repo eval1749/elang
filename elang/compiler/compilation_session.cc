@@ -32,11 +32,9 @@ void PopulateSemantics(CompilationSession* session) {
   AnalysisEditor editor(session->analysis());
 
   auto const global_namespace = session->semantic_factory()->global_namespace();
-  editor.SetSemanticOf(session->global_namespace(), global_namespace);
   editor.SetSemanticOf(session->global_namespace_body(), global_namespace);
 
   auto const system_namespace = session->semantic_factory()->system_namespace();
-  editor.SetSemanticOf(session->system_namespace(), system_namespace);
   editor.SetSemanticOf(session->system_namespace_body(), system_namespace);
 }
 
@@ -62,16 +60,8 @@ AtomicStringFactory* CompilationSession::atomic_string_factory() const {
   return token_factory_->atomic_string_factory();
 }
 
-ast::Namespace* CompilationSession::global_namespace() const {
-  return ast_factory_->global_namespace();
-}
-
 ast::NamespaceBody* CompilationSession::global_namespace_body() const {
   return ast_factory_->global_namespace_body();
-}
-
-ast::Namespace* CompilationSession::system_namespace() const {
-  return ast_factory_->system_namespace();
 }
 
 ast::NamespaceBody* CompilationSession::system_namespace_body() const {
@@ -93,8 +83,8 @@ AtomicString* CompilationSession::NewAtomicString(base::StringPiece16 string) {
 
 CompilationUnit* CompilationSession::NewCompilationUnit(
     SourceCode* source_code) {
-  auto const namespace_body =
-      ast_factory()->NewNamespaceBody(nullptr, global_namespace());
+  auto const namespace_body = ast_factory()->NewNamespaceBody(
+      nullptr, ast_factory()->global_namespace());
   auto unit = std::make_unique<CompilationUnit>(namespace_body, source_code);
   compilation_units_.push_back(std::move(unit));
   return compilation_units_.back().get();
