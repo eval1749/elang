@@ -243,6 +243,19 @@ ExitNode* NodeFactory::NewExit(Control* control) {
   return node;
 }
 
+Data* NodeFactory::NewField(Type* field_type,
+                            Data* instance,
+                            Data* field_name) {
+  auto const instance_pointer_type = instance->output_type()->as<PointerType>();
+  DCHECK(instance_pointer_type) << *instance->output_type();
+  auto const instance_type = instance_pointer_type->pointee()->as<TupleType>();
+  DCHECK(instance_type) << instance->output_type();
+  auto const output_type = NewPointerType(field_type);
+  auto const node = new (zone()) FieldNode(output_type, instance, field_name);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 Data* NodeFactory::NewFloatAdd(Data* left, Data* right) {
   if (left->IsLiteral() && !right->IsLiteral())
     return NewFloatAdd(right, left);

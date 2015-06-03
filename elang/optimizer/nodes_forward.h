@@ -56,6 +56,7 @@ namespace optimizer {
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_2(V) \
   V(Element, "element", Data)                        \
+  V(Field, "field", Data)                            \
   V(If, "if", Control)                               \
   V(IntShl, "shl", Data)                             \
   V(IntShr, "shr", Data)                             \

@@ -70,6 +70,7 @@ class ELANG_OPTIMIZER_EXPORT NodeFactory final : public TypeFactoryUser,
 
   // Two inputs
   Data* NewElement(Data* array, Node* indexes);
+  Data* NewField(Type* field_type, Data* instance, Data* field_name);
   Data* NewFloatCmp(FloatCondition condition, Data* left, Data* right);
   Control* NewIf(Control* control, Data* value);
   Data* NewIntCmp(IntCondition condition, Data* left, Data* right);

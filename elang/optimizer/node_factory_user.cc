@@ -48,6 +48,10 @@ Data* NodeFactoryUser::NewElement(Data* array, Node* indexes) {
   return node_factory_->NewElement(array, indexes);
 }
 
+Data* NodeFactoryUser::NewField(Type* type, Data* instance, Data* field_name) {
+  return node_factory_->NewField(type, instance, field_name);
+}
+
 Data* NodeFactoryUser::NewFloatCmp(FloatCondition condition,
                                    Data* left,
                                    Data* right) {

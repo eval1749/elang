@@ -94,6 +94,15 @@ TEST_F(NodesTest, ExitNode) {
   EXPECT_EQ("exit(%c2)", ToString(node));
 }
 
+TEST_F(NodesTest, FieldNode) {
+  auto const instance_pointer =
+      NewReference(NewPointerType(NewTupleType({intptr_type(), int32_type()})),
+                   NewAtomicString(L"this"));
+  auto const node = NewField(int32_type(), instance_pointer, NewString(L"x_"));
+  EXPECT_EQ("int32* %r1 = field((intptr, int32)* this, \"x_\")",
+            ToString(node));
+}
+
 TEST_F(NodesTest, Float32Node) {
   EXPECT_EQ(NewFloat32(0), NewFloat32(0));
   EXPECT_NE(NewFloat32(1), NewFloat32(0));

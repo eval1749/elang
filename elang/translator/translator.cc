@@ -510,6 +510,9 @@ void Translator::VisitElement(ir::ElementNode* node) {
   Emit(NewAddInstruction(MapOutput(node), element_start, offset64));
 }
 
+void Translator::VisitField(ir::FieldNode* node) {
+}
+
 void Translator::VisitIf(ir::IfNode* node) {
   auto const true_node = SelectNode(node, ir::Opcode::IfTrue);
   auto const false_node = SelectNode(node, ir::Opcode::IfFalse);
