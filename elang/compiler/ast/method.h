@@ -19,7 +19,7 @@ namespace ast {
 //
 // Method contains type parameters in named map.
 //
-class Method final : public NamespaceNode, public WithModifiers {
+class Method final : public ContainerNode, public WithModifiers {
   DECLARE_CONCRETE_AST_NODE_CLASS(Method, Node);
 
  public:

@@ -20,7 +20,7 @@ Method::Method(Zone* zone,
                Type* return_type,
                Token* name,
                const std::vector<Token*>& type_parameters)
-    : NamespaceNode(zone, outer, name, name),
+    : ContainerNode(zone, outer, name, name),
       WithModifiers(modifiers),
       body_(nullptr),
       parameters_(zone),
