@@ -17,11 +17,11 @@ namespace ast {
 // Class
 //
 Class::Class(Zone* zone,
-             NamespaceNode* outer,
+             ContainerNode* outer,
              Modifiers modifiers,
              Token* keyword,
              Token* name)
-    : NamespaceNode(zone, outer, keyword, name), WithModifiers(modifiers) {
+    : ContainerNode(zone, outer, keyword, name), WithModifiers(modifiers) {
   DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
          keyword == TokenType::Struct);
   DCHECK_EQ(modifiers, Modifiers::Class() & modifiers);

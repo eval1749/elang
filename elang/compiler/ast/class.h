@@ -18,8 +18,8 @@ namespace ast {
 //
 // Class
 //
-class Class final : public NamespaceNode, public WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Class, NamespaceNode);
+class Class final : public ContainerNode, public WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Class, ContainerNode);
 
  public:
   bool is_class() const;
@@ -28,7 +28,7 @@ class Class final : public NamespaceNode, public WithModifiers {
 
  private:
   Class(Zone* zone,
-        NamespaceNode* outer,
+        ContainerNode* outer,
         Modifiers modifiers,
         Token* keyword,
         Token* name);
