@@ -149,7 +149,11 @@ void Formatter::VisitInvalidValue(InvalidValue* node) {
 }
 
 void Formatter::VisitField(Field* node) {
-  ostream_ << AsPath{node};
+  if (node->has_type())
+    ostream_ << node->type();
+  else
+    ostream_ << '?';
+  ostream_ << ' ' << AsPath{node};
 }
 
 void Formatter::VisitLiteral(Literal* literal) {

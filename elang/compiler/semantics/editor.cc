@@ -60,6 +60,12 @@ void Editor::FixEnumMember(EnumMember* member, Value* value) {
   member->value_ = value;
 }
 
+void Editor::FixField(Field* field, Type* type) {
+  DCHECK(type);
+  DCHECK(!field->type_);
+  field->type_ = type;
+}
+
 }  // namespace sm
 }  // namespace compiler
 }  // namespace elang

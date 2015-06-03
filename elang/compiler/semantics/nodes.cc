@@ -165,11 +165,16 @@ Value* EnumMember::value() const {
 
 // Field
 Field::Field(Class* owner, Token* name)
-    : NamedMember(owner, name), value_(nullptr) {
+    : NamedMember(owner, name), type_(nullptr), value_(nullptr) {
 }
 
 Class* Field::owner() const {
   return outer()->as<Class>();
+}
+
+Type* Field::type() const {
+  DCHECK(type_);
+  return type_;
 }
 
 // InvalidValue

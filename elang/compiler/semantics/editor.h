@@ -34,6 +34,7 @@ class Editor final : public CompilationSessionUser {
   void FixClassBase(Class* clazz, const std::vector<Class*>& base_classes);
   void FixEnumBase(Enum* enum_type, Type* enum_base);
   void FixEnumMember(EnumMember* member, Value* value);
+  void FixField(Field* field, Type* type);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Editor);

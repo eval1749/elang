@@ -147,7 +147,7 @@ TEST_F(NameTreeBuilderTest, EnumMemberErrorDuplicate) {
 TEST_F(NameTreeBuilderTest, FieldBasic) {
   Prepare("class A { int B = 2; }");
   EXPECT_EQ("", BuildNameTree());
-  EXPECT_EQ("A.B", ToString(SemanticOf("A.B")));
+  EXPECT_EQ("? A.B", ToString(SemanticOf("A.B")));
 }
 
 TEST_F(NameTreeBuilderTest, FieldErrorConflict) {

@@ -86,7 +86,11 @@ void Collector::VisitEnum(ast::Enum* ast_enum) {
 }
 
 void Collector::VisitField(ast::Field* node) {
-  DCHECK(node);
+  auto const type =
+      analyzer_->ResolveTypeReference(node->type(),
+                                      node->parent()->as<ast::Class>());
+  auto const field = analyzer_->SemanticOf(node)->as<sm::Field>();
+  analyzer_->editor()->FixField(field, type);
 }
 
 //////////////////////////////////////////////////////////////////////

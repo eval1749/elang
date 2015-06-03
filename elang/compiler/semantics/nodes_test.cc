@@ -177,7 +177,7 @@ TEST_F(SemanticTest, EnumMemberIntermediate) {
 TEST_F(SemanticTest, Field) {
   auto const class_type = NewClass("Foo");
   auto const field = factory()->NewField(class_type, NewToken("field_"));
-  EXPECT_EQ("Foo.field_", ToString(field));
+  EXPECT_EQ("? Foo.field_", ToString(field));
 }
 
 TEST_F(SemanticTest, Namespace) {

@@ -284,14 +284,17 @@ class Field final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Field, Semantic);
 
  public:
+  bool has_type() const { return type_ != nullptr; }
   bool has_value() const { return value_ != nullptr; }
   Class* owner() const;
+  Type* type() const;
   Value* value() const;
 
  private:
   Field(Class* owner, Token* name);
 
   Value* value_;
+  Type* type_;
 
   DISALLOW_COPY_AND_ASSIGN(Field);
 };
