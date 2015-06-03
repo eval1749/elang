@@ -87,6 +87,7 @@ class TypeResolver final : public Analyzer,
   void VisitConditional(ast::Conditional* node) final;
   void VisitIncrementExpression(ast::IncrementExpression* node) final;
   void VisitLiteral(ast::Literal* node) final;
+  void VisitNameReference(ast::NameReference* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitUnaryOperation(ast::UnaryOperation* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;

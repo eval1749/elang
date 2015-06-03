@@ -33,7 +33,6 @@
 
 namespace elang {
 namespace compiler {
-namespace {
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -162,6 +161,8 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
   MethodAnalyzerTest() = default;
   ~MethodAnalyzerTest() override = default;
 
+  std::string DumpSemanticTree(ast::Node* node);
+
   // Collect all semantics
   std::string QuerySemantics(TokenType token_type);
 
@@ -177,6 +178,51 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
  private:
   DISALLOW_COPY_AND_ASSIGN(MethodAnalyzerTest);
 };
+
+class PostOrderTraverse final : public ast::Visitor {
+ public:
+  explicit PostOrderTraverse(ast::Node* node) {
+    Traverse(node);
+  }
+
+  std::vector<ast::Node*>::iterator begin() { return nodes_.begin(); }
+  std::vector<ast::Node*>::iterator end() { return nodes_.end(); }
+
+ private:
+  // ast::Visitor
+  void DoDefaultVisit(ast::Node* node) {
+    ast::Visitor::DoDefaultVisit(node);
+    nodes_.push_back(node);
+  }
+
+  void VisitBlockStatement(ast::BlockStatement* node) {
+    for (auto const statement : node->statements())
+      Traverse(statement);
+  }
+
+  void VisitReturnStatement(ast::ReturnStatement* node) {
+    auto const expression = node->value();
+    if (!expression)
+      return;
+    Traverse(expression);
+  }
+
+  std::vector<ast::Node*> nodes_;
+
+  DISALLOW_COPY_AND_ASSIGN(PostOrderTraverse);
+};
+
+std::string MethodAnalyzerTest::DumpSemanticTree(ast::Node* start_node) {
+  auto const analysis = session()->analysis();
+  std::stringstream ostream;
+  for (auto node : PostOrderTraverse(start_node)) {
+    auto const semantic = analysis->SemanticOf(node);
+    if (!semantic)
+      continue;
+    ostream << node << " : " << ToString(semantic) << std::endl;
+  }
+  return ostream.str();
+}
 
 std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
   typedef std::pair<ast::Node*, sm::Semantic*> KeyValue;
@@ -416,6 +462,19 @@ TEST_F(MethodAnalyzerTest, DoErrorCondition) {
   EXPECT_EQ("TypeResolver.Expression.NotBool(54) Foo\n", Analyze());
 }
 
+// field
+TEST_F(MethodAnalyzerTest, Field) {
+  Prepare(
+      "class Point {"
+      "  int x_;"
+      "  int y_;"
+      "  int X() { return x_; }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  auto const method = FindMember("Point.X")->as<ast::Method>();
+  EXPECT_EQ("x_ : System.Int32 Point.x_\n", DumpSemanticTree(method->body()));
+}
+
 // 'for' statement
 TEST_F(MethodAnalyzerTest, For) {
   Prepare(
@@ -611,6 +670,5 @@ TEST_F(MethodAnalyzerTest, WhileErrorCondition) {
   EXPECT_EQ("TypeResolver.Expression.NotBool(39) Foo\n", Analyze());
 }
 
-}  // namespace
 }  // namespace compiler
 }  // namespace elang

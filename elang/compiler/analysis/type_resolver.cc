@@ -548,6 +548,15 @@ void TypeResolver::VisitLiteral(ast::Literal* ast_literal) {
   ProduceResult(result_literal, ast_literal);
 }
 
+void TypeResolver::VisitNameReference(ast::NameReference* node) {
+  auto const semantic = ResolveReference(node);
+  if (!semantic)
+    return;
+  SetSemanticOf(node, semantic);
+  if (auto const field = semantic->as<sm::Field>())
+    return ProduceUnifiedResult(NewLiteral(field->type()), node);
+}
+
 void TypeResolver::VisitParameterReference(ast::ParameterReference* reference) {
   auto const value = variable_tracker_->RecordGet(reference->parameter());
   ProduceUnifiedResult(value, reference);
