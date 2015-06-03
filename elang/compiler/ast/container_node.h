@@ -38,20 +38,6 @@ class ContainerNode : public NamedNode {
   DISALLOW_COPY_AND_ASSIGN(ContainerNode);
 };
 
-//////////////////////////////////////////////////////////////////////
-//
-// NamespaceNode
-//
-class NamespaceNode : public ContainerNode {
-  DECLARE_ABSTRACT_AST_NODE_CLASS(NamespaceNode, ContainerNode);
-
- protected:
-  NamespaceNode(Zone* zone, ContainerNode* outer, Token* keyword, Token* name);
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NamespaceNode);
-};
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang

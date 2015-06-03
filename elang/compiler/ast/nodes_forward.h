@@ -93,7 +93,6 @@ namespace ast {
   V(Expression)                       \
   V(Node)                             \
   V(NamedNode)                        \
-  V(NamespaceNode)                    \
   V(Statement)                        \
   V(TerminatorStatement)              \
   V(Type)

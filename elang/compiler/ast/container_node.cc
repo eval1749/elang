@@ -31,14 +31,6 @@ void ContainerNode::AddMember(Node* member) {
   members_.push_back(member);
 }
 
-// NamespaceNode
-NamespaceNode::NamespaceNode(Zone* zone,
-                             ContainerNode* outer,
-                             Token* keyword,
-                             Token* name)
-    : ContainerNode(zone, outer, keyword, name) {
-}
-
 }  // namespace ast
 }  // namespace compiler
 }  // namespace elang
