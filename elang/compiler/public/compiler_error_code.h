@@ -87,6 +87,7 @@ namespace compiler {
   E(NameTree, Const, Conflict)                        \
   E(NameTree, Enum, Duplicate)                        \
   E(NameTree, Enum, Conflict)                         \
+  E(NameTree, EnumMember, Duplicate)                  \
   E(NameTree, Field, Conflict)                        \
   E(NameTree, Field, Duplicate)                       \
   E(NameTree, Method, Conflict)                       \

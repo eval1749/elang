@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <unordered_map>
+
 #include "elang/compiler/analysis/name_tree_builder.h"
 
 #include "base/logging.h"
@@ -146,9 +148,18 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
   }
 
   auto const enum_type = factory()->NewEnum(outer, node->name());
+  std::unordered_map<AtomicString*, sm::EnumMember*> enum_members;
   for (auto const member : node->members()) {
-    editor_->SetSemanticOf(member,
-                           factory()->NewEnumMember(enum_type, member->name()));
+    auto const name = member->name();
+    auto const key = name->atomic_string();
+    auto const it = enum_members.find(key);
+    if (it != enum_members.end()) {
+      Error(ErrorCode::NameTreeEnumMemberDuplicate, name, it->second->name());
+      continue;
+    }
+    auto const enum_member = factory()->NewEnumMember(enum_type, name);
+    editor_->SetSemanticOf(member, enum_member);
+    enum_members.insert(std::make_pair(key, enum_member));
   }
   editor_->SetSemanticOf(node, enum_type);
 }

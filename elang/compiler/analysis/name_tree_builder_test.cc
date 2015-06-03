@@ -139,6 +139,11 @@ TEST_F(NameTreeBuilderTest, EnumErrorDuplicate) {
   EXPECT_EQ("NameTree.Enum.Duplicate(5) Color Color\n", BuildNameTree());
 }
 
+TEST_F(NameTreeBuilderTest, EnumMemberErrorDuplicate) {
+  Prepare("enum Color { Red, Red }");
+  EXPECT_EQ("NameTree.EnumMember.Duplicate(18) Red Red\n", BuildNameTree());
+}
+
 TEST_F(NameTreeBuilderTest, FieldBasic) {
   Prepare("class A { int B = 2; }");
   EXPECT_EQ("", BuildNameTree());
