@@ -22,7 +22,6 @@ namespace ast {
 #define FOR_EACH_DECLARATION_NODE(V) \
   V(Alias)                           \
   V(Import)                          \
-  V(Class)                           \
   V(Const)                           \
   V(Enum)                            \
   V(Field)                           \

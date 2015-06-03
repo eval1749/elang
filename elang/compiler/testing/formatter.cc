@@ -176,11 +176,6 @@ void Formatter::VisitConditional(ast::Conditional* cond) {
   Traverse(cond->false_expression());
 }
 
-void Formatter::VisitClass(ast::Class* clazz) {
-  DCHECK(clazz);
-  NOTREACHED();
-}
-
 void Formatter::VisitClassBody(ast::ClassBody* node) {
   Indent();
   ostream_ << node->modifiers();

@@ -16,28 +16,6 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Class
-//
-class Class final : public ContainerNode, public WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Class, ContainerNode);
-
- public:
-  bool is_class() const;
-  bool is_interface() const;
-  bool is_struct() const;
-
- private:
-  Class(Zone* zone,
-        ContainerNode* outer,
-        Modifiers modifiers,
-        Token* keyword,
-        Token* name);
-
-  DISALLOW_COPY_AND_ASSIGN(Class);
-};
-
-//////////////////////////////////////////////////////////////////////
-//
 // ClassBody
 //
 class ClassBody final : public ContainerNode, public WithModifiers {

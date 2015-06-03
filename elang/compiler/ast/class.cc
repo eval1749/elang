@@ -14,33 +14,6 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Class
-//
-Class::Class(Zone* zone,
-             ContainerNode* outer,
-             Modifiers modifiers,
-             Token* keyword,
-             Token* name)
-    : ContainerNode(zone, outer, keyword, name), WithModifiers(modifiers) {
-  DCHECK(keyword == TokenType::Class || keyword == TokenType::Interface ||
-         keyword == TokenType::Struct);
-  DCHECK_EQ(modifiers, Modifiers::Class() & modifiers);
-}
-
-bool Class::is_class() const {
-  return keyword() == TokenType::Class;
-}
-
-bool Class::is_interface() const {
-  return keyword() == TokenType::Interface;
-}
-
-bool Class::is_struct() const {
-  return keyword() == TokenType::Struct;
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // ClassBody
 //
 ClassBody::ClassBody(Zone* zone,
