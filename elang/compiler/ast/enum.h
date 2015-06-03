@@ -20,8 +20,8 @@ class Factory;
 //
 // Enum
 //
-class Enum final : public NamespaceNode, WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(Enum, NamespaceNode);
+class Enum final : public ContainerNode, WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Enum, ContainerNode);
 
  public:
   Type* enum_base() const { return enum_base_; }
