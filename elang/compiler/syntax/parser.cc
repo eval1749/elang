@@ -200,14 +200,14 @@ Token* Parser::NewUniqueNameToken(const base::char16* format) {
 // ClassDecl ::= Attribute* ClassModifier* 'partial'? 'class'
 //               Name TypeParamereList? ClassBase?
 //               TypeParameterConstraintsClasses?
-//               ClassBody ';'?
+//               Class ';'?
 // ClassModifier ::= ClassModifierAccessibility |
 //                   ClassModifierKind |
 //                   'new'
 // ClassModifierAccessibility := 'private' | 'protected' | 'public'
 // ClassModifierKind := 'abstract' | 'static' | 'final'
 //
-// ClassBody ::= '{' ClassMemberDecl* '}'
+// Class ::= '{' ClassMemberDecl* '}'
 //
 void Parser::ParseClass() {
   ValidateClassModifiers();
@@ -231,16 +231,16 @@ void Parser::ParseClass() {
     } while (AdvanceIf(TokenType::Comma));
   }
 
-  auto const class_body = factory()->NewClassBody(
+  auto const clazz = factory()->NewClass(
       container_, class_modifiers, class_keyword, class_name, base_class_names);
-  container_->AddMember(class_body);
+  container_->AddMember(clazz);
 
-  ContainerScope container_scope(this, class_body);
+  ContainerScope container_scope(this, clazz);
 
   if (class_modifiers.HasExtern())
     return ConsumeSemiColon(ErrorCode::SyntaxClassSemiColon);
 
-  // ClassBody ::= "{" ClassMemberDeclaration* "}"
+  // Class ::= "{" ClassMemberDeclaration* "}"
   // ClassMemberDeclaration ::=
   //    ConstantDecl |
   //    FieldDecl |
@@ -339,7 +339,7 @@ void Parser::ParseCompilationUnit() {
 void Parser::ParseConst(Token* keyword, ast::Type* type, Token* name) {
   DCHECK_EQ(keyword, TokenType::Const);
   DCHECK(name->is_name());
-  auto const class_body = container_->as<ast::ClassBody>();
+  auto const clazz = container_->as<ast::Class>();
   auto const modifiers = modifiers_->Get();
   ValidateFieldModifiers();
   if (AdvanceIf(TokenType::Assign)) {
@@ -348,9 +348,9 @@ void Parser::ParseConst(Token* keyword, ast::Type* type, Token* name) {
     Error(ErrorCode::SyntaxConstAssign);
     ProduceInvalidExpression(PeekToken());
   }
-  auto const node = factory()->NewConst(class_body, modifiers, keyword, type,
-                                        name, ConsumeExpression());
-  class_body->AddMember(node);
+  auto const node = factory()->NewConst(clazz, modifiers, keyword, type, name,
+                                        ConsumeExpression());
+  clazz->AddMember(node);
   ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 
@@ -418,7 +418,7 @@ void Parser::ParseEnum() {
 void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
   DCHECK_EQ(keyword, TokenType::Var);
   DCHECK(name->is_name());
-  auto const class_body = container_->as<ast::ClassBody>();
+  auto const clazz = container_->as<ast::Class>();
   auto const modifiers = modifiers_->Get();
   ValidateFieldModifiers();
   if (AdvanceIf(TokenType::Assign)) {
@@ -428,9 +428,9 @@ void Parser::ParseField(Token* keyword, ast::Type* type, Token* name) {
       Error(ErrorCode::SyntaxVarAssign);
     ProduceExpression(factory()->NewNoExpression(PeekToken()));
   }
-  auto const node = factory()->NewField(class_body, modifiers, keyword, type,
-                                        name, ConsumeExpression());
-  class_body->AddMember(node);
+  auto const node = factory()->NewField(clazz, modifiers, keyword, type, name,
+                                        ConsumeExpression());
+  clazz->AddMember(node);
   ConsumeSemiColon(ErrorCode::SyntaxClassMemberSemiColon);
 }
 

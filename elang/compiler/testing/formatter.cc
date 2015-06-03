@@ -176,7 +176,7 @@ void Formatter::VisitConditional(ast::Conditional* cond) {
   Traverse(cond->false_expression());
 }
 
-void Formatter::VisitClassBody(ast::ClassBody* node) {
+void Formatter::VisitClass(ast::Class* node) {
   Indent();
   ostream_ << node->modifiers();
   if (node->modifiers().value())

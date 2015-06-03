@@ -43,7 +43,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
  private:
   class ClassData;
 
-  void AnalyzeClassBody(ast::ClassBody* node);
+  void AnalyzeClass(ast::Class* node);
   ClassData* ClassDataFor(sm::Class* clazz);
   sm::Class* DefaultBaseClassFor(sm::Class* clazz);
   void FindInClass(Token* name,
@@ -62,7 +62,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
                                      ast::NameReference* node,
                                      ast::Node* context_node);
   sm::Semantic* SemanticOf(ast::Node* node) const;
-  sm::Class* ValidateBaseClass(ast::ClassBody* class_body,
+  sm::Class* ValidateBaseClass(ast::Class* ast_class,
                                sm::Class* clazz,
                                int position,
                                ast::Node* base_class_name);
@@ -70,7 +70,7 @@ class ClassTreeBuilder final : public CompilationSessionUser,
   // ast::Visitor
   void VisitAlias(ast::Alias* node) final;
   void VisitImport(ast::Import* node) final;
-  void VisitClassBody(ast::ClassBody* node) final;
+  void VisitClass(ast::Class* node) final;
 
   std::unordered_map<sm::Class*, ClassData*> class_data_map_;
   SimpleDirectedGraph<sm::Class*> dependency_graph_;

@@ -36,7 +36,7 @@ sm::Factory* NameTreeBuilder::factory() const {
   return session()->semantic_factory();
 }
 
-sm::Class* NameTreeBuilder::NewClass(ast::ClassBody* node) {
+sm::Class* NameTreeBuilder::NewClass(ast::Class* node) {
   auto const outer = SemanticOf(node->parent());
   if (node->is_class())
     return factory()->NewClass(outer, node->modifiers(), node->name());
@@ -105,19 +105,19 @@ void NameTreeBuilder::VisitAlias(ast::Alias* node) {
   aliases_.push_back(node);
 }
 
-void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
+void NameTreeBuilder::VisitClass(ast::Class* node) {
   auto const outer = SemanticOf(node->parent());
   auto const present = outer->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(node, NewClass(node));
-    ast::Visitor::VisitClassBody(node);
+    ast::Visitor::VisitClass(node);
     return;
   }
   if (auto const present_class = present->as<sm::Class>()) {
     if (!present_class->has_base() && node->IsPartial() &&
         present_class->IsPartial()) {
       editor_->SetSemanticOf(node, present_class);
-      return ast::Visitor::VisitClassBody(node);
+      return ast::Visitor::VisitClass(node);
     }
     return Error(ErrorCode::NameTreeClassDuplicate, node, present->name());
   }
@@ -126,7 +126,7 @@ void NameTreeBuilder::VisitClassBody(ast::ClassBody* node) {
 
 void NameTreeBuilder::VisitConst(ast::Const* node) {
   auto const owner =
-      SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
+      SemanticOf(node->parent()->as<ast::Class>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(node, factory()->NewConst(owner, node->name()));
@@ -166,7 +166,7 @@ void NameTreeBuilder::VisitEnum(ast::Enum* node) {
 
 void NameTreeBuilder::VisitField(ast::Field* node) {
   auto const owner =
-      SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
+      SemanticOf(node->parent()->as<ast::Class>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
     editor_->SetSemanticOf(node, factory()->NewField(owner, node->name()));
@@ -179,7 +179,7 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
 
 void NameTreeBuilder::VisitMethod(ast::Method* node) {
   auto const owner =
-      SemanticOf(node->parent()->as<ast::ClassBody>())->as<sm::Class>();
+      SemanticOf(node->parent()->as<ast::Class>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
     factory()->NewMethodGroup(owner, node->name());

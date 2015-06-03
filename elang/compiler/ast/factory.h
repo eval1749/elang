@@ -36,12 +36,12 @@ class Factory final : public ZoneUser {
                   Token* keyword,
                   Token* alias_name,
                   Expression* reference);
-  ClassBody* NewClassBody(ContainerNode* outer,
-                          Modifiers modifiers,
-                          Token* keyword,
-                          Token* name,
-                          const std::vector<Type*>& base_class_names);
-  Const* NewConst(ClassBody* class_body,
+  Class* NewClass(ContainerNode* outer,
+                  Modifiers modifiers,
+                  Token* keyword,
+                  Token* name,
+                  const std::vector<Type*>& base_class_names);
+  Const* NewConst(Class* class_body,
                   Modifiers modifiers,
                   Token* keyword,
                   Type* type,
@@ -56,7 +56,7 @@ class Factory final : public ZoneUser {
                             Token* name,
                             Expression* explicit_expression,
                             Expression* implicit_expression);
-  Field* NewField(ClassBody* class_body,
+  Field* NewField(Class* class_body,
                   Modifiers modifiers,
                   Token* keyword,
                   Type* type,
@@ -65,7 +65,7 @@ class Factory final : public ZoneUser {
   Import* NewImport(NamespaceBody* namespace_body,
                     Token* keyword,
                     Expression* reference);
-  Method* NewMethod(ClassBody* outer,
+  Method* NewMethod(Class* outer,
                     Modifiers modifies,
                     Type* type,
                     Token* name,

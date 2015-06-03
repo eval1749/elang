@@ -16,10 +16,10 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ClassBody
+// Class
 //
-class ClassBody final : public ContainerNode, public WithModifiers {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ClassBody, ContainerNode);
+class Class final : public ContainerNode, public WithModifiers {
+  DECLARE_CONCRETE_AST_NODE_CLASS(Class, ContainerNode);
 
  public:
   const ZoneVector<Type*>& base_class_names() const {
@@ -31,12 +31,12 @@ class ClassBody final : public ContainerNode, public WithModifiers {
   bool is_struct() const;
 
  private:
-  ClassBody(Zone* zone,
-            ContainerNode* outer,
-            Modifiers modifiers,
-            Token* keyword,
-            Token* name,
-            const std::vector<Type*>& base_class_names);
+  Class(Zone* zone,
+        ContainerNode* outer,
+        Modifiers modifiers,
+        Token* keyword,
+        Token* name,
+        const std::vector<Type*>& base_class_names);
 
 #if _DEBUG
   // Node
@@ -45,7 +45,7 @@ class ClassBody final : public ContainerNode, public WithModifiers {
 
   const ZoneVector<Type*> base_class_names_;
 
-  DISALLOW_COPY_AND_ASSIGN(ClassBody);
+  DISALLOW_COPY_AND_ASSIGN(Class);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ class Const final : public NamedNode, public WithModifiers {
   Type* type() const { return type_; }
 
  private:
-  Const(ClassBody* outer,
+  Const(Class* outer,
         Modifiers modifiers,
         Token* keyword,
         Type* Type,
@@ -90,7 +90,7 @@ class Field final : public NamedNode, public WithModifiers {
   Type* type() const { return type_; }
 
  private:
-  Field(ClassBody* outer,
+  Field(Class* outer,
         Modifiers modifiers,
         Token* keyword,
         Type* Type,

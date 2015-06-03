@@ -14,35 +14,35 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ClassBody
+// Class
 //
-ClassBody::ClassBody(Zone* zone,
-                     ContainerNode* outer,
-                     Modifiers modifiers,
-                     Token* keyword,
-                     Token* name,
-                     const std::vector<Type*>& base_class_names)
+Class::Class(Zone* zone,
+             ContainerNode* outer,
+             Modifiers modifiers,
+             Token* keyword,
+             Token* name,
+             const std::vector<Type*>& base_class_names)
     : ContainerNode(zone, outer, keyword, name),
       WithModifiers(modifiers),
       base_class_names_(zone, base_class_names) {
 }
 
-bool ClassBody::is_class() const {
+bool Class::is_class() const {
   return keyword() == TokenType::Class;
 }
 
-bool ClassBody::is_interface() const {
+bool Class::is_interface() const {
   return keyword() == TokenType::Interface;
 }
 
-bool ClassBody::is_struct() const {
+bool Class::is_struct() const {
   return keyword() == TokenType::Struct;
 }
 
 #if _DEBUG
 // Node
-bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
+bool Class::CanBeMemberOf(ContainerNode* container) const {
+  return container->is<ast::Class>() || container->is<ast::NamespaceBody>();
 }
 #endif
 
@@ -50,7 +50,7 @@ bool ClassBody::CanBeMemberOf(ContainerNode* container) const {
 //
 // Const
 //
-Const::Const(ClassBody* outer,
+Const::Const(Class* outer,
              Modifiers modifiers,
              Token* keyword,
              Type* type,
@@ -67,7 +67,7 @@ Const::Const(ClassBody* outer,
 #if _DEBUG
 // Node
 bool Const::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::ClassBody>();
+  return container->is<ast::Class>();
 }
 #endif
 
@@ -75,7 +75,7 @@ bool Const::CanBeMemberOf(ContainerNode* container) const {
 //
 // Field
 //
-Field::Field(ClassBody* outer,
+Field::Field(Class* outer,
              Modifiers modifiers,
              Token* keyword,
              Type* type,
@@ -92,7 +92,7 @@ Field::Field(ClassBody* outer,
 #if _DEBUG
 // Node
 bool Field::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::ClassBody>();
+  return container->is<ast::Class>();
 }
 #endif
 

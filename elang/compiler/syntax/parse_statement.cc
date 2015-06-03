@@ -491,9 +491,9 @@ void Parser::ParseMethod(Modifiers method_modifiers,
                          const std::vector<Token*> type_parameters) {
   ValidateMethodModifiers();
 
-  auto const class_body = container_->as<ast::ClassBody>();
-  auto const method = factory()->NewMethod(
-      class_body, method_modifiers, method_type, method_name, type_parameters);
+  auto const clazz = container_->as<ast::Class>();
+  auto const method = factory()->NewMethod(clazz, method_modifiers, method_type,
+                                           method_name, type_parameters);
   container_->AddMember(method);
 
   ContainerScope container_scope(this, method);

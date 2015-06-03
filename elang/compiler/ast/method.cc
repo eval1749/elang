@@ -15,7 +15,7 @@ namespace ast {
 
 // Method
 Method::Method(Zone* zone,
-               ClassBody* outer,
+               Class* outer,
                Modifiers modifiers,
                Type* return_type,
                Token* name,
@@ -30,14 +30,14 @@ Method::Method(Zone* zone,
   DCHECK_EQ(modifiers, Modifiers::Method() & modifiers);
 }
 
-ast::ClassBody* Method::owner() const {
-  return parent()->as<ast::ClassBody>();
+ast::Class* Method::owner() const {
+  return parent()->as<ast::Class>();
 }
 
 #if _DEBUG
 // Node
 bool Method::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::ClassBody>();
+  return container->is<ast::Class>();
 }
 #endif
 

@@ -127,9 +127,9 @@ void Resolver::Run() {
 
 // ast::Visitor
 void Resolver::VisitMethod(ast::Method* ast_method) {
-  auto const class_body = ast_method->parent()->as<ast::ClassBody>();
-  DCHECK(class_body) << ast_method;
-  auto const clazz = SemanticOf(class_body);
+  auto const ast_class = ast_method->parent()->as<ast::Class>();
+  DCHECK(ast_class) << ast_method;
+  auto const clazz = SemanticOf(ast_class);
   auto const method_group =
       clazz->FindMember(ast_method->name())->as<sm::MethodGroup>();
   DCHECK(method_group) << ast_method << " "

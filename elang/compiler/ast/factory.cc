@@ -66,19 +66,19 @@ Alias* Factory::NewAlias(NamespaceBody* namespace_body,
   return node;
 }
 
-ClassBody* Factory::NewClassBody(ContainerNode* outer,
-                                 Modifiers modifiers,
-                                 Token* keyword,
-                                 Token* name,
-                                 const std::vector<Type*>& base_class_names) {
+Class* Factory::NewClass(ContainerNode* outer,
+                         Modifiers modifiers,
+                         Token* keyword,
+                         Token* name,
+                         const std::vector<Type*>& base_class_names) {
   auto const node = new (zone())
-      ClassBody(zone(), outer, modifiers, keyword, name, base_class_names);
+      Class(zone(), outer, modifiers, keyword, name, base_class_names);
   for (auto const base_class_name : base_class_names)
     SetParent(base_class_name, node);
   return node;
 }
 
-Const* Factory::NewConst(ClassBody* outer,
+Const* Factory::NewConst(Class* outer,
                          Modifiers modifiers,
                          Token* keyword,
                          Type* type,
@@ -121,7 +121,7 @@ EnumMember* Factory::NewEnumMember(Enum* owner,
   return node;
 }
 
-Field* Factory::NewField(ClassBody* outer,
+Field* Factory::NewField(Class* outer,
                          Modifiers modifiers,
                          Token* keyword,
                          Type* type,
@@ -143,7 +143,7 @@ Import* Factory::NewImport(NamespaceBody* namespace_body,
   return node;
 }
 
-Method* Factory::NewMethod(ClassBody* outer,
+Method* Factory::NewMethod(Class* outer,
                            Modifiers modifies,
                            Type* return_type,
                            Token* name,

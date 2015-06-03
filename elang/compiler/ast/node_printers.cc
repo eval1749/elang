@@ -45,7 +45,7 @@ class Formatter final : public ast::Visitor {
   void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitArrayType(ast::ArrayType* node) final;
   void VisitCall(ast::Call* node) final;
-  void VisitClassBody(ast::ClassBody* node) final;
+  void VisitClass(ast::Class* node) final;
   void VisitEnum(ast::Enum* node) final;
   void VisitEnumMember(ast::EnumMember* node) final;
   void VisitLiteral(ast::Literal* node) final;
@@ -126,7 +126,7 @@ void Formatter::VisitCall(ast::Call* node) {
   ostream_ << ")";
 }
 
-void Formatter::VisitClassBody(ast::ClassBody* node) {
+void Formatter::VisitClass(ast::Class* node) {
   ostream_ << "class " << GetQualifiedName(node) << " {...}";
 }
 

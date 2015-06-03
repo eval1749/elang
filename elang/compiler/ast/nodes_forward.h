@@ -21,11 +21,13 @@ namespace ast {
 
 #define FOR_EACH_DECLARATION_NODE(V) \
   V(Alias)                           \
-  V(Import)                          \
+  V(Class)                           \
   V(Const)                           \
+  V(Import)                          \
   V(Enum)                            \
   V(Field)                           \
-  V(Method)
+  V(Method)                          \
+  V(NamespaceBody)
 
 #define FOR_EACH_EXPRESSION_NODE(V) \
   V(ArrayAccess)                    \
@@ -79,9 +81,7 @@ namespace ast {
   FOR_EACH_STATEMENT_NODE(V)          \
   FOR_EACH_TYPE_NODE(V)               \
   V(CatchClause)                      \
-  V(ClassBody)                        \
   V(EnumMember)                       \
-  V(NamespaceBody)                    \
   V(Parameter)                        \
   V(VarDeclaration)                   \
   V(Variable)

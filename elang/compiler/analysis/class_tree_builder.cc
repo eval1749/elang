@@ -51,27 +51,27 @@ class ClassTreeBuilder::ClassData final : public ZoneAllocated {
   ClassData(Zone* zone, sm::Class* clazz);
   ~ClassData() = delete;
 
-  const ZoneVector<ast::ClassBody*>& class_bodies() const {
-    return class_bodies_;
+  const ZoneVector<ast::Class*>& partial_classes() const {
+    return partial_classes_;
   }
 
-  void AddClassBody(ast::ClassBody* class_body);
+  void AddClass(ast::Class* ast_class);
 
  private:
   sm::Class* const class_;
-  ZoneVector<ast::ClassBody*> class_bodies_;
+  ZoneVector<ast::Class*> partial_classes_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassData);
 };
 
 ClassTreeBuilder::ClassData::ClassData(Zone* zone, sm::Class* clazz)
-    : class_(clazz), class_bodies_(zone) {
+    : class_(clazz), partial_classes_(zone) {
 }
 
-void ClassTreeBuilder::ClassData::AddClassBody(ast::ClassBody* class_body) {
-  DCHECK(std::find(class_bodies_.begin(), class_bodies_.end(), class_body) ==
-         class_bodies_.end());
-  class_bodies_.push_back(class_body);
+void ClassTreeBuilder::ClassData::AddClass(ast::Class* ast_class) {
+  DCHECK(std::find(partial_classes_.begin(), partial_classes_.end(),
+                   ast_class) == partial_classes_.end());
+  partial_classes_.push_back(ast_class);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -87,12 +87,12 @@ ClassTreeBuilder::ClassTreeBuilder(NameResolver* resolver, sm::Editor* editor)
 ClassTreeBuilder::~ClassTreeBuilder() {
 }
 
-void ClassTreeBuilder::AnalyzeClassBody(ast::ClassBody* node) {
+void ClassTreeBuilder::AnalyzeClass(ast::Class* node) {
   auto const clazz = SemanticOf(node)->as<sm::Class>();
   DCHECK(!IsFixed(clazz)) << clazz;
   auto const outer = node->parent()->as<ast::ContainerNode>();
   auto const class_data = ClassDataFor(clazz);
-  class_data->AddClassBody(node);
+  class_data->AddClass(node);
   if (auto const outer_class = clazz->outer()->as<sm::Class>())
     MarkDepdency(clazz, outer_class);
   for (auto const base_class_name : node->base_class_names()) {
@@ -156,13 +156,13 @@ void ClassTreeBuilder::FixClass(sm::Class* clazz) {
   std::vector<sm::Class*> base_class_candidates;
   std::vector<sm::Class*> interfaces;
   auto const class_data = ClassDataFor(clazz);
-  for (auto const class_body : class_data->class_bodies()) {
+  for (auto const ast_class : class_data->partial_classes()) {
     std::unordered_set<sm::Class*> direct_presents;
     auto position = 0;
-    for (auto const base_class_name : class_body->base_class_names()) {
+    for (auto const base_class_name : ast_class->base_class_names()) {
       ++position;
       auto const base_class =
-          ValidateBaseClass(class_body, clazz, position, base_class_name);
+          ValidateBaseClass(ast_class, clazz, position, base_class_name);
       if (!base_class)
         continue;
       DCHECK(IsFixed(base_class)) << base_class_name;
@@ -381,14 +381,13 @@ sm::Semantic* ClassTreeBuilder::SemanticOf(ast::Node* node) const {
   return session()->analysis()->SemanticOf(node);
 }
 
-sm::Class* ClassTreeBuilder::ValidateBaseClass(ast::ClassBody* class_body,
+sm::Class* ClassTreeBuilder::ValidateBaseClass(ast::Class* ast_class,
                                                sm::Class* clazz,
                                                int position,
                                                ast::Node* base_class_name) {
   if (unresolved_names_.count(base_class_name))
     return nullptr;
-  auto const present =
-      Resolve(class_body, base_class_name, class_body->parent());
+  auto const present = Resolve(ast_class, base_class_name, ast_class->parent());
   if (!present)
     return nullptr;
   // TODO(eval1749) Check |base_class| isn't |final|.
@@ -446,9 +445,9 @@ void ClassTreeBuilder::VisitImport(ast::Import* node) {
   resolver_editor_->RegisterImport(node, static_cast<sm::Namespace*>(nullptr));
 }
 
-void ClassTreeBuilder::VisitClassBody(ast::ClassBody* node) {
-  AnalyzeClassBody(node);
-  ast::Visitor::VisitClassBody(node);
+void ClassTreeBuilder::VisitClass(ast::Class* node) {
+  AnalyzeClass(node);
+  ast::Visitor::VisitClass(node);
 }
 
 }  // namespace compiler

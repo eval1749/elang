@@ -27,7 +27,7 @@ class Method final : public ContainerNode, public WithModifiers {
   // method.
   Statement* body() const { return body_; }
 
-  ClassBody* owner() const;
+  Class* owner() const;
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() const { return return_type_; }
 
@@ -39,7 +39,7 @@ class Method final : public ContainerNode, public WithModifiers {
 
  private:
   Method(Zone* zone,
-         ClassBody* owner,
+         Class* owner,
          Modifiers modifies,
          Type* return_type,
          Token* name,

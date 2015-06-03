@@ -35,7 +35,7 @@ Enum::Enum(Zone* zone,
 #if _DEBUG
 // Node
 bool Enum::CanBeMemberOf(ContainerNode* container) const {
-  return container->is<ast::ClassBody>() || container->is<ast::NamespaceBody>();
+  return container->is<ast::Class>() || container->is<ast::NamespaceBody>();
 }
 #endif
 

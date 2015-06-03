@@ -37,13 +37,13 @@ class NameTreeBuilder final : public CompilationSessionUser,
  private:
   sm::Factory* factory() const;
 
-  sm::Class* NewClass(ast::ClassBody* node);
+  sm::Class* NewClass(ast::Class* node);
   void ProcessNamespaceBody(ast::NamespaceBody* node);
   sm::Semantic* SemanticOf(ast::Node* node) const;
 
   // ast::Visitor
   void VisitAlias(ast::Alias* alias) final;
-  void VisitClassBody(ast::ClassBody* node) final;
+  void VisitClass(ast::Class* node) final;
   void VisitConst(ast::Const* node) final;
   void VisitEnum(ast::Enum* node) final;
   void VisitField(ast::Field* node) final;
