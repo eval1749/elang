@@ -255,6 +255,15 @@ bool Parameter::IsIdentical(const Parameter& other) const {
   return type_ == other.type_;
 }
 
+// PointerType
+PointerType::PointerType(Type* pointee)
+    : Type(pointee->token()), pointee_(pointee) {
+}
+
+bool PointerType::IsSubtypeOf(const Type* other) const {
+  return this == other;
+}
+
 // Semantic
 Semantic::Semantic(Token* token) : token_(token) {
 }

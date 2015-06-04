@@ -190,6 +190,15 @@ Parameter* Factory::NewParameter(ParameterKind kind,
   return new (zone()) Parameter(kind, position, type, name, default_value);
 }
 
+PointerType* Factory::NewPointerType(Type* pointee) {
+  auto const it = pointer_types_.find(pointee);
+  if (it != pointer_types_.end())
+    return it->second;
+  auto const node = new (zone()) PointerType(pointee);
+  pointer_types_.insert(std::make_pair(pointee, node));
+  return node;
+}
+
 Signature* Factory::NewSignature(Type* return_type,
                                  const std::vector<Parameter*>& parameters) {
   return new (zone()) Signature(zone(), return_type, parameters);

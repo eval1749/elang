@@ -6,6 +6,7 @@
 #define ELANG_COMPILER_SEMANTICS_FACTORY_H_
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "elang/base/zone_owner.h"
@@ -58,6 +59,7 @@ class Factory final : public ZoneOwner {
                           Type* type,
                           Token* name,
                           Value* default_value);
+  PointerType* NewPointerType(Type* pointee);
 
   // Allocate |Signature| for analyzer
   Signature* NewSignature(Type* return_type,
@@ -73,6 +75,7 @@ class Factory final : public ZoneOwner {
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
   Namespace* const global_namespace_;
+  std::unordered_map<Type*, PointerType*> pointer_types_;
   Namespace* const system_namespace_;
   TokenFactory* const token_factory_;
 

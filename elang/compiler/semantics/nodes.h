@@ -432,6 +432,27 @@ class Parameter final : public Semantic {
 
 //////////////////////////////////////////////////////////////////////
 //
+// PointerType
+//
+class PointerType final : public Type {
+  DECLARE_CONCRETE_SEMANTIC_CLASS(PointerType, Type);
+
+ public:
+  Type* pointee() const { return pointee_; }
+
+ private:
+  explicit PointerType(Type* pointee);
+
+  // Type
+  bool IsSubtypeOf(const Type* other) const final;
+
+  Type* const pointee_;
+
+  DISALLOW_COPY_AND_ASSIGN(PointerType);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Signature
 //
 class Signature final : public Type {

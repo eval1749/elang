@@ -197,6 +197,10 @@ void Formatter::VisitParameter(Parameter* parameter) {
     ostream_ << " = " << *parameter->default_value();
 }
 
+void Formatter::VisitPointerType(PointerType* node) {
+  ostream_ << node->pointee() << "*";
+}
+
 void Formatter::VisitSignature(Signature* signature) {
   ostream_ << *signature->return_type() << " ";
   auto separator = "";

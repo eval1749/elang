@@ -188,6 +188,12 @@ TEST_F(SemanticTest, Namespace) {
   EXPECT_EQ("namespace Foo.Bar", ToString(ns2));
 }
 
+TEST_F(SemanticTest, PointerType) {
+  auto const node = factory()->NewPointerType(int32_type());
+  EXPECT_EQ("System.Int32*", ToString(node));
+  EXPECT_EQ(node, factory()->NewPointerType(int32_type()));
+}
+
 }  // namespace sm
 }  // namespace compiler
 }  // namespace elang

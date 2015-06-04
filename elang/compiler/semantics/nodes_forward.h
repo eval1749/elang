@@ -20,6 +20,7 @@ namespace sm {
   V(ArrayType)                             \
   V(Class)                                 \
   V(Enum)                                  \
+  V(PointerType)                           \
   V(UndefinedType)                         \
   V(Signature)
 
