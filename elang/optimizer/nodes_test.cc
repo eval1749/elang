@@ -95,11 +95,11 @@ TEST_F(NodesTest, ExitNode) {
 }
 
 TEST_F(NodesTest, FieldNode) {
+  auto const clazz = NewExternalType(NewAtomicString(L"Sample"));
   auto const instance_pointer =
-      NewReference(NewPointerType(NewTupleType({intptr_type(), int32_type()})),
-                   NewAtomicString(L"this"));
+      NewReference(NewPointerType(clazz), NewAtomicString(L"this"));
   auto const node = NewField(int32_type(), instance_pointer, NewString(L"x_"));
-  EXPECT_EQ("int32* %r1 = field((intptr, int32)* this, \"x_\")",
+  EXPECT_EQ("int32* %r1 = field(Sample* this, \"x_\")",
             ToString(node));
 }
 

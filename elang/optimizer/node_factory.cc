@@ -248,8 +248,8 @@ Data* NodeFactory::NewField(Type* field_type,
                             Data* field_name) {
   auto const instance_pointer_type = instance->output_type()->as<PointerType>();
   DCHECK(instance_pointer_type) << *instance->output_type();
-  auto const instance_type = instance_pointer_type->pointee()->as<TupleType>();
-  DCHECK(instance_type) << instance->output_type();
+  auto const clazz = instance_pointer_type->pointee()->as<ExternalType>();
+  DCHECK(clazz) << instance->output_type();
   auto const output_type = NewPointerType(field_type);
   auto const node = new (zone()) FieldNode(output_type, instance, field_name);
   node->set_id(NewNodeId());
