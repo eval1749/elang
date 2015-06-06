@@ -164,8 +164,11 @@ Value* EnumMember::value() const {
 }
 
 // Field
-Field::Field(Class* owner, Token* name)
-    : NamedMember(owner, name), type_(nullptr), value_(nullptr) {
+Field::Field(Class* owner, Modifiers modifiers, Token* name)
+    : NamedMember(owner, name),
+      WithModifiers(modifiers),
+      type_(nullptr),
+      value_(nullptr) {
 }
 
 Class* Field::owner() const {

@@ -280,7 +280,7 @@ class EnumMember final : public NamedMember<Semantic> {
 //
 // Field
 //
-class Field final : public NamedMember<Semantic> {
+class Field final : public NamedMember<Semantic>,  public WithModifiers {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Field, Semantic);
 
  public:
@@ -291,10 +291,10 @@ class Field final : public NamedMember<Semantic> {
   Value* value() const;
 
  private:
-  Field(Class* owner, Token* name);
+  Field(Class* owner, Modifiers modifiers, Token* name);
 
-  Value* value_;
   Type* type_;
+  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(Field);
 };

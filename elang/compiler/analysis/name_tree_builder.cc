@@ -169,7 +169,8 @@ void NameTreeBuilder::VisitField(ast::Field* node) {
       SemanticOf(node->parent()->as<ast::Class>())->as<sm::Class>();
   auto const present = owner->FindMember(node->name());
   if (!present) {
-    editor_->SetSemanticOf(node, factory()->NewField(owner, node->name()));
+    editor_->SetSemanticOf(
+        node, factory()->NewField(owner, node->modifiers(), node->name()));
     return;
   }
   if (present->is<sm::Field>())

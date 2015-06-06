@@ -43,7 +43,7 @@ class Factory final : public ZoneOwner {
   Const* NewConst(Class* owner, Token* name);
   Enum* NewEnum(Semantic* outer, Token* name);
   EnumMember* NewEnumMember(Enum* enum_type, Token* name);
-  Field* NewField(Class* owner, Token* name);
+  Field* NewField(Class* owner, Modifiers modifiers, Token* name);
   Class* NewInterface(Semantic* outer, Modifiers modifiers, Token* name);
   Value* NewInvalidValue(Type* type, Token* token);
   Literal* NewLiteral(Type* type, Token* token);

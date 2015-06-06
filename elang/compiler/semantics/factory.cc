@@ -162,8 +162,8 @@ EnumMember* Factory::NewEnumMember(Enum* owner, Token* name) {
   return member;
 }
 
-Field* Factory::NewField(Class* owner, Token* name) {
-  auto const field = new (zone()) Field(owner, name);
+Field* Factory::NewField(Class* owner, Modifiers modifiers, Token* name) {
+  auto const field = new (zone()) Field(owner, modifiers, name);
   AddMember(owner, field);
   return field;
 }
