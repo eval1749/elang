@@ -285,6 +285,7 @@ namespace compiler {
   E(TypeResolver, Expression, Invalid)                \
   E(TypeResolver, Expression, NotBool)                \
   E(TypeResolver, Expression, NotYetImplemented)      \
+  E(TypeResolver, Field, NoThis)                      \
   E(TypeResolver, IncrementExpression, Type)          \
   E(TypeResolver, IncrementExpression, Place)         \
   E(TypeResolver, ForEach, ElementType)               \

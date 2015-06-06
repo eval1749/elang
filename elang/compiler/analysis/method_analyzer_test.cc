@@ -181,9 +181,7 @@ class MethodAnalyzerTest : public testing::AnalyzerTest {
 
 class PostOrderTraverse final : public ast::Visitor {
  public:
-  explicit PostOrderTraverse(ast::Node* node) {
-    Traverse(node);
-  }
+  explicit PostOrderTraverse(ast::Node* node) { Traverse(node); }
 
   std::vector<ast::Node*>::iterator begin() { return nodes_.begin(); }
   std::vector<ast::Node*>::iterator end() { return nodes_.end(); }
@@ -473,6 +471,15 @@ TEST_F(MethodAnalyzerTest, Field) {
   ASSERT_EQ("", Analyze());
   auto const method = FindMember("Point.X")->as<ast::Method>();
   EXPECT_EQ("x_ : System.Int32 Point.x_\n", DumpSemanticTree(method->body()));
+}
+
+TEST_F(MethodAnalyzerTest, FieldError) {
+  Prepare(
+      "class Sample {"
+      "  int length_;"
+      "  static int Length() { return length_; }"
+      "}");
+  EXPECT_EQ("TypeResolver.Field.NoThis(59) length_\n", Analyze());
 }
 
 // 'for' statement

@@ -553,8 +553,12 @@ void TypeResolver::VisitNameReference(ast::NameReference* node) {
   if (!semantic)
     return;
   SetSemanticOf(node, semantic);
-  if (auto const field = semantic->as<sm::Field>())
+  if (auto const field = semantic->as<sm::Field>()) {
+    if (context_method_->IsStatic() && !field->IsStatic())
+      Error(ErrorCode::TypeResolverFieldNoThis, node);
     return ProduceUnifiedResult(NewLiteral(field->type()), node);
+  }
+  DoDefaultVisit(node);
 }
 
 void TypeResolver::VisitParameterReference(ast::ParameterReference* reference) {
