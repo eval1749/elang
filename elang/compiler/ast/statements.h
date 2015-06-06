@@ -404,16 +404,14 @@ class WhileStatement final : public DoOrWhileStatement {
 
 // Represents 'yield' statement:
 //  'yield' Expression
-class YieldStatement final : public Statement {
+class YieldStatement final : public SimpleNode<Statement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(YieldStatement, Statement);
 
  public:
-  Expression* value() const { return value_; }
+  Expression* value() const;
 
  private:
   YieldStatement(Token* keyword, Expression* value);
-
-  Expression* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(YieldStatement);
 };

@@ -216,8 +216,13 @@ WhileStatement::WhileStatement(Token* keyword,
 }
 
 YieldStatement::YieldStatement(Token* keyword, Expression* value)
-    : Statement(keyword), value_(value) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::Yield);
+  set_child_at(0, value);
+}
+
+ast::Expression* YieldStatement::value() const {
+  return child_at(0)->as<ast::Expression>();
 }
 
 }  // namespace ast
