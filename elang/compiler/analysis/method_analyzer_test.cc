@@ -198,10 +198,6 @@ class PostOrderTraverse final : public ast::Visitor {
       Traverse(statement);
   }
 
-  void VisitExpressionStatement(ast::ExpressionStatement* node) final {
-    Traverse(node->expression());
-  }
-
   void VisitReturnStatement(ast::ReturnStatement* node) final {
     auto const expression = node->value();
     if (!expression)

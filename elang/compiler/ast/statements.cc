@@ -70,10 +70,17 @@ ExpressionList::ExpressionList(Token* keyword,
     : Statement(keyword), expressions_(expressions) {
 }
 
+// ExpressionStatement
 ExpressionStatement::ExpressionStatement(Expression* expression)
-    : Statement(expression->token()), expression_(expression) {
+    : SimpleNode(expression->token()) {
+  set_child_at(0, expression);
 }
 
+ast::Expression* ExpressionStatement::expression() const {
+  return child_at(0)->as<ast::Expression>();
+}
+
+// ForEachStatement
 ForEachStatement::ForEachStatement(Token* keyword,
                                    Variable* variable,
                                    Expression* enumerable,

@@ -180,16 +180,14 @@ class ExpressionList : public Statement {
 
 // Represents expression statement:
 //  Expression ';'
-class ExpressionStatement final : public Statement {
+class ExpressionStatement final : public SimpleNode<Statement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ExpressionStatement, Statement);
 
  public:
-  Expression* expression() const { return expression_; }
+  Expression* expression() const;
 
  private:
   explicit ExpressionStatement(Expression* expression);
-
-  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(ExpressionStatement);
 };
