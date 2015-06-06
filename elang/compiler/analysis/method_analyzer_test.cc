@@ -188,17 +188,26 @@ class PostOrderTraverse final : public ast::Visitor {
 
  private:
   // ast::Visitor
-  void DoDefaultVisit(ast::Node* node) {
+  void DoDefaultVisit(ast::Node* node) final {
     ast::Visitor::DoDefaultVisit(node);
     nodes_.push_back(node);
   }
 
-  void VisitBlockStatement(ast::BlockStatement* node) {
+  void VisitAssignment(ast::Assignment* node) final {
+    Traverse(node->left());
+    Traverse(node->right());
+  }
+
+  void VisitBlockStatement(ast::BlockStatement* node) final {
     for (auto const statement : node->statements())
       Traverse(statement);
   }
 
-  void VisitReturnStatement(ast::ReturnStatement* node) {
+  void VisitExpressionStatement(ast::ExpressionStatement* node) final {
+    Traverse(node->expression());
+  }
+
+  void VisitReturnStatement(ast::ReturnStatement* node) final {
     auto const expression = node->value();
     if (!expression)
       return;
@@ -329,7 +338,28 @@ TEST_F(MethodAnalyzerTest, ArrayAccessErrorRank) {
 }
 
 // Assignment
-TEST_F(MethodAnalyzerTest, AssignVoid) {
+TEST_F(MethodAnalyzerTest, AssignField) {
+  Prepare(
+      "class Sample {"
+      "  int length_;"
+      "  void SetLength(int n) { length_ = n; }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  auto const method = FindMember("Sample.SetLength")->as<ast::Method>();
+  EXPECT_EQ("length_ : System.Int32 Sample.length_\n",
+            DumpSemanticTree(method->body()));
+}
+
+TEST_F(MethodAnalyzerTest, AssignErrorNoThis) {
+  Prepare(
+      "class Sample {"
+      "  int length_;"
+      "  static void SetLength(int n) { length_ = n; }"
+      "}");
+  ASSERT_EQ("TypeResolver.Field.NoThis(69) =\n", Analyze());
+}
+
+TEST_F(MethodAnalyzerTest, AssignErrorVoid) {
   Prepare(
       "class Sample {"
       "  static void Foo() { int x = 0; x = Bar(); }"

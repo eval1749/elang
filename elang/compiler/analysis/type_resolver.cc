@@ -300,8 +300,13 @@ void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
     auto const value = ResolveReference(reference);
-    DCHECK(value) << "NYI Assign to field " << *lhs;
-    return;
+    if (auto const field = value->as<sm::Field>()) {
+      if (context_method_->IsStatic() && !field->IsStatic())
+        Error(ErrorCode::TypeResolverFieldNoThis, assignment);
+      SetSemanticOf(lhs, field);
+      return ProduceResolved(rhs, NewLiteral(field->type()), assignment);
+    }
+    return DoDefaultVisit(assignment);
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
     auto const value = ResolveReference(reference);
