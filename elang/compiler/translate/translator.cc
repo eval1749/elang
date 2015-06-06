@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <sstream>
-#include <vector>
-
 #include "elang/compiler/translate/translator.h"
 
 #include "base/auto_reset.h"
@@ -121,15 +118,15 @@ void Translator::VisitMethod(ast::Method* ast_method) {
       type_mapper()->Map(method->function_signature())->as<ir::FunctionType>());
   session()->RegisterFunction(ast_method, function);
 
-  auto const builder = std::make_unique<Builder>(factory(), function);
-  base::AutoReset<Builder*> builder_scope(&builder_, builder.get());
+  Builder builder(factory(), function);
+  base::AutoReset<Builder*> builder_scope(&builder_, &builder);
 
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression
   TranslateStatement(ast_method_body->as<ast::Statement>());
   if (!builder_->has_control())
     return;
-  if (MapType(method->return_type()) != MapType(PredefinedName::Void) &&
+  if (method->return_type() != PredefinedTypeOf(PredefinedName::Void) &&
       function->exit_node()->input(0)->CountInputs()) {
     Error(ErrorCode::TranslatorReturnNone, ast_method);
   }
