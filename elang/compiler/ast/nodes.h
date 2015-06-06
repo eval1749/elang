@@ -9,6 +9,7 @@
 #include <iterator>
 #include <memory>
 
+#include "base/logging.h"
 #include "base/strings/string16.h"
 #include "elang/compiler/ast/nodes_forward.h"
 
@@ -175,10 +176,11 @@ class SimpleNode : public Base {
   ~SimpleNode() override {}
 
   Node* child_at(size_t index) const { return child_nodes_[index]; }
+  void set_child_at(size_t index, Node* node) { child_nodes_[index] = node; }
 
   // NodeTree
   Node* ChildAt(size_t index) const final {
-    DCHECK_LT(index, NumberOfChildNodes) << node;
+    DCHECK_LT(index, NumberOfChildNodes) << this;
     return child_at(index);
   }
 

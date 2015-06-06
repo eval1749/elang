@@ -55,24 +55,21 @@ class ArrayAccess final : public Expression {
 // Represents assignment:
 //  UnaryExpresion AssignmentOperator Expression
 //  AssignmentOperator ::= '=' | '+=' | ...
-class Assignment final : public Expression {
+class Assignment final : public SimpleNode<Expression, 2> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Assignment, Expression);
 
  public:
-  Expression* left() const { return left_; }
-  Expression* right() const { return right_; }
+  Expression* left() const;
+  Expression* right() const;
 
  private:
   Assignment(Token* op, Expression* left, Expression* right);
-
-  Expression* const left_;
-  Expression* const right_;
 
   DISALLOW_COPY_AND_ASSIGN(Assignment);
 };
 
 // Represents BinaryOperation
-class BinaryOperation final : public Expression {
+class BinaryOperation final : public SimpleNode<Expression, 2> {
   DECLARE_CONCRETE_AST_NODE_CLASS(BinaryOperation, Expression);
 
  public:
@@ -82,14 +79,11 @@ class BinaryOperation final : public Expression {
   bool is_conditional() const;
   bool is_equality() const;
   bool is_relational() const;
-  Expression* left() const { return left_; }
-  Expression* right() const { return right_; }
+  Expression* left() const;
+  Expression* right() const;
 
  private:
   BinaryOperation(Token* op, Expression* left, Expression* right);
-
-  Expression* const left_;
-  Expression* const right_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOperation);
 };
@@ -118,23 +112,19 @@ class Call final : public Expression {
 
 // Represents conditional expression:
 //  Expression '?' Expression ":' Expression
-class Conditional final : public Expression {
+class Conditional final : public SimpleNode<Expression, 3> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Conditional, Expression);
 
  public:
-  Expression* condition() const { return condition_; }
-  Expression* false_expression() const { return false_expression_; }
-  Expression* true_expression() const { return true_expression_; }
+  Expression* condition() const;
+  Expression* false_expression() const;
+  Expression* true_expression() const;
 
  private:
   Conditional(Token* op,
               Expression* condition,
               Expression* true_expression,
               Expression* false_expression);
-
-  Expression* const condition_;
-  Expression* const false_expression_;
-  Expression* const true_expression_;
 
   DISALLOW_COPY_AND_ASSIGN(Conditional);
 };
@@ -164,16 +154,14 @@ class ConstructedName final : public Expression {
 //  '++' UnaryExpression |
 //  UnaryExpression '--' |
 //  UnaryExpression '++'
-class IncrementExpression final : public Expression {
+class IncrementExpression final : public SimpleNode<Expression, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(IncrementExpression, Expression);
 
  public:
-  Expression* expression() const { return expression_; }
+  Expression* expression() const;
 
  private:
   IncrementExpression(Token* op, Expression* expression);
-
-  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(IncrementExpression);
 };
@@ -200,17 +188,16 @@ class Literal final : public Expression {
 };
 
 // Represents member acesss, e.g. |container.member|.
-class MemberAccess final : public Expression {
+class MemberAccess final : public SimpleNode<Expression, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(MemberAccess, Expression);
 
  public:
-  Expression* container() const { return container_; }
+  Expression* container() const;
   Token* member() const { return member_; }
 
  private:
   MemberAccess(Expression* container, Token* member);
 
-  Expression* const container_;
   Token* const member_;
 
   DISALLOW_COPY_AND_ASSIGN(MemberAccess);
@@ -240,18 +227,16 @@ class NoExpression final : public Expression {
 };
 
 // Represents parameter reference
-class ParameterReference final : public Expression {
+class ParameterReference final : public SimpleNode<Expression, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ParameterReference, Expression);
 
  public:
   // Returns name token where parameter referenced.
   Token* name() const { return token(); }
-  Parameter* parameter() const { return parameter_; }
+  Parameter* parameter() const;
 
  private:
   ParameterReference(Token* name, Parameter* parameter);
-
-  Parameter* const parameter_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterReference);
 };
@@ -263,16 +248,14 @@ class ParameterReference final : public Expression {
 //  '++' UnaryExpression |
 //  'dynamic_cast' '<' Type '>' '(' Expression ')' |
 //  'static_cast' '<' Type '>' '(' Expression ')'
-class UnaryOperation final : public Expression {
+class UnaryOperation final : public SimpleNode<Expression, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(UnaryOperation, Expression);
 
  public:
-  Expression* expression() const { return expression_; }
+  Expression* expression() const;
 
  private:
   UnaryOperation(Token* op, Expression* expression);
-
-  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(UnaryOperation);
 };
@@ -295,18 +278,16 @@ class Variable final : public NamedNode {
 };
 
 // Represents local variable reference
-class VariableReference final : public Expression {
+class VariableReference final : public SimpleNode<Expression, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(VariableReference, Expression);
 
  public:
   // Returns name token where local variable referenced.
   Token* name() const { return token(); }
-  Variable* variable() const { return variable_; }
+  Variable* variable() const;
 
  private:
   VariableReference(Token* name, Variable* variable);
-
-  Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableReference);
 };

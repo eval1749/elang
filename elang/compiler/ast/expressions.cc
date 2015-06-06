@@ -7,6 +7,7 @@
 #include "base/logging.h"
 
 #include "elang/compiler/ast/container_node.h"
+#include "elang/compiler/ast/method.h"
 #include "elang/compiler/ast/types.h"
 #include "elang/compiler/token_type.h"
 
@@ -26,14 +27,26 @@ ArrayAccess::ArrayAccess(Zone* zone,
 
 // Assignment
 Assignment::Assignment(Token* op, Expression* left, Expression* right)
-    : Expression(op), left_(left), right_(right) {
+    : SimpleNode(op) {
+  set_child_at(0, left);
+  set_child_at(1, right);
+}
+
+ast::Expression* Assignment::left() const {
+  return child_at(0)->as<ast::Expression>();
+}
+
+ast::Expression* Assignment::right() const {
+  return child_at(1)->as<ast::Expression>();
 }
 
 // Binary operation
 BinaryOperation::BinaryOperation(Token* op, Expression* left, Expression* right)
-    : Expression(op), left_(left), right_(right) {
+    : SimpleNode(op) {
   CHECK(is_arithmetic() || is_bitwise() || is_bitwise_shift() ||
         is_conditional() || is_equality() || is_relational());
+  set_child_at(0, left);
+  set_child_at(1, right);
 }
 
 bool BinaryOperation::is_arithmetic() const {
@@ -65,6 +78,14 @@ bool BinaryOperation::is_relational() const {
          op() == TokenType::Le || op() == TokenType::Lt;
 }
 
+ast::Expression* BinaryOperation::left() const {
+  return child_at(0)->as<ast::Expression>();
+}
+
+ast::Expression* BinaryOperation::right() const {
+  return child_at(1)->as<ast::Expression>();
+}
+
 // Call
 Call::Call(Zone* zone,
            Expression* callee,
@@ -78,10 +99,22 @@ Conditional::Conditional(Token* op,
                          Expression* condition,
                          Expression* true_expression,
                          Expression* false_expression)
-    : Expression(op),
-      condition_(condition),
-      false_expression_(false_expression),
-      true_expression_(true_expression) {
+    : SimpleNode(op) {
+  set_child_at(0, condition);
+  set_child_at(1, false_expression);
+  set_child_at(2, true_expression);
+}
+
+Expression* Conditional::condition() const {
+  return child_at(0)->as<ast::Expression>();
+}
+
+Expression* Conditional::false_expression() const {
+  return child_at(1)->as<ast::Expression>();
+}
+
+Expression* Conditional::true_expression() const {
+  return child_at(2)->as<ast::Expression>();
 }
 
 // ConstructedName
@@ -104,7 +137,12 @@ Expression::Expression(Token* op) : Expression(nullptr, op) {
 
 // IncrementExpression
 IncrementExpression::IncrementExpression(Token* op, Expression* expression)
-    : Expression(op), expression_(expression) {
+    : SimpleNode(op) {
+  set_child_at(0, expression);
+}
+
+Expression* IncrementExpression::expression() const {
+  return child_at(0)->as<ast::Expression>();
 }
 
 // InvalidExpression
@@ -116,8 +154,14 @@ InvalidExpression::InvalidExpression(Token* token) : Expression(token) {
 Literal::Literal(Token* literal) : Expression(literal) {
 }
 
+// MemberAccess
 MemberAccess::MemberAccess(Expression* container, Token* member)
-    : Expression(member), container_(container), member_(member) {
+    : SimpleNode(member), member_(member) {
+  set_child_at(0, container);
+}
+
+Expression* MemberAccess::container() const {
+  return child_at(0)->as<ast::Expression>();
 }
 
 // NameReference
@@ -134,11 +178,22 @@ NoExpression::NoExpression(Token* token) : Expression(token) {
 
 // ParameterReference
 ParameterReference::ParameterReference(Token* name, Parameter* parameter)
-    : Expression(name), parameter_(parameter) {
+    : SimpleNode(name) {
+  set_child_at(0, parameter);
 }
 
+Parameter* ParameterReference::parameter() const {
+  return child_at(0)->as<ast::Parameter>();
+}
+
+// UnaryOperation
 UnaryOperation::UnaryOperation(Token* op, Expression* expression)
-    : Expression(op), expression_(expression) {
+    : SimpleNode(op) {
+  set_child_at(0, expression);
+}
+
+Expression* UnaryOperation::expression() const {
+  return child_at(0)->as<ast::Expression>();
 }
 
 // Variable
@@ -156,7 +211,12 @@ bool Variable::is_const() const {
 
 // VariableReference
 VariableReference::VariableReference(Token* name, Variable* variable)
-    : Expression(name), variable_(variable) {
+    : SimpleNode(name) {
+  set_child_at(0, variable);
+}
+
+Variable* VariableReference::variable() const {
+  return child_at(0)->as<ast::Variable>();
 }
 
 }  // namespace ast

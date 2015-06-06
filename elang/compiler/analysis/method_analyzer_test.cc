@@ -193,11 +193,6 @@ class PostOrderTraverse final : public ast::Visitor {
     nodes_.push_back(node);
   }
 
-  void VisitAssignment(ast::Assignment* node) final {
-    Traverse(node->left());
-    Traverse(node->right());
-  }
-
   void VisitBlockStatement(ast::BlockStatement* node) final {
     for (auto const statement : node->statements())
       Traverse(statement);
@@ -342,12 +337,14 @@ TEST_F(MethodAnalyzerTest, AssignField) {
   Prepare(
       "class Sample {"
       "  int length_;"
-      "  void SetLength(int n) { length_ = n; }"
+      "  void SetLength(int new_length) { length_ = new_length; }"
       "}");
   ASSERT_EQ("", Analyze());
   auto const method = FindMember("Sample.SetLength")->as<ast::Method>();
-  EXPECT_EQ("length_ : System.Int32 Sample.length_\n",
-            DumpSemanticTree(method->body()));
+  EXPECT_EQ(
+      "length_ : System.Int32 Sample.length_\n"
+      "new_length : ReadOnly System.Int32 new_length\n",
+      DumpSemanticTree(method->body()));
 }
 
 TEST_F(MethodAnalyzerTest, AssignErrorNoThis) {

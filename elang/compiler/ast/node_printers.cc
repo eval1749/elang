@@ -182,7 +182,7 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
 }
 
 void Formatter::VisitParameter(ast::Parameter* node) {
-  ostream_ << *node->name() << " {...}";
+  ostream_ << *node->name();
 }
 
 void Formatter::VisitParameterReference(ast::ParameterReference* node) {
