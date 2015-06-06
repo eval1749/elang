@@ -168,6 +168,7 @@ class ELANG_OPTIMIZER_EXPORT FunctionType final : public Type {
   DECLARE_OPTIMIZER_TYPE_CONCRETE_CLASS(FunctionType, Type);
 
  public:
+  size_t arity() const;
   Type* parameters_type() const { return parameters_type_; }
   Type* return_type() const { return return_type_; }
 

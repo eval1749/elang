@@ -50,6 +50,12 @@ FunctionType::FunctionType(Type* return_type, Type* parameters_type)
     : parameters_type_(parameters_type), return_type_(return_type) {
 }
 
+size_t FunctionType::arity() const {
+  if (auto const tuple_type = parameters_type_->as<TupleType>())
+    return tuple_type->size();
+  return parameters_type()->is<VoidType>() ? 0 : 1;
+}
+
 // PointerType
 PointerType::PointerType(Type* pointee) : pointee_(pointee) {
 }

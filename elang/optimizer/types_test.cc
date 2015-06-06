@@ -152,7 +152,9 @@ TEST_F(TypeTest, FunctionType) {
   auto const type3 = NewFunctionType(bool_type(), params3);
   EXPECT_EQ(type1, type2);
   EXPECT_EQ("int32(void)", ToString(type1));
+  EXPECT_EQ(0, type1->arity());
   EXPECT_EQ("bool(float32, float64)", ToString(type3));
+  EXPECT_EQ(2, type3->arity());
   EXPECT_FALSE(type1->is_signed());
   EXPECT_TRUE(type1->is_unsigned());
 }
