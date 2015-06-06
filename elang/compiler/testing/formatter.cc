@@ -191,7 +191,7 @@ void Formatter::VisitClass(ast::Class* node) {
 
   ostream_ << " ";
   FormatBlock block(this);
-  node->AcceptForMembers(this);
+  DoDefaultVisit(node);
 }
 
 void Formatter::VisitConst(ast::Const* node) {
@@ -463,16 +463,16 @@ void Formatter::VisitNameReference(ast::NameReference* operation) {
   ostream_ << operation->token();
 }
 
-void Formatter::VisitNamespaceBody(ast::NamespaceBody* ns_body) {
-  if (!ns_body->parent()) {
-    // We don't print "namespace" text for global namespace.
-    ns_body->AcceptForMembers(this);
+void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
+  if (!node->parent()) {
+    // We don't print "namespace" text for toplevel namespace.
+    DoDefaultVisit(node);
     return;
   }
   Indent();
-  ostream_ << "namespace " << ns_body->name() << " ";
+  ostream_ << "namespace " << node->name() << " ";
   FormatBlock block(this);
-  ns_body->AcceptForMembers(this);
+  DoDefaultVisit(node);
 }
 
 void Formatter::VisitNoExpression(ast::NoExpression* node) {

@@ -24,15 +24,15 @@ class ContainerNode : public NamedNode {
   // List of members ordered by source code location.
   const ZoneVector<Node*> members() const { return members_; }
 
-  // Helper function for visitor pattern. Call |Accept(Visitor*)| for each
-  // member.
-  void AcceptForMembers(Visitor* visitor);
   void AddMember(Node* member);
 
  protected:
   ContainerNode(Zone* zone, ContainerNode* parent, Token* keyword, Token* name);
 
  private:
+  Node* ChildAt(size_t index) const final;
+  size_t CountChildNodes() const final;
+
   ZoneVector<Node*> members_;
 
   DISALLOW_COPY_AND_ASSIGN(ContainerNode);

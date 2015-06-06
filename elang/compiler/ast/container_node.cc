@@ -21,14 +21,18 @@ ContainerNode::ContainerNode(Zone* zone,
     : NamedNode(parent, keyword, name), members_(zone) {
 }
 
-void ContainerNode::AcceptForMembers(Visitor* visitor) {
-  for (auto const member : members_)
-    member->Accept(visitor);
-}
-
 void ContainerNode::AddMember(Node* member) {
   DCHECK(member->CanBeMemberOf(this)) << *member << " " << *this;
   members_.push_back(member);
+}
+
+// NodeTree
+Node* ContainerNode::ChildAt(size_t index) const {
+  return members_[index];
+}
+
+size_t ContainerNode::CountChildNodes() const {
+  return members_.size();
 }
 
 }  // namespace ast

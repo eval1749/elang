@@ -5,6 +5,8 @@
 #ifndef ELANG_COMPILER_AST_NODES_H_
 #define ELANG_COMPILER_AST_NODES_H_
 
+#include <array>
+#include <iterator>
 #include <memory>
 
 #include "base/strings/string16.h"
@@ -37,14 +39,77 @@ namespace ast {
 
 //////////////////////////////////////////////////////////////////////
 //
+// NodeTree
+//
+class NodeTree {
+ public:
+  virtual Node* ChildAt(size_t index) const = 0;
+  virtual size_t CountChildNodes() const = 0;
+
+ protected:
+  NodeTree();
+  virtual ~NodeTree();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NodeTree);
+};
+
+//////////////////////////////////////////////////////////////////////
+//
+// ChildNodes
+//
+class ChildNodes final {
+ public:
+  class Iterator final : public std::iterator<std::forward_iterator_tag, Node> {
+   public:
+    Iterator(const Iterator& other);
+    ~Iterator();
+
+    Iterator& operator=(const Iterator& other);
+
+    bool operator==(const Iterator& other) const;
+    bool operator!=(const Iterator& other) const;
+
+    Node* operator*() const;
+    Node* operator->() const;
+
+    Iterator& operator++();
+
+   private:
+    friend class ChildNodes;
+
+    explicit Iterator(const Node* node, size_t index);
+
+    size_t index_;
+    const Node* node_;
+  };
+
+  explicit ChildNodes(const Node* node);
+  ChildNodes(const ChildNodes& other);
+  ~ChildNodes();
+
+  ChildNodes& operator=(const ChildNodes& other);
+
+  Iterator begin() const;
+  Iterator end() const;
+
+ private:
+  const Node* node_;
+};
+
+//////////////////////////////////////////////////////////////////////
+//
 // Node
 //
 class Node : public Castable<Node>,
+             public NodeTree,
              public Visitable<Visitor>,
              public ZoneAllocated {
   DECLARE_ABSTRACT_AST_NODE_CLASS(Node, Castable);
 
  public:
+  ChildNodes child_nodes() const;
+
   // Associated name like thing for error message and debug log.
   virtual Token* name() const;
 
@@ -58,6 +123,10 @@ class Node : public Castable<Node>,
 #endif
 
   bool IsDescendantOf(const Node* other) const;
+
+  // NodeTree
+  Node* ChildAt(size_t index) const override;
+  size_t CountChildNodes() const override;
 
   // Visitable<Visitor>
   // Default implementation for node classes not in
@@ -94,6 +163,31 @@ class NamedNode : public Node {
   Token* const name_;
 
   DISALLOW_COPY_AND_ASSIGN(NamedNode);
+};
+
+// SimpleNodeTree
+template <typename Base, size_t NumberOfChildNodes>
+class SimpleNode : public Base {
+ protected:
+  template <typename... Params>
+  explicit SimpleNode(Params... params)
+      : Base(params...) {}
+  ~SimpleNode() override {}
+
+  Node* child_at(size_t index) const { return child_nodes_[index]; }
+
+  // NodeTree
+  Node* ChildAt(size_t index) const final {
+    DCHECK_LT(index, NumberOfChildNodes) << node;
+    return child_at(index);
+  }
+
+  size_t CountChildNodes() const final { return NumberOfChildNodes; }
+
+ private:
+  std::array<Node*, NumberOfChildNodes> child_nodes_;
+
+  DISALLOW_COPY_AND_ASSIGN(SimpleNode);
 };
 
 }  // namespace ast

@@ -36,10 +36,8 @@ FOR_EACH_CONCRETE_AST_NODE(V)
 #undef V
 
 void Visitor::DoDefaultVisit(Node* node) {
-  auto const container = node->as<ContainerNode>();
-  if (!container)
-    return;
-  container->AcceptForMembers(this);
+  for (auto const child : node->child_nodes())
+    Traverse(child);
 }
 
 //////////////////////////////////////////////////////////////////////

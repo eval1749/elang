@@ -16,6 +16,65 @@ namespace elang {
 namespace compiler {
 namespace ast {
 
+// ChildNodes
+ChildNodes::ChildNodes(const Node* node) : node_(node) {
+}
+
+ChildNodes::ChildNodes(const ChildNodes& other) : ChildNodes(other.node_) {
+}
+
+ChildNodes::~ChildNodes() {
+}
+
+ChildNodes::Iterator ChildNodes::begin() const {
+  return Iterator(node_, 0);
+}
+
+ChildNodes::Iterator ChildNodes::end() const {
+  return Iterator(node_, node_->CountChildNodes());
+}
+
+// ChildNodes::Iterator
+ChildNodes::Iterator::Iterator(const Node* node, size_t index)
+    : index_(index), node_(node) {
+}
+
+ChildNodes::Iterator::Iterator(const Iterator& other)
+    : Iterator(other.node_, other.index_) {
+}
+
+ChildNodes::Iterator::~Iterator() {
+}
+
+ChildNodes::Iterator& ChildNodes::Iterator::operator=(const Iterator& other) {
+  node_ = other.node_;
+  index_ = other.index_;
+  return *this;
+}
+
+bool ChildNodes::Iterator::operator==(const Iterator& other) const {
+  DCHECK_EQ(node_, other.node_);
+  return index_ == other.index_;
+}
+
+bool ChildNodes::Iterator::operator!=(const Iterator& other) const {
+  return !operator==(other);
+}
+
+Node* ChildNodes::Iterator::operator*() const {
+  return node_->ChildAt(index_);
+}
+
+Node* ChildNodes::Iterator::operator->() const {
+  return operator*();
+}
+
+ChildNodes::Iterator& ChildNodes::Iterator::operator++() {
+  DCHECK_LT(index_, node_->CountChildNodes()) << node_;
+  ++index_;
+  return *this;
+}
+
 //////////////////////////////////////////////////////////////////////
 //
 // Node
@@ -24,6 +83,10 @@ Node::Node(Node* parent, Token* token) : parent_(parent), token_(token) {
   // Since we use |token| for sorting error message, we should have non-null
   // token.
   DCHECK(token);
+}
+
+ChildNodes Node::child_nodes() const {
+  return ChildNodes(this);
 }
 
 Token* Node::name() const {
@@ -43,6 +106,16 @@ bool Node::IsDescendantOf(const Node* other) const {
       return true;
   }
   return false;
+}
+
+// NodeTree
+Node* Node::ChildAt(size_t index) const {
+  NOTREACHED() << this << " " << index;
+  return nullptr;
+}
+
+size_t Node::CountChildNodes() const {
+  return 0;
 }
 
 // Visitable<Visitor>
@@ -89,6 +162,13 @@ base::string16 NamedNode::NewQualifiedName() const {
     runner->string().AppendToString(&buffer);
   }
   return buffer;
+}
+
+// NodeTree
+NodeTree::NodeTree() {
+}
+
+NodeTree::~NodeTree() {
 }
 
 }  // namespace ast
