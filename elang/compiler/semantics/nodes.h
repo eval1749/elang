@@ -338,6 +338,7 @@ class Method final : public NamedMember<Semantic> {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Method, Semantic);
 
  public:
+  Signature* function_signature() const { return function_signature_; }
   MethodGroup* method_group() const { return method_group_; }
   Modifiers modifiers() const { return modifiers_; }
   const ZoneVector<Parameter*>& parameters() const;
@@ -345,8 +346,12 @@ class Method final : public NamedMember<Semantic> {
   Signature* signature() const { return signature_; }
 
  private:
-  Method(MethodGroup* method_group, Modifiers modifiers, Signature* signature);
+  Method(MethodGroup* method_group,
+         Modifiers modifiers,
+         Signature* signature,
+         Signature* function_signature);
 
+  Signature* const function_signature_;
   MethodGroup* const method_group_;
   Modifiers const modifiers_;
   Signature* const signature_;

@@ -49,7 +49,7 @@ class Factory final : public ZoneOwner {
   Literal* NewLiteral(Type* type, Token* token);
   Method* NewMethod(MethodGroup* method_group,
                     Modifiers modifiers,
-                    Signature* signature);
+                    Signature* method_signature);
   MethodGroup* NewMethodGroup(Class* owner, Token* name);
   Namespace* NewNamespace(Namespace* outer, Token* name);
 
@@ -72,6 +72,9 @@ class Factory final : public ZoneOwner {
   class ArrayTypeFactory;
 
   void AddMember(Semantic* ns, Semantic* member);
+  Signature* CalculateMethodFunctionSignature(Class* clazz,
+                                              Modifiers modifiers,
+                                              Signature* method_signature);
 
   std::unique_ptr<ArrayTypeFactory> array_type_factory_;
   Namespace* const global_namespace_;

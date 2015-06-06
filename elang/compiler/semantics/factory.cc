@@ -15,6 +15,7 @@
 #include "elang/compiler/semantics/visitor.h"
 #include "elang/compiler/token.h"
 #include "elang/compiler/token_factory.h"
+#include "elang/compiler/token_type.h"
 
 namespace {
 using elang::compiler::sm::Type;
@@ -108,6 +109,29 @@ void Factory::AddMember(Semantic* container, Semantic* member) {
   NOTREACHED() << container << " " << member;
 }
 
+Signature* Factory::CalculateMethodFunctionSignature(
+    Class* clazz,
+    Modifiers modifiers,
+    Signature* method_signature) {
+  if (modifiers.HasStatic())
+    return method_signature;
+  auto const& method_parameters = method_signature->parameters();
+  std::vector<sm::Parameter*> parameters(method_parameters.size() + 1);
+  parameters.resize(0);
+  parameters.push_back(NewParameter(
+      ParameterKind::Required, 0, NewPointerType(clazz),
+      token_factory_->NewToken(
+          method_signature->token()->location(),
+          TokenData(TokenType::This, token_factory_->NewAtomicString(L"this"))),
+      nullptr));
+  for (auto const parameter : method_parameters) {
+    parameters.push_back(NewParameter(
+        parameter->kind(), parameter->position() + 1, parameter->type(),
+        parameter->name(), parameter->default_value()));
+  }
+  return NewSignature(method_signature->return_type(), parameters);
+}
+
 ArrayType* Factory::NewArrayType(sm::Type* element_type,
                                  const std::vector<int>& dimensions) {
   return array_type_factory_->NewArrayType(element_type, dimensions);
@@ -163,8 +187,11 @@ Literal* Factory::NewLiteral(Type* type, Token* token) {
 
 Method* Factory::NewMethod(MethodGroup* method_group,
                            Modifiers modifiers,
-                           Signature* signature) {
-  auto const method = new (zone()) Method(method_group, modifiers, signature);
+                           Signature* method_signature) {
+  auto const function_signature = CalculateMethodFunctionSignature(
+      method_group->owner(), modifiers, method_signature);
+  auto const method = new (zone())
+      Method(method_group, modifiers, method_signature, function_signature);
   method_group->methods_.push_back(method);
   return method;
 }

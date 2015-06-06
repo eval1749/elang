@@ -31,6 +31,7 @@ class SemanticTest : public testing::AnalyzerTest {
   SemanticTest();
   ~SemanticTest() override = default;
 
+  Type* bool_type();
   Editor* editor() { return &editor_; }
   Factory* factory() { return editor()->factory(); }
   Type* int32_type();
@@ -50,6 +51,10 @@ class SemanticTest : public testing::AnalyzerTest {
 };
 
 SemanticTest::SemanticTest() : editor_(session()) {
+}
+
+Type* SemanticTest::bool_type() {
+  return session()->PredefinedTypeOf(PredefinedName::Bool);
 }
 
 Type* SemanticTest::int32_type() {
@@ -178,6 +183,25 @@ TEST_F(SemanticTest, Field) {
   auto const class_type = NewClass("Foo");
   auto const field = factory()->NewField(class_type, NewToken("field_"));
   EXPECT_EQ("? Foo.field_", ToString(field));
+}
+
+TEST_F(SemanticTest, Method) {
+  auto const class_type = NewClass("Foo");
+  auto const method_group =
+      factory()->NewMethodGroup(class_type, NewToken("Bar"));
+  std::vector<Parameter*> parameters{
+      factory()->NewParameter(ParameterKind::Required, 0, bool_type(),
+                              NewToken("a"), nullptr),
+      factory()->NewParameter(ParameterKind::Required, 0, int32_type(),
+                              NewToken("b"), nullptr)};
+  auto const method_signature =
+      factory()->NewSignature(int32_type(), parameters);
+  auto const method =
+      factory()->NewMethod(method_group, Modifiers(), method_signature);
+  EXPECT_EQ("System.Int32 Foo.Bar(System.Bool, System.Int32)",
+            ToString(method));
+  EXPECT_EQ("(#Foo* this, System.Bool a, System.Int32 b) => System.Int32",
+            ToString(method->function_signature()));
 }
 
 TEST_F(SemanticTest, Namespace) {

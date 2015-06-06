@@ -188,11 +188,21 @@ Literal::Literal(Type* type, Token* token) : Value(type, token), data_(token) {
 // Method
 Method::Method(MethodGroup* method_group,
                Modifiers modifiers,
-               Signature* signature)
+               Signature* signature,
+               Signature* function_signature)
     : NamedMember(method_group->outer(), method_group->name()),
+      function_signature_(function_signature),
       method_group_(method_group),
       modifiers_(modifiers),
       signature_(signature) {
+  if (modifiers.HasStatic()) {
+    DCHECK_EQ(signature_, function_signature_);
+  } else {
+    DCHECK_NE(signature_, function_signature_);
+    DCHECK_EQ(signature_->return_type(), function_signature_->return_type());
+    DCHECK_EQ(signature_->parameters().size() + 1,
+              function_signature_->parameters().size());
+  }
 }
 
 const ZoneVector<Parameter*>& Method::parameters() const {
