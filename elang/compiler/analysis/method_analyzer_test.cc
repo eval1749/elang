@@ -198,13 +198,6 @@ class PostOrderTraverse final : public ast::Visitor {
       Traverse(statement);
   }
 
-  void VisitReturnStatement(ast::ReturnStatement* node) final {
-    auto const expression = node->value();
-    if (!expression)
-      return;
-    Traverse(expression);
-  }
-
   std::vector<ast::Node*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(PostOrderTraverse);
