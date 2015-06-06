@@ -553,7 +553,7 @@ void Parser::ParseReturnStatement(Token* return_keyword) {
   DCHECK_EQ(return_keyword, TokenType::Return);
   if (AdvanceIf(TokenType::SemiColon)) {
     return ProduceStatement(
-        factory()->NewReturnStatement(return_keyword, nullptr));
+        factory()->NewReturnStatement(return_keyword, NewNoExpression()));
   }
   ParseExpression(ErrorCode::SyntaxReturnExpression);
   auto const value = ConsumeExpression();

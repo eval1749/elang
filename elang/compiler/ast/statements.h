@@ -276,16 +276,14 @@ class InvalidStatement final : public Statement {
 
 // Represents 'return' statement:
 //  'return' Expression? ';'
-class ReturnStatement final : public TerminatorStatement {
+class ReturnStatement final : public SimpleNode<TerminatorStatement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ReturnStatement, TerminatorStatement);
 
  public:
-  Expression* value() const { return value_; }
+  Expression* value() const;
 
  private:
   ReturnStatement(Token* keyword, Expression* value);
-
-  Expression* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnStatement);
 };

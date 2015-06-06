@@ -120,8 +120,14 @@ InvalidStatement::InvalidStatement(Token* token) : Statement(token) {
 
 // ReturnStatement
 ReturnStatement::ReturnStatement(Token* keyword, Expression* value)
-    : TerminatorStatement(keyword), value_(value) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::Return);
+  set_child_at(0, value);
+}
+
+ast::Expression* ReturnStatement::value() const {
+  auto const value = child_at(0)->as<ast::Expression>();
+  return value->is<ast::NoExpression>() ? nullptr : value;
 }
 
 // Statement

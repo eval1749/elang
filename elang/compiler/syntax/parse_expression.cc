@@ -91,6 +91,10 @@ ast::Expression* Parser::NewInvalidExpression(Token* token) {
   return factory()->NewInvalidExpression(token);
 }
 
+ast::Expression* Parser::NewNoExpression() {
+  return factory()->NewNoExpression(PeekToken());
+}
+
 void Parser::ParseExpression(ErrorCode error_code) {
   auto const token = PeekToken();
   if (TryParseExpression())
