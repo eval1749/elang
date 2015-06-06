@@ -13,6 +13,7 @@
 #include "elang/optimizer/formatters/text_formatter.h"
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/nodes.h"
+#include "elang/optimizer/types.h"
 #include "elang/optimizer/validator.h"
 
 namespace elang {
@@ -26,7 +27,8 @@ Editor::Editor(Factory* factory, Function* function)
     : ErrorReporter(factory),
       FactoryUser(factory),
       control_(nullptr),
-      function_(function) {
+      function_(function),
+      parameter_nodes_(function->function_type()->arity()) {
 }
 
 Editor::~Editor() {
@@ -72,7 +74,11 @@ void Editor::Edit(Control* control) {
 Data* Editor::ParameterAt(size_t index) {
   DCHECK(control_);
   DCHECK_EQ(control_, entry_node()) << *control_;
-  return NewParameter(entry_node(), index);
+  if (auto const node = parameter_nodes_[index])
+    return node;
+  auto const new_node = NewParameter(entry_node(), index);
+  parameter_nodes_[index] = new_node;
+  return new_node;
 }
 
 void Editor::RemoveControlInput(PhiOwnerNode* node, Control* control) {

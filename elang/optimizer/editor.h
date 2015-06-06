@@ -6,6 +6,7 @@
 #define ELANG_OPTIMIZER_EDITOR_H_
 
 #include <iosfwd>
+#include <vector>
 
 #include "base/macros.h"
 #include "elang/optimizer/error_reporter.h"
@@ -63,6 +64,7 @@ class ELANG_OPTIMIZER_EXPORT Editor final : public ErrorReporter,
 
   Control* control_;
   Function* const function_;
+  std::vector<Data*> parameter_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(Editor);
 };
