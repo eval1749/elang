@@ -9,6 +9,7 @@ source_set("translate") {
     "builder.cc",
     "builder.h",
     "translate.cc",
+    "translate_statement.cc",
     "translator.cc",
     "translator.h",
     "type_mapper.cc",
