@@ -244,7 +244,7 @@ void Translator::VisitForEachStatement(ast::ForEachStatement* node) {
   {
     ScopedBreakContext scope(this, break_block, continue_block);
     auto const element_value = builder_->NewLoad(array, element_pointer_0);
-    auto const variable = ValueOf(node->variable())->as<sm::Variable>();
+    auto const variable = SemanticOf(node->variable())->as<sm::Variable>();
     DCHECK(variable);
     builder_->StartVariableScope();
     builder_->BindVariable(variable, element_value);
@@ -292,7 +292,8 @@ void Translator::VisitReturnStatement(ast::ReturnStatement* node) {
 
 void Translator::VisitVarStatement(ast::VarStatement* node) {
   for (auto const declaration : node->variables()) {
-    auto const variable = ValueOf(declaration->variable())->as<sm::Variable>();
+    auto const variable =
+        SemanticOf(declaration->variable())->as<sm::Variable>();
     DCHECK(variable);
     builder_->BindVariable(variable, Translate(declaration->value()));
   }

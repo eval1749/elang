@@ -60,6 +60,8 @@ class Translator final : public CompilationSessionUser,
   ir::Data* NewOperationFor(ast::Expression* node,
                             ir::Data* left,
                             ir::Data* right);
+  // Shortcut for |analysis()->SemanticOf()|
+  sm::Semantic* SemanticOf(ast::Node* node) const;
   void SetVisitorResult(ir::Node* node);
 
   ir::Data* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
@@ -73,9 +75,6 @@ class Translator final : public CompilationSessionUser,
   void TranslateVariable(ast::NamedNode* ast_variable);
   void TranslateVariableAssignment(ast::NamedNode* ast_variable,
                                    ast::Expression* ast_value);
-
-  // Shortcut for |analysis()->SemanticOf()|
-  sm::Semantic* ValueOf(ast::Node* node) const;
 
   // Variable management
   void BindParameters(ast::Method* method);

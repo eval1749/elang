@@ -247,14 +247,14 @@ ir::Data* Translator::TranslateMethodReference(sm::Method* method) {
 }
 
 void Translator::TranslateVariable(ast::NamedNode* ast_variable) {
-  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+  auto const variable = SemanticOf(ast_variable)->as<sm::Variable>();
   DCHECK(variable);
   SetVisitorResult(builder_->VariableValueOf(variable));
 }
 
 void Translator::TranslateVariableAssignment(ast::NamedNode* ast_variable,
                                              ast::Expression* ast_value) {
-  auto const variable = ValueOf(ast_variable)->as<sm::Variable>();
+  auto const variable = SemanticOf(ast_variable)->as<sm::Variable>();
   auto const value = Translate(ast_value);
   builder_->AssignVariable(variable, value);
   SetVisitorResult(value);
@@ -287,7 +287,7 @@ void Translator::VisitAssignment(ast::Assignment* node) {
     return SetVisitorResult(new_value);
   }
   if (auto const name_ref = lhs->as<ast::NameReference>()) {
-    auto const semantic = ValueOf(name_ref);
+    auto const semantic = SemanticOf(name_ref);
     if (auto const field = semantic->as<sm::Field>()) {
       auto const reference = TranslateField(field);
       auto const new_value = Translate(rhs);
@@ -303,7 +303,7 @@ void Translator::VisitBinaryOperation(ast::BinaryOperation* node) {
     // TODO(eval1749) NYI conditional operation
     DoDefaultVisit(node);
   }
-  auto const sm_type = ValueOf(node)->as<sm::Class>();
+  auto const sm_type = SemanticOf(node)->as<sm::Class>();
   DCHECK(sm_type) << "NYI user defined operator: " << *node;
   auto const type = MapType(sm_type);
   auto const lhs = TranslateAs(node->left(), type);
@@ -314,7 +314,7 @@ void Translator::VisitBinaryOperation(ast::BinaryOperation* node) {
 // Translates function call by generating callee, arguments are translated from
 // left to right.
 void Translator::VisitCall(ast::Call* node) {
-  auto const sm_callee = ValueOf(node->callee())->as<sm::Method>();
+  auto const sm_callee = SemanticOf(node->callee())->as<sm::Method>();
   DCHECK(sm_callee) << "Unresolved call" << *node;
   auto const callee = TranslateMethodReference(sm_callee);
   if (node->arguments().empty()) {
@@ -336,12 +336,12 @@ void Translator::VisitCall(ast::Call* node) {
 }
 
 void Translator::VisitLiteral(ast::Literal* node) {
-  auto const value = ValueOf(node)->as<sm::Literal>();
+  auto const value = SemanticOf(node)->as<sm::Literal>();
   SetVisitorResult(TranslateLiteral(MapType(value->type()), node->token()));
 }
 
 void Translator::VisitNameReference(ast::NameReference* node) {
-  auto const semantic = ValueOf(node);
+  auto const semantic = SemanticOf(node);
   DCHECK(semantic) << node;
   if (auto const field = semantic->as<sm::Field>()) {
     auto const reference = TranslateField(field);

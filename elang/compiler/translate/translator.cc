@@ -55,7 +55,7 @@ void Translator::BindParameters(ast::Method* method) {
     return;
   auto index = method->IsStatic() ? 0 : 1;
   for (auto const parameter : method->parameters()) {
-    auto const variable = ValueOf(parameter)->as<sm::Variable>();
+    auto const variable = SemanticOf(parameter)->as<sm::Variable>();
     DCHECK(variable);
     builder_->BindVariable(variable, builder()->ParameterAt(index));
     ++index;
@@ -80,7 +80,7 @@ void Translator::Run() {
   session()->Apply(this);
 }
 
-sm::Semantic* Translator::ValueOf(ast::Node* node) const {
+sm::Semantic* Translator::SemanticOf(ast::Node* node) const {
   return analysis()->SemanticOf(node);
 }
 
@@ -107,7 +107,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
   DCHECK(!builder_);
   //  1 Convert ast::FunctionType to ir::FunctionType
   //  2 ir::NewFunction(function_type)
-  auto const method = ValueOf(ast_method)->as<sm::Method>();
+  auto const method = SemanticOf(ast_method)->as<sm::Method>();
   if (!method) {
     DVLOG(0) << "Not resolved " << *ast_method;
     return;
