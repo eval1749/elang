@@ -118,7 +118,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
   if (!ast_method_body)
     return;
   auto const function = factory()->NewFunction(
-      type_mapper()->Map(method->signature())->as<ir::FunctionType>());
+      type_mapper()->Map(method->function_signature())->as<ir::FunctionType>());
   session()->RegisterFunction(ast_method, function);
 
   auto const builder = std::make_unique<Builder>(factory(), function);
