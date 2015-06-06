@@ -42,6 +42,7 @@ Translator::Translator(CompilationSession* session, ir::Factory* factory)
       FactoryUser(factory),
       break_context_(nullptr),
       builder_(nullptr),
+      method_(nullptr),
       type_mapper_(new IrTypeMapper(session, factory->type_factory())),
       visit_result_(nullptr) {
 }
@@ -52,7 +53,7 @@ Translator::~Translator() {
 void Translator::BindParameters(ast::Method* method) {
   if (method->parameters().empty())
     return;
-  auto index = 0;
+  auto index = method->IsStatic() ? 0 : 1;
   for (auto const parameter : method->parameters()) {
     auto const variable = ValueOf(parameter)->as<sm::Variable>();
     DCHECK(variable);
@@ -120,6 +121,7 @@ void Translator::VisitMethod(ast::Method* ast_method) {
 
   Builder builder(factory(), function);
   base::AutoReset<Builder*> builder_scope(&builder_, &builder);
+  base::AutoReset<sm::Method*> method_scope(&method_, method);
 
   BindParameters(ast_method);
   // TODO(eval1749) handle body expression

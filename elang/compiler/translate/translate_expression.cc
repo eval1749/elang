@@ -8,8 +8,10 @@
 #include "elang/compiler/translate/translator.h"
 
 #include "base/auto_reset.h"
+#include "base/containers/adapters.h"
 #include "base/logging.h"
 #include "base/strings/utf_string_conversions.h"
+#include "elang/base/atomic_string.h"
 #include "elang/compiler/analysis/analysis.h"
 #include "elang/compiler/ast/class.h"
 #include "elang/compiler/ast/expressions.h"
@@ -160,6 +162,24 @@ ir::Data* Translator::TranslateBool(ast::Expression* expression) {
   return node;
 }
 
+ir::Data* Translator::TranslateField(sm::Field* field) {
+  auto const field_type = MapType(field->type());
+  if (field->IsStatic()) {
+    auto const field_pointer_type = factory()->NewPointerType(field_type);
+    auto const field_pointer = factory()->NewReference(
+        field_pointer_type, session()->QualifiedNameOf(field));
+    return builder_->NewLoad(field_pointer, field_pointer);
+  }
+  DCHECK(!method_->IsStatic()) << field << " " << method_;
+  DCHECK_EQ(field->owner(), method_->owner()) << field << " " << method_;
+  auto const field_name =
+      factory()->NewReference(field_type, session()->QualifiedNameOf(field));
+  auto const this_pointer = builder_->ParameterAt(0);
+  auto const reference =
+      factory()->NewField(field_type, this_pointer, field_name);
+  return builder_->NewLoad(this_pointer, reference);
+}
+
 ir::Data* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
   if (type == MapType(PredefinedName::Bool))
     return NewBool(token->bool_data());
@@ -304,6 +324,14 @@ void Translator::VisitCall(ast::Call* node) {
 void Translator::VisitLiteral(ast::Literal* node) {
   auto const value = ValueOf(node)->as<sm::Literal>();
   SetVisitorResult(TranslateLiteral(MapType(value->type()), node->token()));
+}
+
+void Translator::VisitNameReference(ast::NameReference* node) {
+  auto const semantic = ValueOf(node);
+  DCHECK(semantic) << node;
+  if (auto const field = semantic->as<sm::Field>())
+    return SetVisitorResult(TranslateField(field));
+  DoDefaultVisit(node);
 }
 
 void Translator::VisitParameterReference(ast::ParameterReference* node) {

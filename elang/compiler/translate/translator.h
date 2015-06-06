@@ -64,6 +64,7 @@ class Translator final : public CompilationSessionUser,
   ir::Data* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
   ir::Data* TranslateBool(ast::Expression* expression);
   ir::Data* Translate(ast::Expression* node);
+  ir::Data* TranslateField(sm::Field* field);
   ir::Data* TranslateLiteral(ir::Type* ir_type, const Token* token);
   ir::Data* TranslateMethodReference(sm::Method* method);
   void TranslateStatement(ast::Statement* node);
@@ -89,6 +90,7 @@ class Translator final : public CompilationSessionUser,
   void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitLiteral(ast::Literal* node) final;
+  void VisitNameReference(ast::NameReference* node) final;
   void VisitParameterReference(ast::ParameterReference* node) final;
   void VisitVariableReference(ast::VariableReference* node) final;
 
@@ -111,6 +113,9 @@ class Translator final : public CompilationSessionUser,
 
   // The |Builder|.
   Builder* builder_;
+
+  // A method being translated.
+  sm::Method* method_;
 
   // The type mapper for mapping |sm::Type| to |ir::Type|.
   const std::unique_ptr<IrTypeMapper> type_mapper_;

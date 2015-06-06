@@ -136,6 +136,43 @@ TEST_F(TranslatorTest, DoWhile) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, FieldReadInstance) {
+  Prepare(
+      "class Sample {"
+      "  int length_;"
+      "  int Length() { return length_; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(Sample*)\n"
+      "0000: control(Sample*) %c1 = entry()\n"
+      "0001: effect %e4 = get_effect(%c1)\n"
+      "0002: Sample* %r5 = param(%c1, 0)\n"
+      "0003: int32* %r6 = field(%r5, int32 Sample.length_)\n"
+      "0004: int32 %r7 = load(%e4, %r5, %r6)\n"
+      "0005: control %c8 = ret(%c1, %e4, %r7)\n"
+      "0006: control %c2 = merge(%c8)\n"
+      "0007: exit(%c2)\n",
+      Translate("Sample.Length"));
+}
+
+TEST_F(TranslatorTest, FieldReadStatic) {
+  Prepare(
+      "class Sample {"
+      "  static int length_;"
+      "  int Length() { return length_; }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(Sample*)\n"
+      "0000: control(Sample*) %c1 = entry()\n"
+      "0001: effect %e4 = get_effect(%c1)\n"
+      "0002: int32 %r5 = load(%e4, int32* Sample.length_, int32* "
+      "Sample.length_)\n"
+      "0003: control %c6 = ret(%c1, %e4, %r5)\n"
+      "0004: control %c2 = merge(%c6)\n"
+      "0005: exit(%c2)\n",
+      Translate("Sample.Length"));
+}
+
 TEST_F(TranslatorTest, For) {
   Prepare(
       "class Sample {"
