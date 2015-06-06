@@ -280,38 +280,35 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
   ProduceResult(type_factory()->NewLiteral(array_type->element_type()), node);
 }
 
-void TypeResolver::VisitAssignment(ast::Assignment* assignment) {
-  auto const lhs = assignment->left();
-  auto const rhs = assignment->right();
+void TypeResolver::VisitAssignment(ast::Assignment* node) {
+  auto const lhs = node->left();
+  auto const rhs = node->right();
   if (auto const reference = lhs->as<ast::ParameterReference>()) {
     auto const value = variable_tracker_->RecordSet(reference->parameter());
-    ProduceResolved(rhs, value, assignment);
-    return;
+    return ProduceResolved(rhs, value, node);
   }
   if (auto const reference = lhs->as<ast::VariableReference>()) {
     auto const value = variable_tracker_->RecordSet(reference->variable());
-    ProduceResolved(rhs, value, assignment);
-    return;
+    return ProduceResolved(rhs, value, node);
   }
   if (auto const reference = lhs->as<ast::ArrayAccess>()) {
     auto const element_value = Resolve(reference, any_value());
-    ProduceResolved(rhs, element_value, assignment);
-    return;
+    return ProduceResolved(rhs, element_value, node);
   }
   if (auto const reference = lhs->as<ast::NameReference>()) {
     auto const value = ResolveReference(reference);
     if (auto const field = value->as<sm::Field>()) {
       if (context_method_->IsStatic() && !field->IsStatic())
-        Error(ErrorCode::TypeResolverFieldNoThis, assignment);
+        Error(ErrorCode::TypeResolverFieldNoThis, node);
       SetSemanticOf(lhs, field);
-      return ProduceResolved(rhs, NewLiteral(field->type()), assignment);
+      return ProduceResolved(rhs, NewLiteral(field->type()), node);
     }
-    return DoDefaultVisit(assignment);
+    return DoDefaultVisit(node);
   }
   if (auto const reference = lhs->as<ast::MemberAccess>()) {
     auto const value = ResolveReference(reference);
-    DCHECK(value) << "NYI Assign to field " << *lhs;
-    return;
+    DCHECK(value) << node;
+    return DoDefaultVisit(node);
   }
   Error(ErrorCode::TypeResolverAssignmentLeftValue, lhs);
 }
