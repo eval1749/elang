@@ -136,7 +136,7 @@ TEST_F(TranslatorTest, DoWhile) {
       Translate("Sample.Foo"));
 }
 
-TEST_F(TranslatorTest, FieldReadInstance) {
+TEST_F(TranslatorTest, FieldInstanceRead) {
   Prepare(
       "class Sample {"
       "  int length_;"
@@ -155,7 +155,27 @@ TEST_F(TranslatorTest, FieldReadInstance) {
       Translate("Sample.Length"));
 }
 
-TEST_F(TranslatorTest, FieldReadStatic) {
+TEST_F(TranslatorTest, FieldInstanceWrite) {
+  Prepare(
+      "class Sample {"
+      "  int length_;"
+      "  void SetLength(int new_value) { length_ = new_value; }"
+      "}");
+  EXPECT_EQ(
+      "function1 void(Sample*, int32)\n"
+      "0000: control((Sample*, int32)) %c1 = entry()\n"
+      "0001: effect %e4 = get_effect(%c1)\n"
+      "0002: Sample* %r6 = param(%c1, 0)\n"
+      "0003: int32* %r7 = field(%r6, int32 Sample.length_)\n"
+      "0004: int32 %r5 = param(%c1, 1)\n"
+      "0005: effect %e8 = store(%e4, %r6, %r7, %r5)\n"
+      "0006: control %c9 = ret(%c1, %e8, void)\n"
+      "0007: control %c2 = merge(%c9)\n"
+      "0008: exit(%c2)\n",
+      Translate("Sample.SetLength"));
+}
+
+TEST_F(TranslatorTest, FieldStaticRead) {
   Prepare(
       "class Sample {"
       "  static int length_;"
@@ -171,6 +191,25 @@ TEST_F(TranslatorTest, FieldReadStatic) {
       "0004: control %c2 = merge(%c6)\n"
       "0005: exit(%c2)\n",
       Translate("Sample.Length"));
+}
+
+TEST_F(TranslatorTest, FieldStaticWrite) {
+  Prepare(
+      "class Sample {"
+      "  static int length_;"
+      "  void SetLength(int new_value) { length_ = new_value; }"
+      "}");
+  EXPECT_EQ(
+      "function1 void(Sample*, int32)\n"
+      "0000: control((Sample*, int32)) %c1 = entry()\n"
+      "0001: effect %e4 = get_effect(%c1)\n"
+      "0002: int32 %r5 = param(%c1, 1)\n"
+      "0003: effect %e6 = store(%e4, int32* Sample.length_, int32* "
+      "Sample.length_, %r5)\n"
+      "0004: control %c7 = ret(%c1, %e6, void)\n"
+      "0005: control %c2 = merge(%c7)\n"
+      "0006: exit(%c2)\n",
+      Translate("Sample.SetLength"));
 }
 
 TEST_F(TranslatorTest, For) {

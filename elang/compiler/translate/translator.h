@@ -42,6 +42,7 @@ class Translator final : public CompilationSessionUser,
 
  private:
   struct BreakContext;
+  struct Reference;
   class ScopedBreakContext;
 
   Builder* builder() const { return builder_; }
@@ -64,7 +65,7 @@ class Translator final : public CompilationSessionUser,
   ir::Data* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
   ir::Data* TranslateBool(ast::Expression* expression);
   ir::Data* Translate(ast::Expression* node);
-  ir::Data* TranslateField(sm::Field* field);
+  Reference TranslateField(sm::Field* field);
   ir::Data* TranslateLiteral(ir::Type* ir_type, const Token* token);
   ir::Data* TranslateMethodReference(sm::Method* method);
   void TranslateStatement(ast::Statement* node);

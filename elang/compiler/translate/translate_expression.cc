@@ -36,6 +36,11 @@
 namespace elang {
 namespace compiler {
 
+struct Translator::Reference {
+  ir::Data* anchor;
+  ir::Data* pointer;
+};
+
 ir::Data* Translator::NewOperationFor(ast::Expression* node,
                                       ir::Data* left,
                                       ir::Data* right) {
@@ -162,13 +167,13 @@ ir::Data* Translator::TranslateBool(ast::Expression* expression) {
   return node;
 }
 
-ir::Data* Translator::TranslateField(sm::Field* field) {
+Translator::Reference Translator::TranslateField(sm::Field* field) {
   auto const field_type = MapType(field->type());
   if (field->IsStatic()) {
     auto const field_pointer_type = factory()->NewPointerType(field_type);
     auto const field_pointer = factory()->NewReference(
         field_pointer_type, session()->QualifiedNameOf(field));
-    return builder_->NewLoad(field_pointer, field_pointer);
+    return Reference{field_pointer, field_pointer};
   }
   DCHECK(!method_->IsStatic()) << field << " " << method_;
   DCHECK_EQ(field->owner(), method_->owner()) << field << " " << method_;
@@ -177,7 +182,7 @@ ir::Data* Translator::TranslateField(sm::Field* field) {
   auto const this_pointer = builder_->ParameterAt(0);
   auto const reference =
       factory()->NewField(field_type, this_pointer, field_name);
-  return builder_->NewLoad(this_pointer, reference);
+  return Reference{this_pointer, reference};
 }
 
 ir::Data* Translator::TranslateLiteral(ir::Type* type, const Token* token) {
@@ -281,6 +286,15 @@ void Translator::VisitAssignment(ast::Assignment* node) {
     builder_->NewStore(array, element_pointer, new_value);
     return SetVisitorResult(new_value);
   }
+  if (auto const name_ref = lhs->as<ast::NameReference>()) {
+    auto const semantic = ValueOf(name_ref);
+    if (auto const field = semantic->as<sm::Field>()) {
+      auto const reference = TranslateField(field);
+      auto const new_value = Translate(rhs);
+      builder_->NewStore(reference.anchor, reference.pointer, new_value);
+      return SetVisitorResult(new_value);
+    }
+  }
   Error(ErrorCode::TranslatorExpressionNotYetImplemented, node);
 }
 
@@ -329,8 +343,11 @@ void Translator::VisitLiteral(ast::Literal* node) {
 void Translator::VisitNameReference(ast::NameReference* node) {
   auto const semantic = ValueOf(node);
   DCHECK(semantic) << node;
-  if (auto const field = semantic->as<sm::Field>())
-    return SetVisitorResult(TranslateField(field));
+  if (auto const field = semantic->as<sm::Field>()) {
+    auto const reference = TranslateField(field);
+    auto const value = builder_->NewLoad(reference.anchor, reference.pointer);
+    return SetVisitorResult(value);
+  }
   DoDefaultVisit(node);
 }
 
