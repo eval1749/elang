@@ -202,13 +202,12 @@ void Formatter::VisitPointerType(PointerType* node) {
 }
 
 void Formatter::VisitSignature(Signature* signature) {
-  ostream_ << *signature->return_type() << " ";
-  auto separator = "";
+  auto separator = "(";
   for (auto const parameter : signature->parameters()) {
     ostream_ << separator << *parameter;
     separator = ", ";
   }
-  ostream_ << ")";
+  ostream_ << ") => " << signature->return_type();
 }
 
 void Formatter::VisitUndefinedType(UndefinedType* node) {
