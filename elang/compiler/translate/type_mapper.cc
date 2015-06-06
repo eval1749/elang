@@ -64,6 +64,9 @@ ir::Type* IrTypeMapper::Map(sm::Type* sm_type) {
     return ir_type;
   }
 
+  if (auto const sm_pointer = sm_type->as<sm::PointerType>())
+    return type_factory_->NewPointerType(Map(sm_pointer->pointee()));
+
   if (auto const signature = sm_type->as<sm::Signature>()) {
     // sm::Signature => ir::FunctionType(return_type, parameter_types)
     auto const arity = signature->maximum_arity();
@@ -91,7 +94,7 @@ ir::Type* IrTypeMapper::Map(sm::Type* sm_type) {
     return ir_type;
   }
 
-  NOTREACHED() << *sm_type;
+  NOTREACHED() << "Unsupported: " << *sm_type;
   return nullptr;
 }
 
