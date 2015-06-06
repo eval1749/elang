@@ -167,6 +167,16 @@ ir::Data* Translator::TranslateBool(ast::Expression* expression) {
   return node;
 }
 
+Translator::Reference Translator::TranslateElement(ast::ArrayAccess* element) {
+  auto const array = Translate(element->array());
+  std::vector<ir::Node*> indexes(element->indexes().size());
+  indexes.resize(0);
+  for (auto const index : element->indexes())
+    indexes.push_back(Translate(index));
+  auto const element_pointer = NewElement(array, NewDataOrTuple(indexes));
+  return Reference{array, element_pointer};
+}
+
 Translator::Reference Translator::TranslateField(sm::Field* field) {
   auto const field_type = MapType(field->type());
   if (field->IsStatic()) {
@@ -253,13 +263,8 @@ void Translator::TranslateVariableAssignment(ast::NamedNode* ast_variable,
 // ast::Visitor expression nodes
 
 void Translator::VisitArrayAccess(ast::ArrayAccess* node) {
-  auto const array = Translate(node->array());
-  std::vector<ir::Node*> indexes(node->indexes().size());
-  indexes.resize(0);
-  for (auto const index : node->indexes())
-    indexes.push_back(Translate(index));
-  auto const element_pointer = NewElement(array, NewDataOrTuple(indexes));
-  SetVisitorResult(builder_->NewLoad(array, element_pointer));
+  auto const reference = TranslateElement(node);
+  SetVisitorResult(builder_->NewLoad(reference.anchor, reference.pointer));
 }
 
 // There are five patterns:
@@ -275,15 +280,10 @@ void Translator::VisitAssignment(ast::Assignment* node) {
     return TranslateVariableAssignment(reference->parameter(), rhs);
   if (auto const reference = lhs->as<ast::VariableReference>())
     return TranslateVariableAssignment(reference->variable(), rhs);
-  if (auto const array_access = lhs->as<ast::ArrayAccess>()) {
-    auto const array = Translate(array_access->array());
-    std::vector<ir::Node*> indexes(array_access->indexes().size());
-    indexes.resize(0);
-    for (auto const index : array_access->indexes())
-      indexes.push_back(Translate(index));
-    auto const element_pointer = NewElement(array, NewDataOrTuple(indexes));
+  if (auto const element = lhs->as<ast::ArrayAccess>()) {
+    auto const reference = TranslateElement(element);
     auto const new_value = Translate(rhs);
-    builder_->NewStore(array, element_pointer, new_value);
+    builder_->NewStore(reference.anchor, reference.pointer, new_value);
     return SetVisitorResult(new_value);
   }
   if (auto const name_ref = lhs->as<ast::NameReference>()) {

@@ -65,7 +65,8 @@ class Translator final : public CompilationSessionUser,
   ir::Data* TranslateAs(ast::Expression* expression, ir::Type* ir_type);
   ir::Data* TranslateBool(ast::Expression* expression);
   ir::Data* Translate(ast::Expression* node);
-  Reference TranslateField(sm::Field* field);
+  Reference TranslateElement(ast::ArrayAccess* node);
+  Reference TranslateField(sm::Field* node);
   ir::Data* TranslateLiteral(ir::Type* ir_type, const Token* token);
   ir::Data* TranslateMethodReference(sm::Method* method);
   void TranslateStatement(ast::Statement* node);
