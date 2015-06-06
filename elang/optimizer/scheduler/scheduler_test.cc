@@ -36,7 +36,7 @@ class SchedulerTest : public testing::OptimizerTest {
 
 std::string SchedulerTest::ScheduleOf(Function* function) {
   auto const schedule = factory()->ComputeSchedule(function);
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << AsFormatted(*schedule);
   return ostream.str();
 }

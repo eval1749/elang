@@ -30,7 +30,7 @@ std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
 #undef V
   };
 
-  std::stringstream stream;
+  std::ostringstream stream;
   for (auto const error : errors) {
     auto const index = static_cast<int>(error->error_code());
     stream << mnemonic[index] << "(" << error->location().start().offset()

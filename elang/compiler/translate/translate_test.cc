@@ -44,7 +44,7 @@ TranslateTest::~TranslateTest() {
 }
 
 std::string TranslateTest::FormatFunction(ir::Function* function) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << ir::AsReversePostOrder(function);
   return ostream.str();
 }

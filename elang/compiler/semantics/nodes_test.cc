@@ -82,7 +82,7 @@ Token* SemanticTest::NewToken(base::StringPiece name) {
 }
 
 std::string SemanticTest::ToString(Semantic* semantic) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *semantic;
   return ostream.str();
 }

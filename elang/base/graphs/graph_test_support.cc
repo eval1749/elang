@@ -14,7 +14,7 @@ namespace testing {
 
 // Function
 std::string Function::ToString() const {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *this;
   return ostream.str();
 }
@@ -156,7 +156,7 @@ void GraphTestBase::MakeSampleGraph1() {
 }
 
 std::string ToString(const OrderedList<Block*>& list) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << "[";
   auto separator = "";
   for (auto const block : list) {

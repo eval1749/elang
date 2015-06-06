@@ -58,7 +58,7 @@ class Formatter final : public ast::Visitor {
   FOR_EACH_CONCRETE_AST_NODE(DECLARE_VISIT)
 #undef DECLARE_VISIT
 
-  std::stringstream ostream_;
+  std::ostringstream ostream_;
   int depth_;
 
   DISALLOW_COPY_AND_ASSIGN(Formatter);

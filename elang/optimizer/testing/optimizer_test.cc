@@ -60,7 +60,7 @@ Function* OptimizerTest::NewSampleFunction(
 }
 
 std::string OptimizerTest::ToString(const Function* function) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   Validator validator(factory(), function);
   if (validator.Validate())
     ostream << AsReversePostOrder(function);
@@ -73,18 +73,18 @@ std::string OptimizerTest::ToString(const Node* node) {
   if (function_) {
     Validator validator(factory(), function_);
     if (!validator.Validate(node)) {
-      std::stringstream ostream;
+      std::ostringstream ostream;
       ostream << factory()->errors();
       return ostream.str();
     }
   }
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *node;
   return ostream.str();
 }
 
 std::string OptimizerTest::ToString(const Type* type) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *type;
   return ostream.str();
 }

@@ -67,7 +67,7 @@ sm::Type* CompilationSessionUser::PredefinedTypeOf(PredefinedName name) {
 Token* CompilationSessionUser::PrettyTokenFor(ast::Node* node) {
   if (!ShouldUsePrinter(node))
     return node->name();
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << node;
   auto const name =
       session()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));

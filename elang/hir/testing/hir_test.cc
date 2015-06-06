@@ -34,7 +34,7 @@ std::string ConvertErrorListToString(const std::vector<ErrorData*> errors) {
           "Invalid",
   };
 
-  std::stringstream stream;
+  std::ostringstream stream;
   for (auto const error : errors) {
     auto const index = std::min(static_cast<size_t>(error->error_code()),
                                 arraysize(mnemonics) - 1);
@@ -79,7 +79,7 @@ BasicBlock* HirTest::exit_block() const {
 }
 
 std::string HirTest::Format(Function* function) {
-  std::stringstream stream;
+  std::ostringstream stream;
   TextFormatter formatter(&stream);
   formatter.FormatFunction(function);
   return stream.str();
@@ -163,19 +163,19 @@ Function* HirTest::NewSampleFunction() {
 }
 
 std::string HirTest::ToString(Instruction* instruction) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *instruction;
   return ostream.str();
 }
 
 std::string HirTest::ToString(Type* type) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *type;
   return ostream.str();
 }
 
 std::string HirTest::ToString(Value* value) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *value;
   return ostream.str();
 }

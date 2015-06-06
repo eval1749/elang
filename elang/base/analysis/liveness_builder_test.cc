@@ -15,7 +15,7 @@ namespace {
 typedef LivenessBuilder<std::string, int> MyLivenessBuilder;
 
 std::string ToString(const Liveness& liveness) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << liveness;
   return ostream.str();
 }

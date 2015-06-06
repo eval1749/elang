@@ -46,7 +46,7 @@ void GraphTest::SetUp() {
 // Test cases...
 
 TEST_F(GraphTest, AddEdge) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *function();
   EXPECT_EQ(
       "{id: 1, predecessors: {}, successors: {B2, B3}}\n"

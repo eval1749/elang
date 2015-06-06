@@ -20,7 +20,7 @@ namespace lir {
 namespace {
 
 std::string ToString(const UseDefList::Users& users) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const user : users)
     ostream << *user << std::endl;
   return ostream.str();

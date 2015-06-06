@@ -71,7 +71,7 @@ class DominatorTreeTest : public testing::GraphTestBase {
   ~DominatorTreeTest() = default;
 
   static std::string ToString(const MyDominatorTree::Node* node) {
-    std::stringstream ostream;
+    std::ostringstream ostream;
     ostream << *node;
     return ostream.str();
   }

@@ -38,7 +38,7 @@ class HirInstructionTest : public testing::HirTest {
 
 AtomicString* HirInstructionTest::MethodNameFor(FunctionType* function_type,
                                                 base::StringPiece name) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *function_type->return_type() << " " << name << "(";
   auto const parameters_type = function_type->parameters_type();
   if (auto const tuple_type = parameters_type->as<TupleType>()) {

@@ -129,7 +129,7 @@ std::string AnalyzerTest::AnalyzeNamespace() {
 
 std::string AnalyzerTest::MakeClassListString(
     const std::vector<sm::Class*>& ir_classes) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   auto separator = "";
   for (auto const ir_base_class : ir_classes) {
     ostream << separator << ir_base_class;
@@ -171,7 +171,7 @@ sm::Semantic* AnalyzerTest::SemanticOf(base::StringPiece path) const {
 }
 
 std::string AnalyzerTest::ToString(sm::Semantic* semantic) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << semantic;
   return ostream.str();
 }

@@ -67,7 +67,7 @@ TEST_F(BitSetTest, Printer) {
   set1->Add(5);
   set1->Add(7);
   set1->Add(9);
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *set1;
   EXPECT_EQ("{1, 2, 5, 7, 9}", ostream.str());
 }

@@ -42,7 +42,7 @@ CgTest::~CgTest() {
 
 std::string CgTest::Commit(hir::Editor* editor) {
   if (!editor->Validate(editor->basic_block())) {
-    std::stringstream ostream;
+    std::ostringstream ostream;
     ostream << factory()->errors();
     return ostream.str();
   }
@@ -51,7 +51,7 @@ std::string CgTest::Commit(hir::Editor* editor) {
 }
 
 std::string CgTest::Format(const lir::Function* function) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   lir::TextFormatter formatter(lir_factory()->literals(), &ostream);
   formatter.FormatFunction(function);
   return ostream.str();
@@ -59,7 +59,7 @@ std::string CgTest::Format(const lir::Function* function) {
 
 std::string CgTest::Generate(hir::Editor* editor) {
   if (!editor->Validate()) {
-    std::stringstream ostream;
+    std::ostringstream ostream;
     ostream << factory()->errors();
     return ostream.str();
   }

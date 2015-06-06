@@ -74,7 +74,7 @@ std::ostream& operator<<(std::ostream& ostream, const MyLoopTree& tree) {
 }
 
 std::string ToString(const MyLoopTree& tree) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << tree;
   return ostream.str();
 }

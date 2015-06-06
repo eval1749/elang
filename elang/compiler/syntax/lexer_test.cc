@@ -102,7 +102,7 @@ void LexerTest::PrepareLexer(base::StringPiece16 source_text) {
 }
 
 std::string ToString(Token* token) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *token;
   return ostream.str();
 }

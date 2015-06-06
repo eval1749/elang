@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& ostream, const Block& block) {
 }
 
 std::string ToString(const Function& function, const BitSet& bit_set) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << "{";
   auto separator = "";
   for (auto member : bit_set) {
@@ -104,7 +104,7 @@ std::ostream& operator<<(std::ostream& ostream, const PrintableBlocks& blocks) {
 
 std::string ToString(const Function& function,
                      const Function::Liveness& collection) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const block : function.nodes()) {
     auto& liveness = collection.LivenessOf(block);
     ostream << *block << ":{"

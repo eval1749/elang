@@ -89,7 +89,7 @@ TEST_F(HirValuesTest, Function2) {
 
 // Literals
 TEST_F(HirValuesTest, Literal) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   EXPECT_EQ(false_value(), factory()->NewBoolLiteral(false));
   EXPECT_EQ(true_value(), factory()->NewBoolLiteral(true));
   EXPECT_NE(false_value(), true_value());
@@ -142,7 +142,7 @@ TEST_F(HirValuesTest, Literal) {
 }
 
 TEST_F(HirValuesTest, SizeOf) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *factory()->NewSizeOf(types()->int32_type());
   EXPECT_EQ("sizeof(int32)", ostream.str());
 }

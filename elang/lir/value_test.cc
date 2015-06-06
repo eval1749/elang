@@ -28,7 +28,7 @@ class LirValueTest : public testing::LirTest {
 };
 
 std::string LirValueTest::ToString(Value value) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << PrintAsGeneric(value);
   return ostream.str();
 }

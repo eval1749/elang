@@ -39,7 +39,7 @@ std::string ClassTreeBuilderTest::BaseClassesOf(base::StringPiece path) {
   auto const clazz = SemanticOf(path)->as<sm::Class>();
   if (!clazz)
     return "";
-  std::stringstream ostream;
+  std::ostringstream ostream;
   auto separator = "";
   for (auto const base_class : clazz->direct_base_classes()) {
     ostream << separator << ToString(base_class);

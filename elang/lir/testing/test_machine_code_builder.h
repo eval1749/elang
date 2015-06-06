@@ -43,7 +43,7 @@ class TestMachineCodeBuilder final : public api::MachineCodeBuilder {
  private:
   std::vector<uint8_t> bytes_;
   size_t size_;
-  std::stringstream stream_;
+  std::ostringstream stream_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMachineCodeBuilder);
 };

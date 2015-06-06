@@ -437,7 +437,7 @@ hir::Value* CodeGenerator::NewLiteral(hir::Type* type, const Token* token) {
 hir::Value* CodeGenerator::NewMethodReference(sm::Method* method) {
   // TODO(eval1749) We should calculate key as |base::string16| from
   // |sm::Method|.
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *method;
   auto const method_name =
       factory()->NewAtomicString(base::UTF8ToUTF16(ostream.str()));

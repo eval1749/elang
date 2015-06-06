@@ -12,7 +12,7 @@ namespace elang {
 namespace {
 
 TEST(AsPrintable, All) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   auto const delimiter = '|';
   ostream << AsPrintable('\0', delimiter);
   for (auto const ch : std::string("xyz\a\b\t\n\v\f\r|"))

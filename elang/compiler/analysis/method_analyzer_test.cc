@@ -214,7 +214,7 @@ class PostOrderTraverse final : public ast::Visitor {
 
 std::string MethodAnalyzerTest::DumpSemanticTree(ast::Node* start_node) {
   auto const analysis = session()->analysis();
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto node : PostOrderTraverse(start_node)) {
     auto const semantic = analysis->SemanticOf(node);
     if (!semantic)
@@ -239,7 +239,7 @@ std::string MethodAnalyzerTest::QuerySemantics(TokenType token_type) {
               return a.first->token()->location().start_offset() <
                      b.first->token()->location().start_offset();
             });
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const key_value : key_values)
     ostream << *key_value.second << std::endl;
   return ostream.str();
@@ -251,7 +251,7 @@ std::string MethodAnalyzerTest::GetCalls(base::StringPiece method_name) {
     return std::string("Not found: ") + method_name.as_string();
 
   Collector collector(method);
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const call : collector.calls()) {
     if (auto const method = analysis()->SemanticOf(call->callee()))
       ostream << *method;
@@ -268,7 +268,7 @@ std::string MethodAnalyzerTest::VariablesOf(base::StringPiece method_name) {
     return std::string("Not found: ") + method_name.as_string();
 
   Collector collector(method);
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const variable : collector.variables())
     ostream << *analysis()->SemanticOf(variable) << std::endl;
   return ostream.str();
@@ -598,7 +598,7 @@ TEST_F(MethodAnalyzerTest, Parameter) {
   ASSERT_EQ("", Analyze());
   ast::NameQuery query(session()->NewAtomicString(L"Foo"));
   auto const nodes = session()->QueryAstNodes(query);
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto node : nodes) {
     auto const method = node->as<ast::Method>();
     for (auto const parameter : method->parameters()) {

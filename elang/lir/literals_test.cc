@@ -38,7 +38,7 @@ TEST_F(LirLiteralsTest, Function) {
 }
 
 TEST_F(LirLiteralsTest, SimpleLiterals) {
-  std::stringstream stream;
+  std::ostringstream stream;
   stream << *GetLiteral(NewFloat32Value(3.2f)) << std::endl;
   stream << *GetLiteral(NewFloat64Value(6.4f)) << std::endl;
   stream << *GetLiteral(NewIntValue(Value::Int32Type(), 1 << 30)) << std::endl;
@@ -57,7 +57,7 @@ TEST_F(LirLiteralsTest, SimpleLiterals) {
 TEST_F(LirLiteralsTest, StringLiteral) {
   base::string16 sample(L"xy\a\b\f\n\r\t\uABCD\v\\z");
   sample[1] = 0;
-  std::stringstream stream;
+  std::ostringstream stream;
   stream << *GetLiteral(NewStringValue(sample));
   EXPECT_EQ("\"x\\0\\a\\b\\f\\n\\r\\t\\uABCD\\v\\\\z\"", stream.str());
 }

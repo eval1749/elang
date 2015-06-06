@@ -32,7 +32,7 @@ std::string ClassAnalyzerTest::GetMethodGroup(base::StringPiece name) {
   auto const method_group = SemanticOf(name)->as<sm::MethodGroup>();
   if (!method_group)
     return base::StringPrintf("not found %s", name.as_string());
-  std::stringstream ostream;
+  std::ostringstream ostream;
   for (auto const method : method_group->methods())
     ostream << *method << std::endl;
   return ostream.str();

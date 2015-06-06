@@ -85,7 +85,7 @@ void LirParallelCopyExpanderTest::ExpandWithScratch2(
     if (scratch2.is_physical())
       expander.AddScratch(scratch2);
 
-    std::stringstream ostream;
+    std::ostringstream ostream;
     for (auto const instr : expander.Expand())
       ostream << PrintAsGeneric(instr) << std::endl;
     EXPECT_EQ(expected, ostream.str());

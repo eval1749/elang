@@ -197,7 +197,7 @@ std::ostream& operator<<(std::ostream& ostream,
 
   auto const node = wrapper.node;
   DCHECK(node->IsLiteral());
-  std::stringstream stream;
+  std::ostringstream stream;
   stream << *node;
   ostream << '"';
   for (auto const ch : stream.str()) {

@@ -64,7 +64,7 @@ std::string CgTest::ConvertToSsa(base::StringPiece name) {
 }
 
 std::string CgTest::FormatFunction(hir::Function* function) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   hir::TextFormatter formatter(&ostream);
   formatter.FormatFunction(function);
   return ostream.str();

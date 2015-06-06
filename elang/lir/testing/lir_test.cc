@@ -132,7 +132,7 @@ std::string LirTest::Allocate(Function* function) {
     allocator.Run();
   }
 
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << *function << ":" << std::endl;
   for (auto const block : function->basic_blocks()) {
     ostream << *block << ":" << std::endl;
@@ -163,7 +163,7 @@ std::string LirTest::Commit(Editor* editor) {
     editor->Commit();
     return "";
   }
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << factory()->errors();
   ostream << std::endl;
   TextFormatter formatter(factory()->literals(), &ostream);
@@ -441,7 +441,7 @@ std::string LirTest::FormatFunction(Editor* editor) {
   auto const result = Validate(editor);
   if (result != "")
     return result;
-  std::stringstream ostream;
+  std::ostringstream ostream;
   TextFormatter formatter(factory()->literals(), &ostream);
   formatter.FormatFunction(editor->function());
   return ostream.str();
@@ -458,7 +458,7 @@ Value LirTest::NewStringValue8(base::StringPiece data) {
 std::string LirTest::Validate(Editor* editor) {
   if (editor->Validate())
     return "";
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << factory()->errors();
   ostream << std::endl;
   TextFormatter formatter(factory()->literals(), &ostream);

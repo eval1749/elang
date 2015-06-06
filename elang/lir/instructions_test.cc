@@ -35,7 +35,7 @@ Value LirInstructionTest::NewIntPtrRegister() {
 }
 
 std::string LirInstructionTest::ToString(const Instruction& instr) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   ostream << instr;
   return ostream.str();
 }

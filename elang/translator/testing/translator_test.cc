@@ -41,7 +41,7 @@ TranslatorTest::~TranslatorTest() {
 
 std::string TranslatorTest::Commit(ir::Editor* editor) {
   if (!editor->Validate()) {
-    std::stringstream ostream;
+    std::ostringstream ostream;
     ostream << factory()->errors();
     return ostream.str();
   }
@@ -50,7 +50,7 @@ std::string TranslatorTest::Commit(ir::Editor* editor) {
 }
 
 std::string TranslatorTest::Format(const lir::Function* function) {
-  std::stringstream ostream;
+  std::ostringstream ostream;
   lir::TextFormatter formatter(lir_factory()->literals(), &ostream);
   formatter.FormatFunction(function);
   return ostream.str();
@@ -58,7 +58,7 @@ std::string TranslatorTest::Format(const lir::Function* function) {
 
 std::string TranslatorTest::Translate(const ir::Editor& editor) {
   if (!editor.Validate()) {
-    std::stringstream ostream;
+    std::ostringstream ostream;
     ostream << factory()->errors();
     return ostream.str();
   }
