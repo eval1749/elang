@@ -194,9 +194,9 @@ Method::Method(MethodGroup* method_group,
                Signature* signature,
                Signature* function_signature)
     : NamedMember(method_group->outer(), method_group->name()),
+      WithModifiers(modifiers),
       function_signature_(function_signature),
       method_group_(method_group),
-      modifiers_(modifiers),
       signature_(signature) {
   if (modifiers.HasStatic()) {
     DCHECK_EQ(signature_, function_signature_);
@@ -206,6 +206,10 @@ Method::Method(MethodGroup* method_group,
     DCHECK_EQ(signature_->parameters().size() + 1,
               function_signature_->parameters().size());
   }
+}
+
+Class* Method::owner() const {
+  return method_group_->owner();
 }
 
 const ZoneVector<Parameter*>& Method::parameters() const {

@@ -334,13 +334,13 @@ class Literal final : public Value {
 //
 // Method
 //
-class Method final : public NamedMember<Semantic> {
+class Method final : public NamedMember<Semantic>,  public WithModifiers {
   DECLARE_CONCRETE_SEMANTIC_CLASS(Method, Semantic);
 
  public:
   Signature* function_signature() const { return function_signature_; }
   MethodGroup* method_group() const { return method_group_; }
-  Modifiers modifiers() const { return modifiers_; }
+  Class* owner() const;
   const ZoneVector<Parameter*>& parameters() const;
   Type* return_type() const;
   Signature* signature() const { return signature_; }
@@ -353,7 +353,6 @@ class Method final : public NamedMember<Semantic> {
 
   Signature* const function_signature_;
   MethodGroup* const method_group_;
-  Modifiers const modifiers_;
   Signature* const signature_;
 
   DISALLOW_COPY_AND_ASSIGN(Method);
