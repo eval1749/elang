@@ -152,10 +152,17 @@ bool TerminatorStatement::IsTerminator() const {
 
 // ThrowStatement
 ThrowStatement::ThrowStatement(Token* keyword, Expression* value)
-    : TerminatorStatement(keyword), value_(value) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::Throw);
+  set_child_at(0, value);
 }
 
+ast::Expression* ThrowStatement::value() const {
+  auto const value = child_at(0)->as<ast::Expression>();
+  return value->is<ast::NoExpression>() ? nullptr : value;
+}
+
+// TryStatement
 TryStatement::TryStatement(Zone* zone,
                            Token* keyword,
                            BlockStatement* protected_block,

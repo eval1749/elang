@@ -290,16 +290,14 @@ class ReturnStatement final : public SimpleNode<TerminatorStatement, 1> {
 
 // Represents 'throw' statement:
 //  'throw' Expression
-class ThrowStatement final : public TerminatorStatement {
+class ThrowStatement final : public SimpleNode<TerminatorStatement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ThrowStatement, TerminatorStatement);
 
  public:
-  Expression* value() const { return value_; }
+  Expression* value() const;
 
  private:
   ThrowStatement(Token* keyword, Expression* value);
-
-  Expression* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowStatement);
 };
