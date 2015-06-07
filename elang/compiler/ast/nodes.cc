@@ -12,6 +12,7 @@
 #include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/namespace.h"
 #include "elang/compiler/ast/statements.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -111,6 +112,7 @@ template class ChildNodes<CatchClause>;
 template class ChildNodes<Expression>;
 template class ChildNodes<Node>;
 template class ChildNodes<Statement>;
+template class ChildNodes<Type>;
 template class ChildNodes<VarDeclaration>;
 
 //////////////////////////////////////////////////////////////////////

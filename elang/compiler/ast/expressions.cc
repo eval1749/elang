@@ -145,11 +145,20 @@ Expression* Conditional::true_expression() const {
 // ConstructedName
 ConstructedName::ConstructedName(Zone* zone,
                                  Expression* reference,
-                                 const std::vector<Type*>& args)
-    : Expression(reference->name()),
-      arguments_(zone, args),
-      reference_(reference) {
-  DCHECK(!arguments_.empty());
+                                 const std::vector<Type*>& arguments)
+    : VariadicNode(zone, std::vector<Type*>{}, reference->name()) {
+  DCHECK(!arguments.empty());
+  AppendChild(reference);
+  for (auto const argument : arguments)
+    AppendChild(argument);
+}
+
+ChildNodes<Type> ConstructedName::arguments() const {
+  return ChildNodes<Type>(this, 1);
+}
+
+Expression* ConstructedName::reference() const {
+  return child_at(0)->as<Expression>();
 }
 
 // Expression

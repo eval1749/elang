@@ -125,20 +125,17 @@ class Conditional final : public SimpleNode<Expression, 3> {
 
 // Represents constructed name
 //  Name '<' Type (',' Type)* '>'
-class ConstructedName final : public Expression {
+class ConstructedName final : public VariadicNode<Expression> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedName, Expression);
 
  public:
-  const ZoneVector<Type*>& arguments() const { return arguments_; }
-  Expression* reference() const { return reference_; }
+  ChildNodes<Type> arguments() const;
+  Expression* reference() const;
 
  private:
   ConstructedName(Zone* zone,
                   Expression* reference,
                   const std::vector<Type*>& arguments);
-
-  const ZoneVector<Type*> arguments_;
-  Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructedName);
 };
