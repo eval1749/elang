@@ -8,9 +8,11 @@
 #include <array>
 #include <iterator>
 #include <memory>
+#include <vector>
 
 #include "base/logging.h"
 #include "base/strings/string16.h"
+#include "elang/base/zone_vector.h"
 #include "elang/compiler/ast/nodes_forward.h"
 
 namespace elang {
@@ -171,7 +173,7 @@ class NamedNode : public Node {
   DISALLOW_COPY_AND_ASSIGN(NamedNode);
 };
 
-// SimpleNodeTree
+// SimpleNode
 template <typename Base, size_t NumberOfChildNodes>
 class SimpleNode : public Base {
  protected:
@@ -195,6 +197,31 @@ class SimpleNode : public Base {
   std::array<Node*, NumberOfChildNodes> child_nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(SimpleNode);
+};
+
+// VariadicNode
+template <typename Base>
+class VariadicNode : public Base {
+ protected:
+  template <typename T, typename... Params>
+  explicit VariadicNode(Zone* zone,
+                        const std::vector<T>& nodes,
+                        Params... params)
+      : Base(params...), child_nodes_(zone) {
+    child_nodes_.assign(nodes.begin(), nodes.end());
+  }
+  ~VariadicNode() override {}
+
+  Node* child_at(size_t index) const { return child_nodes_[index]; }
+
+  // NodeTree
+  Node* ChildAt(size_t index) const final { return child_at(index); }
+  size_t CountChildNodes() const final { return child_nodes_.size(); }
+
+ private:
+  ZoneVector<Node*> child_nodes_;
+
+  DISALLOW_COPY_AND_ASSIGN(VariadicNode);
 };
 
 }  // namespace ast

@@ -53,11 +53,11 @@ class TerminatorStatement : public Statement {
 
 // Represents block statement:
 //  '{' Statement* '}'
-class BlockStatement final : public Statement {
+class BlockStatement final : public VariadicNode<Statement> {
   DECLARE_CONCRETE_AST_NODE_CLASS(BlockStatement, Statement);
 
  public:
-  const ZoneVector<Statement*>& statements() const { return statements_; }
+  ChildNodes<Statement> statements() const;
 
  private:
   // When last statement of this block statement is reachable, |keyword|
@@ -68,8 +68,6 @@ class BlockStatement final : public Statement {
 
   // Statement
   bool IsTerminator() const override;
-
-  const ZoneVector<Statement*> statements_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockStatement);
 };

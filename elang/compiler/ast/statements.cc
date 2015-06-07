@@ -16,9 +16,13 @@ namespace ast {
 BlockStatement::BlockStatement(Zone* zone,
                                Token* keyword,
                                const std::vector<Statement*>& statements)
-    : Statement(keyword), statements_(zone, statements) {
+    : VariadicNode(zone, statements, keyword) {
   DCHECK(keyword == TokenType::LeftCurryBracket ||
          keyword == TokenType::RightCurryBracket);
+}
+
+ChildNodes<Statement> BlockStatement::statements() const {
+  return ChildNodes<Statement>(this);
 }
 
 // Statement

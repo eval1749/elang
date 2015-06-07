@@ -193,11 +193,6 @@ class PostOrderTraverse final : public ast::Visitor {
     nodes_.push_back(node);
   }
 
-  void VisitBlockStatement(ast::BlockStatement* node) final {
-    for (auto const statement : node->statements())
-      Traverse(statement);
-  }
-
   std::vector<ast::Node*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(PostOrderTraverse);
