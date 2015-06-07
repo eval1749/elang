@@ -94,23 +94,6 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// Block statement
-//
-#if 0
-TEST_F(ParserTest, BlockErrorUnreachable) {
-  auto const source_code =
-      "class A {\n"
-      "  void Run(int x) {\n"
-      "    return;\n"
-      "    foo();"
-      "  }\n"
-      "}\n";
-  EXPECT_EQ("Syntax.Statement.Unreachable(46) foo\n", Format(source_code));
-}
-#endif
-
-//////////////////////////////////////////////////////////////////////
-//
 // 'break' statement
 //
 TEST_F(ParserTest, BreakBasic) {
@@ -695,44 +678,6 @@ TEST_F(ParserTest, IfBasicElse) {
       "}\n";
   EXPECT_EQ(source_code, Format(source_code));
 }
-
-#if 0
-TEST_F(ParserTest, IfErrorUnreachable) {
-  auto const source_code =
-      "class A {\n"
-      "  int Run(int x) {\n"
-      "    if (x)\n"
-      "      return x;\n"
-      "    else {\n"
-      "      return x;\n"
-      "    }\n"
-      "    return 123;\n"
-      "  }\n"
-      "}\n";
-  EXPECT_EQ("Syntax.Statement.Unreachable(93) return\n", Format(source_code));
-}
-#endif
-
-#if 0
-TEST_F(ParserTest, IfErrorUnreachable2) {
-  auto const source_code =
-      "class A {\n"
-      "  int Run(int x) {\n"
-      "    if (x)\n"
-      "      return x;\n"
-      "    else {\n"
-      "      return x;\n"
-      "      foo();\n"  // unreachable
-      "    }\n"
-      "    return 123;\n"  // unreachable
-      "  }\n"
-      "}\n";
-  EXPECT_EQ(
-      "Syntax.Statement.Unreachable(89) foo\n"
-      "Syntax.Statement.Unreachable(106) return\n",
-      Format(source_code));
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////
 //

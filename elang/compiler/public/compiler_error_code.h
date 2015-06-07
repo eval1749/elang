@@ -269,6 +269,7 @@ namespace compiler {
   E(Translator, Expression, NotYetImplemented)        \
   E(Translator, Expression, Unexpected)               \
   E(Translator, Return, None)                         \
+  E(Translator, Statement, Unreachable)               \
   E(Translator, Statement, NotYetImplemented)         \
   /* Type Resolver */                                 \
   E(TypeResolver, ArrayAccess, Array)                 \

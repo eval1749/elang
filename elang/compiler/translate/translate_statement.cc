@@ -100,9 +100,8 @@ void Translator::VisitBlockStatement(ast::BlockStatement* node) {
 
   for (auto const statement : node->statements()) {
     if (!builder()->has_control()) {
-      // TODO(eval1749) Since, we may have labeled statement, we should continue
-      // checking |statement|.
-      break;
+      Error(ErrorCode::TranslatorStatementUnreachable, statement);
+      continue;
     }
     TranslateStatement(statement);
   }

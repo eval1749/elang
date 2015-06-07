@@ -72,6 +72,23 @@ TEST_F(TranslatorTest, ArrayAccessStore) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, BlockErrorUnreachable) {
+  Prepare(
+      "class Sample {"
+      "  void Foo(int x) {"
+      "    return;"
+      "    Bar();"
+      "    Baz();"
+      "  }"
+      "  void Bar() {}"
+      "  void Baz() {}"
+      "}");
+  EXPECT_EQ(
+      "Translator.Statement.Unreachable(48) Bar\n"
+      "Translator.Statement.Unreachable(58) Baz\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, Calls) {
   Prepare(
       "class Sample {"
