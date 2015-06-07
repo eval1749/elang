@@ -41,11 +41,11 @@ class Alias final : public SimpleNode<NamedNode, 1> {
 // Note: Instances of |Import| class aren't appeared in |ContainerNode|'s
 // named map.
 //
-class Import final : public NamedNode {
+class Import final : public SimpleNode<NamedNode, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Import, NamedNode);
 
  public:
-  Expression* reference() const { return reference_; }
+  Expression* reference() const;
 
  private:
   Import(NamespaceBody* namespace_body, Token* keyword, Expression* reference);
@@ -54,8 +54,6 @@ class Import final : public NamedNode {
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
 #endif
-
-  Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(Import);
 };

@@ -473,6 +473,12 @@ void CodeGenerator::DoDefaultVisit(ast::Node* node) {
 // ast::Visitor declaration nodes
 //
 
+void CodeGenerator::VisitAlias(ast::Alias* node) {
+}
+
+void CodeGenerator::VisitImport(ast::Import* node) {
+}
+
 void CodeGenerator::VisitMethod(ast::Method* ast_method) {
   DCHECK(!editor_);
   DCHECK(!function_);

@@ -93,7 +93,9 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void DoDefaultVisit(ast::Node* node) final;
 
   // ast::Visitor declaration nodes
-  void CodeGenerator::VisitMethod(ast::Method* ast_method) final;
+  void VisitAlias(ast::Alias* node) final;
+  void VisitImport(ast::Import* node) final;
+  void VisitMethod(ast::Method* node) final;
 
   // ast::Visitor expression nodes
   void VisitArrayAccess(ast::ArrayAccess* node) final;

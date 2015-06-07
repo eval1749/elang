@@ -83,7 +83,9 @@ class Translator final : public CompilationSessionUser,
   void DoDefaultVisit(ast::Node* node) final;
 
   // ast::Visitor declaration nodes
-  void VisitMethod(ast::Method* ast_method) final;
+  void VisitAlias(ast::Alias* node) final;
+  void VisitImport(ast::Import* node) final;
+  void VisitMethod(ast::Method* node) final;
 
   // ast::Visitor expression nodes
   void VisitArrayAccess(ast::ArrayAccess* node) final;

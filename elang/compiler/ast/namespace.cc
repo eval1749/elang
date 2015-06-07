@@ -44,9 +44,13 @@ bool Alias::CanBeMemberOf(ContainerNode* container) const {
 Import::Import(NamespaceBody* namespace_body,
                Token* keyword,
                Expression* reference)
-    : NamedNode(namespace_body, keyword, reference->token()),
-      reference_(reference) {
+    : SimpleNode(namespace_body, keyword, reference->token()) {
   DCHECK_EQ(keyword, TokenType::Using);
+  set_child_at(0, reference);
+}
+
+Expression* Import::reference() const {
+  return child_at(0)->as<Expression>();
 }
 
 #if _DEBUG

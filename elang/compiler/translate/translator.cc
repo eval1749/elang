@@ -103,6 +103,12 @@ void Translator::DoDefaultVisit(ast::Node* node) {
 // ast::Visitor declaration nodes
 //
 
+void Translator::VisitAlias(ast::Alias* node) {
+}
+
+void Translator::VisitImport(ast::Import* node) {
+}
+
 void Translator::VisitMethod(ast::Method* ast_method) {
   DCHECK(!builder_);
   //  1 Convert ast::FunctionType to ir::FunctionType
