@@ -20,13 +20,13 @@ namespace ast {
 
 // ChildNodes
 template <typename T>
-ChildNodes<T>::ChildNodes(const Node* node)
-    : node_(node) {
+ChildNodes<T>::ChildNodes(const Node* node, size_t start)
+    : node_(node), start_(start) {
 }
 
 template <typename T>
 ChildNodes<T>::ChildNodes(const ChildNodes& other)
-    : ChildNodes(other.node_) {
+    : ChildNodes(other.node_, other.start_) {
 }
 
 template <typename T>
@@ -41,7 +41,7 @@ ChildNodes<T>& ChildNodes<T>::operator=(const ChildNodes& other) {
 
 template <typename T>
 typename ChildNodes<T>::Iterator ChildNodes<T>::begin() const {
-  return Iterator(node_, 0);
+  return Iterator(node_, start_);
 }
 
 template <typename T>
@@ -116,7 +116,7 @@ Node::Node(Node* parent, Token* token) : parent_(parent), token_(token) {
 }
 
 ChildNodes<Node> Node::child_nodes() const {
-  return ChildNodes<Node>(this);
+  return ChildNodes<Node>(this, 0);
 }
 
 Token* Node::name() const {

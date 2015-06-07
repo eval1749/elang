@@ -88,7 +88,7 @@ class ChildNodes final {
     const Node* node_;
   };
 
-  explicit ChildNodes(const Node* node);
+  ChildNodes(const Node* node, size_t start);
   ChildNodes(const ChildNodes& other);
   ~ChildNodes();
 
@@ -99,6 +99,7 @@ class ChildNodes final {
 
  private:
   const Node* node_;
+  size_t start_;
 };
 
 extern template class ChildNodes<Node>;

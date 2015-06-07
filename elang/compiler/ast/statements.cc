@@ -22,7 +22,7 @@ BlockStatement::BlockStatement(Zone* zone,
 }
 
 ChildNodes<Statement> BlockStatement::statements() const {
-  return ChildNodes<Statement>(this);
+  return ChildNodes<Statement>(this, 0);
 }
 
 // Statement
@@ -80,7 +80,7 @@ ExpressionList::ExpressionList(Zone* zone,
 }
 
 ChildNodes<Expression> ExpressionList::expressions() const {
-  return ChildNodes<Expression>(this);
+  return ChildNodes<Expression>(this, 0);
 }
 
 // ExpressionStatement
@@ -286,7 +286,7 @@ VarStatement::VarStatement(Zone* zone,
 }
 
 ChildNodes<VarDeclaration> VarStatement::variables() const {
-  return ChildNodes<VarDeclaration>(this);
+  return ChildNodes<VarDeclaration>(this, 0);
 }
 
 // WhileStatement
