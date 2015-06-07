@@ -291,13 +291,25 @@ VarStatement::VarStatement(Zone* zone,
     : Statement(type_token), variables_(zone, variables) {
 }
 
+// WhileStatement
 WhileStatement::WhileStatement(Token* keyword,
                                Expression* condition,
                                Statement* statement)
-    : DoOrWhileStatement(keyword, statement, condition) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::While);
+  set_child_at(0, condition);
+  set_child_at(1, statement);
 }
 
+Expression* WhileStatement::condition() const {
+  return child_at(0)->as<Expression>();
+}
+
+Statement* WhileStatement::statement() const {
+  return child_at(1)->as<Statement>();
+}
+
+// YieldStatement
 YieldStatement::YieldStatement(Token* keyword, Expression* value)
     : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::Yield);

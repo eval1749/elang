@@ -394,8 +394,12 @@ class VarStatement final : public Statement {
 
 // Represents 'while' statement:
 //  'while' '(' BooleanExpression ')' EmbededStatement
-class WhileStatement final : public DoOrWhileStatement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(WhileStatement, DoOrWhileStatement);
+class WhileStatement final : public SimpleNode<Statement, 2> {
+  DECLARE_CONCRETE_AST_NODE_CLASS(WhileStatement, Statement);
+
+ public:
+  Expression* condition() const;
+  Statement* statement() const;
 
  private:
   WhileStatement(Token* keyword, Expression* condition, Statement* statement);
