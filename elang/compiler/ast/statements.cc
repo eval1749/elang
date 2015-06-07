@@ -50,13 +50,6 @@ ContinueStatement::ContinueStatement(Token* keyword)
   DCHECK_EQ(keyword, TokenType::Continue);
 }
 
-DoOrWhileStatement::DoOrWhileStatement(Token* keyword,
-                                       Statement* statement,
-                                       Expression* condition)
-    : Statement(keyword), condition_(condition), statement_(statement) {
-  DCHECK(keyword == TokenType::For || keyword == TokenType::While);
-}
-
 // DoStatement
 DoStatement::DoStatement(Token* keyword,
                          Statement* statement,
