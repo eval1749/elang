@@ -103,6 +103,7 @@ typename ChildNodes<T>::Iterator& ChildNodes<T>::Iterator::operator++() {
 template class ChildNodes<Node>;
 template class ChildNodes<Expression>;
 template class ChildNodes<Statement>;
+template class ChildNodes<VarDeclaration>;
 
 //////////////////////////////////////////////////////////////////////
 //

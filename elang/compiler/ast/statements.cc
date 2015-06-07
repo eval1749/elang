@@ -285,10 +285,15 @@ Type* VarDeclaration::type() const {
   return variable_->type();
 }
 
+// VarStatement
 VarStatement::VarStatement(Zone* zone,
                            Token* type_token,
                            const std::vector<VarDeclaration*>& variables)
-    : Statement(type_token), variables_(zone, variables) {
+    : VariadicNode(zone, variables, type_token) {
+}
+
+ChildNodes<VarDeclaration> VarStatement::variables() const {
+  return ChildNodes<VarDeclaration>(this);
 }
 
 // WhileStatement

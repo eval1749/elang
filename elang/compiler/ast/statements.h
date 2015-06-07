@@ -375,19 +375,17 @@ class VarDeclaration final : public NamedNode {
 
 // Represents 'var' statement:
 //  'var' VarDecl (',' VarDecl)* ';'
-class VarStatement final : public Statement {
+class VarStatement final : public VariadicNode<Statement> {
   DECLARE_CONCRETE_AST_NODE_CLASS(VarStatement, Statement);
 
  public:
-  const ZoneVector<VarDeclaration*>& variables() const { return variables_; }
+  ChildNodes<VarDeclaration> variables() const;
 
  private:
   // |type_token| comes from variable type node.
   VarStatement(Zone* zone,
                Token* type_token,
                const std::vector<VarDeclaration*>& variables);
-
-  const ZoneVector<VarDeclaration*> variables_;
 
   DISALLOW_COPY_AND_ASSIGN(VarStatement);
 };

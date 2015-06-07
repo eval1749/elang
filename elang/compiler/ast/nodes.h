@@ -104,6 +104,7 @@ class ChildNodes final {
 extern template class ChildNodes<Node>;
 extern template class ChildNodes<Expression>;
 extern template class ChildNodes<Statement>;
+extern template class ChildNodes<VarDeclaration>;
 
 //////////////////////////////////////////////////////////////////////
 //
