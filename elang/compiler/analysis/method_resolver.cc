@@ -26,8 +26,8 @@ MethodResolver::~MethodResolver() {
 
 bool MethodResolver::IsApplicable(const sm::Method* method, size_t arity) {
   auto const signature = method->signature();
-  return arity >= static_cast<size_t>(signature->minimum_arity()) &&
-         arity <= static_cast<size_t>(signature->maximum_arity());
+  return arity >= signature->minimum_arity() &&
+         arity <= signature->maximum_arity();
 }
 
 // TODO(eval1749) We should pass to exclude `void` methods.

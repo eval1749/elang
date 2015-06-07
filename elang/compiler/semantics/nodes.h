@@ -464,16 +464,16 @@ class Signature final : public Type {
 
  public:
   struct Arity {
-    int maximum;
-    int minimum;
+    size_t maximum;
+    size_t minimum;
     bool is_rest;
   };
 
   bool operator==(const Signature& other) const;
   bool operator!=(const Signature& other) const;
 
-  int maximum_arity() const { return arity_.minimum; }
-  int minimum_arity() const { return arity_.maximum; }
+  size_t maximum_arity() const { return arity_.minimum; }
+  size_t minimum_arity() const { return arity_.maximum; }
   const ZoneVector<Parameter*>& parameters() const { return parameters_; }
   Type* return_type() { return return_type_; }
 
