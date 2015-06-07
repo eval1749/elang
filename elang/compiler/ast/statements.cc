@@ -203,7 +203,7 @@ ReturnStatement::ReturnStatement(Token* keyword, Expression* value)
   set_child_at(0, value);
 }
 
-ast::Expression* ReturnStatement::value() const {
+ast::Expression* ReturnStatement::expression() const {
   auto const value = child_at(0)->as<ast::Expression>();
   return value->is<ast::NoExpression>() ? nullptr : value;
 }
@@ -235,7 +235,7 @@ ThrowStatement::ThrowStatement(Token* keyword, Expression* value)
   set_child_at(0, value);
 }
 
-ast::Expression* ThrowStatement::value() const {
+ast::Expression* ThrowStatement::expression() const {
   auto const value = child_at(0)->as<ast::Expression>();
   return value->is<ast::NoExpression>() ? nullptr : value;
 }
@@ -300,7 +300,7 @@ Type* VarDeclaration::type() const {
   return variable_->type();
 }
 
-Expression* VarDeclaration::value() const {
+Expression* VarDeclaration::expression() const {
   return child_at(0)->as<Expression>();
 }
 
@@ -340,7 +340,7 @@ YieldStatement::YieldStatement(Token* keyword, Expression* value)
   set_child_at(0, value);
 }
 
-ast::Expression* YieldStatement::value() const {
+ast::Expression* YieldStatement::expression() const {
   return child_at(0)->as<ast::Expression>();
 }
 

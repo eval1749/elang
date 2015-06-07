@@ -261,7 +261,7 @@ class ReturnStatement final : public SimpleNode<TerminatorStatement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ReturnStatement, TerminatorStatement);
 
  public:
-  Expression* value() const;
+  Expression* expression() const;
 
  private:
   ReturnStatement(Token* keyword, Expression* value);
@@ -275,7 +275,7 @@ class ThrowStatement final : public SimpleNode<TerminatorStatement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ThrowStatement, TerminatorStatement);
 
  public:
-  Expression* value() const;
+  Expression* expression() const;
 
  private:
   ThrowStatement(Token* keyword, Expression* value);
@@ -332,7 +332,7 @@ class VarDeclaration final : public SimpleNode<NamedNode, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(VarDeclaration, NamedNode);
 
  public:
-  Expression* value() const;
+  Expression* expression() const;
   Variable* variable() const { return variable_; }
   Type* type() const;
 
@@ -382,7 +382,7 @@ class YieldStatement final : public SimpleNode<Statement, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(YieldStatement, Statement);
 
  public:
-  Expression* value() const;
+  Expression* expression() const;
 
  private:
   YieldStatement(Token* keyword, Expression* value);

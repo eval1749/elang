@@ -501,20 +501,20 @@ void Formatter::VisitParameterReference(ast::ParameterReference* param) {
   ostream_ << param->token();
 }
 
-void Formatter::VisitReturnStatement(ast::ReturnStatement* return_statement) {
+void Formatter::VisitReturnStatement(ast::ReturnStatement* node) {
   ostream_ << "return";
-  if (auto const value = return_statement->value()) {
+  if (auto const expression = node->expression()) {
     ostream_ << " ";
-    Traverse(value);
+    Traverse(expression);
   }
   ostream_ << ";";
 }
 
-void Formatter::VisitThrowStatement(ast::ThrowStatement* throw_statement) {
+void Formatter::VisitThrowStatement(ast::ThrowStatement* node) {
   ostream_ << "throw";
-  if (auto const value = throw_statement->value()) {
+  if (auto const expression = node->expression()) {
     ostream_ << " ";
-    Traverse(value);
+    Traverse(expression);
   }
   ostream_ << ";";
 }
@@ -581,7 +581,7 @@ void Formatter::VisitUsingStatement(ast::UsingStatement* using_statement) {
 
 void Formatter::VisitVarDeclaration(ast::VarDeclaration* node) {
   ostream_ << node->name() << " = ";
-  Traverse(node->value());
+  Traverse(node->expression());
 }
 
 void Formatter::VisitVarStatement(ast::VarStatement* node) {
@@ -622,7 +622,7 @@ void Formatter::VisitWhileStatement(ast::WhileStatement* while_statement) {
 
 void Formatter::VisitYieldStatement(ast::YieldStatement* yield_statement) {
   ostream_ << "yield ";
-  Traverse(yield_statement->value());
+  Traverse(yield_statement->expression());
   ostream_ << ";";
 }
 

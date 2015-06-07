@@ -90,7 +90,7 @@ void Collector::VisitForEachStatement(ast::ForEachStatement* node) {
 void Collector::VisitVarStatement(ast::VarStatement* node) {
   for (auto const variable : node->variables()) {
     variables_.push_back(variable);
-    auto const value = variable->value();
+    auto const value = variable->expression();
     if (!value)
       continue;
     Traverse(value);

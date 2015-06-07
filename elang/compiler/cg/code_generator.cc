@@ -926,14 +926,15 @@ void CodeGenerator::VisitIfStatement(ast::IfStatement* node) {
 
 void CodeGenerator::VisitReturnStatement(ast::ReturnStatement* node) {
   auto const return_value =
-      node->value() ? GenerateValue(node->value()) : void_value();
+      node->expression() ? GenerateValue(node->expression()) : void_value();
   editor()->SetReturn(return_value);
   Commit();
 }
 
 void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
   for (auto const var_decl : node->variables()) {
-    EmitVariableBinding(var_decl->variable(), GenerateValue(var_decl->value()));
+    EmitVariableBinding(var_decl->variable(),
+                        GenerateValue(var_decl->expression()));
   }
 }
 

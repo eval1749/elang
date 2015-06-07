@@ -88,7 +88,7 @@ void QueryContext::VisitVarStatement(VarStatement* node) {
   DoDefaultVisit(node);
   for (auto const var_decl : node->variables()) {
     Traverse(var_decl->variable());
-    Traverse(var_decl->value());
+    Traverse(var_decl->expression());
   }
 }
 

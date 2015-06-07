@@ -282,12 +282,12 @@ void MethodBodyAnalyzer::VisitReturnStatement(ast::ReturnStatement* node) {
   auto const ir_method = analysis()->SemanticOf(method_)->as<sm::Method>();
   auto const return_type = ir_method->return_type();
   if (ir_method->return_type() == void_type()) {
-    if (node->value())
+    if (node->expression())
       Error(ErrorCode::MethodReturnNotVoid, node);
     return;
   }
-  if (auto const return_value = node->value()) {
-    Analyze(return_value, NewLiteral(return_type));
+  if (auto const expression = node->expression()) {
+    Analyze(expression, NewLiteral(return_type));
     return;
   }
   Error(ErrorCode::MethodReturnVoid, node);
@@ -300,7 +300,7 @@ void MethodBodyAnalyzer::VisitVarStatement(ast::VarStatement* node) {
     if (!variable_type)
       continue;
     // Check initial value expression matches variable type.
-    Analyze(var_decl->value(), variable_type);
+    Analyze(var_decl->expression(), variable_type);
   }
 }
 

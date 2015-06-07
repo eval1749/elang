@@ -286,8 +286,8 @@ void Translator::VisitIfStatement(ast::IfStatement* node) {
 }
 
 void Translator::VisitReturnStatement(ast::ReturnStatement* node) {
-  auto const value = node->value();
-  builder()->EndBlockWithRet(value ? Translate(value) : void_value());
+  auto const expression = node->expression();
+  builder()->EndBlockWithRet(expression ? Translate(expression) : void_value());
 }
 
 void Translator::VisitVarStatement(ast::VarStatement* node) {
@@ -295,7 +295,7 @@ void Translator::VisitVarStatement(ast::VarStatement* node) {
     auto const variable =
         SemanticOf(declaration->variable())->as<sm::Variable>();
     DCHECK(variable);
-    builder_->BindVariable(variable, Translate(declaration->value()));
+    builder_->BindVariable(variable, Translate(declaration->expression()));
   }
 }
 
