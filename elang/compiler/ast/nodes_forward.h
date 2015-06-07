@@ -58,6 +58,7 @@ namespace ast {
   V(ForStatement)                  \
   V(IfStatement)                   \
   V(InvalidStatement)              \
+  V(NoStatement)                   \
   V(ReturnStatement)               \
   V(ThrowStatement)                \
   V(TryStatement)                  \

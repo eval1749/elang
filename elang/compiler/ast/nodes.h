@@ -183,7 +183,11 @@ class SimpleNode : public Base {
   ~SimpleNode() override {}
 
   Node* child_at(size_t index) const { return child_nodes_[index]; }
-  void set_child_at(size_t index, Node* node) { child_nodes_[index] = node; }
+
+  void set_child_at(size_t index, Node* node) {
+    DCHECK(node) << this << " " << index;
+    child_nodes_[index] = node;
+  }
 
   // NodeTree
   Node* ChildAt(size_t index) const final {

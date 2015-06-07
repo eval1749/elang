@@ -369,6 +369,10 @@ InvalidStatement* Factory::NewInvalidStatement(Token* token) {
   return new (zone()) InvalidStatement(token);
 }
 
+Statement* Factory::NewNoStatement(Token* token) {
+  return new (zone()) NoStatement(token);
+}
+
 ReturnStatement* Factory::NewReturnStatement(Token* keyword,
                                              Expression* value) {
   auto const node = new (zone()) ReturnStatement(keyword, value);

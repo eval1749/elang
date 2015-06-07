@@ -299,12 +299,13 @@ void Parser::ParseForStatement(Token* for_keyword) {
         }
         auto const initializer = ConsumeStatement();
         auto const step =
-            steps.empty() ? nullptr
+            steps.empty() ? factory()->NewNoStatement(PeekToken())
                           : factory()->NewExpressionList(for_keyword, steps);
         StatementScope for_scope(this, for_keyword);
         ParseStatement();
         ProduceStatement(factory()->NewForStatement(
-            for_keyword, initializer, condition, step, ConsumeStatement()));
+            for_keyword, initializer, condition ? condition : NewNoExpression(),
+            step, ConsumeStatement()));
         return;
       }
 
@@ -568,7 +569,8 @@ void Parser::ParseThrowStatement(Token* throw_keyword) {
   if (AdvanceIf(TokenType::SemiColon)) {
     if (!IsInStatement(TokenType::Catch))
       Error(ErrorCode::SyntaxThrowInvalid);
-    ProduceStatement(factory()->NewThrowStatement(throw_keyword, nullptr));
+    ProduceStatement(
+        factory()->NewThrowStatement(throw_keyword, NewNoExpression()));
     return;
   }
 

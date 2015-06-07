@@ -271,6 +271,16 @@ class InvalidStatement final : public Statement {
   DISALLOW_COPY_AND_ASSIGN(InvalidStatement);
 };
 
+// Represents no-statement for else claus, for initializer, and for steps.
+class NoStatement final : public Statement {
+  DECLARE_CONCRETE_AST_NODE_CLASS(NoStatement, Statement);
+
+ private:
+  explicit NoStatement(Token* token);
+
+  DISALLOW_COPY_AND_ASSIGN(NoStatement);
+};
+
 // Represents 'return' statement:
 //  'return' Expression? ';'
 class ReturnStatement final : public SimpleNode<TerminatorStatement, 1> {

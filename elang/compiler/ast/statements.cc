@@ -137,11 +137,17 @@ Statement* ForStatement::initializer() const {
 }
 
 Expression* ForStatement::condition() const {
-  return child_at(1)->as<Expression>();
+  auto const expression = child_at(1);
+  if (expression->is<NoExpression>())
+    return nullptr;
+  return expression->as<Expression>();
 }
 
 Statement* ForStatement::step() const {
-  return child_at(2)->as<Statement>();
+  auto const statement = child_at(2);
+  if (statement->is<NoStatement>())
+    return nullptr;
+  return statement->as<Statement>();
 }
 
 Statement* ForStatement::statement() const {
@@ -167,6 +173,12 @@ bool IfStatement::IsTerminator() const {
 
 // InvalidStatement
 InvalidStatement::InvalidStatement(Token* token) : Statement(token) {
+  // We should have non-null |token| for source code location.
+  DCHECK(token);
+}
+
+// NoStatement
+NoStatement::NoStatement(Token* token) : Statement(token) {
   // We should have non-null |token| for source code location.
   DCHECK(token);
 }

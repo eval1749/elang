@@ -304,8 +304,10 @@ void Formatter::VisitForEachStatement(ast::ForEachStatement* statement) {
 
 void Formatter::VisitForStatement(ast::ForStatement* statement) {
   ostream_ << "for (";
-  Traverse(statement->initializer());
-  if (statement->initializer()->is<ast::ExpressionList>())
+  auto const initializer = statement->initializer();
+  if (initializer)
+    Traverse(initializer);
+  if (!initializer || initializer->is<ast::ExpressionList>())
     ostream_ << ";";
   if (statement->condition()) {
     ostream_ << " ";
@@ -476,6 +478,11 @@ void Formatter::VisitNamespaceBody(ast::NamespaceBody* node) {
 }
 
 void Formatter::VisitNoExpression(ast::NoExpression* node) {
+  DCHECK(node);
+  NOTREACHED();
+}
+
+void Formatter::VisitNoStatement(ast::NoStatement* node) {
   DCHECK(node);
   NOTREACHED();
 }

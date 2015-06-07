@@ -134,6 +134,7 @@ class Factory final : public ZoneUser {
                               Statement* then_statement,
                               Statement* else_statement);
   InvalidStatement* NewInvalidStatement(Token* token);
+  Statement* NewNoStatement(Token* token);
   ReturnStatement* NewReturnStatement(Token* keyword, Expression* value);
   ThrowStatement* NewThrowStatement(Token* keyword, Expression* value);
   TryStatement* NewTryStatement(Token* keyword,
