@@ -102,17 +102,15 @@ class TypeMemberAccess final : public SimpleNode<Type, 1> {
 };
 
 // TypeNameReference
-class TypeNameReference final : public Type {
+class TypeNameReference final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(TypeNameReference, Type);
 
  public:
   Token* name() const;
-  NameReference* reference() const { return reference_; }
+  NameReference* reference() const;
 
  private:
   explicit TypeNameReference(NameReference* reference);
-
-  NameReference* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeNameReference);
 };

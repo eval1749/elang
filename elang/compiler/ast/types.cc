@@ -81,11 +81,16 @@ MemberAccess* TypeMemberAccess::reference() const {
 
 // TypeNameReference
 TypeNameReference::TypeNameReference(NameReference* reference)
-    : Type(reference->token()), reference_(reference) {
+    : SimpleNode(reference->token()) {
+  set_child_at(0, reference);
 }
 
 Token* TypeNameReference::name() const {
-  return reference_->name();
+  return reference()->name();
+}
+
+NameReference* TypeNameReference::reference() const {
+  return child_at(0)->as<NameReference>();
 }
 
 // TypeVariable
