@@ -328,18 +328,17 @@ class UsingStatement final : public SimpleNode<Statement, 2> {
 //  VarDecl ::= Name '=' Expression
 // Note: A |value| of a variable declared in 'for-each' statement contains
 // invalid value. We can't use it.
-class VarDeclaration final : public NamedNode {
+class VarDeclaration final : public SimpleNode<NamedNode, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(VarDeclaration, NamedNode);
 
  public:
-  Expression* value() const { return value_; }
+  Expression* value() const;
   Variable* variable() const { return variable_; }
   Type* type() const;
 
  private:
   VarDeclaration(Token* token, Variable* variable, Expression* value);
 
-  Expression* const value_;
   Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(VarDeclaration);

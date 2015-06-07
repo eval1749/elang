@@ -289,17 +289,19 @@ Statement* UsingStatement::statement() const {
 // VarDeclaration
 VarDeclaration::VarDeclaration(Token* token,
                                Variable* variable,
-                               Expression* value)
-    : NamedNode(nullptr, token, variable->name()),
-      value_(value),
-      variable_(variable) {
+                               Expression* expression)
+    : SimpleNode(nullptr, token, variable->name()), variable_(variable) {
   DCHECK(token == TokenType::Assign || token == TokenType::Colon) << token;
-  DCHECK(value_);
   DCHECK(variable_);
+  set_child_at(0, expression);
 }
 
 Type* VarDeclaration::type() const {
   return variable_->type();
+}
+
+Expression* VarDeclaration::value() const {
+  return child_at(0)->as<Expression>();
 }
 
 // VarStatement
