@@ -215,12 +215,14 @@ class ForEachStatement final : public SimpleNode<Statement, 2> {
 };
 
 // Represents 'for' statement.
-class ForStatement final : public DoOrWhileStatement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(ForStatement, DoOrWhileStatement);
+class ForStatement final : public SimpleNode<Statement, 4> {
+  DECLARE_CONCRETE_AST_NODE_CLASS(ForStatement, Statement);
 
  public:
-  Statement* initializer() const { return initializer_; }
-  Statement* step() const { return step_; }
+  Expression* condition() const;
+  Statement* initializer() const;
+  Statement* statement() const;
+  Statement* step() const;
 
  private:
   ForStatement(Token* keyword,
@@ -228,9 +230,6 @@ class ForStatement final : public DoOrWhileStatement {
                Expression* condition,
                Statement* step,
                Statement* statement);
-
-  Statement* const initializer_;
-  Statement* const step_;
 
   DISALLOW_COPY_AND_ASSIGN(ForStatement);
 };

@@ -124,10 +124,28 @@ ForStatement::ForStatement(Token* keyword,
                            Expression* condition,
                            Statement* step,
                            Statement* statement)
-    : DoOrWhileStatement(keyword, statement, condition),
-      initializer_(initializer),
-      step_(step) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::For);
+  set_child_at(0, initializer);
+  set_child_at(1, condition);
+  set_child_at(2, step);
+  set_child_at(3, statement);
+}
+
+Statement* ForStatement::initializer() const {
+  return child_at(0)->as<Statement>();
+}
+
+Expression* ForStatement::condition() const {
+  return child_at(1)->as<Expression>();
+}
+
+Statement* ForStatement::step() const {
+  return child_at(2)->as<Statement>();
+}
+
+Statement* ForStatement::statement() const {
+  return child_at(3)->as<Statement>();
 }
 
 // IfStatement
