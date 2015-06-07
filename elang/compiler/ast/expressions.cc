@@ -107,8 +107,8 @@ Call::Call(Zone* zone,
     AppendChild(argument);
 }
 
-int Call::arity() const {
-  return static_cast<int>(arguments().size());
+size_t Call::arity() const {
+  return arguments().size();
 }
 
 ChildNodes<Expression> Call::arguments() const {

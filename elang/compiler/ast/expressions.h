@@ -92,7 +92,7 @@ class Call final : public VariadicNode<Expression> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Call, Expression);
 
  public:
-  int arity() const;
+  size_t arity() const;
   ChildNodes<Expression> arguments() const;
   Expression* callee() const;
 

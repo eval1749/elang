@@ -24,17 +24,17 @@ MethodResolver::MethodResolver(NameResolver* name_resolver)
 MethodResolver::~MethodResolver() {
 }
 
-bool MethodResolver::IsApplicable(const sm::Method* method, int arity) {
+bool MethodResolver::IsApplicable(const sm::Method* method, size_t arity) {
   auto const signature = method->signature();
-  return arity >= signature->minimum_arity() &&
-         arity <= signature->maximum_arity();
+  return arity >= static_cast<size_t>(signature->minimum_arity()) &&
+         arity <= static_cast<size_t>(signature->maximum_arity());
 }
 
 // TODO(eval1749) We should pass to exclude `void` methods.
 std::vector<sm::Method*> MethodResolver::ComputeApplicableMethods(
     sm::MethodGroup* method_group,
     ts::Value* output,
-    int arity) {
+    size_t arity) {
   std::vector<sm::Method*> methods;
   // TODO(eval1749) We should check base classes.
   for (auto const method : method_group->methods()) {

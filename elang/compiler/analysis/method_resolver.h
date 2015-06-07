@@ -40,13 +40,13 @@ class MethodResolver final {
   std::vector<sm::Method*> ComputeApplicableMethods(
       sm::MethodGroup* method_group,
       ts::Value* output,
-      int arity);
+      size_t arity);
 
  private:
   NameResolver* name_resolver() const { return name_resolver_; }
 
   // Returns true if |method| is applicable with |arity|.
-  bool IsApplicable(const sm::Method* method, int arity);
+  bool IsApplicable(const sm::Method* method, size_t arity);
 
   NameResolver* const name_resolver_;
 
