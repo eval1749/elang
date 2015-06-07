@@ -51,8 +51,6 @@ class Collector final : private ast::Visitor {
   void VisitCall(ast::Call* node);
 
   // ast::Visitor statements
-  void VisitBlockStatement(ast::BlockStatement* node);
-  void VisitExpressionStatement(ast::ExpressionStatement* node);
   void VisitForEachStatement(ast::ForEachStatement* node);
   void VisitVarStatement(ast::VarStatement* node);
 
@@ -72,19 +70,9 @@ Collector::Collector(ast::Method* method) {
 }
 
 // ast::Visitor statements
-void Collector::VisitBlockStatement(ast::BlockStatement* node) {
-  for (auto const child : node->statements())
-    Traverse(child);
-}
-
-void Collector::VisitExpressionStatement(ast::ExpressionStatement* node) {
-  Traverse(node->expression());
-}
-
 void Collector::VisitForEachStatement(ast::ForEachStatement* node) {
   variables_.push_back(node->variable());
-  Traverse(node->enumerable());
-  Traverse(node->statement());
+  ast::Visitor::DoDefaultVisit(node);
 }
 
 void Collector::VisitVarStatement(ast::VarStatement* node) {
@@ -99,8 +87,7 @@ void Collector::VisitVarStatement(ast::VarStatement* node) {
 
 // ast::Visitor expressions
 void Collector::VisitCall(ast::Call* node) {
-  for (auto const child : node->arguments())
-    Traverse(child);
+  ast::Visitor::DoDefaultVisit(node);
   calls_.push_back(node);
 }
 
