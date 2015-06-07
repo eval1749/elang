@@ -139,8 +139,12 @@ class DoOrWhileStatement : public Statement {
 
 // Represents 'do' statement:
 //   'do' EmbededStatement 'while' '(' BooleanExpression ')' ';'
-class DoStatement final : public DoOrWhileStatement {
-  DECLARE_CONCRETE_AST_NODE_CLASS(DoStatement, DoOrWhileStatement);
+class DoStatement final : public SimpleNode<Statement, 2> {
+  DECLARE_CONCRETE_AST_NODE_CLASS(DoStatement, Statement);
+
+ public:
+  Expression* condition() const;
+  Statement* statement() const;
 
  private:
   DoStatement(Token* keyword, Statement* statement, Expression* condition);

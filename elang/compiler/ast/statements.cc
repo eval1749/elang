@@ -54,17 +54,28 @@ DoOrWhileStatement::DoOrWhileStatement(Token* keyword,
                                        Statement* statement,
                                        Expression* condition)
     : Statement(keyword), condition_(condition), statement_(statement) {
-  DCHECK(keyword == TokenType::Do || keyword == TokenType::For ||
-         keyword == TokenType::While);
+  DCHECK(keyword == TokenType::For || keyword == TokenType::While);
 }
 
+// DoStatement
 DoStatement::DoStatement(Token* keyword,
                          Statement* statement,
                          Expression* condition)
-    : DoOrWhileStatement(keyword, statement, condition) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::Do);
+  set_child_at(0, statement);
+  set_child_at(1, condition);
 }
 
+Expression* DoStatement::condition() const {
+  return child_at(1)->as<Expression>();
+}
+
+Statement* DoStatement::statement() const {
+  return child_at(0)->as<Statement>();
+}
+
+// EmptyStatement
 EmptyStatement::EmptyStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::SemiColon);
 }
