@@ -186,23 +186,16 @@ void Parser::ParseBlockStatement(Token* bracket) {
   DCHECK_EQ(bracket, TokenType::LeftCurryBracket);
   LocalDeclarationSpace block_space(this, bracket);
   std::vector<ast::Statement*> statements;
-  auto reachable = true;
   auto right_bracket = static_cast<Token*>(nullptr);
   for (;;) {
     right_bracket = ConsumeTokenIf(TokenType::RightCurryBracket);
     if (right_bracket)
       break;
-    // TODO(eval1749) We should |reachable| when we get labeled statement.
     ParseStatement();
     auto const statement = ConsumeStatement();
-    if (!reachable)
-      Error(ErrorCode::SyntaxStatementUnreachable, statement->token());
     statements.push_back(statement);
-    if (reachable && statement->IsTerminator())
-      reachable = false;
   }
-  ProduceStatement(factory()->NewBlockStatement(
-      reachable ? bracket : right_bracket, statements));
+  ProduceStatement(factory()->NewBlockStatement(bracket, statements));
 }
 
 void Parser::ParseBreakStatement(Token* break_keyword) {

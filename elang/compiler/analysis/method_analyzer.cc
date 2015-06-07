@@ -203,14 +203,8 @@ void MethodBodyAnalyzer::DoDefaultVisit(ast::Node* node) {
 }
 
 void MethodBodyAnalyzer::VisitBlockStatement(ast::BlockStatement* node) {
-  for (auto const statement : node->statements()) {
+  for (auto const statement : node->statements())
     Analyze(statement);
-    if (statement->IsTerminator()) {
-      // TODO(eval1749) Since, we may have labeled statement, we should continue
-      // checking |statement|.
-      break;
-    }
-  }
 }
 
 void MethodBodyAnalyzer::VisitBreakStatement(ast::BreakStatement* node) {

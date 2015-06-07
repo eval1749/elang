@@ -96,6 +96,7 @@ TEST_F(ParserTest, BracketErrorNotClosed2) {
 //
 // Block statement
 //
+#if 0
 TEST_F(ParserTest, BlockErrorUnreachable) {
   auto const source_code =
       "class A {\n"
@@ -106,6 +107,7 @@ TEST_F(ParserTest, BlockErrorUnreachable) {
       "}\n";
   EXPECT_EQ("Syntax.Statement.Unreachable(46) foo\n", Format(source_code));
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -694,6 +696,7 @@ TEST_F(ParserTest, IfBasicElse) {
   EXPECT_EQ(source_code, Format(source_code));
 }
 
+#if 0
 TEST_F(ParserTest, IfErrorUnreachable) {
   auto const source_code =
       "class A {\n"
@@ -708,7 +711,9 @@ TEST_F(ParserTest, IfErrorUnreachable) {
       "}\n";
   EXPECT_EQ("Syntax.Statement.Unreachable(93) return\n", Format(source_code));
 }
+#endif
 
+#if 0
 TEST_F(ParserTest, IfErrorUnreachable2) {
   auto const source_code =
       "class A {\n"
@@ -727,6 +732,7 @@ TEST_F(ParserTest, IfErrorUnreachable2) {
       "Syntax.Statement.Unreachable(106) return\n",
       Format(source_code));
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //

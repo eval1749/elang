@@ -26,13 +26,8 @@ ChildNodes<Statement> BlockStatement::statements() const {
   return ChildNodes<Statement>(this, 0);
 }
 
-// Statement
-bool BlockStatement::IsTerminator() const {
-  return token() == TokenType::RightCurryBracket;
-}
-
 // BreakStatement
-BreakStatement::BreakStatement(Token* keyword) : TerminatorStatement(keyword) {
+BreakStatement::BreakStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::Break);
 }
 
@@ -55,8 +50,7 @@ Type* CatchClause::type() const {
 }
 
 // ContinueStatement
-ContinueStatement::ContinueStatement(Token* keyword)
-    : TerminatorStatement(keyword) {
+ContinueStatement::ContinueStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::Continue);
 }
 
@@ -178,12 +172,6 @@ Statement* IfStatement::then_statement() const {
   return child_at(1)->as<Statement>();
 }
 
-// Node
-bool IfStatement::IsTerminator() const {
-  return else_statement() && then_statement()->IsTerminator() &&
-         else_statement()->IsTerminator();
-}
-
 // InvalidStatement
 InvalidStatement::InvalidStatement(Token* token) : Statement(token) {
   // We should have non-null |token| for source code location.
@@ -210,22 +198,6 @@ ast::Expression* ReturnStatement::expression() const {
 
 // Statement
 Statement::Statement(Token* op) : Node(nullptr, op) {
-}
-
-bool Statement::IsTerminator() const {
-  return false;
-}
-
-// TerminatorStatement
-TerminatorStatement::TerminatorStatement(Token* keyword) : Statement(keyword) {
-}
-
-TerminatorStatement::~TerminatorStatement() {
-}
-
-// Statement
-bool TerminatorStatement::IsTerminator() const {
-  return true;
 }
 
 // ThrowStatement
