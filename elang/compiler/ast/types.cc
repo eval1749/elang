@@ -26,12 +26,17 @@ ArrayType::ArrayType(Zone* zone,
                      Token* op,
                      Type* element_type,
                      const std::vector<int>& dimensions)
-    : Type(op), dimensions_(zone, dimensions), element_type_(element_type) {
+    : SimpleNode(op), dimensions_(zone, dimensions) {
   DCHECK(!dimensions_.empty());
+  set_child_at(0, element_type);
 #ifndef NDEBUG
   for (auto const dimension : dimensions_)
     DCHECK_GE(dimension, -1);
 #endif
+}
+
+Type* ArrayType::element_type() const {
+  return child_at(0)->as<Type>();
 }
 
 // ConstructedType

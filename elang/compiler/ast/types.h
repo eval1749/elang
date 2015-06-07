@@ -31,11 +31,11 @@ class Type : public Expression {
 // Represents ArrayType expression:
 //  PrimaryExpresion Rank+
 //  Rank ::= '[' ','* ']'
-class ArrayType final : public Type {
+class ArrayType final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ArrayType, Type);
 
  public:
-  Type* element_type() const { return element_type_; }
+  Type* element_type() const;
   const ZoneVector<int>& dimensions() const { return dimensions_; }
 
  private:
@@ -45,7 +45,6 @@ class ArrayType final : public Type {
             const std::vector<int>& dimensions);
 
   const ZoneVector<int> dimensions_;
-  Type* const element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayType);
 };
