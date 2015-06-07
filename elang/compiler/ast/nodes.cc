@@ -9,7 +9,9 @@
 
 #include "base/logging.h"
 #include "elang/base/atomic_string.h"
+#include "elang/compiler/ast/expressions.h"
 #include "elang/compiler/ast/namespace.h"
+#include "elang/compiler/ast/statements.h"
 #include "elang/compiler/token.h"
 
 namespace elang {
@@ -17,63 +19,90 @@ namespace compiler {
 namespace ast {
 
 // ChildNodes
-ChildNodes::ChildNodes(const Node* node) : node_(node) {
+template <typename T>
+ChildNodes<T>::ChildNodes(const Node* node)
+    : node_(node) {
 }
 
-ChildNodes::ChildNodes(const ChildNodes& other) : ChildNodes(other.node_) {
+template <typename T>
+ChildNodes<T>::ChildNodes(const ChildNodes& other)
+    : ChildNodes(other.node_) {
 }
 
-ChildNodes::~ChildNodes() {
+template <typename T>
+ChildNodes<T>::~ChildNodes() {
 }
 
-ChildNodes::Iterator ChildNodes::begin() const {
+template <typename T>
+ChildNodes<T>& ChildNodes<T>::operator=(const ChildNodes& other) {
+  node_ = other.node_;
+  return *this;
+}
+
+template <typename T>
+typename ChildNodes<T>::Iterator ChildNodes<T>::begin() const {
   return Iterator(node_, 0);
 }
 
-ChildNodes::Iterator ChildNodes::end() const {
+template <typename T>
+typename ChildNodes<T>::Iterator ChildNodes<T>::end() const {
   return Iterator(node_, node_->CountChildNodes());
 }
 
-// ChildNodes::Iterator
-ChildNodes::Iterator::Iterator(const Node* node, size_t index)
+// ChildNodes<T>::Iterator
+template <typename T>
+ChildNodes<T>::Iterator::Iterator(const Node* node, size_t index)
     : index_(index), node_(node) {
 }
 
-ChildNodes::Iterator::Iterator(const Iterator& other)
+template <typename T>
+ChildNodes<T>::Iterator::Iterator(const Iterator& other)
     : Iterator(other.node_, other.index_) {
 }
 
-ChildNodes::Iterator::~Iterator() {
+template <typename T>
+ChildNodes<T>::Iterator::~Iterator() {
 }
 
-ChildNodes::Iterator& ChildNodes::Iterator::operator=(const Iterator& other) {
+template <typename T>
+typename ChildNodes<T>::Iterator& ChildNodes<T>::Iterator::operator=(
+    const Iterator& other) {
   node_ = other.node_;
   index_ = other.index_;
   return *this;
 }
 
-bool ChildNodes::Iterator::operator==(const Iterator& other) const {
+template <typename T>
+bool ChildNodes<T>::Iterator::operator==(const Iterator& other) const {
   DCHECK_EQ(node_, other.node_);
   return index_ == other.index_;
 }
 
-bool ChildNodes::Iterator::operator!=(const Iterator& other) const {
+template <typename T>
+bool ChildNodes<T>::Iterator::operator!=(const Iterator& other) const {
   return !operator==(other);
 }
 
-Node* ChildNodes::Iterator::operator*() const {
-  return node_->ChildAt(index_);
+template <typename T>
+T* ChildNodes<T>::Iterator::operator*() const {
+  return node_->ChildAt(index_)->as<T>();
 }
 
-Node* ChildNodes::Iterator::operator->() const {
+template <typename T>
+T* ChildNodes<T>::Iterator::operator->() const {
   return operator*();
 }
 
-ChildNodes::Iterator& ChildNodes::Iterator::operator++() {
+template <typename T>
+typename ChildNodes<T>::Iterator& ChildNodes<T>::Iterator::operator++() {
   DCHECK_LT(index_, node_->CountChildNodes()) << node_;
   ++index_;
   return *this;
 }
+
+template class ChildNodes<Node>;
+template class ChildNodes<Expression>;
+template class ChildNodes<Statement>;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -85,8 +114,8 @@ Node::Node(Node* parent, Token* token) : parent_(parent), token_(token) {
   DCHECK(token);
 }
 
-ChildNodes Node::child_nodes() const {
-  return ChildNodes(this);
+ChildNodes<Node> Node::child_nodes() const {
+  return ChildNodes<Node>(this);
 }
 
 Token* Node::name() const {

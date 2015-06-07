@@ -57,8 +57,9 @@ class NodeTree {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ChildNodes
+// Nodes
 //
+template <typename T>
 class ChildNodes final {
  public:
   class Iterator final : public std::iterator<std::forward_iterator_tag, Node> {
@@ -71,8 +72,8 @@ class ChildNodes final {
     bool operator==(const Iterator& other) const;
     bool operator!=(const Iterator& other) const;
 
-    Node* operator*() const;
-    Node* operator->() const;
+    T* operator*() const;
+    T* operator->() const;
 
     Iterator& operator++();
 
@@ -98,6 +99,10 @@ class ChildNodes final {
   const Node* node_;
 };
 
+extern template class ChildNodes<Node>;
+extern template class ChildNodes<Expression>;
+extern template class ChildNodes<Statement>;
+
 //////////////////////////////////////////////////////////////////////
 //
 // Node
@@ -109,7 +114,7 @@ class Node : public Castable<Node>,
   DECLARE_ABSTRACT_AST_NODE_CLASS(Node, Castable);
 
  public:
-  ChildNodes child_nodes() const;
+  ChildNodes<Node> child_nodes() const;
 
   // Associated name like thing for error message and debug log.
   virtual Token* name() const;
