@@ -164,14 +164,16 @@ class ExpressionList : public Statement {
   DECLARE_CONCRETE_AST_NODE_CLASS(ExpressionList, Statement);
 
  public:
-  const std::vector<Expression*>& expressions() const { return expressions_; }
+  const ZoneVector<Expression*>& expressions() const { return expressions_; }
 
  protected:
   // Since |expressions| can be empty, we should have |keyword| paramter.
-  ExpressionList(Token* keyword, const std::vector<Expression*>& expressions);
+  ExpressionList(Zone* zone,
+                 Token* keyword,
+                 const std::vector<Expression*>& expressions);
 
  private:
-  const std::vector<Expression*> expressions_;
+  ZoneVector<Expression*> expressions_;
 
   DISALLOW_COPY_AND_ASSIGN(ExpressionList);
 };

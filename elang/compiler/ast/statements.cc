@@ -69,9 +69,10 @@ EmptyStatement::EmptyStatement(Token* keyword) : Statement(keyword) {
   DCHECK_EQ(keyword, TokenType::SemiColon);
 }
 
-ExpressionList::ExpressionList(Token* keyword,
+ExpressionList::ExpressionList(Zone* zone,
+                               Token* keyword,
                                const std::vector<Expression*>& expressions)
-    : Statement(keyword), expressions_(expressions) {
+    : Statement(keyword), expressions_(zone, expressions) {
 }
 
 // ExpressionStatement

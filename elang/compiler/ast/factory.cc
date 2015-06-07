@@ -313,7 +313,7 @@ EmptyStatement* Factory::NewEmptyStatement(Token* keyword) {
 ExpressionList* Factory::NewExpressionList(
     Token* keyword,
     const std::vector<Expression*>& expressions) {
-  auto const node = new (zone()) ExpressionList(keyword, expressions);
+  auto const node = new (zone()) ExpressionList(zone(), keyword, expressions);
   for (auto const expression : expressions)
     SetParent(expression, node);
   return node;
