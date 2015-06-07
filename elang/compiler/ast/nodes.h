@@ -102,8 +102,9 @@ class ChildNodes final {
   size_t start_;
 };
 
-extern template class ChildNodes<Node>;
+extern template class ChildNodes<CatchClause>;
 extern template class ChildNodes<Expression>;
+extern template class ChildNodes<Node>;
 extern template class ChildNodes<Statement>;
 extern template class ChildNodes<VarDeclaration>;
 
@@ -219,6 +220,8 @@ class VariadicNode : public Base {
   ~VariadicNode() override {}
 
   Node* child_at(size_t index) const { return child_nodes_[index]; }
+
+  void AppendChild(Node* new_child) { child_nodes_.push_back(new_child); }
 
   // NodeTree
   Node* ChildAt(size_t index) const final { return child_at(index); }

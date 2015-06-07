@@ -140,7 +140,7 @@ class Factory final : public ZoneUser {
   TryStatement* NewTryStatement(Token* keyword,
                                 BlockStatement* protected_block,
                                 const std::vector<CatchClause*>& catch_clauses,
-                                BlockStatement* finally_block);
+                                Statement* finally_block);
   UsingStatement* NewUsingStatement(Token* keyword,
                                     Variable* variable,
                                     Expression* resource,

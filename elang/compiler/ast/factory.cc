@@ -392,7 +392,7 @@ TryStatement* Factory::NewTryStatement(
     Token* keyword,
     BlockStatement* protected_block,
     const std::vector<CatchClause*>& catch_clauses,
-    BlockStatement* finally_block) {
+    Statement* finally_block) {
   auto const node = new (zone()) TryStatement(zone(), keyword, protected_block,
                                               catch_clauses, finally_block);
   SetParent(protected_block, node);

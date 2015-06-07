@@ -616,22 +616,19 @@ void Parser::ParseTryStatement(Token* try_keyword) {
   }
 
   // Parser 'finally' Block
-  if (!AdvanceIf(TokenType::Finally)) {
-    ProduceStatement(factory()->NewTryStatement(try_keyword, protected_block,
-                                                catch_clauses, nullptr));
-    return;
+  if (AdvanceIf(TokenType::Finally)) {
+    auto left_bracket = ConsumeToken();
+    if (left_bracket != TokenType::LeftCurryBracket) {
+      Error(ErrorCode::SyntaxCatchLeftCurryBracket);
+      left_bracket = session()->NewToken(
+          left_bracket->location(), TokenData(TokenType::LeftCurryBracket));
+    }
+    ParseBlockStatement(left_bracket);
+  } else {
+    ProduceStatement(factory()->NewNoStatement(PeekToken()));
   }
-
-  auto left_bracket = ConsumeToken();
-  if (left_bracket != TokenType::LeftCurryBracket) {
-    Error(ErrorCode::SyntaxCatchLeftCurryBracket);
-    left_bracket = session()->NewToken(left_bracket->location(),
-                                       TokenData(TokenType::LeftCurryBracket));
-  }
-  ParseBlockStatement(left_bracket);
-  auto const finally_block = ConsumeStatement()->as<ast::BlockStatement>();
-  ProduceStatement(factory()->NewTryStatement(try_keyword, protected_block,
-                                              catch_clauses, finally_block));
+  ProduceStatement(factory()->NewTryStatement(
+      try_keyword, protected_block, catch_clauses, ConsumeStatement()));
 }
 
 // UsingStatement ::= 'using' '(' UsingResourceDecl ')' Statement

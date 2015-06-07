@@ -235,12 +235,26 @@ TryStatement::TryStatement(Zone* zone,
                            Token* keyword,
                            BlockStatement* protected_block,
                            const std::vector<CatchClause*>& catch_clauses,
-                           BlockStatement* finally_block)
-    : Statement(keyword),
-      catch_clauses_(zone, catch_clauses),
-      finally_block_(finally_block),
-      protected_block_(protected_block) {
+                           Statement* finally_block)
+    : VariadicNode(zone, std::vector<Node*>{}, keyword) {
   DCHECK_EQ(keyword, TokenType::Try);
+  AppendChild(protected_block);
+  AppendChild(finally_block);
+  for (auto const catch_clause : catch_clauses)
+    AppendChild(catch_clause);
+}
+
+ChildNodes<CatchClause> TryStatement::catch_clauses() const {
+  return ChildNodes<CatchClause>(this, 2);
+}
+
+BlockStatement* TryStatement::finally_block() const {
+  auto const statement = child_at(1)->as<BlockStatement>();
+  return statement->is<NoStatement>() ? nullptr : statement;
+}
+
+BlockStatement* TryStatement::protected_block() const {
+  return child_at(0)->as<BlockStatement>();
 }
 
 // UsingStatement

@@ -287,26 +287,20 @@ class ThrowStatement final : public SimpleNode<TerminatorStatement, 1> {
 
 // Represents 'try' statement:
 //  'try' BlockStatement (CatchCaluse*) ('finally' BlockStatement)?
-class TryStatement final : public Statement {
+class TryStatement final : public VariadicNode<Statement> {
   DECLARE_CONCRETE_AST_NODE_CLASS(TryStatement, Statement);
 
  public:
-  BlockStatement* finally_block() const { return finally_block_; }
-  const ZoneVector<CatchClause*>& catch_clauses() const {
-    return catch_clauses_;
-  }
-  BlockStatement* protected_block() const { return protected_block_; }
+  ChildNodes<CatchClause> catch_clauses() const;
+  BlockStatement* finally_block() const;
+  BlockStatement* protected_block() const;
 
  private:
   TryStatement(Zone* zone,
                Token* keyword,
                BlockStatement* protected_block,
                const std::vector<CatchClause*>& catch_clauses,
-               BlockStatement* finally_block);
-
-  const ZoneVector<CatchClause*> catch_clauses_;
-  BlockStatement* const finally_block_;
-  BlockStatement* const protected_block_;
+               Statement* finally_block);
 
   DISALLOW_COPY_AND_ASSIGN(TryStatement);
 };
