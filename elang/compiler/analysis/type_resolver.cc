@@ -260,11 +260,9 @@ void TypeResolver::VisitArrayAccess(ast::ArrayAccess* node) {
   auto const array = Resolve(node->array(), any_value());
   auto const array_type =
       array->as<ts::Literal>()->value()->as<sm::ArrayType>();
-  if (!array_type) {
-    Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
-    return;
-  }
-  if (array_type->rank() != static_cast<int>(node->rank()))
+  if (!array_type)
+    return Error(ErrorCode::TypeResolverArrayAccessArray, node->array());
+  if (array_type->rank() != node->rank())
     Error(ErrorCode::TypeResolverArrayAccessRank, node);
   for (auto index : node->indexes()) {
     ts::Evaluator evaluator(type_factory());
