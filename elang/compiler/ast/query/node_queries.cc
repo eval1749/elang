@@ -40,22 +40,12 @@ struct QueryContext : Visitor {
   // Visitor
   void DoDefaultVisit(Node* node) final;
   void VisitMethod(Method* node) final;
-
-  // Visitor statements
-  void VisitBlockStatement(BlockStatement* node) final;
-  void VisitExpressionList(ExpressionList* node) final;
-  void VisitExpressionStatement(ExpressionStatement* node) final;
-  void VisitVarStatement(VarStatement* node) final;
 };
 
 void QueryContext::DoDefaultVisit(Node* node) {
   if (query->Match(this, node))
     nodes.push_back(node);
-  auto const container = node->as<ContainerNode>();
-  if (!container)
-    return;
-  for (auto const member : container->members())
-    Traverse(member);
+  Visitor::DoDefaultVisit(node);
 }
 
 void QueryContext::VisitMethod(Method* node) {
@@ -66,30 +56,6 @@ void QueryContext::VisitMethod(Method* node) {
   if (!node->body())
     return;
   Traverse(node->body());
-}
-
-// Visitor statements
-void QueryContext::VisitBlockStatement(BlockStatement* node) {
-  DoDefaultVisit(node);
-  for (auto const statement : node->statements())
-    Traverse(statement);
-}
-
-void QueryContext::VisitExpressionList(ExpressionList* node) {
-  for (auto const expression : node->expressions())
-    Traverse(expression);
-}
-
-void QueryContext::VisitExpressionStatement(ExpressionStatement* node) {
-  Traverse(node->expression());
-}
-
-void QueryContext::VisitVarStatement(VarStatement* node) {
-  DoDefaultVisit(node);
-  for (auto const var_decl : node->variables()) {
-    Traverse(var_decl->variable());
-    Traverse(var_decl->expression());
-  }
 }
 
 // NameQuery
