@@ -51,7 +51,12 @@ ConstructedName* ConstructedType::reference() const {
 
 // InvalidType
 InvalidType::InvalidType(Expression* expression)
-    : Type(expression->token()), expression_(expression) {
+    : SimpleNode(expression->token()) {
+  set_child_at(0, expression);
+}
+
+Expression* InvalidType::expression() const {
+  return child_at(0)->as<Expression>();
 }
 
 // OptionalType

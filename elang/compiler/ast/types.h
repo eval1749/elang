@@ -63,16 +63,14 @@ class ConstructedType final : public SimpleNode<Type, 1> {
 };
 
 // InvalidType
-class InvalidType final : public Type {
+class InvalidType final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(InvalidType, Type);
 
  public:
-  Expression* expression() const { return expression_; }
+  Expression* expression() const;
 
  private:
   explicit InvalidType(Expression* expression);
-
-  Expression* const expression_;
 
   DISALLOW_COPY_AND_ASSIGN(InvalidType);
 };
