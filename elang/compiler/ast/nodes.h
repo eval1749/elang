@@ -96,6 +96,7 @@ class ChildNodes final {
 
   Iterator begin() const;
   Iterator end() const;
+  size_t size() const;
 
  private:
   const Node* node_;

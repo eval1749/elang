@@ -49,6 +49,13 @@ typename ChildNodes<T>::Iterator ChildNodes<T>::end() const {
   return Iterator(node_, node_->CountChildNodes());
 }
 
+template <typename T>
+size_t ChildNodes<T>::size() const {
+  auto const end = node_->CountChildNodes();
+  DCHECK_LE(start_, end);
+  return end - start_;
+}
+
 // ChildNodes<T>::Iterator
 template <typename T>
 ChildNodes<T>::Iterator::Iterator(const Node* node, size_t index)

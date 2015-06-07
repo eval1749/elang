@@ -20,9 +20,20 @@ ArrayAccess::ArrayAccess(Zone* zone,
                          Token* bracket,
                          Expression* array,
                          const std::vector<Expression*>& indexes)
-    : Expression(bracket), array_(array), indexes_(zone, indexes) {
+    : VariadicNode(zone, std::vector<Expression*>{}, bracket) {
   DCHECK_EQ(bracket, TokenType::LeftSquareBracket);
   DCHECK(!indexes.empty());
+  AppendChild(array);
+  for (auto const index : indexes)
+    AppendChild(index);
+}
+
+Expression* ArrayAccess::array() const {
+  return child_at(0)->as<Expression>();
+}
+
+ChildNodes<Expression> ArrayAccess::indexes() const {
+  return ChildNodes<Expression>(this, 1);
 }
 
 // Assignment

@@ -33,21 +33,18 @@ class Expression : public Node {
 };
 
 // Represents array access, e.g. array[index (',' index)*]
-class ArrayAccess final : public Expression {
+class ArrayAccess final : public VariadicNode<Expression> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ArrayAccess, Expression);
 
  public:
-  Expression* array() const { return array_; }
-  const ZoneVector<Expression*>& indexes() const { return indexes_; }
+  Expression* array() const;
+  ChildNodes<Expression> indexes() const;
 
  private:
   ArrayAccess(Zone* zone,
               Token* name,
               Expression* array,
               const std::vector<Expression*>& indexes);
-
-  Expression* const array_;
-  const ZoneVector<Expression*> indexes_;
 
   DISALLOW_COPY_AND_ASSIGN(ArrayAccess);
 };
