@@ -228,18 +228,26 @@ TryStatement::TryStatement(Zone* zone,
   DCHECK_EQ(keyword, TokenType::Try);
 }
 
+// UsingStatement
 UsingStatement::UsingStatement(Token* keyword,
                                Variable* variable,
                                Expression* resource,
                                Statement* statement)
-    : Statement(keyword),
-      resource_(resource),
-      statement_(statement),
-      variable_(variable) {
+    : SimpleNode(keyword), variable_(variable) {
   DCHECK_EQ(keyword, TokenType::Using);
-  DCHECK(resource_);
+  set_child_at(0, resource);
+  set_child_at(1, statement);
 }
 
+Expression* UsingStatement::resource() const {
+  return child_at(0)->as<Expression>();
+}
+
+Statement* UsingStatement::statement() const {
+  return child_at(1)->as<Statement>();
+}
+
+// VarDeclaration
 VarDeclaration::VarDeclaration(Token* token,
                                Variable* variable,
                                Expression* value)

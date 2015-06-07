@@ -327,12 +327,12 @@ class TryStatement final : public Statement {
 
 // Represents 'using' statement:
 //  'using' '(' ResouceDecl ')' EmbededStatement
-class UsingStatement final : public Statement {
+class UsingStatement final : public SimpleNode<Statement, 2> {
   DECLARE_CONCRETE_AST_NODE_CLASS(UsingStatement, Statement);
 
  public:
-  Expression* resource() const { return resource_; }
-  Statement* statement() const { return statement_; }
+  Expression* resource() const;
+  Statement* statement() const;
   Variable* variable() const { return variable_; }
 
  private:
@@ -341,8 +341,6 @@ class UsingStatement final : public Statement {
                  Expression* resource,
                  Statement* statement);
 
-  Expression* const resource_;
-  Statement* const statement_;
   Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(UsingStatement);
