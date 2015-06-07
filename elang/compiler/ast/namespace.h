@@ -15,11 +15,11 @@ namespace ast {
 //
 // Alias
 //
-class Alias final : public NamedNode {
+class Alias final : public SimpleNode<NamedNode, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Alias, NamedNode);
 
  public:
-  Expression* reference() const { return reference_; }
+  Expression* reference() const;
 
  private:
   Alias(NamespaceBody* namespace_body,
@@ -31,8 +31,6 @@ class Alias final : public NamedNode {
   // Node
   bool CanBeMemberOf(ContainerNode* container) const final;
 #endif
-
-  Expression* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(Alias);
 };

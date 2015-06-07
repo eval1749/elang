@@ -21,8 +21,13 @@ Alias::Alias(NamespaceBody* namespace_body,
              Token* keyword,
              Token* name,
              Expression* reference)
-    : NamedNode(namespace_body, keyword, name), reference_(reference) {
+    : SimpleNode(namespace_body, keyword, name) {
   DCHECK_EQ(keyword, TokenType::Using);
+  set_child_at(0, reference);
+}
+
+Expression* Alias::reference() const {
+  return child_at(0)->as<Expression>();
 }
 
 #if _DEBUG
