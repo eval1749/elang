@@ -476,13 +476,12 @@ void Parser::ParseIfStatement(Token* if_keyword) {
     Error(ErrorCode::SyntaxIfRightParenthesis);
   ParseStatement();
   auto const then_statement = ConsumeStatement();
-  auto else_statement = static_cast<ast::Statement*>(nullptr);
-  if (AdvanceIf(TokenType::Else)) {
+  if (AdvanceIf(TokenType::Else))
     ParseStatement();
-    else_statement = ConsumeStatement();
-  }
-  ProduceStatement(factory()->NewIfStatement(if_keyword, condition,
-                                             then_statement, else_statement));
+  else
+    ProduceStatement(factory()->NewNoStatement(PeekToken()));
+  ProduceStatement(factory()->NewIfStatement(
+      if_keyword, condition, then_statement, ConsumeStatement()));
 }
 
 // Called after '(' read.

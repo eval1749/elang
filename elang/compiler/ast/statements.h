@@ -236,13 +236,13 @@ class ForStatement final : public SimpleNode<Statement, 4> {
 
 // Represents 'if' statement:
 //  'if' '(' BooleanExpression ')' EmbededStatement ('else' EmbededStatement)?
-class IfStatement final : public Statement {
+class IfStatement final : public SimpleNode<Statement, 3> {
   DECLARE_CONCRETE_AST_NODE_CLASS(IfStatement, Statement);
 
  public:
-  Expression* condition() const { return condition_; }
-  Statement* else_statement() const { return else_statement_; }
-  Statement* then_statement() const { return then_statement_; }
+  Expression* condition() const;
+  Statement* else_statement() const;
+  Statement* then_statement() const;
 
  private:
   IfStatement(Token* keyword,
@@ -252,10 +252,6 @@ class IfStatement final : public Statement {
 
   // Statement
   bool IsTerminator() const override;
-
-  Expression* const condition_;
-  Statement* const else_statement_;
-  Statement* const then_statement_;
 
   DISALLOW_COPY_AND_ASSIGN(IfStatement);
 };

@@ -137,17 +137,13 @@ Statement* ForStatement::initializer() const {
 }
 
 Expression* ForStatement::condition() const {
-  auto const expression = child_at(1);
-  if (expression->is<NoExpression>())
-    return nullptr;
-  return expression->as<Expression>();
+  auto const expression = child_at(1)->as<Expression>();
+  return expression->is<NoExpression>() ? nullptr : expression;
 }
 
 Statement* ForStatement::step() const {
-  auto const statement = child_at(2);
-  if (statement->is<NoStatement>())
-    return nullptr;
-  return statement->as<Statement>();
+  auto const statement = child_at(2)->as<Statement>();
+  return statement->is<NoStatement>() ? nullptr : statement;
 }
 
 Statement* ForStatement::statement() const {
@@ -159,16 +155,30 @@ IfStatement::IfStatement(Token* keyword,
                          Expression* condition,
                          Statement* then_statement,
                          Statement* else_statement)
-    : Statement(keyword),
-      condition_(condition),
-      else_statement_(else_statement),
-      then_statement_(then_statement) {
+    : SimpleNode(keyword) {
   DCHECK_EQ(keyword, TokenType::If);
+  set_child_at(0, condition);
+  set_child_at(1, then_statement);
+  set_child_at(2, else_statement);
 }
 
+Expression* IfStatement::condition() const {
+  return child_at(0)->as<Expression>();
+}
+
+Statement* IfStatement::else_statement() const {
+  auto const statement = child_at(2)->as<Statement>();
+  return statement->is<NoStatement>() ? nullptr : statement;
+}
+
+Statement* IfStatement::then_statement() const {
+  return child_at(1)->as<Statement>();
+}
+
+// Node
 bool IfStatement::IsTerminator() const {
-  return else_statement_ && then_statement_->IsTerminator() &&
-         else_statement_->IsTerminator();
+  return else_statement() && then_statement()->IsTerminator() &&
+         else_statement()->IsTerminator();
 }
 
 // InvalidStatement
