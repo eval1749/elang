@@ -71,7 +71,12 @@ Type* OptionalType::base_type() const {
 
 // TypeMemberAccess
 TypeMemberAccess::TypeMemberAccess(MemberAccess* reference)
-    : Type(reference->token()), reference_(reference) {
+    : SimpleNode(reference->token()) {
+  set_child_at(0, reference);
+}
+
+MemberAccess* TypeMemberAccess::reference() const {
+  return child_at(0)->as<MemberAccess>();
 }
 
 // TypeNameReference

@@ -89,16 +89,14 @@ class OptionalType final : public SimpleNode<Type, 1> {
 };
 
 // TypeMemberAccess
-class TypeMemberAccess final : public Type {
+class TypeMemberAccess final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(TypeMemberAccess, Type);
 
  public:
-  MemberAccess* reference() const { return reference_; }
+  MemberAccess* reference() const;
 
  private:
   explicit TypeMemberAccess(MemberAccess* reference);
-
-  MemberAccess* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(TypeMemberAccess);
 };
