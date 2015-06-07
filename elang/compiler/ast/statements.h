@@ -85,22 +85,20 @@ class BreakStatement final : public TerminatorStatement {
 
 // Represents 'catch' clause:
 //  'catch' '(' Type Name? ')' '(' Statement* '}'
-class CatchClause final : public Node {
+class CatchClause final : public SimpleNode<Node, 2> {
   DECLARE_CONCRETE_AST_NODE_CLASS(CatchClause, Node);
 
  public:
-  BlockStatement* block() const { return block_; }
-  Expression* type() const { return type_; }
+  BlockStatement* block() const;
+  Type* type() const;
   Variable* variable() const { return variable_; }
 
  private:
   CatchClause(Token* keyword,
-              Expression* type,
+              Type* type,
               Variable* variable,
               BlockStatement* block);
 
-  BlockStatement* const block_;
-  Expression* const type_;
   Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchClause);

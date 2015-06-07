@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "elang/compiler/ast/expressions.h"
+#include "elang/compiler/ast/types.h"
 #include "elang/compiler/token_type.h"
 
 namespace elang {
@@ -36,12 +37,21 @@ BreakStatement::BreakStatement(Token* keyword) : TerminatorStatement(keyword) {
 }
 
 CatchClause::CatchClause(Token* keyword,
-                         Expression* type,
+                         Type* type,
                          Variable* variable,
                          BlockStatement* block)
-    : Node(nullptr, keyword), block_(block), type_(type), variable_(variable) {
+    : SimpleNode(nullptr, keyword), variable_(variable) {
   DCHECK_EQ(keyword, TokenType::Catch);
-  DCHECK(block_);
+  set_child_at(0, type);
+  set_child_at(1, block);
+}
+
+BlockStatement* CatchClause::block() const {
+  return child_at(1)->as<BlockStatement>();
+}
+
+Type* CatchClause::type() const {
+  return child_at(0)->as<Type>();
 }
 
 // ContinueStatement
