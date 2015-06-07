@@ -305,9 +305,12 @@ hir::Value* CodeGenerator::GenerateBool(ast::Expression* expression) {
   return value;
 }
 
-void CodeGenerator::GenerateDoOrWhile(ast::DoOrWhileStatement* node) {
-  auto const for_statement = node->as<ast::ForStatement>();
-  DCHECK(!for_statement || !for_statement->step());
+void CodeGenerator::GenerateDoOrWhile(Token* keyword,
+                                      ast::Expression* condition,
+                                      ast::Statement* statement,
+                                      ast::Statement* initializer) {
+  DCHECK(keyword == TokenType::Do || keyword == TokenType::For ||
+         keyword == TokenType::While);
 
   auto const head_block = editor()->basic_block();
   Commit();
@@ -319,23 +322,21 @@ void CodeGenerator::GenerateDoOrWhile(ast::DoOrWhileStatement* node) {
   auto const continue_block = editor()->NewBasicBlock(while_block);
 
   editor()->Continue(head_block);
-  editor()->SetBranch(node->token() == TokenType::Do ? continue_block
-                                                     : while_block);
-  if (for_statement)
-    Generate(for_statement->initializer());
+  editor()->SetBranch(keyword == TokenType::Do ? continue_block : while_block);
+  if (initializer)
+    Generate(initializer);
   Commit();
 
   editor()->Edit(continue_block);
   editor()->SetBranch(while_block);
   {
     ScopedBreakContext scope(this, break_block, continue_block);
-    Generate(node->statement());
+    Generate(statement);
   }
   Commit();
 
   editor()->Edit(while_block);
-  editor()->SetBranch(GenerateBool(node->condition()), continue_block,
-                      break_block);
+  editor()->SetBranch(GenerateBool(condition), continue_block, break_block);
   Commit();
   editor()->Edit(break_block);
 }
@@ -716,7 +717,8 @@ void CodeGenerator::VisitContinueStatement(ast::ContinueStatement* node) {
 }
 
 void CodeGenerator::VisitDoStatement(ast::DoStatement* node) {
-  GenerateDoOrWhile(node);
+  GenerateDoOrWhile(node->keyword(), node->condition(), node->statement(),
+                    nullptr);
 }
 
 void CodeGenerator::VisitExpressionList(ast::ExpressionList* node) {
@@ -745,7 +747,8 @@ void CodeGenerator::VisitExpressionStatement(ast::ExpressionStatement* node) {
 //    ...
 void CodeGenerator::VisitForStatement(ast::ForStatement* node) {
   if (!node->step()) {
-    GenerateDoOrWhile(node);
+    GenerateDoOrWhile(node->keyword(), node->condition(), node->statement(),
+                      node->initializer());
     return;
   }
   auto const head_block = editor()->basic_block();
@@ -928,7 +931,8 @@ void CodeGenerator::VisitVarStatement(ast::VarStatement* node) {
 }
 
 void CodeGenerator::VisitWhileStatement(ast::WhileStatement* node) {
-  GenerateDoOrWhile(node);
+  GenerateDoOrWhile(node->keyword(), node->condition(), node->statement(),
+                    nullptr);
 }
 
 }  // namespace compiler

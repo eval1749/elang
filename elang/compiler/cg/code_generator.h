@@ -64,7 +64,10 @@ class CodeGenerator final : public CompilationSessionUser, public ast::Visitor {
   void Generate(ast::Statement* statement);
   hir::Value* GenerateArrayAccess(ast::ArrayAccess* expression);
   hir::Value* GenerateBool(ast::Expression* expression);
-  void GenerateDoOrWhile(ast::DoOrWhileStatement* do_or_while_statement);
+  void GenerateDoOrWhile(Token* keyword,
+                         ast::Expression* condition,
+                         ast::Statement* statement,
+                         ast::Statement* initializer);
   hir::Value* GenerateValue(ast::Expression* expression);
   hir::Value* GenerateValueAs(ast::Expression* expression, hir::Type* type);
   hir::Value* NewLiteral(hir::Type* type, const Token* token);
