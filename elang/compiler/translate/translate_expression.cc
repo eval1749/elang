@@ -169,7 +169,7 @@ ir::Data* Translator::TranslateBool(ast::Expression* expression) {
 
 Translator::Reference Translator::TranslateElement(ast::ArrayAccess* element) {
   auto const array = Translate(element->array());
-  std::vector<ir::Node*> indexes(element->indexes().size());
+  std::vector<ir::Node*> indexes(element->rank());
   indexes.resize(0);
   for (auto const index : element->indexes())
     indexes.push_back(Translate(index));

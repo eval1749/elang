@@ -39,6 +39,7 @@ class ArrayAccess final : public VariadicNode<Expression> {
  public:
   Expression* array() const;
   ChildNodes<Expression> indexes() const;
+  size_t rank() const;
 
  private:
   ArrayAccess(Zone* zone,

@@ -272,9 +272,9 @@ void CodeGenerator::Generate(ast::Statement* statement) {
 hir::Value* CodeGenerator::GenerateArrayAccess(ast::ArrayAccess* node) {
   // TODO(eval1749) NYI: array bounds check.
   auto const array = GenerateValue(node->array());
-  std::vector<hir::Value*> index_values(node->indexes().size());
+  std::vector<hir::Value*> index_values(node->rank());
   index_values.resize(0);
-  std::vector<hir::Type*> index_types(node->indexes().size());
+  std::vector<hir::Type*> index_types(node->rank());
   index_types.resize(0);
   for (auto index : node->indexes()) {
     index_values.push_back(GenerateValue(index));

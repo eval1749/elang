@@ -36,6 +36,10 @@ ChildNodes<Expression> ArrayAccess::indexes() const {
   return ChildNodes<Expression>(this, 1);
 }
 
+size_t ArrayAccess::rank() const {
+  return indexes().size();
+}
+
 // Assignment
 Assignment::Assignment(Token* op, Expression* left, Expression* right)
     : SimpleNode(op) {
