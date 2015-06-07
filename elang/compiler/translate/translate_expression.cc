@@ -317,17 +317,18 @@ void Translator::VisitCall(ast::Call* node) {
   auto const sm_callee = SemanticOf(node->callee())->as<sm::Method>();
   DCHECK(sm_callee) << "Unresolved call" << *node;
   auto const callee = TranslateMethodReference(sm_callee);
-  if (node->arguments().empty()) {
+  auto const arity = node->arity();
+  if (!arity) {
     SetVisitorResult(builder_->Call(callee, void_value()));
     return;
   }
-  if (node->arguments().size() == 1u) {
-    auto const argument = Translate(node->arguments().front());
+  if (arity == 1) {
+    auto const argument = Translate(*node->arguments().begin());
     SetVisitorResult(builder_->Call(callee, argument));
     return;
   }
   // Generate argument list.
-  std::vector<ir::Node*> arguments(node->arguments().size());
+  std::vector<ir::Node*> arguments(arity);
   arguments.resize(0);
   for (auto const argument : node->arguments())
     arguments.push_back(Translate(argument));

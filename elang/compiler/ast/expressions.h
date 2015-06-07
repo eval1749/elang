@@ -88,21 +88,18 @@ class BinaryOperation final : public SimpleNode<Expression, 2> {
 // Represents call expression:
 //  PrimaryExpresion '(' ArgumentList? ')'
 //  ArgumentList ::= Expression | Expression (',' Expression) *
-class Call final : public Expression {
+class Call final : public VariadicNode<Expression> {
   DECLARE_CONCRETE_AST_NODE_CLASS(Call, Expression);
 
  public:
-  int arity() const { return static_cast<int>(arguments_.size()); }
-  const ZoneVector<Expression*>& arguments() const { return arguments_; }
-  Expression* callee() const { return callee_; }
+  int arity() const;
+  ChildNodes<Expression> arguments() const;
+  Expression* callee() const;
 
  private:
   Call(Zone* zone,
        Expression* callee,
        const std::vector<Expression*>& arguments);
-
-  Expression* const callee_;
-  const ZoneVector<Expression*> arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(Call);
 };

@@ -101,11 +101,25 @@ ast::Expression* BinaryOperation::right() const {
 Call::Call(Zone* zone,
            Expression* callee,
            const std::vector<Expression*>& arguments)
-    : Expression(callee->token()),
-      arguments_(zone, arguments),
-      callee_(callee) {
+    : VariadicNode(zone, std::vector<Expression*>{}, callee->token()) {
+  AppendChild(callee);
+  for (auto const argument : arguments)
+    AppendChild(argument);
 }
 
+int Call::arity() const {
+  return static_cast<int>(arguments().size());
+}
+
+ChildNodes<Expression> Call::arguments() const {
+  return ChildNodes<Expression>(this, 1);
+}
+
+Expression* Call::callee() const {
+  return child_at(0)->as<Expression>();
+}
+
+// Conditional
 Conditional::Conditional(Token* op,
                          Expression* condition,
                          Expression* true_expression,

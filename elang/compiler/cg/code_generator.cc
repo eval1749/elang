@@ -606,17 +606,18 @@ void CodeGenerator::VisitCall(ast::Call* node) {
   auto const sm_callee = ValueOf(node->callee())->as<sm::Method>();
   DCHECK(sm_callee) << "Unresolved call" << *node;
   auto const callee = NewMethodReference(sm_callee);
-  if (node->arguments().empty()) {
+  auto const arity = node->arity();
+  if (!arity) {
     EmitOutputInstruction(factory()->NewCallInstruction(callee, void_value()));
     return;
   }
-  if (node->arguments().size() == 1u) {
-    auto const argument = GenerateValue(node->arguments().front());
+  if (arity == 1) {
+    auto const argument = GenerateValue(*node->arguments().begin());
     EmitOutputInstruction(factory()->NewCallInstruction(callee, argument));
     return;
   }
   // Generate argument list.
-  std::vector<hir::Value*> arguments(node->arguments().size());
+  std::vector<hir::Value*> arguments(arity);
   arguments.resize(0);
   for (auto const argument : node->arguments())
     arguments.push_back(GenerateValue(argument));
