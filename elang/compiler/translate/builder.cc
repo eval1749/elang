@@ -491,8 +491,9 @@ void Builder::StartIfBlock(ir::Control* control) {
 
 void Builder::StartMergeBlock(ir::PhiOwnerNode* phi_owner) {
   DCHECK(phi_owner->IsValidControl()) << *phi_owner;
-  DCHECK(phi_owner->CountInputs());
-  DCHECK(!basic_block_);
+  DCHECK(!basic_block_) << basic_block_;
+  if (!phi_owner->CountInputs())
+    return;
 
   auto effect_phi = phi_owner->effect_phi();
   auto effect = static_cast<ir::Effect*>(effect_phi);

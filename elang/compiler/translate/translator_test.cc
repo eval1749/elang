@@ -331,6 +331,68 @@ TEST_F(TranslatorTest, ForEach) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, IfErrorUnreachable) {
+  Prepare(
+      "class Sample {"
+      "  int Foo(bool x) {"
+      "    if (x)"
+      "      return 42;"
+      "    else {"
+      "      return 69;"
+      "    }"
+      "    return 123;"  // unreachable
+      "  }"
+      "}");
+  EXPECT_EQ("Translator.Statement.Unreachable(94) return\n",
+            Translate("Sample.Foo"));
+}
+
+TEST_F(TranslatorTest, IfErrorUnreachable2) {
+  Prepare(
+      "class Sample {"
+      "  int Foo(bool x) {"
+      "    if (x)"
+      "      return 42;"
+      "    else {"
+      "      return 69;"
+      "      Bar();"  // unreachable
+      "    }"
+      "    return 123;"  // unreachable
+      "  }"
+      "  void Bar() {}"
+      "}");
+  EXPECT_EQ(
+      "Translator.Statement.Unreachable(91) Bar\n"
+      "Translator.Statement.Unreachable(106) return\n",
+      Translate("Sample.Foo"));
+}
+
+TEST_F(TranslatorTest, IfReturn) {
+  Prepare(
+      "class Sample {"
+      "  int Foo(bool x) {"
+      "    if (x)"
+      "      return 42;"
+      "    else {"
+      "      return 69;"
+      "    }"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function1 int32(Sample*, bool)\n"
+      "0000: control((Sample*, bool)) %c1 = entry()\n"
+      "0001: bool %r5 = param(%c1, 1)\n"
+      "0002: control %c6 = if(%c1, %r5)\n"
+      "0003: control %c8 = if_true(%c6)\n"
+      "0004: effect %e4 = get_effect(%c1)\n"
+      "0005: control %c9 = ret(%c8, %e4, 42)\n"
+      "0006: control %c10 = if_false(%c6)\n"
+      "0007: control %c11 = ret(%c10, %e4, 69)\n"
+      "0008: control %c2 = merge(%c9, %c11)\n"
+      "0009: exit(%c2)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, IntMul) {
   Prepare(
       "class Sample {"
