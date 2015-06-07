@@ -41,7 +41,12 @@ Type* ArrayType::element_type() const {
 
 // ConstructedType
 ConstructedType::ConstructedType(ConstructedName* reference)
-    : Type(reference->token()), reference_(reference) {
+    : SimpleNode(reference->token()) {
+  set_child_at(0, reference);
+}
+
+ConstructedName* ConstructedType::reference() const {
+  return child_at(0)->as<ConstructedName>();
 }
 
 // InvalidType

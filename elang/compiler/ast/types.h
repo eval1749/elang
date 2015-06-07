@@ -50,16 +50,14 @@ class ArrayType final : public SimpleNode<Type, 1> {
 };
 
 // ConstructedType
-class ConstructedType final : public Type {
+class ConstructedType final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ConstructedType, Type);
 
  public:
-  ConstructedName* reference() const { return reference_; }
+  ConstructedName* reference() const;
 
  private:
   explicit ConstructedType(ConstructedName* reference);
-
-  ConstructedName* const reference_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstructedType);
 };
