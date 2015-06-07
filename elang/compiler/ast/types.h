@@ -76,16 +76,14 @@ class InvalidType final : public SimpleNode<Type, 1> {
 };
 
 // OptionalType
-class OptionalType final : public Type {
+class OptionalType final : public SimpleNode<Type, 1> {
   DECLARE_CONCRETE_AST_NODE_CLASS(OptionalType, Type);
 
  public:
-  Type* base_type() const { return base_type_; }
+  Type* base_type() const;
 
  private:
   OptionalType(Token* op, Type* base_type);
-
-  Type* const base_type_;
 
   DISALLOW_COPY_AND_ASSIGN(OptionalType);
 };

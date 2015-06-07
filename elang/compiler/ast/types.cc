@@ -60,9 +60,13 @@ Expression* InvalidType::expression() const {
 }
 
 // OptionalType
-OptionalType::OptionalType(Token* op, Type* base_type)
-    : Type(op), base_type_(base_type) {
+OptionalType::OptionalType(Token* op, Type* base_type) : SimpleNode(op) {
   DCHECK_EQ(op, TokenType::OptionalType);
+  set_child_at(0, base_type);
+}
+
+Type* OptionalType::base_type() const {
+  return child_at(0)->as<Type>();
 }
 
 // TypeMemberAccess
