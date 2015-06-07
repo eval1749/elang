@@ -72,7 +72,11 @@ EmptyStatement::EmptyStatement(Token* keyword) : Statement(keyword) {
 ExpressionList::ExpressionList(Zone* zone,
                                Token* keyword,
                                const std::vector<Expression*>& expressions)
-    : Statement(keyword), expressions_(zone, expressions) {
+    : VariadicNode(zone, expressions, keyword) {
+}
+
+ChildNodes<Expression> ExpressionList::expressions() const {
+  return ChildNodes<Expression>(this);
 }
 
 // ExpressionStatement

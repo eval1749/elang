@@ -160,11 +160,11 @@ class EmptyStatement final : public Statement {
 };
 
 // Represents comma separated expressions used in 'for' statement.
-class ExpressionList : public Statement {
+class ExpressionList : public VariadicNode<Statement> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ExpressionList, Statement);
 
  public:
-  const ZoneVector<Expression*>& expressions() const { return expressions_; }
+  ChildNodes<Expression> expressions() const;
 
  protected:
   // Since |expressions| can be empty, we should have |keyword| paramter.
@@ -173,8 +173,6 @@ class ExpressionList : public Statement {
                  const std::vector<Expression*>& expressions);
 
  private:
-  ZoneVector<Expression*> expressions_;
-
   DISALLOW_COPY_AND_ASSIGN(ExpressionList);
 };
 
