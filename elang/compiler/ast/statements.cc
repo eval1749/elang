@@ -105,12 +105,20 @@ ForEachStatement::ForEachStatement(Token* keyword,
                                    Variable* variable,
                                    Expression* enumerable,
                                    Statement* statement)
-    : Statement(keyword),
-      enumerable_(enumerable),
-      statement_(statement),
-      variable_(variable) {
+    : SimpleNode(keyword), variable_(variable) {
+  set_child_at(0, enumerable);
+  set_child_at(1, statement);
 }
 
+Expression* ForEachStatement::enumerable() const {
+  return child_at(0)->as<Expression>();
+}
+
+Statement* ForEachStatement::statement() const {
+  return child_at(1)->as<Statement>();
+}
+
+// ForStatement
 ForStatement::ForStatement(Token* keyword,
                            Statement* initializer,
                            Expression* condition,

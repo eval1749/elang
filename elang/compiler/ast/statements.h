@@ -195,12 +195,12 @@ class ExpressionStatement final : public SimpleNode<Statement, 1> {
 };
 
 // Represents 'for' + ':' statement.
-class ForEachStatement final : public Statement {
+class ForEachStatement final : public SimpleNode<Statement, 2> {
   DECLARE_CONCRETE_AST_NODE_CLASS(ForEachStatement, Statement);
 
  public:
-  Expression* enumerable() const { return enumerable_; }
-  Statement* statement() const { return statement_; }
+  Expression* enumerable() const;
+  Statement* statement() const;
   Variable* variable() const { return variable_; }
 
  private:
@@ -209,8 +209,6 @@ class ForEachStatement final : public Statement {
                    Expression* enumerable,
                    Statement* statement);
 
-  Expression* const enumerable_;
-  Statement* const statement_;
   Variable* const variable_;
 
   DISALLOW_COPY_AND_ASSIGN(ForEachStatement);
