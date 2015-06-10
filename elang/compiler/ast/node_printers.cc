@@ -44,6 +44,7 @@ class Formatter final : public ast::Visitor {
   void VisitAlias(ast::Alias* node) final;
   void VisitArrayAccess(ast::ArrayAccess* node) final;
   void VisitArrayType(ast::ArrayType* node) final;
+  void VisitBinaryOperation(ast::BinaryOperation* node) final;
   void VisitCall(ast::Call* node) final;
   void VisitClass(ast::Class* node) final;
   void VisitEnum(ast::Enum* node) final;
@@ -114,6 +115,11 @@ void Formatter::VisitArrayType(ast::ArrayType* node) {
     }
     ostream_ << "]";
   }
+}
+
+void Formatter::VisitBinaryOperation(ast::BinaryOperation* node) {
+  ostream_ << "operator" << node->token() << "(" << node->left() << ", "
+           << node->right() << ")";
 }
 
 void Formatter::VisitCall(ast::Call* node) {
