@@ -119,6 +119,55 @@ TEST_F(TranslatorTest, Calls) {
       Translate("Sample.Foo"));
 }
 
+TEST_F(TranslatorTest, Comparison) {
+  Prepare(
+      "class Sample {"
+      "  static bool Use(bool x) { return x; }"
+      "  static void Foo(int x, int y) {"
+      "    Use(x == y);"
+      "    Use(x != y);"
+      "    Use(x < y);"
+      "    Use(x <= y);"
+      "    Use(x > y);"
+      "    Use(x >= y);"
+      "  }"
+      "}");
+  EXPECT_EQ(
+      "function2 void(int32, int32)\n"
+      "0000: control((int32, int32)) %c7 = entry()\n"
+      "0001: effect %e10 = get_effect(%c7)\n"
+      "0002: int32 %r11 = param(%c7, 0)\n"
+      "0003: int32 %r12 = param(%c7, 1)\n"
+      "0004: bool %r13 = cmp_eq(%r11, %r12)\n"
+      "0005: control(bool) %c14 = call(%c7, %e10, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r13)\n"
+      "0006: effect %e15 = get_effect(%c14)\n"
+      "0007: bool %r17 = cmp_ne(%r11, %r12)\n"
+      "0008: control(bool) %c18 = call(%c14, %e15, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r17)\n"
+      "0009: effect %e19 = get_effect(%c18)\n"
+      "0010: bool %r21 = cmp_le(%r11, %r12)\n"
+      "0011: control(bool) %c22 = call(%c18, %e19, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r21)\n"
+      "0012: effect %e23 = get_effect(%c22)\n"
+      "0013: bool %r25 = cmp_lt(%r11, %r12)\n"
+      "0014: control(bool) %c26 = call(%c22, %e23, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r25)\n"
+      "0015: effect %e27 = get_effect(%c26)\n"
+      "0016: bool %r29 = cmp_gt(%r11, %r12)\n"
+      "0017: control(bool) %c30 = call(%c26, %e27, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r29)\n"
+      "0018: effect %e31 = get_effect(%c30)\n"
+      "0019: bool %r33 = cmp_ge(%r11, %r12)\n"
+      "0020: control(bool) %c34 = call(%c30, %e31, bool(bool) System.Bool "
+      "Sample.Use(System.Bool), %r33)\n"
+      "0021: effect %e35 = get_effect(%c34)\n"
+      "0022: control %c37 = ret(%c34, %e35, void)\n"
+      "0023: control %c8 = merge(%c37)\n"
+      "0024: exit(%c8)\n",
+      Translate("Sample.Foo"));
+}
+
 TEST_F(TranslatorTest, DoWhile) {
   Prepare(
       "class Sample {"
