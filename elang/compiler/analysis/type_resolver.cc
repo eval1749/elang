@@ -349,6 +349,7 @@ void TypeResolver::VisitBinaryOperation(ast::BinaryOperation* ast_node) {
     if (left != right)
       Error(ErrorCode::TypeResolverBinaryOperationEquality, ast_node);
     ProduceUnifiedResult(bool_value(), ast_node);
+    SetSemanticOf(ast_node, left->as<ts::Literal>()->value());
     return;
   }
 

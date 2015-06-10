@@ -408,6 +408,49 @@ TEST_F(MethodAnalyzerTest, BinaryOperationArithmeticFloat32) {
       QuerySemantics(TokenType::Add));
 }
 
+TEST_F(MethodAnalyzerTest, Comparison) {
+  Prepare(
+      "class Sample {"
+      "  static bool Use(bool x) { return x; }"
+      "  static void Foo(int x, int y) {"
+      "    Use(x == y);"
+      "    Use(x != y);"
+      "    Use(x < y);"
+      "    Use(x <= y);"
+      "    Use(x > y);"
+      "    Use(x >= y);"
+      "  }"
+      "}");
+  ASSERT_EQ("", Analyze());
+  auto const method = FindMember("Sample.Foo")->as<ast::Method>();
+  EXPECT_EQ(
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator==(x, y) : System.Int32\n"
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator!=(x, y) : System.Int32\n"
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator<(x, y) : System.Int32\n"
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator<=(x, y) : System.Int32\n"
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator>(x, y) : System.Int32\n"
+      "Use : System.Bool Sample.Use(System.Bool)\n"
+      "x : ReadOnly System.Int32 x\n"
+      "y : ReadOnly System.Int32 y\n"
+      "operator>=(x, y) : System.Int32\n",
+      DumpSemanticTree(method->body()));
+}
+
 // Conditional expression
 TEST_F(MethodAnalyzerTest, Conditional) {
   Prepare(
