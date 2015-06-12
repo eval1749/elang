@@ -139,5 +139,20 @@ void LoweringX64Pass::VisitSub(SubInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
+//   umul %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   umul RAX, RDX = RAX, %c
+//   copy %a = %RAX
+void LoweringX64Pass::VisitUIntMul(UIntMulInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const mul_instr = factory()->NewUIntMulX64Instruction(
+      GetRAX(output), GetRDX(output), input, instr->input(1));
+  editor()->InsertBefore(mul_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, mul_instr->output(0)), instr);
+}
+
 }  // namespace lir
 }  // namespace elang
