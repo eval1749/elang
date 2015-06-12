@@ -123,24 +123,8 @@ void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }
 
-//   mul %a = %b, %c
-//   =>
-//   copy RAX = %b
-//   mul RAX, RDX = RAX, %c
-//   copy %a = %RAX
 void LoweringX64Pass::VisitMul(MulInstruction* instr) {
-  auto const output = instr->output(0);
-  if (output.is_float()) {
-    RewriteToTwoOperands(instr);
-    return;
-  }
-
-  auto const input =
-      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
-  auto const mul_instr = factory()->NewMulX64Instruction(
-      GetRAX(output), GetRDX(output), input, instr->input(1));
-  editor()->InsertBefore(mul_instr, instr);
-  editor()->Replace(NewCopyInstruction(output, mul_instr->output(0)), instr);
+  RewriteToTwoOperands(instr);
 }
 
 void LoweringX64Pass::VisitShl(ShlInstruction* instr) {

@@ -139,12 +139,12 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
 
 DEFINE_BINARY_OPERATION_TEST(Add, "add")
 DEFINE_BINARY_OPERATION_TEST(BitAnd, "and")
+DEFINE_BINARY_OPERATION_TEST(Mul, "mul")
 DEFINE_BINARY_OPERATION_TEST(BitOr, "or")
 DEFINE_BINARY_OPERATION_TEST(BitXor, "xor")
 DEFINE_BINARY_OPERATION_TEST(Sub, "sub")
 
 DEFINE_FLOAT64_BINARY_OPERATION_TEST(Div, "div")
-DEFINE_FLOAT64_BINARY_OPERATION_TEST(Mul, "mul")
 
 // int Foo(int x, int y) {
 //   return x / y;
@@ -175,43 +175,6 @@ TEST_F(LirLoweringX64Test, DivInt) {
       "  xor EDX = EDX, EDX\n"
       "  x64.div EAX, EDX = EAX, EDX, %r2\n"
       "  mov %r3 = EAX\n"  // redundant copy instructions.
-      "  mov EAX = %r3\n"
-      "  ret block2\n"
-      "block2:\n"
-      "  // In: {block1}\n"
-      "  // Out: {}\n"
-      "  exit\n",
-      FormatFunction(&editor));
-}
-
-// int Foo(int x, int y) {
-//   return x * y;
-// }
-TEST_F(LirLoweringX64Test, MulInt) {
-  auto const type = Value::Int32Type();
-  auto const function = CreateSampleFunction(type, 2);
-  auto const entry_block = function->entry_block();
-  Editor editor(factory(), function);
-  editor.Edit(entry_block);
-  auto const parameters = EmitCopyParameters(&editor);
-  auto output = NewRegister(type);
-  editor.Append(NewMulInstruction(output, parameters[0], parameters[1]));
-  editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
-  editor.SetReturn();
-  EXPECT_EQ("", Commit(&editor));
-  ASSERT_EQ("", Validate(&editor));
-
-  RunPassForTesting<LoweringX64Pass>(&editor);
-  EXPECT_EQ(
-      "function1:\n"
-      "block1:\n"
-      "  // In: {}\n"
-      "  // Out: {block2}\n"
-      "  entry ECX, EDX =\n"
-      "  pcopy %r1, %r2 = ECX, EDX\n"
-      "  mov EAX = %r1\n"
-      "  x64.mul EAX, EDX = EAX, %r2\n"
-      "  mov %r3 = EAX\n"
       "  mov EAX = %r3\n"
       "  ret block2\n"
       "block2:\n"
