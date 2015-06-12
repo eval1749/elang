@@ -213,6 +213,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitLoad(LoadInstruction* instr) final;
+  void VisitMul(MulInstruction* instr) final;
   void VisitRet(RetInstruction* instr) final;
   void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
@@ -905,6 +906,42 @@ void InstructionHandlerX64::VisitLoad(LoadInstruction* instr) {
   DCHECK_EQ(Value::Int32Type(), Value::TypeOf(displacement));
   DCHECK(displacement.is_immediate());
   EmitModRmDisp(ToRegister(output), ToRegister(pointer), displacement.data);
+}
+
+// F7 /5    IMUL r/m8 EDX:EAX <= EAX * r/m32
+// 0F AF /r IMUL r32, r/m32
+// 6B /r ib IMUL r32, r/m32 imm8
+// 69 /r id IMUL r32, r/m32, imm32
+void InstructionHandlerX64::VisitMul(MulInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const left = instr->input(0);
+  auto const right = instr->input(1);
+  EmitRexPrefix(output, left);
+  if (right.is_immediate()) {
+    if (Is8Bit(right.data)) {
+      EmitOpcode(isa::Opcode::IMUL_Gv_Ev_Is);
+      EmitModRm(output, left);
+      Emit8(right.data);
+      return;
+    }
+    EmitOpcode(isa::Opcode::IMUL_Gv_Ev_Iz);
+    EmitModRm(output, left);
+    Emit32(right.data);
+    return;
+  }
+  if (right.is_literal()) {
+    auto const i32lit = factory_->GetLiteral(right)->as<Int32Literal>();
+    if (!i32lit)
+      return Error(ErrorCode::ValidateInstructionInput, instr, 1);
+    EmitOpcode(isa::Opcode::IMUL_Gv_Ev_Iz);
+    EmitModRm(output, left);
+    Emit32(i32lit->data());
+    return;
+  }
+  if (output != left)
+    return Error(ErrorCode::ValidateInstructionInput, instr, 0);
+  EmitOpcode(isa::Opcode::IMUL_Gv_Ev);
+  EmitModRm(output, right);
 }
 
 void InstructionHandlerX64::VisitRet(RetInstruction* instr) {

@@ -528,6 +528,7 @@ namespace lir {
                                                  \
   /* 0x0FA2 */                                   \
   V0(0x0FA2, CPUID)                              \
+  V2(0x0FAF, IMUL, Gv, Ev)                       \
   /* 0x0FB0 */                                   \
   V2(0x0FB6, MOVZX, Gv, Eb)                      \
   V2(0x0FB7, MOVZX, Gv, Ew)                      \

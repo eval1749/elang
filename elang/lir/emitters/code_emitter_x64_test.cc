@@ -897,6 +897,95 @@ TEST_F(CodeEmitterX64Test, Load8) {
       Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, MulInt32) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const esi = Target::GetRegister(isa::ESI);
+  auto const imm8 = Value::SmallInt32(42);
+  auto const imm32 = Value::SmallInt32(0xA9876);
+  auto const r8d = Target::GetRegister(isa::R8D);
+  auto const r10d = Target::GetRegister(isa::R10D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 32);
+
+  editor.Append(NewMulInstruction(eax, eax, eax));
+  editor.Append(NewMulInstruction(eax, eax, esi));
+  editor.Append(NewMulInstruction(eax, eax, r10d));
+  editor.Append(NewMulInstruction(eax, esi, imm8));
+  editor.Append(NewMulInstruction(eax, r8d, imm32));
+  editor.Append(NewMulInstruction(eax, eax, var33));
+
+  editor.Append(NewMulInstruction(esi, esi, eax));
+  editor.Append(NewMulInstruction(esi, esi, esi));
+  editor.Append(NewMulInstruction(esi, esi, r10d));
+  editor.Append(NewMulInstruction(esi, eax, imm8));
+  editor.Append(NewMulInstruction(esi, r8d, imm32));
+  editor.Append(NewMulInstruction(esi, esi, var33));
+
+  editor.Append(NewMulInstruction(r10d, r10d, eax));
+  editor.Append(NewMulInstruction(r10d, r10d, esi));
+  editor.Append(NewMulInstruction(r10d, r10d, r10d));
+  editor.Append(NewMulInstruction(r10d, r8d, imm8));
+  editor.Append(NewMulInstruction(r10d, r8d, imm32));
+  editor.Append(NewMulInstruction(r10d, r10d, var33));
+
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 0F AF C0 0F AF C6 0F AF C2 6B C6 2A 41 69 C0 76\n"
+      "0010 98 0A 00 0F AF 45 20 0F AF F0 0F AF F6 0F AF F2\n"
+      "0020 6B F0 2A 41 69 F0 76 98 0A 00 0F AF 75 20 45 0F\n"
+      "0030 AF D0 45 0F AF D6 45 0F AF D2 45 6B D0 2A 45 69\n"
+      "0040 D0 76 98 0A 00 45 0F AF 55 20 C3\n",
+      Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, MulInt64) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const rax = Target::GetRegister(isa::RAX);
+  auto const rsi = Target::GetRegister(isa::RSI);
+  auto const imm8 = Value::SmallInt64(42);
+  auto const imm32 = Value::SmallInt64(0xA9876);
+  auto const r8 = Target::GetRegister(isa::R8);
+  auto const r10 = Target::GetRegister(isa::R10);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 32);
+
+  editor.Append(NewMulInstruction(rax, rax, rax));
+  editor.Append(NewMulInstruction(rax, rax, rsi));
+  editor.Append(NewMulInstruction(rax, rax, r10));
+  editor.Append(NewMulInstruction(rax, rsi, imm8));
+  editor.Append(NewMulInstruction(rax, r8, imm32));
+  editor.Append(NewMulInstruction(rax, rax, var33));
+
+  editor.Append(NewMulInstruction(rsi, rsi, rax));
+  editor.Append(NewMulInstruction(rsi, rsi, rsi));
+  editor.Append(NewMulInstruction(rsi, rsi, r10));
+  editor.Append(NewMulInstruction(rsi, rax, imm8));
+  editor.Append(NewMulInstruction(rsi, r8, imm32));
+  editor.Append(NewMulInstruction(rsi, rsi, var33));
+
+  editor.Append(NewMulInstruction(r10, r10, rax));
+  editor.Append(NewMulInstruction(r10, r10, rsi));
+  editor.Append(NewMulInstruction(r10, r10, r10));
+  editor.Append(NewMulInstruction(r10, r8, imm8));
+  editor.Append(NewMulInstruction(r10, r8, imm32));
+  editor.Append(NewMulInstruction(r10, r10, var33));
+
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ(
+      "0000 48 0F AF C0 48 0F AF C6 48 0F AF C2 48 6B C6 2A\n"
+      "0010 49 69 C0 76 98 0A 00 48 0F AF 45 20 48 0F AF F0\n"
+      "0020 48 0F AF F6 48 0F AF F2 48 6B F0 2A 49 69 F0 76\n"
+      "0030 98 0A 00 48 0F AF 75 20 4D 0F AF D0 4D 0F AF D6\n"
+      "0040 4D 0F AF D2 4D 6B D0 2A 4D 69 D0 76 98 0A 00 4D\n"
+      "0050 0F AF 55 20 C3\n",
+      Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, ShlInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
