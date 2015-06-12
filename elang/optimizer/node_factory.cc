@@ -660,25 +660,20 @@ Tuple* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
   return node;
 }
 
-Data* NodeFactory::NewUIntDiv(Data* left, Data* right) {
-  auto const type = left->output_type();
-  DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer()) << *left << " " << *right;
-  DCHECK(type->is_unsigned()) << *left << " " << *right;
-  auto const node = new (zone()) UIntDivNode(type, left, right);
-  node->set_id(NewNodeId());
-  return node;
-}
-
-Data* NodeFactory::NewUIntMod(Data* left, Data* right) {
-  auto const type = left->output_type();
-  DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer()) << *left << " " << *right;
-  DCHECK(type->is_unsigned()) << *left << " " << *right;
-  auto const node = new (zone()) UIntModNode(type, left, right);
-  node->set_id(NewNodeId());
-  return node;
-}
+#define V(Name)                                                      \
+  Data* NodeFactory::New##Name(Data* left, Data* right) {            \
+    auto const type = left->output_type();                           \
+    DCHECK_EQ(type, right->output_type()) << *left << " " << *right; \
+    DCHECK(type->is_integer()) << *left << " " << *right;            \
+    DCHECK(type->is_unsigned()) << *left << " " << *right;           \
+    auto const node = new (zone()) Name##Node(type, left, right);    \
+    node->set_id(NewNodeId());                                       \
+    return node;                                                     \
+  }
+V(UIntDiv)
+V(UIntMod)
+V(UIntMul)
+#undef V
 
 }  // namespace optimizer
 }  // namespace elang

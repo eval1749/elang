@@ -471,6 +471,7 @@ TEST_F(NodesTest, UInt64Node) {
   }
 V(UIntDiv, "udiv")
 V(UIntMod, "umod")
+V(UIntMul, "umul")
 #undef V
 
 }  // namespace optimizer
