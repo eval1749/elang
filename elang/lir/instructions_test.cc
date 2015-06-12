@@ -247,6 +247,48 @@ TEST_F(LirInstructionTest, UseInstruction) {
   EXPECT_EQ("--:0:use %r1", ToString(*instr));
 }
 
+// UIntDivInstruction
+TEST_F(LirInstructionTest, UIntDivInstruction) {
+  auto const input = NewIntPtrRegister();
+  auto const output = NewIntPtrRegister();
+  auto const instr =
+      factory()->NewUIntDivInstruction(output, input, Value::SmallInt32(3));
+  EXPECT_TRUE(instr->is<UIntDivInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:udiv %r2l = %r1l, 3", ToString(*instr));
+}
+
+// UIntModInstruction
+TEST_F(LirInstructionTest, UIntModInstruction) {
+  auto const input = NewIntPtrRegister();
+  auto const output = NewIntPtrRegister();
+  auto const instr =
+      factory()->NewUIntModInstruction(output, input, Value::SmallInt32(3));
+  EXPECT_TRUE(instr->is<UIntModInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:umod %r2l = %r1l, 3", ToString(*instr));
+}
+
+// UIntMulInstruction
+TEST_F(LirInstructionTest, UIntMulInstruction) {
+  auto const input = NewIntPtrRegister();
+  auto const output = NewIntPtrRegister();
+  auto const instr =
+      factory()->NewUIntMulInstruction(output, input, Value::SmallInt32(3));
+  EXPECT_TRUE(instr->is<UIntMulInstruction>());
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:umul %r2l = %r1l, 3", ToString(*instr));
+}
+
 // UIntShrInstruction
 TEST_F(LirInstructionTest, UIntShrInstruction) {
   auto const input = NewIntPtrRegister();
