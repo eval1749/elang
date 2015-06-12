@@ -470,6 +470,7 @@ TEST_F(NodesTest, UInt64Node) {
     EXPECT_EQ("uint64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64u));     \
   }
 V(UIntDiv, "udiv")
+V(UIntMod, "umod")
 #undef V
 
 }  // namespace optimizer
