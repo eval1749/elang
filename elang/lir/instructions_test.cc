@@ -247,13 +247,13 @@ TEST_F(LirInstructionTest, UseInstruction) {
   EXPECT_EQ("--:0:use %r1", ToString(*instr));
 }
 
-// UShrInstruction
-TEST_F(LirInstructionTest, UShrInstruction) {
+// UIntShrInstruction
+TEST_F(LirInstructionTest, UIntShrInstruction) {
   auto const input = NewIntPtrRegister();
   auto const output = NewIntPtrRegister();
   auto const instr =
-      factory()->NewUShrInstruction(output, input, Value::SmallInt32(3));
-  EXPECT_TRUE(instr->is<UShrInstruction>());
+      factory()->NewUIntShrInstruction(output, input, Value::SmallInt32(3));
+  EXPECT_TRUE(instr->is<UIntShrInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());

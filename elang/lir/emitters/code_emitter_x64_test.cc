@@ -1337,7 +1337,7 @@ TEST_F(CodeEmitterX64Test, StoreLiteral) {
       Emit(&editor));
 }
 
-TEST_F(CodeEmitterX64Test, UShrInt64) {
+TEST_F(CodeEmitterX64Test, UIntShrInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
@@ -1349,21 +1349,21 @@ TEST_F(CodeEmitterX64Test, UShrInt64) {
   auto const r9 = Target::GetRegister(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
 
-  editor.Append(NewUShrInstruction(rax, rax, one));
-  editor.Append(NewUShrInstruction(rax, rax, cl));
-  editor.Append(NewUShrInstruction(rax, rax, imm32));
+  editor.Append(NewUIntShrInstruction(rax, rax, one));
+  editor.Append(NewUIntShrInstruction(rax, rax, cl));
+  editor.Append(NewUIntShrInstruction(rax, rax, imm32));
 
-  editor.Append(NewUShrInstruction(rbx, rbx, one));
-  editor.Append(NewUShrInstruction(rbx, rbx, cl));
-  editor.Append(NewUShrInstruction(rbx, rbx, imm32));
+  editor.Append(NewUIntShrInstruction(rbx, rbx, one));
+  editor.Append(NewUIntShrInstruction(rbx, rbx, cl));
+  editor.Append(NewUIntShrInstruction(rbx, rbx, imm32));
 
-  editor.Append(NewUShrInstruction(r9, r9, one));
-  editor.Append(NewUShrInstruction(r9, r9, cl));
-  editor.Append(NewUShrInstruction(r9, r9, imm32));
+  editor.Append(NewUIntShrInstruction(r9, r9, one));
+  editor.Append(NewUIntShrInstruction(r9, r9, cl));
+  editor.Append(NewUIntShrInstruction(r9, r9, imm32));
 
-  editor.Append(NewUShrInstruction(var33, var33, one));
-  editor.Append(NewUShrInstruction(var33, var33, cl));
-  editor.Append(NewUShrInstruction(var33, var33, imm32));
+  editor.Append(NewUIntShrInstruction(var33, var33, one));
+  editor.Append(NewUIntShrInstruction(var33, var33, cl));
+  editor.Append(NewUIntShrInstruction(var33, var33, imm32));
 
   ASSERT_EQ("", Commit(&editor));
 

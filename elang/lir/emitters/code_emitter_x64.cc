@@ -219,7 +219,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitShr(ShrInstruction* instr) final;
   void VisitStore(StoreInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
-  void VisitUShr(UShrInstruction* instr) final;
+  void VisitUIntShr(UIntShrInstruction* instr) final;
   void VisitZeroExtend(ZeroExtendInstruction* instr) final;
 
   const Factory* const factory_;
@@ -516,7 +516,7 @@ void InstructionHandlerX64::HandleIntegerArithmetic(Instruction* instr,
   EmitIz(left, imm32);
 }
 
-// Emit code for Shl, Shl, UShr instructions.
+// Emit code for Shl, Shl, UIntShr instructions.
 //
 // Opcode extension:
 //  SAL/SHL=4, SAR=7, SHR=5
@@ -1012,7 +1012,7 @@ void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
   NOTREACHED() << "NYI: float sub: " << *instr;
 }
 
-void InstructionHandlerX64::VisitUShr(UShrInstruction* instr) {
+void InstructionHandlerX64::VisitUIntShr(UIntShrInstruction* instr) {
   HandleShiftInstruction(instr, isa::OpcodeExt::SHR_Ev_1);
 }
 
