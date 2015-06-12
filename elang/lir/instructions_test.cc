@@ -150,18 +150,18 @@ TEST_F(LirInstructionTest, ExitInstruction) {
   EXPECT_EQ(0, instr->outputs().size());
 }
 
-// FCmpInstruction
-TEST_F(LirInstructionTest, FCmpInstruction) {
+// FloatCmpInstruction
+TEST_F(LirInstructionTest, FloatCmpInstruction) {
   auto const left = NewRegister(Value::Float32Type());
   auto const right = NewRegister(Value::Float32Type());
-  auto const instr = NewFCmpInstruction(
+  auto const instr = NewFloatCmpInstruction(
       NewConditional(), FloatCondition::OrderedNotEqual, left, right);
-  EXPECT_TRUE(instr->is<FCmpInstruction>());
+  EXPECT_TRUE(instr->is<FloatCmpInstruction>());
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:fcmp_ne %b2 = %f1, %f2", ToString(*instr));
+  EXPECT_EQ("--:0:FloatCmp_ne %b2 = %f1, %f2", ToString(*instr));
 }
 
 // JumpInstruction

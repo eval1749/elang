@@ -51,7 +51,7 @@ namespace lir {
   V(Cmp, "cmp",                                                            \
     (Value output, IntCondition condition, Value left, Value right))       \
   V(Entry, "entry", (const std::vector<Value>& outputs))                   \
-  V(FCmp, "fcmp",                                                          \
+  V(FloatCmp, "FloatCmp",                                                  \
     (Value output, FloatCondition condition, Value left, Value right))     \
   V(Jump, "jmp", (BasicBlock * target_block))                              \
   V(PCopy, "pcopy",                                                        \

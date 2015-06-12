@@ -129,7 +129,7 @@ void Generator::HandleComparison(hir::Instruction* instr,
   }
 
   if (primitive_type->is_float()) {
-    Emit(NewFCmpInstruction(output, float_condition, left, right));
+    Emit(NewFloatCmpInstruction(output, float_condition, left, right));
     return;
   }
 

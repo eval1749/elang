@@ -294,7 +294,7 @@ void Validator::VisitExtend(ExtendInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 0);
 }
 
-void Validator::VisitFCmp(FCmpInstruction* instr) {
+void Validator::VisitFloatCmp(FloatCmpInstruction* instr) {
   auto const output = instr->output(0);
   auto const left = instr->input(0);
   auto const right = instr->input(1);

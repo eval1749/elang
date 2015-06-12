@@ -347,11 +347,11 @@ Value* EntryInstruction::OutputValues() const {
 ExitInstruction::ExitInstruction() {
 }
 
-// FCmpInstruction
-FCmpInstruction::FCmpInstruction(Value output,
-                                 FloatCondition condition,
-                                 Value left,
-                                 Value right)
+// FloatCmpInstruction
+FloatCmpInstruction::FloatCmpInstruction(Value output,
+                                         FloatCondition condition,
+                                         Value left,
+                                         Value right)
     : condition_(condition) {
   DCHECK(output.is_conditional()) << output;
   DCHECK(left.is_float()) << left;
@@ -362,14 +362,14 @@ FCmpInstruction::FCmpInstruction(Value output,
   InitInput(1, right);
 }
 
-base::StringPiece FCmpInstruction::mnemonic() const {
+base::StringPiece FloatCmpInstruction::mnemonic() const {
   static const char* const mnemonics[] = {
-#define V(Name, mnemonic, ...) "fcmp_" mnemonic,
+#define V(Name, mnemonic, ...) "FloatCmp_" mnemonic,
       FOR_EACH_FLOAT_CONDITION(V)
 #undef V
   };
   auto const it = std::begin(mnemonics) + static_cast<size_t>(condition());
-  return it < std::end(mnemonics) ? *it : "fcmp_invalid";
+  return it < std::end(mnemonics) ? *it : "FloatCmp_invalid";
 }
 
 // JumpInstruction

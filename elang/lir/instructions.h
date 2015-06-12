@@ -457,19 +457,19 @@ class ELANG_LIR_EXPORT ExitInstruction final
   ExitInstruction();
 };
 
-// FCmpInstruction
-class ELANG_LIR_EXPORT FCmpInstruction final
+// FloatCmpInstruction
+class ELANG_LIR_EXPORT FloatCmpInstruction final
     : public InstructionTemplate<1, 2> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(FCmp);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(FloatCmp);
 
  public:
   FloatCondition condition() const { return condition_; }
 
  private:
-  FCmpInstruction(Value output,
-                  FloatCondition condition,
-                  Value left,
-                  Value right);
+  FloatCmpInstruction(Value output,
+                      FloatCondition condition,
+                      Value left,
+                      Value right);
 
   base::StringPiece mnemonic() const final;
 

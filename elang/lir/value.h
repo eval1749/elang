@@ -34,22 +34,22 @@ enum class ValueSize : uint32_t {
 static_assert(static_cast<size_t>(ValueSize::Size0) == 7,
               "ValueSize::Size0 must be 7");
 
-#define FOR_EACH_VALUE_KIND(V)                            \
-  V(Void)                                                 \
-  V(Immediate)                                            \
-  V(Literal)                                              \
-  V(Parameter)                                            \
-  V(PhysicalRegister)                                     \
-  V(VirtualRegister)                                      \
-  V(Conditional) /* output of cmp/fcmp instructions. */   \
-  V(Argument)                                             \
-  V(StackSlot) /* stack location for spilled registers */ \
-  V(SpillSlot)                                            \
-  V(FrameSlot)                                            \
-  V(NotUsed11)                                            \
-  V(NotUsed12)                                            \
-  V(NotUsed13)                                            \
-  V(NotUsed14)                                            \
+#define FOR_EACH_VALUE_KIND(V)                              \
+  V(Void)                                                   \
+  V(Immediate)                                              \
+  V(Literal)                                                \
+  V(Parameter)                                              \
+  V(PhysicalRegister)                                       \
+  V(VirtualRegister)                                        \
+  V(Conditional) /* output of cmp/FloatCmp instructions. */ \
+  V(Argument)                                               \
+  V(StackSlot) /* stack location for spilled registers */   \
+  V(SpillSlot)                                              \
+  V(FrameSlot)                                              \
+  V(NotUsed11)                                              \
+  V(NotUsed12)                                              \
+  V(NotUsed13)                                              \
+  V(NotUsed14)                                              \
   V(Instruction) /* for ErrorData */
 
 //////////////////////////////////////////////////////////////////////

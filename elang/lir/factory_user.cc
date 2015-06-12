@@ -68,11 +68,11 @@ Instruction* FactoryUser::NewCmpInstruction(Value output,
   return factory()->NewCmpInstruction(output, condition, left, right);
 }
 
-Instruction* FactoryUser::NewFCmpInstruction(Value output,
-                                             FloatCondition condition,
-                                             Value left,
-                                             Value right) {
-  return factory()->NewFCmpInstruction(output, condition, left, right);
+Instruction* FactoryUser::NewFloatCmpInstruction(Value output,
+                                                 FloatCondition condition,
+                                                 Value left,
+                                                 Value right) {
+  return factory()->NewFloatCmpInstruction(output, condition, left, right);
 }
 
 Instruction* FactoryUser::NewPCopyInstruction(
