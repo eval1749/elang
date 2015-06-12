@@ -224,53 +224,53 @@ TEST_F(NodesTest, Int64Node) {
             ToString(NewInt64(std::numeric_limits<int64_t>::min())));
 }
 
-#define V(Name, mnemonic)                                                   \
-  TEST_F(NodesTest, Int##Name##Node) {                                      \
-    auto const function = NewSampleFunction(void_type(), {int32_type(),     \
-                                                          int32_type(),     \
-                                                          int64_type(),     \
-                                                          int64_type(),     \
-                                                          uint32_type(),    \
-                                                          uint32_type(),    \
-                                                          uint64_type(),    \
-                                                          uint64_type()});  \
-    auto const entry_node = function->entry_node();                         \
-    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
-                                     NewParameter(entry_node, 1));          \
-    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));      \
-    auto const node64 = NewInt##Name(NewParameter(entry_node, 2),           \
-                                     NewParameter(entry_node, 3));          \
-    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));      \
-    auto const node32u = NewInt##Name(NewParameter(entry_node, 4),          \
-                                      NewParameter(entry_node, 5));         \
-    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u)); \
-    auto const node64u = NewInt##Name(NewParameter(entry_node, 6),          \
-                                      NewParameter(entry_node, 7));         \
-    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u)); \
+#define V(Name, mnemonic)                                                    \
+  TEST_F(NodesTest, Name##Node) {                                            \
+    auto const function = NewSampleFunction(void_type(), {int32_type(),      \
+                                                          int32_type(),      \
+                                                          int64_type(),      \
+                                                          int64_type(),      \
+                                                          uint32_type(),     \
+                                                          uint32_type(),     \
+                                                          uint64_type(),     \
+                                                          uint64_type()});   \
+    auto const entry_node = function->entry_node();                          \
+    auto const node32 =                                                      \
+        New##Name(NewParameter(entry_node, 0), NewParameter(entry_node, 1)); \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));       \
+    auto const node64 =                                                      \
+        New##Name(NewParameter(entry_node, 2), NewParameter(entry_node, 3)); \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));       \
+    auto const node32u =                                                     \
+        New##Name(NewParameter(entry_node, 4), NewParameter(entry_node, 5)); \
+    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u));  \
+    auto const node64u =                                                     \
+        New##Name(NewParameter(entry_node, 6), NewParameter(entry_node, 7)); \
+    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u));  \
   }
-V(Add, "add")
-V(BitAnd, "bit_and")
-V(BitOr, "bit_or")
-V(BitXor, "bit_xor")
-V(Sub, "sub")
+V(IntAdd, "add")
+V(IntBitAnd, "bit_and")
+V(IntBitOr, "bit_or")
+V(IntBitXor, "bit_xor")
+V(IntSub, "sub")
 #undef V
 
-#define V(Name, mnemonic)                                              \
-  TEST_F(NodesTest, Int##Name##Node) {                                 \
-    auto const function = NewSampleFunction(                           \
-        void_type(),                                                   \
-        {int32_type(), int32_type(), int64_type(), int64_type()});     \
-    auto const entry_node = function->entry_node();                    \
-    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),      \
-                                     NewParameter(entry_node, 1));     \
-    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32)); \
-    auto const node64 = NewInt##Name(NewParameter(entry_node, 2),      \
-                                     NewParameter(entry_node, 3));     \
-    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64)); \
+#define V(Name, mnemonic)                                                    \
+  TEST_F(NodesTest, Name##Node) {                                            \
+    auto const function = NewSampleFunction(                                 \
+        void_type(),                                                         \
+        {int32_type(), int32_type(), int64_type(), int64_type()});           \
+    auto const entry_node = function->entry_node();                          \
+    auto const node32 =                                                      \
+        New##Name(NewParameter(entry_node, 0), NewParameter(entry_node, 1)); \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));       \
+    auto const node64 =                                                      \
+        New##Name(NewParameter(entry_node, 2), NewParameter(entry_node, 3)); \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));       \
   }
-V(Div, "div")
-V(Mod, "mod")
-V(Mul, "mul")
+V(IntDiv, "div")
+V(IntMod, "mod")
+V(IntMul, "mul")
 #undef V
 
 TEST_F(NodesTest, IntCmpNode) {
@@ -298,27 +298,27 @@ TEST_F(NodesTest, IntCmpNodePointerType) {
   EXPECT_EQ("bool %r6 = cmp_eq(%r5, %r4)", ToString(node));
 }
 
-#define V(Name, mnemonic)                                                   \
-  TEST_F(NodesTest, Int##Name##Node) {                                      \
-    auto const function = NewSampleFunction(                                \
-        void_type(),                                                        \
-        {int32_type(), int64_type(), uint32_type(), uint64_type()});        \
-    auto const entry_node = function->entry_node();                         \
-    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),           \
-                                     NewParameter(entry_node, 0));          \
-    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));      \
-    auto const node64 = NewInt##Name(NewParameter(entry_node, 1),           \
-                                     NewParameter(entry_node, 0));          \
-    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));      \
-    auto const node32u = NewInt##Name(NewParameter(entry_node, 2),          \
-                                      NewParameter(entry_node, 0));         \
-    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u)); \
-    auto const node64u = NewInt##Name(NewParameter(entry_node, 3),          \
-                                      NewParameter(entry_node, 0));         \
-    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u)); \
+#define V(Name, mnemonic)                                                    \
+  TEST_F(NodesTest, Name##Node) {                                            \
+    auto const function = NewSampleFunction(                                 \
+        void_type(),                                                         \
+        {int32_type(), int64_type(), uint32_type(), uint64_type()});         \
+    auto const entry_node = function->entry_node();                          \
+    auto const node32 =                                                      \
+        New##Name(NewParameter(entry_node, 0), NewParameter(entry_node, 0)); \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32));       \
+    auto const node64 =                                                      \
+        New##Name(NewParameter(entry_node, 1), NewParameter(entry_node, 0)); \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64));       \
+    auto const node32u =                                                     \
+        New##Name(NewParameter(entry_node, 2), NewParameter(entry_node, 0)); \
+    EXPECT_EQ("uint32 %r12 = " mnemonic "(%r11, %r10)", ToString(node32u));  \
+    auto const node64u =                                                     \
+        New##Name(NewParameter(entry_node, 3), NewParameter(entry_node, 0)); \
+    EXPECT_EQ("uint64 %r15 = " mnemonic "(%r14, %r13)", ToString(node64u));  \
   }
-V(Shl, "shl")
-V(Shr, "shr")
+V(IntShl, "shl")
+V(IntShr, "shr")
 #undef V
 
 TEST_F(NodesTest, LengthNode) {
