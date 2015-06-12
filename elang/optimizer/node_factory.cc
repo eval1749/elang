@@ -379,7 +379,7 @@ Data* NodeFactory::NewIntAdd(Data* left, Data* right) {
     return NewIntAdd(right, left);
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer());
+  DCHECK(type->is_integer()) << *left << " " << *right;
   if (right == NewInt32(0) || right == NewInt64(0))
     return left;
   auto const node = new (zone()) IntAddNode(type, left, right);
@@ -462,7 +462,8 @@ Data* NodeFactory::NewIntCmp(IntCondition condition, Data* left, Data* right) {
 Data* NodeFactory::NewIntDiv(Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer());
+  DCHECK(type->is_integer()) << *left << " " << *right;
+  DCHECK(type->is_signed()) << *left << " " << *right;
   auto const node = new (zone()) IntDivNode(type, left, right);
   node->set_id(NewNodeId());
   return node;
@@ -473,7 +474,8 @@ Data* NodeFactory::NewIntMul(Data* left, Data* right) {
     return NewIntAdd(right, left);
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer());
+  DCHECK(type->is_integer()) << *left << " " << *right;
+  DCHECK(type->is_signed()) << *left << " " << *right;
   if (right == NewInt32(0))
     return NewInt32(0);
   if (right == NewInt64(0))
@@ -488,7 +490,8 @@ Data* NodeFactory::NewIntMul(Data* left, Data* right) {
 Data* NodeFactory::NewIntMod(Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
-  DCHECK(type->is_integer());
+  DCHECK(type->is_integer()) << *left << " " << *right;
+  DCHECK(type->is_signed()) << *left << " " << *right;
   auto const node = new (zone()) IntModNode(type, left, right);
   node->set_id(NewNodeId());
   return node;
