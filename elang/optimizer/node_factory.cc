@@ -657,5 +657,15 @@ Tuple* NodeFactory::NewTuple(const std::vector<Node*>& inputs) {
   return node;
 }
 
+Data* NodeFactory::NewUIntDiv(Data* left, Data* right) {
+  auto const type = left->output_type();
+  DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
+  DCHECK(type->is_integer()) << *left << " " << *right;
+  DCHECK(type->is_unsigned()) << *left << " " << *right;
+  auto const node = new (zone()) UIntDivNode(type, left, right);
+  node->set_id(NewNodeId());
+  return node;
+}
+
 }  // namespace optimizer
 }  // namespace elang

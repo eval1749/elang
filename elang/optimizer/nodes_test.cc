@@ -99,8 +99,7 @@ TEST_F(NodesTest, FieldNode) {
   auto const instance_pointer =
       NewReference(NewPointerType(clazz), NewAtomicString(L"this"));
   auto const node = NewField(int32_type(), instance_pointer, NewString(L"x_"));
-  EXPECT_EQ("int32* %r1 = field(Sample* this, \"x_\")",
-            ToString(node));
+  EXPECT_EQ("int32* %r1 = field(Sample* this, \"x_\")", ToString(node));
 }
 
 TEST_F(NodesTest, Float32Node) {
@@ -253,10 +252,25 @@ V(Add, "add")
 V(BitAnd, "bit_and")
 V(BitOr, "bit_or")
 V(BitXor, "bit_xor")
+V(Sub, "sub")
+#undef V
+
+#define V(Name, mnemonic)                                              \
+  TEST_F(NodesTest, Int##Name##Node) {                                 \
+    auto const function = NewSampleFunction(                           \
+        void_type(),                                                   \
+        {int32_type(), int32_type(), int64_type(), int64_type()});     \
+    auto const entry_node = function->entry_node();                    \
+    auto const node32 = NewInt##Name(NewParameter(entry_node, 0),      \
+                                     NewParameter(entry_node, 1));     \
+    EXPECT_EQ("int32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32)); \
+    auto const node64 = NewInt##Name(NewParameter(entry_node, 2),      \
+                                     NewParameter(entry_node, 3));     \
+    EXPECT_EQ("int64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64)); \
+  }
 V(Div, "div")
 V(Mod, "mod")
 V(Mul, "mul")
-V(Sub, "sub")
 #undef V
 
 TEST_F(NodesTest, IntCmpNode) {
@@ -441,6 +455,22 @@ TEST_F(NodesTest, UInt64Node) {
             ToString(NewUInt64(std::numeric_limits<uint64_t>::max())));
   EXPECT_EQ("0ul", ToString(NewUInt64(std::numeric_limits<uint64_t>::min())));
 }
+
+#define V(Name, mnemonic)                                                    \
+  TEST_F(NodesTest, Name##Node) {                                            \
+    auto const function = NewSampleFunction(                                 \
+        void_type(),                                                         \
+        {uint32_type(), uint32_type(), uint64_type(), uint64_type()});       \
+    auto const entry_node = function->entry_node();                          \
+    auto const node32u =                                                     \
+        New##Name(NewParameter(entry_node, 0), NewParameter(entry_node, 1)); \
+    EXPECT_EQ("uint32 %r6 = " mnemonic "(%r5, %r4)", ToString(node32u));     \
+    auto const node64u =                                                     \
+        New##Name(NewParameter(entry_node, 2), NewParameter(entry_node, 3)); \
+    EXPECT_EQ("uint64 %r9 = " mnemonic "(%r8, %r7)", ToString(node64u));     \
+  }
+V(UIntDiv, "udiv")
+#undef V
 
 }  // namespace optimizer
 }  // namespace elang

@@ -79,7 +79,8 @@ namespace optimizer {
   V(IntDiv, "div", Data)                               \
   V(IntMod, "mod", Data)                               \
   V(IntMul, "mul", Data)                               \
-  V(IntSub, "sub", Data)
+  V(IntSub, "sub", Data)                               \
+  V(UIntDiv, "udiv", Data)
 
 #define FOR_EACH_OPTIMIZER_CONCRETE_SIMPLE_NODE_3(V) \
   V(Load, "load", Data)                              \
