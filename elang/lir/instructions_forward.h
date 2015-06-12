@@ -34,6 +34,11 @@ namespace lir {
   V(BitAnd, "and")                      \
   V(BitOr, "or")                        \
   V(BitXor, "xor")                      \
+  V(FloatAdd, "fadd")                   \
+  V(FloatDiv, "fdiv")                   \
+  V(FloatMod, "fmod")                   \
+  V(FloatMul, "fmul")                   \
+  V(FloatSub, "fsub")                   \
   V(Div, "div")                         \
   V(Mod, "mod")                         \
   V(Mul, "mul")                         \

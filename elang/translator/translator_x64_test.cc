@@ -225,7 +225,7 @@ TEST_F(TranslatorX64Test, EntryNode2) {
       "  // Out: {block2}\n"
       "  entry XMM0S, XMM1S =\n"
       "  pcopy %f1, %f2 = XMM0S, XMM1S\n"
-      "  add %f3 = %f1, %f2\n"
+      "  fadd %f3 = %f1, %f2\n"
       "  mov XMM0S = %f3\n"
       "  ret block2\n"
       "block2:\n"
@@ -266,11 +266,11 @@ TEST_F(TranslatorX64Test, EntryNode2) {
         Translate(editor));                                            \
   }
 
-DEFINE_FLOAT_ARITHMETIC_TEST(FloatAdd, "add")
-DEFINE_FLOAT_ARITHMETIC_TEST(FloatDiv, "div")
-DEFINE_FLOAT_ARITHMETIC_TEST(FloatMod, "mod")
-DEFINE_FLOAT_ARITHMETIC_TEST(FloatMul, "mul")
-DEFINE_FLOAT_ARITHMETIC_TEST(FloatSub, "sub")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatAdd, "fadd")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatDiv, "fdiv")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatMod, "fmod")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatMul, "fmul")
+DEFINE_FLOAT_ARITHMETIC_TEST(FloatSub, "fsub")
 
 #define DEFINE_GET_NODE_TEST(Type, ret_type, ret_var, ret_reg)                \
   TEST_F(TranslatorX64Test, GetNode##Type) {                                  \
