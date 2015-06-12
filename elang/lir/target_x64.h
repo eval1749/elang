@@ -227,7 +227,7 @@ class ELANG_LIR_EXPORT Target {
   static Value ArgumentAt(Value output, size_t position);
 
   // Returns physical/pseudo register of |name|.
-  static Value GetRegister(isa::Register name);
+  static Value RegisterOf(isa::Register name);
 
   // Returns true if |value| is an integer literal represented in 32-bit
   // integer, otherwise false.

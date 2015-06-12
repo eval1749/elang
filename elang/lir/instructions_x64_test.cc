@@ -94,7 +94,7 @@ TEST_F(LirInstructionsTestX64, CopyInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(factory()->NewCopyInstruction(Target::GetRegister(isa::RAX),
+  editor.Append(factory()->NewCopyInstruction(Target::RegisterOf(isa::RAX),
                                               NewIntPtrRegister()));
   EXPECT_EQ("", Commit(&editor));
   EXPECT_EQ(
@@ -137,8 +137,8 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
 }
 
 TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const edx = Target::GetRegister(isa::EDX);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
   auto const instr = factory()->NewUIntMulX64Instruction(eax, edx, eax, edx);
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());

@@ -49,11 +49,11 @@ TEST_F(CodeEmitterX64Test, AddInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const bx = Target::GetRegister(isa::BX);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const bx = Target::RegisterOf(isa::BX);
   auto const imm16 = Value::SmallInt16(2359);
   auto const imm8 = Value::SmallInt16(42);
-  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const r9w = Target::RegisterOf(isa::R9W);
   auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
   // 66 05 ib ADD AX, imm16
   editor.Append(NewAddInstruction(ax, ax, imm16));
@@ -90,11 +90,11 @@ TEST_F(CodeEmitterX64Test, AddInt32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const ebx = Target::RegisterOf(isa::EBX);
   auto const imm32 = Value::SmallInt32(2359);
   auto const imm8 = Value::SmallInt32(42);
-  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
   // 05 ib ADD EAX, imm32
   editor.Append(NewAddInstruction(eax, eax, imm32));
@@ -130,11 +130,11 @@ TEST_F(CodeEmitterX64Test, AddInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
   auto const imm32 = Value::SmallInt64(2359);
   auto const imm8 = Value::SmallInt64(42);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
   // REX.W 05 ib ADD RAX, imm32
   editor.Append(NewAddInstruction(rax, rax, imm32));
@@ -171,12 +171,12 @@ TEST_F(CodeEmitterX64Test, AddInt8) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const al = Target::GetRegister(isa::AL);
-  auto const bl = Target::GetRegister(isa::BL);
-  auto const cl = Target::GetRegister(isa::CL);
-  auto const dil = Target::GetRegister(isa::DIL);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const bl = Target::RegisterOf(isa::BL);
+  auto const cl = Target::RegisterOf(isa::CL);
+  auto const dil = Target::RegisterOf(isa::DIL);
   auto const imm8 = Value::SmallInt8(42);
-  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const r9b = Target::RegisterOf(isa::R9B);
   auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
   // 04 ib ADD AL, imm8
   editor.Append(NewAddInstruction(al, al, imm8));
@@ -211,8 +211,8 @@ TEST_F(CodeEmitterX64Test, Branch) {
   editor.Edit(function->entry_block());
   auto const conditional = NewConditional();
   editor.Append(NewCmpInstruction(conditional, IntCondition::SignedLessThan,
-                                  Target::GetRegister(isa::EAX),
-                                  Target::GetRegister(isa::EBX)));
+                                  Target::RegisterOf(isa::EAX),
+                                  Target::RegisterOf(isa::EBX)));
   editor.SetBranch(conditional, block1, block2);
   ASSERT_EQ("", Commit(&editor));
 
@@ -245,12 +245,12 @@ TEST_F(CodeEmitterX64Test, CmpInt32) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   auto const cond = NewConditional();
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const ebx = Target::GetRegister(isa::EBX);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const ebx = Target::RegisterOf(isa::EBX);
   auto const eq = IntCondition::Equal;
   auto const imm32 = Value::SmallInt32(2359);
   auto const imm8 = Value::SmallInt32(42);
-  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
   // 05 ib CMP EAX, imm32
   editor.Append(NewCmpInstruction(cond, eq, eax, imm32));
@@ -286,11 +286,11 @@ TEST_F(CodeEmitterX64Test, CopyInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const bx = Target::GetRegister(isa::BX);
-  auto const di = Target::GetRegister(isa::DI);
-  auto const r8w = Target::GetRegister(isa::R8W);
-  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const bx = Target::RegisterOf(isa::BX);
+  auto const di = Target::RegisterOf(isa::DI);
+  auto const r8w = Target::RegisterOf(isa::R8W);
+  auto const r9w = Target::RegisterOf(isa::R9W);
   auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
 
   editor.Append(NewCopyInstruction(ax, bx));
@@ -347,11 +347,11 @@ TEST_F(CodeEmitterX64Test, CopyInt32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const ebx = Target::GetRegister(isa::EBX);
-  auto const edi = Target::GetRegister(isa::EDI);
-  auto const r8d = Target::GetRegister(isa::R8D);
-  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const ebx = Target::RegisterOf(isa::EBX);
+  auto const edi = Target::RegisterOf(isa::EDI);
+  auto const r8d = Target::RegisterOf(isa::R8D);
+  auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
 
   editor.Append(NewCopyInstruction(eax, ebx));
@@ -406,11 +406,11 @@ TEST_F(CodeEmitterX64Test, CopyInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const rdi = Target::GetRegister(isa::RDI);
-  auto const r8 = Target::GetRegister(isa::R8);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdi = Target::RegisterOf(isa::RDI);
+  auto const r8 = Target::RegisterOf(isa::R8);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
 
   editor.Append(NewCopyInstruction(rax, rbx));
@@ -466,11 +466,11 @@ TEST_F(CodeEmitterX64Test, CopyInt8) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const al = Target::GetRegister(isa::AL);
-  auto const bl = Target::GetRegister(isa::BL);
-  auto const dil = Target::GetRegister(isa::DIL);
-  auto const r8b = Target::GetRegister(isa::R8B);
-  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const bl = Target::RegisterOf(isa::BL);
+  auto const dil = Target::RegisterOf(isa::DIL);
+  auto const r8b = Target::RegisterOf(isa::R8B);
+  auto const r9b = Target::RegisterOf(isa::R9B);
   auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
 
   editor.Append(NewCopyInstruction(al, bl));
@@ -531,10 +531,10 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(NewCopyInstruction(Target::GetRegister(isa::RAX),
+  editor.Append(NewCopyInstruction(Target::RegisterOf(isa::RAX),
                                    Value::FrameSlot(Value::Int64Type(), 0)));
   editor.Append(NewCopyInstruction(Value::FrameSlot(Value::Int32Type(), 8),
-                                   Target::GetRegister(isa::EDX)));
+                                   Target::RegisterOf(isa::EDX)));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ("0000 48 8B 45 00 89 55 08 C3\n", Emit(&editor));
@@ -544,11 +544,11 @@ TEST_F(CodeEmitterX64Test, LiteralInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const bx = Target::GetRegister(isa::BX);
-  auto const di = Target::GetRegister(isa::DI);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const bx = Target::RegisterOf(isa::BX);
+  auto const di = Target::RegisterOf(isa::DI);
   auto const imm16 = Value::SmallInt16(42);
-  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const r9w = Target::RegisterOf(isa::R9W);
   auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
   editor.Append(NewLiteralInstruction(ax, imm16));
   editor.Append(NewLiteralInstruction(bx, imm16));
@@ -567,12 +567,12 @@ TEST_F(CodeEmitterX64Test, LiteralInt32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const ebx = Target::GetRegister(isa::EBX);
-  auto const edi = Target::GetRegister(isa::EDI);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const ebx = Target::RegisterOf(isa::EBX);
+  auto const edi = Target::RegisterOf(isa::EDI);
   auto const imm32 = Value::SmallInt32(42);
   auto const imm32x = NewIntValue(Value::Int32Type(), 0x77665544);
-  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
   editor.Append(NewLiteralInstruction(eax, imm32));
   editor.Append(NewLiteralInstruction(eax, imm32x));
@@ -602,16 +602,16 @@ TEST_F(CodeEmitterX64Test, LiteralInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const rdi = Target::GetRegister(isa::RDI);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdi = Target::RegisterOf(isa::RDI);
   auto const imm32 = Value::SmallInt64(42);
   auto const imm32x = NewIntValue(Value::Int64Type(), 0x77665544);
   auto const imm64 = Value::SmallInt64(42);
   auto const imm64x = NewIntValue(Value::Int64Type(), 0x7766554433221100ll);
   auto const minus64 = Value::SmallInt64(-42);
   auto const minus64x = NewIntValue(Value::Int64Type(), -0x7766554433221100ll);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
 
   editor.Append(NewLiteralInstruction(rax, imm32));
@@ -661,11 +661,11 @@ TEST_F(CodeEmitterX64Test, LiteralInt8) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const al = Target::GetRegister(isa::AL);
-  auto const bl = Target::GetRegister(isa::BL);
-  auto const dil = Target::GetRegister(isa::DIL);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const bl = Target::RegisterOf(isa::BL);
+  auto const dil = Target::RegisterOf(isa::DIL);
   auto const imm8 = Value::SmallInt8(42);
-  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const r9b = Target::RegisterOf(isa::R9B);
   auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
   editor.Append(NewLiteralInstruction(al, imm8));
   editor.Append(NewLiteralInstruction(bl, imm8));
@@ -680,12 +680,12 @@ TEST_F(CodeEmitterX64Test, LiteralInt8) {
 
 TEST_F(CodeEmitterX64Test, Load16) {
   auto const function = factory()->NewFunction({});
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const di = Target::GetRegister(isa::DI);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
-  auto const r9w = Target::GetRegister(isa::R9W);
-  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const di = Target::RegisterOf(isa::DI);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
+  auto const r9w = Target::RegisterOf(isa::R9W);
+  auto const rbx = Target::RegisterOf(isa::RBX);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -739,12 +739,12 @@ TEST_F(CodeEmitterX64Test, Load16) {
 
 TEST_F(CodeEmitterX64Test, Load32) {
   auto const function = factory()->NewFunction({});
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const edi = Target::GetRegister(isa::EDI);
-  auto const r9d = Target::GetRegister(isa::R9D);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const edi = Target::RegisterOf(isa::EDI);
+  auto const r9d = Target::RegisterOf(isa::R9D);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -797,12 +797,12 @@ TEST_F(CodeEmitterX64Test, Load32) {
 
 TEST_F(CodeEmitterX64Test, Load64) {
   auto const function = factory()->NewFunction({});
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const rdi = Target::GetRegister(isa::RDI);
-  auto const r9 = Target::GetRegister(isa::R9);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdi = Target::RegisterOf(isa::RDI);
+  auto const r9 = Target::RegisterOf(isa::R9);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -855,11 +855,11 @@ TEST_F(CodeEmitterX64Test, Load64) {
 
 TEST_F(CodeEmitterX64Test, Load8) {
   auto const function = factory()->NewFunction({});
-  auto const al = Target::GetRegister(isa::AL);
-  auto const dil = Target::GetRegister(isa::DIL);
-  auto const r9b = Target::GetRegister(isa::R9B);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const dil = Target::RegisterOf(isa::DIL);
+  auto const r9b = Target::RegisterOf(isa::R9B);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -901,12 +901,12 @@ TEST_F(CodeEmitterX64Test, MulInt32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const esi = Target::GetRegister(isa::ESI);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const esi = Target::RegisterOf(isa::ESI);
   auto const imm8 = Value::SmallInt32(42);
   auto const imm32 = Value::SmallInt32(0xA9876);
-  auto const r8d = Target::GetRegister(isa::R8D);
-  auto const r10d = Target::GetRegister(isa::R10D);
+  auto const r8d = Target::RegisterOf(isa::R8D);
+  auto const r10d = Target::RegisterOf(isa::R10D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 32);
 
   editor.Append(NewMulInstruction(eax, eax, eax));
@@ -945,12 +945,12 @@ TEST_F(CodeEmitterX64Test, MulInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rsi = Target::GetRegister(isa::RSI);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rsi = Target::RegisterOf(isa::RSI);
   auto const imm8 = Value::SmallInt64(42);
   auto const imm32 = Value::SmallInt64(0xA9876);
-  auto const r8 = Target::GetRegister(isa::R8);
-  auto const r10 = Target::GetRegister(isa::R10);
+  auto const r8 = Target::RegisterOf(isa::R8);
+  auto const r10 = Target::RegisterOf(isa::R10);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 32);
 
   editor.Append(NewMulInstruction(rax, rax, rax));
@@ -990,12 +990,12 @@ TEST_F(CodeEmitterX64Test, ShlInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const cl = Target::GetRegister(isa::CL);
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const bx = Target::GetRegister(isa::BX);
+  auto const cl = Target::RegisterOf(isa::CL);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const bx = Target::RegisterOf(isa::BX);
   auto const imm32 = Value::SmallInt32(42);
   auto const one = Value::SmallInt32(1);
-  auto const r9w = Target::GetRegister(isa::R9W);
+  auto const r9w = Target::RegisterOf(isa::R9W);
   auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
 
   editor.Append(NewShlInstruction(ax, ax, one));
@@ -1027,13 +1027,13 @@ TEST_F(CodeEmitterX64Test, ShlInt32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const cl = Target::GetRegister(isa::CL);
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const ebx = Target::GetRegister(isa::EBX);
-  auto const edi = Target::GetRegister(isa::EDI);
+  auto const cl = Target::RegisterOf(isa::CL);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const ebx = Target::RegisterOf(isa::EBX);
+  auto const edi = Target::RegisterOf(isa::EDI);
   auto const imm32 = Value::SmallInt32(42);
   auto const one = Value::SmallInt32(1);
-  auto const r9d = Target::GetRegister(isa::R9D);
+  auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
 
   editor.Append(NewShlInstruction(eax, eax, one));
@@ -1065,13 +1065,13 @@ TEST_F(CodeEmitterX64Test, ShrInt8) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const cl = Target::GetRegister(isa::CL);
-  auto const al = Target::GetRegister(isa::AL);
-  auto const bl = Target::GetRegister(isa::BL);
-  auto const dil = Target::GetRegister(isa::DIL);
+  auto const cl = Target::RegisterOf(isa::CL);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const bl = Target::RegisterOf(isa::BL);
+  auto const dil = Target::RegisterOf(isa::DIL);
   auto const imm32 = Value::SmallInt32(42);
   auto const one = Value::SmallInt32(1);
-  auto const r9b = Target::GetRegister(isa::R9B);
+  auto const r9b = Target::RegisterOf(isa::R9B);
   auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
 
   editor.Append(NewShrInstruction(al, al, one));
@@ -1111,10 +1111,10 @@ TEST_F(CodeEmitterX64Test, SignExtend) {
   auto const m8 = Value::StackSlot(Value::Int8Type(), 1);
   auto const m16 = Value::StackSlot(Value::Int16Type(), 2);
   auto const m32 = Value::StackSlot(Value::Int32Type(), 4);
-  auto const r8 = Target::GetRegister(isa::BL);
-  auto const r16 = Target::GetRegister(isa::BX);
-  auto const r32 = Target::GetRegister(isa::EBX);
-  auto const r64 = Target::GetRegister(isa::RBX);
+  auto const r8 = Target::RegisterOf(isa::BL);
+  auto const r16 = Target::RegisterOf(isa::BX);
+  auto const r32 = Target::RegisterOf(isa::EBX);
+  auto const r64 = Target::RegisterOf(isa::RBX);
 
   editor.Append(NewSignExtendInstruction(r32, r8));
   editor.Append(NewSignExtendInstruction(r32, m8));
@@ -1140,10 +1140,10 @@ TEST_F(CodeEmitterX64Test, StackSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  editor.Append(NewCopyInstruction(Target::GetRegister(isa::RAX),
+  editor.Append(NewCopyInstruction(Target::RegisterOf(isa::RAX),
                                    Value::StackSlot(Value::Int64Type(), 0)));
   editor.Append(NewCopyInstruction(Value::StackSlot(Value::Int32Type(), 8),
-                                   Target::GetRegister(isa::EDX)));
+                                   Target::RegisterOf(isa::EDX)));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ("0000 48 8B 04 24 89 54 24 08 C3\n", Emit(&editor));
@@ -1151,12 +1151,12 @@ TEST_F(CodeEmitterX64Test, StackSlot) {
 
 TEST_F(CodeEmitterX64Test, Store16) {
   auto const function = factory()->NewFunction({});
-  auto const ax = Target::GetRegister(isa::AX);
-  auto const di = Target::GetRegister(isa::DI);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
-  auto const r9w = Target::GetRegister(isa::R9W);
-  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const ax = Target::RegisterOf(isa::AX);
+  auto const di = Target::RegisterOf(isa::DI);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
+  auto const r9w = Target::RegisterOf(isa::R9W);
+  auto const rbx = Target::RegisterOf(isa::RBX);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -1210,12 +1210,12 @@ TEST_F(CodeEmitterX64Test, Store16) {
 
 TEST_F(CodeEmitterX64Test, Store32) {
   auto const function = factory()->NewFunction({});
-  auto const eax = Target::GetRegister(isa::EAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const edi = Target::GetRegister(isa::EDI);
-  auto const r9d = Target::GetRegister(isa::R9D);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const edi = Target::RegisterOf(isa::EDI);
+  auto const r9d = Target::RegisterOf(isa::R9D);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -1268,12 +1268,12 @@ TEST_F(CodeEmitterX64Test, Store32) {
 
 TEST_F(CodeEmitterX64Test, Store64) {
   auto const function = factory()->NewFunction({});
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const rdi = Target::GetRegister(isa::RDI);
-  auto const r9 = Target::GetRegister(isa::R9);
-  auto const r12 = Target::GetRegister(isa::R12);
-  auto const r13 = Target::GetRegister(isa::R13);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdi = Target::RegisterOf(isa::RDI);
+  auto const r9 = Target::RegisterOf(isa::R9);
+  auto const r12 = Target::RegisterOf(isa::R12);
+  auto const r13 = Target::RegisterOf(isa::R13);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -1326,11 +1326,11 @@ TEST_F(CodeEmitterX64Test, Store64) {
 
 TEST_F(CodeEmitterX64Test, Store8) {
   auto const function = factory()->NewFunction({});
-  auto const al = Target::GetRegister(isa::AL);
-  auto const dil = Target::GetRegister(isa::DIL);
-  auto const r9b = Target::GetRegister(isa::R9B);
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const al = Target::RegisterOf(isa::AL);
+  auto const dil = Target::RegisterOf(isa::DIL);
+  auto const r9b = Target::RegisterOf(isa::R9B);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -1370,8 +1370,8 @@ TEST_F(CodeEmitterX64Test, Store8) {
 
 TEST_F(CodeEmitterX64Test, StoreLiteral) {
   auto const function = factory()->NewFunction({});
-  auto const rbx = Target::GetRegister(isa::RBX);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const disp0 = Value::SmallInt32(0);
   auto const disp8 = Value::SmallInt32(127);
   auto const disp32 = Value::SmallInt32(0xABCD);
@@ -1430,12 +1430,12 @@ TEST_F(CodeEmitterX64Test, UIntShrInt64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
-  auto const cl = Target::GetRegister(isa::CL);
-  auto const rax = Target::GetRegister(isa::RAX);
-  auto const rbx = Target::GetRegister(isa::RBX);
+  auto const cl = Target::RegisterOf(isa::CL);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
   auto const imm32 = Value::SmallInt32(42);
   auto const one = Value::SmallInt32(1);
-  auto const r9 = Target::GetRegister(isa::R9);
+  auto const r9 = Target::RegisterOf(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
 
   editor.Append(NewUIntShrInstruction(rax, rax, one));
@@ -1471,10 +1471,10 @@ TEST_F(CodeEmitterX64Test, ZeroExtend) {
   auto const m8 = Value::StackSlot(Value::Int8Type(), 1);
   auto const m16 = Value::StackSlot(Value::Int16Type(), 2);
   auto const m32 = Value::StackSlot(Value::Int32Type(), 4);
-  auto const r8 = Target::GetRegister(isa::BL);
-  auto const r16 = Target::GetRegister(isa::BX);
-  auto const r32 = Target::GetRegister(isa::EBX);
-  auto const r64 = Target::GetRegister(isa::RBX);
+  auto const r8 = Target::RegisterOf(isa::BL);
+  auto const r16 = Target::RegisterOf(isa::BX);
+  auto const r32 = Target::RegisterOf(isa::EBX);
+  auto const r64 = Target::RegisterOf(isa::RBX);
 
   editor.Append(NewZeroExtendInstruction(r32, r8));
   editor.Append(NewZeroExtendInstruction(r32, m8));

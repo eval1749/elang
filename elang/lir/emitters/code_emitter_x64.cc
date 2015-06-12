@@ -351,7 +351,7 @@ void InstructionHandlerX64::EmitOpcode(isa::Opcode opcode) {
 }
 
 void InstructionHandlerX64::EmitOpcodeExt(isa::OpcodeExt opext, Value input) {
-  EmitModRm(Target::GetRegister(static_cast<Register>(opext)), input);
+  EmitModRm(Target::RegisterOf(static_cast<Register>(opext)), input);
 }
 
 void InstructionHandlerX64::EmitOpcodePlus(isa::Opcode opcode, int delta) {
@@ -544,7 +544,7 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
       EmitOpcodeExt(opext, output);
       return;
     }
-    if (count == Target::GetRegister(isa::CL)) {
+    if (count == Target::RegisterOf(isa::CL)) {
       EmitOpcode(isa::Opcode::SHL_Eb_CL);
       EmitOpcodeExt(opext, output);
       return;
@@ -564,7 +564,7 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
     EmitOpcodeExt(opext, output);
     return;
   }
-  if (count == Target::GetRegister(isa::CL)) {
+  if (count == Target::RegisterOf(isa::CL)) {
     EmitOpcode(isa::Opcode::SHL_Ev_CL);
     EmitOpcodeExt(opext, output);
     return;
@@ -830,7 +830,7 @@ void InstructionHandlerX64::VisitLiteral(LiteralInstruction* instr) {
     if (Is32Bit(imm64)) {
       auto const value32 = To32bitValue(output);
       auto const imm32 = static_cast<int32_t>(imm64);
-      EmitRexPrefix(Target::GetRegister(isa::EAX), value32);
+      EmitRexPrefix(Target::RegisterOf(isa::EAX), value32);
       if (imm32 >= 0 && output.is_physical()) {
         // B8+r imm32: mov r32, imm32
         EmitOpcodePlus(isa::Opcode::MOV_rAX_Iv, value32.data);

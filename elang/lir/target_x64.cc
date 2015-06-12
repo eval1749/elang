@@ -198,7 +198,7 @@ std::vector<Value> Target::AllocatableFloatRegisters() {
     if ((mask & 1) == 0)
       continue;
     registers.push_back(
-        GetRegister(static_cast<isa::Register>(isa::XMM0D + index)));
+        RegisterOf(static_cast<isa::Register>(isa::XMM0D + index)));
     ++index;
   }
   return registers;
@@ -211,7 +211,7 @@ std::vector<Value> Target::AllocatableGeneralRegisters() {
     if ((mask & 1) == 0)
       continue;
     registers.push_back(
-        GetRegister(static_cast<isa::Register>(isa::RAX + index)));
+        RegisterOf(static_cast<isa::Register>(isa::RAX + index)));
     ++index;
   }
   return registers;
@@ -229,7 +229,7 @@ Value Target::ArgumentAt(Value output, size_t position) {
   return Value::Argument(output, base::checked_cast<int>(position));
 }
 
-Value Target::GetRegister(isa::Register name) {
+Value Target::RegisterOf(isa::Register name) {
   auto const number = static_cast<int>(name);
   if (number >= isa::XMM0D && number <= isa::XMM15D) {
     return Value(Value::Type::Float, ValueSize::Size64,
@@ -314,13 +314,13 @@ Value Target::ReturnAt(Value type, size_t position) {
   auto const return_type = AdjustTypeForCall(type);
   DCHECK_EQ(position, 0) << "NYI multiple return values";
   if (return_type.is_int32())
-    return GetRegister(isa::EAX);
+    return RegisterOf(isa::EAX);
   if (return_type.is_int64())
-    return GetRegister(isa::RAX);
+    return RegisterOf(isa::RAX);
   if (return_type.is_float32())
-    return GetRegister(isa::XMM0S);
+    return RegisterOf(isa::XMM0S);
   if (return_type.is_float64())
-    return GetRegister(isa::XMM0D);
+    return RegisterOf(isa::XMM0D);
   NOTREACHED() << "Unsupported return type: " << type;
   return Value::Void();
 }

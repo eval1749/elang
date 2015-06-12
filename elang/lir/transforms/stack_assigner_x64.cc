@@ -51,7 +51,7 @@ void StackAssigner::RunForLeafFunction() {
 
   if (size) {
     // Allocate slots for local variable on stack.
-    auto const rsp = Target::GetRegister(isa::RSP);
+    auto const rsp = Target::RegisterOf(isa::RSP);
     AddPrologue(NewSubInstruction(rsp, rsp, Value::SmallInt64(size)));
   }
 
@@ -91,7 +91,7 @@ void StackAssigner::RunForLeafFunction() {
     return;
 
   // Deallocate slots for local variable on stack.
-  auto const rsp = Target::GetRegister(isa::RSP);
+  auto const rsp = Target::RegisterOf(isa::RSP);
   auto const size64 = Value::SmallInt64(size);
   AddEpilogue(NewAddInstruction(rsp, rsp, size64));
 }
@@ -142,8 +142,8 @@ void StackAssigner::RunForNonLeafFunction() {
 
   if (size) {
     // Allocate slots for local variable on stack.
-    auto const rbp = Target::GetRegister(isa::RBP);
-    auto const rsp = Target::GetRegister(isa::RSP);
+    auto const rbp = Target::RegisterOf(isa::RBP);
+    auto const rsp = Target::RegisterOf(isa::RSP);
     AddPrologue(NewSubInstruction(rsp, rsp, Value::SmallInt64(size)));
     if (local_size) {
       AddPrologue(NewCopyInstruction(Value::StackSlot(rbp, args_size), rbp));
@@ -200,8 +200,8 @@ void StackAssigner::RunForNonLeafFunction() {
     return;
 
   // Deallocate slots for local variable on stack.
-  auto const rbp = Target::GetRegister(isa::RBP);
-  auto const rsp = Target::GetRegister(isa::RSP);
+  auto const rbp = Target::RegisterOf(isa::RBP);
+  auto const rsp = Target::RegisterOf(isa::RSP);
   auto const size64 = Value::SmallInt64(size);
   if (local_size)
     AddEpilogue(NewCopyInstruction(rbp, Value::StackSlot(rbp, args_size)));

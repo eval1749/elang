@@ -185,27 +185,27 @@ void Generator::VisitRet(hir::RetInstruction* instr) {
   }
   auto const primitive_type = value->type()->as<hir::PrimitiveValueType>();
   if (!primitive_type) {
-    EmitSetValue(lir::Target::GetRegister(lir::isa::RAX), value);
+    EmitSetValue(lir::Target::RegisterOf(lir::isa::RAX), value);
     editor()->SetReturn();
     return;
   }
 
   if (primitive_type->is_float()) {
     if (primitive_type->bit_size() == 64)
-      EmitSetValue(lir::Target::GetRegister(lir::isa::XMM0D), value);
+      EmitSetValue(lir::Target::RegisterOf(lir::isa::XMM0D), value);
     else
-      EmitSetValue(lir::Target::GetRegister(lir::isa::XMM0S), value);
+      EmitSetValue(lir::Target::RegisterOf(lir::isa::XMM0S), value);
     editor()->SetReturn();
     return;
   }
 
   if (primitive_type->bit_size() == 64) {
-    EmitSetValue(lir::Target::GetRegister(lir::isa::RAX), value);
+    EmitSetValue(lir::Target::RegisterOf(lir::isa::RAX), value);
     editor()->SetReturn();
     return;
   }
 
-  auto const output = lir::Target::GetRegister(lir::isa::EAX);
+  auto const output = lir::Target::RegisterOf(lir::isa::EAX);
   auto const input = MapInput(value);
   if (primitive_type->bit_size() == 32 || !input.is_register()) {
     EmitSetValue(output, value);
