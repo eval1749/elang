@@ -661,12 +661,8 @@ void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
   auto const output = instr->output(0);
   auto const right = instr->input(1);
   DCHECK_EQ(output, instr->input(0)) << *instr;
-  if (output.is_integer()) {
-    HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
-                            isa::OpcodeExt::ADD_Eb_Ib);
-    return;
-  }
-  NOTREACHED() << "NYI: float add: " << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
+                          isa::OpcodeExt::ADD_Eb_Ib);
 }
 
 // Instruction formats are as same as ADD.
@@ -674,12 +670,8 @@ void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
 void InstructionHandlerX64::VisitBitAnd(BitAndInstruction* instr) {
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0)) << *instr;
-  if (output.is_integer()) {
-    HandleIntegerArithmetic(instr, isa::Opcode::AND_Eb_Gb,
-                            isa::OpcodeExt::AND_Eb_Ib);
-    return;
-  }
-  NOTREACHED() << "float bitand: " << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::AND_Eb_Gb,
+                          isa::OpcodeExt::AND_Eb_Ib);
 }
 
 // Instruction formats are as same as ADD.
@@ -687,12 +679,8 @@ void InstructionHandlerX64::VisitBitAnd(BitAndInstruction* instr) {
 void InstructionHandlerX64::VisitBitOr(BitOrInstruction* instr) {
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0)) << *instr;
-  if (output.is_integer()) {
-    HandleIntegerArithmetic(instr, isa::Opcode::OR_Eb_Gb,
-                            isa::OpcodeExt::OR_Eb_Ib);
-    return;
-  }
-  NOTREACHED() << "float bitor: " << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::OR_Eb_Gb,
+                          isa::OpcodeExt::OR_Eb_Ib);
 }
 
 // Instruction formats are as same as ADD.
@@ -700,12 +688,8 @@ void InstructionHandlerX64::VisitBitOr(BitOrInstruction* instr) {
 void InstructionHandlerX64::VisitBitXor(BitXorInstruction* instr) {
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0)) << *instr;
-  if (output.is_integer()) {
-    HandleIntegerArithmetic(instr, isa::Opcode::XOR_Eb_Gb,
-                            isa::OpcodeExt::XOR_Eb_Ib);
-    return;
-  }
-  NOTREACHED() << "float bitxor: " << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::XOR_Eb_Gb,
+                          isa::OpcodeExt::XOR_Eb_Ib);
 }
 
 // 'br' instruction emits one 'Jcc' instruction and one 'JMP' instruction if
@@ -1004,12 +988,8 @@ void InstructionHandlerX64::VisitStore(StoreInstruction* instr) {
 void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
   auto const output = instr->output(0);
   DCHECK_EQ(output, instr->input(0)) << *instr;
-  if (output.is_integer()) {
-    HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
-                            isa::OpcodeExt::SUB_Eb_Ib);
-    return;
-  }
-  NOTREACHED() << "NYI: float sub: " << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
+                          isa::OpcodeExt::SUB_Eb_Ib);
 }
 
 void InstructionHandlerX64::VisitUIntShr(UIntShrInstruction* instr) {
