@@ -85,7 +85,9 @@ namespace lir {
 //
 // X64
 //
-#define FOR_EACH_X64_LIR_INSTRUCTION(V) V(DivX64, "x64.div")
+#define FOR_EACH_X64_LIR_INSTRUCTION(V) \
+  V(DivX64, "x64.div")                  \
+  V(MulX64, "x64.mul")
 
 #define FOR_EACH_LIR_INSTRUCTION(V)  \
   FOR_EACH_COMMON_LIR_INSTRUCTION(V) \

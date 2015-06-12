@@ -23,6 +23,18 @@ class ELANG_LIR_EXPORT DivX64Instruction final
                     Value right);
 };
 
+// MulX64
+class ELANG_LIR_EXPORT MulX64Instruction final
+    : public InstructionTemplate<2, 2> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(MulX64);
+
+ private:
+  MulX64Instruction(Value high_output,
+                    Value low_output,
+                    Value left,
+                    Value right);
+};
+
 }  // namespace lir
 }  // namespace elang
 

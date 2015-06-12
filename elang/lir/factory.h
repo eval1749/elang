@@ -130,6 +130,10 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
                                     Value high_left,
                                     Value low_left,
                                     Value right);
+  Instruction* NewMulX64Instruction(Value high_output,
+                                    Value low_output,
+                                    Value left,
+                                    Value right);
 #endif
 
  private:
