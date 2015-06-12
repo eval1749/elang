@@ -2,10 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <string>
+
 #include "elang/lir/testing/lir_test_x64.h"
 
 #include "elang/lir/editor.h"
 #include "elang/lir/factory.h"
+#include "elang/lir/instructions_x64.h"
 #include "elang/lir/target_x64.h"
 #include "elang/lir/literals.h"
 
@@ -20,9 +23,17 @@ class LirInstructionsTestX64 : public testing::LirTestX64 {
  protected:
   LirInstructionsTestX64() = default;
 
+  static std::string ToString(const Instruction& instr);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(LirInstructionsTestX64);
 };
+
+std::string LirInstructionsTestX64::ToString(const Instruction& instr) {
+  std::ostringstream ostream;
+  ostream << instr;
+  return ostream.str();
+}
 
 // Test cases...
 
@@ -123,6 +134,17 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
+}
+
+TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
+  auto const eax = Target::GetRegister(isa::EAX);
+  auto const edx = Target::GetRegister(isa::EDX);
+  auto const instr = factory()->NewUIntMulX64Instruction(eax, edx, eax, edx);
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(2, instr->inputs().size());
+  EXPECT_EQ(2, instr->outputs().size());
+  EXPECT_EQ("--:0:x64.umul EAX, EDX = EAX, EDX", ToString(*instr));
 }
 
 }  // namespace lir

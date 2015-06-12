@@ -81,6 +81,7 @@ source_set("core") {
       "opcodes_x64.h",
       "target_x64.cc",
       "target_x64.h",
+      "validator_x64.cc",
     ]
   }
 }

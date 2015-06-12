@@ -75,6 +75,10 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void VisitUnsignedConvert(UnsignedConvertInstruction* instruction) final;
   void VisitZeroExtend(ZeroExtendInstruction* instruction) final;
 
+#ifdef ELANG_TARGET_ARCH_X64
+  void VisitUIntMulX64(UIntMulX64Instruction* instruction) final;
+#endif
+
   Editor* const editor_;
 
   DISALLOW_COPY_AND_ASSIGN(Validator);
