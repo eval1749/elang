@@ -261,7 +261,7 @@ TEST_F(LirLoweringX64Test, UIntMul) {
       "  entry ECX, EDX =\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
-      "  x64.mul EAX, EDX = EAX, %r2\n"
+      "  x64.umul EAX, EDX = EAX, %r2\n"
       "  mov %r3 = EAX\n"
       "  mov EAX = %r3\n"
       "  ret block2\n"
