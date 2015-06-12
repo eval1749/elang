@@ -300,6 +300,7 @@ TEST_F(LirInstructionTest, UIntShrInstruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:ushr %r2l = %r1l, 3", ToString(*instr));
 }
 
 }  // namespace lir
