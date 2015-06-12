@@ -229,20 +229,6 @@ Value Target::ArgumentAt(Value output, size_t position) {
   return Value::Argument(output, base::checked_cast<int>(position));
 }
 
-Value Target::RegisterOf(isa::Register name) {
-  auto const number = static_cast<int>(name);
-  if (number >= isa::XMM0D && number <= isa::XMM15D) {
-    return Value(Value::Type::Float, ValueSize::Size64,
-                 Value::Kind::PhysicalRegister, number & 15);
-  }
-  if (number >= isa::XMM0S && number <= isa::XMM15S) {
-    return Value(Value::Type::Float, ValueSize::Size32,
-                 Value::Kind::PhysicalRegister, number & 15);
-  }
-  return Value(Value::Type::Integer, static_cast<ValueSize>(name >> 8),
-               Value::Kind::PhysicalRegister, name & 15);
-}
-
 // We can use |MOV r/m, imm32| instruction.
 bool Target::HasCopyImmediateToMemory(Value value) {
   if (value.is_float())
@@ -308,6 +294,20 @@ Value Target::ParameterAt(Value type, size_t position) {
   }
   // TODO(eval1749) We should make |Value::Parameter()| to take |size_t|.
   return Value::Parameter(output, base::checked_cast<int>(position));
+}
+
+Value Target::RegisterOf(isa::Register name) {
+  auto const number = static_cast<int>(name);
+  if (number >= isa::XMM0D && number <= isa::XMM15D) {
+    return Value(Value::Type::Float, ValueSize::Size64,
+                 Value::Kind::PhysicalRegister, number & 15);
+  }
+  if (number >= isa::XMM0S && number <= isa::XMM15S) {
+    return Value(Value::Type::Float, ValueSize::Size32,
+                 Value::Kind::PhysicalRegister, number & 15);
+  }
+  return Value(Value::Type::Integer, static_cast<ValueSize>(name >> 8),
+               Value::Kind::PhysicalRegister, name & 15);
 }
 
 Value Target::ReturnAt(Value type, size_t position) {
