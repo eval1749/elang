@@ -23,11 +23,11 @@ DivX64Instruction::DivX64Instruction(Value div_output,
   InitInput(2, right);
 }
 
-// MulX64
-MulX64Instruction::MulX64Instruction(Value high_output,
-                                     Value low_output,
-                                     Value left,
-                                     Value right) {
+// UIntMulX64
+UIntMulX64Instruction::UIntMulX64Instruction(Value high_output,
+                                             Value low_output,
+                                             Value left,
+                                             Value right) {
   InitOutput(0, high_output);
   InitOutput(1, low_output);
   InitInput(0, left);
