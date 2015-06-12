@@ -31,13 +31,13 @@ namespace lir {
 
 #define FOR_EACH_LIR_INSTRUCTION_1_2(V) \
   V(Add, "add")                         \
+  V(BitAnd, "and")                      \
+  V(BitOr, "or")                        \
+  V(BitXor, "xor")                      \
   V(Div, "div")                         \
   V(Mod, "mod")                         \
   V(Mul, "mul")                         \
   V(Sub, "sub")                         \
-  V(BitAnd, "and")                      \
-  V(BitOr, "or")                        \
-  V(BitXor, "xor")                      \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
   V(UShr, "ushr")
