@@ -28,6 +28,8 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   ~LoweringX64Pass() final;
 
  private:
+  bool CanBe32BitsImmediate(Value value) const;
+
   // FunctionPass
   void RunOnFunction() final;
 

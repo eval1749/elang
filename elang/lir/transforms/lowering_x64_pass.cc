@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <limits>
+
 #include "elang/lir/transforms/lowering_x64_pass.h"
 
 #include "elang/lir/editor.h"
+#include "elang/lir/error_code.h"
 #include "elang/lir/factory.h"
 #include "elang/lir/instructions.h"
 #include "elang/lir/literals.h"
@@ -29,6 +32,20 @@ Value LoweringX64Pass::GetRAX(Value type) {
 Value LoweringX64Pass::GetRDX(Value type) {
   DCHECK(type.is_integer());
   return Target::RegisterOf(type.is_64bit() ? isa::RDX : isa::EDX);
+}
+
+bool LoweringX64Pass::CanBe32BitsImmediate(Value value) const {
+  if (value.is_immediate())
+    return true;
+  if (!value.is_literal())
+    return false;
+  if (factory()->GetLiteral(value)->is<Int32Literal>())
+    return true;
+  if (auto const literal = factory()->GetLiteral(value)->as<Int64Literal>()) {
+    auto const data = static_cast<uint64_t>(literal->data());
+    return data <= std::numeric_limits<uint32_t>::max();
+  }
+  return false;
 }
 
 //   div %a = %b, %c | mod %a = %b, %c
@@ -169,6 +186,8 @@ void LoweringX64Pass::VisitIntMod(IntModInstruction* instr) {
 }
 
 void LoweringX64Pass::VisitIntMul(IntMulInstruction* instr) {
+  if (CanBe32BitsImmediate(instr->input(1)))
+    return;
   RewriteToTwoOperands(instr);
 }
 
