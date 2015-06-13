@@ -185,6 +185,44 @@ TEST_F(LirLoweringX64Test, IntDiv) {
 }
 
 // int Foo(int x, int y) {
+//   return x % y;
+// }
+TEST_F(LirLoweringX64Test, IntMod) {
+  auto const type = Value::Int32Type();
+  auto const function = CreateSampleFunction(type, 2);
+  auto const entry_block = function->entry_block();
+  Editor editor(factory(), function);
+  editor.Edit(entry_block);
+  auto const parameters = EmitCopyParameters(&editor);
+  auto output = NewRegister(type);
+  editor.Append(NewIntModInstruction(output, parameters[0], parameters[1]));
+  editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
+  editor.SetReturn();
+  EXPECT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+
+  RunPassForTesting<LoweringX64Pass>(&editor);
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX, EDX =\n"
+      "  pcopy %r1, %r2 = ECX, EDX\n"
+      "  mov EAX = %r1\n"
+      "  sign_x64 EDX = EAX\n"
+      "  sdiv_x64 EAX, EDX = EDX, EAX, %r2\n"
+      "  mov %r3 = EDX\n"
+      "  mov EAX = %r3\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
+// int Foo(int x, int y) {
 //   var z = x << 5;
 //   return x << y;
 // }

@@ -34,6 +34,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   // Support functions
   Value GetRAX(Value type);
   Value GetRDX(Value type);
+  void RewriteIntDiv(Instruction* instr, size_t index);
   void RewriteShiftInstruciton(Instruction* instr);
   void RewriteToTwoOperands(Instruction* instr);
 
@@ -48,6 +49,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitFloatSub(FloatSubInstruction* instr) final;
   void VisitIntAdd(IntAddInstruction* instr) final;
   void VisitIntDiv(IntDivInstruction* instr) final;
+  void VisitIntMod(IntModInstruction* instr) final;
   void VisitIntMul(IntMulInstruction* instr) final;
   void VisitIntSub(IntSubInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;

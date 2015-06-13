@@ -31,6 +31,27 @@ Value LoweringX64Pass::GetRDX(Value type) {
   return Target::RegisterOf(type.is_64bit() ? isa::RDX : isa::EDX);
 }
 
+//   div %a = %b, %c | mod %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   sign_x64 RDX = RAX
+//   div RAX, RDX = RDX, RAX, %c
+//   copy %a = RAX | copy %a = RDX
+void LoweringX64Pass::RewriteIntDiv(Instruction* instr, size_t index) {
+  auto const output = instr->output(0);
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const sign_instr =
+      factory()->NewIntSignX64Instruction(GetRDX(output), GetRAX(output));
+  editor()->InsertBefore(sign_instr, instr);
+  auto const div_instr = factory()->NewIntDivX64Instruction(
+      GetRAX(output), GetRDX(output), sign_instr->output(0), input,
+      instr->input(1));
+  editor()->InsertBefore(div_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, div_instr->output(index)),
+                    instr);
+}
+
 // Rewrite count operand to use |CL| register.
 void LoweringX64Pass::RewriteShiftInstruciton(Instruction* instr) {
   RewriteToTwoOperands(instr);
@@ -118,24 +139,12 @@ void LoweringX64Pass::VisitIntAdd(IntAddInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
-//   div %a = %b, %c
-//   =>
-//   copy RAX = %b
-//   sign_x64 RDX = RAX
-//   div RAX, RDX = RDX, RAX, %c
-//   copy %a = RAX
 void LoweringX64Pass::VisitIntDiv(IntDivInstruction* instr) {
-  auto const output = instr->output(0);
-  auto const input =
-      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
-  auto const sign_instr =
-      factory()->NewIntSignX64Instruction(GetRDX(output), GetRAX(output));
-  editor()->InsertBefore(sign_instr, instr);
-  auto const div_instr = factory()->NewIntDivX64Instruction(
-      GetRAX(output), GetRDX(output), sign_instr->output(0), input,
-      instr->input(1));
-  editor()->InsertBefore(div_instr, instr);
-  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
+  RewriteIntDiv(instr, 0);
+}
+
+void LoweringX64Pass::VisitIntMod(IntModInstruction* instr) {
+  RewriteIntDiv(instr, 1);
 }
 
 void LoweringX64Pass::VisitIntMul(IntMulInstruction* instr) {
