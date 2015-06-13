@@ -82,10 +82,6 @@ void LoweringX64Pass::RunOnFunction() {
 
 // InstructionVisitor
 
-void LoweringX64Pass::VisitAdd(AddInstruction* instr) {
-  RewriteToTwoOperands(instr);
-}
-
 void LoweringX64Pass::VisitBitAnd(BitAndInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
@@ -115,6 +111,10 @@ void LoweringX64Pass::VisitFloatMul(FloatMulInstruction* instr) {
 }
 
 void LoweringX64Pass::VisitFloatSub(FloatSubInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
+void LoweringX64Pass::VisitIntAdd(IntAddInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 

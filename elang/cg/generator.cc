@@ -345,6 +345,7 @@ void Generator::VisitTuple(hir::TupleInstruction* instr) {
     Emit(New##Name##Instruction(output, MapInput(instr->input(0)), \
                                 MapInput(instr->input(1))));       \
   }
+#define NewAddInstruction NewIntAddInstruction
 #define NewDivInstruction NewIntDivInstruction
 #define NewModInstruction NewIntModInstruction
 #define NewMulInstruction NewIntMulInstruction

@@ -30,7 +30,6 @@ namespace lir {
   V(ZeroExtend, "zext")
 
 #define FOR_EACH_LIR_INSTRUCTION_1_2(V) \
-  V(Add, "add")                         \
   V(BitAnd, "and")                      \
   V(BitOr, "or")                        \
   V(BitXor, "xor")                      \
@@ -39,6 +38,7 @@ namespace lir {
   V(FloatMod, "fmod")                   \
   V(FloatMul, "fmul")                   \
   V(FloatSub, "fsub")                   \
+  V(IntAdd, "add")                      \
   V(IntDiv, "sdiv")                     \
   V(IntMod, "smod")                     \
   V(IntMul, "mul")                      \

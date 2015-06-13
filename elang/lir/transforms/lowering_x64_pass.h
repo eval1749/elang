@@ -38,7 +38,6 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void RewriteToTwoOperands(Instruction* instr);
 
   // InstructionVisitor
-  void VisitAdd(AddInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
@@ -47,6 +46,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitFloatMod(FloatModInstruction* instr) final;
   void VisitFloatMul(FloatMulInstruction* instr) final;
   void VisitFloatSub(FloatSubInstruction* instr) final;
+  void VisitIntAdd(IntAddInstruction* instr) final;
   void VisitIntDiv(IntDivInstruction* instr) final;
   void VisitIntMul(IntMulInstruction* instr) final;
   void VisitIntSub(IntSubInstruction* instr) final;

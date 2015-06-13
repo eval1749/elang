@@ -200,7 +200,6 @@ class InstructionHandlerX64 final : public CodeBufferUser,
 
   // InstructionVisitor
   void DoDefaultVisit(Instruction* instr) final;
-  void VisitAdd(AddInstruction* instr) final;
   void VisitBitAnd(BitAndInstruction* instr) final;
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
@@ -210,6 +209,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCopy(CopyInstruction* instr) final;
   void VisitEntry(EntryInstruction* instr) final;
   void VisitExit(ExitInstruction* instr) final;
+  void VisitIntAdd(IntAddInstruction* instr) final;
   void VisitIntDivX64(IntDivX64Instruction* instr) final;
   void VisitIntMul(IntMulInstruction* instr) final;
   void VisitIntSignX64(IntSignX64Instruction* instr) final;
@@ -634,41 +634,6 @@ void InstructionHandlerX64::DoDefaultVisit(Instruction* instr) {
   Error(ErrorCode::CodeEmitterInstructionNotYetImplemented, instr);
 }
 
-// int8:
-//  04 ib           ADD AL, imm8
-//  80 /0 ib        ADD r/m8, imm8
-//  00 /r           ADD r/m8, r8
-//  02 /r           ADD r8, r/m8
-//
-// int16:
-//  66 05 iw        ADD AX, imm16
-//  66 81 /0 iw     ADD r/m16, imm16
-//  66 83 /0 ib     ADD r/m8, imm8
-//  66 01 /r        ADD r/m16, r16
-//  66 03 /r        ADD r16, r/m16
-//
-// int32:
-//  05 id           ADD EAX, imm32
-//  81 /0 id        ADD r/m32, imm32
-//  83 /0 ib        ADD r/m32, imm8
-//  01 /r           ADD r/m32, r32
-//  03 /r           ADD r32, r/m32
-//
-// int64:
-//  REX.W 05 id     ADD RAX, imm32
-//  REX.W 81 /0 id  ADD r/m64, imm32
-//  REX.W 83 /0 ib  ADD r/m64, imm8
-//  REX.W 01 /r     ADD r/m64, r64
-//  REX.W 03 /r     ADD r64, r/m64
-//
-void InstructionHandlerX64::VisitAdd(AddInstruction* instr) {
-  auto const output = instr->output(0);
-  auto const right = instr->input(1);
-  DCHECK_EQ(output, instr->input(0)) << *instr;
-  HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
-                          isa::OpcodeExt::ADD_Eb_Ib);
-}
-
 // Instruction formats are as same as ADD.
 // Base opcode = 0x20, opext = 4
 void InstructionHandlerX64::VisitBitAnd(BitAndInstruction* instr) {
@@ -790,6 +755,41 @@ void InstructionHandlerX64::VisitEntry(EntryInstruction* instr) {
 }
 
 void InstructionHandlerX64::VisitExit(ExitInstruction* instr) {
+}
+
+// int8:
+//  04 ib           ADD AL, imm8
+//  80 /0 ib        ADD r/m8, imm8
+//  00 /r           ADD r/m8, r8
+//  02 /r           ADD r8, r/m8
+//
+// int16:
+//  66 05 iw        ADD AX, imm16
+//  66 81 /0 iw     ADD r/m16, imm16
+//  66 83 /0 ib     ADD r/m8, imm8
+//  66 01 /r        ADD r/m16, r16
+//  66 03 /r        ADD r16, r/m16
+//
+// int32:
+//  05 id           ADD EAX, imm32
+//  81 /0 id        ADD r/m32, imm32
+//  83 /0 ib        ADD r/m32, imm8
+//  01 /r           ADD r/m32, r32
+//  03 /r           ADD r32, r/m32
+//
+// int64:
+//  REX.W 05 id     ADD RAX, imm32
+//  REX.W 81 /0 id  ADD r/m64, imm32
+//  REX.W 83 /0 ib  ADD r/m64, imm8
+//  REX.W 01 /r     ADD r/m64, r64
+//  REX.W 03 /r     ADD r64, r/m64
+//
+void InstructionHandlerX64::VisitIntAdd(IntAddInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const right = instr->input(1);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::ADD_Eb_Gb,
+                          isa::OpcodeExt::ADD_Eb_Ib);
 }
 
 // F7 /7        IDIV r/m32

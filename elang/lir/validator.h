@@ -52,7 +52,6 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void ValidateArithmeticInstruction(Instruction* instr);
 
   // InstructionVisitor
-  void VisitAdd(AddInstruction* instruction) final;
   void VisitBitAnd(BitAndInstruction* instruction) final;
   void VisitBitOr(BitOrInstruction* instruction) final;
   void VisitBitXor(BitXorInstruction* instruction) final;
@@ -61,6 +60,7 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void VisitCopy(CopyInstruction* instruction) final;
   void VisitExtend(ExtendInstruction* instruction) final;
   void VisitFloatCmp(FloatCmpInstruction* instruction) final;
+  void VisitIntAdd(IntAddInstruction* instruction) final;
   void VisitIntDiv(IntDivInstruction* instruction) final;
   void VisitIntMul(IntMulInstruction* instruction) final;
   void VisitIntSub(IntSubInstruction* instruction) final;

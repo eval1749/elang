@@ -89,8 +89,8 @@ TEST_F(LirStackAllocatorTest, Reuse) {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewCopyInstruction(vregs[0], parameters[0]));
-  editor.Append(
-      factory()->NewAddInstruction(vregs[1], vregs[0], Value::SmallInt32(42)));
+  editor.Append(factory()->NewIntAddInstruction(vregs[1], vregs[0],
+                                                Value::SmallInt32(42)));
   ASSERT_EQ("", Commit(&editor));
 
   StackAssignments assignments;

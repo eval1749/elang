@@ -93,7 +93,7 @@ void StackAssigner::RunForLeafFunction() {
   // Deallocate slots for local variable on stack.
   auto const rsp = Target::RegisterOf(isa::RSP);
   auto const size64 = Value::SmallInt64(size);
-  AddEpilogue(NewAddInstruction(rsp, rsp, size64));
+  AddEpilogue(NewIntAddInstruction(rsp, rsp, size64));
 }
 
 // Stack layout of leaf function; not use RBP for accessing local variable.
@@ -149,7 +149,7 @@ void StackAssigner::RunForNonLeafFunction() {
       AddPrologue(NewCopyInstruction(Value::StackSlot(rbp, args_size), rbp));
       // TODO(eval1749) We should use |lea rbp, [rsp+arg_size+base_offset]|
       AddPrologue(NewCopyInstruction(rbp, rsp));
-      AddPrologue(NewAddInstruction(
+      AddPrologue(NewIntAddInstruction(
           rbp, rbp, Value::SmallInt64(args_size + 8 + base_offset)));
     }
   }
@@ -205,7 +205,7 @@ void StackAssigner::RunForNonLeafFunction() {
   auto const size64 = Value::SmallInt64(size);
   if (local_size)
     AddEpilogue(NewCopyInstruction(rbp, Value::StackSlot(rbp, args_size)));
-  AddEpilogue(NewAddInstruction(rsp, rsp, size64));
+  AddEpilogue(NewIntAddInstruction(rsp, rsp, size64));
 }
 
 }  // namespace lir

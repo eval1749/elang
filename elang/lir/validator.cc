@@ -231,10 +231,6 @@ void Validator::ValidateArithmeticInstruction(Instruction* instr) {
 
 // InstructionVisitor
 
-void Validator::VisitAdd(AddInstruction* instr) {
-  ValidateArithmeticInstruction(instr);
-}
-
 void Validator::VisitBitAnd(BitAndInstruction* instr) {
   ValidateArithmeticInstruction(instr);
 }
@@ -302,6 +298,10 @@ void Validator::VisitFloatCmp(FloatCmpInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 1);
   if (left.size != right.size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
+void Validator::VisitIntAdd(IntAddInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
 }
 
 void Validator::VisitIntDiv(IntDivInstruction* instr) {

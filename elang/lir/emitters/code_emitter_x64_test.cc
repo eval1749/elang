@@ -56,25 +56,25 @@ TEST_F(CodeEmitterX64Test, AddInt16) {
   auto const r9w = Target::RegisterOf(isa::R9W);
   auto const var33 = Value::FrameSlot(Value::Int16Type(), 33);
   // 66 05 ib ADD AX, imm16
-  editor.Append(NewAddInstruction(ax, ax, imm16));
+  editor.Append(NewIntAddInstruction(ax, ax, imm16));
   // 66 81 /0 ib ADD r/m16, imm16
-  editor.Append(NewAddInstruction(bx, bx, imm16));
-  editor.Append(NewAddInstruction(r9w, r9w, imm16));
+  editor.Append(NewIntAddInstruction(bx, bx, imm16));
+  editor.Append(NewIntAddInstruction(r9w, r9w, imm16));
   // 66 81 /0 ib ADD r/m16, imm16
-  editor.Append(NewAddInstruction(var33, var33, imm16));
+  editor.Append(NewIntAddInstruction(var33, var33, imm16));
   // 66 00 /r ADD r/m16, r16
-  editor.Append(NewAddInstruction(bx, bx, ax));
-  editor.Append(NewAddInstruction(bx, bx, r9w));
-  editor.Append(NewAddInstruction(r9w, r9w, bx));
-  editor.Append(NewAddInstruction(var33, var33, bx));
-  editor.Append(NewAddInstruction(var33, var33, r9w));
+  editor.Append(NewIntAddInstruction(bx, bx, ax));
+  editor.Append(NewIntAddInstruction(bx, bx, r9w));
+  editor.Append(NewIntAddInstruction(r9w, r9w, bx));
+  editor.Append(NewIntAddInstruction(var33, var33, bx));
+  editor.Append(NewIntAddInstruction(var33, var33, r9w));
   // 66 02 /r  ADD r16, r/m16
-  editor.Append(NewAddInstruction(bx, bx, var33));
-  editor.Append(NewAddInstruction(r9w, r9w, var33));
+  editor.Append(NewIntAddInstruction(bx, bx, var33));
+  editor.Append(NewIntAddInstruction(r9w, r9w, var33));
   // 66 83 /0 ib ADD r/m16, imm8
-  editor.Append(NewAddInstruction(bx, bx, imm8));
-  editor.Append(NewAddInstruction(r9w, r9w, imm8));
-  editor.Append(NewAddInstruction(var33, var33, imm8));
+  editor.Append(NewIntAddInstruction(bx, bx, imm8));
+  editor.Append(NewIntAddInstruction(r9w, r9w, imm8));
+  editor.Append(NewIntAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
@@ -97,25 +97,25 @@ TEST_F(CodeEmitterX64Test, AddInt32) {
   auto const r9d = Target::RegisterOf(isa::R9D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
   // 05 ib ADD EAX, imm32
-  editor.Append(NewAddInstruction(eax, eax, imm32));
+  editor.Append(NewIntAddInstruction(eax, eax, imm32));
   // 81 /0 ib ADD r/m32, imm32
-  editor.Append(NewAddInstruction(ebx, ebx, imm32));
-  editor.Append(NewAddInstruction(r9d, r9d, imm32));
+  editor.Append(NewIntAddInstruction(ebx, ebx, imm32));
+  editor.Append(NewIntAddInstruction(r9d, r9d, imm32));
   // 81 /0 ib ADD r/m32, imm32
-  editor.Append(NewAddInstruction(var33, var33, imm32));
+  editor.Append(NewIntAddInstruction(var33, var33, imm32));
   // 00 /r ADD r/m32, r32
-  editor.Append(NewAddInstruction(ebx, ebx, eax));
-  editor.Append(NewAddInstruction(ebx, ebx, r9d));
-  editor.Append(NewAddInstruction(r9d, r9d, ebx));
-  editor.Append(NewAddInstruction(var33, var33, ebx));
-  editor.Append(NewAddInstruction(var33, var33, r9d));
+  editor.Append(NewIntAddInstruction(ebx, ebx, eax));
+  editor.Append(NewIntAddInstruction(ebx, ebx, r9d));
+  editor.Append(NewIntAddInstruction(r9d, r9d, ebx));
+  editor.Append(NewIntAddInstruction(var33, var33, ebx));
+  editor.Append(NewIntAddInstruction(var33, var33, r9d));
   // 02 /r  ADD r32, r/m32
-  editor.Append(NewAddInstruction(ebx, ebx, var33));
-  editor.Append(NewAddInstruction(r9d, r9d, var33));
+  editor.Append(NewIntAddInstruction(ebx, ebx, var33));
+  editor.Append(NewIntAddInstruction(r9d, r9d, var33));
   // 83 /0 ib ADD r/m32, imm8
-  editor.Append(NewAddInstruction(ebx, ebx, imm8));
-  editor.Append(NewAddInstruction(r9d, r9d, imm8));
-  editor.Append(NewAddInstruction(var33, var33, imm8));
+  editor.Append(NewIntAddInstruction(ebx, ebx, imm8));
+  editor.Append(NewIntAddInstruction(r9d, r9d, imm8));
+  editor.Append(NewIntAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
@@ -137,25 +137,25 @@ TEST_F(CodeEmitterX64Test, AddInt64) {
   auto const r9 = Target::RegisterOf(isa::R9);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
   // REX.W 05 ib ADD RAX, imm32
-  editor.Append(NewAddInstruction(rax, rax, imm32));
+  editor.Append(NewIntAddInstruction(rax, rax, imm32));
   // REX.W 81 /0 ib ADD r/m64, imm32
-  editor.Append(NewAddInstruction(rbx, rbx, imm32));
-  editor.Append(NewAddInstruction(r9, r9, imm32));
+  editor.Append(NewIntAddInstruction(rbx, rbx, imm32));
+  editor.Append(NewIntAddInstruction(r9, r9, imm32));
   // REX.W 81 /0 ib ADD r/m64, imm32
-  editor.Append(NewAddInstruction(var33, var33, imm32));
+  editor.Append(NewIntAddInstruction(var33, var33, imm32));
   // REX.W 00 /r ADD r/m64, r64
-  editor.Append(NewAddInstruction(rbx, rbx, rax));
-  editor.Append(NewAddInstruction(rbx, rbx, r9));
-  editor.Append(NewAddInstruction(r9, r9, rbx));
-  editor.Append(NewAddInstruction(var33, var33, rbx));
-  editor.Append(NewAddInstruction(var33, var33, r9));
+  editor.Append(NewIntAddInstruction(rbx, rbx, rax));
+  editor.Append(NewIntAddInstruction(rbx, rbx, r9));
+  editor.Append(NewIntAddInstruction(r9, r9, rbx));
+  editor.Append(NewIntAddInstruction(var33, var33, rbx));
+  editor.Append(NewIntAddInstruction(var33, var33, r9));
   // REX.W 02 /r  ADD r64, r/m64
-  editor.Append(NewAddInstruction(rbx, rbx, var33));
-  editor.Append(NewAddInstruction(r9, r9, var33));
+  editor.Append(NewIntAddInstruction(rbx, rbx, var33));
+  editor.Append(NewIntAddInstruction(r9, r9, var33));
   // REX.W 83 /0 ib ADD r/m64, imm8
-  editor.Append(NewAddInstruction(rbx, rbx, imm8));
-  editor.Append(NewAddInstruction(r9, r9, imm8));
-  editor.Append(NewAddInstruction(var33, var33, imm8));
+  editor.Append(NewIntAddInstruction(rbx, rbx, imm8));
+  editor.Append(NewIntAddInstruction(r9, r9, imm8));
+  editor.Append(NewIntAddInstruction(var33, var33, imm8));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(
@@ -179,20 +179,20 @@ TEST_F(CodeEmitterX64Test, AddInt8) {
   auto const r9b = Target::RegisterOf(isa::R9B);
   auto const var33 = Value::FrameSlot(Value::Int8Type(), 33);
   // 04 ib ADD AL, imm8
-  editor.Append(NewAddInstruction(al, al, imm8));
+  editor.Append(NewIntAddInstruction(al, al, imm8));
   // 80 /0 ib ADD r/m8, imm8
-  editor.Append(NewAddInstruction(bl, bl, imm8));
-  editor.Append(NewAddInstruction(dil, dil, imm8));
-  editor.Append(NewAddInstruction(r9b, r9b, imm8));
-  editor.Append(NewAddInstruction(var33, var33, imm8));
+  editor.Append(NewIntAddInstruction(bl, bl, imm8));
+  editor.Append(NewIntAddInstruction(dil, dil, imm8));
+  editor.Append(NewIntAddInstruction(r9b, r9b, imm8));
+  editor.Append(NewIntAddInstruction(var33, var33, imm8));
   //  00 /r ADD r/m8, r8
-  editor.Append(NewAddInstruction(var33, var33, bl));
-  editor.Append(NewAddInstruction(var33, var33, dil));
-  editor.Append(NewAddInstruction(var33, var33, r9b));
+  editor.Append(NewIntAddInstruction(var33, var33, bl));
+  editor.Append(NewIntAddInstruction(var33, var33, dil));
+  editor.Append(NewIntAddInstruction(var33, var33, r9b));
   // 02 /r  ADD r8, r/m8
-  editor.Append(NewAddInstruction(bl, bl, var33));
-  editor.Append(NewAddInstruction(dil, dil, var33));
-  editor.Append(NewAddInstruction(r9b, r9b, var33));
+  editor.Append(NewIntAddInstruction(bl, bl, var33));
+  editor.Append(NewIntAddInstruction(dil, dil, var33));
+  editor.Append(NewIntAddInstruction(r9b, r9b, var33));
   ASSERT_EQ("", Commit(&editor));
 
   EXPECT_EQ(

@@ -309,7 +309,7 @@ Function* LirTest::CreateFunctionSampleAdd() {
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
   editor.Append(factory()->NewPCopyInstruction({var0, var1}, parameters));
-  editor.Append(factory()->NewAddInstruction(var2, var0, var1));
+  editor.Append(factory()->NewIntAddInstruction(var2, var0, var1));
   editor.Append(factory()->NewCopyInstruction(Target::ReturnAt(var2, 0), var2));
   EXPECT_EQ("", Commit(&editor));
   return function;
