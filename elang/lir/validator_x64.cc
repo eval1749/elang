@@ -34,7 +34,7 @@ void Validator::VisitIntDivX64(IntDivX64Instruction* instr) {
     Error(ErrorCode::ValidateInstructionInput, instr, 2);
 }
 
-void Validator::VisitSignX64(SignX64Instruction* instr) {
+void Validator::VisitIntSignX64(IntSignX64Instruction* instr) {
   auto const expected_output0 =
       Target::RegisterOf(instr->output(0).is_int32() ? isa::EDX : isa::RDX);
   auto const expected_input0 =

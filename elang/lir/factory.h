@@ -130,7 +130,7 @@ class ELANG_LIR_EXPORT Factory final : public ZoneOwner {
                                        Value high_left,
                                        Value low_left,
                                        Value right);
-  Instruction* NewSignX64Instruction(Value output, Value input);
+  Instruction* NewIntSignX64Instruction(Value output, Value input);
   Instruction* NewUIntDivX64Instruction(Value div_output,
                                         Value mod_output,
                                         Value high_left,

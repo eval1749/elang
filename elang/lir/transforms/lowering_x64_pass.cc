@@ -109,7 +109,7 @@ void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   auto const input =
       editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
   auto const sign_instr =
-      factory()->NewSignX64Instruction(GetRDX(output), GetRAX(output));
+      factory()->NewIntSignX64Instruction(GetRDX(output), GetRAX(output));
   editor()->InsertBefore(sign_instr, instr);
   auto const div_instr = factory()->NewIntDivX64Instruction(
       GetRAX(output), GetRDX(output), sign_instr->output(0), input,

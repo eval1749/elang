@@ -210,6 +210,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCopy(CopyInstruction* instr) final;
   void VisitEntry(EntryInstruction* instr) final;
   void VisitExit(ExitInstruction* instr) final;
+  void VisitIntSignX64(IntSignX64Instruction* instr) final;
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitLoad(LoadInstruction* instr) final;
@@ -218,7 +219,6 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
-  void VisitSignX64(SignX64Instruction* instr) final;
   void VisitStore(StoreInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
   void VisitUIntDivX64(UIntDivX64Instruction* instr) final;
@@ -791,6 +791,24 @@ void InstructionHandlerX64::VisitEntry(EntryInstruction* instr) {
 void InstructionHandlerX64::VisitExit(ExitInstruction* instr) {
 }
 
+// 99       CWD
+// 99       CDQ
+// REX.W 99 CQO
+void InstructionHandlerX64::VisitIntSignX64(IntSignX64Instruction* instr) {
+  auto const output = instr->output(0);
+  if (output.is_32bit()) {
+    DCHECK_EQ(ToRegister(output), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::EAX) << instr;
+  } else if (output.is_64bit()) {
+    DCHECK_EQ(ToRegister(output), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::RAX) << instr;
+  } else {
+    NOTREACHED() << instr;
+  }
+  EmitRexPrefix(output);
+  EmitOpcode(isa::Opcode::CDQ);
+}
+
 // EB cb JMP rel
 // E9 cd JMP rel32
 void InstructionHandlerX64::VisitJump(JumpInstruction* instr) {
@@ -974,24 +992,6 @@ void InstructionHandlerX64::VisitSignExtend(SignExtendInstruction* instr) {
       break;
   }
   EmitModRm(output, input);
-}
-
-// 99       CWD
-// 99       CDQ
-// REX.W 99 CQO
-void InstructionHandlerX64::VisitSignX64(SignX64Instruction* instr) {
-  auto const output = instr->output(0);
-  if (output.is_32bit()) {
-    DCHECK_EQ(ToRegister(output), isa::EDX) << instr;
-    DCHECK_EQ(ToRegister(instr->input(0)), isa::EAX) << instr;
-  } else if (output.is_64bit()) {
-    DCHECK_EQ(ToRegister(output), isa::RDX) << instr;
-    DCHECK_EQ(ToRegister(instr->input(0)), isa::RAX) << instr;
-  } else {
-    NOTREACHED() << instr;
-  }
-  EmitRexPrefix(output);
-  EmitOpcode(isa::Opcode::CDQ);
 }
 
 void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {

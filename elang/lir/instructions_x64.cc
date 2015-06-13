@@ -23,8 +23,8 @@ IntDivX64Instruction::IntDivX64Instruction(Value div_output,
   InitInput(2, right);
 }
 
-// SignX64
-SignX64Instruction::SignX64Instruction(Value output, Value input) {
+// IntSignX64
+IntSignX64Instruction::IntSignX64Instruction(Value output, Value input) {
   InitOutput(0, output);
   InitInput(0, input);
 }

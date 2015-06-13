@@ -540,6 +540,22 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   EXPECT_EQ("0000 48 8B 45 00 89 55 08 C3\n", Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, IntSignX64) {
+  auto const function = factory()->NewFunction({});
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rdx = Target::RegisterOf(isa::RDX);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+
+  editor.Append(factory()->NewIntSignX64Instruction(edx, eax));
+  editor.Append(factory()->NewIntSignX64Instruction(rdx, rax));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ("0000 99 48 99 C3\n", Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, LiteralInt16) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
@@ -1134,22 +1150,6 @@ TEST_F(CodeEmitterX64Test, SignExtend) {
       "0010 48 0F BE DB 48 0F BE 5C 24 01 48 0F BF DB 48 0F\n"
       "0020 BF 5C 24 02 48 63 DB 48 63 5C 24 04 C3\n",
       Emit(&editor));
-}
-
-TEST_F(CodeEmitterX64Test, SignX64) {
-  auto const function = factory()->NewFunction({});
-  auto const eax = Target::RegisterOf(isa::EAX);
-  auto const edx = Target::RegisterOf(isa::EDX);
-  auto const rax = Target::RegisterOf(isa::RAX);
-  auto const rdx = Target::RegisterOf(isa::RDX);
-
-  Editor editor(factory(), function);
-  editor.Edit(function->entry_block());
-
-  editor.Append(factory()->NewSignX64Instruction(edx, eax));
-  editor.Append(factory()->NewSignX64Instruction(rdx, rax));
-  ASSERT_EQ("", Commit(&editor));
-  EXPECT_EQ("0000 99 48 99 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, StackSlot) {

@@ -23,13 +23,13 @@ class ELANG_LIR_EXPORT IntDivX64Instruction final
                        Value right);
 };
 
-// SignX64
-class ELANG_LIR_EXPORT SignX64Instruction final
+// IntSignX64
+class ELANG_LIR_EXPORT IntSignX64Instruction final
     : public InstructionTemplate<1, 1> {
-  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(SignX64);
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(IntSignX64);
 
  private:
-  SignX64Instruction(Value output, Value input);
+  IntSignX64Instruction(Value output, Value input);
 };
 
 // UIntDivX64

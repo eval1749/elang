@@ -125,6 +125,17 @@ TEST_F(LirInstructionsTestX64, IntDivX64Instruction) {
   EXPECT_EQ("--:0:sdiv_x64 EAX, EDX = EDX, EAX, ECX", ToString(*instr));
 }
 
+TEST_F(LirInstructionsTestX64, IntSignX64Instruction) {
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const instr = factory()->NewIntSignX64Instruction(edx, eax);
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:sign_x64 EDX = EAX", ToString(*instr));
+}
+
 TEST_F(LirInstructionsTestX64, LoadInstruction) {
   auto const function = CreateFunctionEmptySample();
   Editor editor(factory(), function);
@@ -147,17 +158,6 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       "  // Out: {}\n"
       "  exit\n",
       FormatFunction(&editor));
-}
-
-TEST_F(LirInstructionsTestX64, SignX64Instruction) {
-  auto const eax = Target::RegisterOf(isa::EAX);
-  auto const edx = Target::RegisterOf(isa::EDX);
-  auto const instr = factory()->NewSignX64Instruction(edx, eax);
-  EXPECT_FALSE(instr->IsTerminator());
-  EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(1, instr->inputs().size());
-  EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:sign_x64 EDX = EAX", ToString(*instr));
 }
 
 TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {

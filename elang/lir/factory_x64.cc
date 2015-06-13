@@ -24,8 +24,8 @@ Instruction* Factory::NewIntDivX64Instruction(Value div_output,
       IntDivX64Instruction(div_output, mod_output, high_left, low_left, right);
 }
 
-Instruction* Factory::NewSignX64Instruction(Value output, Value input) {
-  return new (zone()) SignX64Instruction(output, input);
+Instruction* Factory::NewIntSignX64Instruction(Value output, Value input) {
+  return new (zone()) IntSignX64Instruction(output, input);
 }
 
 Instruction* Factory::NewUIntDivX64Instruction(Value div_output,
