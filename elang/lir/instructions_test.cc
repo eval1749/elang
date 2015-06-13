@@ -42,7 +42,7 @@ std::string LirInstructionTest::ToString(const Instruction& instr) {
 
 // Test cases...
 
-#define DEFINE_ARITHMETIC_INSTRUCTION_TEST(Name, mnemonic)                     \
+#define DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Name, mnemonic)             \
   TEST_F(LirInstructionTest, Name##Instruction) {                              \
     auto const left = NewIntPtrRegister();                                     \
     auto const right = NewIntPtrRegister();                                    \
@@ -56,16 +56,16 @@ std::string LirInstructionTest::ToString(const Instruction& instr) {
     EXPECT_EQ("--:0:" mnemonic " %r3l = %r1l, %r2l", ToString(*instr));        \
   }
 
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(Add, "add")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(BitAnd, "and")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(BitOr, "or")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(BitXor, "xor")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(Div, "sdiv")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(Mod, "smod")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(Mul, "mul")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(Sub, "sub")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(UIntDiv, "udiv")
-DEFINE_ARITHMETIC_INSTRUCTION_TEST(UIntMod, "umod")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Add, "add")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(BitAnd, "and")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(BitOr, "or")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(BitXor, "xor")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Div, "sdiv")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Mod, "smod")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Mul, "mul")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(Sub, "sub")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(UIntDiv, "udiv")
+DEFINE_INTEGER_ARITHMETIC_INSTRUCTION_TEST(UIntMod, "umod")
 
 // AssignInstruction
 TEST_F(LirInstructionTest, AssignInstruction) {
@@ -188,6 +188,26 @@ TEST_F(LirInstructionTest, FloatCmpInstruction) {
   EXPECT_EQ(1, instr->outputs().size());
   EXPECT_EQ("--:0:FloatCmp_ne %b2 = %f1, %f2", ToString(*instr));
 }
+
+#define DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(Name, mnemonic)               \
+  TEST_F(LirInstructionTest, Name##Instruction) {                              \
+    auto const left = NewRegister(Value::Float64Type());                       \
+    auto const right = NewRegister(Value::Float64Type());                      \
+    auto const output = NewRegister(Value::Float64Type());                     \
+    auto const instr = factory()->New##Name##Instruction(output, left, right); \
+    EXPECT_TRUE(instr->is<Name##Instruction>());                               \
+    EXPECT_FALSE(instr->IsTerminator());                                       \
+    EXPECT_EQ(0, instr->id());                                                 \
+    EXPECT_EQ(2, instr->inputs().size());                                      \
+    EXPECT_EQ(1, instr->outputs().size());                                     \
+    EXPECT_EQ("--:0:" mnemonic " %f3d = %f1d, %f2d", ToString(*instr));        \
+  }
+
+DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(FloatAdd, "fadd")
+DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(FloatDiv, "fdiv")
+DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(FloatMod, "fmod")
+DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(FloatMul, "fmul")
+DEFINE_FLOAT_ARITHMETIC_INSTRUCTION_TEST(FloatSub, "fsub")
 
 // JumpInstruction
 TEST_F(LirInstructionTest, JumpInstruction) {
