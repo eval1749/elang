@@ -74,6 +74,7 @@ source_set("core") {
 
   if (elang_target_arch == "x64") {
     sources += [
+      "factory_x64.cc",
       "instructions_x64.cc",
       "instructions_x64.h",
       "instructions_x64_forward.h",
