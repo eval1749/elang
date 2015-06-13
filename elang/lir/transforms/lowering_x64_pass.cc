@@ -101,19 +101,19 @@ void LoweringX64Pass::VisitBitXor(BitXorInstruction* instr) {
 //   div %a = %b, %c
 //   =>
 //   copy RAX = %b
-//   xor RDX = RDX, RDX
-//   div RAX, RDX = RAX, RDX, %c
+//   x64.sign RDX = RAX
+//   div RAX, RDX = RDX, RAX, %c
 //   copy %a = RAX
 void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   auto const output = instr->output(0);
   auto const input =
       editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
-  auto const zero_instr =
-      NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
-  editor()->InsertBefore(zero_instr, instr);
+  auto const sign_instr =
+      factory()->NewSignX64Instruction(GetRDX(output), GetRAX(output));
+  editor()->InsertBefore(sign_instr, instr);
   auto const div_instr =
       factory()->NewDivX64Instruction(GetRAX(output), GetRDX(output), input,
-                                      zero_instr->output(0), instr->input(1));
+                                      sign_instr->output(0), instr->input(1));
   editor()->InsertBefore(div_instr, instr);
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }

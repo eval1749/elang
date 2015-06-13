@@ -172,7 +172,7 @@ TEST_F(LirLoweringX64Test, IntDiv) {
       "  entry ECX, EDX =\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
-      "  xor EDX = EDX, EDX\n"
+      "  x64.sign EDX = EAX\n"
       "  x64.div EAX, EDX = EAX, EDX, %r2\n"
       "  mov %r3 = EAX\n"  // redundant copy instructions.
       "  mov EAX = %r3\n"
