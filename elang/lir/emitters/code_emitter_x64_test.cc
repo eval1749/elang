@@ -9,7 +9,7 @@
 #include "elang/lir/editor.h"
 #include "elang/lir/emitters/code_emitter.h"
 #include "elang/lir/factory.h"
-#include "elang/lir/instructions.h"
+#include "elang/lir/instructions_x64.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target.h"
 #include "elang/lir/testing/test_machine_code_builder.h"
@@ -1440,6 +1440,42 @@ TEST_F(CodeEmitterX64Test, StoreLiteral) {
       "0090 00 10 32 54 76 49 C7 01 10 32 54 76 49 C7 41 7F\n"
       "00A0 10 32 54 76 49 C7 81 CD AB 00 00 10 32 54 76 C3\n",
       Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, UIntDivX6432) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const rbx = Target::RegisterOf(isa::EBX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const r9d = Target::RegisterOf(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+
+  editor.Append(New<UIntDivX64Instruction>(eax, edx, edx, eax, rbx));
+  editor.Append(New<UIntDivX64Instruction>(eax, edx, edx, eax, r9d));
+  editor.Append(New<UIntDivX64Instruction>(eax, edx, edx, eax, var33));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("0000 F7 F3 41 F7 F1 F7 75 21 C3\n", Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, UIntDivX6464) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdx = Target::RegisterOf(isa::RDX);
+  auto const r9 = Target::RegisterOf(isa::R9);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
+
+  editor.Append(New<UIntDivX64Instruction>(rax, rdx, rdx, rax, rbx));
+  editor.Append(New<UIntDivX64Instruction>(rax, rdx, rdx, rax, r9));
+  editor.Append(New<UIntDivX64Instruction>(rax, rdx, rdx, rax, var33));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("0000 48 F7 F3 49 F7 F1 48 F7 75 21 C3\n", Emit(&editor));
 }
 
 TEST_F(CodeEmitterX64Test, UIntShrInt64) {

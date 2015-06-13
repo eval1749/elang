@@ -221,6 +221,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitSignX64(SignX64Instruction* instr) final;
   void VisitStore(StoreInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
+  void VisitUIntDivX64(UIntDivX64Instruction* instr) final;
   void VisitUIntShr(UIntShrInstruction* instr) final;
   void VisitZeroExtend(ZeroExtendInstruction* instr) final;
 
@@ -1046,6 +1047,28 @@ void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
   DCHECK_EQ(output, instr->input(0)) << *instr;
   HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
                           isa::OpcodeExt::SUB_Eb_Ib);
+}
+
+// F7 /6        DIV r/m32
+// REX.W F7 /6  DIV r/m64
+void InstructionHandlerX64::VisitUIntDivX64(UIntDivX64Instruction* instr) {
+  if (instr->output(0).is_32bit()) {
+    DCHECK_EQ(ToRegister(instr->output(0)), isa::EAX) << instr;
+    DCHECK_EQ(ToRegister(instr->output(1)), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(1)), isa::EAX) << instr;
+  } else if (instr->output(0).is_64bit()) {
+    DCHECK_EQ(ToRegister(instr->output(0)), isa::RAX) << instr;
+    DCHECK_EQ(ToRegister(instr->output(1)), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(1)), isa::RAX) << instr;
+  } else {
+    NOTREACHED() << instr;
+  }
+  auto const right = instr->input(2);
+  EmitRexPrefix(right);
+  EmitOpcode(isa::Opcode::DIV_Ev);
+  EmitOpcodeExt(isa::OpcodeExt::DIV_Ev, right);
 }
 
 void InstructionHandlerX64::VisitUIntShr(UIntShrInstruction* instr) {
