@@ -17,6 +17,21 @@
 namespace elang {
 namespace lir {
 
+void Validator::VisitDivX64(DivX64Instruction* instr) {
+  auto const expected_output0 =
+      Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
+  auto const expected_output1 =
+      Target::RegisterOf(instr->output(1).is_int32() ? isa::EDX : isa::RDX);
+  if (instr->output(0) != expected_output0)
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  if (instr->output(1) != expected_output1)
+    Error(ErrorCode::ValidateInstructionOutput, instr, 1);
+  if (instr->input(0) != expected_output0)
+    Error(ErrorCode::ValidateInstructionInput, instr, 0);
+  if (Value::TypeOf(instr->input(1)) != Value::TypeOf(instr->input(0)))
+    Error(ErrorCode::ValidateInstructionInput, instr, 1);
+}
+
 void Validator::VisitUIntDivX64(UIntDivX64Instruction* instr) {
   auto const expected_output0 =
       Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
