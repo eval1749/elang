@@ -39,8 +39,8 @@ namespace lir {
   V(FloatMod, "fmod")                   \
   V(FloatMul, "fmul")                   \
   V(FloatSub, "fsub")                   \
-  V(Div, "div")                         \
-  V(Mod, "mod")                         \
+  V(Div, "sdiv")                        \
+  V(Mod, "smod")                        \
   V(Mul, "mul")                         \
   V(Sub, "sub")                         \
   V(Shl, "shl")                         \
