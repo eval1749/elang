@@ -345,6 +345,7 @@ void Generator::VisitTuple(hir::TupleInstruction* instr) {
     Emit(New##Name##Instruction(output, MapInput(instr->input(0)), \
                                 MapInput(instr->input(1))));       \
   }
+#define NewModInstruction NewIntModInstruction
 FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_SHIFT_OPERATION(V)
