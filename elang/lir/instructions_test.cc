@@ -42,6 +42,27 @@ std::string LirInstructionTest::ToString(const Instruction& instr) {
 
 // Test cases...
 
+#define DEFINE_ARITHMETIC_INSTRUCTION_TEST(Name, mnemonic)                     \
+  TEST_F(LirInstructionTest, Name##Instruction) {                              \
+    auto const left = NewIntPtrRegister();                                     \
+    auto const right = NewIntPtrRegister();                                    \
+    auto const output = NewIntPtrRegister();                                   \
+    auto const instr = factory()->New##Name##Instruction(output, left, right); \
+    EXPECT_TRUE(instr->is<Name##Instruction>());                               \
+    EXPECT_FALSE(instr->IsTerminator());                                       \
+    EXPECT_EQ(0, instr->id());                                                 \
+    EXPECT_EQ(2, instr->inputs().size());                                      \
+    EXPECT_EQ(1, instr->outputs().size());                                     \
+    EXPECT_EQ("--:0:" mnemonic " %r3l = %r1l, %r2l", ToString(*instr));        \
+  }
+
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(Add, "add")
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(Div, "div")
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(Mod, "mod")
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(Mul, "mul")
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(UIntDiv, "udiv")
+DEFINE_ARITHMETIC_INSTRUCTION_TEST(UIntMod, "umod")
+
 // AssignInstruction
 TEST_F(LirInstructionTest, AssignInstruction) {
   auto const instr =
@@ -245,34 +266,6 @@ TEST_F(LirInstructionTest, UseInstruction) {
   EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(0, instr->outputs().size());
   EXPECT_EQ("--:0:use %r1", ToString(*instr));
-}
-
-// UIntDivInstruction
-TEST_F(LirInstructionTest, UIntDivInstruction) {
-  auto const input = NewIntPtrRegister();
-  auto const output = NewIntPtrRegister();
-  auto const instr =
-      factory()->NewUIntDivInstruction(output, input, Value::SmallInt32(3));
-  EXPECT_TRUE(instr->is<UIntDivInstruction>());
-  EXPECT_FALSE(instr->IsTerminator());
-  EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(2, instr->inputs().size());
-  EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:udiv %r2l = %r1l, 3", ToString(*instr));
-}
-
-// UIntModInstruction
-TEST_F(LirInstructionTest, UIntModInstruction) {
-  auto const input = NewIntPtrRegister();
-  auto const output = NewIntPtrRegister();
-  auto const instr =
-      factory()->NewUIntModInstruction(output, input, Value::SmallInt32(3));
-  EXPECT_TRUE(instr->is<UIntModInstruction>());
-  EXPECT_FALSE(instr->IsTerminator());
-  EXPECT_EQ(0, instr->id());
-  EXPECT_EQ(2, instr->inputs().size());
-  EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:umod %r2l = %r1l, 3", ToString(*instr));
 }
 
 // UIntShrInstruction
