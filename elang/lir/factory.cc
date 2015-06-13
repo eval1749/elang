@@ -314,6 +314,15 @@ Instruction* Factory::NewDivX64Instruction(Value div_output,
       DivX64Instruction(div_output, mod_output, high_left, low_left, right);
 }
 
+Instruction* Factory::NewUIntDivX64Instruction(Value div_output,
+                                               Value mod_output,
+                                               Value high_left,
+                                               Value low_left,
+                                               Value right) {
+  return new (zone())
+      UIntDivX64Instruction(div_output, mod_output, high_left, low_left, right);
+}
+
 Instruction* Factory::NewUIntMulX64Instruction(Value high_output,
                                                Value low_output,
                                                Value left,

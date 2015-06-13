@@ -136,6 +136,19 @@ TEST_F(LirInstructionsTestX64, LoadInstruction) {
       FormatFunction(&editor));
 }
 
+TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const ecx = Target::RegisterOf(isa::ECX);
+  auto const instr =
+      factory()->NewUIntDivX64Instruction(eax, edx, edx, eax, ecx);
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(3, instr->inputs().size());
+  EXPECT_EQ(2, instr->outputs().size());
+  EXPECT_EQ("--:0:x64.udiv EAX, EDX = EDX, EAX, ECX", ToString(*instr));
+}
+
 TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
   auto const eax = Target::RegisterOf(isa::EAX);
   auto const edx = Target::RegisterOf(isa::EDX);

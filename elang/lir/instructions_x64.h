@@ -23,6 +23,19 @@ class ELANG_LIR_EXPORT DivX64Instruction final
                     Value right);
 };
 
+// UIntDivX64
+class ELANG_LIR_EXPORT UIntDivX64Instruction final
+    : public InstructionTemplate<2, 3> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(UIntDivX64);
+
+ private:
+  UIntDivX64Instruction(Value div_output,
+                        Value mod_output,
+                        Value high_left,
+                        Value low_left,
+                        Value right);
+};
+
 // UIntMulX64
 class ELANG_LIR_EXPORT UIntMulX64Instruction final
     : public InstructionTemplate<2, 2> {

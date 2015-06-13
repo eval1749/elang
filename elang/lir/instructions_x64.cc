@@ -23,6 +23,19 @@ DivX64Instruction::DivX64Instruction(Value div_output,
   InitInput(2, right);
 }
 
+// DivX64
+UIntDivX64Instruction::UIntDivX64Instruction(Value div_output,
+                                             Value mod_output,
+                                             Value high_left,
+                                             Value low_left,
+                                             Value right) {
+  InitOutput(0, div_output);
+  InitOutput(1, mod_output);
+  InitInput(0, high_left);
+  InitInput(1, low_left);
+  InitInput(2, right);
+}
+
 // UIntMulX64
 UIntMulX64Instruction::UIntMulX64Instruction(Value high_output,
                                              Value low_output,
