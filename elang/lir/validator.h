@@ -59,9 +59,9 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void VisitBranch(BranchInstruction* instruction) final;
   void VisitCmp(CmpInstruction* instruction) final;
   void VisitCopy(CopyInstruction* instruction) final;
-  void VisitDiv(DivInstruction* instruction) final;
   void VisitExtend(ExtendInstruction* instruction) final;
   void VisitFloatCmp(FloatCmpInstruction* instruction) final;
+  void VisitIntDiv(IntDivInstruction* instruction) final;
   void VisitLoad(LoadInstruction* instruction) final;
   void VisitMul(MulInstruction* instruction) final;
   void VisitPhi(PhiInstruction* instruction) final;

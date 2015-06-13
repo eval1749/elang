@@ -98,26 +98,6 @@ void LoweringX64Pass::VisitBitXor(BitXorInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
-//   div %a = %b, %c
-//   =>
-//   copy RAX = %b
-//   sign_x64 RDX = RAX
-//   div RAX, RDX = RDX, RAX, %c
-//   copy %a = RAX
-void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
-  auto const output = instr->output(0);
-  auto const input =
-      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
-  auto const sign_instr =
-      factory()->NewIntSignX64Instruction(GetRDX(output), GetRAX(output));
-  editor()->InsertBefore(sign_instr, instr);
-  auto const div_instr = factory()->NewIntDivX64Instruction(
-      GetRAX(output), GetRDX(output), sign_instr->output(0), input,
-      instr->input(1));
-  editor()->InsertBefore(div_instr, instr);
-  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
-}
-
 void LoweringX64Pass::VisitFloatAdd(FloatAddInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
@@ -136,6 +116,26 @@ void LoweringX64Pass::VisitFloatMul(FloatMulInstruction* instr) {
 
 void LoweringX64Pass::VisitFloatSub(FloatSubInstruction* instr) {
   RewriteToTwoOperands(instr);
+}
+
+//   div %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   sign_x64 RDX = RAX
+//   div RAX, RDX = RDX, RAX, %c
+//   copy %a = RAX
+void LoweringX64Pass::VisitIntDiv(IntDivInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const sign_instr =
+      factory()->NewIntSignX64Instruction(GetRDX(output), GetRAX(output));
+  editor()->InsertBefore(sign_instr, instr);
+  auto const div_instr = factory()->NewIntDivX64Instruction(
+      GetRAX(output), GetRDX(output), sign_instr->output(0), input,
+      instr->input(1));
+  editor()->InsertBefore(div_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }
 
 void LoweringX64Pass::VisitMul(MulInstruction* instr) {

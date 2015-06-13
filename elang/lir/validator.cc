@@ -279,10 +279,6 @@ void Validator::VisitCopy(CopyInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 0);
 }
 
-void Validator::VisitDiv(DivInstruction* instr) {
-  ValidateArithmeticInstruction(instr);
-}
-
 void Validator::VisitExtend(ExtendInstruction* instr) {
   auto const output = instr->output(0);
   auto const input = instr->input(0);
@@ -306,6 +302,10 @@ void Validator::VisitFloatCmp(FloatCmpInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputType, instr, 1);
   if (left.size != right.size)
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
+}
+
+void Validator::VisitIntDiv(IntDivInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
 }
 
 void Validator::VisitLoad(LoadInstruction* instr) {

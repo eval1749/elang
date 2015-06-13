@@ -157,7 +157,7 @@ TEST_F(LirLoweringX64Test, IntDiv) {
   editor.Edit(entry_block);
   auto const parameters = EmitCopyParameters(&editor);
   auto output = NewRegister(type);
-  editor.Append(NewDivInstruction(output, parameters[0], parameters[1]));
+  editor.Append(NewIntDivInstruction(output, parameters[0], parameters[1]));
   editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
   editor.SetReturn();
   EXPECT_EQ("", Commit(&editor));
