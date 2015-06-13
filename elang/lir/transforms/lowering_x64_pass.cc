@@ -154,5 +154,25 @@ void LoweringX64Pass::VisitSub(SubInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
+//   udiv %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   xor RDX = RDX, RDX
+//   x64.udiv RAX, RDX = RDX, RAX, %c
+//   copy %a = RAX
+void LoweringX64Pass::VisitUIntDiv(UIntDivInstruction* instr) {
+  auto const output = instr->output(0);
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const zero_instr =
+      NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
+  editor()->InsertBefore(zero_instr, instr);
+  auto const div_instr = factory()->NewUIntDivX64Instruction(
+      GetRAX(output), GetRDX(output), input, zero_instr->output(0),
+      instr->input(1));
+  editor()->InsertBefore(div_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
+}
+
 }  // namespace lir
 }  // namespace elang

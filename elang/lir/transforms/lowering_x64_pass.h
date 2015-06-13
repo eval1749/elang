@@ -18,8 +18,8 @@ struct Value;
 //
 // LoweringX64Pass does:
 //  - Transforms three operands instruction to two operands.
-//  - Transforms 'mul' to use 'RAX'
 //  - Transforms 'div' to use 'RAX'/'RDX'
+//  - Transforms 'udiv' to use 'RAX'/'RDX'
 //
 class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
                                                public InstructionVisitor {
@@ -52,6 +52,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
+  void VisitUIntDiv(UIntDivInstruction* instr) final;
 
   DISALLOW_COPY_AND_ASSIGN(LoweringX64Pass);
 };
