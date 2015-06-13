@@ -47,7 +47,6 @@ namespace lir {
   V(Shr, "shr")                         \
   V(UIntDiv, "udiv")                    \
   V(UIntMod, "umod")                    \
-  V(UIntMul, "umul")                    \
   V(UIntShr, "ushr")
 
 #define FOR_EACH_LIR_INSTRUCTION_1_3(V) V(Load, "load")
