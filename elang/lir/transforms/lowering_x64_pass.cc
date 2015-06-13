@@ -101,7 +101,7 @@ void LoweringX64Pass::VisitBitXor(BitXorInstruction* instr) {
 //   div %a = %b, %c
 //   =>
 //   copy RAX = %b
-//   x64.sign RDX = RAX
+//   sign_x64 RDX = RAX
 //   div RAX, RDX = RDX, RAX, %c
 //   copy %a = RAX
 void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
@@ -158,7 +158,7 @@ void LoweringX64Pass::VisitSub(SubInstruction* instr) {
 //   =>
 //   copy RAX = %b
 //   xor RDX = RDX, RDX
-//   x64.udiv RAX, RDX = RDX, RAX, %c
+//   udiv_x64 RAX, RDX = RDX, RAX, %c
 //   copy %a = RAX
 void LoweringX64Pass::VisitUIntDiv(UIntDivInstruction* instr) {
   auto const output = instr->output(0);

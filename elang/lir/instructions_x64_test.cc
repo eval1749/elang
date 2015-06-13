@@ -145,7 +145,7 @@ TEST_F(LirInstructionsTestX64, DivX64Instruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(3, instr->inputs().size());
   EXPECT_EQ(2, instr->outputs().size());
-  EXPECT_EQ("--:0:x64.div EAX, EDX = EDX, EAX, ECX", ToString(*instr));
+  EXPECT_EQ("--:0:sdiv_x64 EAX, EDX = EDX, EAX, ECX", ToString(*instr));
 }
 
 TEST_F(LirInstructionsTestX64, SignX64Instruction) {
@@ -156,7 +156,7 @@ TEST_F(LirInstructionsTestX64, SignX64Instruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(1, instr->inputs().size());
   EXPECT_EQ(1, instr->outputs().size());
-  EXPECT_EQ("--:0:x64.sign EDX = EAX", ToString(*instr));
+  EXPECT_EQ("--:0:sign_x64 EDX = EAX", ToString(*instr));
 }
 
 TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {
@@ -169,7 +169,7 @@ TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(3, instr->inputs().size());
   EXPECT_EQ(2, instr->outputs().size());
-  EXPECT_EQ("--:0:x64.udiv EAX, EDX = EDX, EAX, ECX", ToString(*instr));
+  EXPECT_EQ("--:0:udiv_x64 EAX, EDX = EDX, EAX, ECX", ToString(*instr));
 }
 
 TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
@@ -180,7 +180,7 @@ TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(2, instr->outputs().size());
-  EXPECT_EQ("--:0:x64.umul EDX, EAX = EAX, EDX", ToString(*instr));
+  EXPECT_EQ("--:0:umul_x64 EDX, EAX = EAX, EDX", ToString(*instr));
 }
 
 }  // namespace lir

@@ -172,8 +172,8 @@ TEST_F(LirLoweringX64Test, IntDiv) {
       "  entry ECX, EDX =\n"
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
-      "  x64.sign EDX = EAX\n"
-      "  x64.div EAX, EDX = EDX, EAX, %r2\n"
+      "  sign_x64 EDX = EAX\n"
+      "  sdiv_x64 EAX, EDX = EDX, EAX, %r2\n"
       "  mov %r3 = EAX\n"  // redundant copy instructions.
       "  mov EAX = %r3\n"
       "  ret block2\n"
@@ -262,7 +262,7 @@ TEST_F(LirLoweringX64Test, UIntDiv) {
       "  pcopy %r1, %r2 = ECX, EDX\n"
       "  mov EAX = %r1\n"
       "  xor EDX = EDX, EDX\n"
-      "  x64.udiv EAX, EDX = EDX, EAX, %r2\n"
+      "  udiv_x64 EAX, EDX = EDX, EAX, %r2\n"
       "  mov %r3 = EAX\n"  // redundant copy instructions.
       "  mov EAX = %r3\n"
       "  ret block2\n"
