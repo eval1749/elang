@@ -17,6 +17,12 @@ static_library("targets") {
     "//base",
     "//elang:elang_target_arch",
   ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "instructions_x64.h",
+    ]
+  }
 }
 
 source_set("test_files") {
