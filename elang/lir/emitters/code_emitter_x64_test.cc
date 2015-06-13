@@ -1136,6 +1136,22 @@ TEST_F(CodeEmitterX64Test, SignExtend) {
       Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, SignX64) {
+  auto const function = factory()->NewFunction({});
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rdx = Target::RegisterOf(isa::RDX);
+
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+
+  editor.Append(factory()->NewSignX64Instruction(edx, eax));
+  editor.Append(factory()->NewSignX64Instruction(rdx, rax));
+  ASSERT_EQ("", Commit(&editor));
+  EXPECT_EQ("0000 99 48 99 C3\n", Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, StackSlot) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);

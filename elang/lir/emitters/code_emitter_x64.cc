@@ -14,8 +14,8 @@
 #include "elang/lir/error_code.h"
 #include "elang/lir/error_reporter.h"
 #include "elang/lir/factory.h"
-#include "elang/lir/instructions.h"
 #include "elang/lir/instruction_visitor.h"
+#include "elang/lir/instructions_x64.h"
 #include "elang/lir/literals.h"
 #include "elang/lir/target_x64.h"
 #include "elang/lir/target.h"
@@ -218,6 +218,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitSignExtend(SignExtendInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
+  void VisitSignX64(SignX64Instruction* instr) final;
   void VisitStore(StoreInstruction* instr) final;
   void VisitSub(SubInstruction* instr) final;
   void VisitUIntShr(UIntShrInstruction* instr) final;
@@ -972,6 +973,24 @@ void InstructionHandlerX64::VisitSignExtend(SignExtendInstruction* instr) {
       break;
   }
   EmitModRm(output, input);
+}
+
+// 99       CWD
+// 99       CDQ
+// REX.W 99 CQO
+void InstructionHandlerX64::VisitSignX64(SignX64Instruction* instr) {
+  auto const output = instr->output(0);
+  if (output.is_32bit()) {
+    DCHECK_EQ(ToRegister(output), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::EAX) << instr;
+  } else if (output.is_64bit()) {
+    DCHECK_EQ(ToRegister(output), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::RAX) << instr;
+  } else {
+    NOTREACHED() << instr;
+  }
+  EmitRexPrefix(output);
+  EmitOpcode(isa::Opcode::CDQ);
 }
 
 void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {
