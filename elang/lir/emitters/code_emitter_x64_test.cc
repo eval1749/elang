@@ -949,7 +949,7 @@ TEST_F(CodeEmitterX64Test, Load8) {
       Emit(&editor));
 }
 
-TEST_F(CodeEmitterX64Test, MulInt32) {
+TEST_F(CodeEmitterX64Test, IntMul32) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
@@ -961,26 +961,26 @@ TEST_F(CodeEmitterX64Test, MulInt32) {
   auto const r10d = Target::RegisterOf(isa::R10D);
   auto const var33 = Value::FrameSlot(Value::Int32Type(), 32);
 
-  editor.Append(NewMulInstruction(eax, eax, eax));
-  editor.Append(NewMulInstruction(eax, eax, esi));
-  editor.Append(NewMulInstruction(eax, eax, r10d));
-  editor.Append(NewMulInstruction(eax, esi, imm8));
-  editor.Append(NewMulInstruction(eax, r8d, imm32));
-  editor.Append(NewMulInstruction(eax, eax, var33));
+  editor.Append(New<IntMulInstruction>(eax, eax, eax));
+  editor.Append(New<IntMulInstruction>(eax, eax, esi));
+  editor.Append(New<IntMulInstruction>(eax, eax, r10d));
+  editor.Append(New<IntMulInstruction>(eax, esi, imm8));
+  editor.Append(New<IntMulInstruction>(eax, r8d, imm32));
+  editor.Append(New<IntMulInstruction>(eax, eax, var33));
 
-  editor.Append(NewMulInstruction(esi, esi, eax));
-  editor.Append(NewMulInstruction(esi, esi, esi));
-  editor.Append(NewMulInstruction(esi, esi, r10d));
-  editor.Append(NewMulInstruction(esi, eax, imm8));
-  editor.Append(NewMulInstruction(esi, r8d, imm32));
-  editor.Append(NewMulInstruction(esi, esi, var33));
+  editor.Append(New<IntMulInstruction>(esi, esi, eax));
+  editor.Append(New<IntMulInstruction>(esi, esi, esi));
+  editor.Append(New<IntMulInstruction>(esi, esi, r10d));
+  editor.Append(New<IntMulInstruction>(esi, eax, imm8));
+  editor.Append(New<IntMulInstruction>(esi, r8d, imm32));
+  editor.Append(New<IntMulInstruction>(esi, esi, var33));
 
-  editor.Append(NewMulInstruction(r10d, r10d, eax));
-  editor.Append(NewMulInstruction(r10d, r10d, esi));
-  editor.Append(NewMulInstruction(r10d, r10d, r10d));
-  editor.Append(NewMulInstruction(r10d, r8d, imm8));
-  editor.Append(NewMulInstruction(r10d, r8d, imm32));
-  editor.Append(NewMulInstruction(r10d, r10d, var33));
+  editor.Append(New<IntMulInstruction>(r10d, r10d, eax));
+  editor.Append(New<IntMulInstruction>(r10d, r10d, esi));
+  editor.Append(New<IntMulInstruction>(r10d, r10d, r10d));
+  editor.Append(New<IntMulInstruction>(r10d, r8d, imm8));
+  editor.Append(New<IntMulInstruction>(r10d, r8d, imm32));
+  editor.Append(New<IntMulInstruction>(r10d, r10d, var33));
 
   ASSERT_EQ("", Commit(&editor));
 
@@ -993,7 +993,7 @@ TEST_F(CodeEmitterX64Test, MulInt32) {
       Emit(&editor));
 }
 
-TEST_F(CodeEmitterX64Test, MulInt64) {
+TEST_F(CodeEmitterX64Test, IntMul64) {
   auto const function = factory()->NewFunction({});
   Editor editor(factory(), function);
   editor.Edit(function->entry_block());
@@ -1005,26 +1005,26 @@ TEST_F(CodeEmitterX64Test, MulInt64) {
   auto const r10 = Target::RegisterOf(isa::R10);
   auto const var33 = Value::FrameSlot(Value::Int64Type(), 32);
 
-  editor.Append(NewMulInstruction(rax, rax, rax));
-  editor.Append(NewMulInstruction(rax, rax, rsi));
-  editor.Append(NewMulInstruction(rax, rax, r10));
-  editor.Append(NewMulInstruction(rax, rsi, imm8));
-  editor.Append(NewMulInstruction(rax, r8, imm32));
-  editor.Append(NewMulInstruction(rax, rax, var33));
+  editor.Append(New<IntMulInstruction>(rax, rax, rax));
+  editor.Append(New<IntMulInstruction>(rax, rax, rsi));
+  editor.Append(New<IntMulInstruction>(rax, rax, r10));
+  editor.Append(New<IntMulInstruction>(rax, rsi, imm8));
+  editor.Append(New<IntMulInstruction>(rax, r8, imm32));
+  editor.Append(New<IntMulInstruction>(rax, rax, var33));
 
-  editor.Append(NewMulInstruction(rsi, rsi, rax));
-  editor.Append(NewMulInstruction(rsi, rsi, rsi));
-  editor.Append(NewMulInstruction(rsi, rsi, r10));
-  editor.Append(NewMulInstruction(rsi, rax, imm8));
-  editor.Append(NewMulInstruction(rsi, r8, imm32));
-  editor.Append(NewMulInstruction(rsi, rsi, var33));
+  editor.Append(New<IntMulInstruction>(rsi, rsi, rax));
+  editor.Append(New<IntMulInstruction>(rsi, rsi, rsi));
+  editor.Append(New<IntMulInstruction>(rsi, rsi, r10));
+  editor.Append(New<IntMulInstruction>(rsi, rax, imm8));
+  editor.Append(New<IntMulInstruction>(rsi, r8, imm32));
+  editor.Append(New<IntMulInstruction>(rsi, rsi, var33));
 
-  editor.Append(NewMulInstruction(r10, r10, rax));
-  editor.Append(NewMulInstruction(r10, r10, rsi));
-  editor.Append(NewMulInstruction(r10, r10, r10));
-  editor.Append(NewMulInstruction(r10, r8, imm8));
-  editor.Append(NewMulInstruction(r10, r8, imm32));
-  editor.Append(NewMulInstruction(r10, r10, var33));
+  editor.Append(New<IntMulInstruction>(r10, r10, rax));
+  editor.Append(New<IntMulInstruction>(r10, r10, rsi));
+  editor.Append(New<IntMulInstruction>(r10, r10, r10));
+  editor.Append(New<IntMulInstruction>(r10, r8, imm8));
+  editor.Append(New<IntMulInstruction>(r10, r8, imm32));
+  editor.Append(New<IntMulInstruction>(r10, r10, var33));
 
   ASSERT_EQ("", Commit(&editor));
 

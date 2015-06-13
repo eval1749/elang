@@ -138,7 +138,7 @@ void LoweringX64Pass::VisitIntDiv(IntDivInstruction* instr) {
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }
 
-void LoweringX64Pass::VisitMul(MulInstruction* instr) {
+void LoweringX64Pass::VisitIntMul(IntMulInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
