@@ -312,6 +312,10 @@ void Validator::VisitIntMul(IntMulInstruction* instr) {
   ValidateArithmeticInstruction(instr);
 }
 
+void Validator::VisitIntSub(IntSubInstruction* instr) {
+  ValidateArithmeticInstruction(instr);
+}
+
 void Validator::VisitLoad(LoadInstruction* instr) {
   auto const array = instr->input(0);
   auto const pointer = instr->input(1);
@@ -386,10 +390,6 @@ void Validator::VisitStore(StoreInstruction* instr) {
     Error(ErrorCode::ValidateInstructionInputSize, instr, 1);
   if (!offset.is_int32())
     Error(ErrorCode::ValidateInstructionInputType, instr, 2);
-}
-
-void Validator::VisitSub(SubInstruction* instr) {
-  ValidateArithmeticInstruction(instr);
 }
 
 void Validator::VisitTruncate(TruncateInstruction* instr) {

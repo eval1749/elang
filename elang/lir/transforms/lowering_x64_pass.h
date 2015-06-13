@@ -49,9 +49,9 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitFloatSub(FloatSubInstruction* instr) final;
   void VisitIntDiv(IntDivInstruction* instr) final;
   void VisitIntMul(IntMulInstruction* instr) final;
+  void VisitIntSub(IntSubInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
-  void VisitSub(SubInstruction* instr) final;
   void VisitUIntDiv(UIntDivInstruction* instr) final;
 
   DISALLOW_COPY_AND_ASSIGN(LoweringX64Pass);

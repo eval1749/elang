@@ -52,7 +52,7 @@ void StackAssigner::RunForLeafFunction() {
   if (size) {
     // Allocate slots for local variable on stack.
     auto const rsp = Target::RegisterOf(isa::RSP);
-    AddPrologue(NewSubInstruction(rsp, rsp, Value::SmallInt64(size)));
+    AddPrologue(NewIntSubInstruction(rsp, rsp, Value::SmallInt64(size)));
   }
 
   struct Mapper {
@@ -144,7 +144,7 @@ void StackAssigner::RunForNonLeafFunction() {
     // Allocate slots for local variable on stack.
     auto const rbp = Target::RegisterOf(isa::RBP);
     auto const rsp = Target::RegisterOf(isa::RSP);
-    AddPrologue(NewSubInstruction(rsp, rsp, Value::SmallInt64(size)));
+    AddPrologue(NewIntSubInstruction(rsp, rsp, Value::SmallInt64(size)));
     if (local_size) {
       AddPrologue(NewCopyInstruction(Value::StackSlot(rbp, args_size), rbp));
       // TODO(eval1749) We should use |lea rbp, [rsp+arg_size+base_offset]|

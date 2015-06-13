@@ -348,6 +348,7 @@ void Generator::VisitTuple(hir::TupleInstruction* instr) {
 #define NewDivInstruction NewIntDivInstruction
 #define NewModInstruction NewIntModInstruction
 #define NewMulInstruction NewIntMulInstruction
+#define NewSubInstruction NewIntSubInstruction
 FOR_EACH_ARITHMETIC_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_BINARY_OPERATION(V)
 FOR_EACH_BITWISE_SHIFT_OPERATION(V)

@@ -63,13 +63,13 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
   void VisitFloatCmp(FloatCmpInstruction* instruction) final;
   void VisitIntDiv(IntDivInstruction* instruction) final;
   void VisitIntMul(IntMulInstruction* instruction) final;
+  void VisitIntSub(IntSubInstruction* instruction) final;
   void VisitLoad(LoadInstruction* instruction) final;
   void VisitPhi(PhiInstruction* instruction) final;
   void VisitRet(RetInstruction* instruction) final;
   void VisitSignedConvert(SignedConvertInstruction* instruction) final;
   void VisitSignExtend(SignExtendInstruction* instruction) final;
   void VisitStore(StoreInstruction* instruction) final;
-  void VisitSub(SubInstruction* instruction) final;
   void VisitTruncate(TruncateInstruction* instruction) final;
   void VisitUse(UseInstruction* instruction) final;
   void VisitUnsignedConvert(UnsignedConvertInstruction* instruction) final;

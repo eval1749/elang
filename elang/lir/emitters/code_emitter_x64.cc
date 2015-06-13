@@ -213,6 +213,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitIntDivX64(IntDivX64Instruction* instr) final;
   void VisitIntMul(IntMulInstruction* instr) final;
   void VisitIntSignX64(IntSignX64Instruction* instr) final;
+  void VisitIntSub(IntSubInstruction* instr) final;
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
   void VisitLoad(LoadInstruction* instr) final;
@@ -221,7 +222,6 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
   void VisitStore(StoreInstruction* instr) final;
-  void VisitSub(SubInstruction* instr) final;
   void VisitUIntDivX64(UIntDivX64Instruction* instr) final;
   void VisitUIntShr(UIntShrInstruction* instr) final;
   void VisitZeroExtend(ZeroExtendInstruction* instr) final;
@@ -868,6 +868,15 @@ void InstructionHandlerX64::VisitIntSignX64(IntSignX64Instruction* instr) {
   EmitOpcode(isa::Opcode::CDQ);
 }
 
+// Instruction formats are as same as ADD.
+// Base opcode = 0x28, opext = 5
+void InstructionHandlerX64::VisitIntSub(IntSubInstruction* instr) {
+  auto const output = instr->output(0);
+  DCHECK_EQ(output, instr->input(0)) << *instr;
+  HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
+                          isa::OpcodeExt::SUB_Eb_Ib);
+}
+
 // EB cb JMP rel
 // E9 cd JMP rel32
 void InstructionHandlerX64::VisitJump(JumpInstruction* instr) {
@@ -1061,15 +1070,6 @@ void InstructionHandlerX64::VisitStore(StoreInstruction* instr) {
   EmitRexPrefix(new_value, pointer);
   EmitOpcode(OpcodeForStore(new_value));
   EmitModRmDisp(ToRegister(new_value), ToRegister(pointer), displacement.data);
-}
-
-// Instruction formats are as same as ADD.
-// Base opcode = 0x28, opext = 5
-void InstructionHandlerX64::VisitSub(SubInstruction* instr) {
-  auto const output = instr->output(0);
-  DCHECK_EQ(output, instr->input(0)) << *instr;
-  HandleIntegerArithmetic(instr, isa::Opcode::SUB_Eb_Gb,
-                          isa::OpcodeExt::SUB_Eb_Ib);
 }
 
 // F7 /6        DIV r/m32

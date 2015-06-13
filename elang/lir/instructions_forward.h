@@ -42,7 +42,7 @@ namespace lir {
   V(IntDiv, "sdiv")                     \
   V(IntMod, "smod")                     \
   V(IntMul, "mul")                      \
-  V(Sub, "sub")                         \
+  V(IntSub, "sub")                      \
   V(Shl, "shl")                         \
   V(Shr, "shr")                         \
   V(UIntDiv, "udiv")                    \

@@ -142,16 +142,16 @@ void LoweringX64Pass::VisitIntMul(IntMulInstruction* instr) {
   RewriteToTwoOperands(instr);
 }
 
+void LoweringX64Pass::VisitIntSub(IntSubInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
 void LoweringX64Pass::VisitShl(ShlInstruction* instr) {
   RewriteShiftInstruciton(instr);
 }
 
 void LoweringX64Pass::VisitShr(ShrInstruction* instr) {
   RewriteShiftInstruciton(instr);
-}
-
-void LoweringX64Pass::VisitSub(SubInstruction* instr) {
-  RewriteToTwoOperands(instr);
 }
 
 //   udiv %a = %b, %c
