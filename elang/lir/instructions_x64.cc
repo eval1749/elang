@@ -10,12 +10,12 @@
 namespace elang {
 namespace lir {
 
-// DivX64
-DivX64Instruction::DivX64Instruction(Value div_output,
-                                     Value mod_output,
-                                     Value high_left,
-                                     Value low_left,
-                                     Value right) {
+// IntDivX64
+IntDivX64Instruction::IntDivX64Instruction(Value div_output,
+                                           Value mod_output,
+                                           Value high_left,
+                                           Value low_left,
+                                           Value right) {
   InitOutput(0, div_output);
   InitOutput(1, mod_output);
   InitInput(0, high_left);

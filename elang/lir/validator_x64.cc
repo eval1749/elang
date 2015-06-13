@@ -17,7 +17,7 @@
 namespace elang {
 namespace lir {
 
-void Validator::VisitDivX64(DivX64Instruction* instr) {
+void Validator::VisitIntDivX64(IntDivX64Instruction* instr) {
   auto const expected_output0 =
       Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
   auto const expected_output1 =

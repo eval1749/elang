@@ -85,7 +85,7 @@ namespace lir {
 // X64
 //
 #define FOR_EACH_X64_LIR_INSTRUCTION(V) \
-  V(DivX64, "sdiv_x64")                 \
+  V(IntDivX64, "sdiv_x64")              \
   V(SignX64, "sign_x64")                \
   V(UIntDivX64, "udiv_x64")             \
   V(UIntMulX64, "umul_x64")

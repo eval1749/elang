@@ -15,13 +15,13 @@
 namespace elang {
 namespace lir {
 
-Instruction* Factory::NewDivX64Instruction(Value div_output,
-                                           Value mod_output,
-                                           Value high_left,
-                                           Value low_left,
-                                           Value right) {
+Instruction* Factory::NewIntDivX64Instruction(Value div_output,
+                                              Value mod_output,
+                                              Value high_left,
+                                              Value low_left,
+                                              Value right) {
   return new (zone())
-      DivX64Instruction(div_output, mod_output, high_left, low_left, right);
+      IntDivX64Instruction(div_output, mod_output, high_left, low_left, right);
 }
 
 Instruction* Factory::NewSignX64Instruction(Value output, Value input) {
