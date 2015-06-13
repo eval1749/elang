@@ -88,6 +88,27 @@ void LoweringX64Pass::RewriteToTwoOperands(Instruction* instr) {
   editor()->InsertCopyBefore(output, new_output, instr->next());
 }
 
+//   udiv %a = %b, %c | umod %a = %b, %c
+//   =>
+//   copy RAX = %b
+//   xor RDX = RDX, RDX
+//   udiv_x64 RAX, RDX = RDX, RAX, %c
+//   copy %a = RAX | copy %a = EDX
+void LoweringX64Pass::RewriteUIntDiv(Instruction* instr, size_t index) {
+  auto const output = instr->output(0);
+  auto const input =
+      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
+  auto const zero_instr =
+      NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
+  editor()->InsertBefore(zero_instr, instr);
+  auto const div_instr = factory()->NewUIntDivX64Instruction(
+      GetRAX(output), GetRDX(output), zero_instr->output(0), input,
+      instr->input(1));
+  editor()->InsertBefore(div_instr, instr);
+  editor()->Replace(NewCopyInstruction(output, div_instr->output(index)),
+                    instr);
+}
+
 void LoweringX64Pass::RunOnFunction() {
   for (auto const block : function()->basic_blocks()) {
     editor()->Edit(block);
@@ -163,24 +184,12 @@ void LoweringX64Pass::VisitShr(ShrInstruction* instr) {
   RewriteShiftInstruciton(instr);
 }
 
-//   udiv %a = %b, %c
-//   =>
-//   copy RAX = %b
-//   xor RDX = RDX, RDX
-//   udiv_x64 RAX, RDX = RDX, RAX, %c
-//   copy %a = RAX
 void LoweringX64Pass::VisitUIntDiv(UIntDivInstruction* instr) {
-  auto const output = instr->output(0);
-  auto const input =
-      editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
-  auto const zero_instr =
-      NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
-  editor()->InsertBefore(zero_instr, instr);
-  auto const div_instr = factory()->NewUIntDivX64Instruction(
-      GetRAX(output), GetRDX(output), zero_instr->output(0), input,
-      instr->input(1));
-  editor()->InsertBefore(div_instr, instr);
-  editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
+  RewriteUIntDiv(instr, 0);
+}
+
+void LoweringX64Pass::VisitUIntMod(UIntModInstruction* instr) {
+  RewriteUIntDiv(instr, 1);
 }
 
 }  // namespace lir

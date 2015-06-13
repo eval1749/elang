@@ -311,5 +311,40 @@ TEST_F(LirLoweringX64Test, UIntDiv) {
       FormatFunction(&editor));
 }
 
+TEST_F(LirLoweringX64Test, UIntMod) {
+  auto const type = Value::Int32Type();
+  auto const function = CreateSampleFunction(type, 2);
+  auto const entry_block = function->entry_block();
+  Editor editor(factory(), function);
+  editor.Edit(entry_block);
+  auto const parameters = EmitCopyParameters(&editor);
+  auto output = NewRegister(type);
+  editor.Append(NewUIntModInstruction(output, parameters[0], parameters[1]));
+  editor.Append(NewCopyInstruction(Target::ReturnAt(type, 0), output));
+  editor.SetReturn();
+  EXPECT_EQ("", Commit(&editor));
+  ASSERT_EQ("", Validate(&editor));
+
+  RunPassForTesting<LoweringX64Pass>(&editor);
+  EXPECT_EQ(
+      "function1:\n"
+      "block1:\n"
+      "  // In: {}\n"
+      "  // Out: {block2}\n"
+      "  entry ECX, EDX =\n"
+      "  pcopy %r1, %r2 = ECX, EDX\n"
+      "  mov EAX = %r1\n"
+      "  xor EDX = EDX, EDX\n"
+      "  udiv_x64 EAX, EDX = EDX, EAX, %r2\n"
+      "  mov %r3 = EDX\n"
+      "  mov EAX = %r3\n"
+      "  ret block2\n"
+      "block2:\n"
+      "  // In: {block1}\n"
+      "  // Out: {}\n"
+      "  exit\n",
+      FormatFunction(&editor));
+}
+
 }  // namespace lir
 }  // namespace elang

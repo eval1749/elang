@@ -37,6 +37,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void RewriteIntDiv(Instruction* instr, size_t index);
   void RewriteShiftInstruciton(Instruction* instr);
   void RewriteToTwoOperands(Instruction* instr);
+  void RewriteUIntDiv(Instruction* instr, size_t index);
 
   // InstructionVisitor
   void VisitBitAnd(BitAndInstruction* instr) final;
@@ -55,6 +56,7 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
   void VisitUIntDiv(UIntDivInstruction* instr) final;
+  void VisitUIntMod(UIntModInstruction* instr) final;
 
   DISALLOW_COPY_AND_ASSIGN(LoweringX64Pass);
 };
