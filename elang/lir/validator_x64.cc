@@ -49,9 +49,9 @@ void Validator::VisitUIntDivX64(UIntDivX64Instruction* instr) {
 
 void Validator::VisitUIntMulX64(UIntMulX64Instruction* instr) {
   auto const expected_output0 =
-      Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
-  auto const expected_output1 =
       Target::RegisterOf(instr->output(1).is_int32() ? isa::EDX : isa::RDX);
+  auto const expected_output1 =
+      Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
   if (instr->output(0) != expected_output0)
     Error(ErrorCode::ValidateInstructionOutput, instr, 0);
   if (instr->output(1) != expected_output1)

@@ -164,12 +164,12 @@ TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {
 TEST_F(LirInstructionsTestX64, UIntMulX64Instruction) {
   auto const eax = Target::RegisterOf(isa::EAX);
   auto const edx = Target::RegisterOf(isa::EDX);
-  auto const instr = factory()->NewUIntMulX64Instruction(eax, edx, eax, edx);
+  auto const instr = factory()->NewUIntMulX64Instruction(edx, eax, eax, edx);
   EXPECT_FALSE(instr->IsTerminator());
   EXPECT_EQ(0, instr->id());
   EXPECT_EQ(2, instr->inputs().size());
   EXPECT_EQ(2, instr->outputs().size());
-  EXPECT_EQ("--:0:x64.umul EAX, EDX = EAX, EDX", ToString(*instr));
+  EXPECT_EQ("--:0:x64.umul EDX, EAX = EAX, EDX", ToString(*instr));
 }
 
 }  // namespace lir
