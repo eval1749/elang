@@ -111,9 +111,9 @@ void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   auto const sign_instr =
       factory()->NewSignX64Instruction(GetRDX(output), GetRAX(output));
   editor()->InsertBefore(sign_instr, instr);
-  auto const div_instr =
-      factory()->NewDivX64Instruction(GetRAX(output), GetRDX(output), input,
-                                      sign_instr->output(0), instr->input(1));
+  auto const div_instr = factory()->NewDivX64Instruction(
+      GetRAX(output), GetRDX(output), sign_instr->output(0), input,
+      instr->input(1));
   editor()->InsertBefore(div_instr, instr);
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
 }
@@ -168,7 +168,7 @@ void LoweringX64Pass::VisitUIntDiv(UIntDivInstruction* instr) {
       NewBitXorInstruction(GetRDX(output), GetRDX(output), GetRDX(output));
   editor()->InsertBefore(zero_instr, instr);
   auto const div_instr = factory()->NewUIntDivX64Instruction(
-      GetRAX(output), GetRDX(output), input, zero_instr->output(0),
+      GetRAX(output), GetRDX(output), zero_instr->output(0), input,
       instr->input(1));
   editor()->InsertBefore(div_instr, instr);
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
