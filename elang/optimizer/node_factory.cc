@@ -475,7 +475,6 @@ Data* NodeFactory::NewIntMul(Data* left, Data* right) {
   auto const type = left->output_type();
   DCHECK_EQ(type, right->output_type()) << *left << " " << *right;
   DCHECK(type->is_integer()) << *left << " " << *right;
-  DCHECK(type->is_signed()) << *left << " " << *right;
   if (right == NewInt32(0))
     return NewInt32(0);
   if (right == NewInt64(0))
