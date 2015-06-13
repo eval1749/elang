@@ -540,6 +540,42 @@ TEST_F(CodeEmitterX64Test, FrameSlot) {
   EXPECT_EQ("0000 48 8B 45 00 89 55 08 C3\n", Emit(&editor));
 }
 
+TEST_F(CodeEmitterX64Test, IntDivX6432) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const rbx = Target::RegisterOf(isa::EBX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const r9d = Target::RegisterOf(isa::R9D);
+  auto const var33 = Value::FrameSlot(Value::Int32Type(), 33);
+
+  editor.Append(New<IntDivX64Instruction>(eax, edx, edx, eax, rbx));
+  editor.Append(New<IntDivX64Instruction>(eax, edx, edx, eax, r9d));
+  editor.Append(New<IntDivX64Instruction>(eax, edx, edx, eax, var33));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("0000 F7 FB 41 F7 F9 F7 7D 21 C3\n", Emit(&editor));
+}
+
+TEST_F(CodeEmitterX64Test, IntDivX6464) {
+  auto const function = factory()->NewFunction({});
+  Editor editor(factory(), function);
+  editor.Edit(function->entry_block());
+  auto const rax = Target::RegisterOf(isa::RAX);
+  auto const rbx = Target::RegisterOf(isa::RBX);
+  auto const rdx = Target::RegisterOf(isa::RDX);
+  auto const r9 = Target::RegisterOf(isa::R9);
+  auto const var33 = Value::FrameSlot(Value::Int64Type(), 33);
+
+  editor.Append(New<IntDivX64Instruction>(rax, rdx, rdx, rax, rbx));
+  editor.Append(New<IntDivX64Instruction>(rax, rdx, rdx, rax, r9));
+  editor.Append(New<IntDivX64Instruction>(rax, rdx, rdx, rax, var33));
+  ASSERT_EQ("", Commit(&editor));
+
+  EXPECT_EQ("0000 48 F7 FB 49 F7 F9 48 F7 7D 21 C3\n", Emit(&editor));
+}
+
 TEST_F(CodeEmitterX64Test, IntSignX64) {
   auto const function = factory()->NewFunction({});
   auto const eax = Target::RegisterOf(isa::EAX);

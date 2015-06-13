@@ -210,6 +210,7 @@ class InstructionHandlerX64 final : public CodeBufferUser,
   void VisitCopy(CopyInstruction* instr) final;
   void VisitEntry(EntryInstruction* instr) final;
   void VisitExit(ExitInstruction* instr) final;
+  void VisitIntDivX64(IntDivX64Instruction* instr) final;
   void VisitIntSignX64(IntSignX64Instruction* instr) final;
   void VisitJump(JumpInstruction* instr) final;
   void VisitLiteral(LiteralInstruction* instr) final;
@@ -789,6 +790,28 @@ void InstructionHandlerX64::VisitEntry(EntryInstruction* instr) {
 }
 
 void InstructionHandlerX64::VisitExit(ExitInstruction* instr) {
+}
+
+// F7 /7        IDIV r/m32
+// REX.W F7 /7  IDIV r/m64
+void InstructionHandlerX64::VisitIntDivX64(IntDivX64Instruction* instr) {
+  if (instr->output(0).is_32bit()) {
+    DCHECK_EQ(ToRegister(instr->output(0)), isa::EAX) << instr;
+    DCHECK_EQ(ToRegister(instr->output(1)), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::EDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(1)), isa::EAX) << instr;
+  } else if (instr->output(0).is_64bit()) {
+    DCHECK_EQ(ToRegister(instr->output(0)), isa::RAX) << instr;
+    DCHECK_EQ(ToRegister(instr->output(1)), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(0)), isa::RDX) << instr;
+    DCHECK_EQ(ToRegister(instr->input(1)), isa::RAX) << instr;
+  } else {
+    NOTREACHED() << instr;
+  }
+  auto const right = instr->input(2);
+  EmitRexPrefix(right);
+  EmitOpcode(isa::Opcode::IDIV_Ev);
+  EmitOpcodeExt(isa::OpcodeExt::IDIV_Ev, right);
 }
 
 // 99       CWD
