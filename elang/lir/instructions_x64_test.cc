@@ -148,6 +148,17 @@ TEST_F(LirInstructionsTestX64, DivX64Instruction) {
   EXPECT_EQ("--:0:x64.div EAX, EDX = EDX, EAX, ECX", ToString(*instr));
 }
 
+TEST_F(LirInstructionsTestX64, SignX64Instruction) {
+  auto const eax = Target::RegisterOf(isa::EAX);
+  auto const edx = Target::RegisterOf(isa::EDX);
+  auto const instr = factory()->NewSignX64Instruction(edx, eax);
+  EXPECT_FALSE(instr->IsTerminator());
+  EXPECT_EQ(0, instr->id());
+  EXPECT_EQ(1, instr->inputs().size());
+  EXPECT_EQ(1, instr->outputs().size());
+  EXPECT_EQ("--:0:x64.sign EDX = EAX", ToString(*instr));
+}
+
 TEST_F(LirInstructionsTestX64, UIntDivX64Instruction) {
   auto const eax = Target::RegisterOf(isa::EAX);
   auto const edx = Target::RegisterOf(isa::EDX);

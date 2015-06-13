@@ -77,6 +77,7 @@ class ELANG_LIR_EXPORT Validator final : public ErrorReporter,
 
 #ifdef ELANG_TARGET_ARCH_X64
   void VisitDivX64(DivX64Instruction* instruction) final;
+  void VisitSignX64(SignX64Instruction* instruction) final;
   void VisitUIntDivX64(UIntDivX64Instruction* instruction) final;
   void VisitUIntMulX64(UIntMulX64Instruction* instruction) final;
 #endif

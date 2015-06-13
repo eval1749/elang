@@ -32,6 +32,17 @@ void Validator::VisitDivX64(DivX64Instruction* instr) {
     Error(ErrorCode::ValidateInstructionInput, instr, 1);
 }
 
+void Validator::VisitSignX64(SignX64Instruction* instr) {
+  auto const expected_output0 =
+      Target::RegisterOf(instr->output(0).is_int32() ? isa::EDX : isa::RDX);
+  auto const expected_input0 =
+      Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);
+  if (instr->output(0) != expected_output0)
+    Error(ErrorCode::ValidateInstructionOutput, instr, 0);
+  if (instr->input(0) != expected_input0)
+    Error(ErrorCode::ValidateInstructionInput, instr, 0);
+}
+
 void Validator::VisitUIntDivX64(UIntDivX64Instruction* instr) {
   auto const expected_output0 =
       Target::RegisterOf(instr->output(0).is_int32() ? isa::EAX : isa::RAX);

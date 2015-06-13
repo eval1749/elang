@@ -23,7 +23,13 @@ DivX64Instruction::DivX64Instruction(Value div_output,
   InitInput(2, right);
 }
 
-// DivX64
+// SignX64
+SignX64Instruction::SignX64Instruction(Value output, Value input) {
+  InitOutput(0, output);
+  InitInput(0, input);
+}
+
+// UIntDivX64
 UIntDivX64Instruction::UIntDivX64Instruction(Value div_output,
                                              Value mod_output,
                                              Value high_left,

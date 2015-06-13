@@ -10,7 +10,7 @@
 namespace elang {
 namespace lir {
 
-// Div
+// DivX64
 class ELANG_LIR_EXPORT DivX64Instruction final
     : public InstructionTemplate<2, 3> {
   DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(DivX64);
@@ -21,6 +21,15 @@ class ELANG_LIR_EXPORT DivX64Instruction final
                     Value high_left,
                     Value low_left,
                     Value right);
+};
+
+// SignX64
+class ELANG_LIR_EXPORT SignX64Instruction final
+    : public InstructionTemplate<1, 1> {
+  DECLARE_CONCRETE_LIR_INSTRUCTION_CLASS(SignX64);
+
+ private:
+  SignX64Instruction(Value output, Value input);
 };
 
 // UIntDivX64
