@@ -106,11 +106,6 @@ void LoweringX64Pass::VisitBitXor(BitXorInstruction* instr) {
 //   copy %a = RAX
 void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
   auto const output = instr->output(0);
-  if (output.is_float()) {
-    RewriteToTwoOperands(instr);
-    return;
-  }
-
   auto const input =
       editor()->InsertCopyBefore(GetRAX(output), instr->input(0), instr);
   auto const zero_instr =
@@ -121,6 +116,26 @@ void LoweringX64Pass::VisitDiv(DivInstruction* instr) {
                                       zero_instr->output(0), instr->input(1));
   editor()->InsertBefore(div_instr, instr);
   editor()->Replace(NewCopyInstruction(output, div_instr->output(0)), instr);
+}
+
+void LoweringX64Pass::VisitFloatAdd(FloatAddInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
+void LoweringX64Pass::VisitFloatDiv(FloatDivInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
+void LoweringX64Pass::VisitFloatMod(FloatModInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
+void LoweringX64Pass::VisitFloatMul(FloatMulInstruction* instr) {
+  RewriteToTwoOperands(instr);
+}
+
+void LoweringX64Pass::VisitFloatSub(FloatSubInstruction* instr) {
+  RewriteToTwoOperands(instr);
 }
 
 void LoweringX64Pass::VisitMul(MulInstruction* instr) {

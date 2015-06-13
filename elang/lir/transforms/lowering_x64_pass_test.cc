@@ -57,7 +57,7 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
 //   return x / y;
 // }
 #define DEFINE_FLOAT64_BINARY_OPERATION_TEST(Name, mnemonic)              \
-  TEST_F(LirLoweringX64Test, Name##Float) {                               \
+  TEST_F(LirLoweringX64Test, Name) {                                      \
     auto const type = Value::Float64Type();                               \
     auto const function = CreateSampleFunction(type, 2);                  \
     auto const entry_block = function->entry_block();                     \
@@ -93,11 +93,17 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
         FormatFunction(&editor));                                         \
   }
 
+DEFINE_FLOAT64_BINARY_OPERATION_TEST(FloatAdd, "fadd")
+DEFINE_FLOAT64_BINARY_OPERATION_TEST(FloatDiv, "fdiv")
+DEFINE_FLOAT64_BINARY_OPERATION_TEST(FloatMod, "fmod")
+DEFINE_FLOAT64_BINARY_OPERATION_TEST(FloatMul, "fmul")
+DEFINE_FLOAT64_BINARY_OPERATION_TEST(FloatSub, "fsub")
+
 // int Foo(int x, int y) {
 //   return x + y;
 // }
 #define DEFINE_INTEGER_BINARY_OPERATION_TEST(Name, mnemonic)              \
-  TEST_F(LirLoweringX64Test, Name##Int) {                                 \
+  TEST_F(LirLoweringX64Test, Name) {                                      \
     auto const type = Value::Int32Type();                                 \
     auto const function = CreateSampleFunction(type, 2);                  \
     auto const entry_block = function->entry_block();                     \
@@ -133,23 +139,17 @@ std::vector<Value> LirLoweringX64Test::EmitCopyParameters(Editor* editor) {
         FormatFunction(&editor));                                         \
   }
 
-#define DEFINE_BINARY_OPERATION_TEST(Name, mnemonic)   \
-  DEFINE_FLOAT64_BINARY_OPERATION_TEST(Name, mnemonic) \
-  DEFINE_INTEGER_BINARY_OPERATION_TEST(Name, mnemonic)
-
-DEFINE_BINARY_OPERATION_TEST(Add, "add")
-DEFINE_BINARY_OPERATION_TEST(BitAnd, "and")
-DEFINE_BINARY_OPERATION_TEST(Mul, "mul")
-DEFINE_BINARY_OPERATION_TEST(BitOr, "or")
-DEFINE_BINARY_OPERATION_TEST(BitXor, "xor")
-DEFINE_BINARY_OPERATION_TEST(Sub, "sub")
-
-DEFINE_FLOAT64_BINARY_OPERATION_TEST(Div, "div")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(Add, "add")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(BitAnd, "and")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(Mul, "mul")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(BitOr, "or")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(BitXor, "xor")
+DEFINE_INTEGER_BINARY_OPERATION_TEST(Sub, "sub")
 
 // int Foo(int x, int y) {
 //   return x / y;
 // }
-TEST_F(LirLoweringX64Test, DivInt) {
+TEST_F(LirLoweringX64Test, IntDiv) {
   auto const type = Value::Int32Type();
   auto const function = CreateSampleFunction(type, 2);
   auto const entry_block = function->entry_block();

@@ -43,6 +43,11 @@ class ELANG_LIR_EXPORT LoweringX64Pass final : public FunctionPass,
   void VisitBitOr(BitOrInstruction* instr) final;
   void VisitBitXor(BitXorInstruction* instr) final;
   void VisitDiv(DivInstruction* instr) final;
+  void VisitFloatAdd(FloatAddInstruction* instr) final;
+  void VisitFloatDiv(FloatDivInstruction* instr) final;
+  void VisitFloatMod(FloatModInstruction* instr) final;
+  void VisitFloatMul(FloatMulInstruction* instr) final;
+  void VisitFloatSub(FloatSubInstruction* instr) final;
   void VisitMul(MulInstruction* instr) final;
   void VisitShl(ShlInstruction* instr) final;
   void VisitShr(ShrInstruction* instr) final;
