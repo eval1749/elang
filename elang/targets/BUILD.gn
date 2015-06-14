@@ -21,6 +21,10 @@ static_library("targets") {
   if (elang_target_arch == "x64") {
     sources += [
       "instructions_x64.h",
+      "operand_x64.cc",
+      "operand_x64.h",
+      "register_x64.cc",
+      "register_x64.h",
     ]
   }
 }
@@ -36,6 +40,13 @@ source_set("test_files") {
     "//testing/gtest",
     ":targets",
   ]
+
+  if (elang_target_arch == "x64") {
+    sources += [
+      "operand_x64_test.cc",
+      "register_x64_test.cc",
+    ]
+  }
 }
 
 test("tests") {
