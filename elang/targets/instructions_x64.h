@@ -124,23 +124,7 @@
   V2(0x3D, CMP, rAX, Iz)                          \
   V0(0x3E, DS)                                    \
   V0(0x3F, AAS)                                   \
-  /* 0x40 */                                      \
-  V1(0x40, INC, eAX)                              \
-  V1(0x41, INC, eCX)                              \
-  V1(0x42, INC, eDX)                              \
-  V1(0x43, INC, eBX)                              \
-  V1(0x44, INC, eSP)                              \
-  V1(0x45, INC, eBP)                              \
-  V1(0x46, INC, eSI)                              \
-  V1(0x47, INC, eDI)                              \
-  V1(0x48, DEC, eAX)                              \
-  V1(0x49, DEC, eCX)                              \
-  V1(0x4A, DEC, eDX)                              \
-  V1(0x4B, DEC, eBX)                              \
-  V1(0x4C, DEC, eSP)                              \
-  V1(0x4D, DEC, eBP)                              \
-  V1(0x4E, DEC, eSI)                              \
-  V1(0x4F, DEC, eDI)                              \
+  /* 0x40 .. 0x4F REX prefix */                   \
   /* 0x50 */                                      \
   V1(0x50, PUSH, rAX)                             \
   V1(0x51, PUSH, rCX)                             \
@@ -159,11 +143,6 @@
   V1(0x5E, POP, rSI)                              \
   V1(0x5F, POP, rDI)                              \
   /* 0x60 */                                      \
-  V0(0x60, PUSHAD)                                \
-  V0(0x6660, PUSHA)                               \
-  V0(0x61, POPAD)                                 \
-  V0(0x6661, POPA)                                \
-  V2(0x62, BOUND, Gv, Ma)                         \
   V2(0x63, MOVSXD, Gv, Ev)                        \
   V0(0x64, FS)                                    \
   V0(0x65, GS)                                    \
@@ -172,7 +151,7 @@
   V1(0x68, PUSH, Iz)                              \
   V3(0x69, IMUL, Gv, Ev, Iz)                      \
   V1(0x6A, PUSH, Ib)                              \
-  V3(0x6B, IMUL, Gv, Ev, Is)                      \
+  V3(0x6B, IMUL, Gv, Ev, Ib)                      \
   /* 0x70 */                                      \
   V1(0x70, Jcc, Jb)                               \
   V1(0x70, JO, Jb)                                \
@@ -200,11 +179,11 @@
   V2(0x89, MOV, Ev, Gv)                           \
   V2(0x8A, MOV, Gb, Eb)                           \
   V2(0x8B, MOV, Gv, Ev)                           \
-  V2(0x8C, MOV, Ew, Sw)                           \
+  V2(0x8C, MOV, Ev, Sw)                           \
   V2(0x8D, LEA, Gv, M)                            \
   V2(0x8E, MOV, Sw, Ew)                           \
   /* 0x90 */                                      \
-  V0(0x90, NOP) /* XCHG eAX, eAX */               \
+  V2(0x90, XCHG, rAX, rAX)                        \
   V2(0x91, XCHG, rAX, rCX)                        \
   V2(0x92, XCHG, rAX, rDX)                        \
   V2(0x93, XCHG, rAX, rBX)                        \
@@ -505,8 +484,8 @@
   V2(0x0F75, PCMPEQW, Pq, Qq) /* MMX */             \
   V2(0x0F76, PCMPEQD, Pq, Qq) /* MMX */             \
   V0(0x0F77, EMMS)            /* MMX */             \
-  V2(0x0F78, VMREAD, Ed, Gd)  /* VMX */             \
-  V2(0x0F79, VMWRITE, Gd, Ed) /* VMX */             \
+  V2(0x0F78, VMREAD, Ey, Gy)  /* VMX */             \
+  V2(0x0F79, VMWRITE, Gy, Ey) /* VMX */             \
                               /* 0x0F7A */          \
                               /* 0x0F7B */          \
                               /* 0x0F7C */          \
@@ -567,9 +546,9 @@
   V2(0x0FC0, XADD, Eb, Gb)                       \
   V2(0x0FC1, XADD, Ev, Gv)                       \
   V3(0x0FC2, CMPSS, Vss, Wss, Ib)                \
-  V2(0x0FC3, MOVNTI, Md, Gd)                     \
+  V2(0x0FC3, MOVNTI, My, Gy)                     \
   V3(0x0FC4, PINSRW, Pq, Ew, Ib)                 \
-  V3(0x0FC5, PEXTRW, Gd, Nq, Ib)                 \
+  V3(0x0FC5, PEXTRW, Gy, Nq, Ib)                 \
   V3(0x0FC6, SHUFPS, Pq, Ew, Ib)                 \
   /* 0x0FC7 Grp 9 */                             \
   V3(0xF30FC2, CMPPS, Vps, Wps, Ib)              \
@@ -584,7 +563,7 @@
   V2(0x660FD4, PADDQ, Vdq, Wdq)    /* SSE2 */    \
   V2(0x660FD5, PMULLW, Vdq, Wdq)   /* SSE2 */    \
   V2(0x660FD6, MOVQ, Wq, Vq)                     \
-  V2(0x660FD7, PMOVMKSB, Gd, Udq)                \
+  V2(0x660FD7, PMOVMKSB, Gd, Nq)                 \
   V2(0x660FD8, PSUBUSB, Vdq, Wdq)                \
   V2(0x660FD9, PSUBUSW, Vdq, Wdq)                \
   V2(0x660FDA, PMINUB, Vdq, Wdq)                 \

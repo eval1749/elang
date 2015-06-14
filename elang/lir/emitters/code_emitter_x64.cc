@@ -825,7 +825,7 @@ void InstructionHandlerX64::VisitIntMul(IntMulInstruction* instr) {
   EmitRexPrefix(output, left);
   if (right.is_immediate()) {
     if (Is8Bit(right.data)) {
-      EmitOpcode(isa::Opcode::IMUL_Gv_Ev_Is);
+      EmitOpcode(isa::Opcode::IMUL_Gv_Ev_Ib);
       EmitModRm(output, left);
       Emit8(right.data);
       return;
