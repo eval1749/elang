@@ -21,6 +21,8 @@ static_library("targets") {
   if (elang_target_arch == "x64") {
     sources += [
       "instructions_x64.h",
+      "instruction_x64.cc",
+      "instruction_x64.h",
       "operand_x64.cc",
       "operand_x64.h",
       "register_x64.cc",
