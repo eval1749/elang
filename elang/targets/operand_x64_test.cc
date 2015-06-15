@@ -106,12 +106,23 @@ TEST_F(OperandX64Test, AddressSize) {
   ptr256.size = OperandSize::Is256;
   ptr256.base = Register::RAX;
 
-  EXPECT_EQ("byte ptr [RAX]", ToString(Operand(ptr8)));
-  EXPECT_EQ("word ptr [RAX]", ToString(Operand(ptr16)));
+  EXPECT_EQ("[RAX]", ToString(Operand(ptr8)));
+  EXPECT_EQ(OperandSize::Is8, Operand(ptr8).size());
+
+  EXPECT_EQ("[RAX]", ToString(Operand(ptr16)));
+  EXPECT_EQ(OperandSize::Is16, Operand(ptr16).size());
+
   EXPECT_EQ("[RAX]", ToString(Operand(ptr32)));
-  EXPECT_EQ("qword ptr [RAX]", ToString(Operand(ptr64)));
-  EXPECT_EQ("dqword ptr [RAX]", ToString(Operand(ptr128)));
-  EXPECT_EQ("qqword ptr [RAX]", ToString(Operand(ptr256)));
+  EXPECT_EQ(OperandSize::Is32, Operand(ptr32).size());
+
+  EXPECT_EQ("[RAX]", ToString(Operand(ptr64)));
+  EXPECT_EQ(OperandSize::Is64, Operand(ptr64).size());
+
+  EXPECT_EQ("[RAX]", ToString(Operand(ptr128)));
+  EXPECT_EQ(OperandSize::Is128, Operand(ptr128).size());
+
+  EXPECT_EQ("[RAX]", ToString(Operand(ptr256)));
+  EXPECT_EQ(OperandSize::Is256, Operand(ptr256).size());
 }
 
 TEST_F(OperandX64Test, Immediate) {

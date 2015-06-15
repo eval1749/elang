@@ -108,25 +108,6 @@ std::ostream& operator<<(std::ostream& ostream, const Operand& operand) {
   switch (operand.type()) {
     case Operand::Type::Address: {
       auto const address = UnpackAddress(operand.detail());
-      switch (operand.size()) {
-        case OperandSize::Is8:
-          ostream << "byte ptr ";
-          break;
-        case OperandSize::Is16:
-          ostream << "word ptr ";
-          break;
-        case OperandSize::Is32:
-          break;
-        case OperandSize::Is64:
-          ostream << "qword ptr ";
-          break;
-        case OperandSize::Is128:
-          ostream << "dqword ptr ";
-          break;
-        case OperandSize::Is256:
-          ostream << "qqword ptr ";
-          break;
-      }
       ostream << "[" << address.base;
       switch (address.scale) {
         case ScaledIndex::Is1:
