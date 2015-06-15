@@ -72,6 +72,7 @@ class Instruction final {
 
   Instruction& operator=(const Instruction& other);
 
+  uint8_t byte_at(size_t index) const;
   base::StringPiece mnemonic() const;
   uint32_t prefixes() const;
   uint32_t opcode() const { return opcode_; }

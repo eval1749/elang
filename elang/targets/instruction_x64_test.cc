@@ -102,6 +102,9 @@ TEST_F(InstructionX64Test, EbGbDisp8) {
   EXPECT_EQ(2, instr.operands().size());
   EXPECT_EQ(0, instr.prefixes());
   EXPECT_EQ(3, instr.size());
+  EXPECT_EQ(0x88, instr.byte_at(0));
+  EXPECT_EQ(0x51, instr.byte_at(1));
+  EXPECT_EQ(1, instr.byte_at(2));
   EXPECT_EQ("MOV [RCX+1], DL", ToString(instr));
 }
 

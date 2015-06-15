@@ -457,6 +457,11 @@ Instruction& Instruction::operator=(const Instruction& other) {
   return *this;
 }
 
+uint8_t Instruction::byte_at(size_t index) const {
+  DCHECK_LT(index, size_);
+  return bytes_[index];
+}
+
 base::StringPiece Instruction::mnemonic() const {
   if (!IsValid())
     return base::StringPiece();
