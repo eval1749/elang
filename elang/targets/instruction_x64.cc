@@ -792,8 +792,12 @@ Operand Instruction::OperandAt(size_t position) const {
     case OperandFormat::Iz:
       return OperandIz();
 
-    case OperandFormat::Jb:
-      return Operand(Operand::Relative{OperandSize::Is0, operand8_at(0)});
+    case OperandFormat::Jb: {
+      auto const value = operand8_at(0);
+      if (value >= 0x80)
+        return Operand(Operand::Relative{OperandSize::Is0, value - 0x100});
+      return Operand(Operand::Relative{OperandSize::Is0, value});
+    }
 
     case OperandFormat::Jv:
       return Operand(Operand::Relative{OperandSize::Is0, operand32_at(0)});

@@ -244,6 +244,17 @@ TEST_F(InstructionX64Test, JmpJb) {
   EXPECT_EQ("JMP RIP+2", ToString(instr));
 }
 
+TEST_F(InstructionX64Test, JmpJb2) {
+  auto const instr = InstructionFrom({0xEB, 0xFF});
+  ASSERT_TRUE(instr.IsValid());
+  EXPECT_EQ("JMP", instr.mnemonic());
+  EXPECT_EQ(0xEB, instr.opcode());
+  EXPECT_EQ(1, instr.operands().size());
+  EXPECT_EQ(0, instr.prefixes());
+  EXPECT_EQ(2, instr.size());
+  EXPECT_EQ("JMP RIP-1", ToString(instr));
+}
+
 TEST_F(InstructionX64Test, JmpJv) {
   auto const instr = InstructionFrom({0xE9, 1, 2, 3, 4});
   ASSERT_TRUE(instr.IsValid());
