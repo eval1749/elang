@@ -543,7 +543,7 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
 
   if (output.is_8bit()) {
     if (count == Value::SmallInt32(1)) {
-      EmitOpcode(isa::Opcode::SHL_Eb_1);
+      EmitOpcode(isa::Opcode::SHL_Eb_One);
       EmitOpcodeExt(opext, output);
       return;
     }
@@ -563,7 +563,7 @@ void InstructionHandlerX64::HandleShiftInstruction(Instruction* instr,
   }
 
   if (count == Value::SmallInt32(1)) {
-    EmitOpcode(isa::Opcode::SHL_Ev_1);
+    EmitOpcode(isa::Opcode::SHL_Ev_One);
     EmitOpcodeExt(opext, output);
     return;
   }
@@ -1027,11 +1027,11 @@ void InstructionHandlerX64::VisitSignExtend(SignExtendInstruction* instr) {
 }
 
 void InstructionHandlerX64::VisitShl(ShlInstruction* instr) {
-  HandleShiftInstruction(instr, isa::OpcodeExt::SHL_Ev_1);
+  HandleShiftInstruction(instr, isa::OpcodeExt::SHL_Ev_One);
 }
 
 void InstructionHandlerX64::VisitShr(ShrInstruction* instr) {
-  HandleShiftInstruction(instr, isa::OpcodeExt::SAR_Ev_1);
+  HandleShiftInstruction(instr, isa::OpcodeExt::SAR_Ev_One);
 }
 
 // Output code pattern:
@@ -1095,7 +1095,7 @@ void InstructionHandlerX64::VisitUIntDivX64(UIntDivX64Instruction* instr) {
 }
 
 void InstructionHandlerX64::VisitUIntShr(UIntShrInstruction* instr) {
-  HandleShiftInstruction(instr, isa::OpcodeExt::SHR_Ev_1);
+  HandleShiftInstruction(instr, isa::OpcodeExt::SHR_Ev_One);
 }
 
 // 0F B6 /r     MOVZX r32, r/m8

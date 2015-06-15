@@ -12,13 +12,19 @@
 //  ModRm 1 byte
 //  SIB 1 byte
 //  Displacement 1, 2, or 4 byte
-//  Immediate 1, 2,, 4 or 8 byte
+//  Immediate 1, 2, 4 or 8 byte
 
 //    7 6  5 4 3  2 1 0    7 6 5 4 3 2 1 0
 //   +----+------+------+ +---+-----+------+ +----------------+
 //   |mod | reg  |  r/m | |SS | idx | base | |  disp8/disp32  |
 //   |    | opext|      | |   |     |      | |                |
 //   +----+------+------+ +----------------+ +----------------+
+//
+//   mod
+//    00 disp0
+//    01 disp8
+//    10 disp32
+//    11 register
 //
 //   When using RSP as base register, r/m=4 means SIB, and idx=4 means no index:
 //     mov reg, [RSP] => 89 ModRm(00, reg, 4) SIB(0, 4, 4)
@@ -623,163 +629,155 @@
   V2(0x660F380B, PMULHRSW, Vdq, Wdq)             \
   V2(0x660F381C, PABSB, Vdq, Wdq)                \
   V2(0x660F381D, PABSW, Vdq, Wdq)                \
-  V2(0x660F381E, PABSD, Vdq, Wdq)                \
-  V2(0x48F20F2C, CVTTSD2SI, Gq, Wsd)             \
-  V2(0x48F20F2C, CVTSD2SI, Gq, Wsd)              \
-  V2(0x48F20F2A, CVTSI2SD, Vsd, Eq)              \
-  V2(0x48F30F2A, CVTSI2SS, Vss, Eq)              \
-  V2(0x48F30F2C, CVTTSS2SI, Gq, Wss)             \
-  V2(0x48F20F2D, CVTSS2SI, Gq, Wss)              \
-  V2(0x48660F6E, MOVQ, Vdq, Eq)                  \
-  V2(0x48660F7E, MOVQ, Eq, Vdq)
+  V2(0x660F381E, PABSD, Vdq, Wdq)
 
 // VX opcode {TwoByte, ModRm}
 #define FOR_EACH_X64_OPCODE_EXTEND(VX)          \
   VX(0x0F, TwoByte)                             \
-  VX(0x0F38, ModRm)                             \
-  VX(0x80, ModRm)                               \
-  VX(0x81, ModRm)                               \
-  VX(0x82, ModRm)                               \
-  VX(0x83, ModRm)                               \
-  VX(0x8F, ModRm)                               \
-  VX(0xC0, ModRm) /* Grp2, Eb, Ib */            \
-  VX(0xC1, ModRm) /* Grp2, Ev, Ib */            \
-  VX(0xC6, ModRm) /* Grp11, Eb, Ib MOV_Eb_Ib */ \
-  VX(0xC7, ModRm) /* Grp11, Ev, Iv MOV_Ev_Iz */ \
-  VX(0xD0, ModRm) /* Grp2, Eb, 1 */             \
-  VX(0xD1, ModRm) /* Grp2, Ev, 1 */             \
-  VX(0xD2, ModRm) /* Grp2, Eb, CL */            \
-  VX(0xD3, ModRm) /* Grp2, Ev, CL */            \
-  VX(0xF6, ModRm)                               \
-  VX(0xF7, ModRm)                               \
-  VX(0xFE, ModRm) /* Group 4 */                 \
-  VX(0xFF, ModRm) /* Group 5 */                 \
-  VX(0x660F71, ModRm)                           \
-  VX(0x660F72, ModRm)                           \
-  VX(0x660F73, ModRm)
+  VX(0x0F38, ThreeByte)                         \
+  VX(0x80, OpExt)                               \
+  VX(0x81, OpExt)                               \
+  VX(0x82, OpExt)                               \
+  VX(0x83, OpExt)                               \
+  VX(0x8F, OpExt)                               \
+  VX(0xC0, OpExt) /* Grp2, Eb, Ib */            \
+  VX(0xC1, OpExt) /* Grp2, Ev, Ib */            \
+  VX(0xC6, OpExt) /* Grp11, Eb, Ib MOV_Eb_Ib */ \
+  VX(0xC7, OpExt) /* Grp11, Ev, Iv MOV_Ev_Iz */ \
+  VX(0xD0, OpExt) /* Grp2, Eb, 1 */             \
+  VX(0xD1, OpExt) /* Grp2, Ev, 1 */             \
+  VX(0xD2, OpExt) /* Grp2, Eb, CL */            \
+  VX(0xD3, OpExt) /* Grp2, Ev, CL */            \
+  VX(0xF6, OpExt)                               \
+  VX(0xF7, OpExt)                               \
+  VX(0xFE, OpExt) /* Group 4 */                 \
+  VX(0xFF, OpExt) /* Group 5 */                 \
+  VX(0x660F71, OpExt)                           \
+  VX(0x660F72, OpExt)                           \
+  VX(0x660F73, OpExt)
 
-#define FOR_EACH_X64_OPEXT(VX1, VX2)                    \
-  VX1(0x8F, 0, POP, Ev)                                 \
-  /* Group 1 */                                         \
-  VX2(0x80, 0, ADD, Eb, Ib)                             \
-  VX2(0x80, 1, OR, Eb, Ib)                              \
-  VX2(0x80, 2, ADC, Eb, Ib)                             \
-  VX2(0x80, 3, SBB, Eb, Ib)                             \
-  VX2(0x80, 4, AND, Eb, Ib)                             \
-  VX2(0x80, 5, SUB, Eb, Ib)                             \
-  VX2(0x80, 6, XOR, Eb, Ib)                             \
-  VX2(0x80, 7, CMP, Eb, Ib)                             \
-                                                        \
-  VX2(0x81, 0, ADD, Ev, Iz)                             \
-  VX2(0x81, 1, OR, Ev, Iz)                              \
-  VX2(0x81, 2, ADC, Ev, Iz)                             \
-  VX2(0x81, 3, SBB, Ev, Iz)                             \
-  VX2(0x81, 4, AND, Ev, Iz)                             \
-  VX2(0x81, 5, SUB, Ev, Iz)                             \
-  VX2(0x81, 6, XOR, Ev, Iz)                             \
-  VX2(0x81, 7, CMP, Ev, Iz)                             \
-                                                        \
-  VX2(0x83, 0, ADD, Ev, Ib)                             \
-  VX2(0x83, 1, OR, Ev, Ib)                              \
-  VX2(0x83, 2, ADC, Ev, Ib)                             \
-  VX2(0x83, 3, SBB, Ev, Ib)                             \
-  VX2(0x83, 4, AND, Ev, Ib)                             \
-  VX2(0x83, 5, SUB, Ev, Ib)                             \
-  VX2(0x83, 6, XOR, Ev, Ib)                             \
-  VX2(0x83, 7, CMP, Ev, Ib)                             \
-                                                        \
-  VX2(0xC0, 0, ROL, Eb, Ib)                             \
-  VX2(0xC0, 1, ROR, Eb, Ib)                             \
-  VX2(0xC0, 2, RCL, Eb, Ib)                             \
-  VX2(0xC0, 3, RCR, Eb, Ib)                             \
-  VX2(0xC0, 4, SHL, Eb, Ib)                             \
-  VX2(0xC0, 5, SHR, Eb, Ib)                             \
-  /* 6 */                                               \
-  VX2(0xC0, 7, SAR, Eb, Ib)                             \
-                                                        \
-  VX2(0xC1, 0, ROL, Ev, Ib)                             \
-  VX2(0xC1, 1, ROR, Ev, Ib)                             \
-  VX2(0xC1, 2, RCL, Ev, Ib)                             \
-  VX2(0xC1, 3, RCR, Ev, Ib)                             \
-  VX2(0xC1, 4, SHL, Ev, Ib)                             \
-  VX2(0xC1, 5, SHR, Ev, Ib)                             \
-  VX2(0xC1, 7, SAR, Ev, Ib)                             \
-                                                        \
-  VX2(0xC6, 0, MOV, Eb, Ib)                             \
-  VX2(0xC7, 0, MOV, Ev, Iz)                             \
-                                                        \
-  VX2(0xD0, 0, ROL, Eb, 1)                              \
-  VX2(0xD0, 1, ROR, Eb, 1)                              \
-  VX2(0xD0, 2, RCL, Eb, 1)                              \
-  VX2(0xD0, 3, RCR, Eb, 1)                              \
-  VX2(0xD0, 4, SHL, Eb, 1)                              \
-  VX2(0xD0, 5, SHR, Eb, 1)                              \
-                                                        \
-  VX2(0xD0, 6, SAR, Eb, 1)                              \
-  VX2(0xD1, 0, ROL, Ev, 1)                              \
-  VX2(0xD1, 1, ROR, Ev, 1)                              \
-  VX2(0xD1, 2, RCL, Ev, 1)                              \
-  VX2(0xD1, 3, RCR, Ev, 1)                              \
-  VX2(0xD1, 4, SHL, Ev, 1)                              \
-  VX2(0xD1, 5, SHR, Ev, 1)                              \
-  VX2(0xD1, 7, SAR, Ev, 1)                              \
-                                                        \
-  VX2(0xD2, 0, ROL, Eb, CL)                             \
-  VX2(0xD2, 1, ROR, Eb, CL)                             \
-  VX2(0xD2, 2, RCL, Eb, CL)                             \
-  VX2(0xD2, 3, RCR, Eb, CL)                             \
-  VX2(0xD2, 4, SHL, Eb, CL)                             \
-  VX2(0xD2, 5, SHR, Eb, CL)                             \
-  VX2(0xD2, 7, SAR, Eb, CL)                             \
-                                                        \
-  VX2(0xD3, 0, ROL, Ev, CL)                             \
-  VX2(0xD3, 1, ROR, Ev, CL)                             \
-  VX2(0xD3, 2, RCL, Ev, CL)                             \
-  VX2(0xD3, 3, RCR, Ev, CL)                             \
-  VX2(0xD3, 4, SHL, Ev, CL)                             \
-  VX2(0xD3, 5, SHR, Ev, CL)                             \
-  VX2(0xD3, 7, SAR, Ev, CL)                             \
-  /* Group 3 - F6, F7 */                                \
-  VX2(0xF6, 0, TEST, Eb, Ib)                            \
-  VX1(0xF6, 2, NOT, Eb)                                 \
-  VX1(0xF6, 3, NEG, Eb)                                 \
-  VX1(0xF6, 4, MUL, Eb)                                 \
-  VX1(0xF6, 5, IMUL, Eb)                                \
-  VX1(0xF6, 6, DIV, Eb)                                 \
-  VX1(0xF6, 7, IDIV, Eb)                                \
-                                                        \
-  VX2(0xF7, 0, TEST, Ev, Iz)                            \
-  VX1(0xF7, 2, NOT, Ev)                                 \
-  VX1(0xF7, 3, NEG, Ev)                                 \
-  VX1(0xF7, 4, MUL, Ev)  /* rDX:vAX = rAX * Ev */       \
-  VX1(0xF7, 5, IMUL, Ev) /* rDX:vAX = rAX * Ev  */      \
-  VX1(0xF7, 6, DIV, Ev)  /* rAX, rDX = rDX:rAX / Ev  */ \
-  VX1(0xF7, 7, IDIV, Ev) /* rAX, rDX = rDX:rAX / Ev */  \
-                                                        \
-  /* Group 4 */                                         \
-  VX1(0xFE, 0, INC, Eb)                                 \
-  VX1(0xFE, 1, DEC, Eb)                                 \
-                                                        \
-  /* Group 5 0xFF */                                    \
-  VX1(0xFF, 0, INC, Ev)                                 \
-  VX1(0xFF, 1, DEC, Ev)                                 \
-  VX1(0xFF, 2, CALL, EvF64)                             \
-  VX1(0xFF, 3, CALLF, Ev)                               \
-  VX1(0xFF, 4, JMP, EvF64)                              \
-  VX1(0xFF, 5, JMPF, Ev)                                \
-  VX1(0xFF, 6, PUSH, EvD64)                             \
-  /* Group 12 */                                        \
-  VX2(0x660F71, 2, PSRLW, Udq, Ib)                      \
-  VX2(0x660F71, 4, PSRAW, Udq, Ib)                      \
-  VX2(0x660F71, 6, PSLLW, Udq, Ib)                      \
-  /* Group 13 */                                        \
-  VX2(0x660F72, 2, PSRLD, Udq, Ib)                      \
-  VX2(0x660F72, 4, PSRAD, Udq, Ib)                      \
-  VX2(0x660F72, 6, PSLLD, Udq, Ib)                      \
-  /* Group 14 */                                        \
-  VX2(0x660F73, 2, PSRLQ, Udq, Ib)                      \
-  VX2(0x660F73, 3, PSRLDQ, Udq, Ib)                     \
-  VX2(0x660F73, 6, PSLLQ, Udq, Ib)                      \
-  VX2(0x660F73, 7, PSLLDQ, Udq, Ib)
+#define FOR_EACH_X64_OPEXT(V1, V2)                     \
+  V1(0x8F, 0, POP, Ev)                                 \
+  /* Group 1 */                                        \
+  V2(0x80, 0, ADD, Eb, Ib)                             \
+  V2(0x80, 1, OR, Eb, Ib)                              \
+  V2(0x80, 2, ADC, Eb, Ib)                             \
+  V2(0x80, 3, SBB, Eb, Ib)                             \
+  V2(0x80, 4, AND, Eb, Ib)                             \
+  V2(0x80, 5, SUB, Eb, Ib)                             \
+  V2(0x80, 6, XOR, Eb, Ib)                             \
+  V2(0x80, 7, CMP, Eb, Ib)                             \
+                                                       \
+  V2(0x81, 0, ADD, Ev, Iz)                             \
+  V2(0x81, 1, OR, Ev, Iz)                              \
+  V2(0x81, 2, ADC, Ev, Iz)                             \
+  V2(0x81, 3, SBB, Ev, Iz)                             \
+  V2(0x81, 4, AND, Ev, Iz)                             \
+  V2(0x81, 5, SUB, Ev, Iz)                             \
+  V2(0x81, 6, XOR, Ev, Iz)                             \
+  V2(0x81, 7, CMP, Ev, Iz)                             \
+                                                       \
+  V2(0x83, 0, ADD, Ev, Ib)                             \
+  V2(0x83, 1, OR, Ev, Ib)                              \
+  V2(0x83, 2, ADC, Ev, Ib)                             \
+  V2(0x83, 3, SBB, Ev, Ib)                             \
+  V2(0x83, 4, AND, Ev, Ib)                             \
+  V2(0x83, 5, SUB, Ev, Ib)                             \
+  V2(0x83, 6, XOR, Ev, Ib)                             \
+  V2(0x83, 7, CMP, Ev, Ib)                             \
+                                                       \
+  V2(0xC0, 0, ROL, Eb, Ib)                             \
+  V2(0xC0, 1, ROR, Eb, Ib)                             \
+  V2(0xC0, 2, RCL, Eb, Ib)                             \
+  V2(0xC0, 3, RCR, Eb, Ib)                             \
+  V2(0xC0, 4, SHL, Eb, Ib)                             \
+  V2(0xC0, 5, SHR, Eb, Ib)                             \
+  /* 6 */                                              \
+  V2(0xC0, 7, SAR, Eb, Ib)                             \
+                                                       \
+  V2(0xC1, 0, ROL, Ev, Ib)                             \
+  V2(0xC1, 1, ROR, Ev, Ib)                             \
+  V2(0xC1, 2, RCL, Ev, Ib)                             \
+  V2(0xC1, 3, RCR, Ev, Ib)                             \
+  V2(0xC1, 4, SHL, Ev, Ib)                             \
+  V2(0xC1, 5, SHR, Ev, Ib)                             \
+  V2(0xC1, 7, SAR, Ev, Ib)                             \
+                                                       \
+  V2(0xC6, 0, MOV, Eb, Ib)                             \
+  V2(0xC7, 0, MOV, Ev, Iz)                             \
+                                                       \
+  V2(0xD0, 0, ROL, Eb, One)                            \
+  V2(0xD0, 1, ROR, Eb, One)                            \
+  V2(0xD0, 2, RCL, Eb, One)                            \
+  V2(0xD0, 3, RCR, Eb, One)                            \
+  V2(0xD0, 4, SHL, Eb, One)                            \
+  V2(0xD0, 5, SHR, Eb, One)                            \
+                                                       \
+  V2(0xD0, 6, SAR, Eb, One)                            \
+  V2(0xD1, 0, ROL, Ev, One)                            \
+  V2(0xD1, 1, ROR, Ev, One)                            \
+  V2(0xD1, 2, RCL, Ev, One)                            \
+  V2(0xD1, 3, RCR, Ev, One)                            \
+  V2(0xD1, 4, SHL, Ev, One)                            \
+  V2(0xD1, 5, SHR, Ev, One)                            \
+  V2(0xD1, 7, SAR, Ev, One)                            \
+                                                       \
+  V2(0xD2, 0, ROL, Eb, CL)                             \
+  V2(0xD2, 1, ROR, Eb, CL)                             \
+  V2(0xD2, 2, RCL, Eb, CL)                             \
+  V2(0xD2, 3, RCR, Eb, CL)                             \
+  V2(0xD2, 4, SHL, Eb, CL)                             \
+  V2(0xD2, 5, SHR, Eb, CL)                             \
+  V2(0xD2, 7, SAR, Eb, CL)                             \
+                                                       \
+  V2(0xD3, 0, ROL, Ev, CL)                             \
+  V2(0xD3, 1, ROR, Ev, CL)                             \
+  V2(0xD3, 2, RCL, Ev, CL)                             \
+  V2(0xD3, 3, RCR, Ev, CL)                             \
+  V2(0xD3, 4, SHL, Ev, CL)                             \
+  V2(0xD3, 5, SHR, Ev, CL)                             \
+  V2(0xD3, 7, SAR, Ev, CL)                             \
+  /* Group 3 - F6, F7 */                               \
+  V2(0xF6, 0, TEST, Eb, Ib)                            \
+  V1(0xF6, 2, NOT, Eb)                                 \
+  V1(0xF6, 3, NEG, Eb)                                 \
+  V1(0xF6, 4, MUL, Eb)                                 \
+  V1(0xF6, 5, IMUL, Eb)                                \
+  V1(0xF6, 6, DIV, Eb)                                 \
+  V1(0xF6, 7, IDIV, Eb)                                \
+                                                       \
+  V2(0xF7, 0, TEST, Ev, Iz)                            \
+  V1(0xF7, 2, NOT, Ev)                                 \
+  V1(0xF7, 3, NEG, Ev)                                 \
+  V1(0xF7, 4, MUL, Ev)  /* rDX:vAX = rAX * Ev */       \
+  V1(0xF7, 5, IMUL, Ev) /* rDX:vAX = rAX * Ev  */      \
+  V1(0xF7, 6, DIV, Ev)  /* rAX, rDX = rDX:rAX / Ev  */ \
+  V1(0xF7, 7, IDIV, Ev) /* rAX, rDX = rDX:rAX / Ev */  \
+                                                       \
+  /* Group 4 */                                        \
+  V1(0xFE, 0, INC, Eb)                                 \
+  V1(0xFE, 1, DEC, Eb)                                 \
+                                                       \
+  /* Group 5 0xFF */                                   \
+  V1(0xFF, 0, INC, Ev)                                 \
+  V1(0xFF, 1, DEC, Ev)                                 \
+  V1(0xFF, 2, CALL, Ev)                                \
+  V1(0xFF, 3, CALLF, Ev)                               \
+  V1(0xFF, 4, JMP, Ev)                                 \
+  V1(0xFF, 5, JMPF, Ev)                                \
+  V1(0xFF, 6, PUSH, Ev)                                \
+  /* Group 12 */                                       \
+  V2(0x660F71, 2, PSRLW, Nq, Ib)                       \
+  V2(0x660F71, 4, PSRAW, Nq, Ib)                       \
+  V2(0x660F71, 6, PSLLW, Nq, Ib)                       \
+  /* Group 13 */                                       \
+  V2(0x660F72, 2, PSRLD, Nq, Ib)                       \
+  V2(0x660F72, 4, PSRAD, Nq, Ib)                       \
+  V2(0x660F72, 6, PSLLD, Nq, Ib)                       \
+  /* Group 14 */                                       \
+  V2(0x660F73, 2, PSRLQ, Nq, Ib)                       \
+  V2(0x660F73, 3, PSRLDQ, Nq, Ib)                      \
+  V2(0x660F73, 6, PSLLQ, Nq, Ib)                       \
+  V2(0x660F73, 7, PSLLDQ, Nq, Ib)
 
 #endif  // ELANG_TARGETS_INSTRUCTIONS_X64_H_
