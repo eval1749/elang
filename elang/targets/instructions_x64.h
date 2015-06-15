@@ -201,7 +201,7 @@
   V0(0x98, CWDE)                                  \
   V0(0x99, CDQ)                                   \
   V0(0x6699, CWD)                                 \
-  V1(0x9A, CALLF, Ap)                             \
+  /* V1(0x9A, CALL, Ap) */                        \
   V0(0x9B, WAIT)                                  \
   V0(0x9C, PUSHFD)                                \
   V0(0x669C, PUSHF)                               \
@@ -288,7 +288,7 @@
   V2(0xE7, OUT, Ib, eAX)                          \
   V1(0xE8, CALL, Jv)                              \
   V1(0xE9, JMP, Jv)                               \
-  V1(0xEA, JMP, Ap)                               \
+  /* V1(0xEA, JMP, Ap) */                         \
   V1(0xEB, JMP, Jb)                               \
   V2(0xEC, IN, AL, DX)                            \
   V2(0xED, IN, eAX, DX)                           \

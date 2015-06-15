@@ -16,7 +16,6 @@ namespace elang {
 namespace targets {
 namespace x64 {
 
-struct ModRm;
 class Operand;
 enum class OperandSize;
 enum class Register;
@@ -79,8 +78,10 @@ class Instruction final {
   Operands operands() const;
   size_t size() const { return static_cast<size_t>(size_); }
 
+  bool IsValid() const { return opcode_size_ != 0; }
+
  private:
-  enum class Rex;
+  enum class RexBit;
   struct DecodeResult;
 
   explicit Instruction(const DecodeResult& result);
@@ -95,17 +96,17 @@ class Instruction final {
   uint8_t rex_byte() const;
 
   Operand OperandEv(OperandSize size) const;
-  Operand OperandEv() const;
-  static DecodeResult Decode(const void* start, const void* end);
+  static DecodeResult Decode(const uint8_t* start, const uint8_t* end);
+  static DecodeResult DecodeOpcode(const uint8_t* start, const uint8_t* end);
   bool HasOpdSize() const;
   Operand OperandAt(size_t position) const;
   Operand OperandGv(OperandSize size) const;
-  Operand OperandGv() const;
   Operand OperandIb() const;
   Operand OperandIv() const;
   Operand OperandIz() const;
-  Operand OperandReg(Rex rex, Register name) const;
+  Operand OperandReg(Register name) const;
   OperandSize OperandSizeOf() const;
+  int Rex(RexBit rex_bit) const;
 
   std::array<uint8_t, 16> bytes_;
   uint32_t opcode_;

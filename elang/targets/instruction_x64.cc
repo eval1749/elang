@@ -74,10 +74,10 @@ extern "C" void main() {
 
 enum class OperandFormat {
   None,
-  DB,
+  NoOperands,
+  One,
   AH,
   AL,
-  Ap,
   BH,
   BL,
   CH,
@@ -134,13 +134,6 @@ enum class OperandFormat {
   Wsd,
   Wss,
   eAX,
-  eBP,
-  eBX,
-  eCX,
-  eDI,
-  eDX,
-  eSI,
-  eSP,
   rAX,
   rBP,
   rBX,
@@ -208,6 +201,15 @@ Description::Description() {
 #undef V1
 #undef V2
 #undef V3
+
+#define V1(opcode, opext, mnemonic, format1) \
+  Install((opcode << 8) | opext, #mnemonic, OperandFormat::format1);
+#define V2(opcode, opext, mnemonic, format1, format2)               \
+  Install((opcode << 8) | opext, #mnemonic, OperandFormat::format1, \
+          OperandFormat::format2);
+  FOR_EACH_X64_OPEXT(V1, V2)
+#undef V1
+#undef V2
 }
 
 Description::~Description() {
@@ -266,14 +268,25 @@ void Description::Install(uint32_t opcode,
   mnemonics_.insert(std::make_pair(opcode, mnemonic));
 }
 
+void Description::Install(uint32_t opcode, const char* mnemonic) {
+  formats_.insert(
+      std::make_pair(opcode, Format{Encode(OperandFormat::NoOperands)}));
+  mnemonics_.insert(std::make_pair(opcode, mnemonic));
+}
+
+base::StringPiece Description::MnemonicOf(uint32_t opcode) const {
+  auto const it = mnemonics_.find(opcode);
+  return it == mnemonics_.end() ? "" : it->second;
+}
+
 OperandFormat Description::OperandFormatOf(uint32_t opcode,
                                            size_t position) const {
   auto const format = FormatOf(opcode);
   auto value = format.operands;
   for (auto counter = 0; counter < position; ++counter)
     value >>= 8;
-  DCHECK_GT(value, 0);
-  DCHECK_LE(value, 255);
+  value &= 0xFF;
+  DCHECK_NE(value, 0u);
   return static_cast<OperandFormat>(value);
 }
 
@@ -284,7 +297,7 @@ int ExtractBits(uint8_t byte, int start, int end) {
   return static_cast<int>((byte >> start) & mask);
 }
 
-int RexBit(uint8_t rex, int position) {
+int Rex(uint8_t rex, int position) {
   DCHECK_GE(position, 0);
   DCHECK_LE(position, 3);
   return (rex & (1 << position)) << (3 - position);
@@ -318,31 +331,19 @@ int SizeFromModRm(uint8_t modrm) {
 //  R       2       Extension of the Mod/Rm reg field
 //  X       1       Extension of the Mod/Rm SIB index field
 //  B       0       Extension of the Mod/Rm r/m, SIB base or Opcode reg field
-enum class Instruction::Rex {
-  WRX = 0x4E,
-  WRXB = 0x4F,
-  WRB = 0x4D,
-  WR = 0x4C,
-  WXB = 0x4B,
-  WX = 0x4A,
-  WB = 0x49,
-  W = 0x48,
-  RXB = 0x47,
-  RX = 0x46,
-  RB = 0x45,
-  R = 0x44,
-  X = 0x42,
-  XB = 0x43,
-  B = 0x41,
-  None = 0x40,
+enum class Instruction::RexBit {
+  W = 8,
+  R = 4,
+  X = 2,
+  B = 1,
 };
 
 struct Instruction::DecodeResult {
-  std::array<uint8_t, 16> bytes;
+  const uint8_t* start;
+  const uint8_t* end;
   uint32_t opcode;
   size_t prefix_size;
   size_t opcode_size;
-  size_t size;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -422,16 +423,17 @@ Instruction::Operands::Iterator& Instruction::Operands::Iterator::operator++() {
 // Instruction
 //
 Instruction::Instruction(const void* start, const void* end)
-    : Instruction(Decode(start, end)) {
+    : Instruction(Decode(static_cast<const uint8_t*>(start),
+                         static_cast<const uint8_t*>(end))) {
 }
 
 Instruction::Instruction(const DecodeResult& result)
     : opcode_(result.opcode),
       opcode_size_(static_cast<uint32_t>(result.opcode_size)),
       prefix_size_(static_cast<uint32_t>(result.prefix_size)),
-      size_(static_cast<uint32_t>(result.size)) {
+      size_(static_cast<uint32_t>(result.end - result.start)) {
   DCHECK_GE(size_, opcode_size_ + prefix_size_);
-  ::memcpy(bytes_.data(), result.bytes.data(), size_);
+  ::memcpy(bytes_.data(), result.start, size_);
 }
 
 Instruction::Instruction(const Instruction& other)
@@ -456,11 +458,17 @@ Instruction& Instruction::operator=(const Instruction& other) {
 }
 
 base::StringPiece Instruction::mnemonic() const {
+  if (!IsValid())
+    return base::StringPiece();
   return Description::Get()->MnemonicOf(opcode());
 }
 
 size_t Instruction::number_of_operands() const {
+  if (!IsValid())
+    return 0;
   auto const format = Description::Get()->FormatOf(opcode());
+  if (format.operands == static_cast<uint32_t>(OperandFormat::NoOperands))
+    return 0;
   if (format.operands > 0xFFFF)
     return 3;
   if (format.operands > 0xFF)
@@ -488,6 +496,10 @@ uint64_t Instruction::operand64_at(size_t position) const {
   return operand32_at(0) | (static_cast<uint64_t>(operand32_at(4)) << 32);
 }
 
+Instruction::Operands Instruction::operands() const {
+  return Operands(this);
+}
+
 uint32_t Instruction::prefixes() const {
   uint32_t prefix = 0;
   for (size_t index = 0; index < prefix_size(); ++index) {
@@ -504,195 +516,214 @@ uint8_t Instruction::rex_byte() const {
   return byte >= 0x40 && byte <= 0x4F ? byte : 0;
 }
 
-Operand Instruction::OperandEv(OperandSize size) const {
-  auto const modrm = operand8_at(0);
-  auto const rex = rex_byte();
-  auto const mod = static_cast<Mod>(modrm & 0xC0);
-  auto const rm = static_cast<Rm>(ExtractBits(modrm, 0, 3));
-  if (mod == Mod::Reg)
-    return Operand(RegisterOf(size, RexBit(rex, 2) | static_cast<int>(rm)));
+Instruction::DecodeResult Instruction::Decode(const uint8_t* start,
+                                              const uint8_t* end) {
+  auto result = DecodeOpcode(start, end);
+  DCHECK_LE(result.opcode_size, 3);
+  if (!result.opcode_size)
+    return result;
 
-  if (mod == Mod::Disp0 && rm == Rm::Disp32) {
-    Operand::Address address;
-    address.base = Register::RIP;
-    address.offset = operand32_at(1);
-    address.size = size;
-    return Operand(address);
-  }
-
-  if (rm == Rm::Sib) {
-    Operand::Address address;
-    // SIB = ss iii bbb
-    auto const sib = operand8_at(1);
-    address.base =
-        RegisterOf(OperandSize::Is64, RexBit(rex, 0) | ExtractBits(sib, 0, 3));
-    address.index =
-        RegisterOf(OperandSize::Is64, RexBit(rex, 1) | ExtractBits(sib, 3, 6));
-    address.scale = static_cast<ScaledIndex>(ExtractBits(sib, 6, 7));
-    if (mod == Mod::Disp8) {
-      address.offset = operand8_at(2);
-    } else if (mod == Mod::Disp32) {
-      address.offset = operand32_at(2);
-    }
-    address.size = size;
-    return Operand(address);
-  }
-
-  Operand::Address address;
-  address.base =
-      RegisterOf(OperandSize::Is64, RexBit(rex, 0) | static_cast<int>(rm));
-  if (mod == Mod::Disp8) {
-    address.offset = operand8_at(1);
-  } else if (mod == Mod::Disp32) {
-    address.offset = operand32_at(1);
-  }
-  address.size = size;
-  return Operand(address);
-}
-
-Operand Instruction::OperandEv() const {
-  return OperandEv(OperandSizeOf());
-}
-
-Instruction::DecodeResult Instruction::Decode(const void* start_in,
-                                              const void* end_in) {
-  static bool is_prefix[256];
-  if (!is_prefix[0x2E]) {
-    is_prefix[0x2E] = true;  // CS
-    is_prefix[0x36] = true;  // SS
-    is_prefix[0x3E] = true;  // DS
-    is_prefix[0x26] = true;  // ES
-    is_prefix[0x64] = true;  // FS
-    is_prefix[0x65] = true;  // GS
-
-    is_prefix[0x2E] = true;  // Branch not taken
-    is_prefix[0x3E] = true;  // Branch taken
-
-    is_prefix[0x66] = true;  // Operand size
-    is_prefix[0x67] = true;  // Address size
-
-    is_prefix[0xF0] = true;  // LOCK
-    is_prefix[0xF2] = true;  // REPNE
-    is_prefix[0xF3] = true;  // REP
-
-    is_prefix[0x40] = true;  // REX
-    is_prefix[0x41] = true;  // REX_B
-    is_prefix[0x42] = true;  // REX_X
-    is_prefix[0x43] = true;  // REX_XB
-    is_prefix[0x44] = true;  // REX_R
-    is_prefix[0x45] = true;  // REX_RB
-    is_prefix[0x46] = true;  // REX_RX
-    is_prefix[0x47] = true;  // REX_RXB
-    is_prefix[0x48] = true;  // REX_WB
-    is_prefix[0x49] = true;  // REX_WX
-    is_prefix[0x4A] = true;  // REX_WR
-    is_prefix[0x4B] = true;  // REX_WXB
-    is_prefix[0x4C] = true;  // REX_WR
-    is_prefix[0x4D] = true;  // REX_WRB
-    is_prefix[0x4E] = true;  // REX_WRX
-    is_prefix[0x4F] = true;  // REX_WRXB
-  }
-  auto const start = static_cast<const uint8_t*>(start_in);
-  auto const end = static_cast<const uint8_t*>(end_in);
-
-  DecodeResult result;
-  result.opcode = 0;
-  result.opcode_size = 0;
-  result.prefix_size = 0;
-  result.size = 0;
-
-  auto runner = start;
   auto has_66 = false;
-  auto has_F2 = false;
-  auto has_F3 = false;
   auto has_REXW = false;
-  while (runner < end) {
-    auto const code = *runner;
-    ++result.size;
-    ++runner;
-    if (!is_prefix[code]) {
-      DCHECK_EQ(result.opcode_size, 0);
-      if (code != 0x0F) {
-        result.opcode_size = 1;
-        break;
-      }
-      if (runner >= end)
-        return result;
-      result.opcode_size = 2;
-      ++result.size;
-      ++runner;
-      break;
-    }
-    ++result.prefix_size;
+  auto mandatory = 0;
+  for (auto index = 0; index < result.prefix_size; ++index) {
+    auto const code = start[index];
     if (code == 0x66)
       has_66 = true;
-    else if (code == 0xF2)
-      has_F2 = true;
-    else if (code == 0xF3)
-      has_F3 = true;
+    else if (code == 0xF2 || code == 0xF3)
+      mandatory = code;
     else if (code >= 0x48 && code <= 0x4F)
       has_REXW = true;
   }
 
-  if (!result.opcode_size) {
-    ::memcpy(result.bytes.data(), start,
-             std::min(static_cast<size_t>(end - start), result.size));
-    return result;
-  }
+  std::vector<uint32_t> candidates;
+  auto candidate = result.opcode;
+  auto const shift = candidate > 0xFFFF ? 24 : candidate > 0xFF ? 16 : 8;
+  // Note: three-byte opcode 0F 38 F0 (CRC32) can take both 66 and F2 prefixes.
+  if (shift <= 2 && has_66 && mandatory)
+    candidates.push_back(((0x6600 | mandatory) << shift) | candidate);
 
-  std::vector<uint32_t> opcodes;
-  {
-    auto opcode = 0;
-    for (auto index = result.prefix_size; index < result.size; ++index)
-      opcode = (opcode << 8) | result.bytes[index];
+  if (mandatory)
+    candidates.push_back((mandatory << shift) | candidate);
 
-    if (has_66 && has_F2)
-      opcodes.push_back(0x66F2 | opcode);
-    else if (has_66 && has_F3)
-      opcodes.push_back(0x66F3 | opcode);
+  if (has_66)
+    candidates.push_back((0x66 << shift) | candidate);
 
-    if (has_F2)
-      opcodes.push_back(0xF2 | opcode);
-    else if (has_F3)
-      opcodes.push_back(0xF3 | opcode);
+  candidates.push_back(candidate);
 
-    if (has_66)
-      opcodes.push_back(0x66 | opcode);
-  }
-
-  for (auto const opcode : opcodes) {
+  auto runner = result.start + result.prefix_size + result.opcode_size;
+  for (auto const opcode : candidates) {
     auto const format = Description::Get()->FormatOf(opcode);
     auto operands = format.operands;
     if (!operands)
       continue;
-    result.opcode = opcode;
     for (auto value = operands; value; value >>= 8) {
       switch (static_cast<OperandFormat>(value & 0xFF)) {
         case OperandFormat::Eb:
         case OperandFormat::Ev:
-          result.size += SizeFromModRm(*runner);
+          runner += SizeFromModRm(*runner);
+          break;
         case OperandFormat::Ib:
-          ++result.size;
+        case OperandFormat::Jb:
+          ++runner;
           break;
         case OperandFormat::Iv:
-          if (has_REXW)
-            result.size += 8;
-          else
-            result.size += 4;
+          if (has_66) {
+            runner += 2;
+            break;
+          }
+          if (has_REXW) {
+            runner += 8;
+            break;
+          }
+          runner += 4;
           break;
         case OperandFormat::Iw:
-          result.size += 2;
+          runner += 2;
           break;
         case OperandFormat::Iz:
-          result.size += 4;
+          if (has_66) {
+            runner += 2;
+            break;
+          }
+          runner += 4;
+          break;
+        case OperandFormat::Jv:
+          runner += 4;
+          break;
+        case OperandFormat::Ob:
+        case OperandFormat::Ov:
+          runner += 8;
           break;
       }
     }
-    break;
+    if (runner > end) {
+      result.end = end;
+      result.opcode_size = 0;
+      return result;
+    }
+    result.end = runner;
+    result.opcode = opcode;
+    return result;
   }
 
-  ::memcpy(result.bytes.data(), start,
-           std::min(static_cast<size_t>(end - start), result.size));
+  DCHECK_LE(runner, end);
+  result.end = runner;
+  result.opcode_size = 0;
+  return result;
+}
+
+Instruction::DecodeResult Instruction::DecodeOpcode(const uint8_t* start,
+                                                    const uint8_t* end) {
+  enum class CodeKind {
+    Opcode1,
+    Opcode2,
+    OpExt,
+    Prefix,
+  };
+
+  static CodeKind code_kinds[256];
+  if (code_kinds[0x66] != CodeKind::Prefix) {
+    code_kinds[0x0F] = CodeKind::Opcode2;
+
+    code_kinds[0x80] = CodeKind::OpExt;
+    code_kinds[0x81] = CodeKind::OpExt;
+    code_kinds[0x82] = CodeKind::OpExt;
+    code_kinds[0x83] = CodeKind::OpExt;
+    code_kinds[0x8F] = CodeKind::OpExt;
+    code_kinds[0xC0] = CodeKind::OpExt;
+    code_kinds[0xC1] = CodeKind::OpExt;
+    code_kinds[0xC6] = CodeKind::OpExt;
+    code_kinds[0xC7] = CodeKind::OpExt;
+    code_kinds[0xD0] = CodeKind::OpExt;
+    code_kinds[0xD1] = CodeKind::OpExt;
+    code_kinds[0xD2] = CodeKind::OpExt;
+    code_kinds[0xD3] = CodeKind::OpExt;
+    code_kinds[0xF6] = CodeKind::OpExt;
+    code_kinds[0xF7] = CodeKind::OpExt;
+    code_kinds[0xFE] = CodeKind::OpExt;
+    code_kinds[0xFF] = CodeKind::OpExt;
+
+    code_kinds[0x2E] = CodeKind::Prefix;  // CS
+    code_kinds[0x36] = CodeKind::Prefix;  // SS
+    code_kinds[0x3E] = CodeKind::Prefix;  // DS
+    code_kinds[0x26] = CodeKind::Prefix;  // ES
+    code_kinds[0x64] = CodeKind::Prefix;  // FS
+    code_kinds[0x65] = CodeKind::Prefix;  // GS
+
+    code_kinds[0x2E] = CodeKind::Prefix;  // Branch not taken
+    code_kinds[0x3E] = CodeKind::Prefix;  // Branch taken
+
+    code_kinds[0x66] = CodeKind::Prefix;  // Operand size
+    code_kinds[0x67] = CodeKind::Prefix;  // Address size
+
+    code_kinds[0xF0] = CodeKind::Prefix;  // LOCK
+    code_kinds[0xF2] = CodeKind::Prefix;  // REPNE
+    code_kinds[0xF3] = CodeKind::Prefix;  // REP
+
+    code_kinds[0x40] = CodeKind::Prefix;  // REX
+    code_kinds[0x41] = CodeKind::Prefix;  // REX_B
+    code_kinds[0x42] = CodeKind::Prefix;  // REX_X
+    code_kinds[0x43] = CodeKind::Prefix;  // REX_XB
+    code_kinds[0x44] = CodeKind::Prefix;  // REX_R
+    code_kinds[0x45] = CodeKind::Prefix;  // REX_RB
+    code_kinds[0x46] = CodeKind::Prefix;  // REX_RX
+    code_kinds[0x47] = CodeKind::Prefix;  // REX_RXB
+    code_kinds[0x48] = CodeKind::Prefix;  // REX_WB
+    code_kinds[0x49] = CodeKind::Prefix;  // REX_WX
+    code_kinds[0x4A] = CodeKind::Prefix;  // REX_WR
+    code_kinds[0x4B] = CodeKind::Prefix;  // REX_WXB
+    code_kinds[0x4C] = CodeKind::Prefix;  // REX_WR
+    code_kinds[0x4D] = CodeKind::Prefix;  // REX_WRB
+    code_kinds[0x4E] = CodeKind::Prefix;  // REX_WRX
+    code_kinds[0x4F] = CodeKind::Prefix;  // REX_WRXB
+  }
+
+  DecodeResult result{start, end, 0};
+  for (auto runner = start; runner < end; ++runner) {
+    auto const code = *runner;
+    switch (code_kinds[code]) {
+      case CodeKind::Opcode1:
+        result.opcode = *runner;
+        result.opcode_size = 1;
+        result.end = runner + 1;
+        return result;
+
+      case CodeKind::Opcode2:
+        ++runner;
+        result.end = runner;
+        if (runner == end)
+          return result;
+        if (*runner != 0x38) {
+          result.opcode = 0x0F00 | *runner;
+          result.opcode_size = 2;
+          return result;
+        }
+        ++runner;
+        result.end = runner;
+        if (runner == end)
+          return result;
+        result.opcode = 0x0F3800 | *runner;
+        result.opcode_size = 3;
+        return result;
+
+      case CodeKind::OpExt:
+        ++runner;
+        result.end = runner;
+        if (runner == end)
+          return result;
+        result.opcode = (code << 8) | ExtractBits(*runner, 3, 6);
+        result.opcode_size = 1;
+        return result;
+
+      case CodeKind::Prefix:
+        ++result.prefix_size;
+        break;
+      default:
+        NOTREACHED();
+        break;
+    }
+  }
   return result;
 }
 
@@ -707,8 +738,12 @@ bool Instruction::HasOpdSize() const {
 Operand Instruction::OperandAt(size_t position) const {
   auto const format = Description::Get()->OperandFormatOf(opcode(), position);
   switch (format) {
-    case OperandFormat::DB:
+    case OperandFormat::None:
       return Operand(Operand::Immediate{OperandSize::Is8, bytes_[0]});
+
+    case OperandFormat::One:
+      return Operand(Operand::Immediate{OperandSize::Is8, 1});
+
     case OperandFormat::AH:
       return Operand(Register::AH);
     case OperandFormat::AL:
@@ -740,65 +775,107 @@ Operand Instruction::OperandAt(size_t position) const {
       return OperandEv(OperandSize::Is8);
     case OperandFormat::Ev:
     case OperandFormat::M:
-      return OperandEv();
+      return OperandEv(OperandSizeOf());
 
     case OperandFormat::Gb:
       return OperandGv(OperandSize::Is8);
     case OperandFormat::Gv:
-      return OperandGv(OperandSize::Is8);
+      return OperandGv(OperandSizeOf());
 
     case OperandFormat::Ib:
       return OperandIb();
     case OperandFormat::Iv:
       return OperandIv();
+    case OperandFormat::Iw:
+      DCHECK_EQ(position, 0);
+      return Operand(Operand::Immediate{OperandSize::Is16, operand16_at(0)});
     case OperandFormat::Iz:
       return OperandIz();
 
+    case OperandFormat::Jb:
+      return Operand(Operand::Relative{OperandSize::Is0, operand8_at(0)});
+
+    case OperandFormat::Jv:
+      return Operand(Operand::Relative{OperandSize::Is0, operand32_at(0)});
+
+    case OperandFormat::Ob:
+      return Operand(Operand::Offset{OperandSize::Is8, operand64_at(0)});
+    case OperandFormat::Ov:
+      return Operand(Operand::Offset{OperandSizeOf(), operand64_at(0)});
+
     case OperandFormat::eAX:
-      return OperandReg(Rex::W, Register::EAX);
-    case OperandFormat::eBP:
-      return OperandReg(Rex::W, Register::EBP);
-    case OperandFormat::eBX:
-      return OperandReg(Rex::W, Register::EBX);
-    case OperandFormat::eCX:
-      return OperandReg(Rex::W, Register::ECX);
-    case OperandFormat::eDI:
-      return OperandReg(Rex::W, Register::EDI);
-    case OperandFormat::eDX:
-      return OperandReg(Rex::W, Register::EDX);
-    case OperandFormat::eSI:
-      return OperandReg(Rex::W, Register::ESI);
-    case OperandFormat::eSP:
-      return OperandReg(Rex::W, Register::ESP);
+      return OperandReg(HasOpdSize() ? Register::AX : Register::EAX);
 
     case OperandFormat::rAX:
-      return OperandReg(Rex::W, Register::RAX);
+      return OperandReg(Register::RAX);
     case OperandFormat::rBP:
-      return OperandReg(Rex::W, Register::RBP);
+      return OperandReg(Register::RBP);
     case OperandFormat::rBX:
-      return OperandReg(Rex::W, Register::RBX);
+      return OperandReg(Register::RBX);
     case OperandFormat::rCX:
-      return OperandReg(Rex::W, Register::RCX);
+      return OperandReg(Register::RCX);
     case OperandFormat::rDI:
-      return OperandReg(Rex::W, Register::RDI);
+      return OperandReg(Register::RDI);
     case OperandFormat::rDX:
-      return OperandReg(Rex::W, Register::RDX);
+      return OperandReg(Register::RDX);
     case OperandFormat::rSI:
-      return OperandReg(Rex::W, Register::RSI);
+      return OperandReg(Register::RSI);
     case OperandFormat::rSP:
-      return OperandReg(Rex::W, Register::RSP);
+      return OperandReg(Register::RSP);
   }
   NOTREACHED();
   return Operand(Register::SS);
 }
 
-Operand Instruction::OperandGv(OperandSize size) const {
+Operand Instruction::OperandEv(OperandSize size) const {
   auto const modrm = operand8_at(0);
-  return Operand(RegisterOf(size, ExtractBits(modrm, 4, 7)));
+  auto const mod = static_cast<Mod>(modrm & 0xC0);
+  auto const rm = static_cast<Rm>(ExtractBits(modrm, 0, 3));
+  if (mod == Mod::Reg)
+    return Operand(RegisterOf(size, Rex(RexBit::B) | static_cast<int>(rm)));
+
+  if (mod == Mod::Disp0 && rm == Rm::Disp32) {
+    Operand::Address address;
+    address.base = Register::RIP;
+    address.offset = operand32_at(1);
+    address.size = size;
+    return Operand(address);
+  }
+
+  if (rm == Rm::Sib) {
+    Operand::Address address;
+    // SIB = ss iii bbb
+    auto const sib = operand8_at(1);
+    address.base =
+        RegisterOf(OperandSize::Is64, Rex(RexBit::B) | ExtractBits(sib, 0, 3));
+    address.index =
+        RegisterOf(OperandSize::Is64, Rex(RexBit::X) | ExtractBits(sib, 3, 6));
+    address.scale = static_cast<ScaledIndex>(ExtractBits(sib, 6, 7));
+    if (mod == Mod::Disp8) {
+      address.offset = operand8_at(2);
+    } else if (mod == Mod::Disp32) {
+      address.offset = operand32_at(2);
+    }
+    address.size = size;
+    return Operand(address);
+  }
+
+  Operand::Address address;
+  address.base =
+      RegisterOf(OperandSize::Is64, Rex(RexBit::B) | static_cast<int>(rm));
+  if (mod == Mod::Disp8) {
+    address.offset = operand8_at(1);
+  } else if (mod == Mod::Disp32) {
+    address.offset = operand32_at(1);
+  }
+  address.size = size;
+  return Operand(address);
 }
 
-Operand Instruction::OperandGv() const {
-  return OperandGv(OperandSizeOf());
+Operand Instruction::OperandGv(OperandSize size) const {
+  auto const modrm = operand8_at(0);
+  auto const reg = ExtractBits(modrm, 3, 6);
+  return Operand(RegisterOf(size, Rex(RexBit::R) | reg));
 }
 
 Operand Instruction::OperandIb() const {
@@ -836,20 +913,33 @@ Operand Instruction::OperandIz() const {
   return Operand(Register::SS);
 }
 
-Operand Instruction::OperandReg(Rex rex, Register name) const {
+Operand Instruction::OperandReg(Register name) const {
   auto const size = OperandSizeOf();
-  if ((rex_byte() & static_cast<int>(rex)) == static_cast<int>(rex))
-    return Operand(RegisterOf(size, (static_cast<int>(name) & 7) | 8));
-  return Operand(name);
+  return Operand(
+      RegisterOf(size, (static_cast<int>(name) & 7) | Rex(RexBit::R)));
 }
 
 OperandSize Instruction::OperandSizeOf() const {
-  auto const rex = rex_byte();
-  if (ExtractBits(rex, 3, 4))
+  if (Rex(RexBit::W))
     return OperandSize::Is64;
   if (HasOpdSize())
     return OperandSize::Is16;
   return OperandSize::Is32;
+}
+
+int Instruction::Rex(RexBit rex_bit) const {
+  return (rex_byte() & static_cast<int>(rex_bit)) != 0 ? 8 : 0;
+}
+
+std::ostream& operator<<(std::ostream& ostream,
+                         const Instruction& instruction) {
+  ostream << instruction.mnemonic();
+  auto separator = " ";
+  for (auto const operand : instruction.operands()) {
+    ostream << separator << operand;
+    separator = ", ";
+  }
+  return ostream;
 }
 
 }  // namespace x64
