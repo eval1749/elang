@@ -72,6 +72,28 @@ extern "C" void main() {
 }
 */
 
+// E mod/rm r/m
+// G mod/rm reg
+// H VEX.vvvv
+// I immediate
+// J jump address
+// M memory
+// N
+// V mod/rm reg xmm/ymm
+// W mod/rm r/m xmm/ymm
+//
+// b 8-bit
+// d 32-bit
+// dq double-quad-word (128-bit)
+// q 64-bit
+// qq quad-quad word (256-bit)
+// sd scalar element of 128-bit float64
+// ss scalar element of 128-bit float64
+// v 16, 32, 64-bit
+// w 16-bit
+// x dq or qq based on operand-size attribute
+// y 32, 64-bit
+// z 16, 32-bit
 enum class OperandFormat {
   None,
   NoOperands,
@@ -88,19 +110,22 @@ enum class OperandFormat {
   DS,
   DX,
   ES,
-  Eb,
-  Ed,
-  Eq,
-  Ev,
-  Ew,
-  Ey,
+  Eb,  // mod/rm r/m 8-bit
+  Ed,  // mod/rm r/m 32-bit
+  Eq,  // mod/rm r/m 64-bit
+  Ev,  // mod/rm r/m 16,32,64-bit
+  Ew,  // mod/rm r/m 16-bit
+  Ey,  // mod/rm r/m 32, 64-bit
   FS,
   GS,
-  Gb,
-  Gd,
-  Gq,
-  Gv,
-  Gy,
+  Gb,   // mod/rm reg 8-bit register
+  Gd,   // mod/rm reg 32-bit register
+  Gq,   // mod/rm reg 64-bit register
+  Gv,   // mod/rm reg 16, 32, 64-bit register
+  Gy,   // mod/rm reg 32, 64-bit register
+  Hsd,  // VEX.vvvv
+  Hss,  // VEX.vvvv
+  Hx,
   Ib,
   Iv,
   Iw,
@@ -125,14 +150,16 @@ enum class OperandFormat {
   Vpd,
   Vps,
   Vq,
-  Vsd,
-  Vss,
+  Vsd,  // mod/rm reg xmm/ymm float64
+  Vss,  // mod/rm reg xmm/ymm float32
+  Vx,
   Wdq,
   Wpd,
   Wps,
   Wq,
-  Wsd,
-  Wss,
+  Wsd,  // mod/rm r/m xmm/ymm float64
+  Wss,  // mod/rm r/m xmm/ymm float32
+  Wx,
   eAX,
   rAX,
   rBP,

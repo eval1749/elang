@@ -43,6 +43,30 @@
 //  |mod | nnn  | r/m  |
 //  +----+------+------+
 
+// Two-Byte VEX
+//  C5, R vvvv L pp
+//    R  = 0 means REX.R
+//    vvvv = one complement register number
+//    L = 0: 128-bit, 1: 256-bit
+//    pp = 00: None, 01: 66, 10: F3, 11: F2
+//
+// Three-Byte VEX
+//  C4, R X B mmmmm, W vvvv L pp
+//    R = 0 means REX.R
+//    X = 0 means REX.X
+//    B = 0 means REX.B
+//    mmmmm = 0: reseved, 1: 0F, 2: 0F38, 3: 0F3A, others reserved
+//    W = 0 means REX.W
+//    vvvv = one complement register number
+//    L = 0: 128-bit, 1: 256-bit
+//    pp = 00: None, 01: 66, 10: F3, 11: F2
+//
+// Example:
+// F2 0F 58 /r                          ADDSD xmm1, xmm2/m64
+// VEX.NDS.LIG.F2.0F.WIG 58 /r          VADDSD xmm1, xmm2, xmm3/m64
+// C4:rxb 1:w xmm2 011:58:mod xmm1 r/m
+// C5:r xmm2 011:58:mod xmm1 r/m
+
 // V0 opcode mnemonic
 // V1 opcode mnemonic format
 // V2 opcode mnemonic format1 format2
@@ -779,5 +803,57 @@
   V2(0x660F73, 3, PSRLDQ, Nq, Ib)                      \
   V2(0x660F73, 6, PSLLQ, Nq, Ib)                       \
   V2(0x660F73, 7, PSLLDQ, Nq, Ib)
+
+// VEX prefixed scalar floating-point instructions
+//  ADD
+//  COMI
+//  CVT from SI
+//  CVT to SI
+//  CVT truncate to SI
+//  DIV
+//  MAX
+//  MIN
+//  MUL
+//  RSQRT
+//  RCP
+//  SQRT
+//  UCOMI
+#define FOR_EACH_VEX(V2, V3)            \
+  /* 10-17 */                           \
+  V3(0xF20F10, VMOVSD, Vx, Hx, Wsd)     \
+  V3(0xF30F10, VMOVSS, Vx, Hx, Wss)     \
+  V3(0xF20F11, VMOVSD, Wsd, Hx, Vsd)    \
+  V3(0xF30F11, VMOVSS, Wss, Hx, Vss)    \
+  /* 28-2F */                           \
+  V3(0xF20F2A, VCVTSI2SD, Vsd, Hsd, Ey) \
+  V3(0xF30F2A, VCVTSI2SS, Vss, Hss, Ey) \
+  V2(0xF20F2C, VCVTTSD2SI, Gy, Wsd)     \
+  V2(0xF30F2C, VCVTTSS2SI, Gy, Wsd)     \
+  V2(0xF20F2D, VCVTSD2SI, Gy, Wsd)      \
+  V2(0xF30F2D, VCVTSS2SI, Gy, Wsd)      \
+  V2(0x0F2E, VUCOMISS, Vss, Wss)        \
+  V2(0x660F2E, VUCOMISD, Vss, Wss)      \
+  V2(0x0F2F, VCOMISS, Vss, Wss)         \
+  V2(0x660F2F, VCOMISD, Vss, Wss)       \
+  /* 50-57 */                           \
+  V3(0xF20F51, VSQRTSD, Vsd, Hsd, Wsd)  \
+  V3(0xF30F51, VSQRTSS, Vss, Hss, Wss)  \
+  V3(0xF30F52, VRSQRTSS, Vss, Hss, Wss) \
+  V3(0xF30F53, VRCPSS, Vss, Hss, Wss)   \
+  /* 58-5F */                           \
+  V3(0xF20F58, VADDSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F58, VADDSS, Vss, Hss, Wss)   \
+  V3(0xF20F59, VMULSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F59, VMULSS, Vss, Hss, Wss)   \
+  V3(0xF20F5A, VCVTSS2SD, Vss, Hx, Wsd) \
+  V3(0xF30F5A, VCVTSD2SS, Vsd, Hx, Wss) \
+  V3(0xF20F5C, VSUBSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F5C, VSUBSS, Vss, Hss, Wss)   \
+  V3(0xF20F5D, VMINSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F5D, VMINSS, Vss, Hss, Wss)   \
+  V3(0xF20F5E, VDIVSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F5E, VDIVSS, Vss, Hss, Wss)   \
+  V3(0xF20F5F, VMAXSD, Vsd, Hsd, Wsd)   \
+  V3(0xF30F5F, VMAXSS, Vss, Hss, Wss)
 
 #endif  // ELANG_TARGETS_INSTRUCTIONS_X64_H_
