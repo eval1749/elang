@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//elang/build/elang_target_arch.gni")
 import("//testing/test.gni")
 
 executable("shell") {
@@ -9,6 +10,7 @@ executable("shell") {
   sources = [
     "compiler.cc",
     "compiler.h",
+    "disasm.h",
     "shell_main.cc",
   ]
 
@@ -17,8 +19,13 @@ executable("shell") {
     "//elang/api",
     "//elang/cg",
     "//elang/optimizer",
+    "//elang/targets",
     "//elang/translator",
   ]
+
+  if (elang_target_arch == "x64") {
+    sources += [ "disasm_x64.cc" ]
+  }
 }
 
 source_set("shell_library") {

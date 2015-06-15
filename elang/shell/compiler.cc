@@ -51,6 +51,7 @@
 #include "elang/optimizer/function.h"
 #include "elang/optimizer/scheduler/schedule.h"
 #include "elang/optimizer/types.h"
+#include "elang/shell/disasm.h"
 #include "elang/shell/node_query.h"
 #include "elang/shell/pass_record.h"
 #include "elang/shell/source_file_stream.h"
@@ -510,14 +511,10 @@ void Compiler::CompileAndGoInternal() {
     return;
 
   // Dump machine code
-  auto const code_start = mc_function->code_start_for_testing();
-  auto const code_end = code_start + mc_function->code_size_for_testing();
-  for (auto code = code_start; code < code_end; ++code) {
-    if ((code - code_start) % 16 == 0)
-      std::cout << std::endl;
-    std::cout << " " << base::StringPrintf("%02X", *code);
+  if (command_line->HasSwitch("disasm")) {
+    std::cout << DisassembleMachineCodeFunction{mc_function};
+    dumped_ = true;
   }
-  std::cout << std::endl;
 
   if (dumped_) {
     // TODO(eval1749) Should we stop if we dump all dump requests?
