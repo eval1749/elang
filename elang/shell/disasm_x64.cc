@@ -25,12 +25,12 @@ std::ostream& operator<<(std::ostream& ostream,
   auto const code_end = code_start + mc_function->code_size_for_testing();
   std::unordered_set<int> labeled;
   for (auto runner = code_start; runner < code_end;) {
-    auto const instr = Instruction(runner, code_end);
+    auto const instr = Instruction::Decode(runner, code_end);
     if (!instr.IsValid())
       break;
     runner += instr.size();
     for (auto const operand : instr.operands()) {
-      if (operand.type() != ::elang::targets::x64::Operand::Type::Relative)
+      if (operand.type() != Operand::Type::Relative)
         continue;
       auto const offset = runner - code_start;
       labeled.insert(static_cast<int>(offset + operand.detail()));
@@ -38,7 +38,7 @@ std::ostream& operator<<(std::ostream& ostream,
   }
 
   for (auto runner = code_start; runner < code_end;) {
-    auto const instr = Instruction(runner, code_end);
+    auto const instr = Instruction::Decode(runner, code_end);
     if (!instr.IsValid())
       break;
     auto const offset = static_cast<int>(runner - code_start);
@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& ostream,
     for (auto index = 0; index < instr.size(); ++index) {
       if (index && (index % kNumCodes == 0)) {
         ostream << std::endl
-                  << "     ";
+                << "     ";
       }
       ostream << base::StringPrintf(" %02X", instr.byte_at(index));
     }

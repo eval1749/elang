@@ -84,7 +84,7 @@ class InstructionX64Test : public ::testing::Test {
 };
 
 Instruction InstructionFrom(const std::vector<uint8_t> codes) {
-  return Instruction(codes.data(), codes.data() + codes.size());
+  return Instruction::Decode(codes.data(), codes.data() + codes.size());
 }
 
 std::string ToString(Instruction instruction) {

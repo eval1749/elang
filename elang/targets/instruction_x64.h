@@ -66,7 +66,6 @@ class Instruction final {
     const Instruction* instruction_;
   };
 
-  Instruction(const void* start, const void* end);
   Instruction(const Instruction& other);
   ~Instruction();
 
@@ -79,13 +78,14 @@ class Instruction final {
   Operands operands() const;
   size_t size() const { return static_cast<size_t>(size_); }
 
+  static Instruction Decode(const void* start, const void* end);
   bool IsValid() const { return opcode_size_ != 0; }
 
  private:
   enum class RexBit;
-  struct DecodeResult;
+  class Decoder;
 
-  explicit Instruction(const DecodeResult& result);
+  Instruction();
 
   size_t number_of_operands() const;
   size_t opcode_size() const { return static_cast<size_t>(opcode_size_); }
@@ -97,8 +97,6 @@ class Instruction final {
   uint8_t rex_byte() const;
 
   Operand OperandEv(OperandSize size) const;
-  static DecodeResult Decode(const uint8_t* start, const uint8_t* end);
-  static DecodeResult DecodeOpcode(const uint8_t* start, const uint8_t* end);
   bool HasOpdSize() const;
   Operand OperandAt(size_t position) const;
   Operand OperandGv(OperandSize size) const;

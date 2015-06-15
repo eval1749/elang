@@ -338,13 +338,242 @@ enum class Instruction::RexBit {
   B = 1,
 };
 
-struct Instruction::DecodeResult {
-  const uint8_t* start;
-  const uint8_t* end;
-  uint32_t opcode;
-  size_t prefix_size;
-  size_t opcode_size;
+//////////////////////////////////////////////////////////////////////
+//
+// Instruction::Decoder
+//
+class Instruction::Decoder final {
+ public:
+  Decoder(const void* start, const void* end);
+  ~Decoder() = default;
+
+  Instruction Run();
+
+ private:
+  size_t code_size() const { return code_current_ - code_start_; }
+  void Advance(size_t size = 1);
+  uint8_t Current() const;
+  size_t DecodeOpcode();
+  Instruction Error(const char* reason);
+  bool HasMore() const { return code_current_ < code_end_; }
+  bool IsTruncated() const { return code_current_ > code_end_; }
+
+  const uint8_t* code_end_;
+  const uint8_t* code_current_;
+  const uint8_t* code_start_;
+  bool has_66_;
+  bool has_rex_w_;
+  uint32_t mandatory_prefix_;
+  uint32_t opcode_;
+  size_t opcode_size_;
+  size_t prefix_size_;
+
+  DISALLOW_COPY_AND_ASSIGN(Decoder);
 };
+
+Instruction::Decoder::Decoder(const void* start, const void* end)
+    : code_end_(static_cast<const uint8_t*>(end)),
+      code_current_(static_cast<const uint8_t*>(start)),
+      code_start_(static_cast<const uint8_t*>(start)),
+      has_66_(false),
+      has_rex_w_(false),
+      mandatory_prefix_(0),
+      opcode_(0),
+      prefix_size_(0) {
+}
+
+void Instruction::Decoder::Advance(size_t size) {
+  DCHECK(HasMore());
+  code_current_ += size;
+}
+
+uint8_t Instruction::Decoder::Current() const {
+  DCHECK(HasMore());
+  return *code_current_;
+}
+
+size_t Instruction::Decoder::DecodeOpcode() {
+  enum class CodeKind {
+    Opcode1,
+    Opcode2,
+    OpExt,
+    Prefix,
+  };
+
+  static CodeKind code_kinds[256];
+  if (code_kinds[0x66] != CodeKind::Prefix) {
+    code_kinds[0x0F] = CodeKind::Opcode2;
+
+    code_kinds[0x80] = CodeKind::OpExt;
+    code_kinds[0x81] = CodeKind::OpExt;
+    code_kinds[0x82] = CodeKind::OpExt;
+    code_kinds[0x83] = CodeKind::OpExt;
+    code_kinds[0x8F] = CodeKind::OpExt;
+    code_kinds[0xC0] = CodeKind::OpExt;
+    code_kinds[0xC1] = CodeKind::OpExt;
+    code_kinds[0xC6] = CodeKind::OpExt;
+    code_kinds[0xC7] = CodeKind::OpExt;
+    code_kinds[0xD0] = CodeKind::OpExt;
+    code_kinds[0xD1] = CodeKind::OpExt;
+    code_kinds[0xD2] = CodeKind::OpExt;
+    code_kinds[0xD3] = CodeKind::OpExt;
+    code_kinds[0xF6] = CodeKind::OpExt;
+    code_kinds[0xF7] = CodeKind::OpExt;
+    code_kinds[0xFE] = CodeKind::OpExt;
+    code_kinds[0xFF] = CodeKind::OpExt;
+
+    code_kinds[0x2E] = CodeKind::Prefix;  // CS
+    code_kinds[0x36] = CodeKind::Prefix;  // SS
+    code_kinds[0x3E] = CodeKind::Prefix;  // DS
+    code_kinds[0x26] = CodeKind::Prefix;  // ES
+    code_kinds[0x64] = CodeKind::Prefix;  // FS
+    code_kinds[0x65] = CodeKind::Prefix;  // GS
+
+    code_kinds[0x2E] = CodeKind::Prefix;  // Branch not taken
+    code_kinds[0x3E] = CodeKind::Prefix;  // Branch taken
+
+    code_kinds[0x66] = CodeKind::Prefix;  // Operand size
+    code_kinds[0x67] = CodeKind::Prefix;  // Address size
+
+    code_kinds[0xF0] = CodeKind::Prefix;  // LOCK
+    code_kinds[0xF2] = CodeKind::Prefix;  // REPNE
+    code_kinds[0xF3] = CodeKind::Prefix;  // REP
+
+    code_kinds[0x40] = CodeKind::Prefix;  // REX
+    code_kinds[0x41] = CodeKind::Prefix;  // REX_B
+    code_kinds[0x42] = CodeKind::Prefix;  // REX_X
+    code_kinds[0x43] = CodeKind::Prefix;  // REX_XB
+    code_kinds[0x44] = CodeKind::Prefix;  // REX_R
+    code_kinds[0x45] = CodeKind::Prefix;  // REX_RB
+    code_kinds[0x46] = CodeKind::Prefix;  // REX_RX
+    code_kinds[0x47] = CodeKind::Prefix;  // REX_RXB
+    code_kinds[0x48] = CodeKind::Prefix;  // REX_WB
+    code_kinds[0x49] = CodeKind::Prefix;  // REX_WX
+    code_kinds[0x4A] = CodeKind::Prefix;  // REX_WR
+    code_kinds[0x4B] = CodeKind::Prefix;  // REX_WXB
+    code_kinds[0x4C] = CodeKind::Prefix;  // REX_WR
+    code_kinds[0x4D] = CodeKind::Prefix;  // REX_WRB
+    code_kinds[0x4E] = CodeKind::Prefix;  // REX_WRX
+    code_kinds[0x4F] = CodeKind::Prefix;  // REX_WRXB
+  }
+
+  while (HasMore()) {
+    auto const code = Current();
+    Advance();
+    switch (code_kinds[code]) {
+      case CodeKind::Opcode1:
+        opcode_ = code;
+        return 1;
+
+      case CodeKind::Opcode2:
+        if (!HasMore())
+          return 0;
+        if (Current() != 0x38) {
+          opcode_ = 0x0F00 | Current();
+          Advance();
+          return 2;
+        }
+        Advance();
+        if (!HasMore())
+          return 0;
+        opcode_ = 0x0F3800 | Current();
+        return 3;
+
+      case CodeKind::OpExt:
+        if (!HasMore())
+          return 0;
+        opcode_ = (code << 8) | ExtractBits(Current(), 3, 6);
+        return 1;
+
+      case CodeKind::Prefix:
+        if (code == 0x66)
+          has_66_ = true;
+        else if (code == 0xF2 || code == 0xF3)
+          mandatory_prefix_ = code;
+        else if (code >= 0x48 && code <= 0x4F)
+          has_rex_w_ = true;
+        ++prefix_size_;
+        break;
+      default:
+        NOTREACHED();
+        break;
+    }
+  }
+  return 0;
+}
+
+Instruction Instruction::Decoder::Error(const char* reason) {
+  DVLOG(9) << reason;
+  return Instruction();
+}
+
+Instruction Instruction::Decoder::Run() {
+  auto const opcode_size = DecodeOpcode();
+  if (!opcode_size)
+    return Error("no opode");
+
+  std::vector<uint32_t> candidates;
+  auto const shift = opcode_ > 0xFFFF ? 24 : opcode_ > 0xFF ? 16 : 8;
+  // Note: three-byte opcode 0F 38 F0 (CRC32) can take both 66 and F2 prefixes.
+  if (shift <= 2 && has_66_ && mandatory_prefix_)
+    candidates.push_back(((0x6600 | mandatory_prefix_) << shift) | opcode_);
+
+  if (mandatory_prefix_)
+    candidates.push_back((mandatory_prefix_ << shift) | opcode_);
+
+  if (has_66_)
+    candidates.push_back((0x66 << shift) | opcode_);
+
+  candidates.push_back(opcode_);
+
+  for (auto const opcode : candidates) {
+    auto const format = Description::Get()->FormatOf(opcode);
+    auto operands = format.operands;
+    if (!operands)
+      continue;
+    for (auto value = operands; value; value >>= 8) {
+      switch (static_cast<OperandFormat>(value & 0xFF)) {
+        case OperandFormat::Eb:
+        case OperandFormat::Ev:
+          if (!HasMore())
+            return Instruction();
+          Advance(SizeFromModRm(Current()));
+          break;
+        case OperandFormat::Ib:
+        case OperandFormat::Jb:
+          Advance();
+          break;
+        case OperandFormat::Iv:
+          Advance(has_66_ ? 2 : has_rex_w_ ? 8 : 4);
+          break;
+        case OperandFormat::Iw:
+          Advance(2);
+          break;
+        case OperandFormat::Iz:
+          Advance(has_66_ ? 2 : 4);
+          break;
+        case OperandFormat::Jv:
+          Advance(4);
+          break;
+        case OperandFormat::Ob:
+        case OperandFormat::Ov:
+          Advance(8);
+          break;
+      }
+      if (IsTruncated())
+        return Error("truncated instruction");
+    }
+    DCHECK(!IsTruncated());
+    Instruction instruction;
+    ::memcpy(instruction.bytes_.data(), code_start_, code_size());
+    instruction.opcode_ = opcode;
+    instruction.opcode_size_ = opcode_size;
+    instruction.prefix_size_ = prefix_size_;
+    instruction.size_ = static_cast<uint8_t>(code_size());
+    return instruction;
+  }
+  return Error("undefined opcode");
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -422,20 +651,6 @@ Instruction::Operands::Iterator& Instruction::Operands::Iterator::operator++() {
 //
 // Instruction
 //
-Instruction::Instruction(const void* start, const void* end)
-    : Instruction(Decode(static_cast<const uint8_t*>(start),
-                         static_cast<const uint8_t*>(end))) {
-}
-
-Instruction::Instruction(const DecodeResult& result)
-    : opcode_(result.opcode),
-      opcode_size_(static_cast<uint32_t>(result.opcode_size)),
-      prefix_size_(static_cast<uint32_t>(result.prefix_size)),
-      size_(static_cast<uint32_t>(result.end - result.start)) {
-  DCHECK_GE(size_, opcode_size_ + prefix_size_);
-  ::memcpy(bytes_.data(), result.start, size_);
-}
-
 Instruction::Instruction(const Instruction& other)
     : opcode_(other.opcode_),
       opcode_size_(other.opcode_size_),
@@ -443,6 +658,10 @@ Instruction::Instruction(const Instruction& other)
       size_(other.size_) {
   DCHECK_GE(size_, opcode_size_ + prefix_size_);
   ::memcpy(bytes_.data(), other.bytes_.data(), size_);
+}
+
+Instruction::Instruction()
+    : opcode_(0), opcode_size_(0), prefix_size_(0), size_(0) {
 }
 
 Instruction::~Instruction() {
@@ -521,215 +740,8 @@ uint8_t Instruction::rex_byte() const {
   return byte >= 0x40 && byte <= 0x4F ? byte : 0;
 }
 
-Instruction::DecodeResult Instruction::Decode(const uint8_t* start,
-                                              const uint8_t* end) {
-  auto result = DecodeOpcode(start, end);
-  DCHECK_LE(result.opcode_size, 3);
-  if (!result.opcode_size)
-    return result;
-
-  auto has_66 = false;
-  auto has_REXW = false;
-  auto mandatory = 0;
-  for (auto index = 0; index < result.prefix_size; ++index) {
-    auto const code = start[index];
-    if (code == 0x66)
-      has_66 = true;
-    else if (code == 0xF2 || code == 0xF3)
-      mandatory = code;
-    else if (code >= 0x48 && code <= 0x4F)
-      has_REXW = true;
-  }
-
-  std::vector<uint32_t> candidates;
-  auto candidate = result.opcode;
-  auto const shift = candidate > 0xFFFF ? 24 : candidate > 0xFF ? 16 : 8;
-  // Note: three-byte opcode 0F 38 F0 (CRC32) can take both 66 and F2 prefixes.
-  if (shift <= 2 && has_66 && mandatory)
-    candidates.push_back(((0x6600 | mandatory) << shift) | candidate);
-
-  if (mandatory)
-    candidates.push_back((mandatory << shift) | candidate);
-
-  if (has_66)
-    candidates.push_back((0x66 << shift) | candidate);
-
-  candidates.push_back(candidate);
-
-  auto runner = result.start + result.prefix_size + result.opcode_size;
-  for (auto const opcode : candidates) {
-    auto const format = Description::Get()->FormatOf(opcode);
-    auto operands = format.operands;
-    if (!operands)
-      continue;
-    for (auto value = operands; value; value >>= 8) {
-      switch (static_cast<OperandFormat>(value & 0xFF)) {
-        case OperandFormat::Eb:
-        case OperandFormat::Ev:
-          runner += SizeFromModRm(*runner);
-          break;
-        case OperandFormat::Ib:
-        case OperandFormat::Jb:
-          ++runner;
-          break;
-        case OperandFormat::Iv:
-          if (has_66) {
-            runner += 2;
-            break;
-          }
-          if (has_REXW) {
-            runner += 8;
-            break;
-          }
-          runner += 4;
-          break;
-        case OperandFormat::Iw:
-          runner += 2;
-          break;
-        case OperandFormat::Iz:
-          if (has_66) {
-            runner += 2;
-            break;
-          }
-          runner += 4;
-          break;
-        case OperandFormat::Jv:
-          runner += 4;
-          break;
-        case OperandFormat::Ob:
-        case OperandFormat::Ov:
-          runner += 8;
-          break;
-      }
-    }
-    if (runner > end) {
-      result.end = end;
-      result.opcode_size = 0;
-      return result;
-    }
-    result.end = runner;
-    result.opcode = opcode;
-    return result;
-  }
-
-  DCHECK_LE(runner, end);
-  result.end = runner;
-  result.opcode_size = 0;
-  return result;
-}
-
-Instruction::DecodeResult Instruction::DecodeOpcode(const uint8_t* start,
-                                                    const uint8_t* end) {
-  enum class CodeKind {
-    Opcode1,
-    Opcode2,
-    OpExt,
-    Prefix,
-  };
-
-  static CodeKind code_kinds[256];
-  if (code_kinds[0x66] != CodeKind::Prefix) {
-    code_kinds[0x0F] = CodeKind::Opcode2;
-
-    code_kinds[0x80] = CodeKind::OpExt;
-    code_kinds[0x81] = CodeKind::OpExt;
-    code_kinds[0x82] = CodeKind::OpExt;
-    code_kinds[0x83] = CodeKind::OpExt;
-    code_kinds[0x8F] = CodeKind::OpExt;
-    code_kinds[0xC0] = CodeKind::OpExt;
-    code_kinds[0xC1] = CodeKind::OpExt;
-    code_kinds[0xC6] = CodeKind::OpExt;
-    code_kinds[0xC7] = CodeKind::OpExt;
-    code_kinds[0xD0] = CodeKind::OpExt;
-    code_kinds[0xD1] = CodeKind::OpExt;
-    code_kinds[0xD2] = CodeKind::OpExt;
-    code_kinds[0xD3] = CodeKind::OpExt;
-    code_kinds[0xF6] = CodeKind::OpExt;
-    code_kinds[0xF7] = CodeKind::OpExt;
-    code_kinds[0xFE] = CodeKind::OpExt;
-    code_kinds[0xFF] = CodeKind::OpExt;
-
-    code_kinds[0x2E] = CodeKind::Prefix;  // CS
-    code_kinds[0x36] = CodeKind::Prefix;  // SS
-    code_kinds[0x3E] = CodeKind::Prefix;  // DS
-    code_kinds[0x26] = CodeKind::Prefix;  // ES
-    code_kinds[0x64] = CodeKind::Prefix;  // FS
-    code_kinds[0x65] = CodeKind::Prefix;  // GS
-
-    code_kinds[0x2E] = CodeKind::Prefix;  // Branch not taken
-    code_kinds[0x3E] = CodeKind::Prefix;  // Branch taken
-
-    code_kinds[0x66] = CodeKind::Prefix;  // Operand size
-    code_kinds[0x67] = CodeKind::Prefix;  // Address size
-
-    code_kinds[0xF0] = CodeKind::Prefix;  // LOCK
-    code_kinds[0xF2] = CodeKind::Prefix;  // REPNE
-    code_kinds[0xF3] = CodeKind::Prefix;  // REP
-
-    code_kinds[0x40] = CodeKind::Prefix;  // REX
-    code_kinds[0x41] = CodeKind::Prefix;  // REX_B
-    code_kinds[0x42] = CodeKind::Prefix;  // REX_X
-    code_kinds[0x43] = CodeKind::Prefix;  // REX_XB
-    code_kinds[0x44] = CodeKind::Prefix;  // REX_R
-    code_kinds[0x45] = CodeKind::Prefix;  // REX_RB
-    code_kinds[0x46] = CodeKind::Prefix;  // REX_RX
-    code_kinds[0x47] = CodeKind::Prefix;  // REX_RXB
-    code_kinds[0x48] = CodeKind::Prefix;  // REX_WB
-    code_kinds[0x49] = CodeKind::Prefix;  // REX_WX
-    code_kinds[0x4A] = CodeKind::Prefix;  // REX_WR
-    code_kinds[0x4B] = CodeKind::Prefix;  // REX_WXB
-    code_kinds[0x4C] = CodeKind::Prefix;  // REX_WR
-    code_kinds[0x4D] = CodeKind::Prefix;  // REX_WRB
-    code_kinds[0x4E] = CodeKind::Prefix;  // REX_WRX
-    code_kinds[0x4F] = CodeKind::Prefix;  // REX_WRXB
-  }
-
-  DecodeResult result{start, end, 0};
-  for (auto runner = start; runner < end; ++runner) {
-    auto const code = *runner;
-    switch (code_kinds[code]) {
-      case CodeKind::Opcode1:
-        result.opcode = *runner;
-        result.opcode_size = 1;
-        result.end = runner + 1;
-        return result;
-
-      case CodeKind::Opcode2:
-        ++runner;
-        result.end = runner;
-        if (runner == end)
-          return result;
-        if (*runner != 0x38) {
-          result.opcode = 0x0F00 | *runner;
-          result.opcode_size = 2;
-          return result;
-        }
-        ++runner;
-        result.end = runner;
-        if (runner == end)
-          return result;
-        result.opcode = 0x0F3800 | *runner;
-        result.opcode_size = 3;
-        return result;
-
-      case CodeKind::OpExt:
-        ++runner;
-        result.end = runner;
-        if (runner == end)
-          return result;
-        result.opcode = (code << 8) | ExtractBits(*runner, 3, 6);
-        result.opcode_size = 1;
-        return result;
-
-      case CodeKind::Prefix:
-        ++result.prefix_size;
-        break;
-      default:
-        NOTREACHED();
-        break;
-    }
-  }
-  return result;
+Instruction Instruction::Decode(const void* start, const void* end) {
+  return Decoder(start, end).Run();
 }
 
 bool Instruction::HasOpdSize() const {
