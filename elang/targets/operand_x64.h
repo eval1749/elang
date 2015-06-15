@@ -64,16 +64,14 @@ class Operand final {
   Operand(const Operand& other);
   ~Operand();
 
-  int32_t detail() const { return detail_; }
-  int32_t offset() const { return offset_; }
+  int64_t detail() const { return detail_; }
   OperandSize size() const { return size_; }
   Type type() const { return type_; }
 
   Operand& operator=(const Operand& other);
 
  private:
-  int32_t detail_;
-  int32_t offset_;
+  int64_t detail_;
   OperandSize size_;
   Type type_;
 };
