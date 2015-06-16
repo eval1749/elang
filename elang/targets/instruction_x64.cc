@@ -561,7 +561,11 @@ Instruction Instruction::Decoder::Run() {
     for (auto value = operands; value; value >>= 8) {
       switch (static_cast<OperandFormat>(value & 0xFF)) {
         case OperandFormat::Eb:
+        case OperandFormat::Ed:
+        case OperandFormat::Eq:
         case OperandFormat::Ev:
+        case OperandFormat::Ew:
+        case OperandFormat::Ey:
           if (!HasMore())
             return Instruction();
           Advance(SizeFromModRm(Current()));
@@ -817,6 +821,8 @@ Operand Instruction::OperandAt(size_t position) const {
 
     case OperandFormat::Eb:
       return OperandEv(OperandSize::Is8);
+    case OperandFormat::Ed:
+      return OperandEv(OperandSize::Is32);
     case OperandFormat::Ev:
     case OperandFormat::M:
       return OperandEv(OperandSizeOf());
