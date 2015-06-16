@@ -512,7 +512,7 @@ void Compiler::CompileAndGoInternal() {
 
   // Dump machine code
   if (command_line->HasSwitch("disasm")) {
-    std::cout << DisassembleMachineCodeFunction{mc_function};
+    std::cout << DisassembledMachineCodeFunction{mc_function};
     dumped_ = true;
   }
 
