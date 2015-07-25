@@ -61,6 +61,9 @@ class TestMockTimeTaskRunner : public SingleThreadTaskRunner {
   // elapse.
   void RunUntilIdle();
 
+  // Clears the queue of pending tasks without running them.
+  void ClearPendingTasks();
+
   // Returns the current virtual time (initially starting at the Unix epoch).
   Time Now() const;
 
@@ -91,6 +94,11 @@ class TestMockTimeTaskRunner : public SingleThreadTaskRunner {
  protected:
   ~TestMockTimeTaskRunner() override;
 
+  // Whether the elapsing of virtual time is stopped or not. Subclasses can
+  // override this method to perform early exits from a running task runner.
+  // Defaults to always return false.
+  virtual bool IsElapsingStopped();
+
   // Called before the next task to run is selected, so that subclasses have a
   // last chance to make sure all tasks are posted.
   virtual void OnBeforeSelectingTask();
@@ -104,15 +112,17 @@ class TestMockTimeTaskRunner : public SingleThreadTaskRunner {
   virtual void OnAfterTaskRun();
 
  private:
+  struct TestOrderedPendingTask;
+
   // Predicate that defines a strict weak temporal ordering of tasks.
   class TemporalOrder {
    public:
-    bool operator()(const TestPendingTask& first_task,
-                    const TestPendingTask& second_task) const;
+    bool operator()(const TestOrderedPendingTask& first_task,
+                    const TestOrderedPendingTask& second_task) const;
   };
 
-  typedef std::priority_queue<TestPendingTask,
-                              std::vector<TestPendingTask>,
+  typedef std::priority_queue<TestOrderedPendingTask,
+                              std::vector<TestOrderedPendingTask>,
                               TemporalOrder> TaskPriorityQueue;
 
   // Core of the implementation for all flavors of fast-forward methods. Given a
@@ -140,6 +150,11 @@ class TestMockTimeTaskRunner : public SingleThreadTaskRunner {
   // Temporally ordered heap of pending tasks. Must only be accessed while the
   // |tasks_lock_| is held.
   TaskPriorityQueue tasks_;
+
+  // The ordinal to use for the next task. Must only be accessed while the
+  // |tasks_lock_| is held.
+  size_t next_task_ordinal_;
+
   Lock tasks_lock_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMockTimeTaskRunner);

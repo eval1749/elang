@@ -4,8 +4,8 @@
 
 #include "base/time/time.h"
 
+#include <stdint.h>
 #include <time.h>
-
 #include <limits>
 #include <string>
 
@@ -690,15 +690,15 @@ TEST(TimeTicks, HighRes) {
 #else
 #define MAYBE_ThreadNow ThreadNow
 #endif
-TEST(TimeTicks, MAYBE_ThreadNow) {
-  if (TimeTicks::IsThreadNowSupported()) {
+TEST(ThreadTicks, MAYBE_ThreadNow) {
+  if (ThreadTicks::IsSupported()) {
     TimeTicks begin = TimeTicks::Now();
-    TimeTicks begin_thread = TimeTicks::ThreadNow();
+    ThreadTicks begin_thread = ThreadTicks::Now();
     // Make sure that ThreadNow value is non-zero.
-    EXPECT_GT(begin_thread, TimeTicks());
+    EXPECT_GT(begin_thread, ThreadTicks());
     // Sleep for 10 milliseconds to get the thread de-scheduled.
     base::PlatformThread::Sleep(base::TimeDelta::FromMilliseconds(10));
-    TimeTicks end_thread = TimeTicks::ThreadNow();
+    ThreadTicks end_thread = ThreadTicks::Now();
     TimeTicks end = TimeTicks::Now();
     TimeDelta delta = end - begin;
     TimeDelta delta_thread = end_thread - begin_thread;
@@ -710,14 +710,15 @@ TEST(TimeTicks, MAYBE_ThreadNow) {
   }
 }
 
-TEST(TimeTicks, NowFromSystemTraceTime) {
+TEST(TraceTicks, NowFromSystemTraceTime) {
   // Re-use HighRes test for now since clock properties are identical.
-  HighResClockTest(&TimeTicks::NowFromSystemTraceTime);
+  using NowFunction = TimeTicks (*)(void);
+  HighResClockTest(reinterpret_cast<NowFunction>(&TraceTicks::Now));
 }
 
 TEST(TimeTicks, SnappedToNextTickBasic) {
   base::TimeTicks phase = base::TimeTicks::FromInternalValue(4000);
-  base::TimeDelta interval = base::TimeDelta::FromInternalValue(1000);
+  base::TimeDelta interval = base::TimeDelta::FromMicroseconds(1000);
   base::TimeTicks timestamp;
 
   // Timestamp in previous interval.
@@ -760,7 +761,7 @@ TEST(TimeTicks, SnappedToNextTickOverflow) {
   // int(big_timestamp / interval) < 0, so this causes a crash if the number of
   // intervals elapsed is attempted to be stored in an int.
   base::TimeTicks phase = base::TimeTicks::FromInternalValue(0);
-  base::TimeDelta interval = base::TimeDelta::FromInternalValue(4000);
+  base::TimeDelta interval = base::TimeDelta::FromMicroseconds(4000);
   base::TimeTicks big_timestamp =
       base::TimeTicks::FromInternalValue(8635916564000);
 
@@ -832,7 +833,7 @@ TEST(TimeDelta, WindowsEpoch) {
   exploded.millisecond = 0;
   Time t = Time::FromUTCExploded(exploded);
   // Unix 1970 epoch.
-  EXPECT_EQ(GG_INT64_C(11644473600000000), t.ToInternalValue());
+  EXPECT_EQ(INT64_C(11644473600000000), t.ToInternalValue());
 
   // We can't test 1601 epoch, since the system time functions on Linux
   // only compute years starting from 1900.
@@ -940,6 +941,77 @@ TEST(TimeDelta, NumericOperators) {
             TimeDelta::FromMilliseconds(1000) /= 2);
   EXPECT_EQ(TimeDelta::FromMilliseconds(2000),
             2 * TimeDelta::FromMilliseconds(1000));
+}
+
+bool IsMin(TimeDelta delta) {
+  return (-delta).is_max();
+}
+
+TEST(TimeDelta, Overflows) {
+  // Some sanity checks.
+  EXPECT_TRUE(TimeDelta::Max().is_max());
+  EXPECT_TRUE(IsMin(-TimeDelta::Max()));
+  EXPECT_GT(TimeDelta(), -TimeDelta::Max());
+
+  TimeDelta large_delta = TimeDelta::Max() - TimeDelta::FromMilliseconds(1);
+  TimeDelta large_negative = -large_delta;
+  EXPECT_GT(TimeDelta(), large_negative);
+  EXPECT_FALSE(large_delta.is_max());
+  EXPECT_FALSE(IsMin(-large_negative));
+  TimeDelta one_second = TimeDelta::FromSeconds(1);
+
+  // Test +, -, * and / operators.
+  EXPECT_TRUE((large_delta + one_second).is_max());
+  EXPECT_TRUE(IsMin(large_negative + (-one_second)));
+  EXPECT_TRUE(IsMin(large_negative - one_second));
+  EXPECT_TRUE((large_delta - (-one_second)).is_max());
+  EXPECT_TRUE((large_delta * 2).is_max());
+  EXPECT_TRUE(IsMin(large_delta * -2));
+  EXPECT_TRUE((large_delta / 0.5).is_max());
+  EXPECT_TRUE(IsMin(large_delta / -0.5));
+
+  // Test +=, -=, *= and /= operators.
+  TimeDelta delta = large_delta;
+  delta += one_second;
+  EXPECT_TRUE(delta.is_max());
+  delta = large_negative;
+  delta += -one_second;
+  EXPECT_TRUE(IsMin(delta));
+
+  delta = large_negative;
+  delta -= one_second;
+  EXPECT_TRUE(IsMin(delta));
+  delta = large_delta;
+  delta -= -one_second;
+  EXPECT_TRUE(delta.is_max());
+
+  delta = large_delta;
+  delta *= 2;
+  EXPECT_TRUE(delta.is_max());
+  delta = large_negative;
+  delta *= 1.5;
+  EXPECT_TRUE(IsMin(delta));
+
+  delta = large_delta;
+  delta /= 0.5;
+  EXPECT_TRUE(delta.is_max());
+  delta = large_negative;
+  delta /= 0.5;
+  EXPECT_TRUE(IsMin(delta));
+
+  // Test operations with Time and TimeTicks.
+  EXPECT_TRUE((large_delta + Time::Now()).is_max());
+  EXPECT_TRUE((large_delta + TimeTicks::Now()).is_max());
+  EXPECT_TRUE((Time::Now() + large_delta).is_max());
+  EXPECT_TRUE((TimeTicks::Now() + large_delta).is_max());
+
+  Time time_now = Time::Now();
+  EXPECT_EQ(one_second, (time_now + one_second) - time_now);
+  EXPECT_EQ(-one_second, (time_now - one_second) - time_now);
+
+  TimeTicks ticks_now = TimeTicks::Now();
+  EXPECT_EQ(-one_second, (ticks_now - one_second) - ticks_now);
+  EXPECT_EQ(one_second, (ticks_now + one_second) - ticks_now);
 }
 
 TEST(TimeDeltaLogging, DCheckEqCompiles) {

@@ -5,28 +5,25 @@
 #include "base/threading/platform_thread.h"
 
 #include <errno.h>
+#include <pthread.h>
 #include <sched.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 
 #include "base/lazy_instance.h"
 #include "base/logging.h"
 #include "base/memory/scoped_ptr.h"
-#include "base/safe_strerror_posix.h"
+#include "base/profiler/scoped_tracker.h"
 #include "base/synchronization/waitable_event.h"
+#include "base/threading/platform_thread_internal_posix.h"
 #include "base/threading/thread_id_name_manager.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/tracked_objects.h"
 
-#if defined(OS_MACOSX)
-#include <sys/resource.h>
-#include <algorithm>
-#endif
-
 #if defined(OS_LINUX)
-#include <sys/prctl.h>
-#include <sys/resource.h>
 #include <sys/syscall.h>
-#include <sys/time.h>
-#include <unistd.h>
+#elif defined(OS_ANDROID)
+#include <sys/types.h>
 #endif
 
 namespace base {
@@ -42,7 +39,7 @@ struct ThreadParams {
   ThreadParams()
       : delegate(NULL),
         joinable(false),
-        priority(kThreadPriority_Normal),
+        priority(ThreadPriority::NORMAL),
         handle(NULL),
         handle_set(false, false) {
   }
@@ -62,15 +59,12 @@ void* ThreadFunc(void* params) {
   if (!thread_params->joinable)
     base::ThreadRestrictions::SetSingletonAllowed(false);
 
-  if (thread_params->priority != kThreadPriority_Normal) {
-    PlatformThread::SetThreadPriority(PlatformThread::CurrentHandle(),
-                                      thread_params->priority);
-  }
+  if (thread_params->priority != ThreadPriority::NORMAL)
+    PlatformThread::SetCurrentThreadPriority(thread_params->priority);
 
   // Stash the id in the handle so the calling thread has a complete
   // handle, and unblock the parent thread.
-  *(thread_params->handle) = PlatformThreadHandle(pthread_self(),
-                                                  PlatformThread::CurrentId());
+  *(thread_params->handle) = PlatformThreadHandle(pthread_self());
   thread_params->handle_set.Signal();
 
   ThreadIdNameManager::GetInstance()->RegisterThread(
@@ -133,8 +127,13 @@ bool CreateThread(size_t stack_size, bool joinable,
 
   // Don't let this call complete until the thread id
   // is set in the handle.
-  if (success)
+  if (success) {
+    // TODO(toyoshim): Remove this after a few days (crbug.com/495097)
+    tracked_objects::ScopedTracker tracking_profile(
+        FROM_HERE_WITH_EXPLICIT_FUNCTION(
+            "495097 pthread_create and handle_set.Wait"));
     params.handle_set.Wait();
+  }
   CHECK_EQ(handle, thread_handle->platform_handle());
 
   return success;
@@ -171,7 +170,7 @@ PlatformThreadRef PlatformThread::CurrentRef() {
 
 // static
 PlatformThreadHandle PlatformThread::CurrentHandle() {
-  return PlatformThreadHandle(pthread_self(), CurrentId());
+  return PlatformThreadHandle(pthread_self());
 }
 
 // static
@@ -200,14 +199,6 @@ const char* PlatformThread::GetName() {
 }
 
 // static
-bool PlatformThread::Create(size_t stack_size, Delegate* delegate,
-                            PlatformThreadHandle* thread_handle) {
-  base::ThreadRestrictions::ScopedAllowWait allow_wait;
-  return CreateThread(stack_size, true /* joinable thread */,
-                      delegate, thread_handle, kThreadPriority_Normal);
-}
-
-// static
 bool PlatformThread::CreateWithPriority(size_t stack_size, Delegate* delegate,
                                         PlatformThreadHandle* thread_handle,
                                         ThreadPriority priority) {
@@ -222,7 +213,7 @@ bool PlatformThread::CreateNonJoinable(size_t stack_size, Delegate* delegate) {
 
   base::ThreadRestrictions::ScopedAllowWait allow_wait;
   bool result = CreateThread(stack_size, false /* non-joinable thread */,
-                             delegate, &unused, kThreadPriority_Normal);
+                             delegate, &unused, ThreadPriority::NORMAL);
   return result;
 }
 
@@ -232,7 +223,61 @@ void PlatformThread::Join(PlatformThreadHandle thread_handle) {
   // the thread referred to by |thread_handle| may still be running long-lived /
   // blocking tasks.
   base::ThreadRestrictions::AssertIOAllowed();
-  CHECK_EQ(0, pthread_join(thread_handle.handle_, NULL));
+  CHECK_EQ(0, pthread_join(thread_handle.platform_handle(), NULL));
 }
+
+// Mac has its own Set/GetCurrentThreadPriority() implementations.
+#if !defined(OS_MACOSX)
+
+// static
+void PlatformThread::SetCurrentThreadPriority(ThreadPriority priority) {
+#if defined(OS_NACL)
+  NOTIMPLEMENTED();
+#else
+  if (internal::SetCurrentThreadPriorityForPlatform(priority))
+    return;
+
+  // setpriority(2) should change the whole thread group's (i.e. process)
+  // priority. However, as stated in the bugs section of
+  // http://man7.org/linux/man-pages/man2/getpriority.2.html: "under the current
+  // Linux/NPTL implementation of POSIX threads, the nice value is a per-thread
+  // attribute". Also, 0 is prefered to the current thread id since it is
+  // equivalent but makes sandboxing easier (https://crbug.com/399473).
+  const int nice_setting = internal::ThreadPriorityToNiceValue(priority);
+  if (setpriority(PRIO_PROCESS, 0, nice_setting)) {
+    DVPLOG(1) << "Failed to set nice value of thread ("
+              << PlatformThread::CurrentId() << ") to " << nice_setting;
+  }
+#endif  // defined(OS_NACL)
+}
+
+// static
+ThreadPriority PlatformThread::GetCurrentThreadPriority() {
+#if defined(OS_NACL)
+  NOTIMPLEMENTED();
+  return ThreadPriority::NORMAL;
+#else
+  // Mirrors SetCurrentThreadPriority()'s implementation.
+  ThreadPriority platform_specific_priority;
+  if (internal::GetCurrentThreadPriorityForPlatform(
+          &platform_specific_priority)) {
+    return platform_specific_priority;
+  }
+
+  // Need to clear errno before calling getpriority():
+  // http://man7.org/linux/man-pages/man2/getpriority.2.html
+  errno = 0;
+  int nice_value = getpriority(PRIO_PROCESS, 0);
+  if (errno != 0) {
+    DVPLOG(1) << "Failed to get nice value of thread ("
+              << PlatformThread::CurrentId() << ")";
+    return ThreadPriority::NORMAL;
+  }
+
+  return internal::NiceValueToThreadPriority(nice_value);
+#endif  // !defined(OS_NACL)
+}
+
+#endif  // !defined(OS_MACOSX)
 
 }  // namespace base

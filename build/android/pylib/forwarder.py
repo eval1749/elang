@@ -51,16 +51,10 @@ class Forwarder(object):
   _DEVICE_FORWARDER_PATH = (constants.TEST_EXECUTABLE_DIR +
                             '/forwarder/device_forwarder')
   _LOCK_PATH = '/tmp/chrome.forwarder.lock'
-  _MULTIPROCESSING_ENV_VAR = 'CHROME_FORWARDER_USE_MULTIPROCESSING'
   # Defined in host_forwarder_main.cc
   _HOST_FORWARDER_LOG = '/tmp/host_forwarder_log'
 
   _instance = None
-
-  @staticmethod
-  def UseMultiprocessing():
-    """Tells the forwarder that multiprocessing is used."""
-    os.environ[Forwarder._MULTIPROCESSING_ENV_VAR] = '1'
 
   @staticmethod
   def Map(port_pairs, device, tool=None):
@@ -80,8 +74,7 @@ class Forwarder(object):
       Exception on failure to forward the port.
     """
     # TODO(jbudorick) Remove once telemetry gets switched over.
-    if isinstance(device, pylib.android_commands.AndroidCommands):
-      device = pylib.device.device_utils.DeviceUtils(device)
+    assert not isinstance(device, pylib.android_commands.AndroidCommands)
     if not tool:
       tool = valgrind_tools.CreateTool(None, device)
     with _FileLock(Forwarder._LOCK_PATH):
@@ -130,8 +123,7 @@ class Forwarder(object):
       device_port: A previously forwarded port (through Map()).
     """
     # TODO(jbudorick) Remove once telemetry gets switched over.
-    if isinstance(device, pylib.android_commands.AndroidCommands):
-      device = pylib.device.device_utils.DeviceUtils(device)
+    assert not isinstance(device, pylib.android_commands.AndroidCommands)
     with _FileLock(Forwarder._LOCK_PATH):
       Forwarder._UnmapDevicePortLocked(device_port, device)
 
@@ -144,8 +136,7 @@ class Forwarder(object):
       port_pairs: A list of tuples (device_port, host_port) to unmap.
     """
     # TODO(jbudorick) Remove once telemetry gets switched over.
-    if isinstance(device, pylib.android_commands.AndroidCommands):
-      device = pylib.device.device_utils.DeviceUtils(device)
+    assert not isinstance(device, pylib.android_commands.AndroidCommands)
     with _FileLock(Forwarder._LOCK_PATH):
       if not Forwarder._instance:
         return
@@ -245,13 +236,10 @@ class Forwarder(object):
   def _GetPidForLock():
     """Returns the PID used for host_forwarder initialization.
 
-    In case multi-process sharding is used, the PID of the "sharder" is used.
-    The "sharder" is the initial process that forks that is the parent process.
-    By default, multi-processing is not used. In that case the PID of the
-    current process is returned.
+    The PID of the "sharder" is used to handle multiprocessing. The "sharder"
+    is the initial process that forks that is the parent process.
     """
-    use_multiprocessing = Forwarder._MULTIPROCESSING_ENV_VAR in os.environ
-    return os.getpgrp() if use_multiprocessing else os.getpid()
+    return os.getpgrp()
 
   def _InitHostLocked(self):
     """Initializes the host forwarder daemon.
@@ -297,11 +285,9 @@ class Forwarder(object):
         self._device_forwarder_path_on_host,
         Forwarder._DEVICE_FORWARDER_FOLDER)])
     cmd = '%s %s' % (tool.GetUtilWrapper(), Forwarder._DEVICE_FORWARDER_PATH)
-    (exit_code, output) = device.old_interface.GetAndroidToolStatusAndOutput(
-        cmd, lib_path=Forwarder._DEVICE_FORWARDER_FOLDER)
-    if exit_code != 0:
-      raise Exception(
-          'Failed to start device forwarder:\n%s' % '\n'.join(output))
+    device.RunShellCommand(
+        cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
+        check_return=True)
     self._initialized_devices.add(device_serial)
 
   def _KillHostLocked(self):
@@ -337,5 +323,6 @@ class Forwarder(object):
 
     cmd = '%s %s --kill-server' % (tool.GetUtilWrapper(),
                                    Forwarder._DEVICE_FORWARDER_PATH)
-    device.old_interface.GetAndroidToolStatusAndOutput(
-        cmd, lib_path=Forwarder._DEVICE_FORWARDER_FOLDER)
+    device.RunShellCommand(
+        cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
+        check_return=True)

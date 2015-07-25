@@ -13,6 +13,7 @@ file.
 
 import difflib
 import inspect
+import optparse
 import os
 import sys
 import unittest
@@ -1084,29 +1085,6 @@ class Foo {
           TestOptions())
     self.assertRaises(SyntaxError, willRaise)
 
-  def testImplicitImport(self):
-    test_data = """
-    package org.chromium.android_webview;
-
-    %(IMPORT)s
-
-    @CalledByNative
-    private static void clientCertificatesCleared(Runnable callback) {
-        if (callbaback == null) return;
-        callback.run();
-    }
-    """
-    def generate(import_clause):
-      jni_generator.JNIFromJavaSource(
-          test_data % {'IMPORT': import_clause},
-          'org/chromium/android_webview/AwContentStatics',
-          TestOptions())
-    # Ensure it raises without the import.
-    self.assertRaises(SyntaxError, lambda: generate(''))
-
-    # Ensure it's fine with the import.
-    generate('import java.lang.Runnable;')
-
   def testSingleJNIAdditionalImport(self):
     test_data = """
     package org.chromium.foo;
@@ -1148,5 +1126,27 @@ class Foo {
     self.assertGoldenTextEquals(jni_from_java.GetContent())
 
 
+def TouchStamp(stamp_path):
+  dir_name = os.path.dirname(stamp_path)
+  if not os.path.isdir(dir_name):
+    os.makedirs()
+
+  with open(stamp_path, 'a'):
+    os.utime(stamp_path, None)
+
+
+def main(argv):
+  parser = optparse.OptionParser()
+  parser.add_option('--stamp', help='Path to touch on success.')
+  options, _ = parser.parse_args(argv[1:])
+
+  test_result = unittest.main(argv=argv[0:1], exit=False)
+
+  if test_result.result.wasSuccessful() and options.stamp:
+    TouchStamp(options.stamp)
+
+  return not test_result.result.wasSuccessful()
+
+
 if __name__ == '__main__':
-  unittest.main()
+  sys.exit(main(sys.argv))

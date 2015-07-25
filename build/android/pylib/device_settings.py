@@ -29,16 +29,6 @@ def ConfigureContentSettings(device, desired_settings):
     desired_settings: A list of (table, [(key: value), ...]) for all
         settings to configure.
   """
-  try:
-    sdk_version = device.build_version_sdk
-  except device_errors.CommandFailedError as exc:
-    logging.error('Skipping content settings configuration: %s', str(exc))
-    return
-
-  if sdk_version < constants.ANDROID_SDK_VERSION_CODES.JELLY_BEAN:
-    logging.error('Skipping content settings configuration due to outdated sdk')
-    return
-
   if device.build_type == 'userdebug':
     for table, key_value in desired_settings:
       settings = content_settings.ContentSettings(table, device)
@@ -134,6 +124,18 @@ DISABLE_LOCATION_SETTINGS = [
   ('settings/secure', [
     # Ensure Geolocation is disabled.
     ('location_providers_allowed', ''),
+  ]),
+]
+
+ENABLE_MOCK_LOCATION_SETTINGS = [
+  ('settings/secure', [
+    ('mock_location', 1),
+  ]),
+]
+
+DISABLE_MOCK_LOCATION_SETTINGS = [
+  ('settings/secure', [
+    ('mock_location', 0),
   ]),
 ]
 

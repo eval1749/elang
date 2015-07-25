@@ -44,6 +44,7 @@ def CallJavap(classpath, classes):
       # -verbose is required to get constant values (which can be inlined in
       # dependents).
       '-verbose',
+      '-J-XX:NewSize=4m',
       '-classpath', classpath
       ] + classes
   return build_utils.CheckOutput(javap_cmd)
@@ -72,8 +73,10 @@ def ExtractToc(disassembled_classes):
 
 def UpdateToc(jar_path, toc_path):
   classes = GetClassesInZipFile(zipfile.ZipFile(jar_path))
-  javap_output = CallJavap(classpath=jar_path, classes=classes)
-  toc = ExtractToc(javap_output)
+  toc = ''
+  if len(classes) != 0:
+    javap_output = CallJavap(classpath=jar_path, classes=classes)
+    toc = ExtractToc(javap_output)
 
   with open(toc_path, 'w') as tocfile:
     tocfile.write(toc)

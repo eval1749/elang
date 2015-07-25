@@ -59,13 +59,18 @@ char kLSanDefaultSuppressions[] =
 "leak:WTF::StringImpl::createUninitialized\n"
 "leak:WTF::StringImpl::create8BitIfPossible\n"
 "leak:blink::MouseEvent::create\n"
-"leak:blink::WindowProxy::initializeIfNeeded\n"
 "leak:blink::*::*GetterCallback\n"
 "leak:blink::CSSComputedStyleDeclaration::create\n"
 "leak:blink::V8PerIsolateData::ensureDomInJSContext\n"
 "leak:gin/object_template_builder.h\n"
 "leak:gin::internal::Dispatcher\n"
 "leak:blink::LocalDOMWindow::getComputedStyle\n"
+// This should really be RemoteDOMWindow::create, but symbolization is
+// weird in release builds. https://crbug.com/484760
+"leak:blink::RemoteFrame::create\n"
+// Likewise, this should really be blink::WindowProxy::initializeIfNeeded.
+// https://crbug.com/484760
+"leak:blink::WindowProxy::createContext\n"
 
 // http://crbug.com/356785
 "leak:content::RenderViewImplTest_DecideNavigationPolicyForWebUI_Test::TestBody\n"
@@ -91,6 +96,9 @@ char kLSanDefaultSuppressions[] =
 
 // http://crbug.com/356306
 "leak:content::SetProcessTitleFromCommandLine\n"
+
+// http://crbug.com/506433
+"leak:blink::ResourceFetcher::garbageCollectDocumentResources\n"
 
 // PLEASE READ ABOVE BEFORE ADDING NEW SUPPRESSIONS.
 

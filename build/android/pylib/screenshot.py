@@ -2,11 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
-import signal
 import tempfile
+import time
 
 from pylib import cmd_helper
+from pylib import device_signal
+from pylib.device import device_errors
 
 # TODO(jbudorick) Remove once telemetry gets switched over.
 import pylib.android_commands
@@ -28,8 +31,7 @@ class VideoRecorder(object):
   def __init__(self, device, megabits_per_second=4, size=None,
                rotate=False):
     # TODO(jbudorick) Remove once telemetry gets switched over.
-    if isinstance(device, pylib.android_commands.AndroidCommands):
-      device = pylib.device.device_utils.DeviceUtils(device)
+    assert not isinstance(device, pylib.android_commands.AndroidCommands)
     self._device = device
     self._device_file = (
         '%s/screen-recording.mp4' % device.GetExternalStoragePath())
@@ -71,7 +73,9 @@ class VideoRecorder(object):
     self._is_started = False
     if not self._recorder:
       return
-    self._device.KillAll('screenrecord', signum=signal.SIGINT)
+    if not self._device.KillAll('screenrecord', signum=device_signal.SIGINT,
+                                quiet=True):
+      logging.warning('Nothing to kill: screenrecord was not running')
     self._recorder.wait()
 
   def Pull(self, host_file=None):
@@ -82,10 +86,13 @@ class VideoRecorder(object):
     Returns:
       Output video file name on the host.
     """
-    host_file_name = host_file or ('screen-recording-%s.mp4' %
-                                   self._device.old_interface.GetTimestamp())
+    # TODO(jbudorick): Merge filename generation with the logic for doing so in
+    # DeviceUtils.
+    host_file_name = (
+        host_file
+        or 'screen-recording-%s.mp4' % time.strftime('%Y%m%dT%H%M%S',
+                                                     time.localtime()))
     host_file_name = os.path.abspath(host_file_name)
-    self._device.old_interface.EnsureHostDirectory(host_file_name)
     self._device.PullFile(self._device_file, host_file_name)
     self._device.RunShellCommand('rm -f "%s"' % self._device_file)
     return host_file_name

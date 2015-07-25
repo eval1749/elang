@@ -8,6 +8,6 @@ echo //
 echo // Current directory is %CD%
 echo // Generating *.ninja into %outdir%
 echo //
-cd src
+if exist src cd src
 call gn gen %outdir% --args="is_component_build=true"
 endlocal

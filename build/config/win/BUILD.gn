@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/sanitizers/sanitizers.gni")
 import("//build/config/win/visual_studio_version.gni")
 
 # Compiler setup for the Windows SDK. Applied to all targets.
@@ -17,6 +18,9 @@ config("sdk") {
     "PSAPI_VERSION=1",
     "WIN32",
     "_SECURE_ATL",
+
+    # This is required for ATL to use XP-safe versions of its functions.
+    "_USING_V110_SDK71_",
   ]
 }
 
@@ -48,7 +52,7 @@ config("sdk_link") {
       "$visual_studio_path\VC\lib",
       "$visual_studio_path\VC\atlmfc\lib",
     ]
-    if (!is_asan) {
+    if (!is_syzyasan) {
       ldflags += [ "/largeaddressaware" ]
     }
   }
@@ -94,20 +98,58 @@ config("common_linker_setup") {
 
 # Subsystem --------------------------------------------------------------------
 
+# This is appended to the subsystem to specify a minimum version.
+if (current_cpu == "x64") {
+  # The number after the comma is the minimum required OS version.
+  # 5.02 = Windows Server 2003.
+  subsystem_version_suffix = ",5.02"
+} else {
+  # 5.01 = Windows XP.
+  subsystem_version_suffix = ",5.01"
+}
+
 config("console") {
-  ldflags = [ "/SUBSYSTEM:CONSOLE" ]
+  ldflags = [ "/SUBSYSTEM:CONSOLE$subsystem_version_suffix" ]
 }
 config("windowed") {
-  ldflags = [ "/SUBSYSTEM:WINDOWS" ]
+  ldflags = [ "/SUBSYSTEM:WINDOWS$subsystem_version_suffix" ]
 }
 
 # Incremental linking ----------------------------------------------------------
 
+incremental_linking_on_switch = [ "/INCREMENTAL" ]
+incremental_linking_off_switch = [ "/INCREMENTAL:NO" ]
+if (is_debug) {
+  default_incremental_linking_switch = incremental_linking_on_switch
+} else {
+  default_incremental_linking_switch = incremental_linking_off_switch
+}
+
+# Applies incremental linking or not depending on the current configuration.
+config("default_incremental_linking") {
+  ldflags = default_incremental_linking_switch
+}
+
+# Explicitly on or off incremental linking
 config("incremental_linking") {
-  ldflags = [ "/INCREMENTAL" ]
+  ldflags = incremental_linking_on_switch
 }
 config("no_incremental_linking") {
-  ldflags = [ "/INCREMENTAL:NO" ]
+  ldflags = incremental_linking_off_switch
+}
+
+# Some large modules can't handle incremental linking in some situations. This
+# config should be applied to large modules to turn off incremental linking
+# when it won't work.
+config("default_large_module_incremental_linking") {
+  if (symbol_level > 0 && (current_cpu == "x86" || !is_component_build)) {
+    # When symbols are on, things get so large that the tools fail due to the
+    # size of the .ilk files.
+    ldflags = incremental_linking_off_switch
+  } else {
+    # Otherwise just do the default incremental linking for this build type.
+    ldflags = default_incremental_linking_switch
+  }
 }
 
 # Character set ----------------------------------------------------------------

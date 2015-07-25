@@ -4,14 +4,6 @@
 
 {
   'variables': {
-    'conditions': [
-      ['sysroot!=""', {
-        'pkg-config': '<(chroot_cmd) ./pkg-config-wrapper "<(sysroot)" "<(target_arch)" "<(system_libdir)"',
-      }, {
-        'pkg-config': 'pkg-config',
-      }],
-    ],
-
     # If any of the linux_link_FOO below are set to 1, then the corresponding
     # target will be linked against the FOO library (either dynamically or
     # statically, depending on the pkg-config files), as opposed to loading the
@@ -63,6 +55,7 @@
       'udev_device_get_sysname',
       'udev_device_get_syspath',
       'udev_device_new_from_devnum',
+      'udev_device_new_from_subsystem_sysname',
       'udev_device_new_from_syspath',
       'udev_device_unref',
       'udev_enumerate_add_match_subsystem',
@@ -89,6 +82,30 @@
       # Hide GTK and related dependencies for Chrome OS and Ozone, so they won't get
       # added back to Chrome OS and Ozone. Don't try to use GTK on Chrome OS and Ozone.
       'targets': [
+        {
+          'target_name': 'atk',
+          'type': 'none',
+          'conditions': [
+            ['_toolset=="target"', {
+              'direct_dependent_settings': {
+                'cflags': [
+                  '<!@(<(pkg-config) --cflags atk)',
+                ],
+                'defines': [
+                  'ATK_LIB_DIR="<!@(<(pkg-config) --variable=libdir atk)"',
+                ],
+              },
+              'link_settings': {
+                'ldflags': [
+                  '<!@(<(pkg-config) --libs-only-L --libs-only-other atk)',
+                ],
+                'libraries': [
+                  '<!@(<(pkg-config) --libs-only-l atk)',
+                ],
+              },
+            }],
+          ],
+        },
         {
           'target_name': 'gdk',
           'type': 'none',
@@ -507,7 +524,7 @@
         },
       ],
     }],
-    ['ozone_platform_dri==1 or ozone_platform_gbm==1', {
+    ['ozone_platform_drm==1 or ozone_platform_gbm==1', {
       'targets': [
         {
           'target_name': 'libdrm',
@@ -1099,6 +1116,7 @@
                      'spd_set_synthesis_voice',
                      'spd_list_modules',
                      'spd_set_output_module',
+                     'spd_set_language',
           ],
           'message': 'Generating libspeechd library loader',
           'process_outputs_as_sources': 1,
@@ -1155,8 +1173,7 @@
               'dependencies': [
                 '../../third_party/boringssl/boringssl.gyp:boringssl',
               ],
-            }],
-            ['use_openssl==0', {
+            }, {
               'dependencies': [
                 '../../net/third_party/nss/ssl.gyp:libssl',
               ],
@@ -1166,6 +1183,13 @@
                   # before other includes, as we are shadowing system headers.
                   '<(DEPTH)/net/third_party/nss/ssl',
                 ],
+              },
+            }],
+            # Link in the system NSS if it is used for either the internal
+            # crypto library (use_openssl==0) or platform certificate
+            # library (use_nss_certs==1).
+            ['use_openssl==0 or use_nss_certs==1', {
+              'direct_dependent_settings': {
                 'cflags': [
                   '<!@(<(pkg-config) --cflags nss)',
                 ],
@@ -1178,15 +1202,17 @@
                   '<!@(<(pkg-config) --libs-only-l nss | sed -e "s/-lssl3//")',
                 ],
               },
-            }],
-            ['use_openssl==0 and clang==1', {
-              'direct_dependent_settings': {
-                'cflags': [
-                  # There is a broken header guard in /usr/include/nss/secmod.h:
-                  # https://bugzilla.mozilla.org/show_bug.cgi?id=884072
-                  '-Wno-header-guard',
-                ],
-              },
+              'conditions': [
+                ['clang==1', {
+                  'direct_dependent_settings': {
+                    'cflags': [
+                      # There is a broken header guard in /usr/include/nss/secmod.h:
+                      # https://bugzilla.mozilla.org/show_bug.cgi?id=884072
+                      '-Wno-header-guard',
+                    ],
+                  },
+                }],
+              ],
             }],
           ]
         }],

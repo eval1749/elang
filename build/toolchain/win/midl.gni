@@ -16,6 +16,7 @@ import("//build/config/win/visual_studio_version.gni")
 #   out_dir (optional)
 #       Directory to write the generated files to. Defaults to target_gen_dir.
 #
+#   deps (optional)
 #   visibility (optional)
 
 template("midl") {
@@ -82,6 +83,10 @@ template("midl") {
       idl_target_platform,
       "/Oicf",
     ]
+
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
   }
 
   source_set(target_name) {
@@ -93,8 +98,16 @@ template("midl") {
     sources = process_file_template(invoker.sources,
                                     [ "$out_dir/$interface_identifier_file" ])
 
-    deps = [
+    public_deps = [
       ":$action_name",
     ]
+
+    config("midl_warnings") {
+      if (is_clang) {
+        # MIDL generates code like "#endif !_MIDL_USE_GUIDDEF_"
+        cflags = [ "-Wno-extra-tokens" ]
+      }
+    }
+    configs += [ ":midl_warnings" ]
   }
 }

@@ -12,6 +12,7 @@ import collections
 import errno
 import logging
 import os
+import re
 
 from pylib import cmd_helper
 from pylib import constants
@@ -22,6 +23,10 @@ from pylib.utils import timeout_retry
 
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 2
+
+_EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
+
+_READY_STATE = 'device'
 
 
 def _VerifyLocalFileExists(path):
@@ -158,12 +163,20 @@ class AdbWrapper(object):
     cls._RunAdbCmd(['start-server'], timeout=timeout, retries=retries,
                    cpu_affinity=0)
 
-  # TODO(craigdh): Determine the filter criteria that should be supported.
   @classmethod
   def GetDevices(cls, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
+    """DEPRECATED. Refer to Devices(...) below."""
+    # TODO(jbudorick): Remove this function once no more clients are using it.
+    return cls.Devices(timeout=timeout, retries=retries)
+
+  @classmethod
+  def Devices(cls, is_ready=True, timeout=_DEFAULT_TIMEOUT,
+              retries=_DEFAULT_RETRIES):
     """Get the list of active attached devices.
 
     Args:
+      is_ready: Whether the devices should be limited to only those that are
+        ready for use.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
 
@@ -171,9 +184,9 @@ class AdbWrapper(object):
       AdbWrapper instances.
     """
     output = cls._RunAdbCmd(['devices'], timeout=timeout, retries=retries)
-    lines = [line.split() for line in output.splitlines()]
+    lines = (line.split() for line in output.splitlines())
     return [AdbWrapper(line[0]) for line in lines
-            if len(line) == 2 and line[1] == 'device']
+            if len(line) == 2 and (not is_ready or line[1] == _READY_STATE)]
 
   def GetDeviceSerial(self):
     """Gets the device serial number associated with this object.
@@ -300,7 +313,8 @@ class AdbWrapper(object):
           device_serial=self._device_serial)
 
   def Logcat(self, clear=False, dump=False, filter_specs=None,
-             logcat_format=None, timeout=None, retries=_DEFAULT_RETRIES):
+             logcat_format=None, ring_buffer=None, timeout=None,
+             retries=_DEFAULT_RETRIES):
     """Get an iterable over the logcat output.
 
     Args:
@@ -310,6 +324,9 @@ class AdbWrapper(object):
       logcat_format: If set, the format in which the logcat should be output.
         Options include "brief", "process", "tag", "thread", "raw", "time",
         "threadtime", and "long"
+      ring_buffer: If set, a list of alternate ring buffers to request.
+        Options include "main", "system", "radio", "events", "crash" or "all".
+        The default is equivalent to ["main", "system", "crash"].
       timeout: (optional) If set, timeout per try in seconds. If clear or dump
         is set, defaults to _DEFAULT_TIMEOUT.
       retries: (optional) If clear or dump is set, the number of retries to
@@ -328,6 +345,9 @@ class AdbWrapper(object):
       use_iter = False
     if logcat_format:
       cmd.extend(['-v', logcat_format])
+    if ring_buffer:
+      for buffer_name in ring_buffer:
+        cmd.extend(['-b', buffer_name])
     if filter_specs:
       cmd.extend(filter_specs)
 
@@ -397,6 +417,40 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
+  def InstallMultiple(self, apk_paths, forward_lock=False, reinstall=False,
+                      sd_card=False, allow_downgrade=False, partial=False,
+                      timeout=60*2, retries=_DEFAULT_RETRIES):
+    """Install an apk with splits on the device.
+
+    Args:
+      apk_paths: Host path to the APK file.
+      forward_lock: (optional) If set forward-locks the app.
+      reinstall: (optional) If set reinstalls the app, keeping its data.
+      sd_card: (optional) If set installs on the SD card.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+      allow_downgrade: (optional) Allow versionCode downgrade.
+      partial: (optional) Package ID if apk_paths doesn't include all .apks.
+    """
+    for path in apk_paths:
+      _VerifyLocalFileExists(path)
+    cmd = ['install-multiple']
+    if forward_lock:
+      cmd.append('-l')
+    if reinstall:
+      cmd.append('-r')
+    if sd_card:
+      cmd.append('-s')
+    if allow_downgrade:
+      cmd.append('-d')
+    if partial:
+      cmd.extend(('-p', partial))
+    cmd.extend(apk_paths)
+    output = self._RunDeviceAdbCmd(cmd, timeout, retries)
+    if 'Success' not in output:
+      raise device_errors.AdbCommandFailedError(
+          cmd, output, device_serial=self._device_serial)
+
   def Uninstall(self, package, keep_data=False, timeout=_DEFAULT_TIMEOUT,
                 retries=_DEFAULT_RETRIES):
     """Remove the app |package| from the device.
@@ -432,7 +486,7 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    cmd = ['backup', path]
+    cmd = ['backup', '-f', path]
     if apk:
       cmd.append('-apk')
     if shared:
@@ -523,3 +577,32 @@ class AdbWrapper(object):
     if 'cannot' in output:
       raise device_errors.AdbCommandFailedError(
           ['root'], output, device_serial=self._device_serial)
+
+  def Emu(self, cmd, timeout=_DEFAULT_TIMEOUT,
+               retries=_DEFAULT_RETRIES):
+    """Runs an emulator console command.
+
+    See http://developer.android.com/tools/devices/emulator.html#console
+
+    Args:
+      cmd: The command to run on the emulator console.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+
+    Returns:
+      The output of the emulator console command.
+    """
+    if isinstance(cmd, basestring):
+      cmd = [cmd]
+    return self._RunDeviceAdbCmd(['emu'] + cmd, timeout, retries)
+
+  @property
+  def is_emulator(self):
+    return _EMULATOR_RE.match(self._device_serial)
+
+  @property
+  def is_ready(self):
+    try:
+      return self.GetState() == _READY_STATE
+    except device_errors.CommandFailedError:
+      return False

@@ -18,7 +18,6 @@ import bb_annotations
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import provision_devices
-from pylib import android_commands
 from pylib import constants
 from pylib.device import device_utils
 from pylib.gtest import gtest_config
@@ -94,9 +93,22 @@ INSTALLABLE_PACKAGES = dict((package.name, package) for package in (
                         'ChromeDriverWebViewShell.apk',
                         'org.chromium.chromedriver_webview_shell')]))
 
-VALID_TESTS = set(['chromedriver', 'chrome_proxy', 'gpu',
-                   'telemetry_unittests', 'telemetry_perf_unittests', 'ui',
-                   'unit', 'webkit', 'webkit_layout', 'python_unittests'])
+VALID_TESTS = set([
+    'base_junit_tests',
+    'chromedriver',
+    'chrome_proxy',
+    'components_browsertests',
+    'gfx_unittests',
+    'gl_unittests',
+    'gpu',
+    'python_unittests',
+    'telemetry_unittests',
+    'telemetry_perf_unittests',
+    'ui',
+    'unit',
+    'webkit',
+    'webkit_layout'
+])
 
 RunCmd = bb_utils.RunCmd
 
@@ -172,9 +184,14 @@ def RunTestSuites(options, suites, suites_options=None):
     bb_annotations.PrintNamedStep(suite)
     cmd = [suite] + args
     cmd += suites_options.get(suite, [])
-    if suite == 'content_browsertests':
+    if suite == 'content_browsertests' or suite == 'components_browsertests':
       cmd.append('--num_retries=1')
     _RunTest(options, cmd, suite)
+
+
+def RunJunitSuite(suite):
+  bb_annotations.PrintNamedStep(suite)
+  RunCmd(['build/android/test_runner.py', 'junit', '-s', suite])
 
 
 def RunChromeDriverTests(options):
@@ -197,9 +214,9 @@ def RunChromeProxyTests(options):
   """
   InstallApk(options, INSTRUMENTATION_TESTS['ChromeShell'], False)
   args = ['--browser', 'android-chrome-shell']
-  devices = android_commands.GetAttachedDevices()
+  devices = device_utils.DeviceUtils.HealthyDevices()
   if devices:
-    args = args + ['--device', devices[0]]
+    args = args + ['--device', devices[0].adb.GetDeviceSerial()]
   bb_annotations.PrintNamedStep('chrome_proxy')
   RunCmd(['tools/chrome_proxy/run_tests'] + args)
 
@@ -216,9 +233,9 @@ def RunTelemetryTests(options, step_name, run_tests_path):
   """
   InstallApk(options, INSTRUMENTATION_TESTS['ChromeShell'], False)
   args = ['--browser', 'android-chrome-shell']
-  devices = android_commands.GetAttachedDevices()
+  devices = device_utils.DeviceUtils.HealthyDevices()
   if devices:
-    args = args + ['--device', devices[0]]
+    args = args + ['--device', 'android']
   bb_annotations.PrintNamedStep(step_name)
   RunCmd([run_tests_path] + args)
 
@@ -315,7 +332,7 @@ def RunWebkitLayoutTests(options):
       '--build-name', options.build_properties.get('buildername', ''),
       '--platform=android']
 
-  for flag in 'test_results_server', 'driver_name', 'additional_drt_flag':
+  for flag in 'test_results_server', 'driver_name', 'additional_driver_flag':
     if flag in options.factory_properties:
       cmd_args.extend(['--%s' % flag.replace('_', '-'),
                        options.factory_properties.get(flag)])
@@ -466,6 +483,8 @@ def ProvisionDevices(options):
     provision_cmd.append('--auto-reconnect')
   if options.skip_wipe:
     provision_cmd.append('--skip-wipe')
+  if options.disable_location:
+    provision_cmd.append('--disable-location')
   RunCmd(provision_cmd, halt_on_failure=True)
 
 
@@ -516,7 +535,7 @@ def RunGPUTests(options):
 
   bb_annotations.PrintNamedStep('pixel_tests')
   RunCmd(['content/test/gpu/run_gpu_test.py',
-          'pixel',
+          'pixel', '-v',
           '--browser',
           'android-content-shell',
           '--build-revision',
@@ -530,13 +549,18 @@ def RunGPUTests(options):
           EscapeBuilderName(builder_name)])
 
   bb_annotations.PrintNamedStep('webgl_conformance_tests')
-  RunCmd(['content/test/gpu/run_gpu_test.py',
+  RunCmd(['content/test/gpu/run_gpu_test.py', '-v',
           '--browser=android-content-shell', 'webgl_conformance',
+          '--webgl-conformance-version=1.0.1'])
+
+  bb_annotations.PrintNamedStep('android_webview_webgl_conformance_tests')
+  RunCmd(['content/test/gpu/run_gpu_test.py', '-v',
+          '--browser=android-webview-shell', 'webgl_conformance',
           '--webgl-conformance-version=1.0.1'])
 
   bb_annotations.PrintNamedStep('gpu_rasterization_tests')
   RunCmd(['content/test/gpu/run_gpu_test.py',
-          'gpu_rasterization',
+          'gpu_rasterization', '-v',
           '--browser',
           'android-content-shell',
           '--build-revision',
@@ -553,8 +577,16 @@ def RunPythonUnitTests(_options):
 
 def GetTestStepCmds():
   return [
+      ('base_junit_tests',
+          lambda _options: RunJunitSuite('base_junit_tests')),
       ('chromedriver', RunChromeDriverTests),
       ('chrome_proxy', RunChromeProxyTests),
+      ('components_browsertests',
+          lambda options: RunTestSuites(options, ['components_browsertests'])),
+      ('gfx_unittests',
+          lambda options: RunTestSuites(options, ['gfx_unittests'])),
+      ('gl_unittests',
+          lambda options: RunTestSuites(options, ['gl_unittests'])),
       ('gpu', RunGPUTests),
       ('python_unittests', RunPythonUnitTests),
       ('telemetry_unittests', RunTelemetryUnitTests),
@@ -713,6 +745,8 @@ def GetDeviceStepsOptParser():
       help='Push script to device which restarts adbd on disconnections.')
   parser.add_option('--skip-wipe', action='store_true',
                     help='Do not wipe devices during provisioning.')
+  parser.add_option('--disable-location', action='store_true',
+                    help='Disable location settings.')
   parser.add_option(
       '--logcat-dump-output',
       help='The logcat dump output will be "tee"-ed into this file')

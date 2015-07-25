@@ -117,14 +117,19 @@ def GetBotStepMap():
   compile_step = ['compile']
   chrome_proxy_tests = ['chrome_proxy']
   python_unittests = ['python_unittests']
-  std_host_tests = ['check_webview_licenses', 'findbugs']
-  emma_coverage_tests = [x for x in std_host_tests if x is not 'findbugs']
+  std_host_tests = ['check_webview_licenses']
   std_build_steps = ['compile', 'zip_build']
   std_test_steps = ['extract_build']
   std_tests = ['ui', 'unit']
   telemetry_tests = ['telemetry_perf_unittests']
   telemetry_tests_user_build = ['telemetry_unittests',
                                 'telemetry_perf_unittests']
+  trial_tests = [
+      'base_junit_tests',
+      'components_browsertests',
+      'gfx_unittests',
+      'gl_unittests',
+  ]
   flakiness_server = (
       '--flakiness-server=%s' % constants.UPSTREAM_FLAKINESS_SERVER)
   experimental = ['--experimental']
@@ -160,11 +165,11 @@ def GetBotStepMap():
       B('chromedriver-fyi-tests-dbg', H(std_test_steps),
         T(['chromedriver'],
           ['--install=ChromeShell', '--install=ChromeDriverWebViewShell',
-           '--skip-wipe', '--cleanup'])),
+           '--skip-wipe', '--disable-location', '--cleanup'])),
       B('fyi-x86-builder-dbg',
         H(compile_step + std_host_tests, experimental, target_arch='ia32')),
       B('fyi-builder-dbg',
-        H(std_build_steps + emma_coverage_tests, experimental,
+        H(std_build_steps + std_host_tests, experimental,
           extra_gyp='emma_coverage=1')),
       B('x86-builder-dbg',
         H(compile_step + std_host_tests, target_arch='ia32')),
@@ -175,7 +180,7 @@ def GetBotStepMap():
                       '--coverage-bucket', CHROMIUM_COVERAGE_BUCKET,
                       '--cleanup'])),
       B('user-build-fyi-tests-dbg', H(std_test_steps),
-        T(telemetry_tests_user_build)),
+        T(sorted(telemetry_tests_user_build + trial_tests))),
       B('fyi-component-builder-tests-dbg',
         H(compile_step, extra_gyp='component=shared_library'),
         T(std_tests, ['--experimental', flakiness_server])),

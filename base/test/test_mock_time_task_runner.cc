@@ -67,15 +67,55 @@ Time MockClock::Now() {
 
 }  // namespace
 
+// TestMockTimeTaskRunner::TestOrderedPendingTask -----------------------------
+
+// Subclass of TestPendingTask which has a strictly monotonically increasing ID
+// for every task, so that tasks posted with the same 'time to run' can be run
+// in the order of being posted.
+struct TestMockTimeTaskRunner::TestOrderedPendingTask
+    : public base::TestPendingTask {
+  TestOrderedPendingTask();
+  TestOrderedPendingTask(const tracked_objects::Location& location,
+                         const Closure& task,
+                         TimeTicks post_time,
+                         TimeDelta delay,
+                         size_t ordinal,
+                         TestNestability nestability);
+  ~TestOrderedPendingTask();
+
+  size_t ordinal;
+};
+
+TestMockTimeTaskRunner::TestOrderedPendingTask::TestOrderedPendingTask()
+    : ordinal(0) {
+}
+
+TestMockTimeTaskRunner::TestOrderedPendingTask::TestOrderedPendingTask(
+    const tracked_objects::Location& location,
+    const Closure& task,
+    TimeTicks post_time,
+    TimeDelta delay,
+    size_t ordinal,
+    TestNestability nestability)
+    : base::TestPendingTask(location, task, post_time, delay, nestability),
+      ordinal(ordinal) {
+}
+
+TestMockTimeTaskRunner::TestOrderedPendingTask::~TestOrderedPendingTask() {
+}
+
 // TestMockTimeTaskRunner -----------------------------------------------------
 
 bool TestMockTimeTaskRunner::TemporalOrder::operator()(
-    const TestPendingTask& first_task,
-    const TestPendingTask& second_task) const {
+    const TestOrderedPendingTask& first_task,
+    const TestOrderedPendingTask& second_task) const {
+  if (first_task.GetTimeToRun() == second_task.GetTimeToRun())
+    return first_task.ordinal > second_task.ordinal;
   return first_task.GetTimeToRun() > second_task.GetTimeToRun();
 }
 
-TestMockTimeTaskRunner::TestMockTimeTaskRunner() : now_(Time::UnixEpoch()) {
+TestMockTimeTaskRunner::TestMockTimeTaskRunner()
+    : now_(Time::UnixEpoch()), next_task_ordinal_(0) {
 }
 
 TestMockTimeTaskRunner::~TestMockTimeTaskRunner() {
@@ -98,6 +138,13 @@ void TestMockTimeTaskRunner::RunUntilIdle() {
 void TestMockTimeTaskRunner::FastForwardUntilNoTasksRemain() {
   DCHECK(thread_checker_.CalledOnValidThread());
   ProcessAllTasksNoLaterThan(TimeDelta::Max());
+}
+
+void TestMockTimeTaskRunner::ClearPendingTasks() {
+  DCHECK(thread_checker_.CalledOnValidThread());
+  AutoLock scoped_lock(tasks_lock_);
+  while (!tasks_.empty())
+    tasks_.pop();
 }
 
 Time TestMockTimeTaskRunner::Now() const {
@@ -145,8 +192,9 @@ bool TestMockTimeTaskRunner::PostDelayedTask(
     const Closure& task,
     TimeDelta delay) {
   AutoLock scoped_lock(tasks_lock_);
-  tasks_.push(TestPendingTask(from_here, task, now_ticks_, delay,
-                              TestPendingTask::NESTABLE));
+  tasks_.push(TestOrderedPendingTask(from_here, task, now_ticks_, delay,
+                                     next_task_ordinal_++,
+                                     TestPendingTask::NESTABLE));
   return true;
 }
 
@@ -155,6 +203,10 @@ bool TestMockTimeTaskRunner::PostNonNestableDelayedTask(
     const Closure& task,
     TimeDelta delay) {
   return PostDelayedTask(from_here, task, delay);
+}
+
+bool TestMockTimeTaskRunner::IsElapsingStopped() {
+  return false;
 }
 
 void TestMockTimeTaskRunner::OnBeforeSelectingTask() {
@@ -172,7 +224,7 @@ void TestMockTimeTaskRunner::OnAfterTaskRun() {
 void TestMockTimeTaskRunner::ProcessAllTasksNoLaterThan(TimeDelta max_delta) {
   DCHECK_GE(max_delta, TimeDelta());
   const TimeTicks original_now_ticks = now_ticks_;
-  while (true) {
+  while (!IsElapsingStopped()) {
     OnBeforeSelectingTask();
     TestPendingTask task_info;
     if (!DequeueNextTask(original_now_ticks, max_delta, &task_info))

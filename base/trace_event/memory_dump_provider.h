@@ -16,17 +16,17 @@ class ProcessMemoryDump;
 // The contract interface that memory dump providers must implement.
 class BASE_EXPORT MemoryDumpProvider {
  public:
-  // Called by the MemoryDumpManager when generating dump points.
-  // Returns: true if the |pmd| was successfully populated, false otherwise.
-  virtual bool DumpInto(ProcessMemoryDump* pmd) = 0;
-
-  virtual const char* GetFriendlyName() const = 0;
+  // Called by the MemoryDumpManager when generating memory dumps.
+  // The embedder should return true if the |pmd| was successfully populated,
+  // false if something went wrong and the dump should be considered invalid.
+  // (Note, the MemoryDumpManager has a fail-safe logic which will disable the
+  // MemoryDumpProvider for the entire trace session if it fails consistently).
+  virtual bool OnMemoryDump(ProcessMemoryDump* pmd) = 0;
 
  protected:
   MemoryDumpProvider() {}
   virtual ~MemoryDumpProvider() {}
 
- private:
   DISALLOW_COPY_AND_ASSIGN(MemoryDumpProvider);
 };
 

@@ -5,8 +5,10 @@
 """Defines TestPackageApk to help run APK-based native tests."""
 # pylint: disable=W0212
 
+import itertools
 import logging
 import os
+import posixpath
 import shlex
 import sys
 import tempfile
@@ -18,6 +20,7 @@ from pylib import pexpect
 from pylib.device import device_errors
 from pylib.device import intent
 from pylib.gtest import gtest_test_instance
+from pylib.gtest import local_device_gtest_run
 from pylib.gtest.test_package import TestPackage
 
 
@@ -30,15 +33,20 @@ class TestPackageApk(TestPackage):
       suite_name: Name of the test suite (e.g. base_unittests).
     """
     TestPackage.__init__(self, suite_name)
+    self.suite_path = os.path.join(
+        constants.GetOutDirectory(), '%s_apk' % suite_name,
+        '%s-debug.apk' % suite_name)
     if suite_name == 'content_browsertests':
-      self.suite_path = os.path.join(
-          constants.GetOutDirectory(), 'apks', '%s.apk' % suite_name)
       self._package_info = constants.PACKAGE_INFO['content_browsertests']
+    elif suite_name == 'components_browsertests':
+      self._package_info = constants.PACKAGE_INFO['components_browsertests']
     else:
-      self.suite_path = os.path.join(
-          constants.GetOutDirectory(), '%s_apk' % suite_name,
-          '%s-debug.apk' % suite_name)
       self._package_info = constants.PACKAGE_INFO['gtest']
+
+    if suite_name == 'net_unittests':
+      self._extras = {'RunInSubThread': ''}
+    else:
+      self._extras = []
 
   def _CreateCommandLineFileOnDevice(self, device, options):
     device.WriteFile(self._package_info.cmdline_file,
@@ -46,8 +54,8 @@ class TestPackageApk(TestPackage):
 
   def _GetFifo(self):
     # The test.fifo path is determined by:
-    # testing/android/java/src/org/chromium/native_test/
-    #     ChromeNativeTestActivity.java and
+    # testing/android/native_test/java/src/org/chromium/native_test/
+    #     NativeTestActivity.java and
     # testing/android/native_test_launcher.cc
     return '/data/data/' + self._package_info.package + '/files/test.fifo'
 
@@ -71,7 +79,8 @@ class TestPackageApk(TestPackage):
     device.StartActivity(
         intent.Intent(package=self._package_info.package,
                       activity=self._package_info.activity,
-                      action='android.intent.action.MAIN'),
+                      action='android.intent.action.MAIN',
+                      extras=self._extras),
         # No wait since the runner waits for FIFO creation anyway.
         blocking=False,
         force_stop=force_stop)
@@ -85,6 +94,15 @@ class TestPackageApk(TestPackage):
       try:
         device.RunShellCommand(
             'rm -r %s/content_shell' % device.GetExternalStoragePath(),
+            timeout=60 * 2)
+      except device_errors.CommandFailedError:
+        # TODO(jbudorick) Handle this exception appropriately once the
+        #                 conversions are done.
+        pass
+    elif self.suite_name == 'components_browsertests':
+      try:
+        device.RunShellCommand(
+            'rm -r %s/components_shell' % device.GetExternalStoragePath(),
             timeout=60 * 2)
       except device_errors.CommandFailedError:
         # TODO(jbudorick) Handle this exception appropriately once the
@@ -132,3 +150,8 @@ class TestPackageApk(TestPackage):
   def Install(self, device):
     self.tool.CopyFiles(device)
     device.Install(self.suite_path)
+
+  #override
+  def PullAppFiles(self, device, files, directory):
+    local_device_gtest_run.PullAppFilesImpl(
+        device, self._package_info.package, files, directory)

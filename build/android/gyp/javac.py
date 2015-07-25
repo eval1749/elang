@@ -54,8 +54,20 @@ def ColorJavacOutput(output):
   return '\n'.join(map(ApplyColor, output.split('\n')))
 
 
+ERRORPRONE_OPTIONS = [
+  '-Xepdisable:'
+  # Something in chrome_private_java makes this check crash.
+  'com.google.errorprone.bugpatterns.ClassCanBeStatic,'
+  # These crash on lots of targets.
+  'com.google.errorprone.bugpatterns.WrongParameterPackage,'
+  'com.google.errorprone.bugpatterns.GuiceOverridesGuiceInjectableMethod,'
+  'com.google.errorprone.bugpatterns.GuiceOverridesJavaxInjectableMethod,'
+  'com.google.errorprone.bugpatterns.ElementsCountedInLoop'
+]
+
 def DoJavac(
-    classpath, classes_dir, chromium_code, java_files):
+    bootclasspath, classpath, classes_dir, chromium_code,
+    use_errorprone_path, java_files):
   """Runs javac.
 
   Builds |java_files| with the provided |classpath| and puts the generated
@@ -75,19 +87,31 @@ def DoJavac(
       # Chromium only allows UTF8 source files.  Being explicit avoids
       # javac pulling a default encoding from the user's environment.
       '-encoding', 'UTF-8',
-      '-source', '1.7',
-      '-target', '1.7',
       '-classpath', ':'.join(classpath),
       '-d', classes_dir]
+
+  if bootclasspath:
+    javac_args.extend([
+        '-bootclasspath', ':'.join(bootclasspath),
+        '-source', '1.7',
+        '-target', '1.7',
+        ])
+
   if chromium_code:
-    javac_args.extend(['-Xlint:unchecked', '-Xlint:deprecation'])
+    # TODO(aurimas): re-enable '-Xlint:deprecation' checks once they are fixed.
+    javac_args.extend(['-Xlint:unchecked'])
   else:
     # XDignore.symbol.file makes javac compile against rt.jar instead of
     # ct.sym. This means that using a java internal package/class will not
     # trigger a compile warning or error.
     javac_args.extend(['-XDignore.symbol.file'])
 
-  javac_cmd = ['javac'] + javac_args + java_files
+  if use_errorprone_path:
+    javac_cmd = [use_errorprone_path] + ERRORPRONE_OPTIONS
+  else:
+    javac_cmd = ['javac']
+
+  javac_cmd = javac_cmd + javac_args + java_files
 
   def Compile():
     build_utils.CheckOutput(
@@ -163,6 +187,12 @@ def main(argv):
       default=[],
       help='List of srcjars to include in compilation.')
   parser.add_option(
+      '--bootclasspath',
+      action='append',
+      default=[],
+      help='Boot classpath for javac. If this is specified multiple times, '
+      'they will all be appended to construct the classpath.')
+  parser.add_option(
       '--classpath',
       action='append',
       help='Classpath for javac. If this is specified multiple times, they '
@@ -183,6 +213,10 @@ def main(argv):
       'warnings for chromium code.')
 
   parser.add_option(
+      '--use-errorprone-path',
+      help='Use the Errorprone compiler at this path.')
+
+  parser.add_option(
       '--classes-dir',
       help='Directory for compiled .class files.')
   parser.add_option('--jar-path', help='Jar output path.')
@@ -201,6 +235,10 @@ def main(argv):
   if options.main_class and not options.jar_path:
     parser.error('--main-class requires --jar-path')
 
+  bootclasspath = []
+  for arg in options.bootclasspath:
+    bootclasspath += build_utils.ParseGypList(arg)
+
   classpath = []
   for arg in options.classpath:
     classpath += build_utils.ParseGypList(arg)
@@ -214,7 +252,7 @@ def main(argv):
     src_gendirs = build_utils.ParseGypList(options.src_gendirs)
     java_files += build_utils.FindInDirectories(src_gendirs, '*.java')
 
-  input_files = classpath + java_srcjars + java_files
+  input_files = bootclasspath + classpath + java_srcjars + java_files
   with build_utils.TempDir() as temp_dir:
     classes_dir = os.path.join(temp_dir, 'classes')
     os.makedirs(classes_dir)
@@ -235,11 +273,14 @@ def main(argv):
             break
       java_files = filtered_java_files
 
-    DoJavac(
-        classpath,
-        classes_dir,
-        options.chromium_code,
-        java_files)
+    if len(java_files) != 0:
+      DoJavac(
+          bootclasspath,
+          classpath,
+          classes_dir,
+          options.chromium_code,
+          options.use_errorprone_path,
+          java_files)
 
     if options.jar_path:
       if options.main_class or options.manifest_entry:

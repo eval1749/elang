@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include "base/atomicops.h"
+#include "base/bits.h"
 #include "base/logging.h"
 #include "base/numerics/safe_math.h"
 #include "base/process/process_metrics.h"
@@ -89,15 +90,9 @@ SharedState* SharedStateFromSharedMemory(const SharedMemory& shared_memory) {
   return static_cast<SharedState*>(shared_memory.memory());
 }
 
-// Round up |size| to a multiple of alignment, which must be a power of two.
-size_t Align(size_t alignment, size_t size) {
-  DCHECK_EQ(alignment & (alignment - 1), 0u);
-  return (size + alignment - 1) & ~(alignment - 1);
-}
-
 // Round up |size| to a multiple of page size.
 size_t AlignToPageSize(size_t size) {
-  return Align(base::GetPageSize(), size);
+  return bits::Align(size, base::GetPageSize());
 }
 
 }  // namespace
@@ -157,6 +152,14 @@ bool DiscardableSharedMemory::Map(size_t size) {
   return true;
 }
 
+bool DiscardableSharedMemory::Unmap() {
+  if (!shared_memory_.Unmap())
+    return false;
+
+  mapped_size_ = 0;
+  return true;
+}
+
 DiscardableSharedMemory::LockResult DiscardableSharedMemory::Lock(
     size_t offset, size_t length) {
   DCHECK_EQ(AlignToPageSize(offset), offset);
@@ -212,10 +215,11 @@ DiscardableSharedMemory::LockResult DiscardableSharedMemory::Lock(
 
 #if defined(OS_ANDROID)
   SharedMemoryHandle handle = shared_memory_.handle();
-  DCHECK(SharedMemory::IsHandleValid(handle));
-  if (ashmem_pin_region(
-          handle.fd, AlignToPageSize(sizeof(SharedState)) + offset, length)) {
-    return PURGED;
+  if (SharedMemory::IsHandleValid(handle)) {
+    if (ashmem_pin_region(
+            handle.fd, AlignToPageSize(sizeof(SharedState)) + offset, length)) {
+      return PURGED;
+    }
   }
 #endif
 
@@ -237,10 +241,11 @@ void DiscardableSharedMemory::Unlock(size_t offset, size_t length) {
 
 #if defined(OS_ANDROID)
   SharedMemoryHandle handle = shared_memory_.handle();
-  DCHECK(SharedMemory::IsHandleValid(handle));
-  if (ashmem_unpin_region(
-          handle.fd, AlignToPageSize(sizeof(SharedState)) + offset, length)) {
-    DPLOG(ERROR) << "ashmem_unpin_region() failed";
+  if (SharedMemory::IsHandleValid(handle)) {
+    if (ashmem_unpin_region(
+            handle.fd, AlignToPageSize(sizeof(SharedState)) + offset, length)) {
+      DPLOG(ERROR) << "ashmem_unpin_region() failed";
+    }
   }
 #endif
 
@@ -325,22 +330,6 @@ bool DiscardableSharedMemory::Purge(Time current_time) {
   return true;
 }
 
-bool DiscardableSharedMemory::PurgeAndTruncate(Time current_time) {
-  if (!Purge(current_time))
-    return false;
-
-#if defined(OS_POSIX)
-  // Truncate shared memory to size of SharedState.
-  SharedMemoryHandle handle = shared_memory_.handle();
-  if (SharedMemory::IsHandleValid(handle)) {
-    if (HANDLE_EINTR(ftruncate(handle.fd, sizeof(SharedState))) != 0)
-      DPLOG(ERROR) << "ftruncate() failed";
-  }
-#endif
-
-  return true;
-}
-
 bool DiscardableSharedMemory::IsMemoryResident() const {
   DCHECK(shared_memory_.memory());
 
@@ -352,10 +341,28 @@ bool DiscardableSharedMemory::IsMemoryResident() const {
 }
 
 void DiscardableSharedMemory::Close() {
-  shared_memory_.Unmap();
   shared_memory_.Close();
-  mapped_size_ = 0;
 }
+
+#if defined(DISCARDABLE_SHARED_MEMORY_SHRINKING)
+void DiscardableSharedMemory::Shrink() {
+#if defined(OS_POSIX)
+  SharedMemoryHandle handle = shared_memory_.handle();
+  if (!SharedMemory::IsHandleValid(handle))
+    return;
+
+  // Truncate shared memory to size of SharedState.
+  if (HANDLE_EINTR(ftruncate(SharedMemory::GetFdFromSharedMemoryHandle(handle),
+                             AlignToPageSize(sizeof(SharedState)))) != 0) {
+    DPLOG(ERROR) << "ftruncate() failed";
+    return;
+  }
+  mapped_size_ = 0;
+#else
+  NOTIMPLEMENTED();
+#endif
+}
+#endif
 
 Time DiscardableSharedMemory::Now() const {
   return Time::Now();

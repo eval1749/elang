@@ -73,17 +73,17 @@ class RemoteDeviceEnvironment(environment.Environment):
     self._api_secret = device_json.get('api_secret', None)
     self._device_oem = device_json.get('device_oem', None)
     self._device_type = device_json.get('device_type', 'Android')
+    self._network_config = device_json.get('network_config', None)
     self._remote_device = device_json.get('remote_device', None)
     self._remote_device_minimum_os = device_json.get(
         'remote_device_minimum_os', None)
     self._remote_device_os = device_json.get('remote_device_os', None)
-    self._remote_device_timeout = device_json.get('remote_device_timeout', None)
+    self._remote_device_timeout = device_json.get(
+        'remote_device_timeout', None)
     self._results_path = device_json.get('results_path', None)
     self._runner_package = device_json.get('runner_package', None)
     self._runner_type = device_json.get('runner_type', None)
-    if 'timeouts' in device_json:
-      for key in device_json['timeouts']:
-        self._timeouts[key] = device_json['timeouts'][key]
+    self._timeouts.update(device_json.get('timeouts', {}))
 
     def command_line_override(
         file_value, cmd_line_value, desc, print_value=True):
@@ -107,6 +107,8 @@ class RemoteDeviceEnvironment(environment.Environment):
         self._device_oem, args.device_oem, 'device_oem')
     self._device_type = command_line_override(
         self._device_type, args.device_type, 'device_type')
+    self._network_config = command_line_override(
+        self._network_config, args.network_config, 'network_config')
     self._remote_device = command_line_override(
         self._remote_device, args.remote_device, 'remote_device')
     self._remote_device_minimum_os = command_line_override(
@@ -183,6 +185,7 @@ class RemoteDeviceEnvironment(environment.Environment):
     os.environ['APPURIFY_API_PROTO'] = self._api_protocol
     os.environ['APPURIFY_API_HOST'] = self._api_address
     os.environ['APPURIFY_API_PORT'] = self._api_port
+    os.environ['APPURIFY_STATUS_BASE_URL'] = 'none'
     self._GetAccessToken()
     if self._trigger:
       self._SelectDevice()
@@ -285,12 +288,22 @@ class RemoteDeviceEnvironment(environment.Environment):
       return 0
 
     logging.critical('Available %s Devices:', self._device_type)
-    logging.critical('  %s %s %s', 'OS'.ljust(7),
-                     'Device Name'.ljust(20), '# Available')
+    logging.critical(
+        '  %s %s %s %s %s',
+        'OS'.ljust(10),
+        'Device Name'.ljust(30),
+        'Available'.ljust(10),
+        'Busy'.ljust(10),
+        'All'.ljust(10))
     devices = (d for d in device_list if d['os_name'] == self._device_type)
     for d in sorted(devices, compare_devices):
-      logging.critical('  %s %s %s', d['os_version'].ljust(7),
-                       d['name'].ljust(20), d['available_devices_count'])
+      logging.critical(
+          '  %s %s %s %s %s',
+          d['os_version'].ljust(10),
+          d['name'].ljust(30),
+          str(d['available_devices_count']).ljust(10),
+          str(d['busy_devices_count']).ljust(10),
+          str(d['all_devices_count']).ljust(10))
 
   def _GetDeviceList(self):
     with appurify_sanitized.SanitizeLogging(self._verbose_count,
@@ -312,6 +325,10 @@ class RemoteDeviceEnvironment(environment.Environment):
   @property
   def device_type_id(self):
     return self._device['device_type_id']
+
+  @property
+  def network_config(self):
+    return self._network_config
 
   @property
   def only_output_failures(self):

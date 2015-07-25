@@ -141,6 +141,9 @@ struct BASE_EXPORT LaunchOptions {
   // By default, child processes will have the PR_SET_NO_NEW_PRIVS bit set. If
   // true, then this bit will not be set in the new child process.
   bool allow_new_privs;
+
+  // Sets parent process death signal to SIGKILL.
+  bool kill_on_parent_death;
 #endif  // defined(OS_LINUX)
 
 #if defined(OS_POSIX)
@@ -294,7 +297,7 @@ void ReplaceBootstrapPort(const std::string& replacement_bootstrap_name);
 // binary. This should not be called in production/released code.
 BASE_EXPORT LaunchOptions LaunchOptionsForTest();
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_NACL_NONSFI)
 // A wrapper for clone with fork-like behavior, meaning that it returns the
 // child's pid in the parent and 0 in the child. |flags|, |ptid|, and |ctid| are
 // as in the clone system call (the CLONE_VM flag is not supported).

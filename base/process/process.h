@@ -1,9 +1,9 @@
-// Copyright (c) 2011 The Chromium Authors. All rights reserved.
+// Copyright 2011 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef BASE_PROCESS_PROCESS_PROCESS_H_
-#define BASE_PROCESS_PROCESS_PROCESS_H_
+#ifndef BASE_PROCESS_PROCESS_H_
+#define BASE_PROCESS_PROCESS_H_
 
 #include "base/base_export.h"
 #include "base/basictypes.h"
@@ -41,7 +41,7 @@ class BASE_EXPORT Process {
   Process(RValue other);
 
   // The destructor does not terminate the process.
-  ~Process() {}
+  ~Process();
 
   // Move operator= for C++03 move emulation of this type.
   Process& operator=(RValue other);
@@ -55,7 +55,7 @@ class BASE_EXPORT Process {
   // Returns a Process for the given |pid|. On Windows the handle is opened
   // with more access rights and must only be used by trusted code (can read the
   // address space and duplicate handles).
-  static Process OpenWithExtraPriviles(ProcessId pid);
+  static Process OpenWithExtraPrivileges(ProcessId pid);
 
 #if defined(OS_WIN)
   // Returns a Process for the given |pid|, using some |desired_access|.
@@ -91,20 +91,44 @@ class BASE_EXPORT Process {
   // Close the process handle. This will not terminate the process.
   void Close();
 
-  // Terminates the process with extreme prejudice. The given |result_code| will
-  // be the exit code of the process.
-  // NOTE: On POSIX |result_code| is ignored.
-  void Terminate(int result_code);
+  // Terminates the process with extreme prejudice. The given |exit_code| will
+  // be the exit code of the process. If |wait| is true, this method will wait
+  // for up to one minute for the process to actually terminate.
+  // Returns true if the process terminates within the allowed time.
+  // NOTE: On POSIX |exit_code| is ignored.
+  bool Terminate(int exit_code, bool wait) const;
 
   // Waits for the process to exit. Returns true on success.
   // On POSIX, if the process has been signaled then |exit_code| is set to -1.
   // On Linux this must be a child process, however on Mac and Windows it can be
   // any process.
+  // NOTE: |exit_code| is optional, nullptr can be passed if the exit code is
+  // not required.
   bool WaitForExit(int* exit_code);
 
   // Same as WaitForExit() but only waits for up to |timeout|.
+  // NOTE: |exit_code| is optional, nullptr can be passed if the exit code
+  // is not required.
   bool WaitForExitWithTimeout(TimeDelta timeout, int* exit_code);
 
+#if defined(OS_MACOSX)
+  // The Mac needs a Mach port in order to manipulate a process's priority,
+  // and there's no good way to get that from base given the pid. These Mac
+  // variants of the IsProcessBackgrounded and SetProcessBackgrounded API take
+  // the Mach port for this reason. See crbug.com/460102
+  //
+  // A process is backgrounded when its priority is lower than normal.
+  // Return true if the process with mach port |task_port| is backgrounded,
+  // false otherwise.
+  bool IsProcessBackgrounded(mach_port_t task_port) const;
+
+  // Set the process with the specified mach port as backgrounded. If value is
+  // true, the priority of the process will be lowered. If value is false, the
+  // priority of the process will be made "normal" - equivalent to default
+  // process priority. Returns true if the priority was changed, false
+  // otherwise.
+  bool SetProcessBackgrounded(mach_port_t task_port, bool value);
+#else
   // A process is backgrounded when it's priority is lower than normal.
   // Return true if this process is backgrounded, false otherwise.
   bool IsProcessBackgrounded() const;
@@ -114,7 +138,7 @@ class BASE_EXPORT Process {
   // will be made "normal" - equivalent to default process priority.
   // Returns true if the priority was changed, false otherwise.
   bool SetProcessBackgrounded(bool value);
-
+#endif  // defined(OS_MACOSX)
   // Returns an integer representing the priority of a process. The meaning
   // of this value is OS dependent.
   int GetPriority() const;
@@ -130,4 +154,4 @@ class BASE_EXPORT Process {
 
 }  // namespace base
 
-#endif  // BASE_PROCESS_PROCESS_PROCESS_H_
+#endif  // BASE_PROCESS_PROCESS_H_

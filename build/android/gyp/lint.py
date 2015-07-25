@@ -121,7 +121,7 @@ def _RunLint(lint_path, config_path, processed_config_path, manifest_path,
       if not os.path.exists(result_path):
         print 'Something is wrong:'
         print e
-        return 0
+        return 1
 
       # There are actual lint issues
       else:
@@ -132,7 +132,7 @@ def _RunLint(lint_path, config_path, processed_config_path, manifest_path,
           print 'File contents:'
           with open(result_path) as f:
             print f.read()
-          return 0
+          return 1
 
         _ProcessResultFile()
         msg = ('\nLint found %d new issues.\n'
@@ -147,8 +147,7 @@ def _RunLint(lint_path, config_path, processed_config_path, manifest_path,
                                              'lint', 'suppress.py')),
                 _RelativizePath(result_path)))
         print >> sys.stderr, msg
-        # Lint errors do not fail the build.
-        return 0
+        return 1
 
   return 0
 
@@ -167,6 +166,9 @@ def main():
   parser.add_option('--java-files', help='Paths to java files.')
   parser.add_option('--jar-path', help='Jar file containing class files.')
   parser.add_option('--resource-dir', help='Path to resource dir.')
+  parser.add_option('--can-fail-build', action='store_true',
+                    help='If set, script will exit with nonzero exit status'
+                    ' if lint errors are present')
   parser.add_option('--stamp', help='Path to touch on success.')
   parser.add_option('--enable', action='store_true',
                     help='Run lint instead of just touching stamp.')
@@ -205,7 +207,7 @@ def main():
   if options.stamp and not rc:
     build_utils.Touch(options.stamp)
 
-  return rc
+  return rc if options.can_fail_build else 0
 
 
 if __name__ == '__main__':

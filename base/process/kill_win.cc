@@ -38,12 +38,12 @@ static const int kWaitInterval = 2000;
 class TimerExpiredTask : public win::ObjectWatcher::Delegate {
  public:
   explicit TimerExpiredTask(Process process);
-  ~TimerExpiredTask();
+  ~TimerExpiredTask() override;
 
   void TimedOut();
 
   // MessageLoop::Watcher -----------------------------------------------------
-  virtual void OnObjectSignaled(HANDLE object);
+  void OnObjectSignaled(HANDLE object) override;
 
  private:
   void KillProcess();
@@ -81,41 +81,13 @@ void TimerExpiredTask::KillProcess() {
   // terminates.  We just care that it eventually terminates, and that's what
   // TerminateProcess should do for us. Don't check for the result code since
   // it fails quite often. This should be investigated eventually.
-  base::KillProcess(process_.Handle(), kProcessKilledExitCode, false);
+  process_.Terminate(kProcessKilledExitCode, false);
 
   // Now, just cleanup as if the process exited normally.
   OnObjectSignaled(process_.Handle());
 }
 
 }  // namespace
-
-bool KillProcess(ProcessHandle process, int exit_code, bool wait) {
-  bool result = (TerminateProcess(process, exit_code) != FALSE);
-  if (result && wait) {
-    // The process may not end immediately due to pending I/O
-    if (WAIT_OBJECT_0 != WaitForSingleObject(process, 60 * 1000))
-      DPLOG(ERROR) << "Error waiting for process exit";
-  } else if (!result) {
-    DPLOG(ERROR) << "Unable to terminate process";
-  }
-  return result;
-}
-
-// Attempts to kill the process identified by the given process
-// entry structure, giving it the specified exit code.
-// Returns true if this is successful, false otherwise.
-bool KillProcessById(ProcessId process_id, int exit_code, bool wait) {
-  HANDLE process = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE,
-                               FALSE,  // Don't inherit handle
-                               process_id);
-  if (!process) {
-    DPLOG(ERROR) << "Unable to open process " << process_id;
-    return false;
-  }
-  bool ret = KillProcess(process, exit_code, wait);
-  CloseHandle(process);
-  return ret;
-}
 
 TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
   DWORD tmp_exit_code = 0;
@@ -173,26 +145,6 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
       // All other exit codes indicate crashes.
       return TERMINATION_STATUS_PROCESS_CRASHED;
   }
-}
-
-bool WaitForExitCode(ProcessHandle handle, int* exit_code) {
-  // TODO(rvargas) crbug.com/417532: Remove this function.
-  Process process(handle);
-  return process.WaitForExit(exit_code);
-}
-
-bool WaitForExitCodeWithTimeout(ProcessHandle handle,
-                                int* exit_code,
-                                TimeDelta timeout) {
-  if (::WaitForSingleObject(
-      handle, static_cast<DWORD>(timeout.InMilliseconds())) != WAIT_OBJECT_0)
-    return false;
-  DWORD temp_code;  // Don't clobber out-parameters in case of failure.
-  if (!::GetExitCodeProcess(handle, &temp_code))
-    return false;
-
-  *exit_code = temp_code;
-  return true;
 }
 
 bool WaitForProcessesToExit(const FilePath::StringType& executable_name,

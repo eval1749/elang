@@ -26,7 +26,6 @@ class TestRunner(instr_test_runner.TestRunner):
     # Create an InstrumentationOptions object to pass to the super class
     instrumentation_options = instr_test_options.InstrumentationOptions(
         test_options.tool,
-        test_options.cleanup_test_files,
         test_options.annotations,
         test_options.exclude_annotations,
         test_options.test_filter,
@@ -42,7 +41,8 @@ class TestRunner(instr_test_runner.TestRunner):
         test_support_apk_path=None,
         device_flags=None,
         isolate_file_path=None,
-        set_asserts=test_options.set_asserts)
+        set_asserts=test_options.set_asserts,
+        delete_stale_data=False)
     super(TestRunner, self).__init__(instrumentation_options, device,
                                      shard_index, test_pkg)
 

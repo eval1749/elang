@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef BASE_ANDROID_LIBRARY_LOADER_HOOKS_H_
-#define BASE_ANDROID_LIBRARY_LOADER_HOOKS_H_
+#ifndef BASE_ANDROID_LIBRARY_LOADER_LIBRARY_LOADER_HOOKS_H_
+#define BASE_ANDROID_LIBRARY_LOADER_LIBRARY_LOADER_HOOKS_H_
 
 #include <jni.h>
 
@@ -64,7 +64,11 @@ BASE_EXPORT void LibraryLoaderExitHook();
 // Return the process type the shared library is loaded in.
 BASE_EXPORT LibraryProcessType GetLibraryProcessType(JNIEnv* env);
 
+// Initialize AtExitManager, this must be done at the begining of loading
+// shared library.
+void InitAtExitManager();
+
 }  // namespace android
 }  // namespace base
 
-#endif  // BASE_ANDROID_LIBRARY_LOADER_HOOKS_H_
+#endif  // BASE_ANDROID_LIBRARY_LOADER_LIBRARY_LOADER_HOOKS_H_
