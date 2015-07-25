@@ -5,6 +5,19 @@
 import pipes
 import sys
 
+EXCLUDE_DIRS = [
+    'base/',
+    'build/',
+    'testing/',
+    'third_party/',
+]
+
+def shouldCheck(path):
+    for dir in EXCLUDE_DIRS:
+        if path.startswith(dir):
+            return False
+    return True
+
 def main():
     git_pipe = pipes.Template()
     git_pipe.prepend('git diff --cached --name-status', '.-')
@@ -19,6 +32,8 @@ def main():
         if words[0] == 'D':
             continue
         cpplint_pipe = pipes.Template()
+        if not shouldCheck(words[1]):
+            continue
         command_line = 'cpplint %(name)s 2>&1' % {'name': words[1]}
         cpplint_pipe.prepend(command_line, '.-');
         outputs = cpplint_pipe.open('files', 'r').readlines()
