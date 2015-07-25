@@ -330,25 +330,6 @@ int Rex(uint8_t rex, int position) {
   return (rex & (1 << position)) << (3 - position);
 }
 
-int SizeFromModRm(uint8_t modrm) {
-  auto const mod = static_cast<Mod>(modrm & 0xC0);
-  auto const rm = static_cast<Rm>(ExtractBits(modrm, 0, 3));
-  switch (mod) {
-    case Mod::Reg:
-      return 1;
-    case Mod::Disp0:
-      if (rm == Rm::Disp32)
-        return 5;
-      return rm == Rm::Sib ? 2 : 1;
-    case Mod::Disp8:
-      return rm == Rm::Sib ? 3 : 2;
-    case Mod::Disp32:
-      return rm == Rm::Sib ? 6 : 5;
-  }
-  NOTREACHED();
-  return 0;
-}
-
 }  // namespace
 
 // Rex prefix:
@@ -384,6 +365,7 @@ class Instruction::Decoder final {
   Instruction Error(const char* reason);
   bool HasMore() const { return code_current_ < code_end_; }
   bool IsTruncated() const { return code_current_ > code_end_; }
+  static int SizeFromModRm(uint8_t modrm);
 
   const uint8_t* code_end_;
   const uint8_t* code_current_;
@@ -561,7 +543,11 @@ Instruction Instruction::Decoder::Run() {
     for (auto value = operands; value; value >>= 8) {
       switch (static_cast<OperandFormat>(value & 0xFF)) {
         case OperandFormat::Eb:
+        case OperandFormat::Ed:
+        case OperandFormat::Eq:
         case OperandFormat::Ev:
+        case OperandFormat::Ew:
+        case OperandFormat::Ey:
           if (!HasMore())
             return Instruction();
           Advance(SizeFromModRm(Current()));
@@ -600,6 +586,25 @@ Instruction Instruction::Decoder::Run() {
     return instruction;
   }
   return Error("undefined opcode");
+}
+
+int Instruction::Decoder::SizeFromModRm(uint8_t modrm) {
+  auto const mod = static_cast<Mod>(modrm & 0xC0);
+  auto const rm = static_cast<Rm>(ExtractBits(modrm, 0, 3));
+  switch (mod) {
+    case Mod::Reg:
+      return 1;
+    case Mod::Disp0:
+      if (rm == Rm::Disp32)
+        return 5;
+      return rm == Rm::Sib ? 2 : 1;
+    case Mod::Disp8:
+      return rm == Rm::Sib ? 3 : 2;
+    case Mod::Disp32:
+      return rm == Rm::Sib ? 6 : 5;
+  }
+  NOTREACHED();
+  return 0;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -817,6 +822,8 @@ Operand Instruction::OperandAt(size_t position) const {
 
     case OperandFormat::Eb:
       return OperandEv(OperandSize::Is8);
+    case OperandFormat::Ed:
+      return OperandEv(OperandSize::Is32);
     case OperandFormat::Ev:
     case OperandFormat::M:
       return OperandEv(OperandSizeOf());

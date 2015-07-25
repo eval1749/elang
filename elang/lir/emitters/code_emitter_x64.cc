@@ -1017,7 +1017,7 @@ void InstructionHandlerX64::VisitSignExtend(SignExtendInstruction* instr) {
       EmitOpcode(isa::Opcode::MOVSX_Gv_Ew);
       break;
     case ValueSize::Size32:
-      EmitOpcode(isa::Opcode::MOVSXD_Gv_Ev);
+      EmitOpcode(isa::Opcode::MOVSXD_Gv_Ed);
       break;
     default:
       NOTREACHED() << "Unsupported size: " << *instr;

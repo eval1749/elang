@@ -14,12 +14,12 @@ class MachineCodeFunction;
 namespace compiler {
 namespace shell {
 
-struct DisassembleMachineCodeFunction {
+struct DisassembledMachineCodeFunction {
   const vm::MachineCodeFunction* function;
 };
 
 std::ostream& operator<<(std::ostream& ostream,
-                         const DisassembleMachineCodeFunction& function);
+                         const DisassembledMachineCodeFunction& function);
 
 }  // namespace shell
 }  // namespace compiler

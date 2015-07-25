@@ -173,7 +173,7 @@
   V1(0x5E, POP, rSI)                              \
   V1(0x5F, POP, rDI)                              \
   /* 0x60 */                                      \
-  V2(0x63, MOVSXD, Gv, Ev)                        \
+  V2(0x63, MOVSXD, Gv, Ed)                        \
   V0(0x64, FS)                                    \
   V0(0x65, GS)                                    \
   V0(0x66, OPDSIZ)                                \
