@@ -24,7 +24,7 @@ namespace elang {
 // DominatorTreeEditor
 //
 template <typename Graph>
-class DominatorTreeEditor final : public ZoneOwner {
+class DominatorTreeEditor : public ZoneOwner {
  public:
   typedef DominatorTree<Graph> DominatorTree;
   typedef typename Graph::GraphNode GraphNode;

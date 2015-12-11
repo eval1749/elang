@@ -24,7 +24,7 @@ class DominatorTreeEditor;
 // To constructor dominator tree, please use |DominatorTreeBuilder|.
 //
 template <typename Graph>
-class DominatorTree final : public ZoneOwner {
+class DominatorTree : public ZoneOwner {
  public:
   class Node;
 

@@ -485,7 +485,7 @@ class NodeTemplate<0, Base> : public Base {
 // LiteralNodeTemplate
 //
 template <typename DataType>
-class LiteralNodeTemplate final : public NodeTemplate<0, Literal> {
+class LiteralNodeTemplate : public NodeTemplate<0, Literal> {
   DECLARE_OPTIMIZER_NODE_ABSTRACT_CLASS(LiteralNodeTemplate, Literal);
 
  public:
