@@ -36,28 +36,20 @@ int vsnprintf(char* buffer, size_t size, const char* format, va_list arguments)
 
 // We separate the declaration from the implementation of this inline
 // function just so the PRINTF_FORMAT works.
-inline int snprintf(char* buffer, size_t size, const char* format, ...)
-    PRINTF_FORMAT(3, 4);
-inline int snprintf(char* buffer, size_t size, const char* format, ...) {
+inline int snprintf(char* buffer,
+                    size_t size,
+                    _Printf_format_string_ const char* format,
+                    ...) PRINTF_FORMAT(3, 4);
+inline int snprintf(char* buffer,
+                    size_t size,
+                    _Printf_format_string_ const char* format,
+                    ...) {
   va_list arguments;
   va_start(arguments, format);
   int result = vsnprintf(buffer, size, format, arguments);
   va_end(arguments);
   return result;
 }
-
-// TODO(mark) http://crbug.com/472900 crashpad shouldn't use base while
-// being DEPSed in. This backwards-compat hack is provided until crashpad is
-// updated.
-#if defined(OS_WIN)
-inline int strcasecmp(const char* s1, const char* s2) {
-  return _stricmp(s1, s2);
-}
-#else  // Posix
-inline int strcasecmp(const char* string1, const char* string2) {
-  return ::strcasecmp(string1, string2);
-}
-#endif
 
 // BSD-style safe and consistent string copy functions.
 // Copies |src| to |dst|, where |dst_size| is the total allocated size of |dst|.
@@ -93,15 +85,29 @@ BASE_EXPORT bool IsWprintfFormatPortable(const wchar_t* format);
 
 // ASCII-specific tolower.  The standard library's tolower is locale sensitive,
 // so we don't want to use it here.
-template <class Char> inline Char ToLowerASCII(Char c) {
+inline char ToLowerASCII(char c) {
+  return (c >= 'A' && c <= 'Z') ? (c + ('a' - 'A')) : c;
+}
+inline char16 ToLowerASCII(char16 c) {
   return (c >= 'A' && c <= 'Z') ? (c + ('a' - 'A')) : c;
 }
 
 // ASCII-specific toupper.  The standard library's toupper is locale sensitive,
 // so we don't want to use it here.
-template <class Char> inline Char ToUpperASCII(Char c) {
+inline char ToUpperASCII(char c) {
   return (c >= 'a' && c <= 'z') ? (c + ('A' - 'a')) : c;
 }
+inline char16 ToUpperASCII(char16 c) {
+  return (c >= 'a' && c <= 'z') ? (c + ('A' - 'a')) : c;
+}
+
+// Converts the given string to it's ASCII-lowercase equivalent.
+BASE_EXPORT std::string ToLowerASCII(StringPiece str);
+BASE_EXPORT string16 ToLowerASCII(StringPiece16 str);
+
+// Converts the given string to it's ASCII-uppercase equivalent.
+BASE_EXPORT std::string ToUpperASCII(StringPiece str);
+BASE_EXPORT string16 ToUpperASCII(StringPiece16 str);
 
 // Functor for case-insensitive ASCII comparisons for STL algorithms like
 // std::search.
@@ -289,34 +295,6 @@ BASE_EXPORT bool IsStringASCII(const string16& str);
 BASE_EXPORT bool IsStringASCII(const std::wstring& str);
 #endif
 
-// Converts the elements of the given string.  This version uses a pointer to
-// clearly differentiate it from the non-pointer variant.
-template <class str> inline void StringToLowerASCII(str* s) {
-  for (typename str::iterator i = s->begin(); i != s->end(); ++i)
-    *i = ToLowerASCII(*i);
-}
-
-template <class str> inline str StringToLowerASCII(const str& s) {
-  // for std::string and std::wstring
-  str output(s);
-  StringToLowerASCII(&output);
-  return output;
-}
-
-// Converts the elements of the given string.  This version uses a pointer to
-// clearly differentiate it from the non-pointer variant.
-template <class str> inline void StringToUpperASCII(str* s) {
-  for (typename str::iterator i = s->begin(); i != s->end(); ++i)
-    *i = ToUpperASCII(*i);
-}
-
-template <class str> inline str StringToUpperASCII(const str& s) {
-  // for std::string and std::wstring
-  str output(s);
-  StringToUpperASCII(&output);
-  return output;
-}
-
 // Compare the lower-case form of the given string against the given
 // previously-lower-cased ASCII string (typically a constant).
 BASE_EXPORT bool LowerCaseEqualsASCII(StringPiece str,
@@ -385,9 +363,7 @@ inline bool IsHexDigit(Char c) {
 BASE_EXPORT char HexDigitToInt(wchar_t c);
 
 // Returns true if it's a Unicode whitespace character.
-inline bool IsUnicodeWhitespace(wchar_t c) {
-  return wcschr(base::kWhitespaceWide, c) != NULL;
-}
+BASE_EXPORT bool IsUnicodeWhitespace(wchar_t c);
 
 // Return a byte string in human-readable format with a unit suffix. Not
 // appropriate for use in any UI; use of FormatBytes and friends in ui/base is

@@ -13,15 +13,16 @@ import logging
 import os
 import subprocess
 
+import devil.android.sdk.keyevent
+from devil.android.sdk import version_codes
+from devil.constants import exit_codes
+
+keyevent = devil.android.sdk.keyevent
+
 
 DIR_SOURCE_ROOT = os.environ.get('CHECKOUT_SOURCE_ROOT',
     os.path.abspath(os.path.join(os.path.dirname(__file__),
                                  os.pardir, os.pardir, os.pardir, os.pardir)))
-ISOLATE_DEPS_DIR = os.path.join(DIR_SOURCE_ROOT, 'isolate_deps_dir')
-
-CHROME_SHELL_HOST_DRIVEN_DIR = os.path.join(
-    DIR_SOURCE_ROOT, 'chrome', 'android')
-
 
 PackageInfo = collections.namedtuple('PackageInfo',
     ['package', 'activity', 'cmdline_file', 'devtools_socket',
@@ -75,7 +76,7 @@ PACKAGE_INFO = {
         'com.google.android.apps.chrome.Main',
         '/data/local/chrome-command-line',
         'chrome_devtools_remote',
-        None),
+        'org.chromium.chrome.tests'),
     'legacy_browser': PackageInfo(
         'com.google.android.browser',
         'com.android.browser.BrowserActivity',
@@ -94,12 +95,6 @@ PACKAGE_INFO = {
         '/data/local/tmp/content-shell-command-line',
         None,
         'org.chromium.content_shell_apk.tests'),
-    'chrome_shell': PackageInfo(
-        'org.chromium.chrome.shell',
-        'org.chromium.chrome.shell.ChromeShellActivity',
-        '/data/local/tmp/chrome-shell-command-line',
-        'chrome_shell_devtools_remote',
-        'org.chromium.chrome.shell.tests'),
     'android_webview_shell': PackageInfo(
         'org.chromium.android_webview.shell',
         'org.chromium.android_webview.shell.AwShellActivity',
@@ -144,14 +139,6 @@ TEST_SYNC_SERVER_PORT = 9031
 TEST_SEARCH_BY_IMAGE_SERVER_PORT = 9041
 TEST_POLICY_SERVER_PORT = 9051
 
-# The net test server is started from port 10201.
-# TODO(pliard): http://crbug.com/239014. Remove this dirty workaround once
-# http://crbug.com/239014 is fixed properly.
-TEST_SERVER_PORT_FIRST = 10201
-TEST_SERVER_PORT_LAST = 30000
-# A file to record next valid port of test server.
-TEST_SERVER_PORT_FILE = '/tmp/test_server_port'
-TEST_SERVER_PORT_LOCKFILE = '/tmp/test_server_port.lock'
 
 TEST_EXECUTABLE_DIR = '/data/local/tmp'
 # Directories for common java libraries for SDK build.
@@ -169,32 +156,19 @@ DEVICE_PERF_OUTPUT_DIR = (
 
 SCREENSHOTS_DIR = os.path.join(DIR_SOURCE_ROOT, 'out_screenshots')
 
-class ANDROID_SDK_VERSION_CODES(object):
-  """Android SDK version codes.
-
-  http://developer.android.com/reference/android/os/Build.VERSION_CODES.html
-  """
-
-  JELLY_BEAN = 16
-  JELLY_BEAN_MR1 = 17
-  JELLY_BEAN_MR2 = 18
-  KITKAT = 19
-  KITKAT_WATCH = 20
-  LOLLIPOP = 21
-  LOLLIPOP_MR1 = 22
-
-ANDROID_SDK_VERSION = ANDROID_SDK_VERSION_CODES.LOLLIPOP_MR1
-ANDROID_SDK_BUILD_TOOLS_VERSION = '22.0.0'
+ANDROID_SDK_VERSION = version_codes.MARSHMALLOW
+ANDROID_SDK_BUILD_TOOLS_VERSION = '23.0.1'
 ANDROID_SDK_ROOT = os.path.join(DIR_SOURCE_ROOT,
-                                'third_party/android_tools/sdk')
+                                'third_party', 'android_tools', 'sdk')
 ANDROID_SDK_TOOLS = os.path.join(ANDROID_SDK_ROOT,
                                  'build-tools', ANDROID_SDK_BUILD_TOOLS_VERSION)
 ANDROID_NDK_ROOT = os.path.join(DIR_SOURCE_ROOT,
-                                'third_party/android_tools/ndk')
+                                'third_party', 'android_tools', 'ndk')
 
-EMULATOR_SDK_ROOT = os.environ.get('ANDROID_EMULATOR_SDK_ROOT',
-                                   os.path.join(DIR_SOURCE_ROOT,
-                                                'android_emulator_sdk'))
+PROGUARD_SCRIPT_PATH = os.path.join(
+    ANDROID_SDK_ROOT, 'tools', 'proguard', 'bin', 'proguard.sh')
+
+PROGUARD_ROOT = os.path.join(DIR_SOURCE_ROOT, 'third_party', 'proguard')
 
 BAD_DEVICES_JSON = os.path.join(DIR_SOURCE_ROOT,
                                 os.environ.get('CHROMIUM_OUT_DIR', 'out'),
@@ -202,22 +176,26 @@ BAD_DEVICES_JSON = os.path.join(DIR_SOURCE_ROOT,
 
 UPSTREAM_FLAKINESS_SERVER = 'test-results.appspot.com'
 
+# TODO(jbudorick): Remove once unused.
 DEVICE_LOCAL_PROPERTIES_PATH = '/data/local.prop'
 
+# TODO(jbudorick): Rework this into testing/buildbot/
 PYTHON_UNIT_TEST_SUITES = {
   'pylib_py_unittests': {
     'path': os.path.join(DIR_SOURCE_ROOT, 'build', 'android'),
     'test_modules': [
-      'pylib.cmd_helper_test',
-      'pylib.device.device_utils_test',
+      'devil.android.device_utils_test',
+      'devil.android.md5sum_test',
+      'devil.utils.cmd_helper_test',
       'pylib.results.json_results_test',
-      'pylib.utils.md5sum_test',
+      'pylib.utils.proguard_test',
     ]
   },
   'gyp_py_unittests': {
     'path': os.path.join(DIR_SOURCE_ROOT, 'build', 'android', 'gyp'),
     'test_modules': [
       'java_cpp_enum_tests',
+      'java_google_api_keys_tests',
     ]
   },
 }
@@ -225,7 +203,7 @@ PYTHON_UNIT_TEST_SUITES = {
 LOCAL_MACHINE_TESTS = ['junit', 'python']
 VALID_ENVIRONMENTS = ['local', 'remote_device']
 VALID_TEST_TYPES = ['gtest', 'instrumentation', 'junit', 'linker', 'monkey',
-                    'perf', 'python', 'uiautomator', 'uirobot']
+                    'perf', 'python', 'uirobot']
 VALID_DEVICE_TYPES = ['Android', 'iOS']
 
 
@@ -303,6 +281,6 @@ def _FindAdbPath():
     return os.path.join(ANDROID_SDK_ROOT, 'platform-tools', 'adb')
 
 # Exit codes
-ERROR_EXIT_CODE = 1
-INFRA_EXIT_CODE = 87
-WARNING_EXIT_CODE = 88
+ERROR_EXIT_CODE = exit_codes.ERROR
+INFRA_EXIT_CODE = exit_codes.INFRA
+WARNING_EXIT_CODE = exit_codes.WARNING

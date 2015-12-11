@@ -7,12 +7,28 @@
 #include <sstream>
 #include <string>
 
+#include "base/bind.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/threading/thread.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 
 namespace base {
 namespace debug {
+
+#if defined(OS_LINUX) || defined(OS_CHROMEOS)
+namespace {
+
+void BusyWork(std::vector<std::string>* vec) {
+  int64_t test_value = 0;
+  for (int i = 0; i < 100000; ++i) {
+    ++test_value;
+    vec->push_back(base::Int64ToString(test_value));
+  }
+}
+
+}  // namespace
+#endif  // defined(OS_LINUX) || defined(OS_CHROMEOS)
 
 // Tests for SystemMetrics.
 // Exists as a class so it can be a friend of SystemMetrics.
@@ -270,7 +286,53 @@ TEST_F(SystemMetricsTest, ParseVmstat) {
 }
 #endif  // defined(OS_LINUX) || defined(OS_ANDROID)
 
-#if defined(OS_LINUX) || defined(OS_ANDROID)
+#if defined(OS_LINUX) || defined(OS_CHROMEOS)
+
+// Test that ProcessMetrics::GetCPUUsage() doesn't return negative values when
+// the number of threads running on the process decreases between two successive
+// calls to it.
+TEST_F(SystemMetricsTest, TestNoNegativeCpuUsage) {
+  base::ProcessHandle handle = base::GetCurrentProcessHandle();
+  scoped_ptr<ProcessMetrics> metrics(
+      ProcessMetrics::CreateProcessMetrics(handle));
+
+  EXPECT_GE(metrics->GetCPUUsage(), 0.0);
+  Thread thread1("thread1");
+  Thread thread2("thread2");
+  Thread thread3("thread3");
+
+  thread1.StartAndWaitForTesting();
+  thread2.StartAndWaitForTesting();
+  thread3.StartAndWaitForTesting();
+
+  ASSERT_TRUE(thread1.IsRunning());
+  ASSERT_TRUE(thread2.IsRunning());
+  ASSERT_TRUE(thread3.IsRunning());
+
+  std::vector<std::string> vec1;
+  std::vector<std::string> vec2;
+  std::vector<std::string> vec3;
+
+  thread1.task_runner()->PostTask(FROM_HERE, base::Bind(&BusyWork, &vec1));
+  thread2.task_runner()->PostTask(FROM_HERE, base::Bind(&BusyWork, &vec2));
+  thread3.task_runner()->PostTask(FROM_HERE, base::Bind(&BusyWork, &vec3));
+
+  EXPECT_GE(metrics->GetCPUUsage(), 0.0);
+
+  thread1.Stop();
+  EXPECT_GE(metrics->GetCPUUsage(), 0.0);
+
+  thread2.Stop();
+  EXPECT_GE(metrics->GetCPUUsage(), 0.0);
+
+  thread3.Stop();
+  EXPECT_GE(metrics->GetCPUUsage(), 0.0);
+}
+
+#endif  // defined(OS_LINUX) || defined(OS_CHROMEOS)
+
+#if defined(OS_WIN) || (defined(OS_MACOSX) && !defined(OS_IOS)) || \
+    defined(OS_LINUX) || defined(OS_ANDROID)
 TEST(SystemMetrics2Test, GetSystemMemoryInfo) {
   base::SystemMemoryInfoKB info;
   EXPECT_TRUE(base::GetSystemMemoryInfo(&info));
@@ -278,21 +340,25 @@ TEST(SystemMetrics2Test, GetSystemMemoryInfo) {
   // Ensure each field received a value.
   EXPECT_GT(info.total, 0);
   EXPECT_GT(info.free, 0);
+#if defined(OS_LINUX) || defined(OS_ANDROID)
   EXPECT_GT(info.buffers, 0);
   EXPECT_GT(info.cached, 0);
   EXPECT_GT(info.active_anon, 0);
   EXPECT_GT(info.inactive_anon, 0);
   EXPECT_GT(info.active_file, 0);
   EXPECT_GT(info.inactive_file, 0);
+#endif  // defined(OS_LINUX) || defined(OS_ANDROID)
 
   // All the values should be less than the total amount of memory.
   EXPECT_LT(info.free, info.total);
+#if defined(OS_LINUX) || defined(OS_ANDROID)
   EXPECT_LT(info.buffers, info.total);
   EXPECT_LT(info.cached, info.total);
   EXPECT_LT(info.active_anon, info.total);
   EXPECT_LT(info.inactive_anon, info.total);
   EXPECT_LT(info.active_file, info.total);
   EXPECT_LT(info.inactive_file, info.total);
+#endif  // defined(OS_LINUX) || defined(OS_ANDROID)
 
 #if defined(OS_CHROMEOS)
   // Chrome OS exposes shmem.
@@ -302,7 +368,8 @@ TEST(SystemMetrics2Test, GetSystemMemoryInfo) {
   // and gem_size cannot be tested here.
 #endif
 }
-#endif  // defined(OS_LINUX) || defined(OS_ANDROID)
+#endif  // defined(OS_WIN) || (defined(OS_MACOSX) && !defined(OS_IOS)) ||
+        // defined(OS_LINUX) || defined(OS_ANDROID)
 
 #if defined(OS_LINUX) || defined(OS_ANDROID)
 TEST(ProcessMetricsTest, ParseProcStatCPU) {

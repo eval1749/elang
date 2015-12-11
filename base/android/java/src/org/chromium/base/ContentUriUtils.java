@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
+import org.chromium.base.annotations.CalledByNative;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -55,7 +57,7 @@ public abstract class ContentUriUtils {
      *
      * @param context {@link Context} in interest
      * @param uriString the content URI to open
-     * @return file desciptor upon sucess, or -1 otherwise.
+     * @return file desciptor upon success, or -1 otherwise.
      */
     @CalledByNative
     public static int openContentUriForRead(Context context, String uriString) {
@@ -112,6 +114,8 @@ public abstract class ContentUriUtils {
         } catch (SecurityException e) {
             Log.w(TAG, "Cannot open content uri: " + uriString, e);
         } catch (IllegalArgumentException e) {
+            Log.w(TAG, "Unknown content uri: " + uriString, e);
+        } catch (IllegalStateException e) {
             Log.w(TAG, "Unknown content uri: " + uriString, e);
         }
         return pfd;

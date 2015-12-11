@@ -9,9 +9,13 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 
+import org.chromium.base.annotations.CalledByNative;
+import org.chromium.base.annotations.MainDex;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@MainDex
 class SystemMessageHandler extends Handler {
 
     private static final String TAG = "cr.SysMessageHandler";

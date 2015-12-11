@@ -99,18 +99,6 @@ template<> struct NonASCIIMask<8, wchar_t> {
 };
 #endif  // WCHAR_T_IS_UTF32
 
-// DO NOT USE. http://crbug.com/24917
-//
-// tolower() will given incorrect results for non-ASCII characters. Use the
-// ASCII version, base::i18n::ToLower, or base::i18n::FoldCase. This is here
-// for backwards-compat for StartsWith until such calls can be updated.
-struct CaseInsensitiveCompareDeprecated {
- public:
-  bool operator()(char16 x, char16 y) const {
-    return tolower(x) == tolower(y);
-  }
-};
-
 }  // namespace
 
 bool IsWprintfFormatPortable(const wchar_t* format) {
@@ -146,6 +134,44 @@ bool IsWprintfFormatPortable(const wchar_t* format) {
   }
 
   return true;
+}
+
+namespace {
+
+template<typename StringType>
+StringType ToLowerASCIIImpl(BasicStringPiece<StringType> str) {
+  StringType ret;
+  ret.reserve(str.size());
+  for (size_t i = 0; i < str.size(); i++)
+    ret.push_back(ToLowerASCII(str[i]));
+  return ret;
+}
+
+template<typename StringType>
+StringType ToUpperASCIIImpl(BasicStringPiece<StringType> str) {
+  StringType ret;
+  ret.reserve(str.size());
+  for (size_t i = 0; i < str.size(); i++)
+    ret.push_back(ToUpperASCII(str[i]));
+  return ret;
+}
+
+}  // namespace
+
+std::string ToLowerASCII(StringPiece str) {
+  return ToLowerASCIIImpl<std::string>(str);
+}
+
+string16 ToLowerASCII(StringPiece16 str) {
+  return ToLowerASCIIImpl<string16>(str);
+}
+
+std::string ToUpperASCII(StringPiece str) {
+  return ToUpperASCIIImpl<std::string>(str);
+}
+
+string16 ToUpperASCII(StringPiece16 str) {
+  return ToUpperASCIIImpl<string16>(str);
 }
 
 template<class StringType>
@@ -362,8 +388,8 @@ TrimPositions TrimWhitespace(const string16& input,
   return TrimStringT(input, StringPiece16(kWhitespaceUTF16), positions, output);
 }
 
-StringPiece16 TrimWhitespaceASCII(StringPiece16 input,
-                                  TrimPositions positions) {
+StringPiece16 TrimWhitespace(StringPiece16 input,
+                             TrimPositions positions) {
   return TrimStringPieceT(input, StringPiece16(kWhitespaceUTF16), positions);
 }
 
@@ -587,23 +613,6 @@ bool StartsWith(StringPiece16 str,
   return StartsWithT<string16>(str, search_for, case_sensitivity);
 }
 
-bool StartsWith(const string16& str,
-                const string16& search,
-                bool case_sensitive) {
-  if (!case_sensitive) {
-    // This function was originally written using the current locale functions
-    // for case-insensitive comparisons. Emulate this behavior until callers
-    // can be converted either to use the case-insensitive ASCII one (most
-    // callers) or ICU functions in base_i18n.
-    if (search.size() > str.size())
-      return false;
-    return std::equal(search.begin(), search.end(), str.begin(),
-                      CaseInsensitiveCompareDeprecated());
-  }
-  return StartsWith(StringPiece16(str), StringPiece16(search),
-                    CompareCase::SENSITIVE);
-}
-
 template <typename Str>
 bool EndsWithT(BasicStringPiece<Str> str,
                BasicStringPiece<Str> search_for,
@@ -638,26 +647,8 @@ bool EndsWith(StringPiece str,
 
 bool EndsWith(StringPiece16 str,
               StringPiece16 search_for,
-                          CompareCase case_sensitivity) {
+              CompareCase case_sensitivity) {
   return EndsWithT<string16>(str, search_for, case_sensitivity);
-}
-
-bool EndsWith(const string16& str,
-              const string16& search,
-              bool case_sensitive) {
-  if (!case_sensitive) {
-    // This function was originally written using the current locale functions
-    // for case-insensitive comparisons. Emulate this behavior until callers
-    // can be converted either to use the case-insensitive ASCII one (most
-    // callers) or ICU functions in base_i18n.
-    if (search.size() > str.size())
-      return false;
-    return std::equal(search.begin(), search.end(),
-                      str.begin() + (str.size() - search.size()),
-                      CaseInsensitiveCompareDeprecated());
-  }
-  return EndsWith(StringPiece16(str), StringPiece16(search),
-                  CompareCase::SENSITIVE);
 }
 
 char HexDigitToInt(wchar_t c) {
@@ -669,6 +660,15 @@ char HexDigitToInt(wchar_t c) {
   if (c >= 'a' && c <= 'f')
     return static_cast<char>(c - 'a' + 10);
   return 0;
+}
+
+bool IsUnicodeWhitespace(wchar_t c) {
+  // kWhitespaceWide is a NULL-terminated string
+  for (const wchar_t* cur = kWhitespaceWide; *cur; ++cur) {
+    if (*cur == c)
+      return true;
+  }
+  return false;
 }
 
 static const char* const kByteStringsUnlocalized[] = {

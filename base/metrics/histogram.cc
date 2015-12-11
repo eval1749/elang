@@ -272,6 +272,10 @@ bool Histogram::HasConstructionArguments(Sample expected_minimum,
 }
 
 void Histogram::Add(int value) {
+  AddCount(value, 1);
+}
+
+void Histogram::AddCount(int value, int count) {
   DCHECK_EQ(0, ranges(0));
   DCHECK_EQ(kSampleType_MAX, ranges(bucket_count()));
 
@@ -279,13 +283,17 @@ void Histogram::Add(int value) {
     value = kSampleType_MAX - 1;
   if (value < 0)
     value = 0;
-  samples_->Accumulate(value, 1);
+  if (count <= 0) {
+    NOTREACHED();
+    return;
+  }
+  samples_->Accumulate(value, count);
 
   FindAndRunCallback(value);
 }
 
 scoped_ptr<HistogramSamples> Histogram::SnapshotSamples() const {
-  return SnapshotSampleVector().Pass();
+  return SnapshotSampleVector();
 }
 
 void Histogram::AddSamples(const HistogramSamples& samples) {
@@ -386,7 +394,7 @@ HistogramBase* Histogram::DeserializeInfoImpl(PickleIterator* iter) {
 scoped_ptr<SampleVector> Histogram::SnapshotSampleVector() const {
   scoped_ptr<SampleVector> samples(new SampleVector(bucket_ranges()));
   samples->Add(*samples_);
-  return samples.Pass();
+  return samples;
 }
 
 void Histogram::WriteAsciiImpl(bool graph_it,

@@ -281,8 +281,8 @@ TEST(FoundationUtilTest, GetValueFromDictionary) {
   CFStringRef keys[] = { CFSTR("one"), CFSTR("two"), CFSTR("three") };
   CFNumberRef values[] = { cf_one, cf_two, cf_three };
 
-  COMPILE_ASSERT(arraysize(keys) == arraysize(values),
-                 keys_and_values_arraysizes_are_different);
+  static_assert(arraysize(keys) == arraysize(values),
+                "keys and values arrays must have the same size");
 
   ScopedCFTypeRef<CFDictionaryRef> test_dict(
       CFDictionaryCreate(kCFAllocatorDefault,
@@ -315,6 +315,18 @@ TEST(FoundationUtilTest, NSStringToFilePath) {
   EXPECT_EQ(FilePath(), NSStringToFilePath(nil));
   EXPECT_EQ(FilePath(), NSStringToFilePath(@""));
   EXPECT_EQ(FilePath("/a/b"), NSStringToFilePath(@"/a/b"));
+}
+
+TEST(FoundationUtilTest, CFRangeToNSRange) {
+  NSRange range_out;
+  EXPECT_TRUE(CFRangeToNSRange(CFRangeMake(10, 5), &range_out));
+  EXPECT_EQ(10UL, range_out.location);
+  EXPECT_EQ(5UL, range_out.length);
+  EXPECT_FALSE(CFRangeToNSRange(CFRangeMake(-1, 5), &range_out));
+  EXPECT_FALSE(CFRangeToNSRange(CFRangeMake(5, -1), &range_out));
+  EXPECT_FALSE(CFRangeToNSRange(CFRangeMake(-1, -1), &range_out));
+  EXPECT_FALSE(CFRangeToNSRange(CFRangeMake(LONG_MAX, LONG_MAX), &range_out));
+  EXPECT_FALSE(CFRangeToNSRange(CFRangeMake(LONG_MIN, LONG_MAX), &range_out));
 }
 
 TEST(StringNumberConversionsTest, FormatNSInteger) {

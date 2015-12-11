@@ -15,6 +15,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/string_split.h"
+#include "base/strings/utf_string_conversions.h"
 #include "elang/api/pass.h"
 #include "elang/base/zone_allocated.h"
 #include "elang/cg/generator.h"
@@ -104,8 +105,7 @@ InstructionSelectionPass::InstructionSelectionPass(
       factory_(factory),
       function_(nullptr),
       hir_function_(nullptr),
-      schedule_(nullptr) {
-}
+      schedule_(nullptr) {}
 
 lir::Function* InstructionSelectionPass::Run(
     const hir::Function* hir_function) {
@@ -203,8 +203,7 @@ class FileSourceCode final : public ::elang::compiler::SourceCode,
 };
 
 FileSourceCode::FileSourceCode(const base::FilePath& file_path)
-    : SourceCode(file_path.value()), stream_(new SourceFileStream(file_path)) {
-}
+    : SourceCode(file_path.value()), stream_(new SourceFileStream(file_path)) {}
 
 ::elang::compiler::CharacterStream* FileSourceCode::GetStream() {
   return stream_.get();
@@ -340,10 +339,9 @@ int SwitchValueAsInt(base::StringPiece switch_name, int default_value) {
 
 std::vector<std::string> SwitchValuesOf(base::StringPiece switch_name) {
   auto const command_line = base::CommandLine::ForCurrentProcess();
-  std::vector<std::string> values;
-  base::SplitString(command_line->GetSwitchValueASCII(switch_name.as_string()),
-                    ',', &values);
-  return std::move(values);
+  return base::SplitString(
+      command_line->GetSwitchValueASCII(switch_name.as_string()), ",",
+      base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
 }
 
 const char kUseHir[] = "use_hir";
@@ -355,11 +353,9 @@ Compiler::Compiler(const std::vector<base::string16>& args)
       dumped_(false),
       exit_code_(1),
       session_(new CompilationSession()),
-      stop_(false) {
-}
+      stop_(false) {}
 
-Compiler::~Compiler() {
-}
+Compiler::~Compiler() {}
 
 void Compiler::AddSourceFile(const base::FilePath& file_path) {
   auto const source_code = new (session()->zone()) FileSourceCode(file_path);
@@ -367,8 +363,8 @@ void Compiler::AddSourceFile(const base::FilePath& file_path) {
     std::cerr << "Unable to open file "
               << source_code->stream().file_path().value() << "("
               << base::File::ErrorToString(
-                     source_code->stream().file().error_details()) << ")"
-              << std::endl;
+                     source_code->stream().file().error_details())
+              << ")" << std::endl;
     return;
   }
   auto const compilation_unit = session()->NewCompilationUnit(source_code);

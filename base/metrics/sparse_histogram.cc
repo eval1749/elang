@@ -4,6 +4,8 @@
 
 #include "base/metrics/sparse_histogram.h"
 
+#include <utility>
+
 #include "base/metrics/sample_map.h"
 #include "base/metrics/statistics_recorder.h"
 #include "base/pickle.h"
@@ -46,9 +48,17 @@ bool SparseHistogram::HasConstructionArguments(
 }
 
 void SparseHistogram::Add(Sample value) {
+  AddCount(value, 1);
+}
+
+void SparseHistogram::AddCount(Sample value, int count) {
+  if (count <= 0) {
+    NOTREACHED();
+    return;
+  }
   {
     base::AutoLock auto_lock(lock_);
-    samples_.Accumulate(value, 1);
+    samples_.Accumulate(value, count);
   }
 
   FindAndRunCallback(value);
@@ -59,7 +69,7 @@ scoped_ptr<HistogramSamples> SparseHistogram::SnapshotSamples() const {
 
   base::AutoLock auto_lock(lock_);
   snapshot->Add(samples_);
-  return snapshot.Pass();
+  return std::move(snapshot);
 }
 
 void SparseHistogram::AddSamples(const HistogramSamples& samples) {

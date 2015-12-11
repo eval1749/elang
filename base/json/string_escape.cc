@@ -23,7 +23,7 @@ const char kU16EscapeFormat[] = "\\u%04X";
 const uint32 kReplacementCodePoint = 0xFFFD;
 
 // Used below in EscapeSpecialCodePoint().
-COMPILE_ASSERT('<' == 0x3C, less_than_sign_is_0x3c);
+static_assert('<' == 0x3C, "less than sign must be 0x3c");
 
 // Try to escape the |code_point| if it is a known special character. If
 // successful, returns true and appends the escape sequence to |dest|. This
@@ -58,6 +58,14 @@ bool EscapeSpecialCodePoint(uint32 code_point, std::string* dest) {
     // not doing so save a few bytes.
     case '<':
       dest->append("\\u003C");
+      break;
+    // Escape the "Line Separator" and "Paragraph Separator" characters, since
+    // they should be treated like a new line \r or \n.
+    case 0x2028:
+      dest->append("\\u2028");
+      break;
+    case 0x2029:
+      dest->append("\\u2029");
       break;
     default:
       return false;

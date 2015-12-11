@@ -35,7 +35,7 @@ void ReportHeapDump(ProcessMemoryDump* pmd, const WinHeapInfo& heap_info) {
   inner_dump->AddScalar(MemoryAllocatorDump::kNameSize,
                         MemoryAllocatorDump::kUnitsBytes,
                         heap_info.allocated_size);
-  inner_dump->AddScalar(MemoryAllocatorDump::kNameObjectsCount,
+  inner_dump->AddScalar(MemoryAllocatorDump::kNameObjectCount,
                         MemoryAllocatorDump::kUnitsObjects,
                         heap_info.block_count);
 }
@@ -47,7 +47,8 @@ WinHeapDumpProvider* WinHeapDumpProvider::GetInstance() {
                    LeakySingletonTraits<WinHeapDumpProvider>>::get();
 }
 
-bool WinHeapDumpProvider::OnMemoryDump(ProcessMemoryDump* pmd) {
+bool WinHeapDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
+                                       ProcessMemoryDump* pmd) {
   // This method might be flaky for 2 reasons:
   //   - GetProcessHeaps is racy by design. It returns a snapshot of the
   //     available heaps, but there's no guarantee that that snapshot remains

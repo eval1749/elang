@@ -1,16 +1,19 @@
-// Copyright 2014 The Chromium Authors. All rights reserved.
+// Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 package org.chromium.base;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SearchEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
@@ -51,7 +54,6 @@ class WindowCallbackWrapper implements Window.Callback {
     public boolean dispatchTouchEvent(MotionEvent event) {
         return mCallback.dispatchTouchEvent(event);
     }
-
     @Override
     public boolean dispatchTrackballEvent(MotionEvent event) {
         return mCallback.dispatchTrackballEvent(event);
@@ -133,8 +135,15 @@ class WindowCallbackWrapper implements Window.Callback {
         return mCallback.onWindowStartingActionMode(callback);
     }
 
-    public void onWindowDismissed() {
-        // TODO(benm): implement me.
+    @Override
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean onSearchRequested(SearchEvent searchEvent) {
+        return mCallback.onSearchRequested(searchEvent);
     }
 
+    @Override
+    @TargetApi(Build.VERSION_CODES.M)
+    public ActionMode onWindowStartingActionMode(Callback callback, int type) {
+        return mCallback.onWindowStartingActionMode(callback, type);
+    }
 }

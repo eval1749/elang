@@ -9,6 +9,7 @@
 #define BASE_CALLBACK_INTERNAL_H_
 
 #include <stddef.h>
+#include <type_traits>
 
 #include "base/atomic_ref_count.h"
 #include "base/base_export.h"
@@ -16,9 +17,6 @@
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/template_util.h"
-
-template <typename T>
-class ScopedVector;
 
 namespace base {
 namespace internal {
@@ -108,18 +106,6 @@ template <typename T> struct IsMoveOnlyType {
                             !is_const<T>::value;
 };
 
-// Returns |Then| as SelectType::Type if |condition| is true. Otherwise returns
-// |Else|.
-template <bool condition, typename Then, typename Else>
-struct SelectType {
-  typedef Then Type;
-};
-
-template <typename Then, typename Else>
-struct SelectType<false, Then, Else> {
-  typedef Else Type;
-};
-
 template <typename>
 struct CallbackParamTraitsForMoveOnlyType;
 
@@ -143,9 +129,9 @@ struct CallbackParamTraitsForNonMoveOnlyType;
 // break passing of C-string literals.
 template <typename T>
 struct CallbackParamTraits
-    : SelectType<IsMoveOnlyType<T>::value,
+    : std::conditional<IsMoveOnlyType<T>::value,
          CallbackParamTraitsForMoveOnlyType<T>,
-         CallbackParamTraitsForNonMoveOnlyType<T> >::Type {
+         CallbackParamTraitsForNonMoveOnlyType<T>>::type {
 };
 
 template <typename T>
@@ -219,12 +205,14 @@ struct CallbackParamTraitsForMoveOnlyType {
 // parameter to another callback. This is to support Callbacks that return
 // the movable-but-not-copyable types whitelisted above.
 template <typename T>
-typename enable_if<!IsMoveOnlyType<T>::value, T>::type& CallbackForward(T& t) {
+typename std::enable_if<!IsMoveOnlyType<T>::value, T>::type& CallbackForward(
+    T& t) {
   return t;
 }
 
 template <typename T>
-typename enable_if<IsMoveOnlyType<T>::value, T>::type CallbackForward(T& t) {
+typename std::enable_if<IsMoveOnlyType<T>::value, T>::type CallbackForward(
+    T& t) {
   return t.Pass();
 }
 

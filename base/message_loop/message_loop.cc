@@ -5,6 +5,7 @@
 #include "base/message_loop/message_loop.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "base/bind.h"
 #include "base/compiler_specific.h"
@@ -417,7 +418,7 @@ void MessageLoop::SetTaskRunner(
   DCHECK_EQ(this, current());
   DCHECK(task_runner->BelongsToCurrentThread());
   DCHECK(!unbound_task_runner_);
-  task_runner_ = task_runner.Pass();
+  task_runner_ = std::move(task_runner);
   SetThreadTaskRunnerHandle();
 }
 
@@ -474,7 +475,7 @@ void MessageLoop::RunTask(const PendingTask& pending_task) {
 
   HistogramEvent(kTaskRunEvent);
 
-  TRACE_TASK_EXECUTION("toplevel", pending_task);
+  TRACE_TASK_EXECUTION("MessageLoop::RunTask", pending_task);
 
   FOR_EACH_OBSERVER(TaskObserver, task_observers_,
                     WillProcessTask(pending_task));
@@ -565,7 +566,7 @@ void MessageLoop::StartHistogrammer() {
         "MsgLoop:" + thread_name_,
         kLeastNonZeroMessageId, kMaxMessageId,
         kNumberOfDistinctMessagesDisplayed,
-        message_histogram_->kHexRangePrintingFlag,
+        HistogramBase::kHexRangePrintingFlag,
         event_descriptions_);
   }
 #endif

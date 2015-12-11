@@ -6,24 +6,44 @@
 import argparse
 import os
 import re
+import shutil
 import sys
+import tempfile
+import zipfile
 
+from devil.android.sdk import dexdump
 from pylib import constants
-from pylib.sdk import dexdump
 
 sys.path.append(os.path.join(constants.DIR_SOURCE_ROOT, 'build', 'util', 'lib',
                              'common'))
-import perf_tests_results_helper
+import perf_tests_results_helper # pylint: disable=import-error
 
 
 _METHOD_IDS_SIZE_RE = re.compile(r'^method_ids_size +: +(\d+)$')
 
-def MethodCount(dexfile):
+def ExtractIfZip(dexfile, tmpdir):
+  if not dexfile.endswith('.zip'):
+    return [dexfile]
+
+  with zipfile.ZipFile(dexfile, 'r') as z:
+    z.extractall(tmpdir)
+
+  return [os.path.join(tmpdir, f) for f in os.listdir(tmpdir)]
+
+def SingleMethodCount(dexfile):
   for line in dexdump.DexDump(dexfile, file_summary=True):
     m = _METHOD_IDS_SIZE_RE.match(line)
     if m:
       return m.group(1)
   raise Exception('"method_ids_size" not found in dex dump of %s' % dexfile)
+
+def MethodCount(dexfile):
+  tmpdir = tempfile.mkdtemp(suffix='_dex_extract')
+  multidex_file_list = ExtractIfZip(dexfile, tmpdir)
+  try:
+    return sum(int(SingleMethodCount(d)) for d in multidex_file_list)
+  finally:
+    shutil.rmtree(tmpdir)
 
 def main():
   parser = argparse.ArgumentParser()
