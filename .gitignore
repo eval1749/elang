@@ -32,3 +32,12 @@
 
 /build/win_toolchain.json
 out/
+
+# gclient brings files in following directory specified by DEPS.
+buildtools/
+testing/gmock/
+testing/gtest/
+third_party/cygwin/
+third_party/icu/
+tools/deps2git/
+tools/gyp/
