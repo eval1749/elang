@@ -239,8 +239,7 @@ Description::Description() {
 #undef V2
 }
 
-Description::~Description() {
-}
+Description::~Description() {}
 
 uint32_t Description::Encode(OperandFormat format1,
                              OperandFormat format2,
@@ -388,8 +387,7 @@ Instruction::Decoder::Decoder(const void* start, const void* end)
       has_rex_w_(false),
       mandatory_prefix_(0),
       opcode_(0),
-      prefix_size_(0) {
-}
+      prefix_size_(0) {}
 
 void Instruction::Decoder::Advance(size_t size) {
   DCHECK(HasMore());
@@ -612,15 +610,12 @@ int Instruction::Decoder::SizeFromModRm(uint8_t modrm) {
 // Instruction::Operands
 //
 Instruction::Operands::Operands(const Instruction* instruction)
-    : instruction_(instruction) {
-}
+    : instruction_(instruction) {}
 
 Instruction::Operands::Operands(const Operands& other)
-    : Operands(other.instruction_) {
-}
+    : Operands(other.instruction_) {}
 
-Instruction::Operands::~Operands() {
-}
+Instruction::Operands::~Operands() {}
 
 Instruction::Operands::Iterator Instruction::Operands::begin() const {
   return Iterator(instruction_, 0);
@@ -640,15 +635,12 @@ size_t Instruction::Operands::size() const {
 //
 Instruction::Operands::Iterator::Iterator(const Instruction* instruction,
                                           size_t position)
-    : instruction_(instruction), position_(position) {
-}
+    : instruction_(instruction), position_(position) {}
 
 Instruction::Operands::Iterator::Iterator(const Iterator& other)
-    : Iterator(other.instruction_, other.position_) {
-}
+    : Iterator(other.instruction_, other.position_) {}
 
-Instruction::Operands::Iterator::~Iterator() {
-}
+Instruction::Operands::Iterator::~Iterator() {}
 
 Instruction::Operands::Iterator& Instruction::Operands::Iterator::operator=(
     const Iterator& other) {
@@ -693,11 +685,9 @@ Instruction::Instruction(const Instruction& other)
 }
 
 Instruction::Instruction()
-    : opcode_(0), opcode_size_(0), prefix_size_(0), size_(0) {
-}
+    : opcode_(0), opcode_size_(0), prefix_size_(0), size_(0) {}
 
-Instruction::~Instruction() {
-}
+Instruction::~Instruction() {}
 
 Instruction& Instruction::operator=(const Instruction& other) {
   DCHECK_GE(size_, opcode_size_ + prefix_size_);
@@ -851,7 +841,8 @@ Operand Instruction::OperandAt(size_t position) const {
     }
 
     case OperandFormat::Jv:
-      return Operand(Operand::Relative{OperandSize::Is0, operand32_at(0)});
+      return Operand(Operand::Relative{OperandSize::Is0,
+                                       static_cast<int>(operand32_at(0))});
 
     case OperandFormat::Ob:
       return Operand(Operand::Offset{OperandSize::Is8, operand64_at(0)});
@@ -948,7 +939,9 @@ Operand Instruction::OperandIv() const {
     case OperandSize::Is32:
       return Operand(Operand::Immediate{size, operand32_at(position - 4)});
     case OperandSize::Is64:
-      return Operand(Operand::Immediate{size, operand64_at(position - 8)});
+      return Operand(Operand::Immediate{
+          size, static_cast<int64_t>(operand64_at(position - 8))});
+      ;
   }
   NOTREACHED();
   return Operand(Register::SS);
